@@ -215,22 +215,19 @@ export interface ICacheManager {
     /**
      * Removes all accounts and related tokens from cache.
      */
-    removeAllAccounts(correlationId: string): Promise<void>;
+    removeAllAccounts(correlationId: string): void;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(accountKey: string, correlationId: string): Promise<void>;
+    removeAccount(accountKey: string, correlationId: string): void;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccountContext(
-        account: AccountEntity,
-        correlationId: string
-    ): Promise<void>;
+    removeAccountContext(account: AccountEntity, correlationId: string): void;
 
     /**
      * @param key
@@ -240,7 +237,7 @@ export interface ICacheManager {
     /**
      * @param key
      */
-    removeAccessToken(key: string, correlationId: string): Promise<void>;
+    removeAccessToken(key: string, correlationId: string): void;
 
     /**
      * @param key

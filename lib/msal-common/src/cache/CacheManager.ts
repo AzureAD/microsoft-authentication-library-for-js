@@ -54,6 +54,7 @@ import { TokenClaims } from "../account/TokenClaims.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { createCacheError } from "../error/CacheError.js";
 import { AuthError } from "../error/AuthError.js";
+import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceClient.js";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -65,17 +66,21 @@ export abstract class CacheManager implements ICacheManager {
     // Instance of logger for functions defined in the msal-common layer
     private commonLogger: Logger;
     private staticAuthorityOptions?: StaticAuthorityOptions;
+    protected performanceClient: IPerformanceClient;
 
     constructor(
         clientId: string,
         cryptoImpl: ICrypto,
         logger: Logger,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        performanceClient?: IPerformanceClient
     ) {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
         this.commonLogger = logger.clone(name, version);
         this.staticAuthorityOptions = staticAuthorityOptions;
+        this.performanceClient =
+            performanceClient || new StubPerformanceClient();
     }
 
     /**
@@ -595,7 +600,6 @@ export abstract class CacheManager implements ICacheManager {
         const tokenKeys = this.getTokenKeys();
         const currentScopes = ScopeSet.fromString(credential.target);
 
-        const removedAccessTokens: Array<Promise<void>> = [];
         tokenKeys.accessToken.forEach((key) => {
             if (
                 !this.accessTokenKeyMatchesFilter(key, accessTokenFilter, false)
@@ -614,13 +618,10 @@ export abstract class CacheManager implements ICacheManager {
             ) {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
                 if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
-                    removedAccessTokens.push(
-                        this.removeAccessToken(key, correlationId)
-                    );
+                    this.removeAccessToken(key, correlationId);
                 }
             }
         });
-        await Promise.all(removedAccessTokens);
         await this.setAccessTokenCredential(credential, correlationId);
     }
 
@@ -974,30 +975,24 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Removes all accounts and related tokens from cache.
      */
-    async removeAllAccounts(correlationId: string): Promise<void> {
+    removeAllAccounts(correlationId: string): void {
         const allAccountKeys = this.getAccountKeys();
-        const removedAccounts: Array<Promise<void>> = [];
 
         allAccountKeys.forEach((cacheKey) => {
-            removedAccounts.push(this.removeAccount(cacheKey, correlationId));
+            this.removeAccount(cacheKey, correlationId);
         });
-
-        await Promise.all(removedAccounts);
     }
 
     /**
      * Removes the account and related tokens for a given account key
      * @param account
      */
-    async removeAccount(
-        accountKey: string,
-        correlationId: string
-    ): Promise<void> {
+    removeAccount(accountKey: string, correlationId: string): void {
         const account = this.getAccount(accountKey, correlationId);
         if (!account) {
             return;
         }
-        await this.removeAccountContext(account, correlationId);
+        this.removeAccountContext(account, correlationId);
         this.removeItem(accountKey, correlationId);
     }
 
@@ -1005,13 +1000,9 @@ export abstract class CacheManager implements ICacheManager {
      * Removes credentials associated with the provided account
      * @param account
      */
-    async removeAccountContext(
-        account: AccountEntity,
-        correlationId: string
-    ): Promise<void> {
+    removeAccountContext(account: AccountEntity, correlationId: string): void {
         const allTokenKeys = this.getTokenKeys();
         const accountId = account.generateAccountId();
-        const removedCredentials: Array<Promise<void>> = [];
 
         allTokenKeys.idToken.forEach((key) => {
             if (key.indexOf(accountId) === 0) {
@@ -1021,9 +1012,7 @@ export abstract class CacheManager implements ICacheManager {
 
         allTokenKeys.accessToken.forEach((key) => {
             if (key.indexOf(accountId) === 0) {
-                removedCredentials.push(
-                    this.removeAccessToken(key, correlationId)
-                );
+                this.removeAccessToken(key, correlationId);
             }
         });
 
@@ -1032,19 +1021,20 @@ export abstract class CacheManager implements ICacheManager {
                 this.removeRefreshToken(key, correlationId);
             }
         });
-
-        await Promise.all(removedCredentials);
     }
 
     /**
-     * returns a boolean if the given credential is removed
-     * @param credential
+     * Removes accessToken from the cache
+     * @param key
+     * @param correlationId
      */
-    async removeAccessToken(key: string, correlationId: string): Promise<void> {
+    removeAccessToken(key: string, correlationId: string): void {
         const credential = this.getAccessTokenCredential(key, correlationId);
         if (!credential) {
             return;
         }
+
+        this.removeItem(key, correlationId);
 
         // Remove Token Binding Key from key store for PoP Tokens Credentials
         if (
@@ -1057,18 +1047,22 @@ export abstract class CacheManager implements ICacheManager {
                 const kid = accessTokenWithAuthSchemeEntity.keyId;
 
                 if (kid) {
-                    try {
-                        await this.cryptoImpl.removeTokenBindingKey(kid);
-                    } catch (error) {
-                        throw createClientAuthError(
-                            ClientAuthErrorCodes.bindingKeyNotRemoved
-                        );
-                    }
+                    void this.cryptoImpl
+                        .removeTokenBindingKey(kid)
+                        .catch((error) => {
+                            this.commonLogger.error(
+                                `Failed to remove token binding key! With error: ${error.message}`
+                            );
+                            this.performanceClient?.incrementFields(
+                                {
+                                    tokenBindingKeyRemovalFailed: 1,
+                                },
+                                correlationId
+                            );
+                        });
                 }
             }
         }
-
-        return this.removeItem(key, correlationId);
     }
 
     /**

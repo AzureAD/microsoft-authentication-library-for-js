@@ -88,8 +88,6 @@ export class BrowserCacheManager extends CacheManager {
     protected cookieStorage: CookieStorage;
     // Logger instance
     protected logger: Logger;
-    // Telemetry perf client
-    protected performanceClient: IPerformanceClient;
     // Event Handler
     private eventHandler: EventHandler;
 
@@ -102,7 +100,13 @@ export class BrowserCacheManager extends CacheManager {
         eventHandler: EventHandler,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            staticAuthorityOptions,
+            performanceClient
+        );
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
@@ -119,8 +123,6 @@ export class BrowserCacheManager extends CacheManager {
             performanceClient
         );
         this.cookieStorage = new CookieStorage();
-
-        this.performanceClient = performanceClient;
         this.eventHandler = eventHandler;
     }
 
@@ -441,7 +443,7 @@ export class BrowserCacheManager extends CacheManager {
      * Removes given accessToken from the cache and from the key map
      * @param key
      */
-    async removeAccessToken(key: string, correlationId: string): Promise<void> {
+    removeAccessToken(key: string, correlationId: string): void {
         void super.removeAccessToken(key, correlationId);
         this.removeTokenKey(key, CredentialType.ACCESS_TOKEN, correlationId);
     }
@@ -1195,8 +1197,7 @@ export class BrowserCacheManager extends CacheManager {
         );
 
         const tokenKeys = this.getTokenKeys();
-
-        const removedAccessTokens: Array<Promise<void>> = [];
+        let removedAccessTokens = 0;
         tokenKeys.accessToken.forEach((key: string) => {
             // if the access token has claims in its key, remove the token key and the token
             const credential = this.getAccessTokenCredential(
@@ -1207,17 +1208,15 @@ export class BrowserCacheManager extends CacheManager {
                 credential?.requestedClaimsHash &&
                 key.includes(credential.requestedClaimsHash.toLowerCase())
             ) {
-                removedAccessTokens.push(
-                    this.removeAccessToken(key, correlationId)
-                );
+                this.removeAccessToken(key, correlationId);
+                removedAccessTokens++;
             }
         });
-        await Promise.all(removedAccessTokens);
 
         // warn if any access tokens are removed
-        if (removedAccessTokens.length > 0) {
+        if (removedAccessTokens > 0) {
             this.logger.warning(
-                `${removedAccessTokens.length} access tokens with claims in the cache keys have been removed from the cache.`
+                `${removedAccessTokens} access tokens with claims in the cache keys have been removed from the cache.`
             );
         }
     }
