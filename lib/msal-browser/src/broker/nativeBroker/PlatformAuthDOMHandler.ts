@@ -11,14 +11,15 @@ import {
     StringDict,
 } from "@azure/msal-common/browser";
 import {
-    PlatformBrokerRequest,
+    DOMExtraParameters,
+    PlatformAuthRequest,
     PlatformDOMTokenRequest,
-} from "./PlatformBrokerRequest.js";
+} from "./PlatformAuthRequest.js";
 import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
 import {
-    PlatformBrokerResponse,
+    PlatformAuthResponse,
     PlatformDOMTokenResponse,
-} from "./PlatformBrokerResponse.js";
+} from "./PlatformAuthResponse.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 
@@ -91,8 +92,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
      * @returns
      */
     async sendMessage(
-        request: PlatformBrokerRequest
-    ): Promise<PlatformBrokerResponse> {
+        request: PlatformAuthRequest
+    ): Promise<PlatformAuthResponse> {
         this.logger.trace(
             this.platformAuthType + " - Sending request to browser DOM API"
         );
@@ -115,7 +116,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     }
 
     private initializePlatformDOMRequest(
-        request: PlatformBrokerRequest
+        request: PlatformAuthRequest
     ): PlatformDOMTokenRequest {
         this.logger.trace(
             this.platformAuthType + " - initializeNativeDOMRequest called"
@@ -135,8 +136,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ...remainingProperties
         } = request;
 
-        const validExtraParameters =
-            this.stringifyExtraParameters(remainingProperties);
+        const validExtraParameters: DOMExtraParameters =
+            this.getDOMExtraParams(remainingProperties);
 
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
@@ -158,7 +159,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
     private validatePlatformBrokerResponse(
         response: object
-    ): PlatformBrokerResponse {
+    ): PlatformAuthResponse {
         if (response.hasOwnProperty("isSuccess")) {
             if (
                 response.hasOwnProperty("accessToken") &&
@@ -207,11 +208,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
     private convertToPlatformBrokerResponse(
         response: PlatformDOMTokenResponse
-    ): PlatformBrokerResponse {
+    ): PlatformAuthResponse {
         this.logger.trace(
             this.platformAuthType + " - convertToNativeResponse called"
         );
-        const nativeResponse: PlatformBrokerResponse = {
+        const nativeResponse: PlatformAuthResponse = {
             access_token: response.accessToken,
             id_token: response.idToken,
             client_info: response.clientInfo,
@@ -227,15 +228,21 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         return nativeResponse;
     }
 
-    private stringifyExtraParameters(
+    private getDOMExtraParams(
         extraParameters: Record<string, unknown>
-    ): StringDict {
-        return Object.entries(extraParameters).reduce(
+    ): DOMExtraParameters {
+         const stringifiedParams =  Object.entries(extraParameters).reduce(
             (record, [key, value]) => {
                 record[key] = String(value);
                 return record;
             },
             {} as StringDict
         );
+
+        const validExtraParams: DOMExtraParameters = {
+            ...stringifiedParams,
+        };
+
+        return validExtraParams;
     }
 }
