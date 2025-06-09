@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 30 May 2025 22:36:44 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 09 Jun 2025 21:01:05 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.13.1
+
+Mon, 09 Jun 2025 21:01:05 GMT
+
+### Patches
+
+- Suppress false-positive CodeQL finding in NavigationClient #7814 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.13.0
 
