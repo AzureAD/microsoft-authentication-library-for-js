@@ -52,6 +52,7 @@ import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvid
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
+    clearCacheOnLogout,
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
@@ -511,7 +512,13 @@ export class PopupClient extends StandardInteractionClient {
 
         try {
             // Clear cache on logout
-            await this.clearCacheOnLogout(validRequest.account);
+            await clearCacheOnLogout(
+                this.browserStorage,
+                this.browserCrypto,
+                this.logger,
+                this.correlationId,
+                validRequest.account
+            );
 
             // Initialize the client
             const authClient = await invokeAsync(

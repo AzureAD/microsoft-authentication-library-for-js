@@ -35,7 +35,7 @@ import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
-import { getDiscoveredAuthority } from "../../src/interaction_client/BaseInteractionClient.js";
+import { clearCacheOnLogout, getDiscoveredAuthority } from "../../src/interaction_client/BaseInteractionClient.js";
 
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
@@ -73,7 +73,13 @@ class testStandardInteractionClient extends StandardInteractionClient {
     }
 
     logout(request: EndSessionRequest): Promise<void> {
-        return this.clearCacheOnLogout(request.account);
+        return clearCacheOnLogout(
+                        this.browserStorage,
+                        this.browserCrypto,
+                        this.logger,
+                        this.correlationId,
+                        request.account
+                    );
     }
 }
 

@@ -24,6 +24,7 @@ import {
 } from "../utils/StringConstants.js";
 import {
     BaseInteractionClient,
+    clearCacheOnLogout,
     getDiscoveredAuthority,
 } from "../../src/interaction_client/BaseInteractionClient.js";
 import {
@@ -39,7 +40,13 @@ class testInteractionClient extends BaseInteractionClient {
     }
 
     logout(request: EndSessionRequest): Promise<void> {
-        return this.clearCacheOnLogout(request.account);
+        return clearCacheOnLogout(
+                        this.browserStorage,
+                        this.browserCrypto,
+                        this.logger,
+                        this.correlationId,
+                        request.account
+                    );
     }
 }
 

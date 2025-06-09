@@ -53,6 +53,7 @@ import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvid
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
+    clearCacheOnLogout,
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
@@ -707,7 +708,13 @@ export class RedirectClient extends StandardInteractionClient {
             );
 
             // Clear cache on logout
-            await this.clearCacheOnLogout(validLogoutRequest.account);
+            await clearCacheOnLogout(
+                            this.browserStorage,
+                            this.browserCrypto,
+                            this.logger,
+                            this.correlationId,
+                            validLogoutRequest.account
+                        );
 
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,

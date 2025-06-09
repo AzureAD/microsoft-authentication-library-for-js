@@ -17,7 +17,7 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
-import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import { clearCacheOnLogout, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -91,6 +91,12 @@ export class SilentCacheClient extends StandardInteractionClient {
     logout(logoutRequest?: ClearCacheRequest): Promise<void> {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        return this.clearCacheOnLogout(validLogoutRequest?.account);
+        return clearCacheOnLogout(
+                        this.browserStorage,
+                        this.browserCrypto,
+                        this.logger,
+                        this.correlationId,
+                        validLogoutRequest.account
+                    );
     }
 }
