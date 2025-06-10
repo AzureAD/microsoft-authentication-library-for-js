@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "importing v4 changes for DOM platform authentication",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
