@@ -14,7 +14,7 @@ import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     AccountFilter,
 } from "@azure/msal-common/browser";
-import { ITokenCache } from "../cache/ITokenCache.js";
+import { TokenCache } from "../cache/TokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import {
     BrowserCacheManager,
@@ -298,10 +298,10 @@ export class UnknownOperatingContextController implements IController {
         blockNonBrowserEnvironment();
         return {} as Promise<AuthenticationResult>;
     }
-    getTokenCache(): ITokenCache {
+    getTokenCache(): TokenCache {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
-        return {} as ITokenCache;
+        return {} as TokenCache;
     }
     getLogger(): Logger {
         return this.logger;

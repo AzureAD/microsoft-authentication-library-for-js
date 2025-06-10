@@ -18,7 +18,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
-import { ITokenCache } from "../cache/ITokenCache.js";
+import { TokenCache } from "../cache/TokenCache.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -87,7 +87,7 @@ export interface IController {
 
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 
-    getTokenCache(): ITokenCache;
+    getTokenCache(): TokenCache;
 
     getLogger(): Logger;
 

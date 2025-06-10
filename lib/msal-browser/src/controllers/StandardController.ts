@@ -62,7 +62,6 @@ import { RedirectClient } from "../interaction_client/RedirectClient.js";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
 import { TokenCache } from "../cache/TokenCache.js";
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import {
@@ -1783,7 +1782,7 @@ export class StandardController implements IController {
     /**
      * Gets the token cache for the application.
      */
-    getTokenCache(): ITokenCache {
+    getTokenCache(): TokenCache {
         return this.tokenCache;
     }
 

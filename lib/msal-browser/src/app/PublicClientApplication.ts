@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache.js";
+import { TokenCache } from "../cache/TokenCache.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -286,7 +286,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Gets the token cache for the application.
      */
-    getTokenCache(): ITokenCache {
+    getTokenCache(): TokenCache {
         return this.controller.getTokenCache();
     }
 

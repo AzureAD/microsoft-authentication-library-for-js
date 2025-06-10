@@ -65,7 +65,7 @@ export { InitializeApplicationRequest } from "./request/InitializeApplicationReq
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";
-export { ITokenCache } from "./cache/ITokenCache.js";
+export { TokenCache, loadExternalTokens } from "./cache/TokenCache.js";
 
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";

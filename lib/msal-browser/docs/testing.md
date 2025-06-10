@@ -6,14 +6,14 @@ The `loadExternalTokens()` API allows the loading of id, access and refresh toke
 
 **Note: This is an advanced feature that is intended for testing purposes in the browser environment only. We do not recommend using this in a production app. For E2E testing recommendations, please refer to our [TestingSample](../../../samples/msal-browser-samples/TestingSample) instead.**
 
-The `loadExternalTokens()` API can be accessed by calling `getTokenCache()` on MSAL Browser's `PublicClientApplication` instance.
+The `loadExternalTokens()` API is a standalone function.
 
 ```js
-const msalTokenCache = myMSALObj.getTokenCache();
-await msalTokenCache.loadExternalTokens(
+await loadExternalTokens(
     silentRequest,
     serverResponse,
-    loadTokenOptions
+    loadTokenOptions,
+    myMSALObj.getTokenCache()
 );
 ```
 
@@ -66,10 +66,11 @@ const loadTokenOptions: LoadTokenOptions = {};
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-await pca.getTokenCache().loadExternalTokens(
+await loadExternalTokens(
     silentRequest,
     serverResponse,
-    loadTokenOptions
+    loadTokenOptions,
+    pca.getTokenCache()
 );
 
 // OR
@@ -90,10 +91,11 @@ const loadTokenOptions: LoadTokenOptions = {
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-await pca.getTokenCache().loadExternalTokens(
+await loadExternalTokens(
     silentRequest,
     serverResponse,
-    loadTokenOptions
+    loadTokenOptions,
+    pca.getTokenCache()
 );
 
 // OR
@@ -113,10 +115,11 @@ const loadTokenOptions: LoadTokenOptions = {};
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-await pca.getTokenCache().loadExternalTokens(
+await loadExternalTokens(
     silentRequest,
     serverResponse,
-    loadTokenOptions
+    loadTokenOptions,
+    pca.getTokenCache()
 );
 ```
 
@@ -154,10 +157,11 @@ const loadTokenOptions: LoadTokenOptions = {
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-await pca.getTokenCache().loadExternalTokens(
+await loadExternalTokens(
     silentRequest,
     serverResponse,
-    loadTokenOptions
+    loadTokenOptions,
+    pca.getTokenCache()
 );
 ```
 
@@ -191,9 +195,10 @@ const loadTokenOptions: LoadTokenOptions = {};
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-await pca.getTokenCache().loadExternalTokens(
+await loadExternalTokens(
     silentRequest,
     serverResponse,
-    loadTokenOptions
+    loadTokenOptions,
+    pca.getTokenCache()
 );
 ```
