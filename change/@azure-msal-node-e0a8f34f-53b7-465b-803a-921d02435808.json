@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Implemented Managed Identity Version 2",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
