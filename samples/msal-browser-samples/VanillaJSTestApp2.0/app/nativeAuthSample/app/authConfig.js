@@ -12,7 +12,7 @@ const { LogLevel } = msalCustomAuth;
 export const msalConfig = {
     customAuth: {
         challengeTypes: ["password", "oob", "redirect"],
-        authApiProxyUrl: `http://localhost:3001/api`,
+        authApiProxyUrl: `http://localhost:30001/api`,
     },
     auth: {
         clientId: "bf51a508-ba84-4b15-b231-8b43ac362b40", // opt: 536ed3cf-8997-4de7-bd94-b53c9de872d0  pwd:bf51a508-ba84-4b15-b231-8b43ac362b40

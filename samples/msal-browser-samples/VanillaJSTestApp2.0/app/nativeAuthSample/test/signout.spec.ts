@@ -14,7 +14,9 @@ import {
     LabClient,
     getHomeUrl
 } from "e2e-test-utils";
-import path from "path";
+import { ChildProcess } from "child_process";
+import path = require("path");
+import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "./screenshots/signout");
 const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45; // Standard timeout for operations
@@ -29,8 +31,16 @@ describe("Native Auth Sample - Sign Out Tests", () => {
     let browser: puppeteer.Browser;
     let signInEmailWithPwd: string = "";
     let accountPwd: string = "";
+    let corsProcess: ChildProcess;
 
     beforeAll(async () => {
+        // Start the CORS proxy server using the utility function
+        corsProcess = await startCorsProxy(
+            "MSIDLABCIAM6", 
+            "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
+            30001
+        );
+
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
@@ -46,6 +56,7 @@ describe("Native Auth Sample - Sign Out Tests", () => {
     afterAll(async () => {
         await context?.close();
         await browser?.close();
+        stopCorsProxy(corsProcess);
     });
 
 

@@ -14,8 +14,9 @@ import {
     LabClient,
     getHomeUrl,
 } from "e2e-test-utils";
-import { spawn, ChildProcess } from "child_process";
+import { ChildProcess } from "child_process";
 import path = require("path");
+import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(
     __dirname,
@@ -37,26 +38,12 @@ describe("Native Auth Sample - Sign In Tests", () => {
     let corsProcess: ChildProcess;
 
     beforeAll(async () => {
-        // Start the CORS proxy server
-        corsProcess = spawn(
-            "node",
-            [
-                path.join(__dirname, "../cors.js"),
-                "-d",
-                "yourTenantSubdomain", // replace with actual value or parameterize
-                "-t",
-                "yourTenantId", // replace with actual value or parameterize
-                "-p",
-                "30001", // or your desired port
-            ],
-            {
-                stdio: "inherit",
-                cwd: path.join(__dirname, ".."),
-            }
+        // Start the CORS proxy server using the utility function
+        corsProcess = await startCorsProxy(
+            "MSIDLABCIAM6", 
+            "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
+            30001
         );
-
-        // Wait a bit to ensure the proxy is up
-        await new Promise((res) => setTimeout(res, 2000));
 
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
@@ -74,9 +61,8 @@ describe("Native Auth Sample - Sign In Tests", () => {
     afterAll(async () => {
         await context?.close();
         await browser?.close();
-        if (corsProcess) {
-            corsProcess.kill();
-        }
+        // Stop the CORS proxy server using the utility function
+        stopCorsProxy(corsProcess);
     });
 
     beforeEach(async () => {
