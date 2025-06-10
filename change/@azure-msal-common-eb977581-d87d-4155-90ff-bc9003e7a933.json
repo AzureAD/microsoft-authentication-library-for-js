@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Decompose nested telemetry events #7818",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

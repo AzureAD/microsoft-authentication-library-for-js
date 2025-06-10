@@ -25,7 +25,6 @@ import {
     invokeAsync,
     IPerformanceClient,
     Logger,
-    PerformanceEvents,
     RefreshTokenEntity,
     ServerTelemetryEntity,
     StaticAuthorityOptions,
@@ -35,6 +34,7 @@ import {
     TimeUtils,
     TokenKeys,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { CacheOptions } from "../config/Configuration.js";
 import {
     BrowserAuthErrorCodes,
@@ -207,7 +207,7 @@ export class BrowserCacheManager extends CacheManager {
         const key = AccountEntityUtils.generateAccountKey(account);
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
-            PerformanceEvents.SetUserData,
+            BrowserPerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
         )(key, JSON.stringify(account), correlationId);
@@ -522,7 +522,7 @@ export class BrowserCacheManager extends CacheManager {
 
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
-            PerformanceEvents.SetUserData,
+            BrowserPerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
         )(idTokenKey, JSON.stringify(idToken), correlationId);
@@ -581,7 +581,7 @@ export class BrowserCacheManager extends CacheManager {
         const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
-            PerformanceEvents.SetUserData,
+            BrowserPerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
         )(accessTokenKey, JSON.stringify(accessToken), correlationId);
@@ -643,7 +643,7 @@ export class BrowserCacheManager extends CacheManager {
             CacheHelpers.generateCredentialKey(refreshToken);
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
-            PerformanceEvents.SetUserData,
+            BrowserPerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
         )(refreshTokenKey, JSON.stringify(refreshToken), correlationId);

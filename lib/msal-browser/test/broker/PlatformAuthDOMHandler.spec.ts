@@ -517,37 +517,38 @@ describe("PlatformAuthDOMHandler tests", () => {
         });
     });
 
-    describe("getDOMExtraParams tests", () => {});
-    it("should return a valid DOMExtraParameters object", async () => {
-        getSupportedContractsMock.mockResolvedValue([
-            PlatformAuthConstants.PLATFORM_DOM_APIS,
-        ]);
-        const platformAuthDOMHandler =
-            await PlatformAuthDOMHandler.createProvider(
-                logger,
-                performanceClient,
-                "test-correlation-id"
-            );
-        const testExtraParameters = {
-            prompt: Constants.PromptValue.NONE,
-            nonce: "test-nonce",
-            claims: "test-claims",
-            instanceAware: true,
-            windowTitleSubstring: "test-window-substring",
-            extendedExpiryToken: true,
-            signPopToken: true,
-        };
-        const domExtraParams =
-            //@ts-ignore
-            platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
-        expect(domExtraParams).toEqual({
-            prompt: "none",
-            nonce: "test-nonce",
-            claims: "test-claims",
-            instanceAware: "true",
-            windowTitleSubstring: "test-window-substring",
-            extendedExpiryToken: "true",
-            signPopToken: "true",
+    describe("getDOMExtraParams tests", () => {
+        it("should return a valid DOMExtraParameters object", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+            const testExtraParameters = {
+                prompt: Constants.PromptValue.NONE,
+                nonce: "test-nonce",
+                claims: "test-claims",
+                instanceAware: true,
+                windowTitleSubstring: "test-window-substring",
+                extendedExpiryToken: true,
+                signPopToken: true,
+            };
+            const domExtraParams =
+                //@ts-ignore
+                platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
+            expect(domExtraParams).toEqual({
+                prompt: "none",
+                nonce: "test-nonce",
+                claims: "test-claims",
+                instanceAware: "true",
+                windowTitleSubstring: "test-window-substring",
+                extendedExpiryToken: "true",
+                signPopToken: "true",
+            });
         });
     });
 });
