@@ -3,19 +3,20 @@ import {
     AuthErrorCodes,
     IPerformanceClient,
     Logger,
+    Constants,
 } from "@azure/msal-common/browser";
 import { PlatformAuthConstants } from "../../src/utils/BrowserConstants.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
-import { get } from "http";
-import { PlatformBrokerResponse } from "../../src/broker/nativeBroker/PlatformBrokerResponse.js";
+import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
     TEST_URIS,
 } from "../utils/StringConstants.js";
-import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
+import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
+import { sign } from "crypto";
 
 describe("PlatformAuthDOMHandler tests", () => {
     let performanceClient: IPerformanceClient;
@@ -136,7 +137,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -167,7 +168,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
                 extendedLifetimeToken: true,
             };
-            const validatedResponse: PlatformBrokerResponse = {
+            const validatedResponse: PlatformAuthResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 account: {
                     id: "test-id",
@@ -202,7 +203,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -259,7 +260,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -305,7 +306,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -364,16 +365,71 @@ describe("PlatformAuthDOMHandler tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 );
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scope: "read openid",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                windowTitleSubstring: "",
+                windowTitleSubstring: "test-window-substring",
+                prompt: "login",
+                nonce: "test-nonce",
+                claims: "test-claims",
+                extendedExpiryToken: true,
+            };
+            const platformDOMRequest =
+                //@ts-ignore
+                platformAuthDOMHandler.initializePlatformDOMRequest(
+                    testRequest
+                );
+            expect(platformDOMRequest).toEqual({
+                accountId: testRequest.accountId,
+                brokerId: PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID,
+                authority: testRequest.authority,
+                clientId: testRequest.clientId,
+                correlationId: testRequest.correlationId,
+                isSecurityTokenService: false,
                 extraParameters: {
+                    windowTitleSubstring: "test-window-substring",
                     extendedExpiryToken: "true",
+                    prompt: "login",
+                    nonce: "test-nonce",
+                    claims: "test-claims",
+                },
+                redirectUri: testRequest.redirectUri,
+                scope: testRequest.scope,
+                state: undefined,
+                storeInCache: undefined,
+                embeddedClientId: undefined,
+            });
+        });
+
+        it("returned DOM request object should include user input extra parameters", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+            const testRequest: PlatformAuthRequest = {
+                accountId: "test-id",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scope: "read openid",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                windowTitleSubstring: "test-window-substring",
+                prompt: "login",
+                nonce: "test-nonce",
+                claims: "test-claims",
+                extendedExpiryToken: true,
+                extraParameters: {
+                    customUserInput1: "test-user-input1",
+                    customUserInput2: "test-user-input2",
                 },
             };
             const platformDOMRequest =
@@ -389,8 +445,13 @@ describe("PlatformAuthDOMHandler tests", () => {
                 correlationId: testRequest.correlationId,
                 isSecurityTokenService: false,
                 extraParameters: {
+                    windowTitleSubstring: "test-window-substring",
                     extendedExpiryToken: "true",
-                    windowTitleSubstring: "",
+                    prompt: "login",
+                    nonce: "test-nonce",
+                    claims: "test-claims",
+                    customUserInput1: "test-user-input1",
+                    customUserInput2: "test-user-input2",
                 },
                 redirectUri: testRequest.redirectUri,
                 scope: testRequest.scope,
@@ -453,6 +514,40 @@ describe("PlatformAuthDOMHandler tests", () => {
                 state: "",
                 extendedLifetimeToken: true,
             });
+        });
+    });
+
+    describe("getDOMExtraParams tests", () => {});
+    it("should return a valid DOMExtraParameters object", async () => {
+        getSupportedContractsMock.mockResolvedValue([
+            PlatformAuthConstants.PLATFORM_DOM_APIS,
+        ]);
+        const platformAuthDOMHandler =
+            await PlatformAuthDOMHandler.createProvider(
+                logger,
+                performanceClient,
+                "test-correlation-id"
+            );
+        const testExtraParameters = {
+            prompt: Constants.PromptValue.NONE,
+            nonce: "test-nonce",
+            claims: "test-claims",
+            instanceAware: true,
+            windowTitleSubstring: "test-window-substring",
+            extendedExpiryToken: true,
+            signPopToken: true,
+        };
+        const domExtraParams =
+            //@ts-ignore
+            platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
+        expect(domExtraParams).toEqual({
+            prompt: "none",
+            nonce: "test-nonce",
+            claims: "test-claims",
+            instanceAware: "true",
+            windowTitleSubstring: "test-window-substring",
+            extendedExpiryToken: "true",
+            signPopToken: "true",
         });
     });
 });
