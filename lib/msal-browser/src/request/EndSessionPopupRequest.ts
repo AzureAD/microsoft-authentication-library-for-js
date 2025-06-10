@@ -17,7 +17,6 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
  * - popupWindowAttributes  - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  * - logoutHint             - A string that specifies the account that is being logged out in order to skip the server account picker on logout
  * - popupWindowParent      - Optional window object to use as the parent when opening popup windows. Uses global `window` if not given.
- * - navigate                   - Optional boolean that sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request and navigation occurs immediately.
  */
 export type EndSessionPopupRequest = Partial<
     Omit<CommonEndSessionRequest, "tokenQueryParameters">
@@ -26,5 +25,4 @@ export type EndSessionPopupRequest = Partial<
     mainWindowRedirectUri?: string;
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
-    navigate?: boolean;
 };
