@@ -64,9 +64,9 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.MACHINE_LEARNING
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.MACHINE_LEARNING);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -100,9 +100,9 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedResourceIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.MACHINE_LEARNING
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.MACHINE_LEARNING);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -138,9 +138,9 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.APP_SERVICE
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.APP_SERVICE);
 
             delete process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
@@ -153,13 +153,13 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
 
     describe("System Assigned", () => {
         let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.MACHINE_LEARNING
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.MACHINE_LEARNING);
         });
 
         test("acquires a token", async () => {
@@ -213,9 +213,9 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(systemAssignedConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.MACHINE_LEARNING
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.MACHINE_LEARNING);
 
             let serverError: ServerError = new ServerError();
             try {

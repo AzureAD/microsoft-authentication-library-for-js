@@ -83,13 +83,13 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
 
     describe("User Assigned", () => {
         let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 userAssignedClientIdConfig
             );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.SERVICE_FABRIC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
         });
 
         test("returns a 500 error response from the network request, just the first time", async () => {
@@ -142,13 +142,13 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
 
     describe("System Assigned", () => {
         let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.SERVICE_FABRIC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
         });
 
         test("returns a 500 error response from the network request, just the first time, with no retry-after header", async () => {
@@ -364,7 +364,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     },
                 });
             expect(
-                managedIdentityApplicationNoRetry.getManagedIdentitySource()
+                await managedIdentityApplicationNoRetry.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
 
             const sendGetRequestAsyncSpy: jest.SpyInstance = jest
