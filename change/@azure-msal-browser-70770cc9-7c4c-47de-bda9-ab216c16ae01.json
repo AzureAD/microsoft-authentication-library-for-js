@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Move loadExternalTokens out of PCA",
+  "packageName": "@azure/msal-browser",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
