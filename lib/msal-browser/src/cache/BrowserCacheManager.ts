@@ -205,13 +205,14 @@ export class BrowserCacheManager extends CacheManager {
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
         const key = account.generateAccountKey();
-        account.lastUpdatedAt = Date.now().toString();
+        const timestamp = Date.now().toString();
+        account.lastUpdatedAt = timestamp;
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
             PerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
-        )(key, JSON.stringify(account), correlationId);
+        )(key, JSON.stringify(account), correlationId, timestamp);
         const wasAdded = this.addAccountKeyToMap(key);
 
         /**
@@ -535,14 +536,15 @@ export class BrowserCacheManager extends CacheManager {
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
-        idToken.lastUpdatedAt = Date.now().toString();
+        const timestamp = Date.now().toString();
+        idToken.lastUpdatedAt = timestamp;
 
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
             PerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
-        )(idTokenKey, JSON.stringify(idToken), correlationId);
+        )(idTokenKey, JSON.stringify(idToken), correlationId, timestamp);
 
         this.addTokenKey(idTokenKey, CredentialType.ID_TOKEN);
     }
@@ -589,14 +591,20 @@ export class BrowserCacheManager extends CacheManager {
             "BrowserCacheManager.setAccessTokenCredential called"
         );
         const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
-        accessToken.lastUpdatedAt = Date.now().toString();
+        const timestamp = Date.now().toString();
+        accessToken.lastUpdatedAt = timestamp;
 
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
             PerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
-        )(accessTokenKey, JSON.stringify(accessToken), correlationId);
+        )(
+            accessTokenKey,
+            JSON.stringify(accessToken),
+            correlationId,
+            timestamp
+        );
 
         this.addTokenKey(accessTokenKey, CredentialType.ACCESS_TOKEN);
     }
@@ -646,14 +654,20 @@ export class BrowserCacheManager extends CacheManager {
         );
         const refreshTokenKey =
             CacheHelpers.generateCredentialKey(refreshToken);
-        refreshToken.lastUpdatedAt = Date.now().toString();
+        const timestamp = Date.now().toString();
+        refreshToken.lastUpdatedAt = timestamp;
 
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
             PerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
-        )(refreshTokenKey, JSON.stringify(refreshToken), correlationId);
+        )(
+            refreshTokenKey,
+            JSON.stringify(refreshToken),
+            correlationId,
+            timestamp
+        );
 
         this.addTokenKey(refreshTokenKey, CredentialType.REFRESH_TOKEN);
     }
