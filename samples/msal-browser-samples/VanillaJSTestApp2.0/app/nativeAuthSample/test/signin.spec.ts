@@ -20,8 +20,12 @@ import {
     waitForReturnToApp,
 } from "e2e-test-utils";
 import path from "path";
+import { spawn, ChildProcess } from "child_process";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "./screenshots/signin");
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(
+    __dirname,
+    "./screenshots/signin"
+);
 const SAMPLE_HOME_URL = "http://localhost:3000";
 
 describe("Native Auth Sample - Sign In Tests", () => {
@@ -31,8 +35,30 @@ describe("Native Auth Sample - Sign In Tests", () => {
     let browser: puppeteer.Browser;
     let username = "yongdi.wang1227@gmail.com";
     let accountPwd = "Ucc*71767!";
+    let corsProcess: ChildProcess;
 
     beforeAll(async () => {
+        // Start the CORS proxy server
+        corsProcess = spawn(
+            "node",
+            [
+                path.join(__dirname, "../cors.js"),
+                "-d",
+                "yourTenantSubdomain", // replace with actual value or parameterize
+                "-t",
+                "yourTenantId", // replace with actual value or parameterize
+                "-p",
+                "30001", // or your desired port
+            ],
+            {
+                stdio: "inherit",
+                cwd: path.join(__dirname, ".."),
+            }
+        );
+
+        // Wait a bit to ensure the proxy is up
+        await new Promise((res) => setTimeout(res, 2000));
+
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
 
@@ -56,8 +82,10 @@ describe("Native Auth Sample - Sign In Tests", () => {
     afterAll(async () => {
         await context?.close();
         await browser?.close();
+        if (corsProcess) {
+            corsProcess.kill();
+        }
     });
-
 
     beforeEach(async () => {
         context = await browser.createBrowserContext();
@@ -67,8 +95,8 @@ describe("Native Auth Sample - Sign In Tests", () => {
         BrowserCache = new BrowserCacheUtils(
             page,
             "sessionStorage" // Based on Native Auth Sample configuration
-        );            // Navigate to the Native Auth Sample home page and wait for network idle to ensure full page load
-        await page.goto(SAMPLE_HOME_URL, { waitUntil: 'networkidle0' });
+        ); // Navigate to the Native Auth Sample home page and wait for network idle to ensure full page load
+        await page.goto(SAMPLE_HOME_URL, { waitUntil: "networkidle0" });
 
         // Wait for the application to initialize
         await pcaInitializedPoller(page, 10000); // Increase timeout for more stability
@@ -87,7 +115,6 @@ describe("Native Auth Sample - Sign In Tests", () => {
 
     describe("Sign In Flow - Email + Password", () => {
         beforeEach(async () => {
-
             // Verify sign-in button is visible on the navigation bar
             const showSignInBtn = await page.$("#showSignInBtn");
             expect(showSignInBtn).toBeTruthy();
@@ -122,10 +149,10 @@ describe("Native Auth Sample - Sign In Tests", () => {
             // Enter username in the sign-in form and click sign-in button
             await page.waitForSelector("#username", { visible: true });
             await page.type("#username", username);
-            
+
             // Make sure sign-in button is visible and clickable
             await page.waitForSelector("#signInBtn", { visible: true });
-            
+
             // Use evaluate to click to avoid potential click issues
             await page.evaluate(() => {
                 const signInButton = document.getElementById("signInBtn");
@@ -145,12 +172,16 @@ describe("Native Auth Sample - Sign In Tests", () => {
             await page.waitForSelector("#signInPassword", { visible: true });
             await page.type("#signInPassword", accountPwd);
             await screenshot.takeScreenshot(page, "passwordInputEntered");
-            
+
             // Wait for the submit button to be visible and enabled
-            await page.waitForSelector("#submitPasswordBtn:enabled", { visible: true, timeout: 15000 });
+            await page.waitForSelector("#submitPasswordBtn:enabled", {
+                visible: true,
+                timeout: 15000,
+            });
             // Use evaluate to ensure a clean click operation rather than direct page.click()
             await page.evaluate(() => {
-                const submitButton = document.getElementById("submitPasswordBtn");
+                const submitButton =
+                    document.getElementById("submitPasswordBtn");
                 if (submitButton) {
                     submitButton.click();
                 } else {
@@ -164,13 +195,20 @@ describe("Native Auth Sample - Sign In Tests", () => {
             await page.waitForFunction(
                 () => {
                     // Check auth status banner
-                    const authStatusBanner = document.getElementById("authStatusBanner");
-                    const isSignedIn = authStatusBanner && authStatusBanner.textContent?.includes("Signed in");
-                    
+                    const authStatusBanner =
+                        document.getElementById("authStatusBanner");
+                    const isSignedIn =
+                        authStatusBanner &&
+                        authStatusBanner.textContent?.includes("Signed in");
+
                     // Also check account info if it exists
                     const accountInfo = document.getElementById("accountInfo");
-                    const hasAccountInfo = accountInfo && !accountInfo.textContent?.includes("No account information available");
-                    
+                    const hasAccountInfo =
+                        accountInfo &&
+                        !accountInfo.textContent?.includes(
+                            "No account information available"
+                        );
+
                     // Return true if either condition is satisfied
                     return isSignedIn || hasAccountInfo;
                 },
@@ -181,9 +219,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
             expect(tokenStore.idTokens).toHaveLength(1);
             expect(tokenStore.accessTokens).toHaveLength(1);
             expect(tokenStore.refreshTokens).toHaveLength(1);
-            expect(
-                await BrowserCache.getAccountFromCache()
-            ).toBeDefined();
+            expect(await BrowserCache.getAccountFromCache()).toBeDefined();
             expect(
                 await BrowserCache.accessTokenForScopesExists(
                     tokenStore.accessTokens,
@@ -210,7 +246,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
         //     // Enter incorrect password and submit
         //     await page.type("#signInPassword", "WrongPassword123!");
         //     await screenshot.takeScreenshot(page, "incorrectPasswordEntered");
-            
+
         //     // wait for the submit button to be enabled
         //     await page.waitForSelector("#submitPasswordBtn:enabled");
         //     await page.click("#submitPasswordBtn");
@@ -219,28 +255,28 @@ describe("Native Auth Sample - Sign In Tests", () => {
         //     // Wait for the error banner to appear
         //     await page.waitForSelector("#errorBanner", { visible: true, timeout: 5000 });
         //     await screenshot.takeScreenshot(page, "errorBannerDisplayed");
-            
+
         //     // Verify error banner content
         //     const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
         //     expect(errorMessage).toContain("Sign-in Error:");
-            
+
         //     // Verify that the user is still not signed in
         //     const authStatusBanner = await page.$eval("#authStatusBanner", (el) => el.textContent);
         //     expect(authStatusBanner).toContain("No user signed in");
-            
+
         //     // Verify we're still on the password input form
         //     const passwordInputCard = await page.$("#passwordInputCard");
         //     expect(passwordInputCard).toBeTruthy();
-            
+
         //     const isVisible = await page.evaluate(() => {
         //         const card = document.getElementById("passwordInputCard");
         //         return card && window.getComputedStyle(card).display !== "none";
         //     });
         //     expect(isVisible).toBe(true);
-            
+
         //     // Try dismissing the error banner
         //     await page.click("#dismissErrorBtn");
-            
+
         //     // Verify error banner is hidden
         //     const errorBannerVisible = await page.evaluate(() => {
         //         const banner = document.getElementById("errorBanner");
@@ -249,14 +285,11 @@ describe("Native Auth Sample - Sign In Tests", () => {
         //     expect(errorBannerVisible).toBe(false);
         // }, 60000);
 
-        it("User signs in with account B when account A has already signed in", async () => {
-        });
+        it("User signs in with account B when account A has already signed in", async () => {});
 
-        it("User email is registered with email OTP auth method, which is supported by the developer", async () => {
-        });
+        it("User email is registered with email OTP auth method, which is supported by the developer", async () => {});
 
-        it(" User email is registered with email OTP auth method, which is not supported by the developer (aka redirect flow)", async () => {
-        });
+        it(" User email is registered with email OTP auth method, which is not supported by the developer (aka redirect flow)", async () => {});
     });
 
     // it("Should start sign-in flow when username and password are entered", async () => {
@@ -545,5 +578,4 @@ describe("Native Auth Sample - Sign In Tests", () => {
     //     // Note: The specific error handling depends on the Native Auth implementation
     //     // This test verifies that the application doesn't crash with invalid input
     // });
-
 });
