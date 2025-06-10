@@ -186,7 +186,6 @@ export class BrowserCacheManager extends CacheManager {
 
         const parsedAccount = this.validateAndParseJson(serializedAccount);
         if (!parsedAccount || !AccountEntity.isAccountEntity(parsedAccount)) {
-            this.removeAccountKeyFromMap(accountKey);
             return null;
         }
 
