@@ -21,6 +21,7 @@ import { ImdsRetryPolicy } from "../../retry/ImdsRetryPolicy.js";
 
 // Documentation for IMDS is available at https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 
+const DEFAULT_IMDS_BASE_ENDPOINT: string = `http://169.254.169.254`;
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";
 export const IMDS_API_VERSION: string = "2018-02-01"; // referenced in ImdsV2
 
@@ -169,7 +170,7 @@ export class Imds extends BaseManagedIdentitySource {
             logger.info(
                 `[Managed Identity] Unable to find ${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST} environment variable for ${ManagedIdentitySourceNames.IMDS}, using the default endpoint.`
             );
-            return `http://169.254.169.254${subPath}`;
+            return `${DEFAULT_IMDS_BASE_ENDPOINT}${subPath}`;
         }
     };
 }
