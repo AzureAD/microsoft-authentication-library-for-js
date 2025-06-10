@@ -170,6 +170,8 @@ export class AccountEntity {
     // (undocumented)
     lastModificationTime?: string;
     // (undocumented)
+    lastUpdatedAt?: string;
+    // (undocumented)
     localAccountId: string;
     // (undocumented)
     msGraphHost?: string;
@@ -225,6 +227,7 @@ export type ActiveAccountFilters = {
     homeAccountId: string;
     localAccountId: string;
     tenantId?: string;
+    lastUpdatedAt?: string;
 };
 
 // Warning: (ae-missing-release-tag) "ApplicationTelemetry" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1757,6 +1760,7 @@ export type CredentialEntity = {
     tokenType?: AuthenticationScheme;
     keyId?: string;
     requestedClaimsHash?: string;
+    lastUpdatedAt?: string;
 };
 
 // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Track last used version, last updated timestamp for cache entries & don't remove cache entries in get calls #7796",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

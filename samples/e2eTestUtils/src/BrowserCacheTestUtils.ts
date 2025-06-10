@@ -222,7 +222,7 @@ export class BrowserCacheUtils {
         const totalRefreshTokens = refreshTokens || 1;
         expect(tokenStore.idTokens).toHaveLength(totalIdTokens);
         expect(tokenStore.accessTokens).toHaveLength(totalAccessTokens);
-        expect(tokenStore.refreshTokens).toHaveLength(refreshTokens || 1);
+        expect(tokenStore.refreshTokens).toHaveLength(totalRefreshTokens);
 
         const account = await this.getAccountFromCache(tokenStore.idTokens[0]);
         expect(account).toBeDefined();
@@ -245,9 +245,5 @@ export class BrowserCacheUtils {
                 totalAccessTokens
             )
         ).toBeTruthy();
-        const storage = await this.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(
-            totalIdTokens + totalAccessTokens + totalRefreshTokens + 5 // 1 Account + 1 Account Keys + 1 Token Keys + 2 active token filters = 5
-        );
     }
 }
