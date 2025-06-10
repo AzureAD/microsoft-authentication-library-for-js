@@ -423,6 +423,7 @@ export const ManagedIdentitySourceNames: {
     readonly CLOUD_SHELL: "CloudShell";
     readonly DEFAULT_TO_IMDS: "DefaultToImds";
     readonly IMDS: "Imds";
+    readonly IMDSV2: "ImdsV2";
     readonly MACHINE_LEARNING: "MachineLearning";
     readonly SERVICE_FABRIC: "ServiceFabric";
 };
