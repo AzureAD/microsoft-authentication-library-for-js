@@ -22,7 +22,7 @@ import { ImdsRetryPolicy } from "../../retry/ImdsRetryPolicy.js";
 // Documentation for IMDS is available at https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";
-const IMDS_API_VERSION: string = "2018-02-01";
+export const IMDS_API_VERSION: string = "2018-02-01"; // referenced in ImdsV2
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs

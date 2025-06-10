@@ -11,7 +11,6 @@ import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
 export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
 export const MANAGED_IDENTITY_DEFAULT_TENANT = "managed_identity";
 export const DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY = `https://login.microsoftonline.com/${MANAGED_IDENTITY_DEFAULT_TENANT}/`;
-export const CLIENT_REQUEST_ID_HEADER_NAME: string = "X-ms-Client-Request-id";
 
 /**
  * Managed Identity Headers - used in network requests
@@ -21,6 +20,7 @@ export const ManagedIdentityHeaders = {
     METADATA_HEADER_NAME: "Metadata",
     APP_SERVICE_SECRET_HEADER_NAME: "X-IDENTITY-HEADER",
     ML_AND_SF_SECRET_HEADER_NAME: "secret",
+    CLIENT_REQUEST_ID_HEADER_NAME: "X-ms-Client-Request-id",
 } as const;
 export type ManagedIdentityHeaders =
     (typeof ManagedIdentityHeaders)[keyof typeof ManagedIdentityHeaders];

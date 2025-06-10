@@ -180,7 +180,8 @@ export class ManagedIdentityClient {
                 logger,
                 nodeStorage,
                 networkClient,
-                cryptoProvider
+                cryptoProvider,
+                disableInternalRetries
             ) ||
             Imds.tryCreate(
                 logger,

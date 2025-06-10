@@ -10,12 +10,10 @@ import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRe
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
-    API_VERSION_QUERY_PARAMETER_NAME,
-    CLIENT_REQUEST_ID_HEADER_NAME,
     HttpMethod,
-    METADATA_HEADER_NAME,
+    ManagedIdentityHeaders,
     ManagedIdentityIdType,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
+    ManagedIdentityQueryParameters,
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import { Imds, IMDS_API_VERSION } from "./Imds.js";
@@ -32,9 +30,16 @@ export class ImdsV2 extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         identityEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.identityEndpoint = identityEndpoint;
     }
@@ -43,7 +48,8 @@ export class ImdsV2 extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ): ImdsV2 | null {
         if (!this.isCredentialEndpointAvailable()) {
             return null;
@@ -57,6 +63,7 @@ export class ImdsV2 extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             validatedIdentityEndpoint
         );
     }
@@ -76,12 +83,16 @@ export class ImdsV2 extends BaseManagedIdentitySource {
                 this.identityEndpoint
             );
 
-        imdsRequest.headers[METADATA_HEADER_NAME] = "true";
-        imdsRequest.headers[CLIENT_REQUEST_ID_HEADER_NAME] = "1234567890"; // TODO: generate random request ID
+        imdsRequest.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] =
+            "true";
+        imdsRequest.headers[
+            ManagedIdentityHeaders.CLIENT_REQUEST_ID_HEADER_NAME
+        ] = "1234567890"; // TODO: generate random request ID
 
-        imdsRequest.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
-            IMDS_API_VERSION;
-        imdsRequest.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        imdsRequest.queryParameters[
+            ManagedIdentityQueryParameters.API_VERSION
+        ] = IMDS_API_VERSION;
+        imdsRequest.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (
