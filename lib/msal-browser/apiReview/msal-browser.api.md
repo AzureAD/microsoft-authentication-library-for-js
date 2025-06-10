@@ -4,17 +4,22 @@
 
 ```ts
 
+import { AccessTokenEntity } from '@azure/msal-common/browser';
 import { AccountEntity } from '@azure/msal-common/browser';
 import { AccountEntityUtils } from '@azure/msal-common/browser';
 import { AccountFilter } from '@azure/msal-common/browser';
 import { AccountInfo } from '@azure/msal-common/browser';
 import { ApplicationTelemetry } from '@azure/msal-common/browser';
+import { AppMetadataEntity } from '@azure/msal-common/browser';
 import { AuthenticationHeaderParser } from '@azure/msal-common/browser';
 import { AuthenticationResult as AuthenticationResult_2 } from '@azure/msal-common/browser';
 import { AuthError } from '@azure/msal-common/browser';
 import { AuthErrorCodes } from '@azure/msal-common/browser';
+import { AuthorityMetadataEntity } from '@azure/msal-common/browser';
 import { AzureCloudInstance } from '@azure/msal-common/browser';
 import { AzureCloudOptions } from '@azure/msal-common/browser';
+import { CacheManager } from '@azure/msal-common/browser';
+import { CacheRecord } from '@azure/msal-common/browser';
 import { ClientAuthError } from '@azure/msal-common/browser';
 import { ClientAuthErrorCodes } from '@azure/msal-common/browser';
 import { ClientConfigurationError } from '@azure/msal-common/browser';
@@ -25,7 +30,9 @@ import { CommonEndSessionRequest } from '@azure/msal-common/browser';
 import { CommonSilentFlowRequest } from '@azure/msal-common/browser';
 import { Constants } from '@azure/msal-common/browser';
 import { ExternalTokenResponse } from '@azure/msal-common/browser';
+import { ICrypto } from '@azure/msal-common/browser';
 import { IdTokenClaims } from '@azure/msal-common/browser';
+import { IdTokenEntity } from '@azure/msal-common/browser';
 import { ILoggerCallback } from '@azure/msal-common/browser';
 import { INetworkModule } from '@azure/msal-common/browser';
 import { InProgressPerformanceEvent } from '@azure/msal-common/browser';
@@ -45,14 +52,20 @@ import { PerformanceCallbackFunction } from '@azure/msal-common/browser';
 import { PerformanceClient } from '@azure/msal-common/browser';
 import { PerformanceEvent } from '@azure/msal-common/browser';
 import { ProtocolMode } from '@azure/msal-common/browser';
+import { RefreshTokenEntity } from '@azure/msal-common/browser';
 import { ServerError } from '@azure/msal-common/browser';
+import { ServerTelemetryEntity } from '@azure/msal-common/browser';
 import { SignedHttpRequestParameters } from '@azure/msal-common/browser';
+import { StaticAuthorityOptions } from '@azure/msal-common/browser';
+import { StoreInCache } from '@azure/msal-common/browser';
 import { StringDict } from '@azure/msal-common/browser';
 import { StringUtils } from '@azure/msal-common/browser';
 import { StubPerformanceClient } from '@azure/msal-common/browser';
 import { SubMeasurement } from '@azure/msal-common/browser';
 import { SystemOptions } from '@azure/msal-common/browser';
 import { TenantProfile } from '@azure/msal-common/browser';
+import { ThrottlingEntity } from '@azure/msal-common/browser';
+import { TokenKeys } from '@azure/msal-common/browser';
 import { UrlString } from '@azure/msal-common/browser';
 
 export { AccountEntity }
@@ -731,7 +744,7 @@ export interface IController {
     // @internal (undocumented)
     getPerformanceClient(): IPerformanceClient;
     // (undocumented)
-    getTokenCache(): ITokenCache;
+    getTokenCache(): TokenCache;
     // (undocumented)
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
     // (undocumented)
@@ -887,7 +900,7 @@ export interface IPublicClientApplication {
     // (undocumented)
     getLogger(): Logger;
     // (undocumented)
-    getTokenCache(): ITokenCache;
+    getTokenCache(): TokenCache;
     // (undocumented)
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
     // (undocumented)
@@ -935,13 +948,6 @@ function isInPopup(): boolean;
 // @public
 export function isPlatformBrokerAvailable(loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
-// Warning: (ae-missing-release-tag) "ITokenCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export interface ITokenCache {
-    loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): Promise<AuthenticationResult>;
-}
-
 // Warning: (ae-missing-release-tag) "IWindowStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -973,6 +979,14 @@ export const JsonWebTokenTypes: {
 
 // @public (undocumented)
 export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "loadExternalTokens" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions, cache: TokenCache): Promise<AuthenticationResult>;
 
 // Warning: (ae-missing-release-tag) "LoadTokenOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1259,7 +1273,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     // @internal
     getConfiguration(): BrowserConfiguration;
     getLogger(): Logger;
-    getTokenCache(): ITokenCache;
+    getTokenCache(): TokenCache;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     handleRedirectPromise(hash?: string | undefined): Promise<AuthenticationResult | null>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1333,7 +1347,7 @@ export class PublicClientNext implements IPublicClientApplication {
     // @internal
     getConfiguration(): BrowserConfiguration;
     getLogger(): Logger;
-    getTokenCache(): ITokenCache;
+    getTokenCache(): TokenCache;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     handleRedirectPromise(hash?: string | undefined): Promise<AuthenticationResult | null>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1508,6 +1522,28 @@ export const stubbedPublicClientApplication: IPublicClientApplication;
 export { StubPerformanceClient }
 
 export { TenantProfile }
+
+// Warning: (ae-missing-release-tag) "TokenCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export class TokenCache {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
+    constructor(configuration: BrowserConfiguration, storage: BrowserCacheManager, logger: Logger, cryptoObj: ICrypto);
+    // Warning: (ae-incompatible-release-tags) The symbol "config" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
+    //
+    // (undocumented)
+    config: BrowserConfiguration;
+    // (undocumented)
+    cryptoObj: ICrypto;
+    // (undocumented)
+    isBrowserEnvironment: boolean;
+    // (undocumented)
+    logger: Logger;
+    // Warning: (ae-forgotten-export) The symbol "BrowserCacheManager" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    storage: BrowserCacheManager;
+}
 
 // Warning: (ae-missing-release-tag) "unableToAcquireTokenFromNativePlatform" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
