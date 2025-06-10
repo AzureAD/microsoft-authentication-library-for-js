@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749229984033,
+  "lastUpdate": 1749576854632,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15564,6 +15564,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.85%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "54cc6649fc20be3735dff53262e80678e49a1162",
+          "message": "[v3] Minor cache changes to support future v4/5 work (#7796)\n\n- Tracks current version for telemetry upgrade/downgrade identification\n- Adds `lastUpdatedAt` to cache entries which v4/5 will eventually use\nto clear stale entries\n- Stop removing cache entries that can't be parsed in Get operations -\nthis is currently clearing v4 cache entries unexpectedly\n\n---------\n\nCo-authored-by: Jo Arroyo <joarroyo@microsoft.com>",
+          "timestamp": "2025-06-10T10:28:30-07:00",
+          "tree_id": "2b2187af864e7b50befd27e11aacce1ca28d2b86",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/54cc6649fc20be3735dff53262e80678e49a1162"
+        },
+        "date": 1749576852150,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 245218,
+            "range": "±0.94%",
+            "unit": "ops/sec",
+            "extra": "210 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 249814,
+            "range": "±0.72%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
