@@ -514,7 +514,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(Constants.AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("DOM API: acquires token successfully", async () => {
@@ -578,9 +580,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(Constants.AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
-
 
         it("acquires token successfully with string expires_in", async () => {
             jest.spyOn(
@@ -893,28 +896,29 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 }
             );
             // @ts-ignore
-            const platformAuthInteractionClient = new PlatformAuthInteractionClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.getLogger(),
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                ApiId.ssoSilent,
-                // @ts-ignore
-                pca.performanceClient,
-                wamProvider,
-                "nativeAccountId",
-                // @ts-ignore
-                pca.nativeInternalStorage,
-                RANDOM_TEST_GUID
-            );
+            const platformAuthInteractionClient =
+                new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    pca.config,
+                    // @ts-ignore
+                    pca.browserStorage,
+                    // @ts-ignore
+                    pca.browserCrypto,
+                    // @ts-ignore
+                    pca.getLogger(),
+                    // @ts-ignore
+                    pca.eventHandler,
+                    // @ts-ignore
+                    pca.navigationClient,
+                    ApiId.ssoSilent,
+                    // @ts-ignore
+                    pca.performanceClient,
+                    wamProvider,
+                    "nativeAccountId",
+                    // @ts-ignore
+                    pca.nativeInternalStorage,
+                    RANDOM_TEST_GUID
+                );
             const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
                 prompt: Constants.PromptValue.SELECT_ACCOUNT,
@@ -948,28 +952,29 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 }
             );
             // @ts-ignore
-            const platformAuthInteractionClient = new PlatformAuthInteractionClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.getLogger(),
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                ApiId.acquireTokenSilent_silentFlow,
-                // @ts-ignore
-                pca.performanceClient,
-                wamProvider,
-                "nativeAccountId",
-                // @ts-ignore
-                pca.nativeInternalStorage,
-                RANDOM_TEST_GUID
-            );
+            const platformAuthInteractionClient =
+                new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    pca.config,
+                    // @ts-ignore
+                    pca.browserStorage,
+                    // @ts-ignore
+                    pca.browserCrypto,
+                    // @ts-ignore
+                    pca.getLogger(),
+                    // @ts-ignore
+                    pca.eventHandler,
+                    // @ts-ignore
+                    pca.navigationClient,
+                    ApiId.acquireTokenSilent_silentFlow,
+                    // @ts-ignore
+                    pca.performanceClient,
+                    wamProvider,
+                    "nativeAccountId",
+                    // @ts-ignore
+                    pca.nativeInternalStorage,
+                    RANDOM_TEST_GUID
+                );
             const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
                 prompt: Constants.PromptValue.SELECT_ACCOUNT,
