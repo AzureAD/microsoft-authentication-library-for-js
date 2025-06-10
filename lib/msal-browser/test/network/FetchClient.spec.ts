@@ -1,9 +1,9 @@
 import { FetchClient } from "../../src/network/FetchClient";
 import { HTTP_REQUEST_TYPE } from "../../src/utils/BrowserConstants";
 import {
-    Constants,
     NetworkError,
     NetworkRequestOptions,
+    Constants,
 } from "@azure/msal-common";
 import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 

@@ -7,7 +7,7 @@ import {
     Logger,
     LoggerOptions,
     IPerformanceClient,
-    ResponseMode,
+    Constants,
 } from "@azure/msal-common";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
 import { testNavUrl, RANDOM_TEST_GUID } from "../utils/StringConstants.js";
@@ -89,7 +89,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ResponseMode.FRAGMENT
+                Constants.ResponseMode.FRAGMENT
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
@@ -121,7 +121,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ResponseMode.FRAGMENT
+                Constants.ResponseMode.FRAGMENT
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
@@ -174,7 +174,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ResponseMode.FRAGMENT
+                Constants.ResponseMode.FRAGMENT
             ).then((hash: string) => {
                 expect(hash).toEqual("#code=hello");
                 done();

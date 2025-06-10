@@ -5,10 +5,8 @@
 
 import {
     AccountInfo,
-    AuthenticationScheme,
-    Constants,
     NetworkResponse,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     ServerAuthorizationTokenResponse,
     TimeUtils,
 } from "@azure/msal-common";
@@ -62,8 +60,8 @@ export const TEST_CONFIG = {
     TEST_VERIFIER:
         "Y5LnOOlAWK0kt370Bjm0ZcrW9Sc2pMXR1slip9TFZXoyUV8Y8lCn0WHXyyQ1QcTnALMbrUAj85dC7WIe6gYqc8o8jsHCezP3xiUNB143A5IfwtSfO6Kb8oy7pNqcT9vN",
     TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
-    TOKEN_TYPE_BEARER: AuthenticationScheme.BEARER,
-    TOKEN_TYPE_POP: AuthenticationScheme.POP,
+    TOKEN_TYPE_BEARER: Constants.AuthenticationScheme.BEARER,
+    TOKEN_TYPE_POP: Constants.AuthenticationScheme.POP,
     DEFAULT_SCOPES: ["openid", "profile"],
     CORRELATION_ID: RANDOM_TEST_GUID,
     SID: "session-id",
@@ -405,8 +403,8 @@ export const TEST_TOKEN_RESPONSE: NetworkResponse<ServerAuthorizationTokenRespon
     {
         headers: {},
         body: {
-            token_type: AuthenticationScheme.BEARER,
-            scope: OIDC_DEFAULT_SCOPES.join(", "),
+            token_type: Constants.AuthenticationScheme.BEARER,
+            scope: Constants.OIDC_DEFAULT_SCOPES.join(", "),
             expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
             access_token: TEST_TOKENS.ACCESS_TOKEN,
             refresh_token: TEST_TOKENS.REFRESH_TOKEN,

@@ -21,10 +21,9 @@ import {
     InteractionRequiredAuthError,
     NativeRequest,
     NativeSignOutRequest,
-    PromptValue,
     ServerError,
-    AuthenticationScheme,
     TimeUtils,
+    Constants,
 } from "@azure/msal-common";
 import { randomUUID } from "crypto";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
@@ -375,7 +374,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
-                    authenticationScheme: AuthenticationScheme.POP,
+                    authenticationScheme: Constants.AuthenticationScheme.POP,
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://contoso.com/resource",
                     shrNonce: "some-random-nonce",
@@ -386,7 +385,7 @@ if (process.platform === "win32") {
                 expect(response).toStrictEqual<AuthenticationResult>({
                     ...testAuthenticationResult,
                     accessToken: popAT,
-                    tokenType: AuthenticationScheme.POP,
+                    tokenType: Constants.AuthenticationScheme.POP,
                 });
             });
 
@@ -696,7 +695,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
-                    authenticationScheme: AuthenticationScheme.POP,
+                    authenticationScheme: Constants.AuthenticationScheme.POP,
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://contoso.com/resource",
                     shrNonce: "some-random-nonce",
@@ -706,7 +705,7 @@ if (process.platform === "win32") {
                 expect(response).toStrictEqual<AuthenticationResult>({
                     ...testAuthenticationResult,
                     accessToken: popAT,
-                    tokenType: AuthenticationScheme.POP,
+                    tokenType: Constants.AuthenticationScheme.POP,
                 });
             });
 
@@ -854,7 +853,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
-                    prompt: PromptValue.NONE,
+                    prompt: Constants.PromptValue.NONE,
                     accountId: testMsalRuntimeAccount.accountId,
                 };
                 const response =
@@ -909,7 +908,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
-                    prompt: PromptValue.NONE,
+                    prompt: Constants.PromptValue.NONE,
                 };
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
@@ -965,7 +964,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
-                    prompt: PromptValue.SELECT_ACCOUNT,
+                    prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 };
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
@@ -1021,7 +1020,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
-                    prompt: PromptValue.LOGIN,
+                    prompt: Constants.PromptValue.LOGIN,
                 };
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
@@ -1077,7 +1076,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
-                    prompt: PromptValue.CREATE,
+                    prompt: Constants.PromptValue.CREATE,
                 };
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
@@ -1128,7 +1127,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: "",
                     redirectUri: TEST_REDIRECTURI,
-                    prompt: PromptValue.CREATE,
+                    prompt: Constants.PromptValue.CREATE,
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
@@ -1311,7 +1310,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: "",
                     redirectUri: TEST_REDIRECTURI,
-                    prompt: PromptValue.NONE,
+                    prompt: Constants.PromptValue.NONE,
                     accountId: testAccountInfo.nativeAccountId,
                 };
                 await expect(
@@ -1359,7 +1358,7 @@ if (process.platform === "win32") {
                     correlationId: testCorrelationId,
                     authority: "",
                     redirectUri: TEST_REDIRECTURI,
-                    prompt: PromptValue.NONE,
+                    prompt: Constants.PromptValue.NONE,
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)

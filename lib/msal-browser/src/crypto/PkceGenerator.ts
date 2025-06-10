@@ -6,11 +6,11 @@
 import {
     IPerformanceClient,
     Logger,
-    PerformanceEvents,
     PkceCodes,
     invoke,
     invokeAsync,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -35,14 +35,14 @@ export async function generatePkceCodes(
 ): Promise<PkceCodes> {
     const codeVerifier = invoke(
         generateCodeVerifier,
-        PerformanceEvents.GenerateCodeVerifier,
+        BrowserPerformanceEvents.GenerateCodeVerifier,
         logger,
         performanceClient,
         correlationId
     )(performanceClient, logger, correlationId);
     const codeChallenge = await invokeAsync(
         generateCodeChallengeFromVerifier,
-        PerformanceEvents.GenerateCodeChallengeFromVerifier,
+        BrowserPerformanceEvents.GenerateCodeChallengeFromVerifier,
         logger,
         performanceClient,
         correlationId
@@ -67,7 +67,7 @@ function generateCodeVerifier(
         const buffer: Uint8Array = new Uint8Array(RANDOM_BYTE_ARR_LENGTH);
         invoke(
             getRandomValues,
-            PerformanceEvents.GetRandomValues,
+            BrowserPerformanceEvents.GetRandomValues,
             logger,
             performanceClient,
             correlationId
@@ -94,7 +94,7 @@ async function generateCodeChallengeFromVerifier(
         // hashed verifier
         const pkceHashedCodeVerifier = await invokeAsync(
             sha256Digest,
-            PerformanceEvents.Sha256Digest,
+            BrowserPerformanceEvents.Sha256Digest,
             logger,
             performanceClient,
             correlationId

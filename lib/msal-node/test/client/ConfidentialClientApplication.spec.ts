@@ -6,7 +6,7 @@
 import {
     AuthorizationCodeClient,
     AuthenticationResult,
-    OIDC_DEFAULT_SCOPES,
+    Constants as CommonConstants,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountEntity,
@@ -138,7 +138,7 @@ describe("ConfidentialClientApplication", () => {
 
                 const config: Configuration =
                     await ClientTestUtils.createTestConfidentialClientConfiguration(
-                        ["cp1", "cp2"],
+                        CAE_CONSTANTS.CLIENT_CAPABILITIES,
                         mockNetworkClient(
                             {}, // not needed
                             CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
@@ -467,7 +467,7 @@ describe("ConfidentialClientApplication", () => {
                 ClientCredentialClient.prototype,
                 "acquireToken"
             ).mockImplementation((request: CommonClientCredentialRequest) => {
-                OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
+                CommonConstants.OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
                     expect(request.scopes).not.toContain(scope);
                 });
                 return Promise.resolve(null);

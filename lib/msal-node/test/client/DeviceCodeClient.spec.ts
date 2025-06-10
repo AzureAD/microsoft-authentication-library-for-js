@@ -8,10 +8,9 @@ import {
     BaseClient,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    Constants,
-    GrantType,
     createAuthError,
     createClientAuthError,
+    Constants,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -141,7 +140,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 clientSku: true,
                 clientVersion: true,
                 clientOs: true,
@@ -223,7 +222,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 claims: true,
                 clientSku: true,
                 clientVersion: true,
@@ -271,7 +270,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 claims: false,
                 clientSku: true,
                 clientVersion: true,

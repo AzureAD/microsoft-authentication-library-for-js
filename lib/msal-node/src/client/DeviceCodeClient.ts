@@ -9,9 +9,7 @@ import {
     BaseClient,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    Constants,
     DeviceCodeResponse,
-    GrantType,
     RequestParameterBuilder,
     RequestThumbprint,
     ResponseHandler,
@@ -23,6 +21,7 @@ import {
     UrlUtils,
     createAuthError,
     createClientAuthError,
+    Constants,
 } from "@azure/msal-common/node";
 import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 
@@ -357,7 +356,7 @@ export class DeviceCodeClient extends BaseClient {
         );
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.DEVICE_CODE_GRANT
+            Constants.GrantType.DEVICE_CODE_GRANT
         );
         RequestParameterBuilder.addDeviceCode(
             parameters,

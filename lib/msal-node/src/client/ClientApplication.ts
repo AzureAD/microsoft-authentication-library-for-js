@@ -19,22 +19,18 @@ import {
     CommonRefreshTokenRequest,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
-    AuthenticationScheme,
-    ResponseMode,
     AuthorityOptions,
-    OIDC_DEFAULT_SCOPES,
     AzureRegionConfiguration,
     AuthError,
     AzureCloudOptions,
     AuthorizationCodePayload,
-    Constants,
     createClientAuthError,
     ClientAuthErrorCodes,
     buildStaticAuthorityOptions,
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     ClientAssertionCallback,
-    CacheOutcome,
+    Constants,
     ClientAuthError,
 } from "@azure/msal-common/node";
 import {
@@ -128,8 +124,8 @@ export abstract class ClientApplication {
         const validRequest: CommonAuthorizationUrlRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
-            responseMode: request.responseMode || ResponseMode.QUERY,
-            authenticationScheme: AuthenticationScheme.BEARER,
+            responseMode: request.responseMode || Constants.ResponseMode.QUERY,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
             state: request.state || "",
             nonce: request.nonce || "",
         };
@@ -170,7 +166,7 @@ export abstract class ClientApplication {
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
-            authenticationScheme: AuthenticationScheme.BEARER,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
         };
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -227,7 +223,7 @@ export abstract class ClientApplication {
         const validRequest: CommonRefreshTokenRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
-            authenticationScheme: AuthenticationScheme.BEARER,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
         };
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -349,10 +345,10 @@ export abstract class ClientApplication {
                 ...validRequest,
                 scopes: validRequest.scopes?.length
                     ? validRequest.scopes
-                    : [...OIDC_DEFAULT_SCOPES],
+                    : [...Constants.OIDC_DEFAULT_SCOPES],
             });
 
-        if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+        if (cacheOutcome === Constants.CacheOutcome.PROACTIVELY_REFRESHED) {
             this.logger.info(
                 "ClientApplication:acquireCachedTokenSilent - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
             );
@@ -525,8 +521,8 @@ export abstract class ClientApplication {
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || Constants.EMPTY_STRING,
-                os: process.platform || Constants.EMPTY_STRING,
+                cpu: process.arch || "",
+                os: process.platform || "",
             },
             telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
@@ -575,7 +571,8 @@ export abstract class ClientApplication {
         // Default authenticationScheme to Bearer, log that POP isn't supported yet
         if (
             authRequest.authenticationScheme &&
-            authRequest.authenticationScheme === AuthenticationScheme.POP
+            authRequest.authenticationScheme ===
+                Constants.AuthenticationScheme.POP
         ) {
             this.logger.verbose(
                 "Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request",
@@ -583,13 +580,14 @@ export abstract class ClientApplication {
             );
         }
 
-        authRequest.authenticationScheme = AuthenticationScheme.BEARER;
+        authRequest.authenticationScheme =
+            Constants.AuthenticationScheme.BEARER;
 
         return {
             ...authRequest,
             scopes: [
                 ...((authRequest && authRequest.scopes) || []),
-                ...OIDC_DEFAULT_SCOPES,
+                ...Constants.OIDC_DEFAULT_SCOPES,
             ],
             correlationId:
                 (authRequest && authRequest.correlationId) ||

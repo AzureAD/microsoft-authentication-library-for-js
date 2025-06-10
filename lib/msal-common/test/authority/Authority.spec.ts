@@ -8,7 +8,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
 } from "../../src/network/INetworkModule";
-import { Constants } from "../../src/utils/Constants";
+import * as Constants from "../../src/utils/Constants.js";
 import {
     TEST_URIS,
     RANDOM_TEST_GUID,

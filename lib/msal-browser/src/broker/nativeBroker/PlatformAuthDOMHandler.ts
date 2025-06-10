@@ -231,7 +231,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     private getDOMExtraParams(
         extraParameters: Record<string, unknown>
     ): DOMExtraParameters {
-         const stringifiedParams =  Object.entries(extraParameters).reduce(
+        const stringifiedParams = Object.entries(extraParameters).reduce(
             (record, [key, value]) => {
                 record[key] = String(value);
                 return record;

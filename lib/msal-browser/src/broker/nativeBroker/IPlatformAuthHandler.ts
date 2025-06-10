@@ -13,7 +13,5 @@ export interface IPlatformAuthHandler {
     getExtensionId(): string | undefined;
     getExtensionVersion(): string | undefined;
     getExtensionName(): string | undefined;
-    sendMessage(
-        request: PlatformAuthRequest
-    ): Promise<PlatformAuthResponse>;
+    sendMessage(request: PlatformAuthRequest): Promise<PlatformAuthResponse>;
 }

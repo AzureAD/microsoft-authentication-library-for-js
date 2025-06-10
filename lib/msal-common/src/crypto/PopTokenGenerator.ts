@@ -7,7 +7,7 @@ import { ICrypto, SignedHttpRequestParameters } from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import { UrlString } from "../url/UrlString.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
 

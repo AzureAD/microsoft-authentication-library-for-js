@@ -9,6 +9,7 @@
  */
 
 import * as BrowserUtils from "./utils/BrowserUtils.js";
+import { Constants } from "@azure/msal-common/browser";
 export { BrowserUtils };
 
 export {
@@ -100,9 +101,18 @@ export {
 export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient.js";
 export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement.js";
 
+// Common constants
+export const AuthenticationScheme = Constants.AuthenticationScheme;
+export type AuthenticationScheme = Constants.AuthenticationScheme;
+export const ResponseMode = Constants.ResponseMode;
+export type ResponseMode = Constants.ResponseMode;
+export const PromptValue = Constants.PromptValue;
+export const JsonWebTokenTypes = Constants.JsonWebTokenTypes;
+export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
+export const OIDC_DEFAULT_SCOPES = Constants.OIDC_DEFAULT_SCOPES;
+
 // Common Object Formats
 export {
-    AuthenticationScheme,
     // Account
     AccountInfo,
     AccountEntity,
@@ -128,28 +138,24 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
-    ResponseMode,
-    PromptValue,
     // Server Response
     ExternalTokenResponse,
     // Utils
     StringUtils,
     UrlString,
-    JsonWebTokenTypes,
     // AzureCloudInstance enum
     AzureCloudInstance,
     AzureCloudOptions,
     AuthenticationHeaderParser,
-    OIDC_DEFAULT_SCOPES,
     PerformanceCallbackFunction,
     PerformanceEvent,
-    PerformanceEvents,
     // Telemetry
     InProgressPerformanceEvent,
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
+export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 
 export { version } from "./packageMetadata.js";
 

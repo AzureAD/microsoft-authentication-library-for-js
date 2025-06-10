@@ -14,7 +14,7 @@ import {
     CommonAuthorizationCodeRequest,
     AuthenticationResult,
     AuthorizationCodeClient,
-    AuthenticationScheme,
+    Constants,
     ProtocolMode,
     Authority,
     ClientConfiguration,
@@ -73,7 +73,7 @@ class TestInteractionHandler extends InteractionHandler {
 }
 
 const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
-    authenticationScheme: AuthenticationScheme.BEARER,
+    authenticationScheme: Constants.AuthenticationScheme.BEARER,
     authority: TEST_CONFIG.validAuthority,
     redirectUri: TEST_URIS.TEST_REDIR_URI,
     scopes: ["scope1", "scope2"],
@@ -300,7 +300,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             testAuthCodeRequest.ccsCredential = testCcsCred;
             const acquireTokenSpy = jest
@@ -377,7 +377,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const updateAuthoritySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
@@ -458,7 +458,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             testAuthCodeRequest.ccsCredential = testCcsCred;
             const acquireTokenSpy = jest

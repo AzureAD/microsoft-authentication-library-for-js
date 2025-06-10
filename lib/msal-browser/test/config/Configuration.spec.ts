@@ -7,11 +7,10 @@ import {
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
 import {
     LogLevel,
-    Constants,
     AzureCloudInstance,
     ProtocolMode,
-    ResponseMode,
     Logger,
+    Constants,
 } from "@azure/msal-common";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 
@@ -288,7 +287,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     authority: TEST_CONFIG.validAuthority,
                     OIDCOptions: {
-                        responseMode: ResponseMode.QUERY,
+                        responseMode: Constants.ResponseMode.QUERY,
                     },
                 },
                 system: {

@@ -15,9 +15,10 @@ import {
 import { BaseClient } from "../../src/client/BaseClient.js";
 import {
     AuthenticationScheme,
-    Constants,
     CredentialType,
     ONE_DAY_IN_MS,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
 } from "../../src/utils/Constants.js";
 import {
     ClientTestUtils,
@@ -123,8 +124,8 @@ describe("SilentFlowClient unit tests", () => {
     describe("Success cases", () => {
         it("acquireCachedToken returns correct token even if offline_access is not present in access token entity", async () => {
             const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
@@ -180,8 +181,8 @@ describe("SilentFlowClient unit tests", () => {
 
         it("acquireCachedToken does not throw when given empty object string for claims", async () => {
             const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
@@ -320,8 +321,8 @@ describe("SilentFlowClient unit tests", () => {
 
         it("acquireCachedToken throws when given valid claims with default configuration", async () => {
             const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
@@ -367,8 +368,8 @@ describe("SilentFlowClient unit tests", () => {
 
         it("acquireCachedToken returns correct token when max age is provided and has not transpired yet", async () => {
             const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             ];
             testAccessTokenEntity.target = testScopes.join(" ");

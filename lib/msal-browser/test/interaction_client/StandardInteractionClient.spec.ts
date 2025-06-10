@@ -4,8 +4,7 @@
  */
 
 import {
-    ResponseMode,
-    AuthenticationScheme,
+    Constants,
     AzureCloudOptions,
     AzureCloudInstance,
     Authority,
@@ -177,7 +176,7 @@ describe("StandardInteractionClient", () => {
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -196,7 +195,7 @@ describe("StandardInteractionClient", () => {
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -219,7 +218,7 @@ describe("StandardInteractionClient", () => {
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -243,7 +242,7 @@ describe("StandardInteractionClient", () => {
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -264,7 +263,7 @@ describe("StandardInteractionClient", () => {
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -285,7 +284,7 @@ describe("StandardInteractionClient", () => {
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -306,7 +305,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                OIDCOptions: { responseMode: ResponseMode.QUERY },
+                OIDCOptions: { responseMode: Constants.ResponseMode.QUERY },
             },
             system: {
                 protocolMode: ProtocolMode.OIDC,
@@ -367,13 +366,13 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             correlationId: TEST_CONFIG.CORRELATION_ID,
             nonce: "",
             authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
         };
 
         const authCodeRequest = await testClient.initializeAuthorizationRequest(
             request,
             InteractionType.Redirect
         );
-        expect(authCodeRequest.responseMode).toBe(ResponseMode.QUERY);
+        expect(authCodeRequest.responseMode).toBe(Constants.ResponseMode.QUERY);
     });
 });

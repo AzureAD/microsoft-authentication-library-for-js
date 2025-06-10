@@ -9,18 +9,14 @@ import {
     AccountEntity,
     AccountInfo,
     AuthenticationResult,
-    AuthenticationScheme,
     Authority,
     AuthToken,
     BaseClient,
-    CacheOutcome,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    Constants,
     createClientAuthError,
     CredentialFilter,
-    CredentialType,
-    GrantType,
+    Constants,
     IdTokenEntity,
     RequestParameterBuilder,
     RequestThumbprint,
@@ -101,7 +97,7 @@ export class OnBehalfOfClient extends BaseClient {
         if (!cachedAccessToken) {
             // Must refresh due to non-existent access_token.
             this.serverTelemetryManager?.setCacheOutcome(
-                CacheOutcome.NO_CACHED_ACCESS_TOKEN
+                Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
             this.logger.info(
                 "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties."
@@ -117,7 +113,7 @@ export class OnBehalfOfClient extends BaseClient {
         ) {
             // Access token expired, will need to renewed
             this.serverTelemetryManager?.setCacheOutcome(
-                CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
+                Constants.CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
             this.logger.info(
                 `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`
@@ -143,8 +139,8 @@ export class OnBehalfOfClient extends BaseClient {
                 homeAccountId: cachedIdToken.homeAccountId,
                 environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
-                username: Constants.EMPTY_STRING,
-                localAccountId: localAccountId || Constants.EMPTY_STRING,
+                username: "",
+                localAccountId: localAccountId || "",
             };
 
             cachedAccount = this.cacheManager.readAccountFromCache(accountInfo);
@@ -183,7 +179,7 @@ export class OnBehalfOfClient extends BaseClient {
             homeAccountId: atHomeAccountId,
             environment:
                 this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
-            credentialType: CredentialType.ID_TOKEN,
+            credentialType: Constants.CredentialType.ID_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
         };
@@ -208,7 +204,8 @@ export class OnBehalfOfClient extends BaseClient {
         request: CommonOnBehalfOfRequest
     ) {
         const authScheme =
-            request.authenticationScheme || AuthenticationScheme.BEARER;
+            request.authenticationScheme ||
+            Constants.AuthenticationScheme.BEARER;
         /*
          * Distinguish between Bearer and PoP/SSH token cache types
          * Cast to lowercase to handle "bearer" from ADFS
@@ -216,9 +213,9 @@ export class OnBehalfOfClient extends BaseClient {
         const credentialType =
             authScheme &&
             authScheme.toLowerCase() !==
-                AuthenticationScheme.BEARER.toLowerCase()
-                ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
-                : CredentialType.ACCESS_TOKEN;
+                Constants.AuthenticationScheme.BEARER.toLowerCase()
+                ? Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+                : Constants.CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
             credentialType: credentialType,
@@ -322,7 +319,10 @@ export class OnBehalfOfClient extends BaseClient {
 
         RequestParameterBuilder.addScopes(parameters, request.scopes);
 
-        RequestParameterBuilder.addGrantType(parameters, GrantType.JWT_BEARER);
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            Constants.GrantType.JWT_BEARER
+        );
 
         RequestParameterBuilder.addClientInfo(parameters);
 

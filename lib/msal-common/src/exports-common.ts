@@ -152,32 +152,8 @@ export {
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
 } from "./error/ClientConfigurationError.js";
-export {
-    Constants,
-    OIDC_DEFAULT_SCOPES,
-    PromptValue,
-    PersistentCacheKeys,
-    OAuthResponseType,
-    ResponseMode,
-    CacheOutcome,
-    CredentialType,
-    CacheType,
-    CacheAccountType,
-    AuthenticationScheme,
-    CodeChallengeMethodValues,
-    PasswordGrantConstants,
-    ThrottlingConstants,
-    ClaimsRequestKeys,
-    HeaderNames,
-    Errors,
-    THE_FAMILY_ID,
-    ONE_DAY_IN_MS,
-    GrantType,
-    AADAuthorityConstants,
-    HttpStatus,
-    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    JsonWebTokenTypes,
-} from "./utils/Constants.js";
+export * as Constants from "./utils/Constants.js";
+
 export { StringUtils } from "./utils/StringUtils.js";
 export { StringDict } from "./utils/MsalTypes.js";
 export {

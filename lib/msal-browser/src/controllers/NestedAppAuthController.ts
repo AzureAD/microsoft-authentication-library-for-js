@@ -12,15 +12,15 @@ import {
     ICrypto,
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    PerformanceEvents,
     TimeUtils,
     buildStaticAuthorityOptions,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     BaseAuthRequest,
     AccountFilter,
     AuthError,
     AccountEntityUtils,
 } from "@azure/msal-common/browser";
+import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
@@ -207,7 +207,7 @@ export class NestedAppAuthController implements IController {
         );
 
         const atPopupMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenPopup,
+            RootPerformanceEvents.AcquireTokenPopup,
             validRequest.correlationId
         );
 
@@ -306,7 +306,7 @@ export class NestedAppAuthController implements IController {
 
         // proceed with acquiring tokens via the host
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.SsoSilent,
+            RootPerformanceEvents.SsoSilent,
             validRequest.correlationId
         );
 
@@ -385,7 +385,7 @@ export class NestedAppAuthController implements IController {
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
         const atsMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
+            RootPerformanceEvents.AcquireTokenSilent,
             request.correlationId
         );
 
@@ -496,7 +496,7 @@ export class NestedAppAuthController implements IController {
             authority: request.authority || currentAccount.environment,
             scopes: request.scopes?.length
                 ? request.scopes
-                : [...OIDC_DEFAULT_SCOPES],
+                : [...Constants.OIDC_DEFAULT_SCOPES],
         };
 
         // fetch access token and check for expiry

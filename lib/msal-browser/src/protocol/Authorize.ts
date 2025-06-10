@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationScheme,
     Authority,
     AuthorizeProtocol,
     ClientConfigurationErrorCodes,
@@ -17,8 +16,6 @@ import {
     PopTokenGenerator,
     ProtocolMode,
     RequestParameterBuilder,
-    OAuthResponseType,
-    Constants,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     ProtocolUtils,
@@ -28,7 +25,9 @@ import {
     TimeUtils,
     AuthorizationCodePayload,
     ServerAuthorizationTokenResponse,
+    Constants,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants.js";
 import { version } from "../packageMetadata.js";
@@ -85,7 +84,9 @@ async function getStandardParameters(
         RequestParameterBuilder.addNativeBroker(parameters);
 
         // pass the req_cnf for POP
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.POP
+        ) {
             const cryptoOps = new CryptoOps(logger, performanceClient);
             const popTokenGenerator = new PopTokenGenerator(cryptoOps);
 
@@ -140,12 +141,15 @@ export async function getAuthCodeRequestUrl(
 
     const parameters = await invokeAsync(
         getStandardParameters,
-        PerformanceEvents.GetStandardParams,
+        BrowserPerformanceEvents.GetStandardParams,
         logger,
         performanceClient,
         request.correlationId
     )(config, authority, request, logger, performanceClient);
-    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
+    RequestParameterBuilder.addResponseType(
+        parameters,
+        Constants.OAuthResponseType.CODE
+    );
 
     RequestParameterBuilder.addCodeChallengeParams(
         parameters,
@@ -186,7 +190,7 @@ export async function getEARForm(
 
     RequestParameterBuilder.addResponseType(
         parameters,
-        OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
+        Constants.OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
@@ -283,7 +287,7 @@ export async function handleResponsePlatformBroker(
     );
     return invokeAsync(
         nativeInteractionClient.acquireToken.bind(nativeInteractionClient),
-        PerformanceEvents.NativeInteractionClientAcquireToken,
+        BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
         logger,
         performanceClient,
         request.correlationId
@@ -328,7 +332,7 @@ export async function handleResponseCode(
     if (response.accountId) {
         return invokeAsync(
             handleResponsePlatformBroker,
-            PerformanceEvents.HandleResponsePlatformBroker,
+            BrowserPerformanceEvents.HandleResponsePlatformBroker,
             logger,
             performanceClient,
             request.correlationId
@@ -361,7 +365,7 @@ export async function handleResponseCode(
     // Handle response from hash string.
     const result = await invokeAsync(
         interactionHandler.handleCodeResponse.bind(interactionHandler),
-        PerformanceEvents.HandleCodeResponse,
+        BrowserPerformanceEvents.HandleCodeResponse,
         logger,
         performanceClient,
         request.correlationId
@@ -419,7 +423,7 @@ export async function handleResponseEAR(
     const decryptedData = JSON.parse(
         await invokeAsync(
             decryptEarResponse,
-            PerformanceEvents.DecryptEarResponse,
+            BrowserPerformanceEvents.DecryptEarResponse,
             logger,
             performanceClient,
             request.correlationId
@@ -429,7 +433,7 @@ export async function handleResponseEAR(
     if (decryptedData.accountId) {
         return invokeAsync(
             handleResponsePlatformBroker,
-            PerformanceEvents.HandleResponsePlatformBroker,
+            BrowserPerformanceEvents.HandleResponsePlatformBroker,
             logger,
             performanceClient,
             request.correlationId

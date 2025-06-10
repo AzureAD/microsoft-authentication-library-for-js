@@ -15,13 +15,7 @@ import {
 } from "../test_kit/StringConstants.js";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
-import {
-    AuthenticationScheme,
-    ThrottlingConstants,
-    Constants,
-    HeaderNames,
-    ONE_DAY_IN_MS,
-} from "../../src/utils/Constants.js";
+import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import { ClientTestUtils } from "./ClientTestUtils.js";
 import { TestError } from "../test_kit/TestErrors.js";
@@ -108,7 +102,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 scopes: ["scope"],
                 code: "",
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
             };
 
@@ -227,7 +221,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 ccsCredential: {
                     credential: idTokenClaims.preferred_username,
                     type: CcsCredentialType.UPN,
@@ -251,7 +245,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const reqHeaders = [
                 ...CORS_SIMPLE_REQUEST_HEADERS,
-                HeaderNames.CCS_HEADER.toLowerCase(),
+                Constants.HeaderNames.CCS_HEADER.toLowerCase(),
             ];
             const executePostToTokenEndpointSpy: jest.SpyInstance = jest
                 .spyOn(
@@ -348,7 +342,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 ccsCredential: {
                     credential: idTokenClaims.preferred_username,
                     type: CcsCredentialType.UPN,
@@ -464,7 +458,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             await client.acquireToken(authCodeRequest, {
@@ -541,7 +535,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+                auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
@@ -558,7 +552,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 maxAge: 0, // 0 indicates an immediate refresh
             };
 
@@ -655,8 +649,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                maxAge: ONE_DAY_IN_MS * 3,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                maxAge: Constants.ONE_DAY_IN_MS * 3,
             };
 
             await expect(
@@ -754,7 +748,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -847,7 +841,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
                     )}`
                 )
             ).toBe(true);
@@ -921,7 +915,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+                auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
@@ -938,8 +932,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                maxAge: ONE_DAY_IN_MS * 3,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                maxAge: Constants.ONE_DAY_IN_MS * 3,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -1032,7 +1026,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
                     )}`
                 )
             ).toBe(true);
@@ -1070,7 +1064,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             client.acquireToken(authorizationCodeRequest).catch((error) => {
@@ -1113,7 +1107,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 tokenQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
@@ -1158,7 +1152,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 tokenBodyParameters: {
                     extra_body_parameter: "true",
                 },
@@ -1201,7 +1195,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 enableSpaAuthorizationCode: true,
             };
 
@@ -1248,7 +1242,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 tokenBodyParameters: {
                     extra_body_parameter: "true",
                 },
@@ -1362,7 +1356,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.POP,
+                authenticationScheme: Constants.AuthenticationScheme.POP,
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1437,7 +1431,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`
+                    `${AADServerParamKeys.TOKEN_TYPE}=${Constants.AuthenticationScheme.POP}`
                 )
             ).toBe(true);
             expect(
@@ -1551,7 +1545,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1625,7 +1619,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`
+                    `${AADServerParamKeys.TOKEN_TYPE}=${Constants.AuthenticationScheme.SSH}`
                 )
             ).toBe(true);
             expect(
@@ -1735,7 +1729,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1852,7 +1846,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -1959,7 +1953,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -2042,7 +2036,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -2106,7 +2100,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -2188,7 +2182,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             await client.acquireToken(authCodeRequest, {
                 code: authCodeRequest.code,
@@ -2268,7 +2262,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             await client.acquireToken(authCodeRequest, {
                 code: authCodeRequest.code,
@@ -2360,7 +2354,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             try {
                 await client.acquireToken(authCodeRequest, {
@@ -2454,7 +2448,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             try {
                 await client.acquireToken(authCodeRequest, {

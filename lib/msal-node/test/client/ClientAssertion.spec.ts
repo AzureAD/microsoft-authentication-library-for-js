@@ -12,7 +12,7 @@ import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
 import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
 import { JwtConstants } from "../../src/utils/Constants.js";
 import { getClientAssertionCallback } from "./ClientTestUtils.js";
-import { getClientAssertion } from "@azure/msal-common";
+import { Constants, getClientAssertion } from "@azure/msal-common";
 import jwt from "jsonwebtoken";
 
 jest.mock("jsonwebtoken");
@@ -65,7 +65,7 @@ describe("Client assertion test", () => {
                 [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
                 [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(
                     TEST_CONSTANTS.THUMBPRINT,
-                    "hex"
+                    Constants.EncodingTypes.HEX
                 ),
             },
         };
@@ -95,7 +95,7 @@ describe("Client assertion test", () => {
                 [JwtConstants.ALGORITHM]: JwtConstants.PSS_256,
                 [JwtConstants.X5T_256]: EncodingUtils.base64EncodeUrl(
                     TEST_CONSTANTS.THUMBPRINT256,
-                    "hex"
+                    Constants.EncodingTypes.HEX
                 ),
             },
         };
@@ -125,7 +125,7 @@ describe("Client assertion test", () => {
                 [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
                 [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(
                     TEST_CONSTANTS.THUMBPRINT,
-                    "hex"
+                    Constants.EncodingTypes.HEX
                 ),
                 [JwtConstants.X5C]: TEST_CONSTANTS.X5C_FROM_PUBLIC_CERTIFICATE,
             },
@@ -157,7 +157,7 @@ describe("Client assertion test", () => {
                 [JwtConstants.ALGORITHM]: JwtConstants.PSS_256,
                 [JwtConstants.X5T_256]: EncodingUtils.base64EncodeUrl(
                     TEST_CONSTANTS.THUMBPRINT256,
-                    "hex"
+                    Constants.EncodingTypes.HEX
                 ),
                 [JwtConstants.X5C]: TEST_CONSTANTS.X5C_FROM_PUBLIC_CERTIFICATE,
             },

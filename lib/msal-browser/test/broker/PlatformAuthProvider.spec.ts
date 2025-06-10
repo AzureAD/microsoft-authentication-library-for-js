@@ -1,7 +1,7 @@
 import {
     Logger,
     IPerformanceClient,
-    AuthenticationScheme,
+    Constants,
 } from "@azure/msal-common/browser";
 import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -204,7 +204,7 @@ describe("PlatformAuthProvider tests", () => {
         });
     });
 
-    describe("isBrokerAvailable", () => {
+    describe("isPlatformAuthAllowed", () => {
         let config: BrowserConfiguration;
         beforeEach(() => {
             config = buildConfiguration(
@@ -232,7 +232,7 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
             expect(result).toBe(false);
         });
@@ -242,7 +242,7 @@ describe("PlatformAuthProvider tests", () => {
                 config,
                 logger,
                 undefined,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
             expect(result).toBe(false);
         });
@@ -255,7 +255,7 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                "unknown-scheme" as AuthenticationScheme
+                "unknown-scheme" as Constants.AuthenticationScheme
             );
             expect(result).toBe(false);
         });
@@ -269,7 +269,7 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
             expect(result).toBe(true);
         });

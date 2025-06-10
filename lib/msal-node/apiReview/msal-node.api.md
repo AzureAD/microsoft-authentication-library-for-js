@@ -31,7 +31,6 @@ import { BaseAuthRequest } from '@azure/msal-common';
 import { BaseAuthRequest as BaseAuthRequest_2 } from '@azure/msal-common/node';
 import { BaseClient } from '@azure/msal-common/node';
 import { CacheManager } from '@azure/msal-common/node';
-import { CacheOutcome } from '@azure/msal-common/node';
 import { ClientAssertion as ClientAssertion_2 } from '@azure/msal-common';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
@@ -43,6 +42,7 @@ import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
+import { Constants } from '@azure/msal-common/node';
 import { DeviceCodeResponse } from '@azure/msal-common';
 import { DeviceCodeResponse as DeviceCodeResponse_2 } from '@azure/msal-common/node';
 import http from 'http';
@@ -64,11 +64,9 @@ import { LogLevel } from '@azure/msal-common/node';
 import { NetworkRequestOptions } from '@azure/msal-common/node';
 import { NetworkResponse } from '@azure/msal-common/node';
 import { PkceCodes } from '@azure/msal-common/node';
-import { PromptValue } from '@azure/msal-common/node';
 import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
-import { ResponseMode } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
@@ -183,7 +181,7 @@ export class ClientCredentialClient extends BaseClient {
     constructor(configuration: ClientConfiguration, appTokenProvider?: IAppTokenProvider);
     // Warning: (ae-forgotten-export) The symbol "CommonClientCredentialRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null>;
-    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, CacheOutcome]>;
+    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, Constants.CacheOutcome]>;
 }
 
 // @public
@@ -386,6 +384,7 @@ export class ManagedIdentityApplication {
 
 // @public (undocumented)
 export type ManagedIdentityConfiguration = {
+    clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
@@ -469,7 +468,17 @@ export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssert
     scopes: Array<string>;
 };
 
-export { PromptValue }
+// Warning: (ae-missing-release-tag) "PromptValue" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const PromptValue: {
+    LOGIN: string;
+    SELECT_ACCOUNT: string;
+    CONSENT: string;
+    NONE: string;
+    CREATE: string;
+    NO_SESSION: string;
+};
 
 export { ProtocolMode }
 
@@ -490,7 +499,14 @@ export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scope
     forceCache?: boolean;
 };
 
-export { ResponseMode }
+// Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const ResponseMode: {
+    readonly QUERY: "query";
+    readonly FRAGMENT: "fragment";
+    readonly FORM_POST: "form_post";
+};
 
 // @public
 export type SerializedAccessTokenEntity = {
@@ -619,7 +635,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.5.3";
+export const version = "3.6.0";
 
 // Warnings were encountered during analysis:
 //

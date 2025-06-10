@@ -7,7 +7,7 @@ import {
     LoggerOptions,
     IPerformanceClient,
     Logger,
-    AuthenticationScheme,
+    Constants,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { name, version } from "../../packageMetadata.js";
@@ -126,7 +126,7 @@ export function isPlatformAuthAllowed(
     config: BrowserConfiguration,
     logger: Logger,
     platformAuthProvider?: IPlatformAuthHandler,
-    authenticationScheme?: AuthenticationScheme
+    authenticationScheme?: Constants.AuthenticationScheme
 ): boolean {
     logger.trace("isPlatformAuthAllowed called");
     if (!config.system.allowPlatformBroker) {
@@ -147,8 +147,8 @@ export function isPlatformAuthAllowed(
 
     if (authenticationScheme) {
         switch (authenticationScheme) {
-            case AuthenticationScheme.BEARER:
-            case AuthenticationScheme.POP:
+            case Constants.AuthenticationScheme.BEARER:
+            case Constants.AuthenticationScheme.POP:
                 logger.trace(
                     "isPlatformAuthAllowed: authenticationScheme is supported, returning true"
                 );

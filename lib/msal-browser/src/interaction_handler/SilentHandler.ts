@@ -6,12 +6,12 @@
 import {
     Logger,
     IPerformanceClient,
-    PerformanceEvents,
     invoke,
-    ResponseMode,
+    Constants,
     Authority,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -41,7 +41,7 @@ export async function initiateCodeRequest(
 
     return invoke(
         loadFrameSync,
-        PerformanceEvents.SilentHandlerLoadFrameSync,
+        BrowserPerformanceEvents.SilentHandlerLoadFrameSync,
         logger,
         performanceClient,
         correlationId
@@ -83,7 +83,7 @@ export async function monitorIframeForHash(
     performanceClient: IPerformanceClient,
     logger: Logger,
     correlationId: string,
-    responseType: ResponseMode
+    responseType: Constants.ResponseMode
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
@@ -123,7 +123,7 @@ export async function monitorIframeForHash(
 
             let responseString = "";
             if (contentWindow) {
-                if (responseType === ResponseMode.QUERY) {
+                if (responseType === Constants.ResponseMode.QUERY) {
                     responseString = contentWindow.location.search;
                 } else {
                     responseString = contentWindow.location.hash;
@@ -136,7 +136,7 @@ export async function monitorIframeForHash(
     }).finally(() => {
         invoke(
             removeHiddenIframe,
-            PerformanceEvents.RemoveHiddenIframe,
+            BrowserPerformanceEvents.RemoveHiddenIframe,
             logger,
             performanceClient,
             correlationId

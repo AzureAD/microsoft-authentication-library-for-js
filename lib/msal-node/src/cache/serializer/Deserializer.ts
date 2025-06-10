@@ -14,8 +14,7 @@ import {
     AccessTokenEntity,
     RefreshTokenEntity,
     CacheManager,
-    CredentialType,
-    AuthenticationScheme,
+    Constants,
 } from "@azure/msal-common/node";
 import {
     JsonCache,
@@ -93,7 +92,7 @@ export class Deserializer {
                     homeAccountId: serializedIdT.home_account_id,
                     environment: serializedIdT.environment,
                     credentialType:
-                        serializedIdT.credential_type as CredentialType,
+                        serializedIdT.credential_type as Constants.CredentialType,
                     clientId: serializedIdT.client_id,
                     secret: serializedIdT.secret,
                     realm: serializedIdT.realm,
@@ -119,7 +118,7 @@ export class Deserializer {
                     homeAccountId: serializedAT.home_account_id,
                     environment: serializedAT.environment,
                     credentialType:
-                        serializedAT.credential_type as CredentialType,
+                        serializedAT.credential_type as Constants.CredentialType,
                     clientId: serializedAT.client_id,
                     secret: serializedAT.secret,
                     realm: serializedAT.realm,
@@ -129,7 +128,8 @@ export class Deserializer {
                     extendedExpiresOn: serializedAT.extended_expires_on,
                     refreshOn: serializedAT.refresh_on,
                     keyId: serializedAT.key_id,
-                    tokenType: serializedAT.token_type as AuthenticationScheme,
+                    tokenType:
+                        serializedAT.token_type as Constants.AuthenticationScheme,
                     requestedClaims: serializedAT.requestedClaims,
                     requestedClaimsHash: serializedAT.requestedClaimsHash,
                     userAssertionHash: serializedAT.userAssertionHash,
@@ -156,7 +156,7 @@ export class Deserializer {
                     homeAccountId: serializedRT.home_account_id,
                     environment: serializedRT.environment,
                     credentialType:
-                        serializedRT.credential_type as CredentialType,
+                        serializedRT.credential_type as Constants.CredentialType,
                     clientId: serializedRT.client_id,
                     secret: serializedRT.secret,
                     familyId: serializedRT.family_id,

@@ -3,7 +3,7 @@ import {
     AuthErrorCodes,
     IPerformanceClient,
     Logger,
-    PromptValue,
+    Constants,
 } from "@azure/msal-common/browser";
 import { PlatformAuthConstants } from "../../src/utils/BrowserConstants.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -16,6 +16,7 @@ import {
 } from "../utils/StringConstants.js";
 import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
+import { sign } from "crypto";
 
 describe("PlatformAuthDOMHandler tests", () => {
     let performanceClient: IPerformanceClient;
@@ -404,7 +405,6 @@ describe("PlatformAuthDOMHandler tests", () => {
             });
         });
 
-        
         it("returned DOM request object should include user input extra parameters", async () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
@@ -517,37 +517,38 @@ describe("PlatformAuthDOMHandler tests", () => {
         });
     });
 
-        describe("getDOMExtraParams tests", () => {});
-    it("should return a valid DOMExtraParameters object", async () => {
-        getSupportedContractsMock.mockResolvedValue([
-            PlatformAuthConstants.PLATFORM_DOM_APIS,
-        ]);
-        const platformAuthDOMHandler =
-            await PlatformAuthDOMHandler.createProvider(
-                logger,
-                performanceClient,
-                "test-correlation-id"
-            );
-        const testExtraParameters = {
-            prompt: PromptValue.NONE,
-            nonce: "test-nonce",
-            claims: "test-claims",
-            instanceAware: true,
-            windowTitleSubstring: "test-window-substring",
-            extendedExpiryToken: true,
-            signPopToken: true,
-        };
-        const domExtraParams =
-            //@ts-ignore
-            platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
-        expect(domExtraParams).toEqual({
-            prompt: "none",
-            nonce: "test-nonce",
-            claims: "test-claims",
-            instanceAware: "true",
-            windowTitleSubstring: "test-window-substring",
-            extendedExpiryToken: "true",
-            signPopToken: "true",
+    describe("getDOMExtraParams tests", () => {
+        it("should return a valid DOMExtraParameters object", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+            const testExtraParameters = {
+                prompt: Constants.PromptValue.NONE,
+                nonce: "test-nonce",
+                claims: "test-claims",
+                instanceAware: true,
+                windowTitleSubstring: "test-window-substring",
+                extendedExpiryToken: true,
+                signPopToken: true,
+            };
+            const domExtraParams =
+                //@ts-ignore
+                platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
+            expect(domExtraParams).toEqual({
+                prompt: "none",
+                nonce: "test-nonce",
+                claims: "test-claims",
+                instanceAware: "true",
+                windowTitleSubstring: "test-window-substring",
+                extendedExpiryToken: "true",
+                signPopToken: "true",
+            });
         });
     });
 });
