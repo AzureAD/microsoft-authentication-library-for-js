@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "importing v4 changes for DOM platform authentication",
+  "comment": "Added unit tests for PlatformDOMRequest ExtraParameters (v5) #7825",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"
