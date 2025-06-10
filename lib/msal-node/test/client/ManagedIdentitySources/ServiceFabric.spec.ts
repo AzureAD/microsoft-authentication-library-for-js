@@ -5,11 +5,14 @@
 
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import {
+    CAE_CONSTANTS,
+    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT_ACCESS_TOKEN_SHA256_HASH_IN_HEX,
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR,
+    TEST_CONFIG,
 } from "../../test_kit/StringConstants.js";
 
 import {
@@ -22,12 +25,13 @@ import {
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
-    HttpStatus,
+    Constants,
     ServerError,
 } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
 import {
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
@@ -181,13 +185,93 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         });
     });
 
+    describe("Miscellaneous", () => {
+        it.each([
+            [
+                CAE_CONSTANTS.CLIENT_CAPABILITIES,
+                CAE_CONSTANTS.CLIENT_CAPABILITIES.toString(),
+            ],
+            [undefined, null],
+        ])(
+            "ignores a cached token when claims are provided (regardless of if client capabilities are provided or not) and the Managed Identity does support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh is included in the network request to the Managed Identity",
+            async (providedCapabilities, capabilitiesOnNetworkRequest) => {
+                const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                    networkClient,
+                    <any>"sendGetRequestAsync"
+                );
+
+                const managedIdentityApplication: ManagedIdentityApplication =
+                    new ManagedIdentityApplication({
+                        ...systemAssignedConfig,
+                        clientCapabilities: providedCapabilities,
+                    });
+                expect(
+                    managedIdentityApplication.getManagedIdentitySource()
+                ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
+
+                let networkManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken({
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+
+                expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
+                const firstNetworkRequestUrlParams: URLSearchParams =
+                    new URLSearchParams(
+                        sendGetRequestAsyncSpy.mock.lastCall[0]
+                    );
+                expect(
+                    firstNetworkRequestUrlParams.get(
+                        ManagedIdentityQueryParameters.XMS_CC
+                    )
+                ).toEqual(capabilitiesOnNetworkRequest);
+
+                const cachedManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken({
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(cachedManagedIdentityResult.fromCache).toBe(true);
+                expect(cachedManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+                expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
+
+                networkManagedIdentityResult =
+                    await managedIdentityApplication.acquireToken({
+                        claims: TEST_CONFIG.CLAIMS,
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+
+                expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(2);
+                const secondNetworkRequestUrlParams: URLSearchParams =
+                    new URLSearchParams(
+                        sendGetRequestAsyncSpy.mock.lastCall[0]
+                    );
+                expect(
+                    secondNetworkRequestUrlParams.get(
+                        ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
+                    )
+                ).toEqual(
+                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT_ACCESS_TOKEN_SHA256_HASH_IN_HEX
+                );
+            }
+        );
+    });
+
     describe("Errors", () => {
         test("ensures that the error format is correct", async () => {
             const managedIdentityNetworkErrorClient400 =
                 new ManagedIdentityNetworkErrorClient(
                     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR,
                     undefined,
-                    HttpStatus.BAD_REQUEST
+                    Constants.HTTP_BAD_REQUEST
                 );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")

@@ -23,8 +23,7 @@ import {
 import {
     AccountInfo,
     TokenClaims,
-    PromptValue,
-    AuthenticationScheme,
+    Constants,
     ServerTelemetryManager,
     ProtocolUtils,
     TenantProfile,
@@ -33,8 +32,8 @@ import {
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
@@ -42,8 +41,8 @@ import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import {
@@ -54,7 +53,6 @@ import {
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { SsoSilentRequest } from "../../src/index.js";
 
 describe("SilentIframeClient", () => {
@@ -148,7 +146,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -177,14 +175,14 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(tokenResp).toEqual(testTokenResponse);
             expect(initializeAuthorizationRequestSpy).toBeCalledWith(
                 {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
-                    prompt: PromptValue.NONE,
+                    prompt: Constants.PromptValue.NONE,
                 },
                 InteractionType.Silent
             );
@@ -301,7 +299,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -324,7 +322,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.NO_SESSION,
+                prompt: Constants.PromptValue.NO_SESSION,
             });
             expect(tokenResp).toEqual(testTokenResponse);
         });
@@ -370,7 +368,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -413,7 +411,7 @@ describe("SilentIframeClient", () => {
             pca = (pca as any).controller;
 
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -481,7 +479,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -491,7 +489,7 @@ describe("SilentIframeClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -583,7 +581,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -593,7 +591,7 @@ describe("SilentIframeClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -612,9 +610,9 @@ describe("SilentIframeClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                        ]
+                        )
                     );
                     done();
                 });
@@ -724,7 +722,7 @@ describe("SilentIframeClient", () => {
                         testServerTokenResponse.ext_expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 refreshOn: undefined,
                 requestId: "",
                 familyId: "",
@@ -753,7 +751,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.NO_SESSION,
+                prompt: Constants.PromptValue.NO_SESSION,
                 nonce: "123523",
                 state: TEST_STATE_VALUES.USER_STATE,
             });
@@ -806,7 +804,7 @@ describe("SilentIframeClient", () => {
                 .acquireToken({
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
-                    prompt: PromptValue.NO_SESSION,
+                    prompt: Constants.PromptValue.NO_SESSION,
                     state: TEST_STATE_VALUES.USER_STATE,
                 })
                 .catch((e) => {
@@ -888,7 +886,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -916,7 +914,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
             });
             expect(generateAuthoritySpy.mock.calls[0][0]).toEqual(
@@ -991,7 +989,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -1023,7 +1021,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
             });
             expect(
@@ -1101,7 +1099,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -1134,7 +1132,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
                 extraQueryParameters: {
                     instance_aware: "false",

@@ -98,7 +98,6 @@ export const invokeAsync = <T extends Array<any>, U>(
                 correlationId
             );
         }
-        telemetryClient?.setPreQueueTime(eventName, correlationId);
         return callback(...args)
             .then((response) => {
                 logger.trace(`Returning result from ${eventName}`);

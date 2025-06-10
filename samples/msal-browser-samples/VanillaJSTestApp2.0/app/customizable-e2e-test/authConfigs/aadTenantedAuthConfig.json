@@ -5,14 +5,15 @@
             "authority": "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
         },
         "cache": {
-            "cacheLocation": "sessionStorage",
-            "storeAuthStateInCookie": false
+            "cacheLocation": "sessionStorage"
         },
         "system": {
             "allowPlatformBroker": false
         }
     },
     "request": {
-        "scopes": ["User.Read"]
+        "scopes": [
+            "User.Read"
+        ]
     }
 }

@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Fix circular type imports",
-  "packageName": "@azure/msal-node",
+  "comment": "Upgrade/rollback telemetry #7738",
+  "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }

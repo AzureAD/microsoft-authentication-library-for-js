@@ -53,18 +53,6 @@ export class StubPerformanceClient implements IPerformanceClient {
         };
     }
 
-    calculateQueuedTime(): number {
-        return 0;
-    }
-
-    addQueueMeasurement(): void {
-        return;
-    }
-
-    setPreQueueTime(): void {
-        return;
-    }
-
     endMeasurement(): PerformanceEvent | null {
         return null;
     }

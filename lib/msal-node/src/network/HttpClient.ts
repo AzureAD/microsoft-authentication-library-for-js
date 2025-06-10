@@ -4,10 +4,10 @@
  */
 
 import {
+    Constants as CommonConstants,
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-    HttpStatus,
 } from "@azure/msal-common/node";
 import { HttpMethod, Constants, ProxyStatus } from "../utils/Constants.js";
 import { NetworkUtils } from "../utils/NetworkUtils.js";
@@ -240,8 +240,10 @@ const networkRequestViaProxy = <T>(
                 );
 
                 if (
-                    (httpStatusCode < HttpStatus.SUCCESS_RANGE_START ||
-                        httpStatusCode > HttpStatus.SUCCESS_RANGE_END) &&
+                    (httpStatusCode <
+                        CommonConstants.HTTP_SUCCESS_RANGE_START ||
+                        httpStatusCode >
+                            CommonConstants.HTTP_SUCCESS_RANGE_END) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !==
                         Constants.AUTHORIZATION_PENDING
@@ -349,8 +351,8 @@ const networkRequestViaHttps = <T>(
                 );
 
                 if (
-                    (statusCode < HttpStatus.SUCCESS_RANGE_START ||
-                        statusCode > HttpStatus.SUCCESS_RANGE_END) &&
+                    (statusCode < CommonConstants.HTTP_SUCCESS_RANGE_START ||
+                        statusCode > CommonConstants.HTTP_SUCCESS_RANGE_END) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !==
                         Constants.AUTHORIZATION_PENDING
@@ -397,14 +399,14 @@ const parseBody = (
         let errorType;
         let errorDescriptionHelper;
         if (
-            statusCode >= HttpStatus.CLIENT_ERROR_RANGE_START &&
-            statusCode <= HttpStatus.CLIENT_ERROR_RANGE_END
+            statusCode >= CommonConstants.HTTP_CLIENT_ERROR_RANGE_START &&
+            statusCode <= CommonConstants.HTTP_CLIENT_ERROR_RANGE_END
         ) {
             errorType = "client_error";
             errorDescriptionHelper = "A client";
         } else if (
-            statusCode >= HttpStatus.SERVER_ERROR_RANGE_START &&
-            statusCode <= HttpStatus.SERVER_ERROR_RANGE_END
+            statusCode >= CommonConstants.HTTP_SERVER_ERROR_RANGE_START &&
+            statusCode <= CommonConstants.HTTP_SERVER_ERROR_RANGE_END
         ) {
             errorType = "server_error";
             errorDescriptionHelper = "A server";

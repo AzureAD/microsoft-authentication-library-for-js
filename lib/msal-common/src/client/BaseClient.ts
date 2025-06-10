@@ -16,7 +16,7 @@ import { NetworkResponse } from "../network/NetworkResponse.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { Authority } from "../authority/Authority.js";
 import { Logger } from "../logger/Logger.js";
-import { Constants, HeaderNames } from "../utils/Constants.js";
+import { HeaderNames, URL_FORM_CONTENT_TYPE } from "../utils/Constants.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 import { CacheManager } from "../cache/CacheManager.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
@@ -29,7 +29,7 @@ import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js"
 import * as UrlUtils from "../utils/UrlUtils.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { ThrottlingUtils } from "../network/ThrottlingUtils.js";
 import { AuthError } from "../error/AuthError.js";
 import {
@@ -104,7 +104,7 @@ export abstract class BaseClient {
         ccsCred?: CcsCredential
     ): Record<string, string> {
         const headers: Record<string, string> = {};
-        headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
+        headers[HeaderNames.CONTENT_TYPE] = URL_FORM_CONTENT_TYPE;
         if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
             switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
@@ -144,16 +144,8 @@ export abstract class BaseClient {
         queryString: string,
         headers: Record<string, string>,
         thumbprint: RequestThumbprint,
-        correlationId: string,
-        queuedEvent?: string
+        correlationId: string
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        if (queuedEvent) {
-            this.performanceClient?.addQueueMeasurement(
-                queuedEvent,
-                correlationId
-            );
-        }
-
         const response =
             await this.sendPostRequest<ServerAuthorizationTokenResponse>(
                 thumbprint,
@@ -257,10 +249,6 @@ export abstract class BaseClient {
         cloudInstanceHostname: string,
         correlationId: string
     ): Promise<void> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.UpdateTokenEndpointAuthority,
-            correlationId
-        );
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${this.authority.tenant}/`;
         const cloudInstanceAuthority = await createDiscoveredInstance(
             cloudInstanceAuthorityUri,

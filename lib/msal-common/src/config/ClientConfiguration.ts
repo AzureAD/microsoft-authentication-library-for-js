@@ -7,8 +7,9 @@ import { INetworkModule } from "../network/INetworkModule.js";
 import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto.js";
 import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger.js";
 import {
-    Constants,
+    DEFAULT_COMMON_TENANT,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    SKU,
 } from "../utils/Constants.js";
 import { version } from "../packageMetadata.js";
 import type { Authority } from "../authority/Authority.js";
@@ -43,7 +44,6 @@ export type ClientConfiguration = {
     authOptions: AuthOptions;
     systemOptions?: SystemOptions;
     loggerOptions?: LoggerOptions;
-    cacheOptions?: CacheOptions;
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
@@ -59,7 +59,6 @@ export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
-    cacheOptions: Required<CacheOptions>;
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
@@ -119,18 +118,6 @@ export type LoggerOptions = {
 };
 
 /**
- *  Use this to configure credential cache preferences in the ClientConfiguration object
- *
- * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is false.
- */
-export type CacheOptions = {
-    /**
-     * @deprecated claimsBasedCachingEnabled is deprecated and will be removed in the next major version.
-     */
-    claimsBasedCachingEnabled?: boolean;
-};
-
-/**
  * Library-specific options
  */
 export type LibraryInfo = {
@@ -176,11 +163,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
-    correlationId: Constants.EMPTY_STRING,
-};
-
-const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
-    claimsBasedCachingEnabled: false,
+    correlationId: "",
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -193,20 +176,20 @@ const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
 };
 
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
-    sku: Constants.SKU,
+    sku: SKU,
     version: version,
-    cpu: Constants.EMPTY_STRING,
-    os: Constants.EMPTY_STRING,
+    cpu: "",
+    os: "",
 };
 
 const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
-    clientSecret: Constants.EMPTY_STRING,
+    clientSecret: "",
     clientAssertion: undefined,
 };
 
 const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
     azureCloudInstance: AzureCloudInstance.None,
-    tenant: `${Constants.DEFAULT_COMMON_TENANT}`,
+    tenant: `${DEFAULT_COMMON_TENANT}`,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {
@@ -227,7 +210,6 @@ export function buildClientConfiguration({
     authOptions: userAuthOptions,
     systemOptions: userSystemOptions,
     loggerOptions: userLoggerOption,
-    cacheOptions: userCacheOptions,
     storageInterface: storageImplementation,
     networkInterface: networkImplementation,
     cryptoInterface: cryptoImplementation,
@@ -247,7 +229,6 @@ export function buildClientConfiguration({
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
-        cacheOptions: { ...DEFAULT_CACHE_OPTIONS, ...userCacheOptions },
         storageInterface:
             storageImplementation ||
             new DefaultStorageClass(

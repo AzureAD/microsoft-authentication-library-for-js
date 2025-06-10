@@ -5,11 +5,9 @@
 
 import {
     AADServerParamKeys,
-    ThrottlingConstants,
     ServerTelemetryEntity,
     CacheManager,
     ClientConfiguration,
-    Constants,
     PkceCodes,
     AccountEntity,
     AppMetadataEntity,
@@ -30,9 +28,8 @@ import {
     INetworkModule,
     ClientAssertionCallback,
     ClientAssertionConfig,
-    PasswordGrantConstants,
-    OAuthResponseType,
     AccountEntityUtils,
+    Constants,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -529,7 +526,7 @@ export const checkMockedNetworkRequest = (
         expect(
             returnVal.includes(
                 `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${encodeURIComponent(
-                    ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    Constants.X_MS_LIB_CAPABILITY_VALUE
                 )}`
             )
         ).toBe(checks.msLibraryCapability);
@@ -579,7 +576,7 @@ export const checkMockedNetworkRequest = (
         expect(
             returnVal.includes(
                 `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
-                    OAuthResponseType.IDTOKEN_TOKEN
+                    Constants.OAuthResponseType.IDTOKEN_TOKEN
                 )}`
             )
         ).toBe(checks.responseType);
@@ -588,7 +585,7 @@ export const checkMockedNetworkRequest = (
     if (checks.username) {
         expect(
             returnVal.includes(
-                `${PasswordGrantConstants.username}=${checks.username}`
+                `${Constants.PasswordGrantConstants.username}=${checks.username}`
             )
         ).toBe(true);
     }
@@ -596,7 +593,7 @@ export const checkMockedNetworkRequest = (
     if (checks.password) {
         expect(
             returnVal.includes(
-                `${PasswordGrantConstants.password}=${checks.password}`
+                `${Constants.PasswordGrantConstants.password}=${checks.password}`
             )
         ).toBe(true);
     }

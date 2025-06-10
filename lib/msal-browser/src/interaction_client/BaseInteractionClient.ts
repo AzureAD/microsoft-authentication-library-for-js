@@ -17,12 +17,12 @@ import {
     AuthorityOptions,
     AuthorityFactory,
     IPerformanceClient,
-    PerformanceEvents,
     AzureCloudOptions,
     invokeAsync,
     StringDict,
     AccountEntityUtils,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -34,10 +34,10 @@ import { version } from "../packageMetadata.js";
 import { BrowserConstants } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -47,7 +47,7 @@ export abstract class BaseInteractionClient {
     protected logger: Logger;
     protected eventHandler: EventHandler;
     protected navigationClient: INavigationClient;
-    protected nativeMessageHandler: NativeMessageHandler | undefined;
+    protected platformAuthProvider: IPlatformAuthHandler | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
 
@@ -59,7 +59,7 @@ export abstract class BaseInteractionClient {
         eventHandler: EventHandler,
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthProvider?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         this.config = config;
@@ -68,7 +68,7 @@ export abstract class BaseInteractionClient {
         this.networkClient = this.config.system.networkClient;
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
-        this.nativeMessageHandler = nativeMessageHandler;
+        this.platformAuthProvider = platformAuthProvider;
         this.correlationId = correlationId || createNewGuid();
         this.logger = logger.clone(
             BrowserConstants.MSAL_SKU,
@@ -195,10 +195,6 @@ export abstract class BaseInteractionClient {
                 ? params.requestExtraQueryParameters["instance_aware"]
                 : undefined;
 
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.correlationId
-        );
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.system.protocolMode,
             OIDCOptions: this.config.auth.OIDCOptions,
@@ -230,7 +226,7 @@ export abstract class BaseInteractionClient {
         );
         const discoveredAuthority = await invokeAsync(
             AuthorityFactory.createDiscoveredInstance,
-            PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
+            BrowserPerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
             this.logger,
             this.performanceClient,
             this.correlationId

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme } from "@azure/msal-common/node";
+import { Constants } from "@azure/msal-common/node";
 
 /**
  * Deserialized response object from server managed identity request.
@@ -25,7 +25,7 @@ export type ManagedIdentityTokenResponse = {
     client_id?: string;
     expires_on?: number; // will be converted to expires_in
     resource?: string; // equivalent to ServerAuthorizationTokenResponse's "scope" field
-    token_type?: AuthenticationScheme;
+    token_type?: Constants.AuthenticationScheme;
 
     // error
 

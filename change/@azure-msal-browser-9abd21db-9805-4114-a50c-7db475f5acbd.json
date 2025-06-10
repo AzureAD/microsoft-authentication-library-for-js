@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix circular type imports",
+  "comment": "Add BrokerConnectionEvent to exports",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

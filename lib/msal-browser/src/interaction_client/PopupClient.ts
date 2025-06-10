@@ -8,18 +8,18 @@ import {
     CommonEndSessionRequest,
     UrlString,
     AuthError,
-    OIDC_DEFAULT_SCOPES,
-    PerformanceEvents,
     IPerformanceClient,
     Logger,
     ICrypto,
     ProtocolMode,
-    ResponseMode,
+    PerformanceEvents,
+    Constants,
     invokeAsync,
     invoke,
     PkceCodes,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { EventType } from "../event/EventType.js";
 import {
@@ -31,7 +31,6 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { PopupRequest } from "../request/PopupRequest.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -46,7 +45,9 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -68,7 +69,7 @@ export class PopupClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthHandler?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         super(
@@ -79,7 +80,7 @@ export class PopupClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthHandler,
             correlationId
         );
         // Properly sets this reference for the unload event.
@@ -99,7 +100,7 @@ export class PopupClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         try {
             const popupName = this.generatePopupName(
-                request.scopes || OIDC_DEFAULT_SCOPES,
+                request.scopes || Constants.OIDC_DEFAULT_SCOPES,
                 request.authority || this.config.auth.authority
             );
             const popupParams: PopupParams = {
@@ -208,7 +209,7 @@ export class PopupClient extends StandardInteractionClient {
 
         const validRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -222,10 +223,10 @@ export class PopupClient extends StandardInteractionClient {
             BrowserUtils.preconnect(validRequest.authority);
         }
 
-        const isPlatformBroker = NativeMessageHandler.isPlatformBrokerAvailable(
+        const isPlatformBroker = isPlatformAuthAllowed(
             this.config,
             this.logger,
-            this.nativeMessageHandler,
+            this.platformAuthProvider,
             request.authenticationScheme
         );
         validRequest.platformBroker = isPlatformBroker;
@@ -258,7 +259,7 @@ export class PopupClient extends StandardInteractionClient {
             pkceCodes ||
             (await invokeAsync(
                 generatePkceCodes,
-                PerformanceEvents.GeneratePkceCodes,
+                BrowserPerformanceEvents.GeneratePkceCodes,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -273,7 +274,7 @@ export class PopupClient extends StandardInteractionClient {
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -320,7 +321,7 @@ export class PopupClient extends StandardInteractionClient {
 
             const serverParams = invoke(
                 ResponseHandler.deserializeResponse,
-                PerformanceEvents.DeserializeResponse,
+                BrowserPerformanceEvents.DeserializeResponse,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
@@ -332,7 +333,7 @@ export class PopupClient extends StandardInteractionClient {
 
             return await invokeAsync(
                 Authorize.handleResponseCode,
-                PerformanceEvents.HandleResponseCode,
+                BrowserPerformanceEvents.HandleResponseCode,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -348,7 +349,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.nativeMessageHandler
+                this.platformAuthProvider
             );
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered
@@ -374,7 +375,7 @@ export class PopupClient extends StandardInteractionClient {
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             correlationId
@@ -387,7 +388,7 @@ export class PopupClient extends StandardInteractionClient {
 
         const earJwk = await invokeAsync(
             generateEarKey,
-            PerformanceEvents.GenerateEarKey,
+            BrowserPerformanceEvents.GenerateEarKey,
             this.logger,
             this.performanceClient,
             correlationId
@@ -412,7 +413,7 @@ export class PopupClient extends StandardInteractionClient {
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
             this.monitorPopupForHash.bind(this),
-            PerformanceEvents.SilentHandlerMonitorIframeForHash,
+            BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
@@ -420,7 +421,7 @@ export class PopupClient extends StandardInteractionClient {
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
-            PerformanceEvents.DeserializeResponse,
+            BrowserPerformanceEvents.DeserializeResponse,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -432,7 +433,7 @@ export class PopupClient extends StandardInteractionClient {
 
         return invokeAsync(
             Authorize.handleResponseEAR,
-            PerformanceEvents.HandleResponseEar,
+            BrowserPerformanceEvents.HandleResponseEar,
             this.logger,
             this.performanceClient,
             correlationId
@@ -447,7 +448,7 @@ export class PopupClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.nativeMessageHandler
+            this.platformAuthProvider
         );
     }
 
@@ -484,7 +485,7 @@ export class PopupClient extends StandardInteractionClient {
             // Initialize the client
             const authClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
@@ -678,7 +679,7 @@ export class PopupClient extends StandardInteractionClient {
                 let responseString = "";
                 const responseType = this.config.auth.OIDCOptions.responseMode;
                 if (popupWindow) {
-                    if (responseType === ResponseMode.QUERY) {
+                    if (responseType === Constants.ResponseMode.QUERY) {
                         responseString = popupWindow.location.search;
                     } else {
                         responseString = popupWindow.location.hash;

@@ -18,7 +18,7 @@ import {
     AccountInfo,
     TokenClaims,
     AuthorizationCodeClient,
-    AuthenticationScheme,
+    Constants,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -135,7 +135,7 @@ describe("SilentAuthCodeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,

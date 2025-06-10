@@ -15,9 +15,10 @@ import {
 import { BaseClient } from "../../src/client/BaseClient.js";
 import {
     AuthenticationScheme,
-    Constants,
     CredentialType,
     ONE_DAY_IN_MS,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
 } from "../../src/utils/Constants.js";
 import {
     ClientTestUtils,
@@ -123,8 +124,8 @@ describe("SilentFlowClient unit tests", () => {
     describe("Success cases", () => {
         it("acquireCachedToken returns correct token even if offline_access is not present in access token entity", async () => {
             const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
@@ -180,8 +181,8 @@ describe("SilentFlowClient unit tests", () => {
 
         it("acquireCachedToken does not throw when given empty object string for claims", async () => {
             const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
@@ -320,8 +321,8 @@ describe("SilentFlowClient unit tests", () => {
 
         it("acquireCachedToken throws when given valid claims with default configuration", async () => {
             const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
@@ -365,76 +366,10 @@ describe("SilentFlowClient unit tests", () => {
             );
         });
 
-        it("acquireCachedToken does not throw when given valid claims with claimsBasedCachingEnabled", async () => {
-            const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
-                ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            ];
-            testAccessTokenEntity.target = testScopes.join(" ");
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
-            ).mockReturnValue(testAccountEntity);
-            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
-            );
-            jest.spyOn(
-                CacheManager.prototype,
-                "getAccessToken"
-            ).mockReturnValue(testAccessTokenEntity);
-            jest.spyOn(
-                CacheManager.prototype,
-                "getRefreshToken"
-            ).mockReturnValue(testRefreshTokenEntity);
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new SilentFlowClient(
-                {
-                    ...config,
-                    cacheOptions: {
-                        ...config.cacheOptions,
-                        claimsBasedCachingEnabled: true,
-                    },
-                },
-                stubPerformanceClient
-            );
-            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
-
-            const silentFlowRequest: CommonSilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-                claims: `{ "access_token": { "xms_cc":{"values":["cp1"] } }}`,
-            };
-
-            const response = await client.acquireCachedToken(silentFlowRequest);
-            const authResult: AuthenticationResult = response[0];
-            expect(authResult.authority).toEqual(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
-            );
-            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(authResult.scopes).toEqual(testScopes);
-            expect(authResult.account).toEqual(testAccount);
-            expect(authResult.idToken).toEqual(testIdToken.secret);
-            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
-            );
-            expect(authResult.state).toBe("");
-        });
-
         it("acquireCachedToken returns correct token when max age is provided and has not transpired yet", async () => {
             const testScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             ];
             testAccessTokenEntity.target = testScopes.join(" ");

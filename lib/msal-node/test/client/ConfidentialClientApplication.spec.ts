@@ -6,8 +6,7 @@
 import {
     AuthorizationCodeClient,
     AuthenticationResult,
-    OIDC_DEFAULT_SCOPES,
-    CommonClientCredentialRequest,
+    Constants as CommonConstants,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountEntity,
@@ -50,6 +49,7 @@ import { Constants, MSAL_FORCE_REGION } from "../../src/utils/Constants.js";
 import jwt from "jsonwebtoken";
 import { NodeAuthError } from "../../src/error/NodeAuthError.js";
 import { INetworkModule } from "../../../msal-common/lib/types/exports-common.js";
+import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 
 jest.mock("jsonwebtoken");
 
@@ -138,7 +138,7 @@ describe("ConfidentialClientApplication", () => {
 
                 const config: Configuration =
                     await ClientTestUtils.createTestConfidentialClientConfiguration(
-                        ["cp1", "cp2"],
+                        CAE_CONSTANTS.CLIENT_CAPABILITIES,
                         mockNetworkClient(
                             {}, // not needed
                             CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
@@ -467,7 +467,7 @@ describe("ConfidentialClientApplication", () => {
                 ClientCredentialClient.prototype,
                 "acquireToken"
             ).mockImplementation((request: CommonClientCredentialRequest) => {
-                OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
+                CommonConstants.OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
                     expect(request.scopes).not.toContain(scope);
                 });
                 return Promise.resolve(null);

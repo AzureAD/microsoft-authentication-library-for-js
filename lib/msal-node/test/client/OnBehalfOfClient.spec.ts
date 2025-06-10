@@ -6,14 +6,12 @@
 import {
     AccessTokenEntity,
     AccountEntity,
-    AuthenticationScheme,
+    Constants,
     AuthToken,
     BaseClient,
     CacheManager,
     ClientConfiguration,
-    CommonOnBehalfOfRequest,
     AccountEntityUtils,
-    CredentialType,
     IdTokenEntity,
     ScopeSet,
     TimeUtils,
@@ -33,6 +31,7 @@ import {
 } from "./ClientTestUtils.js";
 import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest.js";
 
 describe("OnBehalfOf unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -324,10 +323,10 @@ describe("OnBehalfOf unit tests", () => {
                     TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
                     " " +
                     TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
-                credentialType: CredentialType.ACCESS_TOKEN,
+                credentialType: Constants.CredentialType.ACCESS_TOKEN,
                 cachedAt: `${TimeUtils.nowSeconds()}`,
                 expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 userAssertionHash: "user_assertion_hash",
             };
 
@@ -337,7 +336,7 @@ describe("OnBehalfOf unit tests", () => {
                 environment: "env_id_token",
                 realm: "this_is_tid_id_token",
                 secret: TEST_TOKENS.IDTOKEN_V2,
-                credentialType: CredentialType.ID_TOKEN,
+                credentialType: Constants.CredentialType.ID_TOKEN,
             };
 
             const idTokenClaims = AuthToken.extractTokenClaims(

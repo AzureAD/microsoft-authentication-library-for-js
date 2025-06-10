@@ -13,7 +13,7 @@ import {
 } from "../test_kit/StringConstants.js";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils.js";
 import { MockCache } from "../cache/entities/cacheConstants.js";
-import { Constants } from "../../src/utils/Constants.js";
+import { SKU } from "../../src/utils/Constants.js";
 import * as ClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 import { createClientAuthError } from "../../src/error/ClientAuthError.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
@@ -107,11 +107,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Logger options checks
         expect(emptyConfig.loggerOptions).not.toBeNull();
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).toBe(false);
-        // Cache Options checks
-        expect(emptyConfig.cacheOptions).not.toBeNull();
-        expect(emptyConfig.cacheOptions.claimsBasedCachingEnabled).toBe(false);
         // Client info checks
-        expect(emptyConfig.libraryInfo.sku).toBe(Constants.SKU);
+        expect(emptyConfig.libraryInfo.sku).toBe(SKU);
         expect(emptyConfig.libraryInfo.version).toBe(version);
         expect(emptyConfig.libraryInfo.os).toHaveLength(0);
         expect(emptyConfig.libraryInfo.cpu).toHaveLength(0);
@@ -203,9 +200,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 ): void => {},
                 piiLoggingEnabled: true,
             },
-            cacheOptions: {
-                claimsBasedCachingEnabled: true,
-            },
             libraryInfo: {
                 sku: TEST_CONFIG.TEST_SKU,
                 version: TEST_CONFIG.TEST_VERSION,
@@ -273,9 +267,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.loggerOptions).not.toBeNull();
         expect(newConfig.loggerOptions.loggerCallback).not.toBeNull();
         expect(newConfig.loggerOptions.piiLoggingEnabled).toBe(true);
-        // Cache options tests
-        expect(newConfig.cacheOptions).not.toBeNull();
-        expect(newConfig.cacheOptions.claimsBasedCachingEnabled).toBe(true);
         // Client info tests
         expect(newConfig.libraryInfo.sku).toBe(TEST_CONFIG.TEST_SKU);
         expect(newConfig.libraryInfo.version).toBe(TEST_CONFIG.TEST_VERSION);

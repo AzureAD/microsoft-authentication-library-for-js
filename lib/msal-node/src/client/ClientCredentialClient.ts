@@ -6,19 +6,13 @@
 import {
     AccessTokenEntity,
     AuthenticationResult,
-    AuthenticationScheme,
     Authority,
     BaseClient,
     CacheManager,
-    CacheOutcome,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonClientCredentialRequest,
     Constants,
     CredentialFilter,
-    CredentialType,
-    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    GrantType,
     IAppTokenProvider,
     ICrypto,
     RequestParameterBuilder,
@@ -40,6 +34,7 @@ import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -79,7 +74,10 @@ export class ClientCredentialClient extends BaseClient {
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+            if (
+                lastCacheOutcome ===
+                Constants.CacheOutcome.PROACTIVELY_REFRESHED
+            ) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
@@ -110,12 +108,13 @@ export class ClientCredentialClient extends BaseClient {
         authority: Authority,
         cacheManager: CacheManager,
         serverTelemetryManager?: ServerTelemetryManager | null
-    ): Promise<[AuthenticationResult | null, CacheOutcome]> {
+    ): Promise<[AuthenticationResult | null, Constants.CacheOutcome]> {
         const clientConfiguration = config as ClientConfiguration;
         const managedIdentityConfiguration =
             config as ManagedIdentityNodeConfiguration;
 
-        let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
+        let lastCacheOutcome: Constants.CacheOutcome =
+            Constants.CacheOutcome.NOT_APPLICABLE;
 
         // read the user-supplied cache into memory, if applicable
         let cacheContext;
@@ -153,9 +152,9 @@ export class ClientCredentialClient extends BaseClient {
         // must refresh due to non-existent access_token
         if (!cachedAccessToken) {
             serverTelemetryManager?.setCacheOutcome(
-                CacheOutcome.NO_CACHED_ACCESS_TOKEN
+                Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
-            return [null, CacheOutcome.NO_CACHED_ACCESS_TOKEN];
+            return [null, Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN];
         }
 
         // must refresh due to the expires_in value
@@ -163,13 +162,13 @@ export class ClientCredentialClient extends BaseClient {
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
                 clientConfiguration.systemOptions?.tokenRenewalOffsetSeconds ||
-                    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+                    Constants.DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
             )
         ) {
             serverTelemetryManager?.setCacheOutcome(
-                CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
+                Constants.CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
-            return [null, CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED];
+            return [null, Constants.CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED];
         }
 
         // must refresh (in the background) due to the refresh_in value
@@ -177,9 +176,9 @@ export class ClientCredentialClient extends BaseClient {
             cachedAccessToken.refreshOn &&
             TimeUtils.isTokenExpired(cachedAccessToken.refreshOn.toString(), 0)
         ) {
-            lastCacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
+            lastCacheOutcome = Constants.CacheOutcome.PROACTIVELY_REFRESHED;
             serverTelemetryManager?.setCacheOutcome(
-                CacheOutcome.PROACTIVELY_REFRESHED
+                Constants.CacheOutcome.PROACTIVELY_REFRESHED
             );
         }
 
@@ -211,10 +210,10 @@ export class ClientCredentialClient extends BaseClient {
         cacheManager: CacheManager
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
-            homeAccountId: Constants.EMPTY_STRING,
+            homeAccountId: "",
             environment:
                 authority.canonicalAuthorityUrlComponents.HostNameAndPort,
-            credentialType: CredentialType.ACCESS_TOKEN,
+            credentialType: Constants.CredentialType.ACCESS_TOKEN,
             clientId: id,
             realm: authority.tenant,
             target: ScopeSet.createSearchScopes(scopeSet.asArray()),
@@ -264,7 +263,7 @@ export class ClientCredentialClient extends BaseClient {
                 access_token: appTokenProviderResult.accessToken,
                 expires_in: appTokenProviderResult.expiresInSeconds,
                 refresh_in: appTokenProviderResult.refreshInSeconds,
-                token_type: AuthenticationScheme.BEARER,
+                token_type: Constants.AuthenticationScheme.BEARER,
             };
         } else {
             const queryParametersString =
@@ -348,7 +347,7 @@ export class ClientCredentialClient extends BaseClient {
 
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.CLIENT_CREDENTIALS_GRANT
+            Constants.GrantType.CLIENT_CREDENTIALS_GRANT
         );
 
         RequestParameterBuilder.addLibraryInfo(

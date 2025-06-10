@@ -3,7 +3,7 @@
  */
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { AccountInfo, AuthenticationScheme, Logger } from "@azure/msal-common";
+import { AccountInfo, Constants, Logger } from "@azure/msal-common";
 import {
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
@@ -18,10 +18,7 @@ import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { TestTimeUtils } from "msal-test-utils";
-import {
-    BrowserAuthErrorCodes,
-    BrowserAuthErrorMessages,
-} from "../../src/error/BrowserAuthError.js";
+import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
 /**
  * Tests for PublicClientApplication.ts when run in a non-browser environment
@@ -409,7 +406,7 @@ describe("Non-browser environment", () => {
             correlationId: RANDOM_TEST_GUID,
             expiresOn: TestTimeUtils.nowDateWithOffset(3600),
             account: testAccount,
-            tokenType: AuthenticationScheme.BEARER,
+            tokenType: Constants.AuthenticationScheme.BEARER,
         };
         const request: SilentRequest = {
             scopes: ["openid", "profile"],

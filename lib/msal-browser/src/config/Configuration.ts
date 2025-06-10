@@ -8,10 +8,8 @@ import {
     LoggerOptions,
     INetworkModule,
     DEFAULT_SYSTEM_OPTIONS,
-    Constants,
     ProtocolMode,
     OIDCOptions,
-    ResponseMode,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -22,6 +20,7 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     Logger,
+    Constants,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheLocation,
@@ -113,26 +112,6 @@ export type CacheOptions = {
      * Used to specify the cacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     cacheLocation?: BrowserCacheLocation | string;
-    /**
-     * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    temporaryCacheLocation?: BrowserCacheLocation | string;
-    /**
-     * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    storeAuthStateInCookie?: boolean;
-    /**
-     * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    cacheMigrationEnabled?: boolean;
-    /**
-     * Flag that determines whether access tokens are stored based on requested claims
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    claimsBasedCachingEnabled?: boolean;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -254,18 +233,18 @@ export function buildConfiguration(
 ): BrowserConfiguration {
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
-        clientId: Constants.EMPTY_STRING,
+        clientId: "",
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
-        cloudDiscoveryMetadata: Constants.EMPTY_STRING,
-        authorityMetadata: Constants.EMPTY_STRING,
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
         redirectUri:
             typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
-        postLogoutRedirectUri: Constants.EMPTY_STRING,
+        postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         OIDCOptions: {
-            responseMode: ResponseMode.FRAGMENT,
+            responseMode: Constants.ResponseMode.FRAGMENT,
             defaultScopes: [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -274,7 +253,7 @@ export function buildConfiguration(
         },
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
-            tenant: Constants.EMPTY_STRING,
+            tenant: "",
         },
         instanceAware: false,
     };
@@ -282,15 +261,6 @@ export function buildConfiguration(
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
-        temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-        storeAuthStateInCookie: false,
-        // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
-        cacheMigrationEnabled:
-            userInputCache &&
-            userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage
-                ? true
-                : false,
-        claimsBasedCachingEnabled: false,
     };
 
     // Default logger options for browser
@@ -336,8 +306,8 @@ export function buildConfiguration(
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
-            appName: Constants.EMPTY_STRING,
-            appVersion: Constants.EMPTY_STRING,
+            appName: "",
+            appVersion: "",
         },
         client: new StubPerformanceClient(),
     };

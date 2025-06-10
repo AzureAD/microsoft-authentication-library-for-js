@@ -4,27 +4,21 @@
  */
 
 import {
-    AuthenticationScheme,
     AccountInfo,
-    PromptValue,
     AuthenticationResult,
     AccountEntity,
     IdTokenEntity,
     AccessTokenEntity,
-    CredentialType,
     TimeUtils,
     CacheManager,
-    Logger,
-    CacheRecord,
-    AADServerParamKeys,
     IPerformanceClient,
     InProgressPerformanceEvent,
-    PerformanceEvents,
     AccountEntityUtils,
+    Constants,
 } from "@azure/msal-common";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { ApiId } from "../../src/utils/BrowserConstants.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
     ID_TOKEN_CLAIMS,
@@ -35,29 +29,25 @@ import {
 } from "../utils/StringConstants.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import {
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
-    NativeAuthErrorMessages,
 } from "../../src/error/NativeAuthError.js";
-import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest.js";
+import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import {
-    BrowserPerformanceClient,
-    IPublicClientApplication,
-    PopupRequest,
-    SsoSilentRequest,
-} from "../../src/index.js";
+import { BrowserPerformanceClient } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { version } from "../../src/packageMetadata.js";
 import { BrowserConstants } from "../../src/utils/BrowserConstants.js";
 import * as NativeStatusCodes from "../../src/broker/nativeBroker/NativeStatusCodes.js";
+import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
+import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 
-const MOCK_WAM_RESPONSE = {
+const MOCK_WAM_RESPONSE: PlatformAuthResponse = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
     id_token: TEST_TOKENS.IDTOKEN_V2,
     scope: "User.Read",
@@ -65,20 +55,26 @@ const MOCK_WAM_RESPONSE = {
     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
     account: {
         id: "nativeAccountId",
+        properties: {},
+        userName: "test_username",
     },
     properties: {},
+    state: "",
 };
 
-const MOCK_WAM_RESPONSE_STRING_EXPIRES_IN = {
+const MOCK_WAM_RESPONSE_STRING_EXPIRES_IN: PlatformAuthResponse = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
     id_token: TEST_TOKENS.IDTOKEN_V2,
     scope: "User.Read",
-    expires_in: "3600",
+    expires_in: 3600,
     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
     account: {
         id: "nativeAccountId",
+        properties: {},
+        userName: "test_username",
     },
     properties: {},
+    state: "",
 };
 
 const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
@@ -107,20 +103,21 @@ const testAccessTokenEntity: AccessTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: TEST_TOKENS.ACCESS_TOKEN,
     target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-    credentialType: CredentialType.ACCESS_TOKEN,
-    tokenType: AuthenticationScheme.BEARER,
+    credentialType: Constants.CredentialType.ACCESS_TOKEN,
+    tokenType: Constants.AuthenticationScheme.BEARER,
     expiresOn: `${TimeUtils.nowSeconds() + TEST_CONFIG.TOKEN_EXPIRY}`,
     cachedAt: `${TimeUtils.nowSeconds()}`,
 };
 
-describe("NativeInteractionClient Tests", () => {
+describe("PlatformAuthInteractionClient Tests", () => {
     let pca: PublicClientApplication;
-    let nativeInteractionClient: NativeInteractionClient;
+    let platformAuthInteractionClient: PlatformAuthInteractionClient;
+    let platformAuthDOMHandler: PlatformAuthDOMHandler;
 
     let browserCacheManager: BrowserCacheManager;
     let internalStorage: BrowserCacheManager;
 
-    let wamProvider: NativeMessageHandler;
+    let wamProvider: PlatformAuthExtensionHandler;
     let postMessageSpy: jest.SpyInstance;
     let mcPort: MessagePort;
     let perfClient: IPerformanceClient;
@@ -156,13 +153,13 @@ describe("NativeInteractionClient Tests", () => {
         //@ts-ignore
         internalStorage = pca.nativeInternalStorage;
 
-        wamProvider = new NativeMessageHandler(
+        wamProvider = new PlatformAuthExtensionHandler(
             pca.getLogger(),
             2000,
             getDefaultPerformanceClient()
         );
 
-        nativeInteractionClient = new NativeInteractionClient(
+        platformAuthInteractionClient = new PlatformAuthInteractionClient(
             // @ts-ignore
             pca.config,
             // @ts-ignore
@@ -225,7 +222,7 @@ describe("NativeInteractionClient Tests", () => {
         });
 
         it("Tokens found in cache", async () => {
-            const response = await nativeInteractionClient.acquireToken({
+            const response = await platformAuthInteractionClient.acquireToken({
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
             });
             expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
@@ -237,19 +234,21 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.scopes).toEqual(TEST_CONFIG.DEFAULT_SCOPES);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
     });
 
     describe("acquireToken Tests", () => {
-        it("acquires token successfully", async () => {
+        it("Extension: acquires token successfully", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            const response = await nativeInteractionClient.acquireToken({
+            const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
             });
             expect(response.accessToken).toEqual(
@@ -263,17 +262,337 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
+        });
+
+        it("Extension: token request contains user input extra params", async () => {
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
+        });
+
+        it("DOM API: acquires token successfully", async () => {
+            platformAuthDOMHandler = new PlatformAuthDOMHandler(
+                pca.getLogger(),
+                getDefaultPerformanceClient(),
+                "test-correlation-id"
+            );
+
+            const testInterctionClient = new PlatformAuthInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                platformAuthDOMHandler,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                RANDOM_TEST_GUID
+            );
+
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthDOMHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            const response = await testInterctionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
+        });
+
+        it("Extension: token request contains user input extra params", async () => {
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
+        });
+
+        it("DOM API: acquires token successfully", async () => {
+            platformAuthDOMHandler = new PlatformAuthDOMHandler(
+                pca.getLogger(),
+                getDefaultPerformanceClient(),
+                "test-correlation-id"
+            );
+
+            const testInterctionClient = new PlatformAuthInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                platformAuthDOMHandler,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                RANDOM_TEST_GUID
+            );
+
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthDOMHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            const response = await testInterctionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
+        });
+
+        it("Extension: token request contains user input extra params", async () => {
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
+        });
+
+        it("DOM API: acquires token successfully", async () => {
+            platformAuthDOMHandler = new PlatformAuthDOMHandler(
+                pca.getLogger(),
+                getDefaultPerformanceClient(),
+                "test-correlation-id"
+            );
+
+            const testInterctionClient = new PlatformAuthInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                platformAuthDOMHandler,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                RANDOM_TEST_GUID
+            );
+
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthDOMHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            const response = await testInterctionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("acquires token successfully with string expires_in", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE_STRING_EXPIRES_IN);
             });
-            const response = await nativeInteractionClient.acquireToken({
+            const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
             });
             expect(response.accessToken).toEqual(
@@ -291,43 +610,45 @@ describe("NativeInteractionClient Tests", () => {
             );
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
             expect(response.expiresOn).toBeDefined();
         });
 
         it("throws if prompt: select_account", (done) => {
-            nativeInteractionClient
+            platformAuthInteractionClient
                 .acquireToken({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.SELECT_ACCOUNT,
+                    prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorCodes.nativePromptNotSupported
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativePromptNotSupported
-                        ]
+                        )
                     );
                     done();
                 });
         });
 
         it("throws if prompt: create", (done) => {
-            nativeInteractionClient
+            platformAuthInteractionClient
                 .acquireToken({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.CREATE,
+                    prompt: Constants.PromptValue.CREATE,
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorCodes.nativePromptNotSupported
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativePromptNotSupported
-                        ]
+                        )
                     );
                     done();
                 });
@@ -335,14 +656,14 @@ describe("NativeInteractionClient Tests", () => {
 
         it("prompt: none succeeds", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            const response = await nativeInteractionClient.acquireToken({
+            const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.NONE,
+                prompt: Constants.PromptValue.NONE,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -355,19 +676,21 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("prompt: consent succeeds", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            const response = await nativeInteractionClient.acquireToken({
+            const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.CONSENT,
+                prompt: Constants.PromptValue.CONSENT,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -380,19 +703,21 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("prompt: login succeeds", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            const response = await nativeInteractionClient.acquireToken({
+            const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.LOGIN,
+                prompt: Constants.PromptValue.LOGIN,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -405,20 +730,28 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("does not throw account switch error when homeaccountid is same", (done) => {
-            const mockWamResponse = {
+            const raw_client_info =
+                "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTY2ZjMtMzMzMmVjYTdlYTgxIiwgInV0aWQiOiIzMzM4MDQwZC02YzY3LTRjNWItYjExMi0zNmEzMDRiNjZkYWQifQ==";
+
+            const mockWamResponse: PlatformAuthResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2,
+                id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
                 scope: "User.Read",
                 expires_in: 3600,
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                client_info: raw_client_info,
                 account: {
                     id: "different-nativeAccountId",
+                    properties: {},
+                    userName: "test_username",
                 },
                 properties: {},
+                state: "",
             };
 
             jest.spyOn(
@@ -427,12 +760,12 @@ describe("NativeInteractionClient Tests", () => {
             ).mockReturnValue(TEST_ACCOUNT_INFO);
 
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(mockWamResponse);
             });
-            nativeInteractionClient
+            platformAuthInteractionClient
                 .acquireToken({
                     scopes: ["User.Read"],
                 })
@@ -444,7 +777,7 @@ describe("NativeInteractionClient Tests", () => {
                         NativeAuthErrorCodes.userSwitch
                     );
                     expect(e.errorMessage).not.toBe(
-                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                        getDefaultErrorMessage(NativeAuthErrorCodes.userSwitch)
                     );
                     done();
                 });
@@ -455,7 +788,7 @@ describe("NativeInteractionClient Tests", () => {
             const raw_client_info =
                 "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwgInV0aWQiOiI3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDcifQ==";
 
-            const mockWamResponse = {
+            const mockWamResponse: PlatformAuthResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
                 scope: "User.Read",
@@ -463,8 +796,11 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: raw_client_info,
                 account: {
                     id: "different-nativeAccountId",
+                    properties: {},
+                    userName: "test_username",
                 },
                 properties: {},
+                state: "",
             };
 
             jest.spyOn(
@@ -473,19 +809,19 @@ describe("NativeInteractionClient Tests", () => {
             ).mockReturnValue(TEST_ACCOUNT_INFO);
 
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(mockWamResponse);
             });
-            nativeInteractionClient
+            platformAuthInteractionClient
                 .acquireToken({
                     scopes: ["User.Read"],
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
                     expect(e.errorMessage).toBe(
-                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                        getDefaultErrorMessage(NativeAuthErrorCodes.userSwitch)
                     );
                     done();
                 });
@@ -495,7 +831,7 @@ describe("NativeInteractionClient Tests", () => {
             const raw_client_info =
                 "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwgInV0aWQiOiI3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDcifQ==";
 
-            const mockWamResponse = {
+            const mockWamResponse: PlatformAuthResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
                 scope: "User.Read",
@@ -503,8 +839,11 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: raw_client_info,
                 account: {
                     id: "different-nativeAccountId",
+                    properties: {},
+                    userName: "test_username",
                 },
                 properties: {},
+                state: "",
             };
 
             jest.spyOn(
@@ -513,13 +852,13 @@ describe("NativeInteractionClient Tests", () => {
             ).mockReturnValue(TEST_ACCOUNT_INFO);
 
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(mockWamResponse);
             });
 
-            nativeInteractionClient
+            platformAuthInteractionClient
                 .acquireToken({
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
@@ -537,7 +876,7 @@ describe("NativeInteractionClient Tests", () => {
                         NativeAuthErrorCodes.userSwitch
                     );
                     expect(e.errorMessage).not.toBe(
-                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                        getDefaultErrorMessage(NativeAuthErrorCodes.userSwitch)
                     );
                     done();
                 });
@@ -546,40 +885,43 @@ describe("NativeInteractionClient Tests", () => {
 
         it("ssoSilent overwrites prompt to be 'none' and succeeds", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((nativeRequest): Promise<object> => {
-                expect(
-                    nativeRequest.request && nativeRequest.request.prompt
-                ).toBe(PromptValue.NONE);
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
-            // @ts-ignore
-            const nativeInteractionClient = new NativeInteractionClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.getLogger(),
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                ApiId.ssoSilent,
-                // @ts-ignore
-                pca.performanceClient,
-                wamProvider,
-                "nativeAccountId",
-                // @ts-ignore
-                pca.nativeInternalStorage,
-                RANDOM_TEST_GUID
+            ).mockImplementation(
+                (nativeRequest): Promise<PlatformAuthResponse> => {
+                    expect(nativeRequest && nativeRequest.prompt).toBe(
+                        Constants.PromptValue.NONE
+                    );
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                }
             );
-            const response = await nativeInteractionClient.acquireToken({
+            // @ts-ignore
+            const platformAuthInteractionClient =
+                new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    pca.config,
+                    // @ts-ignore
+                    pca.browserStorage,
+                    // @ts-ignore
+                    pca.browserCrypto,
+                    // @ts-ignore
+                    pca.getLogger(),
+                    // @ts-ignore
+                    pca.eventHandler,
+                    // @ts-ignore
+                    pca.navigationClient,
+                    ApiId.ssoSilent,
+                    // @ts-ignore
+                    pca.performanceClient,
+                    wamProvider,
+                    "nativeAccountId",
+                    // @ts-ignore
+                    pca.nativeInternalStorage,
+                    RANDOM_TEST_GUID
+                );
+            const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -592,45 +934,50 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("acquireTokenSilent overwrites prompt to be 'none' and succeeds", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((nativeRequest): Promise<object> => {
-                expect(
-                    nativeRequest.request && nativeRequest.request.prompt
-                ).toBe(PromptValue.NONE);
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
-            // @ts-ignore
-            const nativeInteractionClient = new NativeInteractionClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.getLogger(),
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                ApiId.acquireTokenSilent_silentFlow,
-                // @ts-ignore
-                pca.performanceClient,
-                wamProvider,
-                "nativeAccountId",
-                // @ts-ignore
-                pca.nativeInternalStorage,
-                RANDOM_TEST_GUID
+            ).mockImplementation(
+                (nativeRequest): Promise<PlatformAuthResponse> => {
+                    expect(nativeRequest && nativeRequest.prompt).toBe(
+                        Constants.PromptValue.NONE
+                    );
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                }
             );
-            const response = await nativeInteractionClient.acquireToken({
+            // @ts-ignore
+            const platformAuthInteractionClient =
+                new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    pca.config,
+                    // @ts-ignore
+                    pca.browserStorage,
+                    // @ts-ignore
+                    pca.browserCrypto,
+                    // @ts-ignore
+                    pca.getLogger(),
+                    // @ts-ignore
+                    pca.eventHandler,
+                    // @ts-ignore
+                    pca.navigationClient,
+                    ApiId.acquireTokenSilent_silentFlow,
+                    // @ts-ignore
+                    pca.performanceClient,
+                    wamProvider,
+                    "nativeAccountId",
+                    // @ts-ignore
+                    pca.nativeInternalStorage,
+                    RANDOM_TEST_GUID
+                );
+            const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -643,47 +990,47 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("adds MSAL.js SKU to request extra query parameters", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((message): Promise<object> => {
-                expect(
-                    message.request?.extraParameters!["x-client-xtra-sku"]
-                ).toEqual(`${BrowserConstants.MSAL_SKU}|${version},|,|,|`);
+            ).mockImplementation((request): Promise<PlatformAuthResponse> => {
+                expect(request?.extraParameters!["x-client-xtra-sku"]).toEqual(
+                    `${BrowserConstants.MSAL_SKU}|${version},|,|,|`
+                );
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            await nativeInteractionClient.acquireToken({
+            await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
             });
         });
 
         it("adds MSAL.js and Chrome extension SKUs to request extra query parameters", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((message): Promise<object> => {
-                expect(
-                    message.request?.extraParameters!["x-client-xtra-sku"]
-                ).toEqual(
+            ).mockImplementation((request): Promise<PlatformAuthResponse> => {
+                expect(request.extraParameters!["x-client-xtra-sku"]).toEqual(
                     `${BrowserConstants.MSAL_SKU}|${version},|,chrome|1.0.2,|`
                 );
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
 
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "getExtensionId"
             ).mockReturnValue("ppnbnpeolgkicgegkbkbjmhlideopiji");
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "getExtensionVersion"
             ).mockReturnValue("1.0.2");
 
-            nativeInteractionClient = new NativeInteractionClient(
+            platformAuthInteractionClient = new PlatformAuthInteractionClient(
                 // @ts-ignore
                 pca.config,
                 // @ts-ignore
@@ -704,34 +1051,32 @@ describe("NativeInteractionClient Tests", () => {
                 RANDOM_TEST_GUID
             );
 
-            await nativeInteractionClient.acquireToken({
+            await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
             });
         });
 
         it("adds MSAL.js and unknown extension SKUs to request extra query parameters", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((message): Promise<object> => {
-                expect(
-                    message.request?.extraParameters!["x-client-xtra-sku"]
-                ).toEqual(
+            ).mockImplementation((request): Promise<PlatformAuthResponse> => {
+                expect(request.extraParameters!["x-client-xtra-sku"]).toEqual(
                     `${BrowserConstants.MSAL_SKU}|${version},|,unknown|2.3.4,|`
                 );
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
 
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "getExtensionId"
             ).mockReturnValue("random_extension_id");
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "getExtensionVersion"
             ).mockReturnValue("2.3.4");
 
-            nativeInteractionClient = new NativeInteractionClient(
+            platformAuthInteractionClient = new PlatformAuthInteractionClient(
                 // @ts-ignore
                 pca.config,
                 // @ts-ignore
@@ -752,20 +1097,20 @@ describe("NativeInteractionClient Tests", () => {
                 RANDOM_TEST_GUID
             );
 
-            await nativeInteractionClient.acquireToken({
+            await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
             });
         });
 
         it("does not set native broker error to server telemetry", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((message): Promise<object> => {
+            ).mockImplementation((message): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
 
-            await nativeInteractionClient.acquireToken({
+            await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
             });
             expect(
@@ -783,15 +1128,15 @@ describe("NativeInteractionClient Tests", () => {
 
         it("sets native broker error to server telemetry", async () => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((message): Promise<object> => {
+            ).mockImplementation((message): Promise<PlatformAuthResponse> => {
                 return Promise.reject(
                     new NativeAuthError("test_native_error_code")
                 );
             });
             try {
-                await nativeInteractionClient.acquireToken({
+                await platformAuthInteractionClient.acquireToken({
                     scopes: ["User.Read"],
                 });
             } catch (e) {}
@@ -811,24 +1156,28 @@ describe("NativeInteractionClient Tests", () => {
 
         it("resets native broker error in server telemetry", async () => {
             const sendMessageStub = jest
-                .spyOn(NativeMessageHandler.prototype, "sendMessage")
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
                 .mockImplementation();
             sendMessageStub
-                .mockImplementationOnce((message): Promise<object> => {
-                    return Promise.reject(
-                        new NativeAuthError(
-                            "test_native_error_code",
-                            "test_error_desc",
-                            { status: NativeStatusCodes.PERSISTENT_ERROR }
-                        )
-                    );
-                })
-                .mockImplementationOnce((message): Promise<object> => {
-                    return Promise.resolve(MOCK_WAM_RESPONSE);
-                });
+                .mockImplementationOnce(
+                    (message): Promise<PlatformAuthResponse> => {
+                        return Promise.reject(
+                            new NativeAuthError(
+                                "test_native_error_code",
+                                "test_error_desc",
+                                { status: NativeStatusCodes.PERSISTENT_ERROR }
+                            )
+                        );
+                    }
+                )
+                .mockImplementationOnce(
+                    (message): Promise<PlatformAuthResponse> => {
+                        return Promise.resolve(MOCK_WAM_RESPONSE);
+                    }
+                );
 
             try {
-                await nativeInteractionClient.acquireToken({
+                await platformAuthInteractionClient.acquireToken({
                     scopes: ["User.Read"],
                 });
             } catch (e) {}
@@ -845,7 +1194,7 @@ describe("NativeInteractionClient Tests", () => {
                 nativeBrokerErrorCode: "test_native_error_code",
             });
 
-            await nativeInteractionClient.acquireToken({
+            await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
             });
             expect(
@@ -866,18 +1215,19 @@ describe("NativeInteractionClient Tests", () => {
 
             beforeEach(() => {
                 jest.spyOn(
-                    NativeMessageHandler.prototype,
+                    PlatformAuthExtensionHandler.prototype,
                     "sendMessage"
                 ).mockResolvedValue(MOCK_WAM_RESPONSE);
             });
 
             it("does not store idToken if storeInCache.idToken = false", async () => {
-                const response = await nativeInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    storeInCache: {
-                        idToken: false,
-                    },
-                });
+                const response =
+                    await platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        storeInCache: {
+                            idToken: false,
+                        },
+                    });
                 expect(response.accessToken).toEqual(
                     MOCK_WAM_RESPONSE.access_token
                 );
@@ -897,12 +1247,13 @@ describe("NativeInteractionClient Tests", () => {
             });
 
             it("does not store accessToken if storeInCache.accessToken = false", async () => {
-                const response = await nativeInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    storeInCache: {
-                        accessToken: false,
-                    },
-                });
+                const response =
+                    await platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        storeInCache: {
+                            accessToken: false,
+                        },
+                    });
                 expect(response.accessToken).toEqual(
                     MOCK_WAM_RESPONSE.access_token
                 );
@@ -922,12 +1273,13 @@ describe("NativeInteractionClient Tests", () => {
             });
 
             it("does not store refreshToken if storeInCache.refreshToken = false", async () => {
-                const response = await nativeInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    storeInCache: {
-                        refreshToken: false,
-                    },
-                });
+                const response =
+                    await platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        storeInCache: {
+                            refreshToken: false,
+                        },
+                    });
                 expect(response.accessToken).toEqual(
                     MOCK_WAM_RESPONSE.access_token
                 );
@@ -959,12 +1311,12 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(true);
             });
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            nativeInteractionClient.acquireTokenRedirect(
+            platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
                 },
@@ -981,9 +1333,9 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(true);
             });
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
             const callbackId = pca.addPerformanceCallback((events) => {
@@ -992,7 +1344,7 @@ describe("NativeInteractionClient Tests", () => {
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
-            nativeInteractionClient.acquireTokenRedirect(
+            platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
                 },
@@ -1002,9 +1354,9 @@ describe("NativeInteractionClient Tests", () => {
 
         it("throws if native token acquisition fails with fatal error", (done) => {
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.reject(
                     new NativeAuthError(
                         "ContentError",
@@ -1012,7 +1364,7 @@ describe("NativeInteractionClient Tests", () => {
                     )
                 );
             });
-            nativeInteractionClient
+            platformAuthInteractionClient
                 .acquireTokenRedirect(
                     { scopes: ["User.Read"] },
                     perfMeasurement
@@ -1033,15 +1385,15 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(true);
             });
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((message): Promise<object> => {
-                expect(
-                    message.request?.extraParameters!["x-client-xtra-sku"]
-                ).toEqual(`${BrowserConstants.MSAL_SKU}|${version},|,|,|`);
+            ).mockImplementation((request): Promise<PlatformAuthResponse> => {
+                expect(request.extraParameters!["x-client-xtra-sku"]).toEqual(
+                    `${BrowserConstants.MSAL_SKU}|${version},|,|,|`
+                );
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            nativeInteractionClient.acquireTokenRedirect(
+            platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
                 },
@@ -1069,14 +1421,14 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(true);
             });
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((message): Promise<object> => {
+            ).mockImplementation((message): Promise<PlatformAuthResponse> => {
                 return Promise.reject(
                     new NativeAuthError("test_native_error_code")
                 );
             });
-            nativeInteractionClient.acquireTokenRedirect(
+            platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
                 },
@@ -1092,28 +1444,34 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(true);
             });
             const sendMessageStub = jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
             );
             sendMessageStub
-                .mockImplementationOnce((message): Promise<object> => {
-                    return Promise.reject(
-                        new NativeAuthError(
-                            "test_native_error_code",
-                            "test_error_desc",
-                            { status: NativeStatusCodes.PERSISTENT_ERROR }
-                        )
-                    );
-                })
-                .mockImplementationOnce((message): Promise<object> => {
-                    return Promise.resolve(MOCK_WAM_RESPONSE);
-                })
-                .mockImplementationOnce((message): Promise<object> => {
-                    return Promise.resolve(MOCK_WAM_RESPONSE);
-                });
+                .mockImplementationOnce(
+                    (message): Promise<PlatformAuthResponse> => {
+                        return Promise.reject(
+                            new NativeAuthError(
+                                "test_native_error_code",
+                                "test_error_desc",
+                                { status: NativeStatusCodes.PERSISTENT_ERROR }
+                            )
+                        );
+                    }
+                )
+                .mockImplementationOnce(
+                    (message): Promise<PlatformAuthResponse> => {
+                        return Promise.resolve(MOCK_WAM_RESPONSE);
+                    }
+                )
+                .mockImplementationOnce(
+                    (message): Promise<PlatformAuthResponse> => {
+                        return Promise.resolve(MOCK_WAM_RESPONSE);
+                    }
+                );
 
             try {
-                await nativeInteractionClient.acquireTokenRedirect(
+                await platformAuthInteractionClient.acquireTokenRedirect(
                     {
                         scopes: ["User.Read"],
                     },
@@ -1134,7 +1492,7 @@ describe("NativeInteractionClient Tests", () => {
                 nativeBrokerErrorCode: "test_native_error_code",
             });
 
-            await nativeInteractionClient.acquireTokenRedirect(
+            await platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
                 },
@@ -1142,7 +1500,7 @@ describe("NativeInteractionClient Tests", () => {
             );
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
-            await nativeInteractionClient.handleRedirectPromise();
+            await platformAuthInteractionClient.handleRedirectPromise();
 
             expect(
                 JSON.parse(
@@ -1168,21 +1526,21 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(true);
             });
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
-            await nativeInteractionClient.acquireTokenRedirect(
+            await platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
                 },
                 perfMeasurement
             );
             const response =
-                await nativeInteractionClient.handleRedirectPromise();
+                await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).not.toBe(null);
 
             const testTokenResponse: AuthenticationResult = {
@@ -1194,11 +1552,11 @@ describe("NativeInteractionClient Tests", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: MOCK_WAM_RESPONSE.access_token,
                 fromCache: false,
-                state: undefined,
+                state: "",
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: response && response.expiresOn, // Steal the expires on from the response as this is variable
                 account: TEST_ACCOUNT_INFO,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 fromNativeBroker: true,
             };
             expect(response).toEqual(testTokenResponse);
@@ -1214,19 +1572,19 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(true);
             });
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
             ).mockImplementation(
-                (messageBody: NativeExtensionRequestBody): Promise<object> => {
-                    expect(
-                        messageBody.request && messageBody.request.prompt
-                    ).toBe(undefined);
+                (
+                    request: PlatformAuthRequest
+                ): Promise<PlatformAuthResponse> => {
+                    expect(request && request.prompt).toBe(undefined);
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 }
             );
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
-            await nativeInteractionClient.acquireTokenRedirect(
+            await platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
                     prompt: "login",
@@ -1234,7 +1592,7 @@ describe("NativeInteractionClient Tests", () => {
                 perfMeasurement
             );
             const response =
-                await nativeInteractionClient.handleRedirectPromise();
+                await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).not.toBe(null);
 
             const testTokenResponse: AuthenticationResult = {
@@ -1246,11 +1604,11 @@ describe("NativeInteractionClient Tests", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: MOCK_WAM_RESPONSE.access_token,
                 fromCache: false,
-                state: undefined,
+                state: "",
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: response && response.expiresOn, // Steal the expires on from the response as this is variable
                 account: TEST_ACCOUNT_INFO,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 fromNativeBroker: true,
             };
             expect(response).toEqual(testTokenResponse);
@@ -1267,19 +1625,19 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(true);
             });
             jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockImplementation((): Promise<object> => {
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            await nativeInteractionClient.acquireTokenRedirect(
+            await platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
                 },
                 perfMeasurement
             );
             const response =
-                await nativeInteractionClient.handleRedirectPromise();
+                await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).toBe(null);
         });
 
@@ -1287,7 +1645,7 @@ describe("NativeInteractionClient Tests", () => {
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
             const response =
-                await nativeInteractionClient.handleRedirectPromise();
+                await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).toBe(null);
         });
     });
@@ -1296,9 +1654,9 @@ describe("NativeInteractionClient Tests", () => {
         it("pick up default params", async () => {
             const nativeRequest =
                 // @ts-ignore
-                await nativeInteractionClient.initializeNativeRequest({
+                await platformAuthInteractionClient.initializeNativeRequest({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.LOGIN,
+                    prompt: Constants.PromptValue.LOGIN,
                 });
 
             expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
@@ -1308,9 +1666,9 @@ describe("NativeInteractionClient Tests", () => {
         it("pick up broker extra query parameters", async () => {
             const nativeRequest =
                 // @ts-ignore
-                await nativeInteractionClient.initializeNativeRequest({
+                await platformAuthInteractionClient.initializeNativeRequest({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.LOGIN,
+                    prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
                     extraQueryParameters: {
                         brk_client_id: "broker_client_id",
@@ -1329,6 +1687,29 @@ describe("NativeInteractionClient Tests", () => {
             expect(nativeRequest.redirectUri).toEqual(
                 "https://broker_redirect_uri.com"
             );
+        });
+
+        it("pick up user input extra query parameters", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializeNativeRequest({
+                    scopes: ["User.Read"],
+                    prompt: Constants.PromptValue.LOGIN,
+                    redirectUri: "localhost",
+                    extraQueryParameters: {
+                        userEQP1: "customUserParam1",
+                        userEQP2: "customUserParam2",
+                    },
+                });
+
+            expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+            expect(nativeRequest.extraParameters!["userEQP1"]).toEqual(
+                "customUserParam1"
+            );
+            expect(nativeRequest.extraParameters!["userEQP2"]).toEqual(
+                "customUserParam2"
+            );
+            expect(nativeRequest.redirectUri).toEqual("localhost");
         });
     });
 });

@@ -6,12 +6,12 @@
 import {
     Logger,
     IPerformanceClient,
-    PerformanceEvents,
     invoke,
-    ResponseMode,
+    Constants,
     Authority,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -33,11 +33,6 @@ export async function initiateCodeRequest(
     logger: Logger,
     correlationId: string
 ): Promise<HTMLIFrameElement> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.SilentHandlerInitiateAuthRequest,
-        correlationId
-    );
-
     if (!requestUrl) {
         // Throw error if request URL is empty.
         logger.info("Navigate url is empty");
@@ -46,7 +41,7 @@ export async function initiateCodeRequest(
 
     return invoke(
         loadFrameSync,
-        PerformanceEvents.SilentHandlerLoadFrameSync,
+        BrowserPerformanceEvents.SilentHandlerLoadFrameSync,
         logger,
         performanceClient,
         correlationId
@@ -88,13 +83,8 @@ export async function monitorIframeForHash(
     performanceClient: IPerformanceClient,
     logger: Logger,
     correlationId: string,
-    responseType: ResponseMode
+    responseType: Constants.ResponseMode
 ): Promise<string> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.SilentHandlerMonitorIframeForHash,
-        correlationId
-    );
-
     return new Promise<string>((resolve, reject) => {
         if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
             logger.warning(
@@ -133,7 +123,7 @@ export async function monitorIframeForHash(
 
             let responseString = "";
             if (contentWindow) {
-                if (responseType === ResponseMode.QUERY) {
+                if (responseType === Constants.ResponseMode.QUERY) {
                     responseString = contentWindow.location.search;
                 } else {
                     responseString = contentWindow.location.hash;
@@ -146,7 +136,7 @@ export async function monitorIframeForHash(
     }).finally(() => {
         invoke(
             removeHiddenIframe,
-            PerformanceEvents.RemoveHiddenIframe,
+            BrowserPerformanceEvents.RemoveHiddenIframe,
             logger,
             performanceClient,
             correlationId

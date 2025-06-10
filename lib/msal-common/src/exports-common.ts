@@ -27,7 +27,6 @@ export {
     AuthOptions,
     SystemOptions,
     LoggerOptions,
-    CacheOptions,
     DEFAULT_SYSTEM_OPTIONS,
     AzureCloudOptions,
     ApplicationTelemetry,
@@ -137,7 +136,6 @@ export {
 } from "./error/InteractionRequiredAuthError.js";
 export {
     AuthError,
-    AuthErrorMessages,
     AuthErrorCodes,
     createAuthError,
 } from "./error/AuthError.js";
@@ -146,42 +144,16 @@ export { NetworkError, createNetworkError } from "./error/NetworkError.js";
 export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
 export {
     ClientAuthError,
-    ClientAuthErrorMessages,
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "./error/ClientAuthError.js";
 export {
     ClientConfigurationError,
-    ClientConfigurationErrorMessages,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
 } from "./error/ClientConfigurationError.js";
-export {
-    Constants,
-    OIDC_DEFAULT_SCOPES,
-    PromptValue,
-    PersistentCacheKeys,
-    OAuthResponseType,
-    ResponseMode,
-    CacheOutcome,
-    CredentialType,
-    CacheType,
-    CacheAccountType,
-    AuthenticationScheme,
-    CodeChallengeMethodValues,
-    PasswordGrantConstants,
-    ThrottlingConstants,
-    ClaimsRequestKeys,
-    HeaderNames,
-    Errors,
-    THE_FAMILY_ID,
-    ONE_DAY_IN_MS,
-    GrantType,
-    AADAuthorityConstants,
-    HttpStatus,
-    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    JsonWebTokenTypes,
-} from "./utils/Constants.js";
+export * as Constants from "./utils/Constants.js";
+
 export { StringUtils } from "./utils/StringUtils.js";
 export { StringDict } from "./utils/MsalTypes.js";
 export {

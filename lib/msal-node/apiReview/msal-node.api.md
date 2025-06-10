@@ -19,35 +19,32 @@ import { AppTokenProviderResult } from '@azure/msal-common/node';
 import { AuthenticationResult } from '@azure/msal-common/node';
 import { AuthError } from '@azure/msal-common/node';
 import { AuthErrorCodes } from '@azure/msal-common/node';
-import { AuthErrorMessages } from '@azure/msal-common/node';
 import { Authority } from '@azure/msal-common/node';
 import { AuthorityMetadataEntity } from '@azure/msal-common/node';
 import { AuthorizationCodePayload } from '@azure/msal-common/node';
 import { AuthorizeResponse } from '@azure/msal-common/node';
 import { AzureCloudInstance } from '@azure/msal-common/node';
 import { AzureCloudOptions } from '@azure/msal-common/node';
+import { AzureRegion } from '@azure/msal-common';
 import { AzureRegionConfiguration } from '@azure/msal-common/node';
-import { BaseAuthRequest } from '@azure/msal-common/node';
+import { BaseAuthRequest } from '@azure/msal-common';
+import { BaseAuthRequest as BaseAuthRequest_2 } from '@azure/msal-common/node';
 import { BaseClient } from '@azure/msal-common/node';
 import { CacheManager } from '@azure/msal-common/node';
-import { CacheOutcome } from '@azure/msal-common/node';
+import { ClientAssertion as ClientAssertion_2 } from '@azure/msal-common';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
 import { ClientAuthErrorCodes } from '@azure/msal-common/node';
-import { ClientAuthErrorMessages } from '@azure/msal-common/node';
 import { ClientConfiguration } from '@azure/msal-common/node';
 import { ClientConfigurationError } from '@azure/msal-common/node';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/node';
-import { ClientConfigurationErrorMessages } from '@azure/msal-common/node';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
-import { CommonClientCredentialRequest } from '@azure/msal-common/node';
-import { CommonDeviceCodeRequest } from '@azure/msal-common/node';
-import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
-import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
-import { DeviceCodeResponse } from '@azure/msal-common/node';
+import { Constants } from '@azure/msal-common/node';
+import { DeviceCodeResponse } from '@azure/msal-common';
+import { DeviceCodeResponse as DeviceCodeResponse_2 } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
 import { IAppTokenProvider } from '@azure/msal-common/node';
@@ -67,15 +64,14 @@ import { LogLevel } from '@azure/msal-common/node';
 import { NetworkRequestOptions } from '@azure/msal-common/node';
 import { NetworkResponse } from '@azure/msal-common/node';
 import { PkceCodes } from '@azure/msal-common/node';
-import { PromptValue } from '@azure/msal-common/node';
 import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
-import { ResponseMode } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
+import { StringDict } from '@azure/msal-common';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
@@ -93,8 +89,6 @@ export { AuthenticationResult }
 export { AuthError }
 
 export { AuthErrorCodes }
-
-export { AuthErrorMessages }
 
 export { AuthorizationCodePayload }
 
@@ -153,7 +147,7 @@ export abstract class ClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     getLogger(): Logger;
     getTokenCache(): TokenCache;
-    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): Promise<BaseAuthRequest>;
+    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest_2>): Promise<BaseAuthRequest_2>;
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
     setLogger(logger: Logger): void;
@@ -178,19 +172,16 @@ export { ClientAuthError }
 
 export { ClientAuthErrorCodes }
 
-export { ClientAuthErrorMessages }
-
 export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
 
-export { ClientConfigurationErrorMessages }
-
 // @public
 export class ClientCredentialClient extends BaseClient {
     constructor(configuration: ClientConfiguration, appTokenProvider?: IAppTokenProvider);
+    // Warning: (ae-forgotten-export) The symbol "CommonClientCredentialRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null>;
-    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, CacheOutcome]>;
+    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, Constants.CacheOutcome]>;
 }
 
 // @public
@@ -245,6 +236,7 @@ class Deserializer {
 // @public
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonDeviceCodeRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonDeviceCodeRequest): Promise<AuthenticationResult | null>;
     createExtraQueryParameters(request: CommonDeviceCodeRequest): string;
 }
@@ -252,7 +244,7 @@ export class DeviceCodeClient extends BaseClient {
 // @public
 export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
     scopes: Array<string>;
-    deviceCodeCallback: (response: DeviceCodeResponse) => void;
+    deviceCodeCallback: (response: DeviceCodeResponse_2) => void;
 };
 
 // @public
@@ -392,6 +384,7 @@ export class ManagedIdentityApplication {
 
 // @public (undocumented)
 export type ManagedIdentityConfiguration = {
+    clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
@@ -465,6 +458,7 @@ export type NodeTelemetryOptions = {
 // @public
 export class OnBehalfOfClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonOnBehalfOfRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null>;
 }
 
@@ -474,7 +468,17 @@ export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssert
     scopes: Array<string>;
 };
 
-export { PromptValue }
+// Warning: (ae-missing-release-tag) "PromptValue" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const PromptValue: {
+    LOGIN: string;
+    SELECT_ACCOUNT: string;
+    CONSENT: string;
+    NONE: string;
+    CREATE: string;
+    NO_SESSION: string;
+};
 
 export { ProtocolMode }
 
@@ -495,7 +499,14 @@ export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scope
     forceCache?: boolean;
 };
 
-export { ResponseMode }
+// Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const ResponseMode: {
+    readonly QUERY: "query";
+    readonly FRAGMENT: "fragment";
+    readonly FORM_POST: "form_post";
+};
 
 // @public
 export type SerializedAccessTokenEntity = {
@@ -608,6 +619,7 @@ export { TokenCacheContext }
 // @public @deprecated
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonUsernamePasswordRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
 }
 
@@ -623,7 +635,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.5.1";
+export const version = "3.6.0";
 
 // Warnings were encountered during analysis:
 //

@@ -29,10 +29,11 @@ import {
     createClientAuthError,
 } from "../../src/error/ClientAuthError.js";
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager.js";
-import { Constants } from "../../src/utils/Constants.js";
+import { SKU } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import { EncodingTypes } from "../../src/utils/Constants.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -197,18 +198,21 @@ export const mockCrypto = {
         return RANDOM_TEST_GUID;
     },
     base64Decode(input: string): string {
-        return Buffer.from(input, "base64").toString("utf8");
+        return Buffer.from(input, EncodingTypes.BASE64).toString("utf8");
     },
     base64Encode(input: string): string {
-        return Buffer.from(input, "utf-8").toString("base64");
+        return Buffer.from(input, EncodingTypes.UTF8).toString(
+            EncodingTypes.BASE64
+        );
     },
     base64UrlEncode(input: string): string {
-        return Buffer.from(input, "utf-8").toString("base64url");
+        return Buffer.from(input, EncodingTypes.UTF8).toString("base64url");
     },
     encodeKid(input: string): string {
-        return Buffer.from(JSON.stringify({ kid: input }), "utf-8").toString(
-            "base64url"
-        );
+        return Buffer.from(
+            JSON.stringify({ kid: input }),
+            EncodingTypes.UTF8
+        ).toString("base64url");
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
@@ -292,7 +296,7 @@ export class ClientTestUtils {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
             },
             libraryInfo: {
-                sku: Constants.SKU,
+                sku: SKU,
                 version: TEST_CONFIG.TEST_VERSION,
                 os: TEST_CONFIG.TEST_OS,
                 cpu: TEST_CONFIG.TEST_CPU,
