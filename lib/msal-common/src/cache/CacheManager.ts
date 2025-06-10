@@ -1033,13 +1033,13 @@ export abstract class CacheManager implements ICacheManager {
                 if (kid) {
                     void this.cryptoImpl
                         .removeTokenBindingKey(kid)
-                        .catch((e) => {
+                        .catch(() => {
                             this.commonLogger.error(
                                 `Failed to remove token binding key ${kid}`,
                                 correlationId
                             );
                             this.performanceClient?.incrementFields(
-                                { removeTokenBindingKeyError: 1 },
+                                { removeTokenBindingKeyFailure: 1 },
                                 correlationId
                             );
                         });
