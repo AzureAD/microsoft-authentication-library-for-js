@@ -69,8 +69,8 @@ export class ImdsV2 extends BaseManagedIdentitySource {
     }
 
     public static isCredentialEndpointAvailable(): boolean {
-        // TODO: Probe credential endpoint. If it doesn't return 200, return null
-        return true;
+        // TODO: Probe credential endpoint. If it doesn't return 400, return null
+        return false;
     }
 
     public createRequest(
