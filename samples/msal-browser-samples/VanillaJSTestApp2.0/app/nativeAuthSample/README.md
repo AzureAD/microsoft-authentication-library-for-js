@@ -1,104 +1,144 @@
 # MSAL Native Auth Sample
 
-This sample demonstrates how to use the Native Authentication capabilities of the Microsoft Authentication Library (MSAL) for JavaScript in a browser environment.
+This sample demonstrates how to use the Native Authentication capabilities of the Microsoft Authentication Library (MSAL) for JavaScript in a browser environment. Native Authentication provides a customizable and secure way to implement authentication flows directly in your application.
 
 ## Features
 
-- **Demo Mode**: Works immediately without building MSAL library (for testing UI/UX)
-- **Real MSAL Integration**: Automatically detects and uses MSAL when available
-- **Sign In**: Demonstrates the `signIn` function from `CustomAuthPublicClientApplication`
-- **Get Current Account**: Shows how to retrieve the current authenticated account
-- **Modern UI**: Clean, responsive interface for testing authentication flows
-- **Real-time Logging**: See authentication results and errors in real-time
+- **Sign In**: Email/password, email OTP (One-Time Password), and redirect authentication flows
+- **Sign Up**: User registration with email verification
+- **Password Management**: Reset password functionality
+- **Account Management**: Current account retrieval and sign out operations
+- **Customizable UI/UX**: Fully customizable authentication experience
+- **Challenge Type Support**: Support for multiple authentication challenge types
+- **Automated Testing**: End-to-end test suite for all authentication flows
 
-## Quick Start (Demo Mode)
+## Getting Started
 
-The sample includes a **demo mode** that works immediately:
+### Prerequisites
 
-1. **Install dependencies**:
+1. **Node.js and npm**: Required to run the sample application
+2. **Azure External ID Tenant**: Configured for Native Authentication
+3. **Application Registration**: With Native Authentication enabled and proper redirect URIs
+
+### Installation and Setup
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.git
+   cd microsoft-authentication-library-for-js/samples/msal-browser-samples/VanillaJSTestApp2.0/app/nativeAuthSample
+   ```
+
+2. **Install dependencies**:
 
    ```bash
    npm install
    ```
 
-2. **Start the server**:
+3. **Configure the application**:
 
-   ```bash
-   npm start
-   ```
-
-3. **Open browser**:
-
-   Navigate to <http://localhost:3000>
-
-4. **Test the UI**:
-
-   - Enter any username/password
-   - Click "Sign In" to see demo authentication flow
-   - Explore account management features
-
-## Production Setup (Real MSAL)
-
-To use with actual MSAL Native Authentication:
-
-### Prerequisites
-
-1. **Azure AD B2C or CIAM tenant** configured for Native Authentication
-2. **Application registration** in your tenant with Native Authentication enabled
-3. **API Proxy URL** configured for your Native Authentication setup
-
-### Configuration
-
-1. **Build the MSAL library**:
-
-   ```bash
-   cd ../../../lib/msal-browser
-   npm run build:all
-   ```
-
-2. **Update configuration**:
-
-   Open `app/authConfig.js` and replace placeholder values:
+   Open `app/authConfig.js` and update with your settings:
 
    ```javascript
-   clientId: "YOUR_CLIENT_ID", // Your application's client ID
-   authority: "https://YOUR_TENANT.ciamlogin.com/", // Your CIAM authority URL
-   authApiProxyUrl: "https://YOUR_API_PROXY_URL", // Your API proxy URL
+   const msalConfig = {
+     customAuth: {
+       challengeTypes: ["password", "oob", "redirect"],
+       authApiProxyUrl: "YOUR_AUTH_PROXY_URL",
+     },
+     auth: {
+       clientId: "YOUR_CLIENT_ID", 
+       authority: "https://YOUR_TENANT.ciamlogin.com",
+       redirectUri: "/", 
+     },
+     // Additional configuration...
+   };
    ```
 
-3. **Restart the server**:
+4. **Locate folder VanillaJSTestApp2.0 folder and start the development server**:
 
    ```bash
-   npm start
+   npm start -- --port 3000 --sample nativeAuthSample
    ```
 
-The application will automatically detect the MSAL library and switch to real authentication mode.
+5. **Open your browser**:
 
-## Usage
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+## Authentication Flows
 
 ### Sign In
 
-1. Enter a username/email in the sign-in form
-2. Optionally provide a password (for password-based flows)
-3. Optionally specify custom scopes (comma-separated)
-4. Click "Sign In" to initiate the authentication flow
+The sample supports multiple sign-in methods:
 
-### Monitor Results
+1. **Email/Password Authentication**:
+   - Enter email/username
+   - Provide password
+   - Submit for authentication
 
-- All authentication results, errors, and status messages appear in the "Results" section
-- The "Account Information" section shows details of the currently authenticated user
+2. **Email OTP Authentication**:
+   - Enter email address
+   - Receive one-time code via email
+   - Enter the code to complete authentication
 
-### Additional Actions
+3. **Redirect Authentication**:
+   - Enter email address
+   - System redirects to authentication provider
+   - Complete authentication on provider page
+   - Return to application with tokens
 
-- **Get Current Account**: Retrieves and displays information about the current account
-- **Sign Out**: Clears the current session and account information
-- **Clear Results**: Clears the results log
+### Sign Up
+
+The sign-up flow includes:
+
+1. Enter email address and basic profile information
+2. Verify email with a verification code
+3. Create a password
+4. Complete account creation
+
+### Password Reset
+
+The password reset flow allows users to:
+
+1. Request a password reset using their email
+2. Receive a verification code via email
+3. Verify identity with the code
+4. Create a new password
+
+## Project Structure
+
+```
+nativeAuthSample/
+├── app/                        # Application source code
+│   ├── app.js                  # Main application logic
+│   ├── authConfig.js           # MSAL configuration
+│   ├── utilities.js            # Helper functions
+│   ├── signin/                 # Sign-in functionality
+│   │   ├── SignInService.js    # Sign-in business logic
+│   │   ├── SignInUIManager.js  # Sign-in UI management
+│   │   └── index.js            # Sign-in module exports
+│   ├── signup/                 # Sign-up functionality
+│   │   ├── SignUpService.js    # Sign-up business logic
+│   │   ├── SignUpUIManager.js  # Sign-up UI management
+│   │   └── index.js            # Sign-up module exports
+│   └── resetPassword/          # Password reset functionality
+│       ├── ResetPasswordService.js  # Reset password logic
+│       ├── ResetPasswordUIManager.js # Reset UI management
+│       └── index.js            # Reset password module exports
+├── test/                       # Automated tests
+│   ├── signin.spec.ts          # Sign-in flow tests
+│   ├── signup.spec.ts          # Sign-up flow tests
+│   ├── resetpassword.spec.ts   # Password reset tests
+│   └── signout.spec.ts         # Sign-out tests
+├── index.html                  # Main HTML page
+├── styles.css                  # Application styles
+├── cors.js                     # CORS configuration
+└── proxy.config.js             # Proxy configuration
 
 ## Key Components
 
 ### CustomAuthPublicClientApplication
 
-The main class from `@azure/msal-browser/custom_auth` that provides:
+The core class that provides Native Authentication capabilities:
 
 - `signIn(signInInputs)`: Initiates sign-in flow
 - `getCurrentAccount(accountInputs)`: Retrieves current account
@@ -157,5 +197,4 @@ This sample demonstrates the basic Native Authentication flow:
 ## Learn More
 
 - [MSAL.js Documentation](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-overview)
-- [Native Authentication Documentation](https://docs.microsoft.com/en-us/azure/active-directory-b2c/native-authentication)
-- [Azure AD B2C Custom Policies](https://docs.microsoft.com/en-us/azure/active-directory-b2c/custom-policy-overview)
+- [Native Authentication Documentation](https://learn.microsoft.com/en-us/entra/identity-platform/concept-native-authentication)

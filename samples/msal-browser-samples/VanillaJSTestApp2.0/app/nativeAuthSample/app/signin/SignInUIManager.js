@@ -260,6 +260,7 @@ export class SignInUIManager {
             // Call the authentication method (passwordless flow)
             const result = await this.signInService.signIn(username);
             
+            console.log("🔍 SIGNIN UI MANAGER: handleSignInSubmit result:", result);
             if (result.success) {
                 // Notify main UI manager about successful sign-in
                 uiManager.updateAccountInfo(result.account);
@@ -275,12 +276,13 @@ export class SignInUIManager {
             } else {
                 // Handle other failure cases
                 console.error(`Sign-in failed`);
+                throw new Error(result.error || "An error occurred during sign-in");
             }
 
         } catch (error) {
-            console.error("Sign-in error occurred", error);
+            console.error(error.message);
             // Show error in the UI
-            uiManager.showErrorBanner(error.message || "An error occurred while signing in", 'signin');
+            uiManager.showErrorBanner(error.message, 'signin');
         } finally {
             if (signInBtn) this.resetButton(signInBtn, originalText);
         }
@@ -320,6 +322,8 @@ export class SignInUIManager {
                 
                 // Clear the form on success
                 event.target.reset();
+            } else if (result.state === 'failed') {
+                throw new Error(result.error || "Code verification failed");
             }
 
         } catch (error) {
@@ -404,8 +408,9 @@ export class SignInUIManager {
 
                 // Clear the form on success
                 event.target.reset();
+            } else if (result.state === 'failed') {
+                throw new Error("Password verification failed");
             }
-
         } catch (error) {
             console.error("Password verification error occurred", error);
             // Show error in the UI

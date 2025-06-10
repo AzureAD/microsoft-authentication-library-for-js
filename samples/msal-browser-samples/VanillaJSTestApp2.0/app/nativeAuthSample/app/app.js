@@ -14,6 +14,7 @@ import { Utilities } from './utilities.js';
 import { SignInModule } from './signin/index.js';
 import { SignUpModule } from './signup/index.js';
 import { ResetPasswordModule } from './resetPassword/index.js';
+import { msalConfig } from './authConfig.js';
 
 // Export singleton instance of NativeAuthApp
 let nativeAuthAppInstance = null;
@@ -44,7 +45,37 @@ class NativeAuthApp {
         }
         
         if (this.CustomAuthPublicClientApplication) {
-            Utilities.logMessage("Creating MSAL instance..." + JSON.stringify(msalConfig), "info");
+            // Create a URL object using the current page's URL
+            const url = new URL(window.location.href);
+            console.log("Current URL:", url.href);
+            // Get a specific parameter
+            const useRedirectConfig = url.searchParams.get('useRedirectConfig');
+            console.log("useRedirectConfig parameter:", useRedirectConfig);            
+            
+            if (useRedirectConfig === 'true') {
+                msalConfig.customAuth.challengeTypes = ["redirect"];
+            }
+
+            const useOtpConfig = url.searchParams.get('useOtpConfig');
+            const usePwdConfig = url.searchParams.get('usePwdConfig');
+
+            console.log("useOtpConfig parameter:", useOtpConfig);
+            console.log("usePwdConfig parameter:", usePwdConfig);
+
+            if (useOtpConfig === 'true') {
+                msalConfig.auth.clientId = "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16";
+                msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
+            } else if (usePwdConfig === 'true') {
+                // Default to password
+                msalConfig.auth.clientId = "456cf138-cb77-48e6-8a82-74f869d77e74";
+                msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
+            } else {
+                 // Default to password
+                msalConfig.auth.clientId = "456cf138-cb77-48e6-8a82-74f869d77e74";
+                msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
+            }
+
+            Utilities.logMessage("Creating MSAL instance with config: " + JSON.stringify(msalConfig), "info");
             
             this.msalInstance = await this.CustomAuthPublicClientApplication.create(msalConfig);
             Utilities.logMessage("MSAL instance created successfully", "success");
@@ -332,84 +363,13 @@ export function getResetPasswordModule() {
     return nativeAuthAppInstance?.resetPasswordModule || null;
 }
 
-/**
- * Clean up MSAL and module resources to prevent memory leaks
- * Call this function when the application is shutting down or needs to reset state
- * @param {boolean} temporaryInstancesOnly - If true, only clean up temporary instances
- * @returns {boolean} Success status of the cleanup operation
- */
-export function cleanupMsalResources(temporaryInstancesOnly = false) {
-    try {
-        console.log("Cleaning up MSAL resources...");
-        
-        if (!nativeAuthAppInstance && !temporaryInstancesOnly) {
-            console.log("No MSAL resources to clean up - app not initialized");
-            return true;
-        }
-        
-        // If we're only cleaning up temporary instances, skip the main app instance cleanup
-        if (!temporaryInstancesOnly) {
-            // 1. Clean up SignIn module resources
-            if (nativeAuthAppInstance.signInModule) {
-                // Add any specific cleanup for sign-in module
-                console.log("Cleaning up SignIn module resources");
-                nativeAuthAppInstance.signInModule.getUIManager().setSignInService(null);
-            }
-            
-            // 2. Clean up SignUp module resources
-            if (nativeAuthAppInstance.signUpModule) {
-                // Add any specific cleanup for sign-up module
-                console.log("Cleaning up SignUp module resources");
-                if (nativeAuthAppInstance.signUpModule.signUpUIManager) {
-                    nativeAuthAppInstance.signUpModule.signUpUIManager.setSignUpService(null);
-                }
-            }
-            
-            // 3. Clean up ResetPassword module resources
-            if (nativeAuthAppInstance.resetPasswordModule) {
-                // Add any specific cleanup for reset password module
-                console.log("Cleaning up ResetPassword module resources");
-                if (nativeAuthAppInstance.resetPasswordModule.resetPasswordUIManager) {
-                    nativeAuthAppInstance.resetPasswordModule.resetPasswordUIManager.setResetPasswordService(null);
-                }
-            }
-            
-            // 4. Clear the MSAL instance reference
-            if (nativeAuthAppInstance.msalInstance) {
-                console.log("Clearing MSAL instance reference");
-                nativeAuthAppInstance.msalInstance = null;
-            }
-            
-            // 5. Clear module references
-            nativeAuthAppInstance.signInModule = null;
-            nativeAuthAppInstance.signUpModule = null;
-            nativeAuthAppInstance.resetPasswordModule = null;
-            nativeAuthAppInstance.currentAccount = null;
-            
-            // 6. Clear the app instance reference
-            nativeAuthAppInstance = null;
-        }
-        
-        // Force garbage collection hint (not guaranteed)
-        if (typeof global !== 'undefined' && global.gc) {
-            global.gc();
-        }
-        
-        console.log("MSAL resources cleaned up successfully");
-        return true;
-    } catch (error) {
-        console.error("Error cleaning up MSAL resources:", error);
-        return false;
-    }
-}
-
 // Initialize the app when DOM is loaded and make it globally available
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Create new instance
         const app = new NativeAuthApp();
         nativeAuthAppInstance = app;
-        
+
         // Initialize MSAL
         await app.initializeMSAL();
 
@@ -425,5 +385,4 @@ export default {
     getSignInModule,
     getSignUpModule,
     getResetPasswordModule,
-    cleanupMsalResources,
 };
