@@ -327,15 +327,6 @@ export type PasswordGrantConstants =
     (typeof PasswordGrantConstants)[keyof typeof PasswordGrantConstants];
 
 /**
- * Response codes
- */
-export const ResponseCodes = {
-    httpSuccess: 200,
-    httpBadRequest: 400,
-} as const;
-export type ResponseCodes = (typeof ResponseCodes)[keyof typeof ResponseCodes];
-
-/**
  * Region Discovery Sources
  */
 export const RegionDiscoverySources = {
@@ -389,3 +380,10 @@ export const ONE_DAY_IN_MS = 86400000;
 
 // Token renewal offset default in seconds
 export const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
+
+export const EncodingTypes = {
+    BASE64: "base64",
+    HEX: "hex",
+    UTF8: "utf-8",
+} as const;
+export type EncodingTypes = (typeof EncodingTypes)[keyof typeof EncodingTypes];

@@ -397,6 +397,7 @@ export class ManagedIdentityApplication {
 
 // @public (undocumented)
 export type ManagedIdentityConfiguration = {
+    clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
@@ -630,7 +631,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.5.2";
+export const version = "3.6.0";
 
 // Warnings were encountered during analysis:
 //

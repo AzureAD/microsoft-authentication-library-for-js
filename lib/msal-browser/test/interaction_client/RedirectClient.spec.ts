@@ -57,6 +57,7 @@ import {
     ApiId,
     BrowserCacheLocation,
     InteractionType,
+    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
@@ -77,8 +78,8 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { EventType } from "../../src/event/EventType.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import {
@@ -87,6 +88,7 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
+import { version } from "../../src/packageMetadata.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -205,7 +207,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     done();
                 });
         });
@@ -223,7 +228,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     done();
                 });
         });
@@ -241,7 +249,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     expect(window.location.hash).toEqual(
                         TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
                     );
@@ -486,7 +497,7 @@ describe("RedirectClient", () => {
             pca = (pca as any).controller;
 
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -594,7 +605,7 @@ describe("RedirectClient", () => {
                 }
             });
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
 
