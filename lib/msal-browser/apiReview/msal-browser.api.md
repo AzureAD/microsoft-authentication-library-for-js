@@ -381,7 +381,7 @@ export type BrowserSystemOptions = SystemOptions & {
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
     redirectNavigationTimeout?: number;
-    asyncPopups?: boolean;
+    navigatePopups?: boolean;
     allowRedirectInIframe?: boolean;
     allowPlatformBroker?: boolean;
     nativeBrokerHandshakeTimeout?: number;
