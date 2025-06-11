@@ -24,7 +24,7 @@ import {
  * For example: Some operating contexts will pre-cache tokens impacting performance telemetry
  */
 export abstract class BaseOperatingContext {
-    public logger: Logger;
+    protected logger: Logger;
     protected config: BrowserConfiguration;
     protected available: boolean;
     protected browserEnvironment: boolean;

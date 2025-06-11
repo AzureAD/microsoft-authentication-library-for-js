@@ -23,7 +23,7 @@ import {
     AccountEntityUtils,
     buildStaticAuthorityOptions,
 } from "@azure/msal-common/browser";
-import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration.js";
 import type { SilentRequest } from "../request/SilentRequest.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
 import {
@@ -51,7 +51,7 @@ export type LoadTokenOptions = {
  * @returns `AuthenticationResult` for the response that was loaded.
  */
 export async function loadExternalTokens(
-    config: BrowserConfiguration,
+    config: Configuration,
     request: SilentRequest,
     response: ExternalTokenResponse,
     options: LoadTokenOptions
@@ -63,6 +63,8 @@ export async function loadExternalTokens(
         );
     }
 
+    const browserConfig = buildConfiguration(config, operatingContext.isBrowserEnvironment());
+
     const correlationId =
         request.correlationId || BrowserCrypto.createNewGuid();
 
@@ -71,32 +73,34 @@ export async function loadExternalTokens(
         : undefined;
 
     const authorityOptions: AuthorityOptions = {
-        protocolMode: config.system.protocolMode,
-        knownAuthorities: config.auth.knownAuthorities,
-        cloudDiscoveryMetadata: config.auth.cloudDiscoveryMetadata,
-        authorityMetadata: config.auth.authorityMetadata,
+        protocolMode: browserConfig.system.protocolMode,
+        knownAuthorities: browserConfig.auth.knownAuthorities,
+        cloudDiscoveryMetadata: browserConfig.auth.cloudDiscoveryMetadata,
+        authorityMetadata: browserConfig.auth.authorityMetadata,
     };
+
+    const logger = new Logger(browserConfig.system.loggerOptions || {});
     const cryptoOps = new CryptoOps(
-        operatingContext.logger,
-        config.telemetry.client
+        logger,
+        browserConfig.telemetry.client
     );
     const storage = new BrowserCacheManager(
-        config.auth.clientId,
-        config.cache,
+        browserConfig.auth.clientId,
+        browserConfig.cache,
         cryptoOps,
-        operatingContext.logger,
-        config.telemetry.client,
-        new EventHandler(operatingContext.logger),
-        buildStaticAuthorityOptions(config.auth)
+        logger,
+        browserConfig.telemetry.client,
+        new EventHandler(logger),
+        buildStaticAuthorityOptions(browserConfig.auth)
     );
-    const logger = operatingContext.logger;
+    
     const authority = request.authority
         ? new Authority(
               Authority.generateAuthority(
                   request.authority,
                   request.azureCloudOptions
               ),
-              config.system.networkClient,
+              browserConfig.system.networkClient,
               storage,
               authorityOptions,
               logger,
