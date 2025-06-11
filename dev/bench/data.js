@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749576854632,
+  "lastUpdate": 1749685246475,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15602,6 +15602,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.72%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fa85c44c968dff980364382ed1fc7e8031fcdaaa",
+          "message": "[v4] Remove access tokens synchronously (#7822)\n\nUpdates the remove access token cache logic to perform its steps\nsynchronously. This is a pre-requisite for additional work to handle\ncache quota errors in the near future. This requires pushing the POP key\nremoval (which is asynchronous) to the background, we will track\nfailures around this in telemetry instead of throwing an error\ndevelopers can't resolve anyway.",
+          "timestamp": "2025-06-11T16:34:32-07:00",
+          "tree_id": "8425e93a4c5bb3de30a21d986fa64286868a3a3d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fa85c44c968dff980364382ed1fc7e8031fcdaaa"
+        },
+        "date": 1749685245026,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 245749,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "210 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 251860,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
