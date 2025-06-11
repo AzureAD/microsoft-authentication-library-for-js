@@ -301,10 +301,9 @@ describe("CryptoOps.ts Unit Tests", () => {
             resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
         } as BaseAuthRequest);
         const key = mockDatabase["TestDB.keys"][pkThumbprint];
-        const keyDeleted = await cryptoObj.removeTokenBindingKey(pkThumbprint);
+        await cryptoObj.removeTokenBindingKey(pkThumbprint);
         expect(key).not.toBe(undefined);
         expect(mockDatabase["TestDB.keys"][pkThumbprint]).toBe(undefined);
-        expect(keyDeleted).toBe(true);
     }, 30000);
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {

@@ -4,6 +4,8 @@
  */
 
 import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
     ICrypto,
     IPerformanceClient,
     JoseHeader,
@@ -168,10 +170,14 @@ export class CryptoOps implements ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      */
-    async removeTokenBindingKey(kid: string): Promise<boolean> {
+    async removeTokenBindingKey(kid: string): Promise<void> {
         await this.cache.removeItem(kid);
         const keyFound = await this.cache.containsKey(kid);
-        return !keyFound;
+        if (keyFound) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.bindingKeyNotRemoved
+            );
+        }
     }
 
     /**

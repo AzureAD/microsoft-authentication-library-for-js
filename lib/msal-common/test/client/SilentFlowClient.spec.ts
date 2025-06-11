@@ -783,7 +783,8 @@ describe("SilentFlowClient unit tests", () => {
                 new MockStorageClass(
                     TEST_CONFIG.MSAL_CLIENT_ID,
                     mockCrypto,
-                    logger
+                    logger,
+                    new StubPerformanceClient()
                 )
             );
             client = new SilentFlowClient(config, stubPerformanceClient);
