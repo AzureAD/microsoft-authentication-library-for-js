@@ -21,6 +21,7 @@ import {
     buildAccountToCache,
     TimeUtils,
     AccountEntityUtils,
+    buildStaticAuthorityOptions,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import type { SilentRequest } from "../request/SilentRequest.js";
@@ -32,6 +33,9 @@ import {
 import type { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
+import { CryptoOps } from "../crypto/CryptoOps.js";
+import { EventHandler } from "../event/EventHandler.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -47,12 +51,13 @@ export type LoadTokenOptions = {
  * @returns `AuthenticationResult` for the response that was loaded.
  */
 export async function loadExternalTokens(
+    config: BrowserConfiguration,
     request: SilentRequest,
     response: ExternalTokenResponse,
-    options: LoadTokenOptions,
-    cache: TokenCache
+    options: LoadTokenOptions
 ): Promise<AuthenticationResult> {
-    if (!cache.isBrowserEnvironment) {
+    const operatingContext = new StandardOperatingContext(config);
+    if (!operatingContext.isBrowserEnvironment()) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.nonBrowserEnvironment
         );
@@ -66,21 +71,35 @@ export async function loadExternalTokens(
         : undefined;
 
     const authorityOptions: AuthorityOptions = {
-        protocolMode: cache.config.system.protocolMode,
-        knownAuthorities: cache.config.auth.knownAuthorities,
-        cloudDiscoveryMetadata: cache.config.auth.cloudDiscoveryMetadata,
-        authorityMetadata: cache.config.auth.authorityMetadata,
+        protocolMode: config.system.protocolMode,
+        knownAuthorities: config.auth.knownAuthorities,
+        cloudDiscoveryMetadata: config.auth.cloudDiscoveryMetadata,
+        authorityMetadata: config.auth.authorityMetadata,
     };
+    const cryptoOps = new CryptoOps(
+        operatingContext.logger,
+        config.telemetry.client
+    );
+    const storage = new BrowserCacheManager(
+        config.auth.clientId,
+        config.cache,
+        cryptoOps,
+        operatingContext.logger,
+        config.telemetry.client,
+        new EventHandler(operatingContext.logger),
+        buildStaticAuthorityOptions(config.auth)
+    );
+    const logger = operatingContext.logger;
     const authority = request.authority
         ? new Authority(
               Authority.generateAuthority(
                   request.authority,
                   request.azureCloudOptions
               ),
-              cache.config.system.networkClient,
-              cache.storage,
+              config.system.networkClient,
+              storage,
               authorityOptions,
-              cache.logger,
+              logger,
               request.correlationId || BrowserCrypto.createNewGuid()
           )
         : undefined;
@@ -89,7 +108,9 @@ export async function loadExternalTokens(
         request,
         options.clientInfo || response.client_info || "",
         correlationId,
-        cache,
+        storage,
+        logger,
+        cryptoOps,
         idTokenClaims,
         authority
     );
@@ -100,7 +121,9 @@ export async function loadExternalTokens(
         cacheRecordAccount.environment,
         cacheRecordAccount.realm,
         correlationId,
-        cache
+        storage,
+        logger,
+        config.auth.clientId
     );
 
     const accessToken = await loadAccessToken(
@@ -111,7 +134,9 @@ export async function loadExternalTokens(
         cacheRecordAccount.realm,
         options,
         correlationId,
-        cache
+        storage,
+        logger,
+        config.auth.clientId
     );
 
     const refreshToken = await loadRefreshToken(
@@ -119,7 +144,9 @@ export async function loadExternalTokens(
         cacheRecordAccount.homeAccountId,
         cacheRecordAccount.environment,
         correlationId,
-        cache
+        storage,
+        logger,
+        config.auth.clientId
     );
 
     return generateAuthenticationResult(
@@ -148,21 +175,23 @@ async function loadAccount(
     request: SilentRequest,
     clientInfo: string,
     correlationId: string,
-    cache: TokenCache,
+    storage: BrowserCacheManager,
+    logger: Logger,
+    cryptoObj: ICrypto,
     idTokenClaims?: TokenClaims,
     authority?: Authority
 ): Promise<AccountEntity> {
-    cache.logger.verbose("TokenCache - loading account");
+    logger.verbose("TokenCache - loading account");
 
     if (request.account) {
         const accountEntity =
             AccountEntityUtils.createAccountEntityFromAccountInfo(
                 request.account
             );
-        await cache.storage.setAccount(accountEntity, correlationId);
+        await storage.setAccount(accountEntity, correlationId);
         return accountEntity;
     } else if (!authority || (!clientInfo && !idTokenClaims)) {
-        cache.logger.error(
+        logger.error(
             "TokenCache - if an account is not provided on the request, authority and either clientInfo or idToken must be provided instead."
         );
         throw createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken);
@@ -171,15 +200,15 @@ async function loadAccount(
     const homeAccountId = AccountEntityUtils.generateHomeAccountId(
         clientInfo,
         authority.authorityType,
-        cache.logger,
-        cache.cryptoObj,
+        logger,
+        cryptoObj,
         idTokenClaims
     );
 
     const claimsTenantId = idTokenClaims?.tid;
 
     const cachedAccount = buildAccountToCache(
-        cache.storage,
+        storage,
         authority,
         homeAccountId,
         base64Decode,
@@ -189,10 +218,10 @@ async function loadAccount(
         claimsTenantId,
         undefined, // authCodePayload
         undefined, // nativeAccountId
-        cache.logger
+        logger
     );
 
-    await cache.storage.setAccount(cachedAccount, correlationId);
+    await storage.setAccount(cachedAccount, correlationId);
     return cachedAccount;
 }
 
@@ -210,23 +239,25 @@ async function loadIdToken(
     environment: string,
     tenantId: string,
     correlationId: string,
-    cache: TokenCache
+    storage: BrowserCacheManager,
+    logger: Logger,
+    clientId: string
 ): Promise<IdTokenEntity | null> {
     if (!response.id_token) {
-        cache.logger.verbose("TokenCache - no id token found in response");
+        logger.verbose("TokenCache - no id token found in response");
         return null;
     }
 
-    cache.logger.verbose("TokenCache - loading id token");
+    logger.verbose("TokenCache - loading id token");
     const idTokenEntity = CacheHelpers.createIdTokenEntity(
         homeAccountId,
         environment,
         response.id_token,
-        cache.config.auth.clientId,
+        clientId,
         tenantId
     );
 
-    await cache.storage.setIdTokenCredential(idTokenEntity, correlationId);
+    await storage.setIdTokenCredential(idTokenEntity, correlationId);
     return idTokenEntity;
 }
 
@@ -247,24 +278,26 @@ async function loadAccessToken(
     tenantId: string,
     options: LoadTokenOptions,
     correlationId: string,
-    cache: TokenCache
+    storage: BrowserCacheManager,
+    logger: Logger,
+    clientId: string
 ): Promise<AccessTokenEntity | null> {
     if (!response.access_token) {
-        cache.logger.verbose("TokenCache - no access token found in response");
+        logger.verbose("TokenCache - no access token found in response");
         return null;
     } else if (!response.expires_in) {
-        cache.logger.error(
+        logger.error(
             "TokenCache - no expiration set on the access token. Cannot add it to the cache."
         );
         return null;
     } else if (!response.scope && (!request.scopes || !request.scopes.length)) {
-        cache.logger.error(
+        logger.error(
             "TokenCache - scopes not specified in the request or response. Cannot add token to the cache."
         );
         return null;
     }
 
-    cache.logger.verbose("TokenCache - loading access token");
+    logger.verbose("TokenCache - loading access token");
 
     const scopes = response.scope
         ? ScopeSet.fromString(response.scope)
@@ -281,7 +314,7 @@ async function loadAccessToken(
         homeAccountId,
         environment,
         response.access_token,
-        cache.config.auth.clientId,
+        clientId,
         tenantId,
         scopes.printScopes(),
         expiresOn,
@@ -289,10 +322,7 @@ async function loadAccessToken(
         base64Decode
     );
 
-    await cache.storage.setAccessTokenCredential(
-        accessTokenEntity,
-        correlationId
-    );
+    await storage.setAccessTokenCredential(accessTokenEntity, correlationId);
     return accessTokenEntity;
 }
 
@@ -309,28 +339,27 @@ async function loadRefreshToken(
     homeAccountId: string,
     environment: string,
     correlationId: string,
-    cache: TokenCache
+    storage: BrowserCacheManager,
+    logger: Logger,
+    clientId: string
 ): Promise<RefreshTokenEntity | null> {
     if (!response.refresh_token) {
-        cache.logger.verbose("TokenCache - no refresh token found in response");
+        logger.verbose("TokenCache - no refresh token found in response");
         return null;
     }
 
-    cache.logger.verbose("TokenCache - loading refresh token");
+    logger.verbose("TokenCache - loading refresh token");
     const refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
         homeAccountId,
         environment,
         response.refresh_token,
-        cache.config.auth.clientId,
+        clientId,
         response.foci,
         undefined, // userAssertionHash
         response.refresh_token_expires_in
     );
 
-    await cache.storage.setRefreshTokenCredential(
-        refreshTokenEntity,
-        correlationId
-    );
+    await storage.setRefreshTokenCredential(refreshTokenEntity, correlationId);
     return refreshTokenEntity;
 }
 
@@ -390,35 +419,4 @@ function generateAuthenticationResult(
         msGraphHost: accountEntity.msGraphHost || "",
         fromNativeBroker: false,
     };
-}
-
-/**
- * Token cache manager
- */
-export class TokenCache {
-    // Flag to indicate if in browser environment
-    public isBrowserEnvironment: boolean;
-    // Input configuration by developer/user
-    public config: BrowserConfiguration;
-    // Browser cache storage
-    public storage: BrowserCacheManager;
-    // Logger
-    public logger: Logger;
-    // Crypto class
-    public cryptoObj: ICrypto;
-
-    constructor(
-        configuration: BrowserConfiguration,
-        storage: BrowserCacheManager,
-        logger: Logger,
-        cryptoObj: ICrypto
-    ) {
-        this.isBrowserEnvironment = typeof window !== "undefined";
-        this.config = configuration;
-        this.storage = storage;
-        this.logger = logger;
-        this.cryptoObj = cryptoObj;
-    }
-
-    // Move getAllAccounts here and cache utility APIs
 }

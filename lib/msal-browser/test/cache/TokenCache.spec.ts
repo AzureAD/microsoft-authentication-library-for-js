@@ -19,7 +19,6 @@ import {
     AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import {
-    TokenCache,
     LoadTokenOptions,
     loadExternalTokens,
 } from "../../src/cache/TokenCache.js";
@@ -48,6 +47,7 @@ import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { createBrowserAuthError } from "../../src/error/BrowserAuthError.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
+import { StandardOperatingContext } from "../../src/operatingcontext/StandardOperatingContext.js";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;
@@ -94,7 +94,6 @@ describe("TokenCache tests", () => {
     });
 
     describe("loadExternalTokens()", () => {
-        let tokenCache: TokenCache;
         let testEnvironment: string;
         let testClientInfo: string;
         let testIdToken: string;
@@ -111,12 +110,6 @@ describe("TokenCache tests", () => {
         let refreshTokenKey: string;
 
         beforeEach(() => {
-            tokenCache = new TokenCache(
-                configuration,
-                browserStorage,
-                logger,
-                cryptoObj
-            );
             testEnvironment = "login.microsoftonline.com";
 
             testClientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
@@ -193,10 +186,10 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
             const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
-                options,
-                tokenCache
+                options
             );
 
             const testIdTokenEntity = CacheHelpers.createIdTokenEntity(
@@ -228,10 +221,10 @@ describe("TokenCache tests", () => {
             };
 
             const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
-                options,
-                tokenCache
+                options
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
@@ -260,10 +253,10 @@ describe("TokenCache tests", () => {
             const testAccountKey =
                 AccountEntityUtils.generateAccountCacheKey(testAccountInfo);
             const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
-                options,
-                tokenCache
+                options
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
@@ -287,10 +280,10 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
             const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
-                options,
-                tokenCache
+                options
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
@@ -308,7 +301,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            loadExternalTokens(request, response, options, tokenCache).catch(
+            loadExternalTokens(configuration, request, response, options).catch(
                 (e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
@@ -330,7 +323,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            loadExternalTokens(request, response, options, tokenCache).catch(
+            loadExternalTokens(configuration, request, response, options).catch(
                 (e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
@@ -360,10 +353,10 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
-                options,
-                tokenCache
+                options
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
@@ -397,10 +390,10 @@ describe("TokenCache tests", () => {
                 extendedExpiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
             };
             const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
-                options,
-                tokenCache
+                options
             );
 
             expect(parseInt(accessTokenEntity.expiresOn)).toBeGreaterThan(
@@ -413,7 +406,8 @@ describe("TokenCache tests", () => {
         });
 
         it("throws error if in non-browser environment", (done) => {
-            tokenCache.isBrowserEnvironment = false;
+            jest.spyOn(StandardOperatingContext.prototype, "isBrowserEnvironment")
+                .mockReturnValue(false);
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {
@@ -431,7 +425,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            loadExternalTokens(request, response, options, tokenCache).catch(
+            loadExternalTokens(configuration, request, response, options).catch(
                 (e) => {
                     expect(e).toEqual(
                         createBrowserAuthError(
@@ -454,7 +448,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            await loadExternalTokens(request, response, options, tokenCache);
+            await loadExternalTokens(configuration, request, response, options);
 
             expect(
                 browserStorage.getRefreshTokenCredential(refreshTokenKey)
@@ -474,10 +468,10 @@ describe("TokenCache tests", () => {
             };
 
             const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
-                options,
-                tokenCache
+                options
             );
 
             // Validate account can be retrieved
@@ -510,10 +504,10 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
-                options,
-                tokenCache
+                options
             );
 
             testHomeAccountId = AccountEntityUtils.generateHomeAccountId(

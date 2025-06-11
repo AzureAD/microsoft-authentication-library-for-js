@@ -10,10 +10,10 @@ The `loadExternalTokens()` API is a standalone function.
 
 ```js
 await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
     loadTokenOptions,
-    myMSALObj.getTokenCache()
 );
 ```
 
@@ -47,6 +47,10 @@ An account will also be set in the cache based on the information provided above
 See the code examples below:
 
 ```ts
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
+
 const silentRequest: SilentRequest = {
     account: {
         homeAccountId: "your-home-account-id",
@@ -63,17 +67,19 @@ const serverResponse: ExternalTokenResponse = {
 
 const loadTokenOptions: LoadTokenOptions = {};
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
+const pca = new PublicClientApplication(config);
 await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
-    loadTokenOptions,
-    pca.getTokenCache()
+    loadTokenOptions
 );
 
 // OR
+
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
 
 const silentRequest: SilentRequest = {
     scopes: [],
@@ -88,17 +94,19 @@ const loadTokenOptions: LoadTokenOptions = {
     clientInfo: "client-info-here",
 };
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
+const pca = new PublicClientApplication(config);
 await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
-    loadTokenOptions,
-    pca.getTokenCache()
+    loadTokenOptions
 );
 
 // OR
+
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
 
 const silentRequest: SilentRequest = {
     scopes: [],
@@ -112,14 +120,12 @@ const serverResponse: ExternalTokenResponse = {
 
 const loadTokenOptions: LoadTokenOptions = {};
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
+const pca = new PublicClientApplication(config);
 await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
-    loadTokenOptions,
-    pca.getTokenCache()
+    loadTokenOptions
 );
 ```
 
@@ -132,6 +138,10 @@ In addition to the parameters listed [above](#loading-tokens) provide the follow
 See the code examples below:
 
 ```ts
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
+
 const silentRequest: SilentRequest = {
     scopes: ["User.Read", "email"],
     account: {
@@ -154,14 +164,12 @@ const loadTokenOptions: LoadTokenOptions = {
     extendedExpiresOn: 6599,
 };
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
+const pca = new PublicClientApplication(config);
 await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
-    loadTokenOptions,
-    pca.getTokenCache()
+    loadTokenOptions
 );
 ```
 
@@ -174,6 +182,10 @@ In addition to the parameters listed [above](#loading-tokens) provide the follow
 See the code examples below:
 
 ```ts
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
+
 const silentRequest: SilentRequest = {
     scopes: [],
     account: {
@@ -192,13 +204,12 @@ const serverResponse: ExternalTokenResponse = {
 
 const loadTokenOptions: LoadTokenOptions = {};
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
+const pca = new PublicClientApplication(config);
+
 await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
-    loadTokenOptions,
-    pca.getTokenCache()
+    loadTokenOptions
 );
 ```
