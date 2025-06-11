@@ -6,12 +6,12 @@
 import {
     Logger,
     IPerformanceClient,
-    PerformanceEvents,
     invoke,
     Constants,
     Authority,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -41,7 +41,7 @@ export async function initiateCodeRequest(
 
     return invoke(
         loadFrameSync,
-        PerformanceEvents.SilentHandlerLoadFrameSync,
+        BrowserPerformanceEvents.SilentHandlerLoadFrameSync,
         logger,
         performanceClient,
         correlationId
@@ -136,7 +136,7 @@ export async function monitorIframeForHash(
     }).finally(() => {
         invoke(
             removeHiddenIframe,
-            PerformanceEvents.RemoveHiddenIframe,
+            BrowserPerformanceEvents.RemoveHiddenIframe,
             logger,
             performanceClient,
             correlationId

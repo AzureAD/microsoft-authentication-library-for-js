@@ -39,7 +39,7 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { RequestValidator } from "../request/RequestValidator.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";

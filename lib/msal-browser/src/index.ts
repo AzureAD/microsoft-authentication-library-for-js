@@ -149,13 +149,13 @@ export {
     AuthenticationHeaderParser,
     PerformanceCallbackFunction,
     PerformanceEvent,
-    PerformanceEvents,
     // Telemetry
     InProgressPerformanceEvent,
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
+export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 
 export { version } from "./packageMetadata.js";
 

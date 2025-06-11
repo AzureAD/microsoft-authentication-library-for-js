@@ -39,7 +39,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     createInteractionRequiredAuthError,
 } from "../error/InteractionRequiredAuthError.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
 import { generateCredentialKey } from "../cache/utils/CacheHelpers.js";

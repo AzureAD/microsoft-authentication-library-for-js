@@ -29,7 +29,7 @@ import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js"
 import * as UrlUtils from "../utils/UrlUtils.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { ThrottlingUtils } from "../network/ThrottlingUtils.js";
 import { AuthError } from "../error/AuthError.js";
 import {

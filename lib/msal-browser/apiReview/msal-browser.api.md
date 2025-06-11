@@ -44,7 +44,6 @@ import { OIDCOptions } from '@azure/msal-common/browser';
 import { PerformanceCallbackFunction } from '@azure/msal-common/browser';
 import { PerformanceClient } from '@azure/msal-common/browser';
 import { PerformanceEvent } from '@azure/msal-common/browser';
-import { PerformanceEvents } from '@azure/msal-common/browser';
 import { ProtocolMode } from '@azure/msal-common/browser';
 import { ServerError } from '@azure/msal-common/browser';
 import { SignedHttpRequestParameters } from '@azure/msal-common/browser';
@@ -61,6 +60,31 @@ export { AccountEntity }
 export { AccountEntityUtils }
 
 export { AccountInfo }
+
+// Warning: (ae-missing-release-tag) "AcquireTokenByCode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+const AcquireTokenByCode = "acquireTokenByCode";
+
+// Warning: (ae-missing-release-tag) "AcquireTokenPopup" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+const AcquireTokenPopup = "acquireTokenPopup";
+
+// Warning: (ae-missing-release-tag) "AcquireTokenPreRedirect" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+const AcquireTokenPreRedirect = "acquireTokenPreRedirect";
+
+// Warning: (ae-missing-release-tag) "AcquireTokenRedirect" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+const AcquireTokenRedirect = "acquireTokenRedirect";
+
+// Warning: (ae-missing-release-tag) "AcquireTokenSilent" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+const AcquireTokenSilent = "acquireTokenSilent";
 
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -299,7 +323,7 @@ export class BrowserConfigurationAuthError extends AuthError {
 //
 // @public (undocumented)
 export class BrowserPerformanceClient extends PerformanceClient implements IPerformanceClient {
-    constructor(configuration: Configuration, intFields?: Set<string>, abbreviations?: Map<string, string>);
+    constructor(configuration: Configuration, intFields?: Set<string>);
     // (undocumented)
     generateId(): string;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -331,6 +355,19 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
     startMeasurement(): void;
     // (undocumented)
     static supportsBrowserPerformance(): boolean;
+}
+
+declare namespace BrowserRootPerformanceEvents {
+    export {
+        AcquireTokenSilent,
+        AcquireTokenByCode,
+        AcquireTokenPopup,
+        AcquireTokenPreRedirect,
+        AcquireTokenRedirect,
+        SsoSilent,
+        InitializeClientApplication,
+        LocalStorageUpdated
+    }
 }
 
 // Warning: (ae-missing-release-tag) "BrowserSystemOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -757,6 +794,11 @@ export type InitializeApplicationRequest = {
     correlationId?: string;
 };
 
+// Warning: (ae-missing-release-tag) "InitializeClientApplication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const InitializeClientApplication = "initializeClientApplication";
+
 export { InProgressPerformanceEvent }
 
 // Warning: (ae-missing-release-tag) "interactionInProgress" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -965,6 +1007,11 @@ export class LocalStorage implements IWindowStorage<string> {
     setUserData(key: string, value: string, correlationId: string): Promise<void>;
 }
 
+// Warning: (ae-missing-release-tag) "LocalStorageUpdated" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const LocalStorageUpdated = "localStorageUpdated";
+
 export { Logger }
 
 export { LogLevel }
@@ -1082,8 +1129,6 @@ export const OIDC_DEFAULT_SCOPES: string[];
 export { PerformanceCallbackFunction }
 
 export { PerformanceEvent }
-
-export { PerformanceEvents }
 
 // Warning: (ae-missing-release-tag) "pkceNotCreated" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1438,6 +1483,11 @@ export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correla
 // @public (undocumented)
 const spaCodeAndNativeAccountIdPresent = "spa_code_and_nativeAccountId_present";
 
+// Warning: (ae-missing-release-tag) "SsoSilent" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+const SsoSilent = "ssoSilent";
+
 // Warning: (ae-missing-release-tag) "SsoSilentRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -1521,9 +1571,9 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/app/PublicClientNext.ts:85:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/app/PublicClientNext.ts:88:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/app/PublicClientNext.ts:89:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:296:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:354:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:385:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:297:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:355:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:386:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/Configuration.ts:210:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

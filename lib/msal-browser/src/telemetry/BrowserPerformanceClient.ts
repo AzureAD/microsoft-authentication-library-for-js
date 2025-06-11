@@ -67,11 +67,7 @@ export class BrowserPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
-    constructor(
-        configuration: Configuration,
-        intFields?: Set<string>,
-        abbreviations?: Map<string, string>
-    ) {
+    constructor(configuration: Configuration, intFields?: Set<string>) {
         super(
             configuration.auth.clientId,
             configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
@@ -86,8 +82,7 @@ export class BrowserPerformanceClient
                 appName: "",
                 appVersion: "",
             },
-            intFields,
-            abbreviations
+            intFields
         );
     }
 
