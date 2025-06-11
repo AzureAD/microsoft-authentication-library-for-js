@@ -387,7 +387,7 @@ export class StandardController implements IController {
             this.eventHandler.subscribeCrossTab();
         }
 
-        this.config.system.navigatePopups &&
+        !this.config.system.navigatePopups &&
             (await this.preGeneratePkceCodes(initCorrelationId));
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
@@ -776,7 +776,6 @@ export class StandardController implements IController {
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
             preflightCheck(this.initialized, atPopupMeasurement);
-
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN
@@ -903,7 +902,7 @@ export class StandardController implements IController {
             })
             .finally(async () => {
                 this.browserStorage.setInteractionInProgress(false);
-                if (this.config.system.navigatePopups) {
+                if (!this.config.system.navigatePopups) {
                     await this.preGeneratePkceCodes(correlationId);
                 }
             });

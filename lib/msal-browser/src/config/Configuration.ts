@@ -144,7 +144,7 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     redirectNavigationTimeout?: number;
     /**
-     * Sets whether popups are opened and navigated immediately. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request and navigation occurs immediately.
+     * Sets whether popups are opened and navigated to later. By default, this flag is set to true. When set to true, blank popups are opened and navigates to login domain. When set to false, popups are opened directly to the login domain.
      */
     navigatePopups?: boolean;
     /**
@@ -289,7 +289,7 @@ export function buildConfiguration(
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         allowRedirectInIframe: false,
-        navigatePopups: false,
+        navigatePopups: true,
         allowPlatformBroker: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||

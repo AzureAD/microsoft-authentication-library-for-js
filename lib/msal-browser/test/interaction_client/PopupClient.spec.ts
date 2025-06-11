@@ -221,7 +221,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigatePopups: true,
+                    navigatePopups: false,
                 },
                 telemetry: {
                     client: perfClient,
@@ -939,7 +939,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigatePopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1022,7 +1022,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigatePopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1083,7 +1083,7 @@ describe("PopupClient", () => {
                     postLogoutRedirectUri,
                 },
                 system: {
-                    navigatePopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1134,7 +1134,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigatePopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1187,7 +1187,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigatePopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1238,7 +1238,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigatePopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1326,7 +1326,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigatePopups: true,
+                    navigatePopups: false,
                 },
             });
 
