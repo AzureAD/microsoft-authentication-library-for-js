@@ -25,10 +25,10 @@ import { ShortLivedCredential } from "../../response/ShortLivedCredentialRespons
 import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
 import { DefaultManagedIdentityRetryPolicy } from "../../retry/DefaultManagedIdentityRetryPolicy.js";
 
-const CREDENTIAL_PATH: string =
+export const CREDENTIAL_PATH: string =
     "/metadata/identity/credential?cred-api-version=1.0";
 
-interface CredentialEndpointProbeResponse {
+export interface CredentialEndpointProbeResponse {
     error: string;
     error_description: string;
 }
@@ -132,7 +132,7 @@ export class ImdsV2 extends BaseManagedIdentitySource {
         const versionMatch = response.headers["server"]?.match(
             /^IMDS\/\d+\.\d+\.\d+\.(\d+)$/
         );
-        return Boolean(versionMatch && parseInt(versionMatch[4], 10) > 1324); // .match can return null, so Boolean() is needed
+        return Boolean(versionMatch && parseInt(versionMatch[1], 10) > 1324); // .match can return null, so Boolean() is needed
     }
 
     public createRequest(
