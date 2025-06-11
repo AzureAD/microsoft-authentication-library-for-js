@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Changes `asyncPopups` to `navigatePopups` in Configuration #7812",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
