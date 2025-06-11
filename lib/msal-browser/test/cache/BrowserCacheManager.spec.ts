@@ -269,8 +269,8 @@ describe("BrowserCacheManager tests", () => {
         });
 
         afterEach(async () => {
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("setTemporaryCache", () => {
@@ -334,11 +334,11 @@ describe("BrowserCacheManager tests", () => {
             ]);
         });
 
-        it("clear()", async () => {
+        it("clear()", () => {
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
         });
@@ -979,11 +979,9 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(testAT4);
 
                     browserSessionStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient(),
                         "test-correlation-id"
                     );
                     browserLocalStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient(),
                         "test-correlation-id"
                     );
 
@@ -1366,8 +1364,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
 
-                    await browserSessionStorage.clear();
-                    await browserLocalStorage.clear();
+                    browserSessionStorage.clear(RANDOM_TEST_GUID);
+                    browserLocalStorage.clear(RANDOM_TEST_GUID);
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
                     ).toBeNull();
@@ -1686,8 +1684,8 @@ describe("BrowserCacheManager tests", () => {
         });
 
         afterEach(async () => {
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("setTemporaryCache", () => {
@@ -1732,11 +1730,11 @@ describe("BrowserCacheManager tests", () => {
             ).toBeNull();
         });
 
-        it("clear()", async () => {
+        it("clear()", () => {
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
         });
@@ -2443,7 +2441,7 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(expect.arrayContaining([key]));
                 });
 
-                it("clear() removes AuthorityMetadataEntity from in-memory storage", async () => {
+                it("clear() removes AuthorityMetadataEntity from in-memory storage", () => {
                     browserSessionStorage.setAuthorityMetadata(key, testObj);
                     browserLocalStorage.setAuthorityMetadata(key, testObj);
 
@@ -2460,8 +2458,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
 
-                    await browserSessionStorage.clear();
-                    await browserLocalStorage.clear();
+                    browserSessionStorage.clear(RANDOM_TEST_GUID);
+                    browserLocalStorage.clear(RANDOM_TEST_GUID);
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
                     ).toBeNull();
@@ -2592,9 +2590,9 @@ describe("BrowserCacheManager tests", () => {
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
 
-        afterEach(async () => {
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+        afterEach(() => {
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("setTempCache()", () => {
@@ -2703,11 +2701,11 @@ describe("BrowserCacheManager tests", () => {
             expect(clearCookieSpy).toHaveBeenCalledTimes(3);
         });
 
-        it("clear()", async () => {
+        it("clear()", () => {
             // sessionStorage
             browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserSessionStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2715,7 +2713,7 @@ describe("BrowserCacheManager tests", () => {
             // localStorage
             browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserLocalStorage.clear();
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2723,7 +2721,7 @@ describe("BrowserCacheManager tests", () => {
             // browser memory
             browserMemoryStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserMemoryStorage.clear();
+            browserMemoryStorage.clear(RANDOM_TEST_GUID);
             expect(browserMemoryStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2825,12 +2823,12 @@ describe("BrowserCacheManager tests", () => {
             expect(clearCookieSpy).toHaveBeenCalledTimes(3);
         });
 
-        it("clear() with item that contains ==", async () => {
+        it("clear() with item that contains ==", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
             // sessionStorage
             browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserSessionStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2838,7 +2836,7 @@ describe("BrowserCacheManager tests", () => {
             // localStorage
             browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserLocalStorage.clear();
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2846,7 +2844,7 @@ describe("BrowserCacheManager tests", () => {
             // browser memory
             browserMemoryStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserMemoryStorage.clear();
+            browserMemoryStorage.clear(RANDOM_TEST_GUID);
             expect(browserMemoryStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`

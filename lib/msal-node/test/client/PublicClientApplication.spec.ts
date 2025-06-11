@@ -81,6 +81,7 @@ import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -1051,7 +1052,8 @@ describe("PublicClientApplication", () => {
                     new MockStorageClass(
                         TEST_CONFIG.MSAL_CLIENT_ID,
                         cryptoProvider,
-                        new Logger({})
+                        new Logger({}),
+                        new StubPerformanceClient()
                     ),
                     {
                         protocolMode: ProtocolMode.AAD,
