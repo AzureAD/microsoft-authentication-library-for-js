@@ -24,7 +24,6 @@ import {
     buildStaticAuthorityOptions,
 } from "@azure/msal-common/browser";
 import {
-    BrowserConfiguration,
     buildConfiguration,
     Configuration,
 } from "../config/Configuration.js";
