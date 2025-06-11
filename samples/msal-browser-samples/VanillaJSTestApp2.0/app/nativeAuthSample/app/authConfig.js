@@ -5,8 +5,7 @@
 // Access LogLevel from the global msalCustomAuth object
 const { LogLevel } = msalCustomAuth;
 
-// const tenantSubdomain = "ciamtestlocal";
-// const tenantId = "cd97f2df-f1e9-4ee6-8dc0-d036accad626";
+import { Utilities } from './utilities.js';
 
 // Define the msalConfig global variable
 export const msalConfig = {
@@ -33,16 +32,16 @@ export const msalConfig = {
                 }
                 switch (level) {
                     case LogLevel.Error:
-                        console.error(message);
+                        Utilities.logMessage(message, "error");
                         return;
                     case LogLevel.Info:
-                        console.info(message);
+                        Utilities.logMessage(message, "info");
                         return;
                     case LogLevel.Verbose:
-                        console.debug(message);
+                        Utilities.logMessage(message, "info"); // Use info for verbose as we don't have a debug level
                         return;
                     case LogLevel.Warning:
-                        console.warn(message);
+                        Utilities.logMessage(message, "warning");
                         return;
                 }
             },

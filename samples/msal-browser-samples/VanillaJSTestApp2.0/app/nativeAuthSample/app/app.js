@@ -1,13 +1,6 @@
 /*
  * MSAL Native Auth Sample Application
- * 
- * This sample demonstrates how to use the CustomAuthPublicClientApplication
- * from @azure/msal-browser/custom_auth for Native Authentication flows.
- * 
- * Prerequisites:
- * 1. The msal-browser library with custom auth support must be built
- * 2. Update authConfig.js with your actual Azure configuration
- * 3. Ensure your application is registered for Native Authentication
+ * Main application entry point for CustomAuthPublicClientApplication
  */
 
 import { Utilities } from './utilities.js';
@@ -27,10 +20,6 @@ class NativeAuthApp {
         this.signInModule = null;
         this.signUpModule = null;
         this.resetPasswordModule = null;
-        
-        // // Create the pca-initialized element for test detection
-        // // But set its content to 'false' until initialization is complete
-        // this.createPCAInitializedElement();
     }
 
     async initializeMSAL() {
@@ -47,10 +36,10 @@ class NativeAuthApp {
         if (this.CustomAuthPublicClientApplication) {
             // Create a URL object using the current page's URL
             const url = new URL(window.location.href);
-            console.log("Current URL:", url.href);
+            Utilities.logMessage("Current URL: " + url.href, "info");
             // Get a specific parameter
             const useRedirectConfig = url.searchParams.get('useRedirectConfig');
-            console.log("useRedirectConfig parameter:", useRedirectConfig);            
+            Utilities.logMessage("useRedirectConfig parameter: " + useRedirectConfig, "info");            
             
             if (useRedirectConfig === 'true') {
                 msalConfig.customAuth.challengeTypes = ["redirect"];
@@ -59,8 +48,8 @@ class NativeAuthApp {
             const useOtpConfig = url.searchParams.get('useOtpConfig');
             const usePwdConfig = url.searchParams.get('usePwdConfig');
 
-            console.log("useOtpConfig parameter:", useOtpConfig);
-            console.log("usePwdConfig parameter:", usePwdConfig);
+            Utilities.logMessage("useOtpConfig parameter: " + useOtpConfig, "info");
+            Utilities.logMessage("usePwdConfig parameter: " + usePwdConfig, "info");
 
             if (useOtpConfig === 'true') {
                 msalConfig.auth.clientId = "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16";
@@ -70,9 +59,7 @@ class NativeAuthApp {
                 msalConfig.auth.clientId = "456cf138-cb77-48e6-8a82-74f869d77e74";
                 msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
             } else {
-                 // Default to password
-                msalConfig.auth.clientId = "456cf138-cb77-48e6-8a82-74f869d77e74";
-                msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
+                // Default to whatever is set in authConfig.js
             }
 
             Utilities.logMessage("Creating MSAL instance with config: " + JSON.stringify(msalConfig), "info");
@@ -113,37 +100,29 @@ class NativeAuthApp {
         const pcaInitElement = document.getElementById("pca-initialized");
         if (pcaInitElement) {
             pcaInitElement.textContent = "true";
-            console.log("PCA initialization flag set to true for tests");
+            Utilities.logMessage("PCA initialization flag set to true for tests", "info");
         } else {
-            console.error("Could not find pca-initialized element");
-            // Create it if it doesn't exist
-            this.createPCAInitializedElement();
-            document.getElementById("pca-initialized").textContent = "true";
+            Utilities.logMessage("Could not find pca-initialized element", "error");
+            // Create element for test detection
+            const initElement = document.createElement('div');
+            initElement.id = 'pca-initialized';
+            initElement.style.display = 'none';
+            initElement.textContent = 'true';
+            document.body.appendChild(initElement);
         }
     }
 
     // Core Authentication Methods
 
-    /**
-     * Get the sign-in module for accessing sign-in functionality
-     * @returns {SignInModule} The sign-in module instance
-     */
+    // Get modules from instance
     getSignInModule() {
         return this.signInModule;
     }
 
-    /**
-     * Get the sign-up module for accessing sign-up functionality
-     * @returns {SignUpModule} The sign-up module instance
-     */
     getSignUpModule() {
         return this.signUpModule;
     }
 
-    /**
-     * Get the reset password module for accessing reset password functionality
-     * @returns {ResetPasswordModule} The reset password module instance
-     */
     getResetPasswordModule() {
         return this.resetPasswordModule;
     }
@@ -170,7 +149,7 @@ class NativeAuthApp {
 
         } catch (error) {
             Utilities.logMessage(`Failed to get current account`, "error");
-            console.error("Get account error:", error);
+            Utilities.logMessage("Get account error: " + error.message, "error");
             throw error;
         }
     }
@@ -201,7 +180,7 @@ class NativeAuthApp {
             
         } catch (error) {
             Utilities.logMessage(`Sign-out failed`, "error");
-            console.error("Sign-out error:", error);
+            Utilities.logMessage("Sign-out error: " + error.message, "error");
             throw error;
         }
     }
@@ -235,7 +214,7 @@ class NativeAuthApp {
             });
         }
 
-        console.log('App-level navigation initialized');
+        Utilities.logMessage('App-level navigation initialized', 'info');
     }
 
     /**
@@ -265,7 +244,7 @@ class NativeAuthApp {
         if (codeVerificationCard) codeVerificationCard.style.display = 'none';
         if (passwordInputCard) passwordInputCard.style.display = 'none';
 
-        console.log('Switched to sign-in form');
+        Utilities.logMessage('Switched to sign-in form', 'info');
     }
 
     /**
@@ -295,7 +274,7 @@ class NativeAuthApp {
         if (codeVerificationCard) codeVerificationCard.style.display = 'none';
         if (passwordInputCard) passwordInputCard.style.display = 'none';
 
-        console.log('Switched to sign-up form');
+        Utilities.logMessage('Switched to sign-up form', 'info');
     }
 
     /**
@@ -327,7 +306,7 @@ class NativeAuthApp {
         if (codeVerificationCard) codeVerificationCard.style.display = 'none';
         if (passwordInputCard) passwordInputCard.style.display = 'none';
 
-        console.log('Switched to reset password form');
+        Utilities.logMessage('Switched to reset password form', 'info');
     }
 }
 
@@ -339,26 +318,15 @@ export function getNativeAuthApp() {
     return nativeAuthAppInstance;
 }
 
-/**
- * Get the SignInModule instance
- * @returns {SignInModule} The SignInModule instance
- */
+// Helper functions to access modules from the nativeAuthAppInstance
 export function getSignInModule() {
     return nativeAuthAppInstance?.signInModule || null;
 }
 
-/**
- * Get the SignUpModule instance
- * @returns {SignUpModule} The SignUpModule instance
- */
 export function getSignUpModule() {
     return nativeAuthAppInstance?.signUpModule || null;
 }
 
-/**
- * Get the ResetPasswordModule instance
- * @returns {ResetPasswordModule} The ResetPasswordModule instance
- */
 export function getResetPasswordModule() {
     return nativeAuthAppInstance?.resetPasswordModule || null;
 }
@@ -374,7 +342,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await app.initializeMSAL();
 
     } catch (error) {
-        console.error("Failed to initialize MSAL:", error);
+        Utilities.logMessage("Failed to initialize MSAL: " + error.message, "error");
         // Don't set initialization flag to true if initialization fails
     }
 });

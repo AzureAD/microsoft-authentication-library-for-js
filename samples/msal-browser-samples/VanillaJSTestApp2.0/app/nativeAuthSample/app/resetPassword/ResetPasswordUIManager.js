@@ -43,7 +43,7 @@ export class ResetPasswordUIManager {
             return;
         }
 
-        console.log('Initializing ResetPasswordUIManager event listeners...');
+        Utilities.logMessage('Initializing ResetPasswordUIManager event listeners...', 'info');
 
         // Bind handlers to maintain proper 'this' context
         const resetPasswordFormHandler = (e) => this.handleResetPasswordSubmit(e);
@@ -64,7 +64,7 @@ export class ResetPasswordUIManager {
         this.addEventListenerWithTracking('showResetPasswordBtn', 'click', showResetPasswordHandler);
 
         this.eventListenersInitialized = true;
-        console.log('ResetPasswordUIManager event listeners initialized successfully');
+        Utilities.logMessage('ResetPasswordUIManager event listeners initialized successfully', 'success');
     }
 
     /**
@@ -79,9 +79,9 @@ export class ResetPasswordUIManager {
             const key = `${elementId}_${eventType}`;
             this.activeListeners.set(key, { element, eventType, handler });
             
-            console.log(`Event listener attached: ${elementId} (${eventType})`);
+            Utilities.logMessage(`Event listener attached: ${elementId} (${eventType})`, 'info');
         } else {
-            console.warn(`Element not found: ${elementId}`);
+            Utilities.logMessage(`Element not found: ${elementId}`, 'warning');
         }
     }
 
@@ -95,7 +95,7 @@ export class ResetPasswordUIManager {
         if (listenerInfo) {
             listenerInfo.element.removeEventListener(listenerInfo.eventType, listenerInfo.handler);
             this.activeListeners.delete(key);
-            console.log(`Event listener removed: ${elementId} (${eventType})`);
+            Utilities.logMessage(`Event listener removed: ${elementId} (${eventType})`, 'info');
         }
     }
 
@@ -105,7 +105,7 @@ export class ResetPasswordUIManager {
     async handleResetPasswordSubmit(event) {
         event.preventDefault();
         
-        console.log('🔍 RESET PASSWORD UI: handleResetPasswordSubmit called');
+        Utilities.logMessage('🔍 RESET PASSWORD UI: handleResetPasswordSubmit called', 'info');
         
         try {
             const emailInput = document.getElementById('resetPasswordEmail');
@@ -129,7 +129,7 @@ export class ResetPasswordUIManager {
             // Call the reset password service
             const result = await this.resetPasswordService.resetPassword(email);
             
-            console.log('Reset password result:', result);
+            Utilities.logMessage('Reset password result received', 'info');
             
             if (result.success) {
                 this.displayMessage('Password reset completed successfully!', 'success');
@@ -143,7 +143,7 @@ export class ResetPasswordUIManager {
             }
             
         } catch (error) {
-            console.error('Reset password error:', error);
+            Utilities.logMessage(`Reset password error: ${error}`, 'error');
             this.displayMessage('An unexpected error occurred. Please try again.', 'error');
         } finally {
             this.enableFormInputs('resetPasswordForm');
@@ -156,7 +156,7 @@ export class ResetPasswordUIManager {
     async handleResetPasswordCodeSubmit(event) {
         event.preventDefault();
         
-        console.log('🔍 RESET PASSWORD UI: handleResetPasswordCodeSubmit called');
+        Utilities.logMessage('🔍 RESET PASSWORD UI: handleResetPasswordCodeSubmit called', 'info');
         
         try {
             const codeInput = document.getElementById('resetPasswordCode');
@@ -179,7 +179,7 @@ export class ResetPasswordUIManager {
             // Submit the verification code
             const result = await this.resetPasswordService.submitCode(code);
             
-            console.log('Code verification result:', result);
+            Utilities.logMessage('Code verification result received', 'info');
             
             if (result.success) {
                 this.displayMessage('Password reset completed successfully!', 'success');
@@ -193,7 +193,7 @@ export class ResetPasswordUIManager {
             }
             
         } catch (error) {
-            console.error('Code verification error:', error);
+            Utilities.logMessage(`Code verification error: ${error}`, 'error');
             this.displayMessage('An unexpected error occurred. Please try again.', 'error');
         } finally {
             this.enableFormInputs('resetPasswordCodeForm');
@@ -206,7 +206,7 @@ export class ResetPasswordUIManager {
     async handleResetPasswordNewPasswordSubmit(event) {
         event.preventDefault();
         
-        console.log('🔍 RESET PASSWORD UI: handleResetPasswordNewPasswordSubmit called');
+        Utilities.logMessage('🔍 RESET PASSWORD UI: handleResetPasswordNewPasswordSubmit called', 'info');
         
         try {
             const passwordInput = document.getElementById('resetPasswordNewPassword');
@@ -229,21 +229,21 @@ export class ResetPasswordUIManager {
             // Submit the new password
             const result = await this.resetPasswordService.submitPassword(password);
             
-            console.log('🔍 RESET PASSWORD UI: Password submission result:', result);
+            Utilities.logMessage('🔍 RESET PASSWORD UI: Password submission result received', 'info');
             
             if (result.success && result.autoSignIn && result.state === 'completed_with_signin') {
                 // Password reset completed with automatic sign-in
-                console.log("🔍 RESET PASSWORD UI: Password reset completed with automatic sign-in");
-                console.log("🔍 RESET PASSWORD UI: Account info from password reset:", result.account);
+                Utilities.logMessage("🔍 RESET PASSWORD UI: Password reset completed with automatic sign-in", "success");
+                Utilities.logMessage("🔍 RESET PASSWORD UI: Account info from password reset received", "info");
                 
                 // Notify main UI manager about successful reset password and sign-in
                 if (uiManager && uiManager.updateAccountInfo) {
-                    console.log("🔍 RESET PASSWORD UI: Updating account info after password reset");
+                    Utilities.logMessage("🔍 RESET PASSWORD UI: Updating account info after password reset", "info");
                     uiManager.updateAccountInfo(result.account);
 
-                    console.log("🔍 RESET PASSWORD UI: Account info updated successfully after password reset");
+                    Utilities.logMessage("🔍 RESET PASSWORD UI: Account info updated successfully after password reset", "success");
                 } else {
-                    console.warn("🔍 RESET PASSWORD UI: uiManager or updateAccountInfo method not available after password reset");
+                    Utilities.logMessage("🔍 RESET PASSWORD UI: uiManager or updateAccountInfo method not available after password reset", "warning");
                 }
                 
                 // Hide the new password form and return to main reset password form
@@ -262,7 +262,7 @@ export class ResetPasswordUIManager {
             }
             
         } catch (error) {
-            console.error('Password submission error:', error);
+            Utilities.logMessage(`Password submission error: ${error}`, 'error');
             this.displayMessage('An unexpected error occurred. Please try again.', 'error');
         } finally {
             this.enableFormInputs('resetPasswordNewPasswordForm');
@@ -273,7 +273,7 @@ export class ResetPasswordUIManager {
      * Show the reset password form (Step 1)
      */
     showResetPasswordForm() {
-        console.log('Showing reset password form');
+        Utilities.logMessage('Showing reset password form', 'info');
         
         // Hide other forms
         this.hideAllForms();
@@ -297,7 +297,7 @@ export class ResetPasswordUIManager {
      * Show the reset password code verification form (Step 2)
      */
     showResetPasswordCodeForm() {
-        console.log('Showing reset password code verification form');
+        Utilities.logMessage('Showing reset password code verification form', 'info');
         
         // Hide other forms
         this.hideAllForms();
@@ -320,7 +320,7 @@ export class ResetPasswordUIManager {
      * Show the reset password new password form (Step 3)
      */
     showResetPasswordNewPasswordForm() {
-        console.log('Showing reset password new password form');
+        Utilities.logMessage('Showing reset password new password form', 'info');
         
         // Hide other forms
         this.hideAllForms();
@@ -343,7 +343,7 @@ export class ResetPasswordUIManager {
      * Show the sign-in form
      */
     showSignInForm() {
-        console.log('Showing sign-in form');
+        Utilities.logMessage('Showing sign-in form', 'info');
         
         // Hide all forms
         this.hideAllForms();
@@ -388,7 +388,7 @@ export class ResetPasswordUIManager {
      * Display a message to the user
      */
     displayMessage(message, type = 'info') {
-        console.log(`Reset Password UI Message (${type}): ${message}`);
+        Utilities.logMessage(`Reset Password UI Message (${type}): ${message}`, type);
         
         // For error messages, use the global error banner
         if (type === 'error') {
@@ -472,7 +472,7 @@ export class ResetPasswordUIManager {
                 this.displayMessage('Failed to resend code. Please try again.', 'error');
             }
         } catch (error) {
-            console.error('Resend code error:', error);
+            Utilities.logMessage(`Resend code error: ${error}`, 'error');
             this.displayMessage('An unexpected error occurred. Please try again.', 'error');
         }
     }
@@ -499,7 +499,7 @@ export class ResetPasswordUIManager {
      * Show success message for automatic sign-in after password reset
      */
     showResetPasswordSuccessWithSignIn(username) {
-        console.log(`🔍 RESET PASSWORD UI: Password reset and automatic sign-in successful for ${username}`);
+        Utilities.logMessage(`🔍 RESET PASSWORD UI: Password reset and automatic sign-in successful for ${username}`, 'success');
         
         // Do NOT hide reset password forms - keep them visible after successful completion
         // This matches the behavior pattern from signup flow where forms remain visible
@@ -537,6 +537,6 @@ export class ResetPasswordUIManager {
         this.boundHandlers.clear();
         this.eventListenersInitialized = false;
         
-        console.log('ResetPasswordUIManager cleaned up');
+        Utilities.logMessage('ResetPasswordUIManager cleaned up', 'info');
     }
 }

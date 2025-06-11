@@ -1,11 +1,9 @@
 /*
  * Sign-In UI Manager for MSAL Native Auth Sample
- * 
- * This module handles all sign-in related UI interactions, form submissions, and DOM manipulation
- * extracted from the main ui.js file. It manages the sign-in forms, code verification, and password input.
  */
 
 import uiManager from '../ui.js';
+import { Utilities } from '../utilities.js';
 
 export class SignInUIManager {
     constructor(signInService) {
@@ -39,15 +37,15 @@ export class SignInUIManager {
             return;
         }
 
-        console.log('Initializing SignInUIManager event listeners...');
+        Utilities.logMessage('Initializing SignInUIManager event listeners...', 'info');
         
         // Form submissions
         const signInForm = document.getElementById('signInForm');
         if (signInForm) {
             signInForm.addEventListener('submit', this.handleSignInSubmit.bind(this));
-            console.log('Sign-in form event listener attached');
+            Utilities.logMessage('Sign-in form event listener attached', 'info');
         } else {
-            console.warn('Sign-in form not found in DOM');
+            Utilities.logMessage('Sign-in form not found in DOM', 'warning');
         }
 
         // Code verification form handlers are now set up dynamically in setupCodeVerificationHandlers
@@ -71,7 +69,7 @@ export class SignInUIManager {
         }
 
         this.eventListenersInitialized = true;
-        console.log('SignInUIManager event listeners initialized successfully');
+        Utilities.logMessage('SignInUIManager event listeners initialized successfully', 'success');
     }
 
     // Navigation Methods
@@ -260,7 +258,7 @@ export class SignInUIManager {
             // Call the authentication method (passwordless flow)
             const result = await this.signInService.signIn(username);
             
-            console.log("🔍 SIGNIN UI MANAGER: handleSignInSubmit result:", result);
+            Utilities.logMessage("🔍 SIGNIN UI MANAGER: handleSignInSubmit result received", "info");
             if (result.success) {
                 // Notify main UI manager about successful sign-in
                 uiManager.updateAccountInfo(result.account);
@@ -275,12 +273,12 @@ export class SignInUIManager {
                 this.showPasswordInputForm(username);
             } else {
                 // Handle other failure cases
-                console.error(`Sign-in failed`);
+                Utilities.logMessage(`Sign-in failed`, "error");
                 throw new Error(result.error || "An error occurred during sign-in");
             }
 
         } catch (error) {
-            console.error(error.message);
+            Utilities.logMessage(error.message, "error");
             // Show error in the UI
             uiManager.showErrorBanner(error.message, 'signin');
         } finally {
@@ -291,7 +289,7 @@ export class SignInUIManager {
     async handleCodeSubmit(event) {
         event.preventDefault();
         
-        console.log("🔍 SIGNIN UI MANAGER: handleCodeSubmit called");
+        Utilities.logMessage("🔍 SIGNIN UI MANAGER: handleCodeSubmit called", "info");
         
         const submitCodeBtn = document.getElementById('submitCodeBtn');
         const originalText = submitCodeBtn ? submitCodeBtn.textContent : 'Verify Code';
@@ -327,7 +325,7 @@ export class SignInUIManager {
             }
 
         } catch (error) {
-            console.error("Code verification error occurred", error);
+            Utilities.logMessage(`Code verification error: ${error}`, "error");
             // Show error in the UI
             uiManager.showErrorBanner(error.message || "An error occurred during code verification", 'signin');
         } finally {
@@ -351,13 +349,13 @@ export class SignInUIManager {
             const result = await this.signInService.resendCode();
             
             if (result.success) {
-                console.log("Verification code resent successfully");
+                Utilities.logMessage("Verification code resent successfully", "success");
             } else {
                 throw new Error("Failed to resend verification code");
             }
 
         } catch (error) {
-            console.error("Resend code error occurred", error);
+            Utilities.logMessage(`Resend code error: ${error}`, "error");
             // Show error in the UI
             uiManager.showErrorBanner(error.message || "Failed to resend verification code", 'signin');
         } finally {
@@ -368,7 +366,7 @@ export class SignInUIManager {
     handleCancelCode() {
         // Hide the code verification form and return to sign-in
         this.hideCodeVerificationForm();
-        console.log("Code verification cancelled");
+        Utilities.logMessage("Code verification cancelled", "info");
         
         // Clear any pending operations
         if (this.signInService) {
@@ -412,7 +410,7 @@ export class SignInUIManager {
                 throw new Error("Password verification failed");
             }
         } catch (error) {
-            console.error("Password verification error occurred", error);
+            Utilities.logMessage(`Password verification error: ${error}`, "error");
             // Show error in the UI
             uiManager.showErrorBanner(error.message || "Invalid password or authentication error", 'signin');
         } finally {
@@ -423,7 +421,7 @@ export class SignInUIManager {
     handleCancelPassword() {
         // Hide the password input form and return to sign-in
         this.hidePasswordInputForm();
-        console.log("Password input cancelled");
+        Utilities.logMessage("Password input cancelled", "info");
         
         // Clear any pending operations
         if (this.signInService) {

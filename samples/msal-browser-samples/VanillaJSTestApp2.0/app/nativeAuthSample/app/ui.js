@@ -1,12 +1,10 @@
 /*
  * UI Management for MSAL Native Auth Sample
- * 
- * This module handles all UI interactions, form submissions, and DOM manipulation
- * for the Native Authentication sample application.
  */
 
-// Import the NativeAuthApp module
+// Import the NativeAuthApp module and utilities
 import { getNativeAuthApp } from './app.js';
+import { Utilities } from './utilities.js';
 
 class UIManager {
     constructor() {
@@ -42,16 +40,6 @@ class UIManager {
             if (dismissErrorBtn) {
                 dismissErrorBtn.addEventListener('click', this.hideErrorBanner.bind(this));
             }
-
-            const clearResultsBtn = document.getElementById('clearResultsBtn');
-            if (clearResultsBtn) {
-                clearResultsBtn.addEventListener('click', () => {
-                    const results = document.getElementById('results');
-                    if (results) {
-                        results.innerHTML = '<p>Results will appear here...</p>';
-                    }
-                });
-            }
         });
     }
 
@@ -74,7 +62,7 @@ class UIManager {
                 this.updateAccountInfo(null);
             }
         } catch (error) {
-            console.error("Get current account error:", error);
+            Utilities.logMessage(`Get current account error: ${error}`, "error");
             this.updateAccountInfo(null);
         }
     }
@@ -130,7 +118,7 @@ class UIManager {
                 if (showResetPasswordBtn) showResetPasswordBtn.classList.remove('active');
             }            
         } catch (error) {
-            console.error("Sign-out error:", error);
+            Utilities.logMessage(`Sign-out error: ${error}`, "error");
         }
     }
 
@@ -163,7 +151,7 @@ class UIManager {
      * @param {string} flow - The flow during which the error occurred ('signin', 'signup', or 'resetpassword')
      */
     showErrorBanner(errorMessage, flow = 'general') {
-        console.error(`Error in ${flow} flow:`, errorMessage);
+        Utilities.logMessage(`Error in ${flow} flow: ${errorMessage}`, "error");
         
         const errorBanner = document.getElementById('errorBanner');
         const errorMessageElement = document.getElementById('errorMessage');

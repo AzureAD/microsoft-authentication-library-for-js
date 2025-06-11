@@ -1,13 +1,10 @@
 /*
  * Reset Password Module for MSAL Native Auth Sample
- * 
- * This module coordinates the reset password service and UI manager, providing a unified
- * interface for password reset functionality. It follows the same pattern as the SignUpModule
- * and integrates cleanly with the main application.
  */
 
 import { ResetPasswordService } from './ResetPasswordService.js';
 import { ResetPasswordUIManager } from './ResetPasswordUIManager.js';
+import { Utilities } from '../utilities.js';
 
 export class ResetPasswordModule {
     constructor() {
@@ -16,14 +13,11 @@ export class ResetPasswordModule {
         this.isInitialized = false;
     }
 
-    /**
-     * Initialize the reset password module with MSAL instance
-     * @param {Object} msalInstance - The MSAL instance for authentication
-     */
+    // Initialize the reset password module with MSAL instance
     async initialize(msalInstance) {
         try {
             if (this.isInitialized) {
-                console.warn('ResetPasswordModule already initialized');
+                Utilities.logMessage('ResetPasswordModule already initialized', 'warning');
                 return;
             }
 
@@ -31,21 +25,21 @@ export class ResetPasswordModule {
                 throw new Error('MSAL instance is required for reset password module initialization');
             }
 
-            console.log('Initializing ResetPasswordModule...');
+            Utilities.logMessage('Initializing ResetPasswordModule...', 'info');
 
             // Initialize the reset password service
             this.resetPasswordService = new ResetPasswordService(msalInstance);
-            console.log('ResetPasswordService initialized');
+            Utilities.logMessage('ResetPasswordService initialized', 'info');
 
             // Initialize the UI manager
             this.resetPasswordUIManager = new ResetPasswordUIManager(this.resetPasswordService);
-            console.log('ResetPasswordUIManager initialized');
+            Utilities.logMessage('ResetPasswordUIManager initialized', 'info');
 
             this.isInitialized = true;
-            console.log('ResetPasswordModule initialization completed successfully');
+            Utilities.logMessage('ResetPasswordModule initialization completed successfully', 'success');
 
         } catch (error) {
-            console.error('Failed to initialize ResetPasswordModule:', error);
+            Utilities.logMessage('Failed to initialize ResetPasswordModule: ' + error.message, 'error');
             throw error;
         }
     }
@@ -57,7 +51,7 @@ export class ResetPasswordModule {
     updateMsalInstance(msalInstance) {
         if (this.resetPasswordService) {
             this.resetPasswordService.setMsalInstance(msalInstance);
-            console.log('MSAL instance updated in ResetPasswordService');
+            Utilities.logMessage('MSAL instance updated in ResetPasswordService', 'info');
         }
     }
 
@@ -151,7 +145,7 @@ export class ResetPasswordModule {
         if (this.resetPasswordUIManager) {
             this.resetPasswordUIManager.showResetPasswordForm();
         } else {
-            console.warn('ResetPasswordUIManager not initialized');
+            Utilities.logMessage('ResetPasswordUIManager not initialized', 'warning');
         }
     }
 
@@ -162,7 +156,7 @@ export class ResetPasswordModule {
         if (this.resetPasswordUIManager) {
             this.resetPasswordUIManager.showSignInForm();
         } else {
-            console.warn('ResetPasswordUIManager not initialized');
+            Utilities.logMessage('ResetPasswordUIManager not initialized', 'warning');
         }
     }
 
@@ -179,7 +173,7 @@ export class ResetPasswordModule {
         }
 
         this.isInitialized = false;
-        console.log('ResetPasswordModule cleaned up');
+        Utilities.logMessage('ResetPasswordModule cleaned up', 'info');
     }
 
     /**

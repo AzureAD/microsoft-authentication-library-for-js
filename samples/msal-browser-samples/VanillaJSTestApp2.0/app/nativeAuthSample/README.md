@@ -26,7 +26,7 @@ This sample demonstrates how to use the Native Authentication capabilities of th
 
    ```bash
    git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.git
-   cd microsoft-authentication-library-for-js/samples/msal-browser-samples/VanillaJSTestApp2.0/app/nativeAuthSample
+   cd microsoft-authentication-library-for-js/samples/msal-browser-samples/VanillaJSTestApp2.0
    ```
 
 2. **Install dependencies**:
@@ -35,7 +35,21 @@ This sample demonstrates how to use the Native Authentication capabilities of th
    npm install
    ```
 
-3. **Configure the application**:
+3. **Build project**:
+
+   Build msal-browser package
+
+   ```bash
+   npm run build:package
+   ```
+
+   Build msal-node package
+
+   ```bash
+   cd ../../../lib/msal-node && npm run build:all
+   ```
+
+4. **Configure the application**:
 
    Open `app/authConfig.js` and update with your settings:
 
@@ -54,13 +68,13 @@ This sample demonstrates how to use the Native Authentication capabilities of th
    };
    ```
 
-4. **Locate folder VanillaJSTestApp2.0 folder and start the development server**:
+5. **Locate folder VanillaJSTestApp2.0 folder and start the development server**:
 
    ```bash
    npm start -- --port 3000 --sample nativeAuthSample
    ```
 
-5. **Open your browser**:
+6. **Open your browser**:
 
    Navigate to [http://localhost:3000](http://localhost:3000)
 
@@ -90,10 +104,16 @@ The sample supports multiple sign-in methods:
 
 The sign-up flow includes:
 
-1. Enter email address and basic profile information
-2. Verify email with a verification code
-3. Create a password
-4. Complete account creation
+1. **Email/Password**:
+   - Enter email address and basic profile information
+   - Verify email with a verification code
+   - Create a password
+   - Complete account creation
+
+2. **Email OTP Authentication**:
+   - Enter email address and basic profile information
+   - Verify email with a verification code
+   - Complete account creation
 
 ### Password Reset
 
@@ -103,10 +123,10 @@ The password reset flow allows users to:
 2. Receive a verification code via email
 3. Verify identity with the code
 4. Create a new password
+5. Complete password reset
 
 ## Project Structure
 
-```
 nativeAuthSample/
 ├── app/                        # Application source code
 │   ├── app.js                  # Main application logic
@@ -142,8 +162,8 @@ The core class that provides Native Authentication capabilities:
 
 - `signIn(signInInputs)`: Initiates sign-in flow
 - `getCurrentAccount(accountInputs)`: Retrieves current account
-- `signUp(signUpInputs)`: Initiates sign-up flow (not implemented in this sample)
-- `resetPassword(resetPasswordInputs)`: Initiates password reset (not implemented in this sample)
+- `signUp(signUpInputs)`: Initiates sign-up flow
+- `resetPassword(resetPasswordInputs)`: Initiates password reset
 
 ### Configuration
 
@@ -152,15 +172,20 @@ The `CustomAuthConfiguration` object includes:
 - Standard MSAL configuration (`auth`, `cache`, `system`)
 - Custom auth configuration (`customAuth.authApiProxyUrl`, `customAuth.challengeTypes`)
 
-## Architecture
+## E2E test
 
-```text
-app/
-├── index.html          # Main HTML file
-├── styles.css          # Application styles
-├── app.js             # Main application logic (JavaScript)
-└── authConfig.js      # MSAL configuration
-```
+1. **Execute init.ps file to set up env variables**
+
+   Under microsoft-authentication-library-for-js:
+   ```bash
+   gen_env.ps1
+   ```
+
+2. **Locate VanillaJSTestApp2.0 folder and run below command**
+
+   ```bash
+   npm run test:e2e -- --sample=nativeAuthSample --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit
+   ```
 
 ## Troubleshooting
 

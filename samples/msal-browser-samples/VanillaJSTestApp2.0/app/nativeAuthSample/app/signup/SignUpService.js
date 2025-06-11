@@ -73,8 +73,7 @@ export class SignUpService {
 
             return await this.handleSignUpResult(result);
         } catch (error) {
-            Utilities.logMessage(`Sign-up failed`, "error");
-            console.error("Sign-up error:", error);
+            Utilities.logMessage(`Sign-up failed: ${error.message}`, "error");
             return { success: false, error: error.message };
         }
     }
@@ -221,8 +220,7 @@ export class SignUpService {
             return finalResult;
 
         } catch (error) {
-            Utilities.logMessage(`Password submission failed`, "error");
-            console.error("Submit password error:", error);
+            Utilities.logMessage(`Password submission failed: ${error.message}`, "error");
             return { success: false, error: error.message };
         }
     }
@@ -236,7 +234,7 @@ export class SignUpService {
      */
     async submitCode(code) {
         try {
-            console.log("🔍 SIGNUP SERVICE: submitCode called");
+            Utilities.logMessage("🔍 SIGNUP SERVICE: submitCode called", "info");
             
             if (!this.pendingSignUpResult) {
                 throw new Error("No pending sign-up operation found");
@@ -247,8 +245,6 @@ export class SignUpService {
             }
 
             Utilities.logMessage(`Submitting verification code`, "info");
-
-            console.log("Submitting code for sign-up...");
             // Submit the code using the pending result
             const result = await this.pendingSignUpResult.state.submitCode(code);
             
@@ -263,8 +259,7 @@ export class SignUpService {
             return finalResult;
 
         } catch (error) {
-            Utilities.logMessage(`Code submission failed`, "error");
-            console.error("Submit code error:", error);
+            Utilities.logMessage(`Code submission failed: ${error.message}`, "error");
             return { success: false, error: error.message };
         }
     }
@@ -291,8 +286,7 @@ export class SignUpService {
             }
 
         } catch (error) {
-            Utilities.logMessage(`Failed to resend code`, "error");
-            console.error("Resend code error:", error);
+            Utilities.logMessage(`Failed to resend code: ${error.message}`, "error");
             return { success: false, error: error.message, state: 'resend_failed' };
         }
     }
@@ -328,8 +322,7 @@ export class SignUpService {
             return finalResult;
 
         } catch (error) {
-            Utilities.logMessage(`Attribute submission failed`, "error");
-            console.error("Submit attributes error:", error);
+            Utilities.logMessage(`Attribute submission failed: ${error.message}`, "error");
             return { success: false, error: error.message };
         }
     }

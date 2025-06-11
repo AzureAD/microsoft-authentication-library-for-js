@@ -51,7 +51,7 @@ export class ResetPasswordService {
             return await this.handleResetPasswordResult(result);
         } catch (error) {
             Utilities.logMessage(`Password reset failed: ${error}`, "error");
-            console.error("Password reset error:", error);
+            Utilities.logMessage(`Password reset error: ${error}`, "error");
             return { success: false, error: error.message };
         }
     }
@@ -112,7 +112,7 @@ export class ResetPasswordService {
             // Check if state has signIn method and call it for automatic sign-in after password reset
             if (result.state && typeof result.state.signIn === 'function') {
                 Utilities.logMessage("STATE: AUTO_SIGNIN - Attempting automatic sign-in after password reset completion", "info");
-                console.log("🔍 RESET PASSWORD SERVICE: Auto sign-in method found, attempting sign-in...");
+                Utilities.logMessage("🔍 RESET PASSWORD SERVICE: Auto sign-in method found, attempting sign-in...", "info");
                 try {
                     const signInResult = await result.state.signIn();
                     Utilities.logMessage("STATE: AUTO_SIGNIN_SUCCESS - Automatic sign-in completed", "success");
@@ -129,17 +129,17 @@ export class ResetPasswordService {
                         autoSignIn: true
                     };
                     
-                    console.log("🔍 RESET PASSWORD SERVICE: Final auto sign-in result:", finalResult);
+                    Utilities.logMessage("🔍 RESET PASSWORD SERVICE: Final auto sign-in result success", "info");
                     return finalResult;
                 } catch (signInError) {
                     Utilities.logMessage(`STATE: AUTO_SIGNIN_FAILED - Automatic sign-in failed: ${signInError}`, "warning");
-                    console.error("🔍 RESET PASSWORD SERVICE: Auto sign-in failed:", signInError);
+                    Utilities.logMessage(`🔍 RESET PASSWORD SERVICE: Auto sign-in failed: ${signInError}`, "error");
                     // Fall back to regular completion without automatic sign-in
                 }
             } else {
-                console.log("🔍 RESET PASSWORD SERVICE: No auto sign-in method available");
-                console.log("🔍 RESET PASSWORD SERVICE: result.state:", result.state);
-                console.log("🔍 RESET PASSWORD SERVICE: typeof result.state?.signIn:", typeof result.state?.signIn);
+                Utilities.logMessage("🔍 RESET PASSWORD SERVICE: No auto sign-in method available", "info");
+                Utilities.logMessage(`🔍 RESET PASSWORD SERVICE: result.state available: ${!!result.state}`, "info");
+                Utilities.logMessage(`🔍 RESET PASSWORD SERVICE: typeof result.state?.signIn: ${typeof result.state?.signIn}`, "info");
             }
             
             // Clear pending result on success
@@ -191,7 +191,7 @@ export class ResetPasswordService {
 
         } catch (error) {
             Utilities.logMessage(`Password submission failed: ${error}`, "error");
-            console.error("Submit password error:", error);
+            Utilities.logMessage(`Submit password error: ${error}`, "error");
             return { success: false, error: error.message };
         }
     }
@@ -203,7 +203,7 @@ export class ResetPasswordService {
      */
     async submitCode(code) {
         try {
-            console.log("🔍 RESET PASSWORD SERVICE: submitCode called with code:", code);
+            Utilities.logMessage("🔍 RESET PASSWORD SERVICE: submitCode called", "info");
             
             if (!this.pendingResetResult) {
                 throw new Error("No pending password reset operation found");
@@ -220,7 +220,7 @@ export class ResetPasswordService {
 
             Utilities.logMessage(`Submitting verification code: ${code}`, "info");
 
-            console.log("Submitting code for password reset:", this.pendingResetResult);
+            Utilities.logMessage("Submitting code for password reset...", "info");
             // Submit the code using the pending result
             const result = await this.pendingResetResult.state.submitCode(code);
             
@@ -236,7 +236,7 @@ export class ResetPasswordService {
 
         } catch (error) {
             Utilities.logMessage(`Code submission failed: ${error}`, "error");
-            console.error("Submit code error:", error);
+            Utilities.logMessage(`Submit code error: ${error}`, "error");
             return { success: false, error: error.message };
         }
     }
@@ -264,7 +264,7 @@ export class ResetPasswordService {
 
         } catch (error) {
             Utilities.logMessage(`Failed to resend code: ${error}`, "error");
-            console.error("Resend code error:", error);
+            Utilities.logMessage(`Resend code error: ${error}`, "error");
             return { success: false, error: error.message };
         }
     }

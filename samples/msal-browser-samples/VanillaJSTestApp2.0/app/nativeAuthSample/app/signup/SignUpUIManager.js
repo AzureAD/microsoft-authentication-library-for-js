@@ -42,7 +42,7 @@ export class SignUpUIManager {
             return;
         }
 
-        console.log('Initializing SignUpUIManager event listeners...');
+        Utilities.logMessage('Initializing SignUpUIManager event listeners...', 'info');
 
         // Bind handlers to maintain proper 'this' context
         const signUpFormHandler = (e) => this.handleSignUpSubmit(e);
@@ -57,7 +57,7 @@ export class SignUpUIManager {
         this.addEventListenerWithTracking('showSignUpBtn', 'click', showSignUpHandler);
 
         this.eventListenersInitialized = true;
-        console.log('SignUpUIManager event listeners initialized successfully');
+        Utilities.logMessage('SignUpUIManager event listeners initialized successfully', 'success');
     }
 
     /**
@@ -72,9 +72,9 @@ export class SignUpUIManager {
             const key = `${elementId}_${eventType}`;
             this.activeListeners.set(key, { element, eventType, handler });
             
-            console.log(`Event listener attached: ${elementId} (${eventType})`);
+            Utilities.logMessage(`Event listener attached: ${elementId} (${eventType})`, 'info');
         } else {
-            console.warn(`Element not found: ${elementId}`);
+            Utilities.logMessage(`Element not found: ${elementId}`, 'warning');
         }
     }
 
@@ -88,7 +88,7 @@ export class SignUpUIManager {
         if (listenerInfo) {
             listenerInfo.element.removeEventListener(listenerInfo.eventType, listenerInfo.handler);
             this.activeListeners.delete(key);
-            console.log(`Event listener removed: ${elementId} (${eventType})`);
+            Utilities.logMessage(`Event listener removed: ${elementId} (${eventType})`, 'info');
         }
     }
 
@@ -132,7 +132,7 @@ export class SignUpUIManager {
         this.boundHandlers.clear();
         this.eventListenersInitialized = false;
         this.currentContext = null;
-        console.log('SignUpUIManager cleanup completed');
+        Utilities.logMessage('SignUpUIManager cleanup completed', 'info');
     }
 
     // Navigation Methods
@@ -247,7 +247,7 @@ export class SignUpUIManager {
             if (firstName) attributes.firstName = firstName;
             if (lastName) attributes.lastName = lastName;
 
-            console.log("Processing sign-up form submission...");
+            Utilities.logMessage("Processing sign-up form submission...", "info");
 
             // Call the username-first sign-up method (progressive disclosure)
             const result = await this.signUpService.signUp(username, attributes);
@@ -266,16 +266,16 @@ export class SignUpUIManager {
                 
             } else if (result.state === 'failed') {
                 // Handle sign-up failure
-                console.error(`Sign-up failed: ${result.error || 'Unknown error'}`);
+                Utilities.logMessage(`Sign-up failed: ${result.error || 'Unknown error'}`, "error");
                 this.showSignUpError(result.error || 'Sign-up failed. Please try again.');
             } else {
                 // Handle other failure cases
-                console.error(`Sign-up failed`);
+                Utilities.logMessage(`Sign-up failed`, "error");
                 this.showSignUpError('Sign-up failed. Please try again.');
             }
 
         } catch (error) {
-            console.error("Sign-up error occurred");
+            Utilities.logMessage("Sign-up error occurred: " + (error.message || "Unknown error"), "error");
             this.showSignUpError('An error occurred. Please try again.');
         } finally {
             if (signUpBtn) this.resetButton(signUpBtn, originalText);
@@ -285,7 +285,7 @@ export class SignUpUIManager {
     async handleSignUpCodeSubmit(event) {
         event.preventDefault();
         
-        console.log("🔍 SIGNUP UI MANAGER: handleSignUpCodeSubmit called");
+        Utilities.logMessage("🔍 SIGNUP UI MANAGER: handleSignUpCodeSubmit called", "info");
         
         const submitCodeBtn = document.getElementById('submitCodeBtn');
         const originalText = submitCodeBtn ? submitCodeBtn.textContent : 'Verify Code';
@@ -311,15 +311,15 @@ export class SignUpUIManager {
             
             if (result.success && result.state === 'completed_with_signin') {
                 // Code verification successful and sign-up completed with automatic sign-in
-                console.log("🔍 SIGNUP UI: Code verification completed with automatic sign-in");
+                Utilities.logMessage("🔍 SIGNUP UI: Code verification completed with automatic sign-in", "success");
                 
                 if (uiManager && uiManager.updateAccountInfo) {
-                    console.log("🔍 SIGNUP UI: Updating account info after code verification");
+                    Utilities.logMessage("🔍 SIGNUP UI: Updating account info after code verification", "info");
                     uiManager.updateAccountInfo(result.account);
 
-                    console.log("🔍 SIGNUP UI: Account info updated successfully after code verification");
+                    Utilities.logMessage("🔍 SIGNUP UI: Account info updated successfully after code verification", "success");
                 } else {
-                    console.warn("🔍 SIGNUP UI: uiManager or updateAccountInfo method not available after code verification");
+                    Utilities.logMessage("🔍 SIGNUP UI: uiManager or updateAccountInfo method not available after code verification", "warning");
                 }
                 
                 this.hideCodeVerificationForm();
@@ -329,7 +329,7 @@ export class SignUpUIManager {
                 
             } else if (result.state === 'password_required') {
                 // Code verification successful, but password is now required
-                console.log("🔍 SIGNUP UI: Code verified successfully, password now required");
+                Utilities.logMessage("🔍 SIGNUP UI: Code verified successfully, password now required", "info");
                 
                 this.hideCodeVerificationForm();
                 
@@ -341,7 +341,7 @@ export class SignUpUIManager {
                 
             } else if (result.state === 'attributes_required') {
                 // Code verification successful, but additional attributes required
-                console.log("Code verified successfully, attributes now required");
+                Utilities.logMessage("Code verified successfully, attributes now required", "info");
                 
                 this.hideCodeVerificationForm();
                 
@@ -357,7 +357,7 @@ export class SignUpUIManager {
             }
 
         } catch (error) {
-            console.error("Code verification error occurred");
+            Utilities.logMessage("Code verification error occurred: " + (error.message || "Unknown error"), "error");
             this.showCodeVerificationError(error.message);
         } finally {
             if (submitCodeBtn) this.resetButton(submitCodeBtn, originalText);
@@ -380,14 +380,14 @@ export class SignUpUIManager {
             const result = await this.signUpService.resendCode();
             
             if (result.success) {
-                console.log("Verification code resent successfully");
+                Utilities.logMessage("Verification code resent successfully", "success");
                 this.showCodeResendSuccess();
             } else {
                 throw new Error("Failed to resend verification code");
             }
 
         } catch (error) {
-            console.error("Resend code error occurred");
+            Utilities.logMessage("Resend code error occurred: " + (error.message || "Unknown error"), "error");
             this.showCodeResendError(error.message);
         } finally {
             if (resendCodeBtn) this.resetButton(resendCodeBtn, originalText);
@@ -397,7 +397,7 @@ export class SignUpUIManager {
     handleSignUpCancelCode() {
         // Hide the code verification form and return to sign-up
         this.hideCodeVerificationForm();
-        console.log("Sign-up code verification cancelled");
+        Utilities.logMessage("Sign-up code verification cancelled", "info");
         
         // Clear any pending operations
         if (this.signUpService) {
@@ -501,7 +501,7 @@ export class SignUpUIManager {
     async handlePasswordSubmit(event) {
         event.preventDefault();
         
-        console.log("🔍 SIGNUP UI: handlePasswordSubmit called");
+        Utilities.logMessage("🔍 SIGNUP UI: handlePasswordSubmit called", "info");
         
         const submitPasswordBtn = document.getElementById('submitSignUpPasswordBtn');
         const originalText = submitPasswordBtn ? submitPasswordBtn.textContent : 'Create Account';
@@ -527,16 +527,16 @@ export class SignUpUIManager {
             
             if (result.success && result.state === 'completed_with_signin') {
                 // Password accepted and sign-up completed with automatic sign-in
-                console.log("🔍 SIGNUP UI: Password submission completed with automatic sign-in");
+                Utilities.logMessage("🔍 SIGNUP UI: Password submission completed with automatic sign-in", "success");
                 
                 // Notify main UI manager about successful sign-up and sign-in
                 if (uiManager && uiManager.updateAccountInfo) {
-                    console.log("🔍 SIGNUP UI: Updating account info after password submission");
+                    Utilities.logMessage("🔍 SIGNUP UI: Updating account info after password submission", "info");
                     uiManager.updateAccountInfo(result.account);
 
-                    console.log("🔍 SIGNUP UI: Account info updated successfully after password submission");
+                    Utilities.logMessage("🔍 SIGNUP UI: Account info updated successfully after password submission", "success");
                 } else {
-                    console.warn("🔍 SIGNUP UI: uiManager or updateAccountInfo method not available after password submission");
+                    Utilities.logMessage("🔍 SIGNUP UI: uiManager or updateAccountInfo method not available after password submission", "warning");
                 }
                 this.hidePasswordInputForm();
                 
@@ -545,12 +545,12 @@ export class SignUpUIManager {
                 
             } else {
                 // Handle password submission failure
-                console.error(`Password submission failed: ${result.error || 'Unknown error'}`);
+                Utilities.logMessage(`Password submission failed: ${result.error || 'Unknown error'}`, "error");
                 this.showSignUpError('Password submission failed. Please try again.');
             }
 
         } catch (error) {
-            console.error("Password submission error:", error);
+            Utilities.logMessage("Password submission error: " + (error.message || "Unknown error"), "error");
             this.showSignUpError(error.message);
         } finally {
             if (submitPasswordBtn) this.resetButton(submitPasswordBtn, originalText);
@@ -569,29 +569,29 @@ export class SignUpUIManager {
 
     showSignUpSuccess(username) {
         // You can customize this to show a success message in the UI
-        console.log(`Sign-up successful for ${username}`);
+        Utilities.logMessage(`Sign-up successful for ${username}`, "success");
     }
 
     showSignUpSuccessWithSignIn(username) {
         // Show success message for automatic sign-in after sign-up
-        console.log(`Sign-up and automatic sign-in successful for ${username}`);
+        Utilities.logMessage(`Sign-up and automatic sign-in successful for ${username}`, "success");
     }
 
     showSignUpError(message) {
         // Log the error to console
-        console.error(`Sign-up error: ${message}`);
+        Utilities.logMessage(`Sign-up error: ${message}`, "error");
         
         // Display the error in the global error banner
         uiManager.showErrorBanner(message, 'signup');
     }
 
     showCodeVerificationError(message) {
-        console.error(`Code verification error: ${message}`);
+        Utilities.logMessage(`Code verification error: ${message}`, "error");
         uiManager.showErrorBanner(message, 'signup');
     }
 
     showCodeResendSuccess() {
-        console.log("Code resent successfully");
+        Utilities.logMessage("Code resent successfully", "success");
         // Show a temporary success message
         const errorBanner = document.getElementById('errorBanner');
         const errorMessageElement = document.getElementById('errorMessage');
@@ -615,13 +615,13 @@ export class SignUpUIManager {
     }
 
     showCodeResendError(message) {
-        console.error(`Code resend error: ${message}`);
+        Utilities.logMessage(`Code resend error: ${message}`, "error");
         uiManager.showErrorBanner(`Failed to resend code: ${message}`, 'signup');
     }
 
     showAttributesForm(result) {
         // Placeholder for additional attributes form if needed
-        console.log("Additional attributes required:", result);
+        Utilities.logMessage("Additional attributes required for sign-up", "info");
         uiManager.showErrorBanner("Additional information is required to complete registration.", 'signup');
     }
 

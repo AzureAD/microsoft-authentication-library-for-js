@@ -1,8 +1,5 @@
 /*
  * Sign-In Service for MSAL Native Auth Sample
- * 
- * This module handles all sign-in authentication logic, extracted from the main app.js
- * It manages the sign-in flow, code verification, password submission, and result handling.
  */
 
 import { Utilities } from '../utilities.js';
@@ -13,16 +10,12 @@ export class SignInService {
         this.pendingSignInResult = null;
     }
 
-    /**
-     * Update the MSAL instance (used when app initializes)
-     */
+    // Update the MSAL instance (used when app initializes)
     setMsalInstance(msalInstance) {
         this.msalInstance = msalInstance;
     }
 
-    /**
-     * Initiates passwordless sign-in flow
-     */
+    // Initiates sign-in flow
     async signIn(username) {
         try {
             Utilities.logMessage(`Starting sign-in process`, "info");
@@ -36,16 +29,14 @@ export class SignInService {
             const result = await this.msalInstance.signIn(signInInputs);
             return this.handleSignInResult(result);
         } catch (error) {
-            console.error("Sign-in error:", error);
+            Utilities.logMessage(`Sign-in error: ${error}`, "error");
             throw error;
         }
     }
 
-    /**
-     * Handles the result from sign-in operations and determines next steps
-     */
+    // Handles the result from sign-in operations and determines next steps
     handleSignInResult(result) {      
-        // 1. Check if sign-in is COMPLETED
+        // Check if sign-in is COMPLETED
         if (result.isCompleted()) {
             Utilities.logMessage("STATE: COMPLETED - Sign-in successful!", "success");
             const account = result.data;
@@ -90,7 +81,7 @@ export class SignInService {
      */
     async submitCode(code) {
         try {
-            console.log("🔍 SIGNIN SERVICE: submitCode called with code:", code);
+            Utilities.logMessage("🔍 SIGNIN SERVICE: submitCode called", "info");
             
             if (!this.pendingSignInResult) {
                 throw new Error("No pending sign-in operation found");
@@ -113,7 +104,7 @@ export class SignInService {
 
         } catch (error) {
             Utilities.logMessage(`Code submission failed`, "error");
-            console.error("Submit code error:", error);
+            Utilities.logMessage(`Submit code error: ${error}`, "error");
             return { success: false, error: error.message };
         }
     }
@@ -140,7 +131,7 @@ export class SignInService {
 
         } catch (error) {
             Utilities.logMessage(`Failed to resend code`, "error");
-            console.error("Resend code error:", error);
+            Utilities.logMessage(`Resend code error: ${error}`, "error");
             return { success: false, error: error.message };
         }
     }
@@ -171,7 +162,7 @@ export class SignInService {
 
         } catch (error) {
             Utilities.logMessage(`Password submission failed`, "error");
-            console.error("Submit password error:", error);
+            Utilities.logMessage(`Submit password error: ${error}`, "error");
             return { success: false, error: error.message };
         }
     }

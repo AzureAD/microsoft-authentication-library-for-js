@@ -1,13 +1,10 @@
 /*
  * Sign-Up Module for MSAL Native Auth Sample
- * 
- * This module coordinates the sign-up service and UI manager, providing a unified
- * interface for sign-up functionality. It follows the same pattern as the SignInModule
- * and integrates cleanly with the main application.
  */
 
 import { SignUpService } from './SignUpService.js';
 import { SignUpUIManager } from './SignUpUIManager.js';
+import { Utilities } from '../utilities.js';
 
 export class SignUpModule {
     constructor() {
@@ -16,14 +13,11 @@ export class SignUpModule {
         this.isInitialized = false;
     }
 
-    /**
-     * Initialize the sign-up module with MSAL instance
-     * @param {Object} msalInstance - The MSAL instance for authentication
-     */
+    // Initialize the sign-up module with MSAL instance
     async initialize(msalInstance) {
         try {
             if (this.isInitialized) {
-                console.warn('SignUpModule already initialized');
+                Utilities.logMessage('SignUpModule already initialized', 'warning');
                 return;
             }
 
@@ -31,21 +25,21 @@ export class SignUpModule {
                 throw new Error('MSAL instance is required for sign-up module initialization');
             }
 
-            console.log('Initializing SignUpModule...');
+            Utilities.logMessage('Initializing SignUpModule...', 'info');
 
             // Initialize the sign-up service
             this.signUpService = new SignUpService(msalInstance);
-            console.log('SignUpService initialized');
+            Utilities.logMessage('SignUpService initialized', 'info');
 
             // Initialize the UI manager
             this.signUpUIManager = new SignUpUIManager(this.signUpService);
-            console.log('SignUpUIManager initialized');
+            Utilities.logMessage('SignUpUIManager initialized', 'info');
 
             this.isInitialized = true;
-            console.log('SignUpModule initialization completed successfully');
+            Utilities.logMessage('SignUpModule initialization completed successfully', 'success');
 
         } catch (error) {
-            console.error('Failed to initialize SignUpModule:', error);
+            Utilities.logMessage(`Failed to initialize SignUpModule: ${error}`, 'error');
             throw error;
         }
     }
@@ -57,7 +51,7 @@ export class SignUpModule {
     updateMsalInstance(msalInstance) {
         if (this.signUpService) {
             this.signUpService.setMsalInstance(msalInstance);
-            console.log('MSAL instance updated in SignUpService');
+            Utilities.logMessage('MSAL instance updated in SignUpService', 'info');
         }
     }
 
@@ -151,7 +145,7 @@ export class SignUpModule {
         if (this.signUpUIManager) {
             this.signUpUIManager.showSignUpForm();
         } else {
-            console.warn('SignUpUIManager not initialized');
+            Utilities.logMessage('SignUpUIManager not initialized', 'warning');
         }
     }
 
@@ -162,7 +156,7 @@ export class SignUpModule {
         if (this.signUpUIManager) {
             this.signUpUIManager.showSignInForm();
         } else {
-            console.warn('SignUpUIManager not initialized');
+            Utilities.logMessage('SignUpUIManager not initialized', 'warning');
         }
     }
 
@@ -179,7 +173,7 @@ export class SignUpModule {
         }
 
         this.isInitialized = false;
-        console.log('SignUpModule cleaned up');
+        Utilities.logMessage('SignUpModule cleaned up', 'info');
     }
 
     /**
