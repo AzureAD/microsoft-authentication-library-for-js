@@ -15,6 +15,7 @@ import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction
 import { Logger } from "@azure/msal-browser";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { SignInCodeRequiredState } from "../../../../../src/custom_auth/sign_in/auth_flow/state/SignInCodeRequiredState.js";
+import { DefaultCustomAuthApiCodeLength } from "../../../../../src/custom_auth/CustomAuthConstants.js";
 
 describe("SignInCodeRequiredState", () => {
     const mockConfig = {
@@ -62,8 +63,8 @@ describe("SignInCodeRequiredState", () => {
     });
 
     describe("submitCode", () => {
-        it("should return an error result if code is empty", async () => {
-            const result = await state.submitCode("");
+        it("should return an error result if code is invalid", async () => {
+            let result = await state.submitCode("");
 
             expect(result.isFailed()).toBeTruthy();
             expect(result.error).toBeInstanceOf(SignInSubmitCodeError);
@@ -128,6 +129,41 @@ describe("SignInCodeRequiredState", () => {
             expect(result).toBeInstanceOf(SignInSubmitCodeResult);
             expect(result.error).toBeDefined();
             expect(result.error).toBeInstanceOf(SignInSubmitCodeError);
+        });
+
+        it("should still trigger the call to submit code even if no codeLength returned from previous call", async () => {
+            mockSignInClient.submitCode.mockResolvedValue(
+                createSignInCompleteResult({
+                    correlationId: correlationId,
+                    authenticationResult: {
+                        accessToken: "test-access-token",
+                        idToken: "test-id-token",
+                        expiresOn: new Date(Date.now() + 3600 * 1000),
+                        tokenType: "Bearer",
+                        correlationId: correlationId,
+                        authority: "https://test-authority.com",
+                        tenantId: "test-tenant-id",
+                        scopes: [],
+                        account: {
+                            homeAccountId: "",
+                            environment: "",
+                            tenantId: "test-tenant-id",
+                            username: username,
+                            localAccountId: "",
+                            idToken: "test-id-token",
+                        },
+                        idTokenClaims: {},
+                        fromCache: false,
+                        uniqueId: "test-unique-id",
+                    },
+                })
+            );
+
+            (state as any)["stateParameters"]["codeLength"] =
+                DefaultCustomAuthApiCodeLength;
+            const result = await state.submitCode("12345678");
+            expect(result.isCompleted()).toBeTruthy();
+            expect(result.error).toBeUndefined();
         });
     });
 

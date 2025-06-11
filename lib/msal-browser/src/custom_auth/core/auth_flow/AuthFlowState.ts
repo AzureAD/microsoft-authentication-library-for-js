@@ -10,6 +10,7 @@ import {
     ensureArgumentIsNotEmptyString,
     ensureArgumentIsNotNullOrUndefined,
 } from "../utils/ArgumentValidator.js";
+import { DefaultCustomAuthApiCodeLength } from "../../CustomAuthConstants.js";
 
 export interface AuthFlowActionRequiredStateParameters {
     correlationId: string;
@@ -53,7 +54,10 @@ export abstract class AuthFlowActionRequiredStateBase<
     }
 
     protected ensureCodeIsValid(code: string, codeLength: number): void {
-        if (!code || code.length !== codeLength) {
+        if (
+            codeLength !== DefaultCustomAuthApiCodeLength &&
+            (!code || code.length !== codeLength)
+        ) {
             this.stateParameters.logger.error(
                 "Code parameter is not provided or invalid for authentication flow.",
                 this.stateParameters.correlationId

@@ -45,6 +45,6 @@ export const ResetPasswordPollStatus = {
     NOT_STARTED: "not_started",
 } as const;
 
-export const DefaultCustomAuthApiCodeLength = 8;
+export const DefaultCustomAuthApiCodeLength = -1; // Default value indicating that the code length is not specified
 export const DefaultCustomAuthApiCodeResendIntervalInSec = 300; // seconds
 export const PasswordResetPollingTimeoutInMs = 300000; // milliseconds
