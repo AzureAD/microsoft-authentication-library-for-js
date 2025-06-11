@@ -8,6 +8,8 @@ If you are coming from MSAL v4, you can follow this guide to update your code to
 
 ## API Breaking Changes
 
+[TBD]
+
 ## Configuration changes
 
 ### BrowserAuthOptions changes
@@ -29,9 +31,19 @@ The following parameters were deprecated in MSAL Browser v4 and has been removed
 ### SystemOptions
 
 1. The `protocolMode` parameter has been added to SystemOptions from BrowserAuthOptions in Configuration. 
-1. The `asyncPopups` parameter has been renamed to `navigatePopups` in SystemOptions. See the [Configuration doc](./configuration.md#system-config-options) for more details.
+
+#### `asyncPopups`
+
+The `asyncPopups` parameter has been renamed to `navigatePopups` in SystemOptions and the options reversed. This sets whether popups are opened and navigated to later. When set to true, blank popups are opened and navigates to login domain. When set to false, popups are opened directly to the login domain. This can be set to false for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps.
+
+**Note that by default, `navigatePopups` is now set to true**. If you were using `asyncPopups` before, you will now have to change it to `navigatePopups` and reverse your configuration.
+
+See the [Configuration doc](./configuration.md#system-config-options) for more details.
 
 ## Changes on request
 
+[TBD]
+
 ## Behavioral Breaking Changes
 
+[TBD]
