@@ -406,8 +406,10 @@ describe("TokenCache tests", () => {
         });
 
         it("throws error if in non-browser environment", (done) => {
-            jest.spyOn(StandardOperatingContext.prototype, "isBrowserEnvironment")
-                .mockReturnValue(false);
+            jest.spyOn(
+                StandardOperatingContext.prototype,
+                "isBrowserEnvironment"
+            ).mockReturnValue(false);
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {

@@ -966,11 +966,10 @@ export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-incompatible-release-tags) The symbol "loadExternalTokens" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
 // Warning: (ae-missing-release-tag) "loadExternalTokens" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function loadExternalTokens(config: BrowserConfiguration, request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): Promise<AuthenticationResult>;
+export function loadExternalTokens(config: Configuration, request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): Promise<AuthenticationResult>;
 
 // Warning: (ae-missing-release-tag) "LoadTokenOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

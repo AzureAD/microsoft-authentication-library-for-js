@@ -23,7 +23,11 @@ import {
     AccountEntityUtils,
     buildStaticAuthorityOptions,
 } from "@azure/msal-common/browser";
-import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration.js";
+import {
+    BrowserConfiguration,
+    buildConfiguration,
+    Configuration,
+} from "../config/Configuration.js";
 import type { SilentRequest } from "../request/SilentRequest.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
 import {
@@ -63,7 +67,10 @@ export async function loadExternalTokens(
         );
     }
 
-    const browserConfig = buildConfiguration(config, operatingContext.isBrowserEnvironment());
+    const browserConfig = buildConfiguration(
+        config,
+        operatingContext.isBrowserEnvironment()
+    );
 
     const correlationId =
         request.correlationId || BrowserCrypto.createNewGuid();
@@ -80,10 +87,7 @@ export async function loadExternalTokens(
     };
 
     const logger = new Logger(browserConfig.system.loggerOptions || {});
-    const cryptoOps = new CryptoOps(
-        logger,
-        browserConfig.telemetry.client
-    );
+    const cryptoOps = new CryptoOps(logger, browserConfig.telemetry.client);
     const storage = new BrowserCacheManager(
         browserConfig.auth.clientId,
         browserConfig.cache,
@@ -93,7 +97,7 @@ export async function loadExternalTokens(
         new EventHandler(logger),
         buildStaticAuthorityOptions(browserConfig.auth)
     );
-    
+
     const authority = request.authority
         ? new Authority(
               Authority.generateAuthority(
