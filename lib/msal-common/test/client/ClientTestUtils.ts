@@ -8,6 +8,7 @@ import {
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
     TEST_POP_VALUES,
+    TEST_TOKENS,
 } from "../test_kit/StringConstants.js";
 
 import { CacheManager } from "../../src/cache/CacheManager.js";
@@ -32,6 +33,7 @@ import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemet
 import { Constants, EncodingTypes } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -59,8 +61,8 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+    removeAccount(key: string): void {
+        super.removeAccount(key, RANDOM_TEST_GUID);
         const currentAccounts = this.getAccountKeys();
         const removalIndex = currentAccounts.indexOf(key);
         if (removalIndex > -1) {
@@ -70,17 +72,17 @@ export class MockStorageClass extends CacheManager {
     }
 
     getAccountKeys(): string[] {
-        return this.store[ACCOUNT_KEYS] || [];
+        return [...(this.store[ACCOUNT_KEYS] || [])];
     }
 
     getTokenKeys(): TokenKeys {
-        return (
-            this.store[TOKEN_KEYS] || {
+        return {
+            ...(this.store[TOKEN_KEYS] || {
                 idToken: [],
                 accessToken: [],
                 refreshToken: [],
-            }
-        );
+            }),
+        } as TokenKeys;
     }
 
     // Credentials (idtokens)
@@ -215,11 +217,11 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async removeTokenBindingKey(keyId: string): Promise<boolean> {
-        return Promise.resolve(true);
+    async removeTokenBindingKey(keyId: string): Promise<void> {
+        return Promise.resolve();
     },
     async signJwt(): Promise<string> {
-        return "";
+        return TEST_TOKENS.POP_TOKEN;
     },
     async clearKeystore(): Promise<boolean> {
         return Promise.resolve(true);
@@ -238,6 +240,7 @@ export class ClientTestUtils {
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
             new Logger({}),
+            new StubPerformanceClient(),
             {
                 canonicalAuthority: TEST_CONFIG.validAuthority,
             }
@@ -316,6 +319,7 @@ export async function getDiscoveredAuthority(
         TEST_CONFIG.MSAL_CLIENT_ID,
         mockCrypto,
         new Logger({}),
+        new StubPerformanceClient(),
         {
             canonicalAuthority: TEST_CONFIG.validAuthority,
         }
