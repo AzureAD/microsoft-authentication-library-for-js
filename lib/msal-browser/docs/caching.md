@@ -41,10 +41,6 @@ This cookie will be automatically removed when the browser instance (not tab) is
 
 > [!Important] The purpose of this encryption is to reduce the persistence of auth artifacts, **not** to provide additional security. If a bad actor gains access to browser storage they would also have access to the key or have the ability to request tokens on your behalf without the need for cache at all. It is your responsibility to ensure your application is not vulnerable to XSS attacks [see below](#security)
 
-### Cookie storage
-
-Additionally, MSAL Browser can be configured to use cookies for storing temporary authentication artifacts. This option allows you to support browsers that may clear local/session storage during redirect-based login flows (e.g. Firefox in private mode). Note that when this option is chosen, tokens themselves are still stored in browser or memory storage. Please refer to [configuration](./configuration.md#cache-config-options) for more.
-
 ### Security
 
 We consider session/local storage secure as long as your application does not have cross-site scripting (XSS) and related vulnurabilities. Please refer to the [OWASP XSS Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html) for securing your applications against XSS. If you are still concerned, we recommend using the `memoryStorage` option instead.
