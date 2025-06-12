@@ -1,8 +1,5 @@
 import * as AuthToken from "../../src/account/AuthToken";
-import {
-    TEST_TOKENS,
-    ID_TOKEN_CLAIMS,
-} from "../test_kit/StringConstants";
+import { TEST_TOKENS, ID_TOKEN_CLAIMS } from "../test_kit/StringConstants";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthErrorMessage,

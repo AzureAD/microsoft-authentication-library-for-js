@@ -3,9 +3,7 @@ import {
     buildClientInfoFromHomeAccountId,
     ClientInfo,
 } from "../../src/account/ClientInfo";
-import {
-    TEST_DATA_CLIENT_INFO,
-} from "../test_kit/StringConstants";
+import { TEST_DATA_CLIENT_INFO } from "../test_kit/StringConstants";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthError,

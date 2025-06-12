@@ -6,10 +6,7 @@ import { AuthError } from "../../src/error/AuthError.js";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule.js";
 import { Logger, LogLevel } from "../../src/logger/Logger.js";
 import { version } from "../../src/packageMetadata.js";
-import {
-    RANDOM_TEST_GUID,
-    TEST_CONFIG,
-} from "../test_kit/StringConstants.js";
+import { RANDOM_TEST_GUID, TEST_CONFIG } from "../test_kit/StringConstants.js";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils.js";
 import { MockCache } from "../cache/entities/cacheConstants.js";
 import { Constants } from "../../src/utils/Constants.js";

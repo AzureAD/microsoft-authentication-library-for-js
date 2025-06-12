@@ -1704,9 +1704,15 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("removeAllAccounts", () => {
-        const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts();
+        const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts(
+            {},
+            RANDOM_TEST_GUID
+        );
         mockCache.cacheManager.removeAllAccounts(RANDOM_TEST_GUID);
-        const accountsAfterRemove = mockCache.cacheManager.getAllAccounts();
+        const accountsAfterRemove = mockCache.cacheManager.getAllAccounts(
+            {},
+            RANDOM_TEST_GUID
+        );
 
         expect(accountsBeforeRemove).toHaveLength(3);
         expect(accountsAfterRemove).toHaveLength(0);

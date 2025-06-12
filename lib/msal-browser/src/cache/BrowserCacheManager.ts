@@ -403,7 +403,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     removeAccount(key: string, correlationId: string): void {
         super.removeAccount(key, correlationId);
-        this.removeAccountKeyFromMap(key);
+        this.removeAccountKeyFromMap(key, correlationId);
     }
 
     /**
