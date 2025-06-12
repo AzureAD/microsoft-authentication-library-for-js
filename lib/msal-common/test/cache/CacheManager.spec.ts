@@ -23,11 +23,8 @@ import {
     TEST_TOKEN_LIFETIMES,
     ID_TOKEN_ALT_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
-import {
-    ClientAuthErrorCodes,
-    createClientAuthError,
-} from "../../src/error/ClientAuthError.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { MockCache } from "./MockCache.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
@@ -1568,23 +1565,23 @@ describe("CacheManager.ts test cases", () => {
         ).toBeUndefined();
     });
 
-    it("removeAllAccounts", async () => {
+    it("removeAllAccounts", () => {
         const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts();
-        await mockCache.cacheManager.removeAllAccounts();
+        mockCache.cacheManager.removeAllAccounts(RANDOM_TEST_GUID);
         const accountsAfterRemove = mockCache.cacheManager.getAllAccounts();
 
         expect(accountsBeforeRemove).toHaveLength(3);
         expect(accountsAfterRemove).toHaveLength(0);
     });
 
-    it("removeAccount", async () => {
+    it("removeAccount", () => {
         const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const accountToRemoveKey =
             AccountEntityUtils.generateAccountKey(accountToRemove);
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();
-        await mockCache.cacheManager.removeAccount(accountToRemoveKey);
+        mockCache.cacheManager.removeAccount(accountToRemoveKey);
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).toBeNull();
@@ -1604,8 +1601,9 @@ describe("CacheManager.ts test cases", () => {
             extendedExpiresOn: "4600",
         };
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(at)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(at),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(at);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
@@ -1632,8 +1630,9 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(atWithAuthScheme)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
@@ -1663,43 +1662,13 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(atWithAuthScheme)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy).toHaveBeenCalledTimes(0);
-    });
-
-    it("throws bindingKeyNotRemoved error when key is not deleted from storage", async () => {
-        const atWithAuthScheme = {
-            environment: "login.microsoftonline.com",
-            credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-            secret: "an access token",
-            realm: "microsoft",
-            target: "scope1 scope2 scope3",
-            clientId: "mock_client_id",
-            cachedAt: "1000",
-            homeAccountId: "uid.utid",
-            extendedExpiresOn: "4600",
-            expiresOn: "4600",
-            keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
-            tokenType: AuthenticationScheme.POP,
-        };
-
-        jest.spyOn(mockCrypto, "removeTokenBindingKey").mockImplementation(
-            (keyId: string): Promise<boolean> => {
-                return Promise.reject();
-            }
-        );
-
-        return await expect(
-            mockCache.cacheManager.removeAccessToken(
-                CacheHelpers.generateCredentialKey(atWithAuthScheme)
-            )
-        ).rejects.toThrow(
-            createClientAuthError(ClientAuthErrorCodes.bindingKeyNotRemoved)
-        );
     });
 
     it("getAccessToken matches multiple tokens, removes them and returns null", (done) => {
@@ -1778,35 +1747,18 @@ describe("CacheManager.ts test cases", () => {
                 forceRefresh: false,
             };
 
-            const mockPerfClient = new MockPerformanceClient();
-            const correlationId = "test-correlation-id";
-
-            mockPerfClient.addPerformanceCallback((events) => {
-                expect(events.length).toBe(1);
-                expect(events[0].multiMatchedAT).toEqual(2);
-                done();
-            });
-
-            const measurement = mockPerfClient.startMeasurement(
-                PerformanceEvents.RefreshTokenClientAcquireToken,
-                correlationId
-            );
-
             expect(
                 mockCache.cacheManager.getAccessToken(
                     mockedAccountInfo,
                     silentFlowRequest,
                     undefined,
-                    undefined,
-                    mockPerfClient,
-                    correlationId
+                    undefined
                 )
             ).toBeNull();
             expect(
                 mockCache.cacheManager.getTokenKeys().accessToken.length
             ).toEqual(0);
-
-            measurement.end();
+            done();
         });
     });
 
