@@ -6,7 +6,7 @@ The `loadExternalTokens()` API allows the loading of id, access and refresh toke
 
 **Note: This is an advanced feature that is intended for testing purposes in the browser environment only. We do not recommend using this in a production app. For E2E testing recommendations, please refer to our [TestingSample](../../../samples/msal-browser-samples/TestingSample) instead.**
 
-The `loadExternalTokens()` API is a standalone function.
+The `loadExternalTokens()` API is a public API facilitating apps to custom load tokens to msal js cache.
 
 ```js
 await loadExternalTokens(
