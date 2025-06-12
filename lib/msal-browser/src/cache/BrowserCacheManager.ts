@@ -209,12 +209,9 @@ export class BrowserCacheManager extends CacheManager {
     async setUserData(
         key: string,
         value: string,
-        correlationId: string
+        correlationId: string,
+        timestamp: string
     ): Promise<void> {
-        this.logger.trace(
-            "BrowserCacheManager.setUserData called",
-            correlationId
-        );
         let trySetItem = true;
         while (trySetItem) {
             try {
@@ -223,7 +220,7 @@ export class BrowserCacheManager extends CacheManager {
                     PerformanceEvents.SetUserData,
                     this.logger,
                     this.performanceClient
-                )(key, value, correlationId);
+                )(key, value, correlationId, timestamp);
                 trySetItem = false; // If setItem succeeds, exit the loop
             } catch (e) {
                 const cacheError = createCacheError(e);
@@ -301,12 +298,12 @@ export class BrowserCacheManager extends CacheManager {
         const key = account.generateAccountKey();
         const timestamp = Date.now().toString();
         account.lastUpdatedAt = timestamp;
-        await invokeAsync(
-            this.setUserData.bind(this),
-            PerformanceEvents.SetUserData,
-            this.logger,
-            this.performanceClient
-        )(key, JSON.stringify(account), correlationId, timestamp);
+        await this.setUserData(
+            key,
+            JSON.stringify(account),
+            correlationId,
+            timestamp
+        );
         const wasAdded = this.addAccountKeyToMap(key, correlationId);
 
         /**
@@ -598,12 +595,12 @@ export class BrowserCacheManager extends CacheManager {
         const timestamp = Date.now().toString();
         idToken.lastUpdatedAt = timestamp;
 
-        await invokeAsync(
-            this.setUserData.bind(this),
-            PerformanceEvents.SetUserData,
-            this.logger,
-            this.performanceClient
-        )(idTokenKey, JSON.stringify(idToken), correlationId, timestamp);
+        await this.setUserData(
+            idTokenKey,
+            JSON.stringify(idToken),
+            correlationId,
+            timestamp
+        );
 
         const tokenKeys = this.getTokenKeys();
         if (tokenKeys.idToken.indexOf(idTokenKey) === -1) {
@@ -671,12 +668,7 @@ export class BrowserCacheManager extends CacheManager {
         const timestamp = Date.now().toString();
         accessToken.lastUpdatedAt = timestamp;
 
-        await invokeAsync(
-            this.setUserData.bind(this),
-            PerformanceEvents.SetUserData,
-            this.logger,
-            this.performanceClient
-        )(
+        await this.setUserData(
             accessTokenKey,
             JSON.stringify(accessToken),
             correlationId,
@@ -752,12 +744,7 @@ export class BrowserCacheManager extends CacheManager {
         const timestamp = Date.now().toString();
         refreshToken.lastUpdatedAt = timestamp;
 
-        await invokeAsync(
-            this.setUserData.bind(this),
-            PerformanceEvents.SetUserData,
-            this.logger,
-            this.performanceClient
-        )(
+        await this.setUserData(
             refreshTokenKey,
             JSON.stringify(refreshToken),
             correlationId,
