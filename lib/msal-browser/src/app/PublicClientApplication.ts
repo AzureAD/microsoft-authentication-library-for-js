@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -281,13 +280,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         return this.controller.ssoSilent(request);
-    }
-
-    /**
-     * Gets the token cache for the application.
-     */
-    getTokenCache(): ITokenCache {
-        return this.controller.getTokenCache();
     }
 
     /**
