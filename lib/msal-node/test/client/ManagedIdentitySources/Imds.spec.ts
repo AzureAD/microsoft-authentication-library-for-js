@@ -32,6 +32,7 @@ import {
     managedIdentityRequestParams,
     systemAssignedConfig,
     userAssignedResourceIdConfig,
+    mockCredentialEndpointProbeRequest,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
@@ -62,14 +63,14 @@ import { NodeStorage } from "../../../src/cache/NodeStorage.js";
 import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ImdsRetryPolicy } from "../../../src/retry/ImdsRetryPolicy.js";
-import { ImdsV2 } from "../../../src/client/ManagedIdentitySources/ImdsV2.js";
+// import { ImdsV2 } from "../../../src/client/ManagedIdentitySources/ImdsV2.js";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
 
     beforeEach(() => {
-        jest.spyOn(ImdsV2, "isCredentialEndpointAvailable").mockResolvedValue(
-            false
+        mockCredentialEndpointProbeRequest(
+            HttpStatus.SUCCESS // TODO: change this to NOT_FOUND after implementing the credential endpoint probe retry policy
         );
     });
 
