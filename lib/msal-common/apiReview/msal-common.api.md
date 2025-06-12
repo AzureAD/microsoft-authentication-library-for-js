@@ -2590,6 +2590,7 @@ declare namespace InteractionRequiredAuthErrorCodes {
         noTokensFound,
         nativeAccountUnavailable,
         refreshTokenExpired,
+        uxNotAllowed,
         interactionRequired,
         consentRequired,
         loginRequired,
@@ -4467,6 +4468,11 @@ const userCanceled = "user_canceled";
 //
 // @public (undocumented)
 const userTimeoutReached = "user_timeout_reached";
+
+// Warning: (ae-missing-release-tag) "uxNotAllowed" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const uxNotAllowed = "ux_not_allowed";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
