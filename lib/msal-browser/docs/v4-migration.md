@@ -10,9 +10,9 @@ If you are coming from MSAL v4, you can follow this guide to update your code to
 
 ### TokenCache and loadExternalTokens
 
-The `TokenCache` object as well as the `getTokenCache` function in `PublicClientApplication` have been removed from MSAL.js.
-
-The `loadExternalTokens` API is now a separate export and requires a `Configuration` object in addition to the parameters accepted in MSAL.js v4. Please add the configuration object passed into your application to `loadExternalTokens`.
+MSAL JS API for [loadExternalTokens](../testing.md#the-loadexternaltokens-api) is modified. The changes include:
+* `TokenCache` object and `getTokenCache()` have been removed
+* The `loadExternalTokens()` API is now a separate export and requires `Configuration` as a parameter
 
 ```js
 // BEFORE
@@ -26,7 +26,6 @@ await pca.getTokenCache().loadExternalTokens(
 
 //AFTER
 
-const pca = new PublicClientApplication(config);
 await loadExternalTokens(
     config,
     silentRequest,
