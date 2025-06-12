@@ -1042,7 +1042,7 @@ describe("BrowserCacheManager tests", () => {
                         )
                     ).toEqual(testAT4);
                     browserSessionStorage.clearTokensAndKeysWithClaims(
-                        RANDOM_TEST_GUID
+                        "test-correlation-id"
                     );
 
                     expect(

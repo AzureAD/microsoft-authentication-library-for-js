@@ -280,7 +280,6 @@ export class BrowserCacheManager extends CacheManager {
 
         const parsedAccount = this.validateAndParseJson(serializedAccount);
         if (!parsedAccount || !AccountEntity.isAccountEntity(parsedAccount)) {
-            this.removeAccountKeyFromMap(accountKey, correlationId);
             return null;
         }
 
@@ -300,13 +299,14 @@ export class BrowserCacheManager extends CacheManager {
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
         const key = account.generateAccountKey();
-        account.lastUpdatedAt = Date.now().toString();
+        const timestamp = Date.now().toString();
+        account.lastUpdatedAt = timestamp;
         await invokeAsync(
             this.setUserData.bind(this),
             PerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
-        )(key, JSON.stringify(account), correlationId);
+        )(key, JSON.stringify(account), correlationId, timestamp);
         const wasAdded = this.addAccountKeyToMap(key, correlationId);
 
         /**
@@ -595,14 +595,15 @@ export class BrowserCacheManager extends CacheManager {
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
-        idToken.lastUpdatedAt = Date.now().toString();
+        const timestamp = Date.now().toString();
+        idToken.lastUpdatedAt = timestamp;
 
         await invokeAsync(
             this.setUserData.bind(this),
             PerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
-        )(idTokenKey, JSON.stringify(idToken), correlationId);
+        )(idTokenKey, JSON.stringify(idToken), correlationId, timestamp);
 
         const tokenKeys = this.getTokenKeys();
         if (tokenKeys.idToken.indexOf(idTokenKey) === -1) {
@@ -667,14 +668,20 @@ export class BrowserCacheManager extends CacheManager {
             "BrowserCacheManager.setAccessTokenCredential called"
         );
         const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
-        accessToken.lastUpdatedAt = Date.now().toString();
+        const timestamp = Date.now().toString();
+        accessToken.lastUpdatedAt = timestamp;
 
         await invokeAsync(
             this.setUserData.bind(this),
             PerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
-        )(accessTokenKey, JSON.stringify(accessToken), correlationId);
+        )(
+            accessTokenKey,
+            JSON.stringify(accessToken),
+            correlationId,
+            timestamp
+        );
 
         const tokenKeys = this.getTokenKeys();
         const index = tokenKeys.accessToken.indexOf(accessTokenKey);
@@ -742,14 +749,20 @@ export class BrowserCacheManager extends CacheManager {
         );
         const refreshTokenKey =
             CacheHelpers.generateCredentialKey(refreshToken);
-        refreshToken.lastUpdatedAt = Date.now().toString();
+        const timestamp = Date.now().toString();
+        refreshToken.lastUpdatedAt = timestamp;
 
         await invokeAsync(
             this.setUserData.bind(this),
             PerformanceEvents.SetUserData,
             this.logger,
             this.performanceClient
-        )(refreshTokenKey, JSON.stringify(refreshToken), correlationId);
+        )(
+            refreshTokenKey,
+            JSON.stringify(refreshToken),
+            correlationId,
+            timestamp
+        );
 
         const tokenKeys = this.getTokenKeys();
         if (tokenKeys.refreshToken.indexOf(refreshTokenKey) === -1) {
