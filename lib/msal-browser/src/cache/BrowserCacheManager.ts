@@ -86,8 +86,6 @@ export class BrowserCacheManager extends CacheManager {
     protected cookieStorage: CookieStorage;
     // Logger instance
     protected logger: Logger;
-    // Telemetry perf client
-    protected performanceClient: IPerformanceClient;
     // Event Handler
     private eventHandler: EventHandler;
 
@@ -100,7 +98,13 @@ export class BrowserCacheManager extends CacheManager {
         eventHandler: EventHandler,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            performanceClient,
+            staticAuthorityOptions
+        );
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
@@ -118,7 +122,6 @@ export class BrowserCacheManager extends CacheManager {
         );
         this.cookieStorage = new CookieStorage();
 
-        this.performanceClient = performanceClient;
         this.eventHandler = eventHandler;
     }
 
@@ -298,8 +301,8 @@ export class BrowserCacheManager extends CacheManager {
      * Extends inherited removeAccount function to include removal of the account key from the map
      * @param key
      */
-    async removeAccount(key: string): Promise<void> {
-        void super.removeAccount(key);
+    removeAccount(key: string, correlationId: string): void {
+        super.removeAccount(key, correlationId);
         this.removeAccountKeyFromMap(key);
     }
 
@@ -307,8 +310,8 @@ export class BrowserCacheManager extends CacheManager {
      * Removes credentials associated with the provided account
      * @param account
      */
-    async removeAccountContext(account: AccountEntity): Promise<void> {
-        await super.removeAccountContext(account);
+    removeAccountContext(account: AccountEntity, correlationId: string): void {
+        super.removeAccountContext(account, correlationId);
 
         /**
          * @deprecated - Remove this in next major version in favor of more consistent LOGOUT event
@@ -337,8 +340,8 @@ export class BrowserCacheManager extends CacheManager {
      * Removes given accessToken from the cache and from the key map
      * @param key
      */
-    async removeAccessToken(key: string): Promise<void> {
-        void super.removeAccessToken(key);
+    removeAccessToken(key: string, correlationId: string): void {
+        super.removeAccessToken(key, correlationId);
         this.removeTokenKey(key, CredentialType.ACCESS_TOKEN);
     }
 
@@ -1012,9 +1015,9 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Clears all cache entries created by MSAL.
      */
-    async clear(): Promise<void> {
+    clear(correlationId: string): void {
         // Removes all accounts and their credentials
-        await this.removeAllAccounts();
+        this.removeAllAccounts(correlationId);
         this.removeAppMetadata();
 
         // Remove temp storage first to make sure any cookies are cleared
@@ -1046,18 +1049,14 @@ export class BrowserCacheManager extends CacheManager {
      * @param correlationId {string} correlation id
      * @returns
      */
-    async clearTokensAndKeysWithClaims(
-        performanceClient: IPerformanceClient,
-        correlationId: string
-    ): Promise<void> {
-        performanceClient.addQueueMeasurement(
+    clearTokensAndKeysWithClaims(correlationId: string): void {
+        this.performanceClient.addQueueMeasurement(
             PerformanceEvents.ClearTokensAndKeysWithClaims,
             correlationId
         );
 
         const tokenKeys = this.getTokenKeys();
-
-        const removedAccessTokens: Array<Promise<void>> = [];
+        let removedAccessTokens = 0;
         tokenKeys.accessToken.forEach((key: string) => {
             // if the access token has claims in its key, remove the token key and the token
             const credential = this.getAccessTokenCredential(key);
@@ -1065,15 +1064,15 @@ export class BrowserCacheManager extends CacheManager {
                 credential?.requestedClaimsHash &&
                 key.includes(credential.requestedClaimsHash.toLowerCase())
             ) {
-                removedAccessTokens.push(this.removeAccessToken(key));
+                this.removeAccessToken(key, correlationId);
+                removedAccessTokens++;
             }
         });
-        await Promise.all(removedAccessTokens);
 
         // warn if any access tokens are removed
-        if (removedAccessTokens.length > 0) {
+        if (removedAccessTokens > 0) {
             this.logger.warning(
-                `${removedAccessTokens.length} access tokens with claims in the cache keys have been removed from the cache.`
+                `${removedAccessTokens} access tokens with claims in the cache keys have been removed from the cache.`
             );
         }
     }

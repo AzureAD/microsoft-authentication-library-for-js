@@ -83,7 +83,7 @@ export class CryptoProvider implements ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid - public key id
      */
-    removeTokenBindingKey(): Promise<boolean> {
+    removeTokenBindingKey(): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
