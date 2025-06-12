@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "added UX_NOT_ALLOWED suberror to InteractionRequired error type",
+  "packageName": "@azure/msal-common",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
