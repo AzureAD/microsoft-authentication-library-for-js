@@ -4,9 +4,7 @@ import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,
     POP_AUTHENTICATION_RESULT,
-    RANDOM_TEST_GUID,
     TEST_CONFIG,
-    TEST_CRYPTO_VALUES,
     TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKEN_LIFETIMES,
@@ -19,7 +17,7 @@ import {
     NetworkRequestOptions,
 } from "../../src/network/INetworkModule.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
-import { MockStorageClass } from "../client/ClientTestUtils.js";
+import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
 import { TokenClaims } from "../../src/account/TokenClaims.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
@@ -46,6 +44,7 @@ import {
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -55,68 +54,8 @@ const networkInterface: INetworkModule = {
         return {} as T;
     },
 };
-const signedJwt =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-const cryptoInterface: ICrypto = {
-    createNewGuid(): string {
-        return RANDOM_TEST_GUID;
-    },
-    base64Decode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                return TEST_POP_VALUES.DECODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED:
-                return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED;
-            default:
-                return input;
-        }
-    },
-    base64Encode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.DECODED_REQ_CNF:
-                return TEST_POP_VALUES.ENCODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
-            case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED:
-                return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED;
-            default:
-                return input;
-        }
-    },
-    base64UrlEncode(input: string): string {
-        switch (input) {
-            case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    encodeKid(input: string): string {
-        switch (input) {
-            case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
-    async signJwt(): Promise<string> {
-        return signedJwt;
-    },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async clearKeystore(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async hashString(): Promise<string> {
-        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-    },
-};
+
+const cryptoInterface: ICrypto = mockCrypto;
 
 const testServerTokenResponse = {
     headers: null,
@@ -174,7 +113,8 @@ const logger = new Logger(loggerOptions);
 const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     cryptoInterface,
-    logger
+    logger,
+    new StubPerformanceClient()
 );
 
 const testAuthority = new Authority(
@@ -642,7 +582,7 @@ describe("ResponseHandler.ts", () => {
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
-            expect(result.accessToken).toBe(signedJwt);
+            expect(result.accessToken).toBe(TEST_TOKENS.POP_TOKEN);
         });
 
         it("Does not sign access token when PoP kid is set and PoP scheme enabled", async () => {

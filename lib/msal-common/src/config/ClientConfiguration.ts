@@ -23,6 +23,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
+import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceClient.js";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -260,7 +261,8 @@ export function buildClientConfiguration({
             new DefaultStorageClass(
                 userAuthOptions.clientId,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
-                new Logger(loggerOptions)
+                new Logger(loggerOptions),
+                new StubPerformanceClient()
             ),
         networkInterface:
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,

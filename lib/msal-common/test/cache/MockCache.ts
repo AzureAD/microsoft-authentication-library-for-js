@@ -7,6 +7,7 @@ import { StaticAuthorityOptions } from "../../src/authority/AuthorityOptions.js"
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import { Logger } from "../../src/logger/Logger.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import {
     AuthenticationScheme,
     CredentialType,
@@ -33,6 +34,7 @@ export class MockCache {
             clientId,
             cryptoImpl,
             new Logger({}),
+            new StubPerformanceClient(),
             staticAuthorityOptions
         );
     }
