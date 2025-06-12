@@ -230,7 +230,7 @@ export class CryptoProvider implements ICrypto {
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<boolean>;
+    removeTokenBindingKey(): Promise<void>;
     signJwt(): Promise<string>;
 }
 
@@ -608,7 +608,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     overwriteCache(): Promise<void>;
     // (undocumented)
     readonly persistence: ICachePlugin;
-    removeAccount(account: AccountInfo): Promise<void>;
+    removeAccount(account: AccountInfo, correlationId?: string): Promise<void>;
     serialize(): string;
 }
 
