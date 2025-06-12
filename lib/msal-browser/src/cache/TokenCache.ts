@@ -23,10 +23,7 @@ import {
     AccountEntityUtils,
     buildStaticAuthorityOptions,
 } from "@azure/msal-common/browser";
-import {
-    buildConfiguration,
-    Configuration,
-} from "../config/Configuration.js";
+import { buildConfiguration, Configuration } from "../config/Configuration.js";
 import type { SilentRequest } from "../request/SilentRequest.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
 import {
@@ -36,9 +33,9 @@ import {
 import type { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import { EventHandler } from "../event/EventHandler.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -59,17 +56,9 @@ export async function loadExternalTokens(
     response: ExternalTokenResponse,
     options: LoadTokenOptions
 ): Promise<AuthenticationResult> {
-    const operatingContext = new StandardOperatingContext(config);
-    if (!operatingContext.isBrowserEnvironment()) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.nonBrowserEnvironment
-        );
-    }
+    BrowserUtils.blockNonBrowserEnvironment();
 
-    const browserConfig = buildConfiguration(
-        config,
-        operatingContext.isBrowserEnvironment()
-    );
+    const browserConfig = buildConfiguration(config, true);
 
     const correlationId =
         request.correlationId || BrowserCrypto.createNewGuid();

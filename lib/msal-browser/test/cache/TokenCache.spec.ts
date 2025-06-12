@@ -47,7 +47,7 @@ import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { createBrowserAuthError } from "../../src/error/BrowserAuthError.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
-import { StandardOperatingContext } from "../../src/operatingcontext/StandardOperatingContext.js";
+import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;
@@ -405,11 +405,12 @@ describe("TokenCache tests", () => {
             ).toEqual(accessTokenEntity);
         });
 
-        it("throws error if in non-browser environment", (done) => {
-            jest.spyOn(
-                StandardOperatingContext.prototype,
-                "isBrowserEnvironment"
-            ).mockReturnValue(false);
+        it("calls BrowserUtils.blockNonBrowserEnvironment", async () => {
+            const blockSpy = jest.spyOn(
+                BrowserUtils,
+                "blockNonBrowserEnvironment"
+            );
+
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {
@@ -427,16 +428,9 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            loadExternalTokens(configuration, request, response, options).catch(
-                (e) => {
-                    expect(e).toEqual(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.nonBrowserEnvironment
-                        )
-                    );
-                    done();
-                }
-            );
+            await loadExternalTokens(configuration, request, response, options);
+
+            expect(blockSpy).toHaveBeenCalled();
         });
 
         it("loads refresh token with request authority and client info provided in response", async () => {
