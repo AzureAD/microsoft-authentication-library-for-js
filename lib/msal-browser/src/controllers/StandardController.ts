@@ -23,6 +23,7 @@ import {
     getRequestThumbprint,
     AccountEntity,
     invokeAsync,
+    invoke,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountFilter,
@@ -380,7 +381,7 @@ export class StandardController implements IController {
                 "Claims-based caching is disabled. Clearing the previous cache with claims"
             );
 
-            await invokeAsync(
+            invoke(
                 this.browserStorage.clearTokensAndKeysWithClaims.bind(
                     this.browserStorage
                 ),
@@ -388,7 +389,7 @@ export class StandardController implements IController {
                 this.logger,
                 this.performanceClient,
                 initCorrelationId
-            )(this.performanceClient, initCorrelationId);
+            )(initCorrelationId);
         }
 
         this.config.system.asyncPopups &&

@@ -505,9 +505,7 @@ export class NestedAppAuthController implements IController {
             currentAccount,
             authRequest,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         // If there is no access token, log it and return null
