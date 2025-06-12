@@ -26,7 +26,6 @@ await pca.getTokenCache().loadExternalTokens(
 
 //AFTER
 
-const pca = new PublicClientApplication(config);
 await loadExternalTokens(
     config,
     silentRequest,
