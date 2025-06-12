@@ -28,6 +28,7 @@ import { Authority } from "../../../src/authority/Authority.js";
 import { AuthorityType } from "../../../src/authority/AuthorityType.js";
 import { TokenClaims } from "../../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { StubPerformanceClient } from "../../../src/telemetry/performance/StubPerformanceClient.js";
 
 const cryptoInterface: ICrypto = mockCrypto;
 
@@ -59,11 +60,12 @@ const loggerOptions = {
     logLevel: LogLevel.Verbose,
 };
 const logger = new Logger(loggerOptions);
+const performanceClient = new StubPerformanceClient();
 
 const authority = new Authority(
     Constants.DEFAULT_AUTHORITY,
     networkInterface,
-    new MockStorageClass("client-id", mockCrypto, logger),
+    new MockStorageClass("client-id", mockCrypto, logger, performanceClient),
     authorityOptions,
     logger,
     TEST_CONFIG.CORRELATION_ID
@@ -214,7 +216,12 @@ describe("AccountEntity.ts Unit Tests", () => {
         const authority = new Authority(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -262,7 +269,12 @@ describe("AccountEntity.ts Unit Tests", () => {
         const authority = new Authority(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             {
                 protocolMode: ProtocolMode.OIDC,
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
@@ -595,7 +607,12 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -651,7 +668,12 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID

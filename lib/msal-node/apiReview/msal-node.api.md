@@ -230,7 +230,7 @@ export class CryptoProvider implements ICrypto {
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<boolean>;
+    removeTokenBindingKey(): Promise<void>;
     signJwt(): Promise<string>;
 }
 

@@ -1,7 +1,5 @@
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils.js";
-import {
-    RANDOM_TEST_GUID
-} from "../test_kit/StringConstants.js";
+import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import { Constants } from "../../src/utils/Constants.js";
 import {
@@ -71,7 +69,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     it("parseRequestState() returns empty userRequestState if no resource delimiter found in state string", () => {
         const requestState = ProtocolUtils.parseRequestState(
             cryptoInterface,
-            decodedLibState
+            cryptoInterface.base64Encode(decodedLibState)
         );
         expect(requestState.userRequestState).toHaveLength(0);
     });

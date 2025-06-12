@@ -103,7 +103,7 @@ export abstract class BaseInteractionClient {
             }
             // Clear given account.
             try {
-                await this.browserStorage.removeAccount(
+                this.browserStorage.removeAccount(
                     AccountEntity.generateAccountCacheKey(account),
                     correlationId
                 );
@@ -122,7 +122,7 @@ export abstract class BaseInteractionClient {
                     this.correlationId
                 );
                 // Clear all accounts and tokens
-                await this.browserStorage.clear(correlationId);
+                this.browserStorage.clear(correlationId);
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
             } catch (e) {

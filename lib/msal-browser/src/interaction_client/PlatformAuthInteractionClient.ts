@@ -724,13 +724,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         await this.browserStorage.setAccount(accountEntity, this.correlationId);
 
         // Remove any existing cached tokens for this account in browser storage
-        this.browserStorage
-            .removeAccountContext(accountEntity, correlationId)
-            .catch((e) => {
-                this.logger.error(
-                    `Error occurred while removing account context from browser storage. ${e}`
-                );
-            });
+        this.browserStorage.removeAccountContext(
+            accountEntity,
+            correlationId
+        );
     }
 
     /**

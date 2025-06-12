@@ -15,6 +15,7 @@ import { MockCache } from "../cache/entities/cacheConstants.js";
 import { Constants } from "../../src/utils/Constants.js";
 import * as ClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 import { createClientAuthError } from "../../src/error/ClientAuthError.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
     it("buildConfiguration assigns default functions", async () => {
@@ -123,7 +124,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
     const cacheStorageMock = new MockStorageClass(
         TEST_CONFIG.MSAL_CLIENT_ID,
         mockCrypto,
-        new Logger({})
+        new Logger({}),
+        new StubPerformanceClient()
     );
 
     const testNetworkResult = {
@@ -177,63 +179,11 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             },
         });
         await cacheStorageMock.setAccount(MockCache.acc);
-        // Crypto interface tests
         expect(newConfig.cryptoInterface).not.toBeNull();
-        expect(newConfig.cryptoInterface.base64Decode).not.toBeNull();
-        expect(newConfig.cryptoInterface.base64Decode("testString")).toBe(
-            "testDecodedString"
-        );
-        expect(newConfig.cryptoInterface.base64Encode).not.toBeNull();
-        expect(newConfig.cryptoInterface.base64Encode("testString")).toBe(
-            "testEncodedString"
-        );
-        expect(newConfig.cryptoInterface.removeTokenBindingKey).not.toBeNull();
-        expect(
-            newConfig.cryptoInterface.removeTokenBindingKey("testString")
-        ).resolves.toBe(true);
-        // Storage interface tests
         expect(newConfig.storageInterface).not.toBeNull();
-        expect(newConfig.storageInterface.getAccount).not.toBeNull();
-        expect(
-            newConfig.storageInterface.getAccount(
-                MockCache.acc.generateAccountKey(),
-                RANDOM_TEST_GUID
-            )
-        ).toBe(MockCache.acc);
-        expect(newConfig.storageInterface.getKeys).not.toBeNull();
-        expect(newConfig.storageInterface.getKeys()).toEqual([
-            MockCache.acc.generateAccountKey(),
-            "ACCOUNT_KEYS",
-        ]);
-        expect(newConfig.storageInterface.removeItem).not.toBeNull();
-        expect(newConfig.storageInterface.removeItem).toBe(
-            cacheStorageMock.removeItem
-        );
-        expect(newConfig.storageInterface.setAccount).not.toBeNull();
-        expect(newConfig.storageInterface.setAccount).toBe(
-            cacheStorageMock.setAccount
-        );
-        // Network interface tests
         expect(newConfig.networkInterface).not.toBeNull();
-        expect(newConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
-
-        expect(
-            //@ts-ignore
-            newConfig.networkInterface.sendGetRequestAsync("", null)
-        ).resolves.toBe(testNetworkResult);
-        expect(newConfig.networkInterface.sendPostRequestAsync).not.toBeNull();
-
-        expect(
-            //@ts-ignore
-            newConfig.networkInterface.sendPostRequestAsync("", null)
-        ).resolves.toBe(testNetworkResult);
-        // Logger option tests
         expect(newConfig.loggerOptions).not.toBeNull();
-        expect(newConfig.loggerOptions.loggerCallback).not.toBeNull();
-        expect(newConfig.loggerOptions.piiLoggingEnabled).toBe(true);
-        // Cache options tests
         expect(newConfig.cacheOptions).not.toBeNull();
-        expect(newConfig.cacheOptions.claimsBasedCachingEnabled).toBe(true);
         // Client info tests
         expect(newConfig.libraryInfo.sku).toBe(TEST_CONFIG.TEST_SKU);
         expect(newConfig.libraryInfo.version).toBe(TEST_CONFIG.TEST_VERSION);

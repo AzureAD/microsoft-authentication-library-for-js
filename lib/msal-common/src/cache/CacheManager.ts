@@ -54,7 +54,6 @@ import { TokenClaims } from "../account/TokenClaims.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { createCacheError } from "../error/CacheError.js";
 import { AuthError } from "../error/AuthError.js";
-import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceClient.js";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -72,15 +71,14 @@ export abstract class CacheManager implements ICacheManager {
         clientId: string,
         cryptoImpl: ICrypto,
         logger: Logger,
-        staticAuthorityOptions?: StaticAuthorityOptions,
-        performanceClient?: IPerformanceClient
+        performanceClient: IPerformanceClient,
+        staticAuthorityOptions?: StaticAuthorityOptions
     ) {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
         this.commonLogger = logger.clone(name, version);
         this.staticAuthorityOptions = staticAuthorityOptions;
-        this.performanceClient =
-            performanceClient || new StubPerformanceClient();
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -1049,14 +1047,13 @@ export abstract class CacheManager implements ICacheManager {
                 if (kid) {
                     void this.cryptoImpl
                         .removeTokenBindingKey(kid)
-                        .catch((error) => {
+                        .catch(() => {
                             this.commonLogger.error(
-                                `Failed to remove token binding key!`
+                                `Failed to remove token binding key ${kid}`,
+                                correlationId
                             );
                             this.performanceClient?.incrementFields(
-                                {
-                                    tokenBindingKeyRemovalFailed: 1,
-                                },
+                                { removeTokenBindingKeyFailure: 1 },
                                 correlationId
                             );
                         });
@@ -1267,8 +1264,7 @@ export abstract class CacheManager implements ICacheManager {
         account: AccountInfo,
         request: BaseAuthRequest,
         tokenKeys?: TokenKeys,
-        targetRealm?: string,
-        performanceClient?: IPerformanceClient
+        targetRealm?: string
     ): AccessTokenEntity | null {
         const correlationId = request.correlationId;
         this.commonLogger.trace(
@@ -1339,17 +1335,15 @@ export abstract class CacheManager implements ICacheManager {
                 correlationId
             );
             accessTokens.forEach((accessToken) => {
-                void this.removeAccessToken(
+                this.removeAccessToken(
                     generateCredentialKey(accessToken),
                     correlationId
                 );
             });
-            if (performanceClient && correlationId) {
-                performanceClient.addFields(
-                    { multiMatchedAT: accessTokens.length },
-                    correlationId
-                );
-            }
+            this.performanceClient.addFields(
+                { multiMatchedAT: accessTokens.length },
+                correlationId
+            );
             return null;
         }
 

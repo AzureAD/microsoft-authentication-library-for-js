@@ -25,11 +25,6 @@ import {
     GUEST_ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
-import {
-    ClientAuthError,
-    ClientAuthErrorCodes,
-    createClientAuthError,
-} from "../../src/error/ClientAuthError.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { MockCache } from "./MockCache.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
@@ -1708,28 +1703,22 @@ describe("CacheManager.ts test cases", () => {
         ).toBeUndefined();
     });
 
-    it("removeAllAccounts", async () => {
-        const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts(
-            {},
-            RANDOM_TEST_GUID
-        );
-        await mockCache.cacheManager.removeAllAccounts(RANDOM_TEST_GUID);
-        const accountsAfterRemove = mockCache.cacheManager.getAllAccounts(
-            {},
-            RANDOM_TEST_GUID
-        );
+    it("removeAllAccounts", () => {
+        const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts();
+        mockCache.cacheManager.removeAllAccounts(RANDOM_TEST_GUID);
+        const accountsAfterRemove = mockCache.cacheManager.getAllAccounts();
 
         expect(accountsBeforeRemove).toHaveLength(3);
         expect(accountsAfterRemove).toHaveLength(0);
     });
 
-    it("removeAccount", async () => {
+    it("removeAccount", () => {
         const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const accountToRemoveKey = accountToRemove.generateAccountKey();
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();
-        await mockCache.cacheManager.removeAccount(accountToRemoveKey);
+        mockCache.cacheManager.removeAccount(accountToRemoveKey);
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).toBeNull();
@@ -1749,7 +1738,7 @@ describe("CacheManager.ts test cases", () => {
             extendedExpiresOn: "4600",
         };
 
-        await mockCache.cacheManager.removeAccessToken(
+        mockCache.cacheManager.removeAccessToken(
             CacheHelpers.generateCredentialKey(at),
             RANDOM_TEST_GUID
         );
@@ -1778,7 +1767,7 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        await mockCache.cacheManager.removeAccessToken(
+        mockCache.cacheManager.removeAccessToken(
             CacheHelpers.generateCredentialKey(atWithAuthScheme),
             RANDOM_TEST_GUID
         );
@@ -1810,7 +1799,7 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        await mockCache.cacheManager.removeAccessToken(
+        mockCache.cacheManager.removeAccessToken(
             CacheHelpers.generateCredentialKey(atWithAuthScheme),
             RANDOM_TEST_GUID
         );
@@ -1895,34 +1884,18 @@ describe("CacheManager.ts test cases", () => {
                 forceRefresh: false,
             };
 
-            const mockPerfClient = new MockPerformanceClient();
-            const correlationId = silentFlowRequest.correlationId;
-
-            mockPerfClient.addPerformanceCallback((events) => {
-                expect(events.length).toBe(1);
-                expect(events[0].multiMatchedAT).toEqual(2);
-                done();
-            });
-
-            const measurement = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
-                correlationId
-            );
-
             expect(
                 mockCache.cacheManager.getAccessToken(
                     mockedAccountInfo,
                     silentFlowRequest,
                     undefined,
-                    undefined,
-                    mockPerfClient
+                    undefined
                 )
             ).toBeNull();
             expect(
                 mockCache.cacheManager.getTokenKeys().accessToken.length
             ).toEqual(0);
-
-            measurement.end();
+            done();
         });
     });
 

@@ -104,8 +104,8 @@ export class BrowserCacheManager extends CacheManager {
             clientId,
             cryptoImpl,
             logger,
-            staticAuthorityOptions,
-            performanceClient
+            performanceClient,
+            staticAuthorityOptions
         );
         this.cacheConfig = cacheConfig;
         this.logger = logger;
@@ -401,20 +401,17 @@ export class BrowserCacheManager extends CacheManager {
      * Extends inherited removeAccount function to include removal of the account key from the map
      * @param key
      */
-    async removeAccount(key: string, correlationId: string): Promise<void> {
-        void super.removeAccount(key, correlationId);
-        this.removeAccountKeyFromMap(key, correlationId);
+    removeAccount(key: string, correlationId: string): void {
+        super.removeAccount(key, correlationId);
+        this.removeAccountKeyFromMap(key);
     }
 
     /**
      * Removes credentials associated with the provided account
      * @param account
      */
-    async removeAccountContext(
-        account: AccountEntity,
-        correlationId: string
-    ): Promise<void> {
-        await super.removeAccountContext(account, correlationId);
+    removeAccountContext(account: AccountEntity, correlationId: string): void {
+        super.removeAccountContext(account, correlationId);
 
         /**
          * @deprecated - Remove this in next major version in favor of more consistent LOGOUT event
@@ -444,7 +441,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     removeAccessToken(key: string, correlationId: string): void {
-        void super.removeAccessToken(key, correlationId);
+        super.removeAccessToken(key, correlationId);
         this.removeTokenKey(key, CredentialType.ACCESS_TOKEN, correlationId);
     }
 
@@ -1153,9 +1150,9 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Clears all cache entries created by MSAL.
      */
-    async clear(correlationId: string): Promise<void> {
+    clear(correlationId: string): void {
         // Removes all accounts and their credentials
-        await this.removeAllAccounts(correlationId);
+        this.removeAllAccounts(correlationId);
         this.removeAppMetadata(correlationId);
 
         // Remove temp storage first to make sure any cookies are cleared
@@ -1187,11 +1184,8 @@ export class BrowserCacheManager extends CacheManager {
      * @param correlationId {string} correlation id
      * @returns
      */
-    async clearTokensAndKeysWithClaims(
-        performanceClient: IPerformanceClient,
-        correlationId: string
-    ): Promise<void> {
-        performanceClient.addQueueMeasurement(
+    clearTokensAndKeysWithClaims(correlationId: string): void {
+        this.performanceClient.addQueueMeasurement(
             PerformanceEvents.ClearTokensAndKeysWithClaims,
             correlationId
         );

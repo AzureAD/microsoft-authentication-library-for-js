@@ -17,6 +17,9 @@ import {
 } from "../test_kit/StringConstants.js";
 import { ServerError } from "../../src/error/ServerError.js";
 import { BaseAuthRequest, Logger } from "../../src/index.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
+
+const performanceClient = new StubPerformanceClient();
 
 describe("ThrottlingUtils", () => {
     afterAll(() => {
@@ -41,7 +44,8 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
+                performanceClient
             );
             const removeItemStub = jest
                 .spyOn(cache, "removeItem")
@@ -67,7 +71,8 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
+                performanceClient
             );
             const removeItemStub = jest
                 .spyOn(cache, "removeItem")
@@ -90,7 +95,8 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
+                performanceClient
             );
             const removeItemStub = jest
                 .spyOn(cache, "removeItem")
@@ -117,7 +123,8 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
+                performanceClient
             );
             const setItemStub = jest
                 .spyOn(cache, "setThrottlingCache")
@@ -142,7 +149,8 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
+                performanceClient
             );
             const setItemStub = jest
                 .spyOn(cache, "setThrottlingCache")
@@ -280,7 +288,8 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
-                new Logger({})
+                new Logger({}),
+                performanceClient
             );
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
             const removeItemStub = jest.spyOn(cache, "removeItem");

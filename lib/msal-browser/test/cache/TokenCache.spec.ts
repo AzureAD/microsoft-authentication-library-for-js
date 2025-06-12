@@ -29,6 +29,7 @@ import {
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 import {
     ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
@@ -132,7 +133,7 @@ describe("TokenCache tests", () => {
         });
 
         afterEach(() => {
-            browserStorage.clear();
+            browserStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("loads id token with a request account", async () => {

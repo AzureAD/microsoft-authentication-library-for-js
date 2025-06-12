@@ -44,6 +44,7 @@ import {
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -53,8 +54,6 @@ const networkInterface: INetworkModule = {
         return {} as T;
     },
 };
-const signedJwt =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 const cryptoInterface: ICrypto = mockCrypto;
 
 const testServerTokenResponse = {
@@ -113,7 +112,8 @@ const logger = new Logger(loggerOptions);
 const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     cryptoInterface,
-    logger
+    logger,
+    new StubPerformanceClient()
 );
 
 const testAuthority = new Authority(
@@ -581,7 +581,7 @@ describe("ResponseHandler.ts", () => {
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
-            expect(result.accessToken).toBe(signedJwt);
+            expect(result.accessToken).toBe(TEST_TOKENS.POP_TOKEN);
         });
 
         it("Does not sign access token when PoP kid is set and PoP scheme enabled", async () => {
