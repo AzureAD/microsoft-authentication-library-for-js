@@ -966,7 +966,6 @@ describe("BrowserCacheManager tests", () => {
                         )
                     ).toEqual(testAT4);
                     browserSessionStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient(),
                         "test-correlation-id"
                     );
 
