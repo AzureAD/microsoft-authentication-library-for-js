@@ -12,7 +12,7 @@ If you are coming from MSAL v4, you can follow this guide to update your code to
 
 The `TokenCache` object as well as the `getTokenCache` function in `PublicClientApplication` have been removed from MSAL.js.
 
-The `loadExternalTokens` function now takes in a `Configuration` object and no longer accepts a `TokenCache` object. Read more about `loadExternalTokens` [here](./testing.md).
+The `loadExternalTokens` function now takes in a `Configuration` object and no longer accepts a `TokenCache` object. Read more about `loadExternalTokens` [here](./testing.md#the-loadexternaltokens-api).
 
 ## Configuration changes
 
