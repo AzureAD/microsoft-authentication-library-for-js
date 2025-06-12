@@ -34,8 +34,6 @@ await loadExternalTokens(
 );
 ```
 
-Read more about `loadExternalTokens` [here](./testing.md#the-loadexternaltokens-api).
-
 ## Configuration changes
 
 ### BrowserAuthOptions changes
