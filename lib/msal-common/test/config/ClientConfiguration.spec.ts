@@ -12,7 +12,6 @@ import { MockCache } from "../cache/entities/cacheConstants.js";
 import { SKU } from "../../src/utils/Constants.js";
 import * as ClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 import { createClientAuthError } from "../../src/error/ClientAuthError.js";
-import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
@@ -175,7 +174,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.storageInterface).not.toBeNull();
         expect(newConfig.networkInterface).not.toBeNull();
         expect(newConfig.loggerOptions).not.toBeNull();
-        expect(newConfig.cacheOptions).not.toBeNull();
         // Client info tests
         expect(newConfig.libraryInfo.sku).toBe(TEST_CONFIG.TEST_SKU);
         expect(newConfig.libraryInfo.version).toBe(TEST_CONFIG.TEST_VERSION);

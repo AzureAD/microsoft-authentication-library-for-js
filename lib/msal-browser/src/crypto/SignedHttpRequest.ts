@@ -72,23 +72,7 @@ export class SignedHttpRequest {
      * @param publicKeyThumbprint Public key digest (from generatePublicKeyThumbprint API)
      * @returns If keys are properly deleted
      */
-    async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
-        return this.cryptoOps
-            .removeTokenBindingKey(publicKeyThumbprint)
-            .then(() => true)
-            .catch((error) => {
-                /*
-                 * @deprecated - To maintain public API signature, we return false if the error is due to the key still being present in indexedDB.
-                 */
-                if (
-                    error instanceof ClientAuthError &&
-                    error.errorCode ===
-                        ClientAuthErrorCodes.bindingKeyNotRemoved
-                ) {
-                    return false;
-                }
-
-                throw error;
-            });
+    async removeKeys(publicKeyThumbprint: string): Promise<void> {
+        return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
     }
 }

@@ -33,7 +33,7 @@ import { AuthorityType } from "../../src/authority/AuthorityType.js";
 import { TokenClaims } from "../../src/index.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
-import { StubPerformanceClient } from "../../../src/telemetry/performance/StubPerformanceClient.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const cryptoInterface: ICrypto = mockCrypto;
 

@@ -7186,7 +7186,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .then(() => {
                     // Ensure account is present in the cache before removing it
                     const cacheKey =
-                        AccountEntity.generateAccountCacheKey(accountInfo);
+                        AccountEntityUtils.generateAccountCacheKey(accountInfo);
                     secondBrowserStorageInstance.removeAccount(
                         cacheKey,
                         RANDOM_TEST_GUID

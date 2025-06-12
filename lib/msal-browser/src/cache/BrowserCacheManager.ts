@@ -341,7 +341,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     removeAccessToken(key: string, correlationId: string): void {
         super.removeAccessToken(key, correlationId);
-        this.removeTokenKey(key, CredentialType.ACCESS_TOKEN);
+        this.removeTokenKey(key, Constants.CredentialType.ACCESS_TOKEN);
     }
 
     /**
