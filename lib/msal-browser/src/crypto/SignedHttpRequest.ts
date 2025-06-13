@@ -5,8 +5,6 @@
 
 import { CryptoOps } from "./CryptoOps.js";
 import {
-    ClientAuthError,
-    ClientAuthErrorCodes,
     Logger,
     LoggerOptions,
     PopTokenGenerator,
