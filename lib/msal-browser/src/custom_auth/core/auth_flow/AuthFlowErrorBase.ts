@@ -10,10 +10,8 @@ import {
 import { CustomAuthError } from "../error/CustomAuthError.js";
 import { NoCachedAccountFoundError } from "../error/NoCachedAccountFoundError.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
-import {
-    CustomAuthApiErrorCode,
-    CustomAuthApiSuberror,
-} from "../network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import * as CustomAuthApiErrorCode from "../network_client/custom_auth_api/types/ApiErrorCodes.js";
+import * as CustomAuthApiSuberror from "../network_client/custom_auth_api/types/ApiSuberrors.js";
 /**
  * Base class for all auth flow errors.
  */

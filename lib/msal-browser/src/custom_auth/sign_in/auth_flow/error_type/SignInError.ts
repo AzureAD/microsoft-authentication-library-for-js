@@ -4,7 +4,7 @@
  */
 
 import { AuthActionErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
-import { CustomAuthApiErrorCode } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import * as CustomAuthApiErrorCode from "../../../core/network_client/custom_auth_api/types/ApiErrorCodes.js";
 
 export class SignInError extends AuthActionErrorBase {
     /**

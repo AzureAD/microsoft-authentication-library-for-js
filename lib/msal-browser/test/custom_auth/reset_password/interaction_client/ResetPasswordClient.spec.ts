@@ -17,7 +17,7 @@ import { ResetPasswordClient } from "../../../../src/custom_auth/reset_password/
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { ChallengeType } from "../../../../src/custom_auth/CustomAuthConstants.js";
-import { CustomAuthApiErrorCode } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import * as CustomAuthApiErrorCode from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
 import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
 import {
     ICrypto,

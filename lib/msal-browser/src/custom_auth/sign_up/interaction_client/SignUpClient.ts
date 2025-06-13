@@ -4,10 +4,10 @@
  */
 
 import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
-import { CustomAuthApiErrorCode } from "../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import * as CustomAuthApiErrorCode from "../../core/network_client/custom_auth_api/types/ApiErrorCodes.js";
 import { UnexpectedError } from "../../core/error/UnexpectedError.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
-import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
+import * as PublicApiId from "../../core/telemetry/PublicApiId.js";
 import {
     ChallengeType,
     DefaultCustomAuthApiCodeLength,

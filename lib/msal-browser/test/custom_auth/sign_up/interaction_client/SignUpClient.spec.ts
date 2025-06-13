@@ -10,7 +10,7 @@ import {
     SignUpCodeRequiredResult,
 } from "../../../../src/custom_auth/sign_up/interaction_client/result/SignUpActionResult.js";
 import { CustomAuthApiError } from "../../../../src/custom_auth/index.js";
-import { CustomAuthApiErrorCode } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import * as CustomAuthApiErrorCode from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
 import {
     ICrypto,
     INetworkModule,

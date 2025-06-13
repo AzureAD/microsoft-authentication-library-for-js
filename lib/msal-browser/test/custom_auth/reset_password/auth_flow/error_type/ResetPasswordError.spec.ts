@@ -2,10 +2,8 @@ import {
     CustomAuthApiError,
     RedirectError,
 } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
-import {
-    CustomAuthApiErrorCode,
-    CustomAuthApiSuberror,
-} from "../../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import * as CustomAuthApiErrorCode from "../../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
+import * as CustomAuthApiSuberror from "../../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiSuberrors.js";
 import { InvalidArgumentError } from "../../../../../src/custom_auth/index.js";
 import {
     ResetPasswordError,

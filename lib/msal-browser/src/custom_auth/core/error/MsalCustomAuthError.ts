@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common/browser";
 import { CustomAuthError } from "./CustomAuthError.js";
 
 export class MsalCustomAuthError extends CustomAuthError {
@@ -18,6 +17,6 @@ export class MsalCustomAuthError extends CustomAuthError {
         super(error, errorDescription, correlationId);
         Object.setPrototypeOf(this, MsalCustomAuthError.prototype);
 
-        this.subError = subError || Constants.EMPTY_STRING;
+        this.subError = subError || "";
     }
 }

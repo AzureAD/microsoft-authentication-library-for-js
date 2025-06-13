@@ -9,10 +9,7 @@ import {
     HttpHeaderKeys,
 } from "../../../CustomAuthConstants.js";
 import { IHttpClient } from "../http_client/IHttpClient.js";
-import {
-    ApiErrorResponse,
-    CustomAuthApiErrorCode,
-} from "./types/ApiErrorResponseTypes.js";
+import * as CustomAuthApiErrorCode from "./types/ApiErrorCodes.js";
 import { buildUrl, parseUrl } from "../../utils/UrlUtils.js";
 import {
     CustomAuthApiError,
@@ -22,6 +19,7 @@ import {
     AADServerParamKeys,
     ServerTelemetryManager,
 } from "@azure/msal-common/browser";
+import { ApiErrorResponse } from "./types/ApiErrorResponseTypes.js";
 
 export abstract class BaseApiClient {
     private readonly baseRequestUrl: URL;

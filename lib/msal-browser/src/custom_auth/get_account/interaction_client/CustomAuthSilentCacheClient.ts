@@ -5,7 +5,7 @@
 
 import { CustomAuthAuthority } from "../../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
-import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
+import * as PublicApiId from "../../core/telemetry/PublicApiId.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import {
     AccountInfo,

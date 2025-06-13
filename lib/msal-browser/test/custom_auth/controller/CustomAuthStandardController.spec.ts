@@ -16,10 +16,8 @@ import {
     RedirectError,
 } from "../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { SignUpResult } from "../../../src/custom_auth/sign_up/auth_flow/result/SignUpResult.js";
-import {
-    CustomAuthApiErrorCode,
-    CustomAuthApiSuberror,
-} from "../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import * as CustomAuthApiErrorCode from "../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
+import * as CustomAuthApiSuberror from "../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiSuberrors.js";
 import { ResetPasswordError } from "../../../src/custom_auth/reset_password/auth_flow/error_type/ResetPasswordError.js";
 import { ResetPasswordCodeRequiredState } from "../../../src/custom_auth/reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
 import { ResetPasswordStartResult } from "../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
