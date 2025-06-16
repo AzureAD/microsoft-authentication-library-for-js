@@ -86,6 +86,7 @@ export {
     EventCallbackFunction,
     EventMessageUtils,
     PopupEvent,
+    BrokerConnectionEvent,
 } from "./event/EventMessage.js";
 export { EventType } from "./event/EventType.js";
 export { EventHandler } from "./event/EventHandler.js";
@@ -160,3 +161,5 @@ export {
 } from "@azure/msal-common/browser";
 
 export { version } from "./packageMetadata.js";
+
+export { isPlatformBrokerAvailable } from "./broker/nativeBroker/PlatformAuthProvider.js";

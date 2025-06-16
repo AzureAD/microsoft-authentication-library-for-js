@@ -12,11 +12,14 @@ import {
     ICrypto,
     LogLevel,
     Logger,
+    createClientAuthError,
 } from "@azure/msal-common";
 import {
     AuthenticationScheme,
+    AuthError,
     BrowserCacheLocation,
     CacheLookupPolicy,
+    ClientAuthErrorCodes,
     Configuration,
     IPublicClientApplication,
     SilentRequest,
@@ -31,6 +34,7 @@ import {
 import { IBridgeProxy } from "../../src/naa/IBridgeProxy.js";
 import MockBridge from "../naa/MockBridge.js";
 import {
+    BRIDGE_ERROR_PERSISTENT_ERROR_CLIENT,
     INIT_CONTEXT_RESPONSE,
     NAA_APP_CONSTANTS,
     NAA_AUTHORITY,
@@ -45,6 +49,7 @@ import BridgeProxy from "../../src/naa/BridgeProxy.js";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import exp from "constants";
+import { TestTimeUtils } from "msal-test-utils";
 
 function stubProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";
@@ -153,7 +158,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(Date.now() + 3600000),
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
                 state: "test-state",
@@ -312,6 +317,69 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             );
             const response = await pca.acquireTokenSilent(testRequest);
             expect(response.accessToken).toEqual(testResponse.accessToken);
+        });
+
+        it("acquireTokenSilent handles NAA BridgeError and throws MSAL error", async () => {
+            mockBridge.addErrorResponse(
+                "GetToken",
+                BRIDGE_ERROR_PERSISTENT_ERROR_CLIENT
+            );
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            await expect(() =>
+                pca.acquireTokenSilent(testRequest)
+            ).rejects.toBeInstanceOf(AuthError);
+        });
+
+        it("acquireTokenSilent rethrows MSAL errors", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+            jest.spyOn(
+                NestedAppAuthAdapter.prototype as any,
+                "fromNaaTokenResponse"
+            ).mockImplementation(() => {
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.nullOrEmptyToken
+                );
+            });
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            await expect(() =>
+                pca.acquireTokenSilent(testRequest)
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+            );
+        });
+
+        it("acquireTokenSilent throws ClientAuthError if access token is empty", async () => {
+            mockBridge.addAuthResultResponse("GetToken", {
+                ...SILENT_TOKEN_RESPONSE,
+                token: {
+                    ...SILENT_TOKEN_RESPONSE.token,
+                    access_token: "",
+                },
+            });
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            await expect(() =>
+                pca.acquireTokenSilent(testRequest)
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+            );
         });
 
         afterEach(() => {

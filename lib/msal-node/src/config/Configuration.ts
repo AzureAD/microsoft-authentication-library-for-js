@@ -20,13 +20,6 @@ import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
-import {
-    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
-    MANAGED_IDENTITY_MAX_RETRIES,
-    MANAGED_IDENTITY_RETRY_DELAY,
-} from "../utils/Constants.js";
-import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
-import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 
 /**
@@ -38,6 +31,7 @@ import { NodeAuthError } from "../error/NodeAuthError.js";
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 or SHA-256 thumbprint of the certificate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
+ * - encodeExtraQueryParams - A flag to choose whether to encode extra query parameters in the request URL. Defaults to false.
  * @public
  */
 export type NodeAuthOptions = {
@@ -62,6 +56,10 @@ export type NodeAuthOptions = {
     protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
+    /**
+     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
+     */
+    encodeExtraQueryParams?: boolean;
 };
 
 /**
@@ -136,6 +134,7 @@ export type ManagedIdentityIdParams = {
 
 /** @public */
 export type ManagedIdentityConfiguration = {
+    clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
@@ -161,6 +160,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         tenant: Constants.EMPTY_STRING,
     },
     skipAuthorityMetadataCache: false,
+    encodeExtraQueryParams: false,
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {
@@ -247,6 +247,8 @@ export function buildAppConfiguration({
 
 /** @internal */
 export type ManagedIdentityNodeConfiguration = {
+    clientCapabilities?: Array<string>;
+    disableInternalRetries: boolean;
     managedIdentityId: ManagedIdentityId;
     system: Required<
         Pick<NodeSystemOptions, "loggerOptions" | "networkClient">
@@ -254,6 +256,7 @@ export type ManagedIdentityNodeConfiguration = {
 };
 
 export function buildManagedIdentityConfiguration({
+    clientCapabilities,
     managedIdentityIdParams,
     system,
 }: ManagedIdentityConfiguration): ManagedIdentityNodeConfiguration {
@@ -276,24 +279,13 @@ export function buildManagedIdentityConfiguration({
         );
     }
 
-    // wrap the network client with a retry policy if the developer has not disabled the option to do so
-    if (!system?.disableInternalRetries) {
-        const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
-            MANAGED_IDENTITY_MAX_RETRIES,
-            MANAGED_IDENTITY_RETRY_DELAY,
-            MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
-        );
-        networkClient = new HttpClientWithRetries(
-            networkClient,
-            linearRetryPolicy
-        );
-    }
-
     return {
+        clientCapabilities: clientCapabilities || [],
         managedIdentityId: managedIdentityId,
         system: {
             loggerOptions,
             networkClient,
         },
+        disableInternalRetries: system?.disableInternalRetries || false,
     };
 }

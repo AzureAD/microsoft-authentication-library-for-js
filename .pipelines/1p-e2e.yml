@@ -42,7 +42,7 @@ extends:
             policheck:
                 break: true
         stages:
-            - stage: e2e_tests
+            - stage: e2e_test
               displayName: "E2E Tests"
               variables:
                   Codeql.Enabled: true

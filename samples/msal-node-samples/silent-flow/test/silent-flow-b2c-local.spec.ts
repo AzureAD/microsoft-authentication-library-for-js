@@ -12,7 +12,6 @@ import {
     ONE_SECOND_IN_MS,
     RETRY_TIMES,
     clickSignIn,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
@@ -23,6 +22,8 @@ import {
     UserTypes,
 } from "e2e-test-utils";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
+import path from "path";
+
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/b2c-local.cache.json`;
 // Get flow-specific routes from sample application
@@ -44,7 +45,9 @@ describe("Silent Flow B2C Tests", () => {
     let server: any;
     let username: string;
     let accountPwd: string;
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/b2c/local-account`;
+
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/b2c-local");
+
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
@@ -52,7 +55,9 @@ describe("Silent Flow B2C Tests", () => {
         // To run tests in parallel, each test needs to run on a unique port
         port = 3007;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+
+        createFolder(screenshotFolder);
+
         const labApiParms: LabApiQueryParams = {
             userType: UserTypes.B2C,
             b2cProvider: B2cProviders.LOCAL,

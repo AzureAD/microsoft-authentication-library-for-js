@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.5.2",
+  "version": "1.5.14",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -64,8 +64,8 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "15.0.2",
-    "@azure/msal-node-runtime": "^0.17.1",
+    "@azure/msal-common": "15.7.0",
+    "@azure/msal-node-runtime": "^0.18.1",
     "keytar": "^7.8.0"
   },
   "devDependencies": {
@@ -75,6 +75,8 @@
     "@types/node": "^20.3.1",
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
+    "msal-test-utils": "file:../../shared-test-utils",
     "node-addon-api": "^6.1.0",
     "rollup": "^4.22.4",
     "rollup-msal": "file:../../shared-configs/rollup-msal",

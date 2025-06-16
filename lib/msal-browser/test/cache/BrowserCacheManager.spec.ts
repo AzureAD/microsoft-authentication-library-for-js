@@ -16,9 +16,7 @@ import {
 import { CacheOptions } from "../../src/config/Configuration.js";
 import {
     Constants,
-    PersistentCacheKeys,
     CommonAuthorizationCodeRequest as AuthorizationCodeRequest,
-    ProtocolUtils,
     Logger,
     LogLevel,
     AuthenticationScheme,
@@ -35,20 +33,24 @@ import {
     CacheManager,
     PerformanceEvent,
     StubPerformanceClient,
+    CommonAuthorizationUrlRequest,
+    ResponseMode,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
-    InteractionType,
+    INTERACTION_TYPE,
+    StaticCacheKeys,
     TemporaryCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils.js";
 import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { CookieStorage } from "../../src/cache/CookieStorage.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
+import { version } from "../../src/packageMetadata.js";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -87,7 +89,8 @@ describe("BrowserCacheManager tests", () => {
                 { ...cacheConfig, cacheLocation: "notALocation" },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             // @ts-ignore
             cacheManager.browserStorage.setItem("key", "value");
@@ -106,7 +109,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             // @ts-ignore
             sessionCache.browserStorage.setItem("key", "value");
@@ -124,12 +128,92 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             // @ts-ignore
             localCache.browserStorage.setItem("key", "value");
             // @ts-ignore
             expect(localCache.browserStorage.getItem("key")).toBe("value");
+        });
+    });
+
+    describe("initialize", () => {
+        it("sets MSAL version in localStorage if not already set", async () => {
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(window.localStorage.getItem(StaticCacheKeys.VERSION)).toBe(
+                version
+            );
+        });
+
+        it("sets MSAL version in localStorage if previous version doesn't match", async () => {
+            window.localStorage.setItem(StaticCacheKeys.VERSION, "1.0.0");
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(window.localStorage.getItem(StaticCacheKeys.VERSION)).toBe(
+                version
+            );
+        });
+
+        it("does not set MSAL version in localStorage if existing version already matches", async () => {
+            // First make sure the version gets set
+            const browserCacheManager1 = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await browserCacheManager1.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(window.localStorage.getItem(StaticCacheKeys.VERSION)).toBe(
+                version
+            );
+
+            const setSpy = jest.spyOn(Storage.prototype, "setItem");
+            const browserCacheManager2 = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await browserCacheManager2.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(window.localStorage.getItem(StaticCacheKeys.VERSION)).toBe(
+                version
+            );
+            expect(setSpy).not.toHaveBeenCalledWith(
+                StaticCacheKeys.VERSION,
+                expect.anything()
+            );
         });
     });
 
@@ -146,7 +230,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             authority = new Authority(
@@ -174,7 +259,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             cacheVal = "cacheVal";
@@ -183,8 +269,8 @@ describe("BrowserCacheManager tests", () => {
         });
 
         afterEach(async () => {
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("setTemporaryCache", () => {
@@ -206,7 +292,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
                 testTempItemValue
@@ -241,16 +328,17 @@ describe("BrowserCacheManager tests", () => {
             expect(browserLocalStorage.getKeys()).toEqual([
                 "msal.account.keys",
                 `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                StaticCacheKeys.VERSION,
                 msalCacheKey,
                 msalCacheKey2,
             ]);
         });
 
-        it("clear()", async () => {
+        it("clear()", () => {
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
         });
@@ -891,11 +979,9 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(testAT4);
 
                     browserSessionStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient(),
                         "test-correlation-id"
                     );
                     browserLocalStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient(),
                         "test-correlation-id"
                     );
 
@@ -1278,8 +1364,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
 
-                    await browserSessionStorage.clear();
-                    await browserLocalStorage.clear();
+                    browserSessionStorage.clear(RANDOM_TEST_GUID);
+                    browserLocalStorage.clear(RANDOM_TEST_GUID);
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
                     ).toBeNull();
@@ -1396,7 +1482,8 @@ describe("BrowserCacheManager tests", () => {
                         cacheConfig,
                         browserCrypto,
                         logger,
-                        perfClient
+                        perfClient,
+                        new EventHandler()
                     );
 
                     jest.spyOn(
@@ -1457,6 +1544,90 @@ describe("BrowserCacheManager tests", () => {
                         );
                 });
             });
+
+            describe("interactionInProgress", () => {
+                it("handles new format", () => {
+                    const perfClient = new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    });
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    cacheManager.setInteractionInProgress(true);
+                    expect(
+                        cacheManager.getInteractionInProgress()?.clientId
+                    ).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(
+                        cacheManager.getInteractionInProgress()?.type
+                    ).toEqual(INTERACTION_TYPE.SIGNIN);
+                });
+
+                it("handles old format", () => {
+                    const perfClient = new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    });
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    cacheManager.setTemporaryCache(
+                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                        TEST_CONFIG.MSAL_CLIENT_ID
+                    );
+                    expect(cacheManager.getInteractionInProgress()).toBeNull();
+                });
+
+                it("handles old format and removes temporary artifacts", () => {
+                    const perfClient = new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    });
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    cacheManager.setTemporaryCache(
+                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                        TEST_CONFIG.MSAL_CLIENT_ID
+                    );
+                    // @ts-ignore
+                    const requestParamKey = cacheManager.generateCacheKey(
+                        TemporaryCacheKeys.REQUEST_PARAMS
+                    );
+                    const requestParamPayload = JSON.stringify({
+                        correlationId: "test-correlation-id",
+                    });
+                    cacheManager.setTemporaryCache(
+                        requestParamKey,
+                        requestParamPayload
+                    );
+                    expect(cacheManager.getInteractionInProgress()).toBeNull();
+                    expect(
+                        cacheManager.getTemporaryCache(requestParamKey)
+                    ).toBeNull();
+                });
+            });
         });
     });
 
@@ -1473,7 +1644,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             authority = new Authority(
                 TEST_CONFIG.validAuthority,
@@ -1501,7 +1673,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
@@ -1511,8 +1684,8 @@ describe("BrowserCacheManager tests", () => {
         });
 
         afterEach(async () => {
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("setTemporaryCache", () => {
@@ -1534,7 +1707,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
                 testTempItemValue
@@ -1556,11 +1730,11 @@ describe("BrowserCacheManager tests", () => {
             ).toBeNull();
         });
 
-        it("clear()", async () => {
+        it("clear()", () => {
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
         });
@@ -2267,7 +2441,7 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(expect.arrayContaining([key]));
                 });
 
-                it("clear() removes AuthorityMetadataEntity from in-memory storage", async () => {
+                it("clear() removes AuthorityMetadataEntity from in-memory storage", () => {
                     browserSessionStorage.setAuthorityMetadata(key, testObj);
                     browserLocalStorage.setAuthorityMetadata(key, testObj);
 
@@ -2284,8 +2458,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
 
-                    await browserSessionStorage.clear();
-                    await browserLocalStorage.clear();
+                    browserSessionStorage.clear(RANDOM_TEST_GUID);
+                    browserLocalStorage.clear(RANDOM_TEST_GUID);
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
                     ).toBeNull();
@@ -2382,7 +2556,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             browserLocalStorage = new BrowserCacheManager(
@@ -2394,7 +2569,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             browserMemoryStorage = new BrowserCacheManager(
@@ -2406,16 +2582,17 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserMemoryStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
 
-        afterEach(async () => {
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+        afterEach(() => {
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("setTempCache()", () => {
@@ -2524,11 +2701,11 @@ describe("BrowserCacheManager tests", () => {
             expect(clearCookieSpy).toHaveBeenCalledTimes(3);
         });
 
-        it("clear()", async () => {
+        it("clear()", () => {
             // sessionStorage
             browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserSessionStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2536,7 +2713,7 @@ describe("BrowserCacheManager tests", () => {
             // localStorage
             browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserLocalStorage.clear();
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2544,7 +2721,7 @@ describe("BrowserCacheManager tests", () => {
             // browser memory
             browserMemoryStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserMemoryStorage.clear();
+            browserMemoryStorage.clear(RANDOM_TEST_GUID);
             expect(browserMemoryStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2646,12 +2823,12 @@ describe("BrowserCacheManager tests", () => {
             expect(clearCookieSpy).toHaveBeenCalledTimes(3);
         });
 
-        it("clear() with item that contains ==", async () => {
+        it("clear() with item that contains ==", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
             // sessionStorage
             browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserSessionStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2659,7 +2836,7 @@ describe("BrowserCacheManager tests", () => {
             // localStorage
             browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserLocalStorage.clear();
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2667,7 +2844,7 @@ describe("BrowserCacheManager tests", () => {
             // browser memory
             browserMemoryStorage.setTemporaryCache(msalCacheKey, cacheVal);
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
-            await browserMemoryStorage.clear();
+            browserMemoryStorage.clear(RANDOM_TEST_GUID);
             expect(browserMemoryStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).not.toContain(
                 `${msalCacheKey}=${cacheVal}`
@@ -2676,124 +2853,37 @@ describe("BrowserCacheManager tests", () => {
     });
 
     describe("Helpers", () => {
-        it("generateAuthorityKey() creates a valid cache key for authority strings", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient()
-            );
-            const authorityKey = browserStorage.generateAuthorityKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            expect(authorityKey).toBe(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${RANDOM_TEST_GUID}`
-            );
-        });
-
-        it("generateNonceKey() create a valid cache key for nonce strings", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient()
-            );
-            const nonceKey = browserStorage.generateNonceKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            expect(nonceKey).toBe(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${RANDOM_TEST_GUID}`
-            );
-        });
-
-        it("updateCacheEntries() correctly updates the authority, state and nonce in the cache", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient()
-            );
-            const testNonce = "testNonce";
-            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            ProtocolUtils.parseRequestState(browserCrypto, stateString)
-                .libraryState.id;
-            browserStorage.updateCacheEntries(
-                stateString,
-                testNonce,
-                `${Constants.DEFAULT_AUTHORITY}/`,
-                "",
-                null
-            );
-
-            const stateKey = browserStorage.generateStateKey(stateString);
-            const nonceKey = browserStorage.generateNonceKey(stateString);
-            const authorityKey =
-                browserStorage.generateAuthorityKey(stateString);
-
-            expect(window.sessionStorage[`${stateKey}`]).toBe(stateString);
-            expect(window.sessionStorage[`${nonceKey}`]).toBe(testNonce);
-            expect(window.sessionStorage[`${authorityKey}`]).toBe(
-                `${Constants.DEFAULT_AUTHORITY}/`
-            );
-        });
-
         it("resetTempCacheItems() resets all temporary cache items with the given state", () => {
-            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
-            browserStorage.updateCacheEntries(
-                stateString,
-                "nonce",
-                `${TEST_URIS.DEFAULT_INSTANCE}/`,
-                "",
-                null
-            );
+            const requestParamsKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`;
             window.sessionStorage.setItem(
-                TemporaryCacheKeys.REQUEST_PARAMS,
+                requestParamsKey,
                 "TestRequestParams"
             );
+            const originUriKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
             window.sessionStorage.setItem(
-                TemporaryCacheKeys.ORIGIN_URI,
+                originUriKey,
                 TEST_URIS.TEST_REDIR_URI
             );
 
-            browserStorage.resetRequestCache(stateString);
-            const nonceKey = browserStorage.generateNonceKey(stateString);
-            const authorityKey =
-                browserStorage.generateAuthorityKey(stateString);
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${nonceKey}`
-                ]
-            ).toBeUndefined();
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${authorityKey}`
-                ]
-            ).toBeUndefined();
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`
-                ]
-            ).toBeUndefined();
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`
-                ]
-            ).toBeUndefined();
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
-                ]
-            ).toBeUndefined();
+            expect(window.sessionStorage[requestParamsKey]).toBe(
+                "TestRequestParams"
+            );
+            expect(window.sessionStorage[originUriKey]).toBe(
+                TEST_URIS.TEST_REDIR_URI
+            );
+
+            browserStorage.resetRequestCache();
+
+            expect(window.sessionStorage[requestParamsKey]).toBeUndefined();
+            expect(window.sessionStorage[originUriKey]).toBeUndefined();
         });
 
         it("Successfully retrieves and decodes response from cache", async () => {
@@ -2802,29 +2892,29 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
-            const tokenRequest: AuthorizationCodeRequest = {
+            const tokenRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
-                code: "thisIsAnAuthCode",
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`,
                 authenticationScheme: AuthenticationScheme.BEARER,
+                responseMode: ResponseMode.FRAGMENT,
+                state: TEST_CONFIG.STATE,
+                nonce: RANDOM_TEST_GUID,
             };
 
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.REQUEST_PARAMS,
-                browserCrypto.base64Encode(JSON.stringify(tokenRequest)),
-                true
+            browserStorage.cacheAuthorizeRequest(
+                tokenRequest,
+                TEST_CONFIG.TEST_VERIFIER
             );
 
-            const cachedRequest =
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID);
+            const [cachedRequest, codeVerifier] =
+                browserStorage.getCachedRequest();
             expect(cachedRequest).toEqual(tokenRequest);
-
-            // expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+            expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
         });
 
         it("Throws error if request cannot be retrieved from cache", async () => {
@@ -2833,13 +2923,11 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
-            // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
-            expect(() =>
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
-            ).toThrowError(
+            expect(() => browserStorage.getCachedRequest()).toThrowError(
                 BrowserAuthErrorMessage.noTokenRequestCacheError.desc
             );
         });
@@ -2856,7 +2944,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
@@ -2873,149 +2962,9 @@ describe("BrowserCacheManager tests", () => {
                 stringifiedRequest.substring(0, stringifiedRequest.length / 2),
                 true
             );
-            expect(() =>
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
-            ).toThrowError(
+            expect(() => browserStorage.getCachedRequest()).toThrowError(
                 BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.desc
             );
-        });
-
-        it("Uses authority from cache if not present in cached request", async () => {
-            let dbStorage = {};
-            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
-                async (): Promise<void> => {
-                    dbStorage = {};
-                }
-            );
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient()
-            );
-            // Set up cache
-            const authorityKey = browserStorage.generateAuthorityKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
-            window.sessionStorage.setItem(authorityKey, alternateAuthority);
-
-            const cachedRequest: AuthorizationCodeRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                code: "thisIsACode",
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                correlationId: RANDOM_TEST_GUID,
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-                authority: "",
-                authenticationScheme: AuthenticationScheme.BEARER,
-            };
-            const stringifiedRequest = browserCrypto.base64Encode(
-                JSON.stringify(cachedRequest)
-            );
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.REQUEST_PARAMS,
-                stringifiedRequest,
-                true
-            );
-
-            // Perform test
-            const tokenRequest = browserStorage.getCachedRequest(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            expect(tokenRequest.authority).toBe(alternateAuthority);
-        });
-
-        it("cleanRequestByInteractionType() returns early if state is not present", () => {
-            let dbStorage = {};
-            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
-                async (): Promise<void> => {
-                    dbStorage = {};
-                }
-            );
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient()
-            );
-
-            const cacheKey = "cacheKey";
-            const cacheValue = "cacheValue";
-            browserStorage.setTemporaryCache(cacheKey, cacheValue, true);
-            browserStorage.cleanRequestByInteractionType(
-                InteractionType.Redirect
-            );
-            expect(browserStorage.getTemporaryCache(cacheKey, true)).toBe(
-                cacheValue
-            );
-            browserStorage.clear();
-        });
-
-        it("cleanRequestByInteractionType() cleans cache", () => {
-            let dbStorage = {};
-            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
-                async (): Promise<void> => {
-                    dbStorage = {};
-                }
-            );
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient()
-            );
-
-            const browserState: BrowserStateObject = {
-                interactionType: InteractionType.Redirect,
-            };
-
-            jest.spyOn(CryptoOps.prototype, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
-            );
-            const state = ProtocolUtils.setRequestState(
-                browserCrypto,
-                undefined,
-                browserState
-            );
-            const cacheKey = `cacheKey.${state}`;
-            const cacheValue = "cacheValue";
-            browserStorage.setTemporaryCache(cacheKey, cacheValue, true);
-            browserStorage.setTemporaryCache(
-                `${TemporaryCacheKeys.REQUEST_STATE}.${RANDOM_TEST_GUID}`,
-                state,
-                true
-            );
-            browserStorage.cleanRequestByInteractionType(
-                InteractionType.Redirect
-            );
-            expect(browserStorage.getKeys()).toHaveLength(0);
-        });
-        it("cleanRequestByInteractionType() interaction status even no request is in progress", () => {
-            let dbStorage = {};
-            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
-                async (): Promise<void> => {
-                    dbStorage = {};
-                }
-            );
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                {
-                    ...cacheConfig,
-                    storeAuthStateInCookie: true,
-                },
-                browserCrypto,
-                logger,
-                new StubPerformanceClient()
-            );
-
-            browserStorage.setInteractionInProgress(true);
-            browserStorage.cleanRequestByInteractionType(
-                InteractionType.Redirect
-            );
-            expect(browserStorage.getInteractionInProgress()).toBeFalsy();
         });
 
         it("addTokenKey adds credential to key map and removeTokenKey removes the given credential from the key map", () => {
@@ -3026,7 +2975,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
 
             expect(browserStorage.getTokenKeys()).toStrictEqual({

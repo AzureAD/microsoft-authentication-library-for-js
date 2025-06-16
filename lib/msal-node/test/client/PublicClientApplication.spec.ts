@@ -21,7 +21,7 @@ import {
     Logger,
     LogLevel,
     AccountInfo,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
     InteractionRequiredAuthError,
     AccountEntity,
     AuthToken,
@@ -61,7 +61,7 @@ import * as msalNode from "../../src/index.js";
 import { setupServerTelemetryManagerMock } from "./test-fixtures.js";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils.js";
 
-import { version, name } from "../../package.json";
+import { version, name } from "../../src/packageMetadata.js";
 import { MockNativeBrokerPlugin } from "../utils/MockNativeBrokerPlugin.js";
 import { SignOutRequest } from "../../src/request/SignOutRequest.js";
 import { LoopbackClient } from "../../src/network/LoopbackClient.js";
@@ -80,6 +80,8 @@ import { Constants } from "../../src/utils/Constants.js";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -652,11 +654,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 redirectUri = req.redirectUri;
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             jest.spyOn(
@@ -724,11 +726,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 redirectUri = req.redirectUri;
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             jest.spyOn(
@@ -760,18 +762,16 @@ describe("PublicClientApplication", () => {
                 return Promise.resolve();
             };
 
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+            const testServerCodeResponse: AuthorizeResponse = {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
             };
 
             const mockListenForAuthCode = jest.fn(() => {
-                return new Promise<ServerAuthorizationCodeResponse>(
-                    (resolve) => {
-                        resolve(testServerCodeResponse);
-                    }
-                );
+                return new Promise<AuthorizeResponse>((resolve) => {
+                    resolve(testServerCodeResponse);
+                });
             });
             const mockGetRedirectUri = jest.fn(
                 () => TEST_CONSTANTS.REDIRECT_URI
@@ -800,11 +800,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             jest.spyOn(
@@ -913,7 +913,7 @@ describe("PublicClientApplication", () => {
                 return Promise.reject("Browser open error");
             };
 
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+            const testServerCodeResponse: AuthorizeResponse = {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
@@ -923,11 +923,9 @@ describe("PublicClientApplication", () => {
                 LoopbackClient.prototype,
                 "listenForAuthCode"
             ).mockImplementation(() => {
-                return new Promise<ServerAuthorizationCodeResponse>(
-                    (resolve) => {
-                        resolve(testServerCodeResponse);
-                    }
-                );
+                return new Promise<AuthorizeResponse>((resolve) => {
+                    resolve(testServerCodeResponse);
+                });
             });
             jest.spyOn(
                 LoopbackClient.prototype,
@@ -953,11 +951,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             authApp.acquireTokenInteractive(request).catch((e) => {
@@ -1018,11 +1016,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             authApp.acquireTokenInteractive(request).catch((e) => {
@@ -1054,7 +1052,8 @@ describe("PublicClientApplication", () => {
                     new MockStorageClass(
                         TEST_CONFIG.MSAL_CLIENT_ID,
                         cryptoProvider,
-                        new Logger({})
+                        new Logger({}),
+                        new StubPerformanceClient()
                     ),
                     {
                         protocolMode: ProtocolMode.AAD,

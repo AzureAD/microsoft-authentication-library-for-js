@@ -8,6 +8,7 @@ import {
     AccountInfo,
     IPublicClientApplication,
     AccountEntity,
+    InteractionStatus,
 } from "@azure/msal-browser";
 import { useMsal } from "./useMsal.js";
 import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
@@ -42,26 +43,32 @@ export function useAccount(
 ): AccountInfo | null {
     const { instance, inProgress, logger } = useMsal();
 
-    const [account, setAccount] = useState<AccountInfo | null>(() =>
-        getAccount(instance, accountIdentifiers)
-    );
+    const [account, setAccount] = useState<AccountInfo | null>(() => {
+        if (inProgress === InteractionStatus.Startup) {
+            return null;
+        } else {
+            return getAccount(instance, accountIdentifiers);
+        }
+    });
 
     useEffect(() => {
-        setAccount((currentAccount: AccountInfo | null) => {
-            const nextAccount = getAccount(instance, accountIdentifiers);
-            if (
-                !AccountEntity.accountInfoIsEqual(
-                    currentAccount,
-                    nextAccount,
-                    true
-                )
-            ) {
-                logger.info("useAccount - Updating account");
-                return nextAccount;
-            }
+        if (inProgress !== InteractionStatus.Startup) {
+            setAccount((currentAccount: AccountInfo | null) => {
+                const nextAccount = getAccount(instance, accountIdentifiers);
+                if (
+                    !AccountEntity.accountInfoIsEqual(
+                        currentAccount,
+                        nextAccount,
+                        true
+                    )
+                ) {
+                    logger.info("useAccount - Updating account");
+                    return nextAccount;
+                }
 
-            return currentAccount;
-        });
+                return currentAccount;
+            });
+        }
     }, [inProgress, accountIdentifiers, instance, logger]);
 
     return account;

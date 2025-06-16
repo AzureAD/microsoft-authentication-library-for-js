@@ -25,6 +25,7 @@ import {
 import { Deserializer } from "./serializer/Deserializer.js";
 import { Serializer } from "./serializer/Serializer.js";
 import { ITokenCache } from "./ITokenCache.js";
+import { GuidGenerator } from "../crypto/GuidGenerator.js";
 
 const defaultSerializedCache: JsonCache = {
     Account: {},
@@ -191,7 +192,10 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * API to remove a specific account and the relevant data from cache
      * @param account - AccountInfo passed by the user
      */
-    async removeAccount(account: AccountInfo): Promise<void> {
+    async removeAccount(
+        account: AccountInfo,
+        correlationId?: string
+    ): Promise<void> {
         this.logger.trace("removeAccount called");
         let cacheContext;
         try {
@@ -199,8 +203,9 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 cacheContext = new TokenCacheContext(this, true);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
-            await this.storage.removeAccount(
-                AccountEntity.generateAccountCacheKey(account)
+            this.storage.removeAccount(
+                AccountEntity.generateAccountCacheKey(account),
+                correlationId || new GuidGenerator().generateGuid()
             );
         } finally {
             if (this.persistence && cacheContext) {

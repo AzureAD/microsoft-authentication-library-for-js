@@ -11,7 +11,8 @@ import { BaseClient } from "./BaseClient.js";
 import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest.js";
 import { Authority } from "../authority/Authority.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder.js";
+import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
+import * as UrlUtils from "../utils/UrlUtils.js";
 import {
     GrantType,
     AuthenticationScheme,
@@ -23,7 +24,6 @@ import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { StringUtils } from "../utils/StringUtils.js";
-import { RequestThumbprint } from "../network/RequestThumbprint.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -50,6 +50,7 @@ import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
 import { generateCredentialKey } from "../cache/utils/CacheHelpers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
+import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 
@@ -230,6 +231,10 @@ export class RefreshTokenClient extends BaseClient {
                     DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
             )
         ) {
+            this.performanceClient?.addFields(
+                { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                request.correlationId
+            );
             throw createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.refreshTokenExpired
             );
@@ -256,16 +261,21 @@ export class RefreshTokenClient extends BaseClient {
                 request.correlationId
             )(refreshTokenRequest);
         } catch (e) {
-            if (
-                e instanceof InteractionRequiredAuthError &&
-                e.subError === InteractionRequiredAuthErrorCodes.badToken
-            ) {
-                // Remove bad refresh token from cache
-                this.logger.verbose(
-                    "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+            if (e instanceof InteractionRequiredAuthError) {
+                this.performanceClient?.addFields(
+                    { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                    request.correlationId
                 );
-                const badRefreshTokenKey = generateCredentialKey(refreshToken);
-                this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+
+                if (e.subError === InteractionRequiredAuthErrorCodes.badToken) {
+                    // Remove bad refresh token from cache
+                    this.logger.verbose(
+                        "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+                    );
+                    const badRefreshTokenKey =
+                        generateCredentialKey(refreshToken);
+                    this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+                }
             }
 
             throw e;
@@ -302,19 +312,11 @@ export class RefreshTokenClient extends BaseClient {
         const headers: Record<string, string> = this.createTokenRequestHeaders(
             request.ccsCredential
         );
-        const thumbprint: RequestThumbprint = {
-            clientId:
-                request.tokenBodyParameters?.clientId ||
-                this.config.authOptions.clientId,
-            authority: authority.canonicalAuthority,
-            scopes: request.scopes,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-        };
+
+        const thumbprint = getRequestThumbprint(
+            this.config.authOptions.clientId,
+            request
+        );
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),
@@ -344,46 +346,61 @@ export class RefreshTokenClient extends BaseClient {
             request.correlationId
         );
 
-        const correlationId = request.correlationId;
-        const parameterBuilder = new RequestParameterBuilder(
-            correlationId,
-            this.performanceClient
-        );
+        const parameters = new Map<string, string>();
 
-        parameterBuilder.addClientId(
+        RequestParameterBuilder.addClientId(
+            parameters,
             request.embeddedClientId ||
                 request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
 
         if (request.redirectUri) {
-            parameterBuilder.addRedirectUri(request.redirectUri);
+            RequestParameterBuilder.addRedirectUri(
+                parameters,
+                request.redirectUri
+            );
         }
 
-        parameterBuilder.addScopes(
+        RequestParameterBuilder.addScopes(
+            parameters,
             request.scopes,
             true,
             this.config.authOptions.authority.options.OIDCOptions?.defaultScopes
         );
 
-        parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            GrantType.REFRESH_TOKEN_GRANT
+        );
 
-        parameterBuilder.addClientInfo();
+        RequestParameterBuilder.addClientInfo(parameters);
 
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(
+        RequestParameterBuilder.addLibraryInfo(
+            parameters,
+            this.config.libraryInfo
+        );
+        RequestParameterBuilder.addApplicationTelemetry(
+            parameters,
             this.config.telemetry.application
         );
-        parameterBuilder.addThrottling();
+        RequestParameterBuilder.addThrottling(parameters);
 
         if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
         }
 
-        parameterBuilder.addRefreshToken(request.refreshToken);
+        RequestParameterBuilder.addRefreshToken(
+            parameters,
+            request.refreshToken
+        );
 
         if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(
+            RequestParameterBuilder.addClientSecret(
+                parameters,
                 this.config.clientCredentials.clientSecret
             );
         }
@@ -392,14 +409,16 @@ export class RefreshTokenClient extends BaseClient {
             const clientAssertion: ClientAssertion =
                 this.config.clientCredentials.clientAssertion;
 
-            parameterBuilder.addClientAssertion(
+            RequestParameterBuilder.addClientAssertion(
+                parameters,
                 await getClientAssertion(
                     clientAssertion.assertion,
                     this.config.authOptions.clientId,
                     request.resourceRequestUri
                 )
             );
-            parameterBuilder.addClientAssertionType(
+            RequestParameterBuilder.addClientAssertionType(
+                parameters,
                 clientAssertion.assertionType
             );
         }
@@ -426,10 +445,10 @@ export class RefreshTokenClient extends BaseClient {
             }
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
-            parameterBuilder.addPopToken(reqCnfData);
+            RequestParameterBuilder.addPopToken(parameters, reqCnfData);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if (request.sshJwk) {
-                parameterBuilder.addSshJwk(request.sshJwk);
+                RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
                 throw createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
@@ -442,7 +461,8 @@ export class RefreshTokenClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            parameterBuilder.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
@@ -458,7 +478,10 @@ export class RefreshTokenClient extends BaseClient {
                         const clientInfo = buildClientInfoFromHomeAccountId(
                             request.ccsCredential.credential
                         );
-                        parameterBuilder.addCcsOid(clientInfo);
+                        RequestParameterBuilder.addCcsOid(
+                            parameters,
+                            clientInfo
+                        );
                     } catch (e) {
                         this.logger.verbose(
                             "Could not parse home account ID for CCS Header: " +
@@ -467,7 +490,8 @@ export class RefreshTokenClient extends BaseClient {
                     }
                     break;
                 case CcsCredentialType.UPN:
-                    parameterBuilder.addCcsUpn(
+                    RequestParameterBuilder.addCcsUpn(
+                        parameters,
                         request.ccsCredential.credential
                     );
                     break;
@@ -475,18 +499,25 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.embeddedClientId) {
-            parameterBuilder.addBrokerParameters({
-                brokerClientId: this.config.authOptions.clientId,
-                brokerRedirectUri: this.config.authOptions.redirectUri,
-            });
+            RequestParameterBuilder.addBrokerParameters(
+                parameters,
+                this.config.authOptions.clientId,
+                this.config.authOptions.redirectUri
+            );
         }
 
         if (request.tokenBodyParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.tokenBodyParameters
             );
         }
 
-        return parameterBuilder.createQueryString();
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
+            this.performanceClient
+        );
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

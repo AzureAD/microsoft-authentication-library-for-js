@@ -31,6 +31,8 @@ import {
     ClientAssertionCallback,
     ClientAssertionConfig,
     PasswordGrantConstants,
+    OAuthResponseType,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -76,8 +78,8 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+    removeAccount(key: string): void {
+        super.removeAccount(key, RANDOM_TEST_GUID);
         const currentAccounts = this.getAccountKeys();
         const removalIndex = currentAccounts.indexOf(key);
         if (removalIndex > -1) {
@@ -249,8 +251,8 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
+    async removeTokenBindingKey(): Promise<void> {
+        return Promise.resolve();
     },
     async signJwt(): Promise<string> {
         return "";
@@ -271,7 +273,8 @@ export class ClientTestUtils {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
-            new Logger({})
+            new Logger({}),
+            new StubPerformanceClient()
         );
 
         const testLoggerCallback = (): void => {
@@ -526,7 +529,9 @@ export const checkMockedNetworkRequest = (
     if (checks.msLibraryCapability !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${encodeURIComponent(
+                    ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                )}`
             )
         ).toBe(checks.msLibraryCapability);
     }
@@ -574,7 +579,9 @@ export const checkMockedNetworkRequest = (
     if (checks.responseType !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
+                    OAuthResponseType.IDTOKEN_TOKEN
+                )}`
             )
         ).toBe(checks.responseType);
     }

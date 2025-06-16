@@ -19,6 +19,7 @@ import {
     OIDC_DEFAULT_SCOPES,
     BaseAuthRequest,
     AccountFilter,
+    AuthError,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -111,6 +112,7 @@ export class NestedAppAuthController implements IController {
             ? new CryptoOps(this.logger, this.performanceClient, true)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
+        this.eventHandler = new EventHandler(this.logger);
         // Initialize the browser storage class.
         this.browserStorage = this.operatingContext.isBrowserEnvironment()
             ? new BrowserCacheManager(
@@ -119,15 +121,15 @@ export class NestedAppAuthController implements IController {
                   this.browserCrypto,
                   this.logger,
                   this.performanceClient,
+                  this.eventHandler,
                   buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
-                  this.performanceClient
+                  this.performanceClient,
+                  this.eventHandler
               );
-
-        this.eventHandler = new EventHandler(this.logger);
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,
@@ -157,7 +159,11 @@ export class NestedAppAuthController implements IController {
      * Specific implementation of initialize function for NestedAppAuthController
      * @returns
      */
-    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+    async initialize(
+        request?: InitializeApplicationRequest,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        isBroker?: boolean
+    ): Promise<void> {
         const initCorrelationId = request?.correlationId || createNewGuid();
         await this.browserStorage.initialize(initCorrelationId);
         return Promise.resolve();
@@ -250,7 +256,10 @@ export class NestedAppAuthController implements IController {
 
             return result;
         } catch (e) {
-            const error = this.nestedAppAuthAdapter.fromBridgeError(e);
+            const error =
+                e instanceof AuthError
+                    ? e
+                    : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Popup,
@@ -347,7 +356,10 @@ export class NestedAppAuthController implements IController {
             });
             return result;
         } catch (e) {
-            const error = this.nestedAppAuthAdapter.fromBridgeError(e);
+            const error =
+                e instanceof AuthError
+                    ? e
+                    : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Silent,
@@ -429,7 +441,7 @@ export class NestedAppAuthController implements IController {
             return result;
         }
 
-        this.logger.error(
+        this.logger.warning(
             "Cached tokens are not found for the account, proceeding with silent token request."
         );
 
@@ -493,9 +505,7 @@ export class NestedAppAuthController implements IController {
             currentAccount,
             authRequest,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         // If there is no access token, log it and return null
@@ -591,6 +601,7 @@ export class NestedAppAuthController implements IController {
                       CommonAuthorizationUrlRequest,
                       | "requestedClaimsHash"
                       | "responseMode"
+                      | "earJwk"
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "platformBroker"
@@ -784,6 +795,7 @@ export class NestedAppAuthController implements IController {
                 CommonAuthorizationUrlRequest,
                 | "requestedClaimsHash"
                 | "responseMode"
+                | "earJwk"
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "platformBroker"

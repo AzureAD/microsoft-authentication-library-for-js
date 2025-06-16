@@ -13,6 +13,7 @@ import {
     NetworkRequestOptions,
     Logger,
     ServerAuthorizationTokenResponse,
+    EncodingTypes,
 } from "@azure/msal-common/node";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
@@ -22,15 +23,13 @@ import {
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError.js";
 import {
-    API_VERSION_QUERY_PARAMETER_NAME,
-    AUTHORIZATION_HEADER_NAME,
     AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES,
     HttpMethod,
-    METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityHeaders,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import {
@@ -74,9 +73,16 @@ export class AzureArc extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         identityEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.identityEndpoint = identityEndpoint;
     }
@@ -122,6 +128,7 @@ export class AzureArc extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): AzureArc | null {
         const [identityEndpoint, imdsEndpoint] =
@@ -181,6 +188,7 @@ export class AzureArc extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             identityEndpoint
         );
     }
@@ -192,11 +200,11 @@ export class AzureArc extends BaseManagedIdentitySource {
                 this.identityEndpoint.replace("localhost", "127.0.0.1")
             );
 
-        request.headers[METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             ARC_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
@@ -283,7 +291,7 @@ export class AzureArc extends BaseManagedIdentitySource {
             // attempt to read the contents of the secret file
             let secret;
             try {
-                secret = readFileSync(secretFilePath, "utf-8");
+                secret = readFileSync(secretFilePath, EncodingTypes.UTF8);
             } catch (e) {
                 throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.unableToReadSecretFile
@@ -294,7 +302,9 @@ export class AzureArc extends BaseManagedIdentitySource {
             this.logger.info(
                 `[Managed Identity] Adding authorization header to the request.`
             );
-            networkRequest.headers[AUTHORIZATION_HEADER_NAME] = authHeaderValue;
+            networkRequest.headers[
+                ManagedIdentityHeaders.AUTHORIZATION_HEADER_NAME
+            ] = authHeaderValue;
 
             try {
                 retryResponse =

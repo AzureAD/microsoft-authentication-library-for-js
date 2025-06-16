@@ -5,6 +5,7 @@
 
 const crypto = require("crypto");
 const { TextDecoder, TextEncoder } = require("util");
+const { BroadcastChannel, MessageChannel } = require("worker_threads");
 
 try {
     Object?.defineProperties(global.self, {
@@ -24,6 +25,12 @@ try {
         },
         "TextEncoder": {
             value: TextEncoder
+        },
+        "BroadcastChannel": {
+            value: BroadcastChannel
+        },
+        "MessageChannel": {
+            value: MessageChannel
         }
     });
 } catch (e) {

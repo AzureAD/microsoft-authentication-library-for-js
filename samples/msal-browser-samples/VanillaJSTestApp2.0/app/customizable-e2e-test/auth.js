@@ -16,6 +16,13 @@ async function initializeMsal() {
             myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
                 console.error(err);
             });
+
+            myMSALObj.enableAccountStorageEvents();
+            myMSALObj.addEventCallback((event) => {
+                if (event.eventType === msal.EventType.ACTIVE_ACCOUNT_CHANGED) {
+                    showWelcomeMessage(myMSALObj.getActiveAccount());
+                }
+            })
         });
     });
 }

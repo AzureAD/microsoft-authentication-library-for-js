@@ -1,8 +1,245 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 22 Jan 2025 21:45:31 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 10 Jun 2025 20:38:38 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.13.1
+
+Tue, 10 Jun 2025 20:38:38 GMT
+
+### Patches
+
+- Suppress false-positive CodeQL finding in NavigationClient #7814 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.13.0
+
+Fri, 30 May 2025 22:36:44 GMT
+
+### Minor changes
+
+- Add support for new platform broker flow via DOM API #7632 (lalimasharda@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- update common version (shylasummers@microsoft.com)
+- Add BrokerConnectionEvent to exports (thomas.norling@microsoft.com)
+- Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
+- updated naming for PlatformAuth request and response objects and added new type for DOM extraParameters #7759 (lalimasharda@microsoft.com)
+
+## 4.12.0
+
+Tue, 06 May 2025 22:47:42 GMT
+
+### Minor changes
+
+- Multi-instance detection (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v15.6.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Gracefully handle old interaction format #7731 (kshabelko@microsoft.com)
+
+## 4.11.1
+
+Tue, 29 Apr 2025 20:25:47 GMT
+
+### Patches
+
+- Fix throw when attempting to getAccount before initialization #7720 (thomas.norling@microsoft.com)
+- Add error messaging and change type for get/post failures #7721 (sameera.gajjarapu@microsoft.com)
+- Fix circular type imports (thomas.norling@microsoft.com)
+- Deprecate cache options #7707 (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v15.5.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.11.0
+
+Tue, 15 Apr 2025 23:34:14 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v15.5.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add config option to not encode extra params (shylasummers@microsoft.com)
+
+## 4.10.0
+
+Tue, 08 Apr 2025 16:56:05 GMT
+
+### Minor changes
+
+- Fix a bug in handleRedirectPromise when invoked after logoutRedirect #7680 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Export additional function internally for use in tests (thomas.norling@microsoft.com)
+- update cache miss to warning from error (sameera.gajjarapu@microsoft.com)
+
+## 4.9.1
+
+Wed, 26 Mar 2025 17:56:52 GMT
+
+### Patches
+
+- remove EAR override (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.9.0
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Minor changes
+
+- EAR Protocol response handling (thomas.norling@microsoft.com)
+- EAR protocol request support (thomas.norling@microsoft.com)
+- refactor redirect request caching (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.8.0
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Minor changes
+
+- Refactor /authorize request generation (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.3.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix expires_in format & double brokering errors #7646 (sameera.gajjarapu@microsoft.com)
+- refactor RequestParameterBuilder (thomas.norling@microsoft.com)
+
+## 4.7.0
+
+Tue, 11 Mar 2025 18:51:24 GMT
+
+### Minor changes
+
+- Bump msal-browser to 4.6.0 #7628 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.2.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix exception when BroadcastChannel is not available in JS Runtime (#7569) (dasau@microsoft.com)
+- Use TimeUtils for time/date conversions #7613 (joarroyo@microsoft.com)
+- Fix acquireTokenSilent deduplication for pairwise broker requests (thomas.norling@microsoft.com)
+
+## 4.5.1
+
+Tue, 04 Mar 2025 23:02:15 GMT
+
+### Patches
+
+- Fix double brokering bug: Native flow should not be triggered for cache only look up (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.5.0
+
+Wed, 26 Feb 2025 01:12:33 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser (lalimasharda@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.4.0
+
+Wed, 19 Feb 2025 23:57:02 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to 4.4.0 (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.3.0
+
+Tue, 18 Feb 2025 18:51:40 GMT
+
+### Minor changes
+
+- Pre-generate PKCE for async popup flow to blocked async popups in Safari #7568 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.2.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.2.1
+
+Tue, 11 Feb 2025 16:09:10 GMT
+
+### Patches
+
+- Rethrow MSAL AuthErrors in NAA flow (chris@paslawski.me)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.2.0
+
+Wed, 05 Feb 2025 00:15:18 GMT
+
+### Minor changes
+
+- Notify open tabs of localStorage updates #7550 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.1.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Set SameSite=None on localStorage encryption cookie #7549 (thomas.norling@microsoft.com)
+
+## 4.1.0
+
+Mon, 03 Feb 2025 17:48:08 GMT
+
+### Minor changes
+
+- Instrument additional data points #7543 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.1.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.0.2
 

@@ -8,6 +8,7 @@ const path = require("path");
 module.exports = {
     preset: "ts-jest",
     resolver: "ts-jest-resolver",
+    reporters: ['default', 'jest-junit'],
     testEnvironment: "jsdom",
     testEnvironmentOptions: {
         url: "https://localhost:8081/index.html"
@@ -15,5 +16,5 @@ module.exports = {
     collectCoverageFrom: ["src/**/*.ts"],
     collectCoverage: true,
     coverageReporters: [["lcov", { "projectRoot": path.join(__dirname, "../../") }], "json", "html"],
-    setupFilesAfterEnv: [path.join(__dirname, "setupCrypto.cjs")],
+    setupFilesAfterEnv: [path.join(__dirname, "setupGlobals.cjs")],
 };

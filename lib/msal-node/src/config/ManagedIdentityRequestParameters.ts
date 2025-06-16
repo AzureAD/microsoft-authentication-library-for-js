@@ -3,8 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { RequestParameterBuilder, UrlString } from "@azure/msal-common/node";
-import { HttpMethod } from "../utils/Constants.js";
+import {
+    RequestParameterBuilder,
+    UrlString,
+    UrlUtils,
+} from "@azure/msal-common/node";
+import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
+import { HttpMethod, RetryPolicies } from "../utils/Constants.js";
 
 export class ManagedIdentityRequestParameters {
     private _baseEndpoint: string;
@@ -12,23 +17,34 @@ export class ManagedIdentityRequestParameters {
     public headers: Record<string, string>;
     public bodyParameters: Record<string, string>;
     public queryParameters: Record<string, string>;
+    public retryPolicy: RetryPolicies;
 
-    constructor(httpMethod: HttpMethod, endpoint: string) {
+    constructor(
+        httpMethod: HttpMethod,
+        endpoint: string,
+        retryPolicy?: RetryPolicies
+    ) {
         this.httpMethod = httpMethod;
         this._baseEndpoint = endpoint;
         this.headers = {} as Record<string, string>;
         this.bodyParameters = {} as Record<string, string>;
         this.queryParameters = {} as Record<string, string>;
+
+        this.retryPolicy =
+            retryPolicy || new DefaultManagedIdentityRetryPolicy();
     }
 
     public computeUri(): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
         if (this.queryParameters) {
-            parameterBuilder.addExtraQueryParameters(this.queryParameters);
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
+                this.queryParameters
+            );
         }
 
-        const queryParametersString = parameterBuilder.createQueryString();
+        const queryParametersString = UrlUtils.mapToQueryString(parameters);
 
         return UrlString.appendQueryString(
             this._baseEndpoint,
@@ -37,12 +53,15 @@ export class ManagedIdentityRequestParameters {
     }
 
     public computeParametersBodyString(): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
         if (this.bodyParameters) {
-            parameterBuilder.addExtraQueryParameters(this.bodyParameters);
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
+                this.bodyParameters
+            );
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

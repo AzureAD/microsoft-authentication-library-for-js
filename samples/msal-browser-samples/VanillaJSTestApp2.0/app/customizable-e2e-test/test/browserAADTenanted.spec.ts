@@ -24,9 +24,10 @@ import {
     request as aadTokenRequest,
 } from "../authConfigs/aadTenantedAuthConfig.json";
 import fs from "fs";
+import path from "path";
 import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/browserAADTenanted");
 let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
@@ -298,7 +299,6 @@ describe("AAD-Prod Tests", () => {
                     )
             ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
-            await popupWindow.waitForNavigation();
             const tokenStore = await BrowserCache.getTokens();
 
             expect(tokenStore.idTokens.length).toEqual(0);

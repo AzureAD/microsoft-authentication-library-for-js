@@ -17,6 +17,9 @@ import {
     TEST_SSH_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
+    validEarJWK,
+    getTestAuthenticationResult,
+    validEarJWE,
 } from "../utils/StringConstants.js";
 import {
     Constants,
@@ -40,25 +43,31 @@ import {
     TemporaryCacheKeys,
     ApiId,
     BrowserConstants,
+    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { BrowserAuthErrorCodes } from "../../src/index.js";
+import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
+import { PopupRequest } from "../../src/request/PopupRequest.js";
+import { version } from "../../src/packageMetadata.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -68,7 +77,6 @@ const testPopupWondowDefaults = {
 };
 
 describe("PopupClient", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let popupClient: PopupClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
@@ -206,6 +214,7 @@ describe("PopupClient", () => {
         });
 
         it("opens popups asynchronously if configured", async () => {
+            const perfClient = getDefaultPerformanceClient();
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -213,6 +222,14 @@ describe("PopupClient", () => {
                 system: {
                     asyncPopups: true,
                 },
+                telemetry: {
+                    client: perfClient,
+                },
+            });
+
+            let resEvents;
+            perfClient.addPerformanceCallback((events) => {
+                resEvents = events;
             });
 
             await pca.initialize();
@@ -237,7 +254,9 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -258,6 +277,10 @@ describe("PopupClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
+            const rootMeasurement = perfClient.startMeasurement(
+                "root-measurement",
+                request.correlationId
+            );
             const popupSpy = jest
                 .spyOn(PopupClient.prototype, "openSizedPopup")
                 .mockImplementation();
@@ -265,6 +288,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.acquireToken(request);
             } catch (e) {}
+            rootMeasurement.end({ success: true });
             expect(popupSpy).toHaveBeenCalled();
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
             expect(
@@ -279,9 +303,14 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0][0]).toContain(
                 `login_hint=${encodeURIComponent(request.loginHint || "")}`
             );
+
+            // @ts-ignore
+            const event = resEvents[0];
+            expect(event.isAsyncPopup).toBeTruthy();
         });
 
         it("calls native broker if server responds with accountId", async () => {
+            const perfClient = getDefaultPerformanceClient();
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -289,6 +318,14 @@ describe("PopupClient", () => {
                 system: {
                     allowPlatformBroker: true,
                 },
+                telemetry: {
+                    client: perfClient,
+                },
+            });
+
+            let resEvents;
+            perfClient.addPerformanceCallback((events) => {
+                resEvents = events;
             });
 
             await pca.initialize();
@@ -332,15 +369,15 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
@@ -356,7 +393,7 @@ describe("PopupClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -366,11 +403,11 @@ describe("PopupClient", () => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
             );
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
-                getDefaultPerformanceClient()
+                perfClient
             );
             //@ts-ignore
             popupClient = new PopupClient(
@@ -392,11 +429,20 @@ describe("PopupClient", () => {
                 pca.nativeInternalStorage,
                 nativeMessageHandler
             );
+            const correlationId = BrowserUtils.createGuid();
+            const rootMeasurement = perfClient.startMeasurement(
+                "root-measurement",
+                correlationId
+            );
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId,
             });
+            rootMeasurement.end({ success: true });
             expect(tokenResp).toEqual(testTokenResponse);
+            // @ts-ignore
+            expect(resEvents[0].isAsyncPopup).toBeFalsy();
         });
 
         it("throws if server responds with accountId but extension message handler is not instantiated", async () => {
@@ -450,15 +496,15 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
@@ -474,7 +520,7 @@ describe("PopupClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -558,15 +604,15 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(PopupClient.prototype, "initiateAuthRequest")
                 .mockClear()
@@ -747,8 +793,8 @@ describe("PopupClient", () => {
                 "Error in creating a login url"
             );
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
@@ -770,7 +816,10 @@ describe("PopupClient", () => {
                 });
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -784,6 +833,73 @@ describe("PopupClient", () => {
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
                 expect(e).toEqual(testError);
             }
+        });
+
+        describe("EAR Flow Tests", () => {
+            let popupWindow: Window;
+            beforeAll(() => {
+                jest.useFakeTimers();
+            });
+
+            afterAll(() => {
+                jest.useRealTimers();
+            });
+
+            beforeEach(async () => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        protocolMode: ProtocolMode.EAR,
+                    },
+                });
+                await pca.initialize();
+
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
+                popupWindow = {
+                    ...window,
+                    //@ts-ignore
+                    location: {
+                        assign: () => {},
+                    },
+                    focus: () => {},
+                    close: () => {},
+                };
+            });
+
+            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+                const validRequest: PopupRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_POPUP
+                );
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue(popupWindow);
+                const earFormSpy = jest
+                    .spyOn(HTMLFormElement.prototype, "submit")
+                    .mockImplementation(() => {
+                        // Suppress navigation
+                    });
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "monitorPopupForHash"
+                ).mockResolvedValue(
+                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                );
+
+                const result = await pca.acquireTokenPopup(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
+            });
         });
     });
 

@@ -22,7 +22,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest.js";
 // export type CommonDeviceCodeRequest = BaseAuthRequest &  {
 export type CommonDeviceCodeRequest = Omit<
     BaseAuthRequest,
-    "tokenQueryParameters"
+    "tokenQueryParameters" | "tokenBodyParameters"
 > & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
