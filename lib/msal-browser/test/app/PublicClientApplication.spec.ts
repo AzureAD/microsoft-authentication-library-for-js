@@ -620,7 +620,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.initialize({ correlationId: "test-correlation-id" });
         });
 
-        it("does not pre-generate PKCE codes if asyncPopups is set to false", async () => {
+        it("does not pre-generate PKCE codes if navigatePopups is set to true", async () => {
             const preGenerateSpy = jest.spyOn(
                 StandardController.prototype,
                 // @ts-ignore
@@ -643,7 +643,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(preGenerateSpy).toHaveBeenCalledTimes(0);
         });
 
-        it("pre-generates PKCE codes if asyncPopups is set to true", async () => {
+        it("pre-generates PKCE codes if navigatePopups is set to false", async () => {
             const preGenerateSpy = jest.spyOn(
                 StandardController.prototype,
                 // @ts-ignore
@@ -656,7 +656,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
                 system: {
                     allowPlatformBroker: false,
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
             await pca.initialize();
@@ -3183,7 +3183,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("post-generates PKCE codes when asyncPopups is set to true", async () => {
+        it("post-generates PKCE codes when navigatePopups is set to false", async () => {
             const spyPreGeneratePkceCodes = jest.spyOn(
                 StandardController.prototype,
                 // @ts-ignore
@@ -3199,7 +3199,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -3244,7 +3244,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(preGenPkce.challenge != preGenPkce2.challenge).toBeTruthy();
         });
 
-        it("does not post-generate PKCE codes when asyncPopups is set to false", async () => {
+        it("does not post-generate PKCE codes when navigatePopups is set to true", async () => {
             const spyPreGeneratePkceCodes = jest.spyOn(
                 StandardController.prototype,
                 // @ts-ignore
@@ -3258,9 +3258,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    asyncPopups: false,
                 },
             });
 

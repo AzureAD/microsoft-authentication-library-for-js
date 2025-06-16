@@ -21,7 +21,6 @@ import {
     AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
@@ -793,9 +792,6 @@ export class NestedAppAuthController implements IController {
         >
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(request as SilentRequest);
-    }
-    getTokenCache(): ITokenCache {
-        throw NestedAppAuthError.createUnsupportedError();
     }
 
     /**

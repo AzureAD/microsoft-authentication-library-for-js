@@ -304,18 +304,6 @@ describe("Non-browser environment", () => {
         }
     });
 
-    it("getTokenCache returns an ITokenCache", async () => {
-        const instance = new PublicClientApplication({
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            },
-        });
-
-        await instance.initialize();
-        const tokenCache = instance.getTokenCache();
-        expect(typeof tokenCache.loadExternalTokens).toBe("function");
-    });
-
     it("getLogger should not throw", async () => {
         const instance = new PublicClientApplication({
             auth: {
