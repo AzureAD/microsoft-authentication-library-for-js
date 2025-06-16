@@ -70,7 +70,7 @@ export class SignedHttpRequest {
      * @param publicKeyThumbprint Public key digest (from generatePublicKeyThumbprint API)
      * @returns If keys are properly deleted
      */
-    async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
+    async removeKeys(publicKeyThumbprint: string): Promise<void> {
         return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
     }
 }

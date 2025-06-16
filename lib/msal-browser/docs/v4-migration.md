@@ -8,7 +8,55 @@ If you are coming from MSAL v4, you can follow this guide to update your code to
 
 ## API Breaking Changes
 
-[TBD]
+### SignedHttpRequest.removeKeys return type has changed
+
+The `removeKeys` function on the `SignedHttpRequest` class now returns `Promise<void>` instead of `Promise<boolean>`. A successful resolution of the promise is now equivalent to what was previously a return value of `true`. If a failure occurs it will now be thrown as an error instead of returning `false`
+
+```javascript
+// BEFORE
+const shr = new SignedHttpRequest(shrParameters, shrOptions);
+const result = await shr.removeKeys(thumbprint);
+if (result) {
+    // do something on success
+} else {
+    // do something on failure
+}
+
+// AFTER
+const shr = new SignedHttpRequest(shrParameters, shrOptions);
+await shr.removeKeys(thumbprint).then(() => {
+    // do something on success
+}).catch(e => {
+    // do something on failure
+    console.log(e);
+});
+```
+
+### TokenCache and loadExternalTokens
+
+MSAL JS API for [loadExternalTokens](../testing.md#the-loadexternaltokens-api) is modified. The changes include:
+* `TokenCache` object and `getTokenCache()` have been removed
+* The `loadExternalTokens()` API is now a separate export and requires `Configuration` as a parameter
+
+```js
+// BEFORE
+
+const pca = new PublicClientApplication(config);
+await pca.getTokenCache().loadExternalTokens(
+    silentRequest,
+    serverResponse,
+    loadTokenOptions
+);
+
+//AFTER
+
+await loadExternalTokens(
+    config,
+    silentRequest,
+    serverResponse,
+    loadTokenOptions
+);
+```
 
 ## Configuration changes
 
