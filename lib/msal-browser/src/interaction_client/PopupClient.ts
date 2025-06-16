@@ -56,6 +56,7 @@ import {
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
+import { monitorPopupForHash } from "../utils/PopupUtils.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -339,9 +340,12 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const responseString = await this.monitorPopupForHash(
+            const responseString = await monitorPopupForHash(
                 popupWindow,
-                popupParams.popupWindowParent
+                popupParams.popupWindowParent,
+                this.config,
+                this.logger,
+                this.unloadWindow
             );
 
             const serverParams = invoke(
@@ -444,12 +448,12 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            this.monitorPopupForHash.bind(this),
+            monitorPopupForHash.bind(this),
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
-        )(popupWindow, popupParams.popupWindowParent);
+        )(popupWindow, popupParams.popupWindowParent, this.config, this.logger, this.unloadWindow);
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -597,9 +601,12 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await this.monitorPopupForHash(
+            await monitorPopupForHash(
                 popupWindow,
-                popupParams.popupWindowParent
+                popupParams.popupWindowParent,
+                this.config,
+                this.logger,
+                this.unloadWindow
             ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
@@ -672,72 +679,6 @@ export class PopupClient extends StandardInteractionClient {
                 BrowserAuthErrorCodes.emptyNavigateUri
             );
         }
-    }
-
-    /**
-     * Monitors a window until it loads a url with the same origin.
-     * @param popupWindow - window that is being monitored
-     * @param timeout - timeout for processing hash once popup is redirected back to application
-     */
-    monitorPopupForHash(
-        popupWindow: Window,
-        popupWindowParent: Window
-    ): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            this.logger.verbose(
-                "PopupHandler.monitorPopupForHash - polling started"
-            );
-
-            const intervalId = setInterval(() => {
-                // Window is closed
-                if (popupWindow.closed) {
-                    this.logger.error(
-                        "PopupHandler.monitorPopupForHash - window closed"
-                    );
-                    clearInterval(intervalId);
-                    reject(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.userCancelled
-                        )
-                    );
-                    return;
-                }
-
-                let href = "";
-                try {
-                    /*
-                     * Will throw if cross origin,
-                     * which should be caught and ignored
-                     * since we need the interval to keep running while on STS UI.
-                     */
-                    href = popupWindow.location.href;
-                } catch (e) {}
-
-                // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
-                    return;
-                }
-                clearInterval(intervalId);
-
-                let responseString = "";
-                const responseType = this.config.auth.OIDCOptions.responseMode;
-                if (popupWindow) {
-                    if (responseType === Constants.ResponseMode.QUERY) {
-                        responseString = popupWindow.location.search;
-                    } else {
-                        responseString = popupWindow.location.hash;
-                    }
-                }
-
-                this.logger.verbose(
-                    "PopupHandler.monitorPopupForHash - popup window is on same origin as caller"
-                );
-
-                resolve(responseString);
-            }, this.config.system.pollIntervalMilliseconds);
-        }).finally(() => {
-            this.cleanPopup(popupWindow, popupWindowParent);
-        });
     }
 
     /**
@@ -886,21 +827,6 @@ export class PopupClient extends StandardInteractionClient {
         }
         // Guarantees browser unload will happen, so no other errors will be thrown.
         e.preventDefault();
-    }
-
-    /**
-     * Closes popup, removes any state vars created during popup calls.
-     * @param popupWindow
-     */
-    cleanPopup(popupWindow: Window, popupWindowParent: Window): void {
-        // Close window.
-        popupWindow.close();
-
-        // Remove window unload function
-        popupWindowParent.removeEventListener(
-            "beforeunload",
-            this.unloadWindow
-        );
     }
 
     /**

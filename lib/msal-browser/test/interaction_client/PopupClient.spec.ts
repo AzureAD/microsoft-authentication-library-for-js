@@ -48,6 +48,7 @@ import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
+import * as PopupUtils from "../../src/utils/PopupUtils.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
@@ -389,7 +390,7 @@ describe("PopupClient", () => {
                 return window;
             });
             jest.spyOn(
-                PopupClient.prototype,
+                PopupUtils,
                 "monitorPopupForHash"
             ).mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
@@ -516,7 +517,7 @@ describe("PopupClient", () => {
                 return window;
             });
             jest.spyOn(
-                PopupClient.prototype,
+                PopupUtils,
                 "monitorPopupForHash"
             ).mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
@@ -623,7 +624,7 @@ describe("PopupClient", () => {
                     return window;
                 });
             jest.spyOn(
-                PopupClient.prototype,
+                PopupUtils,
                 "monitorPopupForHash"
             ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
             jest.spyOn(
@@ -646,7 +647,7 @@ describe("PopupClient", () => {
 
         it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
             jest.spyOn(
-                PopupClient.prototype,
+                PopupUtils,
                 "monitorPopupForHash"
             ).mockResolvedValue("");
 
@@ -667,7 +668,7 @@ describe("PopupClient", () => {
 
         it("throws hash_does_not_contain_known_properties error if popup returns to redirectUri with unrecognized params in the hash", (done) => {
             jest.spyOn(
-                PopupClient.prototype,
+                PopupUtils,
                 "monitorPopupForHash"
             ).mockResolvedValue(
                 "#fakeKey=fakeValue&anotherFakeKey=anotherFakeValue"
@@ -697,7 +698,7 @@ describe("PopupClient", () => {
                     window
                 );
                 jest.spyOn(
-                    PopupClient.prototype,
+                    PopupUtils,
                     "monitorPopupForHash"
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
                 jest.spyOn(
@@ -894,7 +895,7 @@ describe("PopupClient", () => {
                         // Suppress navigation
                     });
                 jest.spyOn(
-                    PopupClient.prototype,
+                    PopupUtils,
                     "monitorPopupForHash"
                 ).mockResolvedValue(
                     `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
@@ -1421,7 +1422,7 @@ describe("PopupClient", () => {
                 popupWindow
             );
             jest.spyOn(
-                PopupClient.prototype,
+                PopupUtils,
                 "cleanPopup"
             ).mockImplementation();
             jest.spyOn(
@@ -1451,7 +1452,7 @@ describe("PopupClient", () => {
                 popupWindow
             );
             jest.spyOn(
-                PopupClient.prototype,
+                PopupUtils,
                 "cleanPopup"
             ).mockImplementation();
 
@@ -1504,7 +1505,7 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupClient.prototype, "cleanPopup").mockImplementation(
+            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation(
                 (popup) => {
                     window.sessionStorage.removeItem(
                         `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
@@ -1806,7 +1807,8 @@ describe("PopupClient", () => {
                 close: () => {},
                 closed: false,
             };
-            popupClient.monitorPopupForHash(popup, window).catch((error) => {
+            const clientImpl = popupClient as any;
+            PopupUtils.monitorPopupForHash(popup, window, clientImpl.config, clientImpl.logger, clientImpl.unloadWindow).catch((error) => {
                 expect(error.errorCode).toEqual("user_cancelled");
                 done();
             });
@@ -1827,7 +1829,8 @@ describe("PopupClient", () => {
                 close: () => {},
                 closed: false,
             };
-            popupClient.monitorPopupForHash(popup, window).then((hash) => {
+            const clientImpl = popupClient as any;
+            PopupUtils.monitorPopupForHash(popup, window, clientImpl.config, clientImpl.logger, clientImpl.unloadWindow).then((hash) => {
                 expect(hash).toEqual("code=testCode");
                 done();
             });
@@ -1882,9 +1885,8 @@ describe("PopupClient", () => {
                 undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
-
-            const result = await popupClient
-                .monitorPopupForHash(popup as Window, window)
+            const clientImpl = popupClient as any;
+            const result = await PopupUtils.monitorPopupForHash(popup as Window, window, clientImpl.config, clientImpl.logger, clientImpl.unloadWindow)
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
                         BrowserAuthErrorCodes.monitorPopupTimeout
@@ -1906,8 +1908,8 @@ describe("PopupClient", () => {
                 close: () => {},
             };
 
-            popupClient
-                .monitorPopupForHash(popup as unknown as Window, window)
+            const clientImpl = popupClient as any;
+            PopupUtils.monitorPopupForHash(popup as unknown as Window, window, clientImpl.config, clientImpl.logger, clientImpl.unloadWindow)
                 .then((hash: string) => {
                     expect(hash).toEqual("#code=hello");
                     done();
@@ -1964,9 +1966,13 @@ describe("PopupClient", () => {
                 close: () => {},
             };
 
-            const result = await popupClient.monitorPopupForHash(
+            const clientImpl = popupClient as any;
+            const result = await PopupUtils.monitorPopupForHash(
                 popup as unknown as Window,
-                window
+                window,
+                clientImpl.config,
+                clientImpl.logger,
+                clientImpl.unloadWindow
             );
             expect(result).toEqual("?code=authCode");
         });
@@ -1981,8 +1987,14 @@ describe("PopupClient", () => {
                 closed: true,
             };
 
-            popupClient
-                .monitorPopupForHash(popup as unknown as Window, window)
+            const clientImpl = popupClient as any;
+            PopupUtils.monitorPopupForHash(
+                popup as unknown as Window,
+                window,
+                clientImpl.config,
+                clientImpl.logger,
+                clientImpl.unloadWindow
+            )
                 .catch((error: AuthError) => {
                     expect(error.errorCode).toEqual("user_cancelled");
                     done();
