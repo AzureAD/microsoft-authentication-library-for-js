@@ -75,17 +75,19 @@ export abstract class AuthFlowErrorBase {
     }
 
     protected isInvalidNewPasswordError(): boolean {
+        const invalidPasswordSubErrors = new Set<string>([
+            CustomAuthApiSuberror.PASSWORD_BANNED,
+            CustomAuthApiSuberror.PASSWORD_IS_INVALID,
+            CustomAuthApiSuberror.PASSWORD_RECENTLY_USED,
+            CustomAuthApiSuberror.PASSWORD_TOO_LONG,
+            CustomAuthApiSuberror.PASSWORD_TOO_SHORT,
+            CustomAuthApiSuberror.PASSWORD_TOO_WEAK,
+        ]);
+
         return (
             this.errorData instanceof CustomAuthApiError &&
             this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
-            [
-                CustomAuthApiSuberror.PASSWORD_BANNED,
-                CustomAuthApiSuberror.PASSWORD_IS_INVALID,
-                CustomAuthApiSuberror.PASSWORD_RECENTLY_USED,
-                CustomAuthApiSuberror.PASSWORD_TOO_LONG,
-                CustomAuthApiSuberror.PASSWORD_TOO_SHORT,
-                CustomAuthApiSuberror.PASSWORD_TOO_WEAK,
-            ].includes(this.errorData.subError ?? "")
+            invalidPasswordSubErrors.has(this.errorData.subError ?? "")
         );
     }
 

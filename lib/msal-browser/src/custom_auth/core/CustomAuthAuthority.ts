@@ -9,7 +9,7 @@ import {
     INetworkModule,
     Logger,
 } from "@azure/msal-common/browser";
-import { CustomAuthApiEndpoint } from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
+import * as CustomAuthApiEndpoint from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
 import { buildUrl } from "./utils/UrlUtils.js";
 import { BrowserConfiguration } from "../../config/Configuration.js";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager.js";

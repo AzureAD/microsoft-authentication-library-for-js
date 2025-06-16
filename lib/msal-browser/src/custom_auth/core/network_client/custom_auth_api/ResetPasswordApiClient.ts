@@ -9,7 +9,7 @@ import {
 } from "../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
-import { CustomAuthApiEndpoint } from "./CustomAuthApiEndpoint.js";
+import * as CustomAuthApiEndpoint from "./CustomAuthApiEndpoint.js";
 import * as CustomAuthApiErrorCode from "./types/ApiErrorCodes.js";
 import {
     ResetPasswordChallengeRequest,
