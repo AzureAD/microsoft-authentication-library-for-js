@@ -3225,10 +3225,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
-            jest.spyOn(
-                PopupUtils,
-                "monitorPopupForHash"
-            ).mockRejectedValue("Not important for this test");
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockRejectedValue(
+                "Not important for this test"
+            );
 
             try {
                 await testPca.acquireTokenPopup(request);
@@ -3283,10 +3282,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
-            jest.spyOn(
-                PopupUtils,
-                "monitorPopupForHash"
-            ).mockRejectedValue("Not important for this test");
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockRejectedValue(
+                "Not important for this test"
+            );
             try {
                 await testPca.acquireTokenPopup(request);
             } catch (e) {}
@@ -6613,10 +6611,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     PopupClient.prototype,
                     "openSizedPopup"
                 ).mockReturnValue(popupWindow);
-                jest.spyOn(
-                    PopupUtils,
-                    "cleanPopup"
-                ).mockImplementation();
+                jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {

@@ -709,12 +709,12 @@ export class RedirectClient extends StandardInteractionClient {
 
             // Clear cache on logout
             await clearCacheOnLogout(
-                            this.browserStorage,
-                            this.browserCrypto,
-                            this.logger,
-                            this.correlationId,
-                            validLogoutRequest.account
-                        );
+                this.browserStorage,
+                this.browserCrypto,
+                this.logger,
+                this.correlationId,
+                validLogoutRequest.account
+            );
 
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,

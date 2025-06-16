@@ -41,12 +41,12 @@ class testInteractionClient extends BaseInteractionClient {
 
     logout(request: EndSessionRequest): Promise<void> {
         return clearCacheOnLogout(
-                        this.browserStorage,
-                        this.browserCrypto,
-                        this.logger,
-                        this.correlationId,
-                        request.account
-                    );
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.correlationId,
+            request.account
+        );
     }
 }
 

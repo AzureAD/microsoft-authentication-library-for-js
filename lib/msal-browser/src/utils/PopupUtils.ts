@@ -5,7 +5,10 @@
 
 import { Constants, Logger } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import { BrowserAuthErrorCodes, createBrowserAuthError } from "../error/BrowserAuthError.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 
 /**
  * Monitors a window until it loads a url with the same origin.
@@ -20,9 +23,7 @@ export async function monitorPopupForHash(
     unloadWindow: (e: Event) => void
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        logger.verbose(
-            "PopupHandler.monitorPopupForHash - polling started"
-        );
+        logger.verbose("PopupHandler.monitorPopupForHash - polling started");
 
         const intervalId = setInterval(() => {
             // Window is closed
@@ -32,9 +33,7 @@ export async function monitorPopupForHash(
                 );
                 clearInterval(intervalId);
                 reject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.userCancelled
-                    )
+                    createBrowserAuthError(BrowserAuthErrorCodes.userCancelled)
                 );
                 return;
             }
@@ -80,13 +79,14 @@ export async function monitorPopupForHash(
  * Closes popup, removes any state vars created during popup calls.
  * @param popupWindow
  */
-export function cleanPopup(popupWindow: Window, popupWindowParent: Window, unloadWindow: (e: Event) => void): void {
+export function cleanPopup(
+    popupWindow: Window,
+    popupWindowParent: Window,
+    unloadWindow: (e: Event) => void
+): void {
     // Close window.
     popupWindow.close();
 
     // Remove window unload function
-    popupWindowParent.removeEventListener(
-        "beforeunload",
-        unloadWindow
-    );
+    popupWindowParent.removeEventListener("beforeunload", unloadWindow);
 }

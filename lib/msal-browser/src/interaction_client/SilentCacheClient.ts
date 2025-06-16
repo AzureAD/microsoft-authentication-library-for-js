@@ -17,7 +17,10 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
-import { clearCacheOnLogout, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import {
+    clearCacheOnLogout,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -92,11 +95,11 @@ export class SilentCacheClient extends StandardInteractionClient {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         return clearCacheOnLogout(
-                        this.browserStorage,
-                        this.browserCrypto,
-                        this.logger,
-                        this.correlationId,
-                        validLogoutRequest.account
-                    );
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.correlationId,
+            validLogoutRequest.account
+        );
     }
 }

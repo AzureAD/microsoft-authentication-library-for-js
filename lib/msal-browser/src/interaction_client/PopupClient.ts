@@ -453,7 +453,13 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(popupWindow, popupParams.popupWindowParent, this.config, this.logger, this.unloadWindow);
+        )(
+            popupWindow,
+            popupParams.popupWindowParent,
+            this.config,
+            this.logger,
+            this.unloadWindow
+        );
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,

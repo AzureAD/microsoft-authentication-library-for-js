@@ -214,51 +214,51 @@ export async function getDiscoveredAuthority(
 }
 
 export async function clearCacheOnLogout(
-        browserStorage: BrowserCacheManager,
-        browserCrypto: ICrypto,
-        logger: Logger,
-        correlationId: string,
-        account?: AccountInfo | null,
-    ): Promise<void> {
-        if (account) {
-            if (
-                AccountEntityUtils.accountInfoIsEqual(
-                    account,
-                    browserStorage.getActiveAccount(),
-                    false
-                )
-            ) {
-                logger.verbose("Setting active account to null");
-                browserStorage.setActiveAccount(null);
-            }
-            // Clear given account.
-            try {
-                browserStorage.removeAccount(
-                    AccountEntityUtils.generateAccountCacheKey(account),
-                    correlationId
-                );
-                logger.verbose(
-                    "Cleared cache items belonging to the account provided in the logout request."
-                );
-            } catch (error) {
-                logger.error(
-                    "Account provided in logout request was not found. Local cache unchanged."
-                );
-            }
-        } else {
-            try {
-                logger.verbose(
-                    "No account provided in logout request, clearing all cache items.",
-                    correlationId
-                );
-                // Clear all accounts and tokens
-                await browserStorage.clear(correlationId);
-                // Clear any stray keys from IndexedDB
-                await browserCrypto.clearKeystore();
-            } catch (e) {
-                logger.error(
-                    "Attempted to clear all MSAL cache items and failed. Local cache unchanged."
-                );
-            }
+    browserStorage: BrowserCacheManager,
+    browserCrypto: ICrypto,
+    logger: Logger,
+    correlationId: string,
+    account?: AccountInfo | null
+): Promise<void> {
+    if (account) {
+        if (
+            AccountEntityUtils.accountInfoIsEqual(
+                account,
+                browserStorage.getActiveAccount(),
+                false
+            )
+        ) {
+            logger.verbose("Setting active account to null");
+            browserStorage.setActiveAccount(null);
+        }
+        // Clear given account.
+        try {
+            browserStorage.removeAccount(
+                AccountEntityUtils.generateAccountCacheKey(account),
+                correlationId
+            );
+            logger.verbose(
+                "Cleared cache items belonging to the account provided in the logout request."
+            );
+        } catch (error) {
+            logger.error(
+                "Account provided in logout request was not found. Local cache unchanged."
+            );
+        }
+    } else {
+        try {
+            logger.verbose(
+                "No account provided in logout request, clearing all cache items.",
+                correlationId
+            );
+            // Clear all accounts and tokens
+            await browserStorage.clear(correlationId);
+            // Clear any stray keys from IndexedDB
+            await browserCrypto.clearKeystore();
+        } catch (e) {
+            logger.error(
+                "Attempted to clear all MSAL cache items and failed. Local cache unchanged."
+            );
         }
     }
+}

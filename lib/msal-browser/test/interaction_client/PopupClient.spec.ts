@@ -389,10 +389,7 @@ describe("PopupClient", () => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            jest.spyOn(
-                PopupUtils,
-                "monitorPopupForHash"
-            ).mockResolvedValue(
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
@@ -516,10 +513,7 @@ describe("PopupClient", () => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            jest.spyOn(
-                PopupUtils,
-                "monitorPopupForHash"
-            ).mockResolvedValue(
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
@@ -623,10 +617,9 @@ describe("PopupClient", () => {
                     expect(requestUrl).toEqual(testNavUrl);
                     return window;
                 });
-            jest.spyOn(
-                PopupUtils,
-                "monitorPopupForHash"
-            ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+            );
             jest.spyOn(
                 InteractionHandler.prototype,
                 "handleCodeResponse"
@@ -646,10 +639,7 @@ describe("PopupClient", () => {
         });
 
         it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
-            jest.spyOn(
-                PopupUtils,
-                "monitorPopupForHash"
-            ).mockResolvedValue("");
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue("");
 
             popupClient
                 .acquireToken({
@@ -667,10 +657,7 @@ describe("PopupClient", () => {
         });
 
         it("throws hash_does_not_contain_known_properties error if popup returns to redirectUri with unrecognized params in the hash", (done) => {
-            jest.spyOn(
-                PopupUtils,
-                "monitorPopupForHash"
-            ).mockResolvedValue(
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
                 "#fakeKey=fakeValue&anotherFakeKey=anotherFakeValue"
             );
 
@@ -697,10 +684,9 @@ describe("PopupClient", () => {
                 jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                     window
                 );
-                jest.spyOn(
-                    PopupUtils,
-                    "monitorPopupForHash"
-                ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+                jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                );
                 jest.spyOn(
                     FetchClient.prototype,
                     "sendPostRequestAsync"
@@ -894,10 +880,7 @@ describe("PopupClient", () => {
                     .mockImplementation(() => {
                         // Suppress navigation
                     });
-                jest.spyOn(
-                    PopupUtils,
-                    "monitorPopupForHash"
-                ).mockResolvedValue(
+                jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
                     `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
                 );
 
@@ -1421,10 +1404,7 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(
-                PopupUtils,
-                "cleanPopup"
-            ).mockImplementation();
+            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateInternal"
@@ -1451,10 +1431,7 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(
-                PopupUtils,
-                "cleanPopup"
-            ).mockImplementation();
+            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
 
             popupClient.logout().then(() => {
                 done();
@@ -1505,13 +1482,11 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation(
-                (popup) => {
-                    window.sessionStorage.removeItem(
-                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
-                    );
-                }
-            );
+            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation((popup) => {
+                window.sessionStorage.removeItem(
+                    `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
+                );
+            });
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateInternal"
@@ -1808,7 +1783,13 @@ describe("PopupClient", () => {
                 closed: false,
             };
             const clientImpl = popupClient as any;
-            PopupUtils.monitorPopupForHash(popup, window, clientImpl.config, clientImpl.logger, clientImpl.unloadWindow).catch((error) => {
+            PopupUtils.monitorPopupForHash(
+                popup,
+                window,
+                clientImpl.config,
+                clientImpl.logger,
+                clientImpl.unloadWindow
+            ).catch((error) => {
                 expect(error.errorCode).toEqual("user_cancelled");
                 done();
             });
@@ -1830,7 +1811,13 @@ describe("PopupClient", () => {
                 closed: false,
             };
             const clientImpl = popupClient as any;
-            PopupUtils.monitorPopupForHash(popup, window, clientImpl.config, clientImpl.logger, clientImpl.unloadWindow).then((hash) => {
+            PopupUtils.monitorPopupForHash(
+                popup,
+                window,
+                clientImpl.config,
+                clientImpl.logger,
+                clientImpl.unloadWindow
+            ).then((hash) => {
                 expect(hash).toEqual("code=testCode");
                 done();
             });
@@ -1886,12 +1873,17 @@ describe("PopupClient", () => {
                 TEST_CONFIG.CORRELATION_ID
             );
             const clientImpl = popupClient as any;
-            const result = await PopupUtils.monitorPopupForHash(popup as Window, window, clientImpl.config, clientImpl.logger, clientImpl.unloadWindow)
-                .catch((e) => {
-                    expect(e.errorCode).toEqual(
-                        BrowserAuthErrorCodes.monitorPopupTimeout
-                    );
-                });
+            const result = await PopupUtils.monitorPopupForHash(
+                popup as Window,
+                window,
+                clientImpl.config,
+                clientImpl.logger,
+                clientImpl.unloadWindow
+            ).catch((e) => {
+                expect(e.errorCode).toEqual(
+                    BrowserAuthErrorCodes.monitorPopupTimeout
+                );
+            });
         });
 
         it("returns hash", (done) => {
@@ -1909,11 +1901,16 @@ describe("PopupClient", () => {
             };
 
             const clientImpl = popupClient as any;
-            PopupUtils.monitorPopupForHash(popup as unknown as Window, window, clientImpl.config, clientImpl.logger, clientImpl.unloadWindow)
-                .then((hash: string) => {
-                    expect(hash).toEqual("#code=hello");
-                    done();
-                });
+            PopupUtils.monitorPopupForHash(
+                popup as unknown as Window,
+                window,
+                clientImpl.config,
+                clientImpl.logger,
+                clientImpl.unloadWindow
+            ).then((hash: string) => {
+                expect(hash).toEqual("#code=hello");
+                done();
+            });
         });
 
         it("returns server code response in query form when responseMode in OIDCOptions is query", async () => {
@@ -1994,11 +1991,10 @@ describe("PopupClient", () => {
                 clientImpl.config,
                 clientImpl.logger,
                 clientImpl.unloadWindow
-            )
-                .catch((error: AuthError) => {
-                    expect(error.errorCode).toEqual("user_cancelled");
-                    done();
-                });
+            ).catch((error: AuthError) => {
+                expect(error.errorCode).toEqual("user_cancelled");
+                done();
+            });
         });
     });
 
