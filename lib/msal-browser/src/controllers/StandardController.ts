@@ -61,8 +61,6 @@ import { PopupClient } from "../interaction_client/PopupClient.js";
 import { RedirectClient } from "../interaction_client/RedirectClient.js";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
-import { TokenCache } from "../cache/TokenCache.js";
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import {
@@ -142,9 +140,6 @@ export class StandardController implements IController {
 
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
-
-    // Token cache implementation
-    private tokenCache: TokenCache;
 
     // Logger
     protected logger: Logger;
@@ -271,14 +266,6 @@ export class StandardController implements IController {
             this.eventHandler
         );
 
-        // Initialize the token cache
-        this.tokenCache = new TokenCache(
-            this.config,
-            this.browserStorage,
-            this.logger,
-            this.browserCrypto
-        );
-
         this.activeSilentTokenRequests = new Map();
 
         // Register listener functions
@@ -387,7 +374,7 @@ export class StandardController implements IController {
             this.eventHandler.subscribeCrossTab();
         }
 
-        this.config.system.asyncPopups &&
+        !this.config.system.navigatePopups &&
             (await this.preGeneratePkceCodes(initCorrelationId));
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
@@ -902,7 +889,7 @@ export class StandardController implements IController {
             })
             .finally(async () => {
                 this.browserStorage.setInteractionInProgress(false);
-                if (this.config.system.asyncPopups) {
+                if (!this.config.system.navigatePopups) {
                     await this.preGeneratePkceCodes(correlationId);
                 }
             });
@@ -1778,13 +1765,6 @@ export class StandardController implements IController {
      */
     removePerformanceCallback(callbackId: string): boolean {
         return this.performanceClient.removePerformanceCallback(callbackId);
-    }
-
-    /**
-     * Gets the token cache for the application.
-     */
-    getTokenCache(): ITokenCache {
-        return this.tokenCache;
     }
 
     /**

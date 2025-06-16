@@ -144,9 +144,9 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     redirectNavigationTimeout?: number;
     /**
-     * Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
+     * Sets whether popups are opened and navigated to later. By default, this flag is set to true. When set to true, blank popups are opened and navigates to login domain. When set to false, popups are opened directly to the login domain.
      */
-    asyncPopups?: boolean;
+    navigatePopups?: boolean;
     /**
      * Flag to enable redirect opertaions when the app is rendered in an iframe (to support scenarios such as embedded B2C login).
      */
@@ -288,8 +288,8 @@ export function buildConfiguration(
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
-        asyncPopups: false,
         allowRedirectInIframe: false,
+        navigatePopups: true,
         allowPlatformBroker: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||

@@ -145,22 +145,6 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("getTokenCache throws", () => {
-            try {
-                stubbedPublicClientApplication.getTokenCache();
-            } catch (e) {
-                const browserAuthError = e as BrowserAuthError;
-                expect(browserAuthError.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-                );
-                expect(browserAuthError.errorMessage).toEqual(
-                    getDefaultErrorMessage(
-                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-                    )
-                );
-            }
-        });
-
         it("getLogger throws", () => {
             try {
                 stubbedPublicClientApplication.getLogger();

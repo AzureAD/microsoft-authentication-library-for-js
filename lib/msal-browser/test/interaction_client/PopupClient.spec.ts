@@ -214,14 +214,14 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
         });
 
-        it("opens popups asynchronously if configured", async () => {
+        it("opens popups when making network request if configured", async () => {
             const perfClient = getDefaultPerformanceClient();
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
                 telemetry: {
                     client: perfClient,
@@ -933,13 +933,13 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
         });
 
-        it("opens popups asynchronously if configured", async () => {
+        it("opens popups when making network request if configured", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1022,7 +1022,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1083,7 +1083,7 @@ describe("PopupClient", () => {
                     postLogoutRedirectUri,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1134,7 +1134,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1187,7 +1187,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1238,7 +1238,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1326,7 +1326,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
