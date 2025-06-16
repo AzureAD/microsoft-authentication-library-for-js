@@ -4,12 +4,12 @@
  */
 
 import { HttpMethod, IHttpClient, RequestBody } from "./IHttpClient.js";
+import { HttpError } from "../../error/HttpError.js";
+import { AADServerParamKeys, Logger } from "@azure/msal-common/browser";
 import {
     FailedSendRequest,
-    HttpError,
     NoNetworkConnectivity,
-} from "../../error/HttpError.js";
-import { AADServerParamKeys, Logger } from "@azure/msal-common/browser";
+} from "../../error/HttpErrorCodes.js";
 
 /**
  * Implementation of IHttpClient using fetch.

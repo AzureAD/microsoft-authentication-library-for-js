@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { InvalidUrl, ParsedUrlError } from "../error/ParsedUrlError.js";
+import { ParsedUrlError } from "../error/ParsedUrlError.js";
+import { InvalidUrl } from "../error/ParsedUrlErrorCodes.js";
 
 export function parseUrl(url: string): URL {
     try {

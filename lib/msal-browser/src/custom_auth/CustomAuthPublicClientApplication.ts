@@ -18,14 +18,14 @@ import {
 import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
+import { InvalidConfigurationError } from "./core/error/InvalidConfigurationError.js";
+import { ChallengeType } from "./CustomAuthConstants.js";
+import { PublicClientApplication } from "../app/PublicClientApplication.js";
 import {
     InvalidAuthority,
     InvalidChallengeType,
-    InvalidConfigurationError,
     MissingConfiguration,
-} from "./core/error/InvalidConfigurationError.js";
-import { ChallengeType } from "./CustomAuthConstants.js";
-import { PublicClientApplication } from "../app/PublicClientApplication.js";
+} from "./core/error/InvalidConfigurationErrorCodes.js";
 
 export class CustomAuthPublicClientApplication
     extends PublicClientApplication
@@ -34,26 +34,20 @@ export class CustomAuthPublicClientApplication
     private readonly customAuthController: ICustomAuthStandardController;
 
     /**
-     * Creates a new instance of a PublicClientApplication with the given configuration and controller to start Native authentication flows.
+     * Creates a new instance of a PublicClientApplication with the given configuration and controller to start Native authentication flows
      * @param {CustomAuthConfiguration} config - A configuration object for the PublicClientApplication instance
-     * @param {ICustomAuthStandardController} controller - A controller object for the PublicClientApplication instance
      * @returns {Promise<ICustomAuthPublicClientApplication>} - A promise that resolves to a CustomAuthPublicClientApplication instance
      */
     static async create(
-        config: CustomAuthConfiguration,
-        controller?: ICustomAuthStandardController
+        config: CustomAuthConfiguration
     ): Promise<ICustomAuthPublicClientApplication> {
         CustomAuthPublicClientApplication.validateConfig(config);
 
-        let customAuthController = controller;
+        const customAuthController = new CustomAuthStandardController(
+            new CustomAuthOperatingContext(config)
+        );
 
-        if (!customAuthController) {
-            customAuthController = new CustomAuthStandardController(
-                new CustomAuthOperatingContext(config)
-            );
-
-            await customAuthController.initialize();
-        }
+        await customAuthController.initialize();
 
         const app = new CustomAuthPublicClientApplication(
             config,

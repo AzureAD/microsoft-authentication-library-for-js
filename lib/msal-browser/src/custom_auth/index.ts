@@ -16,7 +16,6 @@
 // Application and Controller
 export { CustomAuthPublicClientApplication } from "./CustomAuthPublicClientApplication.js";
 export { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApplication.js";
-export { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
 
 // Configuration
 export { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";

@@ -11,6 +11,3 @@ export class HttpError extends CustomAuthError {
         Object.setPrototypeOf(this, HttpError.prototype);
     }
 }
-
-export const NoNetworkConnectivity = "no_network_connectivity";
-export const FailedSendRequest = "failed_send_request";

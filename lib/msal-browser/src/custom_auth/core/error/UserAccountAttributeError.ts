@@ -13,5 +13,3 @@ export class UserAccountAttributeError extends CustomAuthError {
         Object.setPrototypeOf(this, UserAccountAttributeError.prototype);
     }
 }
-
-export const InvalidAttributeErrorCode = "invalid_attribute";

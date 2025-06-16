@@ -11,8 +11,3 @@ export class InvalidConfigurationError extends CustomAuthError {
         Object.setPrototypeOf(this, InvalidConfigurationError.prototype);
     }
 }
-
-export const MissingConfiguration = "missing_configuration";
-export const InvalidAuthority = "invalid_authority";
-export const InvalidAuthApiProxyDomain = "invalid_auth_api_proxy_domain";
-export const InvalidChallengeType = "invalid_challenge_type";

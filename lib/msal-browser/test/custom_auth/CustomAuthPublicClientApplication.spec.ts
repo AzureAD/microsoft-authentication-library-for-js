@@ -76,9 +76,10 @@ describe("CustomAuthPublicClientApplication", () => {
             );
 
             const app = await CustomAuthPublicClientApplication.create(
-                customAuthConfig,
-                mockController
+                customAuthConfig
             );
+
+            (app as any)["customAuthController"] = mockController;
 
             const result = await app.signIn(mockSignInInputs);
 
@@ -105,9 +106,10 @@ describe("CustomAuthPublicClientApplication", () => {
             );
 
             const app = await CustomAuthPublicClientApplication.create(
-                customAuthConfig,
-                mockController
+                customAuthConfig
             );
+
+            (app as any)["customAuthController"] = mockController;
 
             const result = await app.signUp(mockSignUpInputs);
 
@@ -134,9 +136,10 @@ describe("CustomAuthPublicClientApplication", () => {
             );
 
             const app = await CustomAuthPublicClientApplication.create(
-                customAuthConfig,
-                mockController
+                customAuthConfig
             );
+
+            (app as any)["customAuthController"] = mockController;
 
             const result = await app.resetPassword(mockResetPasswordInputs);
 
@@ -163,9 +166,10 @@ describe("CustomAuthPublicClientApplication", () => {
             );
 
             const app = await CustomAuthPublicClientApplication.create(
-                customAuthConfig,
-                mockController
+                customAuthConfig
             );
+
+            (app as any)["customAuthController"] = mockController;
 
             const result = await app.getCurrentAccount(
                 mockGetCurrentAccountInputs

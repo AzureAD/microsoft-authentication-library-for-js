@@ -3,10 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import {
-    InvalidAttributeErrorCode,
-    UserAccountAttributeError,
-} from "./core/error/UserAccountAttributeError.js";
+import { UserAccountAttributeError } from "./core/error/UserAccountAttributeError.js";
+import { InvalidAttributeErrorCode } from "./core/error/UserAccountAttributeErrorCodes.js";
 
 export class UserAccountAttributes {
     private attributes: Record<string, string>;

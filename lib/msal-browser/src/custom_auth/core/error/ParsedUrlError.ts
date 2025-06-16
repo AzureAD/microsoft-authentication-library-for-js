@@ -11,5 +11,3 @@ export class ParsedUrlError extends CustomAuthError {
         Object.setPrototypeOf(this, ParsedUrlError.prototype);
     }
 }
-
-export const InvalidUrl = "invalid_url";
