@@ -178,7 +178,7 @@ export class ManagedIdentityApplication {
          */
         if (managedIdentityRequest.claims) {
             const sourceName: ManagedIdentitySourceNames =
-                this.managedIdentityClient.getManagedIdentitySource();
+                await this.managedIdentityClient.getManagedIdentitySource();
 
             /*
              * Check if there is a cached token and if the Managed Identity source supports token revocation.
@@ -257,10 +257,10 @@ export class ManagedIdentityApplication {
      * Determine the Managed Identity Source based on available environment variables. This API is consumed by Azure Identity SDK.
      * @returns ManagedIdentitySourceNames - The Managed Identity source's name
      */
-    public getManagedIdentitySource(): ManagedIdentitySourceNames {
+    public async getManagedIdentitySource(): Promise<ManagedIdentitySourceNames> {
         return (
             ManagedIdentityClient.sourceName ||
-            this.managedIdentityClient.getManagedIdentitySource()
+            (await this.managedIdentityClient.getManagedIdentitySource())
         );
     }
 }

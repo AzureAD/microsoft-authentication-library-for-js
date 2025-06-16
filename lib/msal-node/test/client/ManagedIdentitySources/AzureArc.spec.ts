@@ -99,13 +99,13 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
     // Azure Arc Managed Identities can only be system assigned
     describe("System Assigned", () => {
         let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.AZURE_ARC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.AZURE_ARC);
         });
 
         test("acquires a token", async () => {
@@ -135,7 +135,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             // and accessSyncSpy still returns an error
             // (meaning either the himds file doesn't exists or its permissions don't allow it to be read)
             expect(
-                managedIdentityApplication.getManagedIdentitySource()
+                await managedIdentityApplication.getManagedIdentitySource()
             ).not.toBe(ManagedIdentitySourceNames.AZURE_ARC);
             // delete value cached from getManagedIdentitySource() directly above
             delete ManagedIdentityClient["sourceName"];
@@ -146,9 +146,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 return undefined;
             });
 
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.AZURE_ARC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.AZURE_ARC);
 
             // returns undefined when the himds file exists and its permissions allow it to be read
             // otherwise, throws an error
@@ -253,20 +253,20 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
     describe("Errors", () => {
         let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.AZURE_ARC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.AZURE_ARC);
         });
 
         test("throws an error if a user assigned managed identity is used", async () => {
             const userAssignedManagedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
             expect(
-                userAssignedManagedIdentityApplication.getManagedIdentitySource()
+                await userAssignedManagedIdentityApplication.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.AZURE_ARC);
 
             await expect(

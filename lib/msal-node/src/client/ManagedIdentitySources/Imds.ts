@@ -78,8 +78,10 @@ export class Imds extends BaseManagedIdentitySource {
         cryptoProvider: CryptoProvider,
         disableInternalRetries: boolean
     ): Imds {
-        const validatedIdentityEndpoint: string =
-            this.getValidatedIdentityEndpoint(IMDS_TOKEN_PATH, logger);
+        const validatedIdentityEndpoint: string = this.getValidatedEndpoint(
+            IMDS_TOKEN_PATH,
+            logger
+        );
 
         return new Imds(
             logger,
@@ -134,7 +136,7 @@ export class Imds extends BaseManagedIdentitySource {
         return request;
     }
 
-    public static getValidatedIdentityEndpoint = (
+    public static getValidatedEndpoint = (
         subPath: string,
         logger: Logger
     ): string => {

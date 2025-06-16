@@ -32,6 +32,7 @@ import {
     managedIdentityRequestParams,
     systemAssignedConfig,
     userAssignedResourceIdConfig,
+    mockCredentialEndpointProbeRequest,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
@@ -62,9 +63,16 @@ import { NodeStorage } from "../../../src/cache/NodeStorage.js";
 import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ImdsRetryPolicy } from "../../../src/retry/ImdsRetryPolicy.js";
+// import { ImdsV2 } from "../../../src/client/ManagedIdentitySources/ImdsV2.js";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
+
+    beforeEach(() => {
+        mockCredentialEndpointProbeRequest(
+            HttpStatus.SUCCESS // TODO: change this to NOT_FOUND after implementing the credential endpoint probe retry policy
+        );
+    });
 
     afterEach(() => {
         delete ManagedIdentityClient["identitySource"];
@@ -99,9 +107,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -129,9 +137,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         test("acquires a User Assigned Object Id token", async () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedObjectIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -151,9 +159,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedResourceIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -184,13 +192,13 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
     describe("System Assigned", () => {
         let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
         });
 
         test("acquires a token", async () => {
@@ -231,7 +239,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         let uamiApplication: ManagedIdentityApplication; // user-assigned
         let samiApplication: ManagedIdentityApplication; // system-assigned
 
-        beforeEach(() => {
+        beforeEach(async () => {
             jest.spyOn(
                 ImdsRetryPolicy,
                 "MIN_EXPONENTIAL_BACKOFF_MS",
@@ -271,14 +279,14 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             uamiApplication = new ManagedIdentityApplication(
                 userAssignedClientIdConfig
             );
-            expect(uamiApplication.getManagedIdentitySource()).toBe(
+            expect(await uamiApplication.getManagedIdentitySource()).toBe(
                 ManagedIdentitySourceNames.DEFAULT_TO_IMDS
             );
 
             samiApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
-            expect(samiApplication.getManagedIdentitySource()).toBe(
+            expect(await samiApplication.getManagedIdentitySource()).toBe(
                 ManagedIdentitySourceNames.DEFAULT_TO_IMDS
             );
         });
@@ -626,11 +634,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
     describe("Miscellaneous", () => {
         let systemAssignedManagedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             systemAssignedManagedIdentityApplication =
                 new ManagedIdentityApplication(systemAssignedConfig);
             expect(
-                systemAssignedManagedIdentityApplication.getManagedIdentitySource()
+                await systemAssignedManagedIdentityApplication.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
         });
 
@@ -864,7 +872,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     },
                 });
             expect(
-                userAssignedClientIdManagedIdentityApplicationResource1.getManagedIdentitySource()
+                await userAssignedClientIdManagedIdentityApplicationResource1.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
             const userAssignedObjectIdManagedIdentityApplicationResource2: ManagedIdentityApplication =
@@ -879,7 +887,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     },
                 });
             expect(
-                userAssignedObjectIdManagedIdentityApplicationResource2.getManagedIdentitySource()
+                await userAssignedObjectIdManagedIdentityApplicationResource2.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
             // ********** begin: return access tokens from a network request **********
@@ -918,7 +926,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const systemAssignedManagedIdentityApplicationClone: ManagedIdentityApplication =
                 new ManagedIdentityApplication(systemAssignedConfig);
             expect(
-                systemAssignedManagedIdentityApplicationClone.getManagedIdentitySource()
+                await systemAssignedManagedIdentityApplicationClone.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
             let cachedManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplicationClone.acquireToken(
@@ -939,7 +947,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     },
                 });
             expect(
-                userAssignedClientIdManagedIdentityApplicationResource1Clone.getManagedIdentitySource()
+                await userAssignedClientIdManagedIdentityApplicationResource1Clone.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
             cachedManagedIdentityResult =
                 await userAssignedClientIdManagedIdentityApplicationResource1Clone.acquireToken(
@@ -962,7 +970,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     },
                 });
             expect(
-                userAssignedObjectIdManagedIdentityApplicationResource2Clone.getManagedIdentitySource()
+                await userAssignedObjectIdManagedIdentityApplicationResource2Clone.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
             cachedManagedIdentityResult =
                 await userAssignedObjectIdManagedIdentityApplicationResource2Clone.acquireToken(
@@ -999,11 +1007,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
     describe("Errors", () => {
         let systemAssignedManagedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             systemAssignedManagedIdentityApplication =
                 new ManagedIdentityApplication(systemAssignedConfig);
             expect(
-                systemAssignedManagedIdentityApplication.getManagedIdentitySource()
+                await systemAssignedManagedIdentityApplication.getManagedIdentitySource()
             ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
         });
 

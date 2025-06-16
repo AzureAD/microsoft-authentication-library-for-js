@@ -54,13 +54,13 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
     describe("System Assigned", () => {
         let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.CLOUD_SHELL
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.CLOUD_SHELL);
         });
 
         test("acquires a token", async () => {
@@ -101,9 +101,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         test("throws an error when a user assigned managed identity is used", async () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.CLOUD_SHELL
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.CLOUD_SHELL);
 
             await expect(
                 managedIdentityApplication.acquireToken(
@@ -132,9 +132,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(systemAssignedConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.CLOUD_SHELL
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.CLOUD_SHELL);
 
             let serverError: ServerError = new ServerError();
             try {

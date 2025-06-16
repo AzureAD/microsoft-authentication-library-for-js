@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger } from "@azure/msal-common/node";
+import {
+    INetworkModule,
+    Logger,
+    NetworkResponse,
+} from "@azure/msal-common/node";
 // import { Agent } from "https";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -18,12 +22,19 @@ import {
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import { Imds, IMDS_API_VERSION } from "./Imds.js";
 import { ShortLivedCredential } from "../../response/ShortLivedCredentialResponse.js";
+import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
+import { DefaultManagedIdentityRetryPolicy } from "../../retry/DefaultManagedIdentityRetryPolicy.js";
 
-const CREDENTIAL_PATH: string =
+export const CREDENTIAL_PATH: string =
     "/metadata/identity/credential?cred-api-version=1.0";
 
+export interface CredentialEndpointProbeResponse {
+    error: string;
+    error_description: string;
+}
+
 export class ImdsV2 extends BaseManagedIdentitySource {
-    private identityEndpoint: string;
+    private credentialEndpoint: string;
 
     constructor(
         logger: Logger,
@@ -31,7 +42,7 @@ export class ImdsV2 extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         disableInternalRetries: boolean,
-        identityEndpoint: string
+        credentialEndpoint: string
     ) {
         super(
             logger,
@@ -41,22 +52,30 @@ export class ImdsV2 extends BaseManagedIdentitySource {
             disableInternalRetries
         );
 
-        this.identityEndpoint = identityEndpoint;
+        this.credentialEndpoint = credentialEndpoint;
     }
 
-    public static tryCreate(
+    public static async tryCreate(
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         disableInternalRetries: boolean
-    ): ImdsV2 | null {
-        if (!this.isCredentialEndpointAvailable()) {
+    ): Promise<ImdsV2 | null> {
+        const validatedCredentialEndpoint: string = Imds.getValidatedEndpoint(
+            CREDENTIAL_PATH,
+            logger
+        );
+
+        if (
+            !(await this.isCredentialEndpointAvailable(
+                logger,
+                networkClient,
+                validatedCredentialEndpoint
+            ))
+        ) {
             return null;
         }
-
-        const validatedIdentityEndpoint: string =
-            Imds.getValidatedIdentityEndpoint(CREDENTIAL_PATH, logger);
 
         return new ImdsV2(
             logger,
@@ -64,13 +83,56 @@ export class ImdsV2 extends BaseManagedIdentitySource {
             networkClient,
             cryptoProvider,
             disableInternalRetries,
-            validatedIdentityEndpoint
+            validatedCredentialEndpoint
         );
     }
 
-    public static isCredentialEndpointAvailable(): boolean {
-        // TODO: Probe credential endpoint. If it doesn't return 400, return null
-        return false;
+    public static async isCredentialEndpointAvailable(
+        logger: Logger,
+        networkClient: INetworkModule,
+        credentialEndpoint?: string // only passed in from tryCreate in this class
+    ): Promise<boolean> {
+        const validatedCredentialEndpoint: string =
+            credentialEndpoint ||
+            Imds.getValidatedEndpoint(CREDENTIAL_PATH, logger);
+
+        const networkClientWithRetry: INetworkModule =
+            new HttpClientWithRetries(
+                networkClient,
+                /*
+                 * TODO: create probe credential endpoint retry policy that extends DefaultManagedIdentityRetryPolicy,
+                 * that only retries on 400 and 500
+                 */
+                new DefaultManagedIdentityRetryPolicy(),
+                logger
+            );
+
+        const response: NetworkResponse<CredentialEndpointProbeResponse> =
+            await networkClientWithRetry.sendPostRequestAsync<CredentialEndpointProbeResponse>(
+                validatedCredentialEndpoint,
+                { body: "." }
+            );
+
+        if (response.status !== 400) {
+            return false;
+        }
+
+        /*
+         * Match "IMDS/" at start of "server" header string (`^IMDS\/`)
+         * Match the first three numbers with dots (`\d+.\d+.\d+.`)
+         * Capture the last number in a group (`(\d+)`)
+         * Ensure end of string (`$`)
+         *
+         * Example:
+         * [
+         * "IMDS/150.870.65.1556",  // index 0: full match
+         * "1556"                   // index 1: captured group (\d+)
+         * ]
+         */
+        const versionMatch = response.headers["server"]?.match(
+            /^IMDS\/\d+\.\d+\.\d+\.(\d+)$/
+        );
+        return Boolean(versionMatch && parseInt(versionMatch[1], 10) > 1324); // .match can return null, so Boolean() is needed
     }
 
     public createRequest(
@@ -80,7 +142,7 @@ export class ImdsV2 extends BaseManagedIdentitySource {
         const imdsRequest: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.POST,
-                this.identityEndpoint
+                this.credentialEndpoint
             );
 
         imdsRequest.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] =

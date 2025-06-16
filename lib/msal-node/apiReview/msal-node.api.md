@@ -392,7 +392,7 @@ export { LogLevel }
 export class ManagedIdentityApplication {
     constructor(configuration?: ManagedIdentityConfiguration);
     acquireToken(managedIdentityRequestParams: ManagedIdentityRequestParams): Promise<AuthenticationResult>;
-    getManagedIdentitySource(): ManagedIdentitySourceNames;
+    getManagedIdentitySource(): Promise<ManagedIdentitySourceNames>;
 }
 
 // @public (undocumented)

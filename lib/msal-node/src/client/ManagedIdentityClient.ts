@@ -63,7 +63,7 @@ export class ManagedIdentityClient {
     ): Promise<AuthenticationResult> {
         if (!ManagedIdentityClient.identitySource) {
             ManagedIdentityClient.identitySource =
-                this.selectManagedIdentitySource(
+                await this.selectManagedIdentitySource(
                     this.logger,
                     this.nodeStorage,
                     this.networkClient,
@@ -96,7 +96,7 @@ export class ManagedIdentityClient {
      * This API is consumed by ManagedIdentityApplication's getManagedIdentitySource.
      * @returns ManagedIdentitySourceNames - The Managed Identity source's name
      */
-    public getManagedIdentitySource(): ManagedIdentitySourceNames {
+    public async getManagedIdentitySource(): Promise<ManagedIdentitySourceNames> {
         ManagedIdentityClient.sourceName =
             this.allEnvironmentVariablesAreDefined(
                 ServiceFabric.getEnvironmentVariables()
@@ -118,7 +118,10 @@ export class ManagedIdentityClient {
                       AzureArc.getEnvironmentVariables()
                   )
                 ? ManagedIdentitySourceNames.AZURE_ARC
-                : ImdsV2.isCredentialEndpointAvailable()
+                : (await ImdsV2.isCredentialEndpointAvailable(
+                      this.logger,
+                      this.networkClient
+                  ))
                 ? ManagedIdentitySourceNames.IMDSV2
                 : ManagedIdentitySourceNames.DEFAULT_TO_IMDS;
 
@@ -129,14 +132,14 @@ export class ManagedIdentityClient {
      * Tries to create a managed identity source for all sources
      * @returns the managed identity Source
      */
-    private selectManagedIdentitySource(
+    private async selectManagedIdentitySource(
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
-    ): BaseManagedIdentitySource {
+    ): Promise<BaseManagedIdentitySource> {
         const source =
             ServiceFabric.tryCreate(
                 logger,
@@ -176,13 +179,13 @@ export class ManagedIdentityClient {
                 disableInternalRetries,
                 managedIdentityId
             ) ||
-            ImdsV2.tryCreate(
+            (await ImdsV2.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
                 disableInternalRetries
-            ) ||
+            )) ||
             Imds.tryCreate(
                 logger,
                 nodeStorage,

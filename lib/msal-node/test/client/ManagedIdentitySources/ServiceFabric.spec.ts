@@ -75,9 +75,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.SERVICE_FABRIC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -109,9 +109,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedResourceIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.SERVICE_FABRIC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
 
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
@@ -142,13 +142,13 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
     describe("System Assigned", () => {
         let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
+        beforeEach(async () => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.SERVICE_FABRIC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
         });
 
         test("acquires a token", async () => {
@@ -206,7 +206,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                         clientCapabilities: providedCapabilities,
                     });
                 expect(
-                    managedIdentityApplication.getManagedIdentitySource()
+                    await managedIdentityApplication.getManagedIdentitySource()
                 ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
 
                 let networkManagedIdentityResult: AuthenticationResult =
@@ -282,9 +282,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(systemAssignedConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.SERVICE_FABRIC
-            );
+            expect(
+                await managedIdentityApplication.getManagedIdentitySource()
+            ).toBe(ManagedIdentitySourceNames.SERVICE_FABRIC);
 
             let serverError: ServerError = new ServerError();
             try {

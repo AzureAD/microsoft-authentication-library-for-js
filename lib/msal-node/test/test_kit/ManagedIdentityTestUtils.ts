@@ -7,6 +7,8 @@ import {
     AuthenticationScheme,
     HttpStatus,
     INetworkModule,
+    Logger,
+    NetworkRequestOptions,
     NetworkResponse,
     TimeUtils,
 } from "@azure/msal-common";
@@ -20,6 +22,11 @@ import {
 import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse.js";
 import { ManagedIdentityRequestParams } from "../../src/request/ManagedIdentityRequestParams.js";
 import { ManagedIdentityConfiguration } from "../../src/config/Configuration.js";
+import {
+    CREDENTIAL_PATH,
+    CredentialEndpointProbeResponse,
+} from "../../src/client/ManagedIdentitySources/ImdsV2.js";
+import { Imds } from "../../src/client/ManagedIdentitySources/Imds.js";
 
 const EMPTY_HEADERS: Record<string, string> = {};
 
@@ -140,4 +147,45 @@ export const systemAssignedConfig: ManagedIdentityConfiguration = {
         networkClient,
         // managedIdentityIdParams will be omitted for system assigned
     },
+};
+
+export const credentialEndpointProbeResponse: CredentialEndpointProbeResponse =
+    {
+        error: "credential_endpoint_probe_error",
+        error_description: "credential_endpoint_probe_error_description",
+    };
+
+export const mockCredentialEndpointProbeRequest = (
+    status: number,
+    serverHeader?: string
+) => {
+    const validatedCredentialEndpoint: string = Imds.getValidatedEndpoint(
+        CREDENTIAL_PATH,
+        new Logger({})
+    );
+
+    const response: NetworkResponse<CredentialEndpointProbeResponse> = {
+        headers: serverHeader ? { server: serverHeader } : {},
+        body: credentialEndpointProbeResponse,
+        status,
+    };
+
+    const sendPostRequestAsyncSpy: jest.SpyInstance = jest
+        .spyOn(networkClient, "sendPostRequestAsync")
+        .mockImplementation(((
+            url: string,
+            _options?: NetworkRequestOptions
+        ) => {
+            if (url === validatedCredentialEndpoint) {
+                return Promise.resolve(response);
+            }
+            throw new Error(
+                "An invalid url was used in the tests' post request"
+            );
+        }) as typeof networkClient.sendPostRequestAsync);
+    // Type assertion is needed because sendPostRequestAsync is a generic method.
+    // Jest's mockImplementation does not infer generics, so we cast to the method's type
+    // to ensure the mock matches the original signature and TypeScript type checks correctly.
+
+    return sendPostRequestAsyncSpy;
 };
