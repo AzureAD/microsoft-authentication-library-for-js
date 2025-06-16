@@ -32,6 +32,32 @@ await shr.removeKeys(thumbprint).then(() => {
 });
 ```
 
+### TokenCache and loadExternalTokens
+
+MSAL JS API for [loadExternalTokens](../testing.md#the-loadexternaltokens-api) is modified. The changes include:
+* `TokenCache` object and `getTokenCache()` have been removed
+* The `loadExternalTokens()` API is now a separate export and requires `Configuration` as a parameter
+
+```js
+// BEFORE
+
+const pca = new PublicClientApplication(config);
+await pca.getTokenCache().loadExternalTokens(
+    silentRequest,
+    serverResponse,
+    loadTokenOptions
+);
+
+//AFTER
+
+await loadExternalTokens(
+    config,
+    silentRequest,
+    serverResponse,
+    loadTokenOptions
+);
+```
+
 ## Configuration changes
 
 ### BrowserAuthOptions changes
