@@ -43,9 +43,15 @@ const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
-        clientSecret: "ENTER_CLIENT_SECRET",
+        process.env.CLIENT_SECRET,
     },
 };
+```
+
+You will also need to add the client secret to your **.env file**:
+
+```
+CLIENT_SECRET=<your client secret here>
 ```
 
 ## Run the app
