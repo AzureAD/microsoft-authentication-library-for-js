@@ -1434,7 +1434,7 @@ export class SignedHttpRequest {
     constructor(shrParameters: SignedHttpRequestParameters, shrOptions?: SignedHttpRequestOptions);
     generatePublicKeyThumbprint(): Promise<string>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    removeKeys(publicKeyThumbprint: string): Promise<boolean>;
+    removeKeys(publicKeyThumbprint: string): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

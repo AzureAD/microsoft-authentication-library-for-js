@@ -15,13 +15,10 @@ import {
 } from "../../src/network/INetworkModule.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import {
-    RANDOM_TEST_GUID,
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
     TEST_URIS,
-    TEST_POP_VALUES,
     PREFERRED_CACHE_ALIAS,
-    TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
     TEST_CONFIG,
@@ -36,67 +33,9 @@ import { AuthorityType } from "../../src/authority/AuthorityType.js";
 import { TokenClaims } from "../../src/index.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
-const cryptoInterface: ICrypto = {
-    createNewGuid(): string {
-        return RANDOM_TEST_GUID;
-    },
-    base64Decode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                return TEST_POP_VALUES.DECODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
-            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS;
-            default:
-                return input;
-        }
-    },
-    base64Encode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.DECODED_REQ_CNF:
-                return TEST_POP_VALUES.ENCODED_REQ_CNF;
-            case "uid":
-                return "dWlk";
-            case "utid":
-                return "dXRpZA==";
-            default:
-                return input;
-        }
-    },
-    base64UrlEncode(input: string): string {
-        switch (input) {
-            case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    encodeKid(input: string): string {
-        switch (input) {
-            case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
-    async signJwt(): Promise<string> {
-        return "";
-    },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async clearKeystore(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async hashString(): Promise<string> {
-        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-    },
-};
+const cryptoInterface: ICrypto = mockCrypto;
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -126,11 +65,12 @@ const loggerOptions = {
     logLevel: LogLevel.Verbose,
 };
 const logger = new Logger(loggerOptions);
+const performanceClient = new StubPerformanceClient();
 
 const authority = new Authority(
     DEFAULT_AUTHORITY,
     networkInterface,
-    new MockStorageClass("client-id", mockCrypto, logger),
+    new MockStorageClass("client-id", mockCrypto, logger, performanceClient),
     authorityOptions,
     logger,
     TEST_CONFIG.CORRELATION_ID
@@ -274,7 +214,12 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
         const authority = new Authority(
             DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -322,7 +267,12 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
         const authority = new Authority(
             DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             {
                 protocolMode: ProtocolMode.OIDC,
                 knownAuthorities: [DEFAULT_AUTHORITY],
@@ -665,7 +615,12 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -721,7 +676,12 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID

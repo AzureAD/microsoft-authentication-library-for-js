@@ -233,8 +233,9 @@ export async function clearCacheOnLogout(
             }
             // Clear given account.
             try {
-                await browserStorage.removeAccount(
-                    AccountEntityUtils.generateAccountCacheKey(account)
+                browserStorage.removeAccount(
+                    AccountEntityUtils.generateAccountCacheKey(account),
+                    correlationId
                 );
                 logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
@@ -251,7 +252,7 @@ export async function clearCacheOnLogout(
                     correlationId
                 );
                 // Clear all accounts and tokens
-                await browserStorage.clear();
+                await browserStorage.clear(correlationId);
                 // Clear any stray keys from IndexedDB
                 await browserCrypto.clearKeystore();
             } catch (e) {

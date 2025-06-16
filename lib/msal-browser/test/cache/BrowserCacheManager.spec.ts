@@ -261,8 +261,8 @@ describe("BrowserCacheManager tests", () => {
         });
 
         afterEach(async () => {
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("setTemporaryCache", () => {
@@ -326,11 +326,11 @@ describe("BrowserCacheManager tests", () => {
             ]);
         });
 
-        it("clear()", async () => {
+        it("clear()", () => {
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            await browserSessionStorage.clear();
-            await browserLocalStorage.clear();
+            browserSessionStorage.clear(RANDOM_TEST_GUID);
+            browserLocalStorage.clear(RANDOM_TEST_GUID);
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
         });
@@ -984,8 +984,12 @@ describe("BrowserCacheManager tests", () => {
                         )
                     ).toEqual(testAT4);
 
-                    browserSessionStorage.clearTokensAndKeysWithClaims();
-                    browserLocalStorage.clearTokensAndKeysWithClaims();
+                    browserSessionStorage.clearTokensAndKeysWithClaims(
+                        "test-correlation-id"
+                    );
+                    browserLocalStorage.clearTokensAndKeysWithClaims(
+                        "test-correlation-id"
+                    );
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
@@ -1366,8 +1370,8 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.getAuthorityMetadataKeys()
                     ).toEqual(expect.arrayContaining([key]));
 
-                    await browserSessionStorage.clear();
-                    await browserLocalStorage.clear();
+                    browserSessionStorage.clear(RANDOM_TEST_GUID);
+                    browserLocalStorage.clear(RANDOM_TEST_GUID);
                     expect(
                         browserSessionStorage.getAuthorityMetadata(key)
                     ).toBeNull();

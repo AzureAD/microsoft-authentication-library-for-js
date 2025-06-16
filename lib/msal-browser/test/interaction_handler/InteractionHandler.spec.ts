@@ -139,8 +139,8 @@ const cryptoInterface = {
     signJwt: async (): Promise<string> => {
         return "signedJwt";
     },
-    removeTokenBindingKey: async (): Promise<boolean> => {
-        return Promise.resolve(true);
+    removeTokenBindingKey: async (): Promise<void> => {
+        return Promise.resolve();
     },
     clearKeystore: async (): Promise<boolean> => {
         return Promise.resolve(true);
@@ -221,7 +221,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             storageInterface: new TestStorageManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cryptoInterface,
-                logger
+                logger,
+                new StubPerformanceClient()
             ),
             networkInterface: {
                 sendGetRequestAsync: async (
