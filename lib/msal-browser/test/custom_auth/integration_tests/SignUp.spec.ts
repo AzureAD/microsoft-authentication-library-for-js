@@ -156,8 +156,9 @@ describe("Sign up", () => {
                 ok: true,
             });
 
-        const attributes = new UserAccountAttributes();
-        attributes.setCity("test-city");
+        const attributes: UserAccountAttributes = {
+            city: "test-city",
+        };
 
         const signUpInputs: SignUpInputs = {
             username: "test@test.com",
@@ -296,8 +297,9 @@ describe("Sign up", () => {
                 ok: true,
             });
 
-        const attributes = new UserAccountAttributes();
-        attributes.setCity("test-city");
+        const attributes: UserAccountAttributes = {
+            city: "test-city",
+        };
 
         const signUpInputs: SignUpInputs = {
             username: "test@test.com",
@@ -324,8 +326,9 @@ describe("Sign up", () => {
             )?.getRequiredAttributes().length
         ).toBe(3);
 
-        const requiredAttributes = new UserAccountAttributes();
-        requiredAttributes.setDisplayName("test-display-name");
+        const requiredAttributes: UserAccountAttributes = {
+            displayName: "test-display-name",
+        };
         const submitAttributesResult = await (
             submitCodeResult.state as SignUpAttributesRequiredState
         ).submitAttributes(requiredAttributes);
@@ -472,8 +475,9 @@ describe("Sign up", () => {
                 ok: true,
             });
 
-        const attributes = new UserAccountAttributes();
-        attributes.setCity("test-city");
+        const attributes: UserAccountAttributes = {
+            city: "test-city",
+        };
 
         const signUpInputs: SignUpInputs = {
             username: "test@test.com",
@@ -503,8 +507,9 @@ describe("Sign up", () => {
         expect(submitPasswordResult.error).toBeUndefined();
         expect(submitPasswordResult.isAttributesRequired()).toBe(true);
 
-        const requiredAttributes = new UserAccountAttributes();
-        requiredAttributes.setDisplayName("test-display-name");
+        const requiredAttributes: UserAccountAttributes = {
+            displayName: "test-display-name",
+        };
         const submitAttributesResult = await (
             submitPasswordResult.state as SignUpAttributesRequiredState
         ).submitAttributes(requiredAttributes);
@@ -585,8 +590,9 @@ describe("Sign up", () => {
                 ok: true,
             });
 
-        const attributes = new UserAccountAttributes();
-        attributes.setCity("test-city");
+        const attributes: UserAccountAttributes = {
+            city: "test-city",
+        };
 
         const signUpInputs: SignUpInputs = {
             username: "test@test.com",

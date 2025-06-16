@@ -360,7 +360,7 @@ export class CustomAuthStandardController
                     this.customAuthConfig.customAuth.challengeTypes ?? [],
                 username: signUpInputs.username,
                 password: signUpInputs.password,
-                attributes: signUpInputs.attributes?.toRecord(),
+                attributes: signUpInputs.attributes,
             });
 
             this.logger.verbose("Sign-up flow started.", correlationId);

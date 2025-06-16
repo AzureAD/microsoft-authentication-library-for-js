@@ -6,7 +6,19 @@
 import { UserAccountAttributeError } from "./core/error/UserAccountAttributeError.js";
 import { InvalidAttributeErrorCode } from "./core/error/UserAccountAttributeErrorCodes.js";
 
-export class UserAccountAttributes {
+export type UserAccountAttributes = Record<string, string> & {
+    city?: string;
+    country?: string;
+    displayName?: string;
+    givenName?: string;
+    jobTitle?: string;
+    postalCode?: string;
+    state?: string;
+    streetAddress?: string;
+    surname?: string;
+};
+
+export class UserAccountAttributes1 {
     private attributes: Record<string, string>;
 
     constructor() {

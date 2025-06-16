@@ -28,7 +28,7 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
     async submitAttributes(
         attributes: UserAccountAttributes
     ): Promise<SignUpSubmitAttributesResult> {
-        if (!attributes || Object.keys(attributes.toRecord()).length === 0) {
+        if (!attributes || Object.keys(attributes).length === 0) {
             this.stateParameters.logger.error(
                 "Attributes are required for sign-up.",
                 this.stateParameters.correlationId
@@ -59,7 +59,7 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
                         [],
                     continuationToken:
                         this.stateParameters.continuationToken ?? "",
-                    attributes: attributes.toRecord(),
+                    attributes: attributes,
                     username: this.stateParameters.username,
                 });
 

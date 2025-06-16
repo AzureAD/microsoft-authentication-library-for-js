@@ -31,8 +31,9 @@ describe("SignUpAttributesRequiredState", () => {
     const username = "testuser";
     const correlationId = "test-correlation-id";
     const continuationToken = "test-continuation-token";
-    const requiredAttributes = new UserAccountAttributes();
-    requiredAttributes.setDisplayName("test-value");
+    const requiredAttributes: UserAccountAttributes = {
+        displayName: "test-value",
+    };
 
     let state: SignUpAttributesRequiredState;
 
@@ -70,9 +71,7 @@ describe("SignUpAttributesRequiredState", () => {
             expect(result1.error).toBeInstanceOf(SignUpSubmitAttributesError);
             expect(result1.error?.isAttributesValidationFailed()).toBe(true);
 
-            const result2 = await state.submitAttributes(
-                new UserAccountAttributes()
-            );
+            const result2 = await state.submitAttributes({});
 
             expect(result2.isFailed()).toBeTruthy();
             expect(result2.error).toBeInstanceOf(SignUpSubmitAttributesError);
@@ -97,7 +96,7 @@ describe("SignUpAttributesRequiredState", () => {
                 correlationId: correlationId,
                 challengeType: ["attributes"],
                 continuationToken: continuationToken,
-                attributes: requiredAttributes.toRecord(),
+                attributes: requiredAttributes,
                 username: username,
             });
         });

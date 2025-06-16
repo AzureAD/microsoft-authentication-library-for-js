@@ -18,6 +18,11 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
     -   [On-behalf-of Flow](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
 
 -   [Microsoft Authentication Library for JavaScript](lib/msal-browser/): A browser-based, framework-agnostic browser library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Authorization Code Flow with PKCE](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow), and is [OpenID-compliant](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc).
+
+-   [Native Authentication Support for JavaScript](lib/msal-browser/src/custom_auth/): MSAL also provides native authentication APIs that allow applications to implement a native experience with end-to-end customizable flows in their applications. With native authentication, users are guided through a rich, native, sign-up and sign-in journey without leaving the app. The native authentication feature is available for SPAs on [External ID for customers](https://learn.microsoft.com/en-us/entra/identity-platform/concept-native-authentication). It is recommended to always use the most up-to-date version of the SDK.
+
+    > **Note:** The native authentication feature is currently in public preview and is not considered production-stable. Features and APIs may change before general availability.
+
 -   [Microsoft Authentication Library for React](lib/msal-react/): A wrapper of the msal-browser library for apps using React.
 -   [Microsoft Authentication Library for Angular](lib/msal-angular/): A wrapper of the msal-browser library for apps using Angular framework.
 -   [Microsoft Authentication Extensions for Node](extensions/msal-node-extensions/): The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. It gives additional support to the Microsoft Authentication Library for Node (MSAL).
