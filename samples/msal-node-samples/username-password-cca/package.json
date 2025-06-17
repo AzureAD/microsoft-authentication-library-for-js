@@ -12,9 +12,9 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^3.0.0"
+    "@azure/msal-node": "^3.0.0",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
-    "dotenv": "^16.3.1"
   }
 }

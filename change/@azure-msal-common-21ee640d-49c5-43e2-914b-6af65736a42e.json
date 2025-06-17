@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Bump version",
-  "packageName": "@azure/msal-common",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "none"
-}

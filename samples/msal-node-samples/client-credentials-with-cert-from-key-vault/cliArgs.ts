@@ -1,12 +1,11 @@
 import yargs, { ArgumentsCamelCase } from "yargs";
 
-interface CliArgs {
+interface CliArgs extends ArgumentsCamelCase {
     c?: string;
     p?: number;
     r?: string;
     s?: string;
     ro?: string;
-    $0: string;
 }
 
 const argv = yargs(process.argv.slice(2))
@@ -45,6 +44,6 @@ const argv = yargs(process.argv.slice(2))
                 "(Optional) Runtime options to inject into the application - default is null",
         },
     })
-    .parseSync() as ArgumentsCamelCase<CliArgs>;
+    .parseSync() as CliArgs;
 
 export default argv;

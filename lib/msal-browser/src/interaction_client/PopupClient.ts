@@ -503,8 +503,9 @@ export class PopupClient extends StandardInteractionClient {
                     validRequest.postLogoutRedirectUri &&
                     authClient.authority.protocolMode === ProtocolMode.OIDC
                 ) {
-                    void this.browserStorage.removeAccount(
-                        validRequest.account?.homeAccountId
+                    this.browserStorage.removeAccount(
+                        validRequest.account?.homeAccountId,
+                        this.correlationId
                     );
 
                     this.eventHandler.emitEvent(
