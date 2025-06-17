@@ -24,7 +24,6 @@ import { SsoSilentRequest } from "../../../request/SsoSilentRequest.js";
 import { EndSessionRequest } from "../../../request/EndSessionRequest.js";
 import { ClearCacheRequest } from "../../../request/ClearCacheRequest.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
-import { ensureArgumentIsNotNullOrUndefined } from "../utils/ArgumentValidator.js";
 
 export abstract class CustomAuthInteractionClientBase extends StandardInteractionClient {
     constructor(
@@ -46,18 +45,6 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             eventHandler,
             navigationClient,
             performanceClient
-        );
-
-        ensureArgumentIsNotNullOrUndefined(
-            "customAuthApiClient",
-            customAuthApiClient,
-            this.correlationId
-        );
-
-        ensureArgumentIsNotNullOrUndefined(
-            "customAuthAuthority",
-            customAuthAuthority,
-            this.correlationId
         );
     }
 

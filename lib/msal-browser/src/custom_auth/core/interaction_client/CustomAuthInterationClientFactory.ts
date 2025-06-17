@@ -15,7 +15,6 @@ import {
 } from "@azure/msal-common/browser";
 import { EventHandler } from "../../../event/EventHandler.js";
 import { INavigationClient } from "../../../navigation/INavigationClient.js";
-import { ensureArgumentIsNotNullOrUndefined } from "../utils/ArgumentValidator.js";
 
 export class CustomAuthInterationClientFactory {
     constructor(
@@ -28,29 +27,7 @@ export class CustomAuthInterationClientFactory {
         private performanceClient: IPerformanceClient,
         private customAuthApiClient: ICustomAuthApiClient,
         private customAuthAuthority: CustomAuthAuthority
-    ) {
-        ensureArgumentIsNotNullOrUndefined("config", config);
-        ensureArgumentIsNotNullOrUndefined("storageImpl", storageImpl);
-        ensureArgumentIsNotNullOrUndefined("browserCrypto", browserCrypto);
-        ensureArgumentIsNotNullOrUndefined("logger", logger);
-        ensureArgumentIsNotNullOrUndefined("eventHandler", eventHandler);
-        ensureArgumentIsNotNullOrUndefined(
-            "navigationClient",
-            navigationClient
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "performanceClient",
-            performanceClient
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "customAuthApiClient",
-            customAuthApiClient
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "customAuthAuthority",
-            customAuthAuthority
-        );
-    }
+    ) {}
 
     create<TClient extends CustomAuthInteractionClientBase>(
         clientConstructor: new (

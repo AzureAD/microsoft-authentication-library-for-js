@@ -4,10 +4,7 @@
  */
 
 import { AuthFlowActionRequiredStateBase } from "../../../core/auth_flow/AuthFlowState.js";
-import {
-    ensureArgumentIsNotEmptyString,
-    ensureArgumentIsNotNullOrUndefined,
-} from "../../../core/utils/ArgumentValidator.js";
+import { ensureArgumentIsNotEmptyString } from "../../../core/utils/ArgumentValidator.js";
 import { SignInStateParameters } from "./SignInStateParameters.js";
 
 /*
@@ -31,21 +28,6 @@ export abstract class SignInState<
         ensureArgumentIsNotEmptyString(
             "continuationToken",
             stateParameters.continuationToken,
-            stateParameters.correlationId
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "config",
-            stateParameters.config,
-            stateParameters.correlationId
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "signInClient",
-            stateParameters.signInClient,
-            stateParameters.correlationId
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "cacheClient",
-            stateParameters.cacheClient,
             stateParameters.correlationId
         );
     }

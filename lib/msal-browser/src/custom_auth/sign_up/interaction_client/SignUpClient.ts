@@ -43,7 +43,6 @@ import {
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { SignUpContinueResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 import { ServerTelemetryManager } from "@azure/msal-common/browser";
-import { ensureArgumentIsNotNullOrUndefined } from "../../core/utils/ArgumentValidator.js";
 
 export class SignUpClient extends CustomAuthInteractionClientBase {
     /**
@@ -54,12 +53,6 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async start(
         parameters: SignUpStartParams
     ): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
-
         const apiId = !parameters.password
             ? PublicApiId.SIGN_UP_START
             : PublicApiId.SIGN_UP_WITH_PASSWORD_START;
@@ -110,12 +103,6 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpPasswordRequiredResult
         | SignUpAttributesRequiredResult
     > {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
-
         const apiId = PublicApiId.SIGN_UP_SUBMIT_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
@@ -160,12 +147,6 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpCodeRequiredResult
         | SignUpAttributesRequiredResult
     > {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameter",
-            parameter,
-            parameter.correlationId
-        );
-
         const apiId = PublicApiId.SIGN_UP_SUBMIT_PASSWORD;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
@@ -210,12 +191,6 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpPasswordRequiredResult
         | SignUpCodeRequiredResult
     > {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameter",
-            parameter,
-            parameter.correlationId
-        );
-
         const apiId = PublicApiId.SIGN_UP_SUBMIT_ATTRIBUTES;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
         const reqWithAttr: SignUpContinueWithAttributesRequest = {
@@ -259,12 +234,6 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: SignUpResendCodeParams
     ): Promise<SignUpCodeRequiredResult> {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
-
         const apiId = PublicApiId.SIGN_UP_RESEND_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 

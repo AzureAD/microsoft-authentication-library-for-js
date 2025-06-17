@@ -36,13 +36,6 @@ export class CustomAuthAccountData {
     ) {
         ensureArgumentIsNotEmptyString("correlationId", correlationId);
         ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
-        ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
-        ensureArgumentIsNotNullOrUndefined(
-            "cacheClient",
-            cacheClient,
-            correlationId
-        );
-        ensureArgumentIsNotNullOrUndefined("logger", logger, correlationId);
     }
 
     /**

@@ -54,10 +54,7 @@ import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
 import { EventHandler } from "../../../event/EventHandler.js";
 import { INavigationClient } from "../../../navigation/INavigationClient.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
-import {
-    ensureArgumentIsNotEmptyString,
-    ensureArgumentIsNotNullOrUndefined,
-} from "../../core/utils/ArgumentValidator.js";
+import { ensureArgumentIsNotEmptyString } from "../../core/utils/ArgumentValidator.js";
 
 export class SignInClient extends CustomAuthInteractionClientBase {
     private readonly tokenResponseHandler: ResponseHandler;
@@ -103,12 +100,6 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async start(
         parameters: SignInStartParams
     ): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
-
         const apiId = !parameters.password
             ? PublicApiId.SIGN_IN_WITH_CODE_START
             : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
@@ -152,12 +143,6 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: SignInResendCodeParams
     ): Promise<SignInCodeSendResult> {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
-
         const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
@@ -194,11 +179,6 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async submitCode(
         parameters: SignInSubmitCodeParams
     ): Promise<SignInCompletedResult> {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
         ensureArgumentIsNotEmptyString(
             "parameters.code",
             parameters.code,
@@ -234,11 +214,6 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async submitPassword(
         parameters: SignInSubmitPasswordParams
     ): Promise<SignInCompletedResult> {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
         ensureArgumentIsNotEmptyString(
             "parameters.password",
             parameters.password,
@@ -274,12 +249,6 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async signInWithContinuationToken(
         parameters: SignInContinuationTokenParams
     ): Promise<SignInCompletedResult> {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
-
         const apiId = this.getPublicApiIdBySignInScenario(
             parameters.signInScenario,
             parameters.correlationId

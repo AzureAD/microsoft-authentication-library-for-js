@@ -32,10 +32,7 @@ import {
     ResetPasswordCompletedResult,
     ResetPasswordPasswordRequiredResult,
 } from "./result/ResetPasswordActionResult.js";
-import {
-    ensureArgumentIsNotEmptyString,
-    ensureArgumentIsNotNullOrUndefined,
-} from "../../core/utils/ArgumentValidator.js";
+import { ensureArgumentIsNotEmptyString } from "../../core/utils/ArgumentValidator.js";
 
 export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     /**
@@ -47,12 +44,6 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         parameters: ResetPasswordStartParams
     ): Promise<ResetPasswordCodeRequiredResult> {
         const correlationId = parameters.correlationId;
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            correlationId
-        );
-
         const apiId = PublicApiId.PASSWORD_RESET_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
@@ -95,11 +86,6 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         parameters: ResetPasswordSubmitCodeParams
     ): Promise<ResetPasswordPasswordRequiredResult> {
         const correlationId = parameters.correlationId;
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            correlationId
-        );
         ensureArgumentIsNotEmptyString(
             "parameters.code",
             parameters.code,
@@ -145,12 +131,6 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: ResetPasswordResendCodeParams
     ): Promise<ResetPasswordCodeRequiredResult> {
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            parameters.correlationId
-        );
-
         const apiId = PublicApiId.PASSWORD_RESET_RESEND_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
@@ -174,11 +154,6 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     ): Promise<ResetPasswordCompletedResult> {
         const correlationId = parameters.correlationId;
 
-        ensureArgumentIsNotNullOrUndefined(
-            "parameters",
-            parameters,
-            correlationId
-        );
         ensureArgumentIsNotEmptyString(
             "parameters.newPassword",
             parameters.newPassword,

@@ -21,7 +21,9 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 
 -   [Native Authentication Support for JavaScript](lib/msal-browser/src/custom_auth/): MSAL also provides native authentication APIs that allow applications to implement a native experience with end-to-end customizable flows in their applications. With native authentication, users are guided through a rich, native, sign-up and sign-in journey without leaving the app. The native authentication feature is available for SPAs on [External ID for customers](https://learn.microsoft.com/en-us/entra/identity-platform/concept-native-authentication). It is recommended to always use the most up-to-date version of the SDK.
 
-    > **Note:** The native authentication feature is currently in public preview and is not considered production-stable. Features and APIs may change before general availability.
+    > **Note:** The native authentication feature is currently in preview and is not considered production-stable. Features and APIs may change before general availability.
+    >
+    > **Terminology:** In the codebase, the term "Custom Auth" is used instead of "Native Auth". You will find classes, interfaces, and configuration options prefixed with `CustomAuth` (e.g., `CustomAuthPublicClientApplication`, `CustomAuthConfiguration`). Please refer to these when implementing or exploring the native authentication feature in the code.
 
 -   [Microsoft Authentication Library for React](lib/msal-react/): A wrapper of the msal-browser library for apps using React.
 -   [Microsoft Authentication Library for Angular](lib/msal-angular/): A wrapper of the msal-browser library for apps using Angular framework.

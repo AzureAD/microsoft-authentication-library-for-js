@@ -4,10 +4,7 @@
  */
 
 import { AuthFlowActionRequiredStateBase } from "../../../core/auth_flow/AuthFlowState.js";
-import {
-    ensureArgumentIsNotEmptyString,
-    ensureArgumentIsNotNullOrUndefined,
-} from "../../../core/utils/ArgumentValidator.js";
+import { ensureArgumentIsNotEmptyString } from "../../../core/utils/ArgumentValidator.js";
 import { SignUpStateParameters } from "./SignUpStateParameters.js";
 
 /*
@@ -23,34 +20,14 @@ export abstract class SignUpState<
     constructor(stateParameters: TParameters) {
         super(stateParameters);
 
-        ensureArgumentIsNotNullOrUndefined(
-            "config",
-            stateParameters.config,
-            stateParameters.correlationId
-        );
         ensureArgumentIsNotEmptyString(
             "username",
             stateParameters.username,
             stateParameters.correlationId
         );
-        ensureArgumentIsNotNullOrUndefined(
-            "signUpClient",
-            stateParameters.signUpClient,
-            stateParameters.correlationId
-        );
         ensureArgumentIsNotEmptyString(
             "continuationToken",
             stateParameters.continuationToken,
-            stateParameters.correlationId
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "signInClient",
-            stateParameters.signInClient,
-            stateParameters.correlationId
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "cacheClient",
-            stateParameters.cacheClient,
             stateParameters.correlationId
         );
     }

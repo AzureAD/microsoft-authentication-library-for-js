@@ -6,10 +6,7 @@
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
 import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 import { Logger } from "@azure/msal-common/browser";
-import {
-    ensureArgumentIsNotEmptyString,
-    ensureArgumentIsNotNullOrUndefined,
-} from "../utils/ArgumentValidator.js";
+import { ensureArgumentIsNotEmptyString } from "../utils/ArgumentValidator.js";
 import { DefaultCustomAuthApiCodeLength } from "../../CustomAuthConstants.js";
 
 export interface AuthFlowActionRequiredStateParameters {
@@ -37,16 +34,6 @@ export abstract class AuthFlowActionRequiredStateBase<
     protected constructor(protected readonly stateParameters: TParameter) {
         ensureArgumentIsNotEmptyString(
             "correlationId",
-            stateParameters.correlationId
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "logger",
-            stateParameters.logger,
-            stateParameters.correlationId
-        );
-        ensureArgumentIsNotNullOrUndefined(
-            "config",
-            stateParameters.config,
             stateParameters.correlationId
         );
 
