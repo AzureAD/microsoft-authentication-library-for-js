@@ -137,7 +137,7 @@ describe("ConfidentialClientApplication", () => {
 
                 const config: Configuration =
                     await ClientTestUtils.createTestConfidentialClientConfiguration(
-                        ["cp1", "cp2"],
+                        CAE_CONSTANTS.CLIENT_CAPABILITIES,
                         mockNetworkClient(
                             {}, // not needed
                             CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT

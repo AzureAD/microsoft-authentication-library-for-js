@@ -24,7 +24,11 @@ import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest.js";
-import { HttpMethod, ManagedIdentityIdType } from "../../utils/Constants.js";
+import {
+    HttpMethod,
+    ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
+} from "../../utils/Constants.js";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import {
@@ -145,6 +149,29 @@ export abstract class BaseManagedIdentitySource {
                 managedIdentityRequest.resource,
                 managedIdentityId
             );
+
+        if (managedIdentityRequest.revokedTokenSha256Hash) {
+            this.logger.info(
+                `[Managed Identity] The following claims are present in the request: ${managedIdentityRequest.claims}`
+            );
+
+            networkRequest.queryParameters[
+                ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
+            ] = managedIdentityRequest.revokedTokenSha256Hash;
+        }
+
+        if (managedIdentityRequest.clientCapabilities?.length) {
+            const clientCapabilities: string =
+                managedIdentityRequest.clientCapabilities.toString();
+
+            this.logger.info(
+                `[Managed Identity] The following client capabilities are present in the request: ${clientCapabilities}`
+            );
+
+            networkRequest.queryParameters[
+                ManagedIdentityQueryParameters.XMS_CC
+            ] = clientCapabilities;
+        }
 
         const headers: Record<string, string> = networkRequest.headers;
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;

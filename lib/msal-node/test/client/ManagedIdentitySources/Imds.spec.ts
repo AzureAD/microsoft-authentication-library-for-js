@@ -6,6 +6,7 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import { ManagedIdentityConfiguration } from "../../../src/config/Configuration.js";
 import {
+    CAE_CONSTANTS,
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS,
@@ -31,9 +32,11 @@ import {
     managedIdentityRequestParams,
     systemAssignedConfig,
     userAssignedResourceIdConfig,
+    userAssignedObjectIdConfig,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants.js";
 import {
@@ -78,15 +81,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             undefined,
             HttpStatus.BAD_REQUEST
         );
-
-    const userAssignedObjectIdConfig: ManagedIdentityConfiguration = {
-        system: {
-            networkClient,
-        },
-        managedIdentityIdParams: {
-            userAssignedObjectId: MANAGED_IDENTITY_RESOURCE_ID,
-        },
-    };
 
     describe("User Assigned", () => {
         test("acquires a User Assigned Client Id token", async () => {
@@ -664,28 +658,48 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             );
         });
 
-        test("ignores a cached token when claims are provided", async () => {
+        test("ignores a cached token when claims are provided and the Managed Identity does not support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh was not included in the network request to the Managed Identity", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    ...systemAssignedConfig,
+                    clientCapabilities: CAE_CONSTANTS.CLIENT_CAPABILITIES,
+                });
+
             let networkManagedIdentityResult: AuthenticationResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
 
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
+            const firstNetworkRequestUrlParams: URLSearchParams =
+                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
+            expect(
+                firstNetworkRequestUrlParams.get(
+                    ManagedIdentityQueryParameters.XMS_CC
+                )
+            ).toEqual(CAE_CONSTANTS.CLIENT_CAPABILITIES.toString());
+
             const cachedManagedIdentityResult: AuthenticationResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(cachedManagedIdentityResult.fromCache).toBe(true);
             expect(cachedManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
 
             networkManagedIdentityResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     claims: TEST_CONFIG.CLAIMS,
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
@@ -693,6 +707,15 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(2);
+            const secondNetworkRequestUrlParams: URLSearchParams =
+                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
+            expect(
+                secondNetworkRequestUrlParams.has(
+                    ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
+                )
+            ).toBe(false);
         });
 
         test("ignores a cached token when forceRefresh is set to true", async () => {
@@ -701,7 +724,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -721,7 +743,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -733,7 +754,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );

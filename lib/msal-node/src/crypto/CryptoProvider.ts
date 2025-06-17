@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes } from "@azure/msal-common/node";
+import { EncodingTypes, ICrypto, PkceCodes } from "@azure/msal-common/node";
 import { GuidGenerator } from "./GuidGenerator.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { PkceGenerator } from "./PkceGenerator.js";
@@ -83,7 +83,7 @@ export class CryptoProvider implements ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid - public key id
      */
-    removeTokenBindingKey(): Promise<boolean> {
+    removeTokenBindingKey(): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
@@ -106,8 +106,8 @@ export class CryptoProvider implements ICrypto {
      */
     async hashString(plainText: string): Promise<string> {
         return EncodingUtils.base64EncodeUrl(
-            this.hashUtils.sha256(plainText).toString("base64"),
-            "base64"
+            this.hashUtils.sha256(plainText).toString(EncodingTypes.BASE64),
+            EncodingTypes.BASE64
         );
     }
 }

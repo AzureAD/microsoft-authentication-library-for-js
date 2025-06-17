@@ -1,0 +1,26 @@
+{
+  "name": "electron-webpack",
+  "entries": [
+    {
+      "date": "Fri, 30 May 2025 22:36:45 GMT",
+      "version": "1.0.1",
+      "tag": "electron-webpack_v1.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "electron-webpack",
+            "comment": "Bump @azure/msal-node to v3.6.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "electron-webpack",
+            "comment": "Bump @azure/msal-node-extensions to v1.5.14",
+            "commit": "not available"
+          }
+        ]
+      }
+    }
+  ]
+}
