@@ -1028,37 +1028,32 @@ export abstract class CacheManager implements ICacheManager {
      */
     removeAccessToken(key: string, correlationId: string): void {
         const credential = this.getAccessTokenCredential(key, correlationId);
-        if (!credential) {
+        this.removeItem(key, correlationId);
+
+        if (
+            !credential ||
+            credential.credentialType.toLowerCase() !==
+                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase() ||
+            credential.tokenType !== AuthenticationScheme.POP
+        ) {
+            // If the credential is not a PoP token, we can return
             return;
         }
 
-        this.removeItem(key, correlationId);
-
         // Remove Token Binding Key from key store for PoP Tokens Credentials
-        if (
-            credential.credentialType.toLowerCase() ===
-            CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
-        ) {
-            if (credential.tokenType === AuthenticationScheme.POP) {
-                const accessTokenWithAuthSchemeEntity =
-                    credential as AccessTokenEntity;
-                const kid = accessTokenWithAuthSchemeEntity.keyId;
+        const kid = credential.keyId;
 
-                if (kid) {
-                    void this.cryptoImpl
-                        .removeTokenBindingKey(kid)
-                        .catch(() => {
-                            this.commonLogger.error(
-                                `Failed to remove token binding key ${kid}`,
-                                correlationId
-                            );
-                            this.performanceClient?.incrementFields(
-                                { removeTokenBindingKeyFailure: 1 },
-                                correlationId
-                            );
-                        });
-                }
-            }
+        if (kid) {
+            void this.cryptoImpl.removeTokenBindingKey(kid).catch(() => {
+                this.commonLogger.error(
+                    `Failed to remove token binding key ${kid}`,
+                    correlationId
+                );
+                this.performanceClient?.incrementFields(
+                    { removeTokenBindingKeyFailure: 1 },
+                    correlationId
+                );
+            });
         }
     }
 
