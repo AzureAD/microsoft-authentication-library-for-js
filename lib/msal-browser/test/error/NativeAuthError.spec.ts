@@ -6,6 +6,7 @@ import {
 } from "../../src/error/NativeAuthError";
 import {
     InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
     InteractionRequiredAuthErrorMessage,
 } from "@azure/msal-common";
 import {
@@ -116,6 +117,23 @@ describe("NativeAuthError Unit Tests", () => {
                 expect(error.errorCode).toBe(
                     InteractionRequiredAuthErrorMessage
                         .native_account_unavailable.code
+                );
+            });
+
+            it("translates UX_NOT_ALLOWED status into corresponding InteractionRequiredError", () => {
+                const error = createNativeAuthError(
+                    "interaction_required",
+                    "interaction is required",
+                    {
+                        error: 1,
+                        protocol_error: "testProtocolError",
+                        properties: {},
+                        status: NativeStatusCode.UX_NOT_ALLOWED,
+                    }
+                );
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(error.errorCode).toBe(
+                    InteractionRequiredAuthErrorCodes.uxNotAllowed
                 );
             });
 

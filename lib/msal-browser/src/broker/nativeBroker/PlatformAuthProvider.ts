@@ -128,10 +128,10 @@ export function isPlatformAuthAllowed(
     platformAuthProvider?: IPlatformAuthHandler,
     authenticationScheme?: AuthenticationScheme
 ): boolean {
-    logger.trace("isBrokerAvailable called");
+    logger.trace("isPlatformAuthAllowed called");
     if (!config.system.allowPlatformBroker) {
         logger.trace(
-            "isBrokerAvailable: allowPlatformBroker is not enabled, returning false"
+            "isPlatformAuthAllowed: allowPlatformBroker is not enabled, returning false"
         );
         // Developer disabled WAM
         return false;
@@ -139,7 +139,7 @@ export function isPlatformAuthAllowed(
 
     if (!platformAuthProvider) {
         logger.trace(
-            "isBrokerAvailable: Platform auth provider is not initialized, returning false"
+            "isPlatformAuthAllowed: Platform auth provider is not initialized, returning false"
         );
         // Platform broker auth providers are not available
         return false;
@@ -150,12 +150,12 @@ export function isPlatformAuthAllowed(
             case AuthenticationScheme.BEARER:
             case AuthenticationScheme.POP:
                 logger.trace(
-                    "isBrokerAvailable: authenticationScheme is supported, returning true"
+                    "isPlatformAuthAllowed: authenticationScheme is supported, returning true"
                 );
                 return true;
             default:
                 logger.trace(
-                    "isBrokerAvailable: authenticationScheme is not supported, returning false"
+                    "isPlatformAuthAllowed: authenticationScheme is not supported, returning false"
                 );
                 return false;
         }
