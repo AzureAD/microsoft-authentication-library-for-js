@@ -33,6 +33,7 @@ import {
     systemAssignedConfig,
     userAssignedResourceIdConfig,
     mockCredentialEndpointProbeRequest,
+    userAssignedObjectIdConfig,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
@@ -88,15 +89,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             undefined,
             HttpStatus.BAD_REQUEST
         );
-
-    const userAssignedObjectIdConfig: ManagedIdentityConfiguration = {
-        system: {
-            networkClient,
-        },
-        managedIdentityIdParams: {
-            userAssignedObjectId: MANAGED_IDENTITY_RESOURCE_ID,
-        },
-    };
 
     describe("User Assigned", () => {
         test("acquires a User Assigned Client Id token", async () => {
