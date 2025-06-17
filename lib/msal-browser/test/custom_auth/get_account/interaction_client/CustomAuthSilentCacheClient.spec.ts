@@ -183,7 +183,7 @@ describe("CustomAuthSilentCacheClient", () => {
         });
 
         afterEach(() => {
-            mockCacheManager.clear();
+            mockCacheManager.clear("test-correlation-id");
         });
 
         it("should get cached access token successfully and return.", async () => {
