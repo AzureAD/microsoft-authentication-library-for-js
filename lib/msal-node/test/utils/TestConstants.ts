@@ -111,7 +111,7 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
-    async removeTokenBindingKey(): Promise<boolean> {
+    async removeTokenBindingKey(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async clearKeystore(): Promise<boolean> {

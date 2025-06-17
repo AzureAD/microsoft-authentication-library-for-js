@@ -64,17 +64,20 @@ export abstract class CacheManager implements ICacheManager {
     // Instance of logger for functions defined in the msal-common layer
     private commonLogger: Logger;
     private staticAuthorityOptions?: StaticAuthorityOptions;
+    protected performanceClient: IPerformanceClient;
 
     constructor(
         clientId: string,
         cryptoImpl: ICrypto,
         logger: Logger,
+        performanceClient: IPerformanceClient,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
         this.commonLogger = logger.clone(name, version);
         this.staticAuthorityOptions = staticAuthorityOptions;
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -588,7 +591,6 @@ export abstract class CacheManager implements ICacheManager {
         const tokenKeys = this.getTokenKeys();
         const currentScopes = ScopeSet.fromString(credential.target);
 
-        const removedAccessTokens: Array<Promise<void>> = [];
         tokenKeys.accessToken.forEach((key) => {
             if (
                 !this.accessTokenKeyMatchesFilter(key, accessTokenFilter, false)
@@ -604,11 +606,10 @@ export abstract class CacheManager implements ICacheManager {
             ) {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
                 if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
-                    removedAccessTokens.push(this.removeAccessToken(key));
+                    this.removeAccessToken(key, correlationId);
                 }
             }
         });
-        await Promise.all(removedAccessTokens);
         await this.setAccessTokenCredential(credential, correlationId);
     }
 
@@ -959,27 +960,24 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Removes all accounts and related tokens from cache.
      */
-    async removeAllAccounts(): Promise<void> {
+    removeAllAccounts(correlationId: string): void {
         const allAccountKeys = this.getAccountKeys();
-        const removedAccounts: Array<Promise<void>> = [];
 
         allAccountKeys.forEach((cacheKey) => {
-            removedAccounts.push(this.removeAccount(cacheKey));
+            this.removeAccount(cacheKey, correlationId);
         });
-
-        await Promise.all(removedAccounts);
     }
 
     /**
      * Removes the account and related tokens for a given account key
      * @param account
      */
-    async removeAccount(accountKey: string): Promise<void> {
+    removeAccount(accountKey: string, correlationId: string): void {
         const account = this.getAccount(accountKey, this.commonLogger);
         if (!account) {
             return;
         }
-        await this.removeAccountContext(account);
+        this.removeAccountContext(account, correlationId);
         this.removeItem(accountKey);
     }
 
@@ -987,10 +985,9 @@ export abstract class CacheManager implements ICacheManager {
      * Removes credentials associated with the provided account
      * @param account
      */
-    async removeAccountContext(account: AccountEntity): Promise<void> {
+    removeAccountContext(account: AccountEntity, correlationId: string): void {
         const allTokenKeys = this.getTokenKeys();
         const accountId = account.generateAccountId();
-        const removedCredentials: Array<Promise<void>> = [];
 
         allTokenKeys.idToken.forEach((key) => {
             if (key.indexOf(accountId) === 0) {
@@ -1000,7 +997,7 @@ export abstract class CacheManager implements ICacheManager {
 
         allTokenKeys.accessToken.forEach((key) => {
             if (key.indexOf(accountId) === 0) {
-                removedCredentials.push(this.removeAccessToken(key));
+                this.removeAccessToken(key, correlationId);
             }
         });
 
@@ -1009,19 +1006,19 @@ export abstract class CacheManager implements ICacheManager {
                 this.removeRefreshToken(key);
             }
         });
-
-        await Promise.all(removedCredentials);
     }
 
     /**
      * returns a boolean if the given credential is removed
      * @param credential
      */
-    async removeAccessToken(key: string): Promise<void> {
+    removeAccessToken(key: string, correlationId: string): void {
         const credential = this.getAccessTokenCredential(key);
         if (!credential) {
             return;
         }
+
+        this.removeItem(key);
 
         // Remove Token Binding Key from key store for PoP Tokens Credentials
         if (
@@ -1034,18 +1031,21 @@ export abstract class CacheManager implements ICacheManager {
                 const kid = accessTokenWithAuthSchemeEntity.keyId;
 
                 if (kid) {
-                    try {
-                        await this.cryptoImpl.removeTokenBindingKey(kid);
-                    } catch (error) {
-                        throw createClientAuthError(
-                            ClientAuthErrorCodes.bindingKeyNotRemoved
-                        );
-                    }
+                    void this.cryptoImpl
+                        .removeTokenBindingKey(kid)
+                        .catch(() => {
+                            this.commonLogger.error(
+                                `Failed to remove token binding key ${kid}`,
+                                correlationId
+                            );
+                            this.performanceClient?.incrementFields(
+                                { removeTokenBindingKeyFailure: 1 },
+                                correlationId
+                            );
+                        });
                 }
             }
         }
-
-        return this.removeItem(key);
     }
 
     /**
@@ -1239,17 +1239,18 @@ export abstract class CacheManager implements ICacheManager {
      * @param request {BaseAuthRequest}
      * @param tokenKeys {?TokenKeys}
      * @param performanceClient {?IPerformanceClient}
-     * @param correlationId {?string}
      */
     getAccessToken(
         account: AccountInfo,
         request: BaseAuthRequest,
         tokenKeys?: TokenKeys,
-        targetRealm?: string,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
+        targetRealm?: string
     ): AccessTokenEntity | null {
-        this.commonLogger.trace("CacheManager - getAccessToken called");
+        const correlationId = request.correlationId;
+        this.commonLogger.trace(
+            "CacheManager - getAccessToken called",
+            correlationId
+        );
         const scopes = ScopeSet.createSearchScopes(request.scopes);
         const authScheme =
             request.authenticationScheme || AuthenticationScheme.BEARER;
@@ -1301,27 +1302,31 @@ export abstract class CacheManager implements ICacheManager {
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
             this.commonLogger.info(
-                "CacheManager:getAccessToken - No token found"
+                "CacheManager:getAccessToken - No token found",
+                correlationId
             );
             return null;
         } else if (numAccessTokens > 1) {
             this.commonLogger.info(
-                "CacheManager:getAccessToken - Multiple access tokens found, clearing them"
+                "CacheManager:getAccessToken - Multiple access tokens found, clearing them",
+                correlationId
             );
             accessTokens.forEach((accessToken) => {
-                void this.removeAccessToken(generateCredentialKey(accessToken));
-            });
-            if (performanceClient && correlationId) {
-                performanceClient.addFields(
-                    { multiMatchedAT: accessTokens.length },
+                this.removeAccessToken(
+                    generateCredentialKey(accessToken),
                     correlationId
                 );
-            }
+            });
+            this.performanceClient.addFields(
+                { multiMatchedAT: accessTokens.length },
+                correlationId
+            );
             return null;
         }
 
         this.commonLogger.info(
-            "CacheManager:getAccessToken - Returning access token"
+            "CacheManager:getAccessToken - Returning access token",
+            correlationId
         );
         return accessTokens[0];
     }

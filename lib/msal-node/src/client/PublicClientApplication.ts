@@ -291,7 +291,10 @@ export class PublicClientApplication
             await this.nativeBrokerPlugin.signOut(signoutRequest);
         }
 
-        await this.getTokenCache().removeAccount(request.account);
+        await this.getTokenCache().removeAccount(
+            request.account,
+            request.correlationId
+        );
     }
 
     /**
