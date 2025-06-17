@@ -1,7 +1,7 @@
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
-     createNativeAuthError,
+    createNativeAuthError,
     isFatalNativeAuthError,
 } from "../../src/error/NativeAuthError";
 import {
