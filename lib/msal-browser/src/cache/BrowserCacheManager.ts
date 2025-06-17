@@ -16,12 +16,9 @@ import {
     CacheHelpers,
     CacheManager,
     CacheRecord,
-    ClientAuthErrorCodes,
     CommonAuthorizationUrlRequest,
     Constants,
     createCacheError,
-    createClientAuthError,
-    CredentialType,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ICrypto,
     IdTokenEntity,
@@ -180,6 +177,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string, correlationId: string): void {
+        let tokenKeys: TokenKeys | null = null;
         let trySetItem = true;
         while (trySetItem) {
             try {
@@ -190,8 +188,27 @@ export class BrowserCacheManager extends CacheManager {
                 if (
                     cacheError.errorCode === CacheErrorCodes.cacheQuotaExceeded
                 ) {
+                    if (!tokenKeys) {
+                        if (
+                            key ===
+                            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`
+                        ) {
+                            // If we are currently trying to set the token keys, use the value we're trying to set
+                            tokenKeys = JSON.parse(value) as TokenKeys;
+                        } else {
+                            // If token keys have not been initialized, get them
+                            tokenKeys = this.getTokenKeys();
+                        }
+                    }
+                    if (tokenKeys.accessToken.length === 0) {
+                        // Nothing to remove, rethrow the error
+                        throw cacheError;
+                    }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    trySetItem = this.removeOldestAccessToken(correlationId);
+                    trySetItem = this.removeOldestAccessToken(
+                        tokenKeys,
+                        correlationId
+                    );
                 } else {
                     // If the error is not a quota exceeded error, rethrow it
                     throw cacheError;
@@ -212,6 +229,7 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string,
         timestamp: string
     ): Promise<void> {
+        let tokenKeys: TokenKeys | null = null;
         let trySetItem = true;
         while (trySetItem) {
             try {
@@ -227,8 +245,27 @@ export class BrowserCacheManager extends CacheManager {
                 if (
                     cacheError.errorCode === CacheErrorCodes.cacheQuotaExceeded
                 ) {
+                    if (!tokenKeys) {
+                        if (
+                            key ===
+                            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`
+                        ) {
+                            // If we are currently trying to set the token keys, use the value we're trying to set
+                            tokenKeys = JSON.parse(value) as TokenKeys;
+                        } else {
+                            // If token keys have not been initialized, get them
+                            tokenKeys = this.getTokenKeys();
+                        }
+                    }
+                    if (tokenKeys.accessToken.length === 0) {
+                        // Nothing to remove, rethrow the error
+                        throw cacheError;
+                    }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    trySetItem = this.removeOldestAccessToken(correlationId);
+                    trySetItem = this.removeOldestAccessToken(
+                        tokenKeys,
+                        correlationId
+                    );
                 } else {
                     // If the error is not a quota exceeded error, rethrow it
                     throw cacheError;
@@ -241,18 +278,24 @@ export class BrowserCacheManager extends CacheManager {
      * Removes oldest access token from the cache to make room in case of quota exceeded errors
      * @returns
      */
-    removeOldestAccessToken(correlationId: string): boolean {
+    removeOldestAccessToken(
+        tokenKeys: TokenKeys,
+        correlationId: string
+    ): boolean {
         this.logger.trace("removeOldestAccessToken called", correlationId);
-        const tokenKeys = this.getTokenKeys();
         if (tokenKeys.accessToken.length > 0) {
             // Remove the first access token key in the array
             const oldestAccessTokenKey = tokenKeys.accessToken[0];
-            this.removeAccessToken(oldestAccessTokenKey, correlationId);
+            this.removeAccessToken(
+                oldestAccessTokenKey,
+                correlationId,
+                tokenKeys
+            );
             this.performanceClient.incrementFields(
                 { accessTokensRemoved: 1 },
                 correlationId
             );
-            return tokenKeys.accessToken.length - 1 > 0; // Return true if there are still access tokens left in the cache
+            return true; // Successfully removed an access token to make room
         } else {
             return false; // No access tokens to remove
         }
@@ -430,16 +473,46 @@ export class BrowserCacheManager extends CacheManager {
      */
     removeIdToken(key: string, correlationId: string): void {
         super.removeIdToken(key, correlationId);
-        this.removeTokenKey(key, CredentialType.ID_TOKEN, correlationId);
+        const tokenKeys = this.getTokenKeys();
+        const idRemoval = tokenKeys.idToken.indexOf(key);
+        if (idRemoval > -1) {
+            this.logger.info("idToken removed from tokenKeys map");
+            tokenKeys.idToken.splice(idRemoval, 1);
+            this.setTokenKeys(tokenKeys, correlationId);
+        }
     }
 
     /**
      * Removes given accessToken from the cache and from the key map
      * @param key
      */
-    removeAccessToken(key: string, correlationId: string): void {
+    removeAccessToken(
+        key: string,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): void {
         super.removeAccessToken(key, correlationId);
-        this.removeTokenKey(key, CredentialType.ACCESS_TOKEN, correlationId);
+        this.removeAccessTokenKey(key, correlationId, tokenKeys);
+    }
+
+    /**
+     * Remove access token key from the key map
+     * @param key
+     * @param correlationId
+     * @param tokenKeys
+     */
+    removeAccessTokenKey(
+        key: string,
+        correlationId: string,
+        tokenKeys: TokenKeys = this.getTokenKeys()
+    ): void {
+        this.logger.trace("removeAccessTokenKey called");
+        const accessRemoval = tokenKeys.accessToken.indexOf(key);
+        if (accessRemoval > -1) {
+            this.logger.info("accessToken removed from tokenKeys map");
+            tokenKeys.accessToken.splice(accessRemoval, 1);
+            this.setTokenKeys(tokenKeys, correlationId);
+        }
     }
 
     /**
@@ -448,7 +521,13 @@ export class BrowserCacheManager extends CacheManager {
      */
     removeRefreshToken(key: string, correlationId: string): void {
         super.removeRefreshToken(key, correlationId);
-        this.removeTokenKey(key, CredentialType.REFRESH_TOKEN, correlationId);
+        const tokenKeys = this.getTokenKeys();
+        const refreshRemoval = tokenKeys.refreshToken.indexOf(key);
+        if (refreshRemoval > -1) {
+            this.logger.info("refreshToken removed from tokenKeys map");
+            tokenKeys.refreshToken.splice(refreshRemoval, 1);
+            this.setTokenKeys(tokenKeys, correlationId);
+        }
     }
 
     /**
@@ -460,76 +539,12 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Removes the given key from the token key map
-     * @param key
-     * @param type
+     * Stores the token keys in the cache
+     * @param tokenKeys
+     * @param correlationId
+     * @returns
      */
-    removeTokenKey(
-        key: string,
-        type: CredentialType,
-        correlationId: string
-    ): void {
-        this.logger.trace("BrowserCacheManager removeTokenKey called");
-        const tokenKeys = this.getTokenKeys();
-
-        switch (type) {
-            case CredentialType.ID_TOKEN:
-                this.logger.infoPii(
-                    `BrowserCacheManager: removeTokenKey - attempting to remove idToken with key: ${key} from map`
-                );
-                const idRemoval = tokenKeys.idToken.indexOf(key);
-                if (idRemoval > -1) {
-                    this.logger.info(
-                        "BrowserCacheManager: removeTokenKey - idToken removed from map"
-                    );
-                    tokenKeys.idToken.splice(idRemoval, 1);
-                } else {
-                    this.logger.info(
-                        "BrowserCacheManager: removeTokenKey - idToken does not exist in map. Either it was previously removed or it was never added."
-                    );
-                }
-                break;
-            case CredentialType.ACCESS_TOKEN:
-                this.logger.infoPii(
-                    `BrowserCacheManager: removeTokenKey - attempting to remove accessToken with key: ${key} from map`
-                );
-                const accessRemoval = tokenKeys.accessToken.indexOf(key);
-                if (accessRemoval > -1) {
-                    this.logger.info(
-                        "BrowserCacheManager: removeTokenKey - accessToken removed from map"
-                    );
-                    tokenKeys.accessToken.splice(accessRemoval, 1);
-                } else {
-                    this.logger.info(
-                        "BrowserCacheManager: removeTokenKey - accessToken does not exist in map. Either it was previously removed or it was never added."
-                    );
-                }
-                break;
-            case CredentialType.REFRESH_TOKEN:
-                this.logger.infoPii(
-                    `BrowserCacheManager: removeTokenKey - attempting to remove refreshToken with key: ${key} from map`
-                );
-                const refreshRemoval = tokenKeys.refreshToken.indexOf(key);
-                if (refreshRemoval > -1) {
-                    this.logger.info(
-                        "BrowserCacheManager: removeTokenKey - refreshToken removed from map"
-                    );
-                    tokenKeys.refreshToken.splice(refreshRemoval, 1);
-                } else {
-                    this.logger.info(
-                        "BrowserCacheManager: removeTokenKey - refreshToken does not exist in map. Either it was previously removed or it was never added."
-                    );
-                }
-                break;
-            default:
-                this.logger.error(
-                    `BrowserCacheManager:removeTokenKey - CredentialType provided invalid. CredentialType: ${type}`
-                );
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.unexpectedCredentialType
-                );
-        }
-
+    setTokenKeys(tokenKeys: TokenKeys, correlationId: string): void {
         if (
             tokenKeys.idToken.length === 0 &&
             tokenKeys.accessToken.length === 0 &&
@@ -560,11 +575,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.getIdTokenCredential: called, no cache hit"
             );
-            this.removeTokenKey(
-                idTokenKey,
-                CredentialType.ID_TOKEN,
-                correlationId
-            );
+            this.removeIdToken(idTokenKey, correlationId);
             return null;
         }
 
@@ -608,11 +619,7 @@ export class BrowserCacheManager extends CacheManager {
                 "BrowserCacheManager: addTokenKey - idToken added to map"
             );
             tokenKeys.idToken.push(idTokenKey);
-            this.setItem(
-                `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
-                JSON.stringify(tokenKeys),
-                correlationId
-            );
+            this.setTokenKeys(tokenKeys, correlationId);
         }
     }
 
@@ -629,11 +636,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.getAccessTokenCredential: called, no cache hit"
             );
-            this.removeTokenKey(
-                accessTokenKey,
-                CredentialType.ACCESS_TOKEN,
-                correlationId
-            );
+            this.removeAccessTokenKey(accessTokenKey, correlationId);
             return null;
         }
         const parsedAccessToken = this.validateAndParseJson(value);
@@ -684,11 +687,7 @@ export class BrowserCacheManager extends CacheManager {
             `access token ${index === -1 ? "added to" : "updated in"} map`
         );
         tokenKeys.accessToken.push(accessTokenKey);
-        this.setItem(
-            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
-            JSON.stringify(tokenKeys),
-            correlationId
-        );
+        this.setTokenKeys(tokenKeys, correlationId);
     }
 
     /**
@@ -704,11 +703,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.getRefreshTokenCredential: called, no cache hit"
             );
-            this.removeTokenKey(
-                refreshTokenKey,
-                CredentialType.REFRESH_TOKEN,
-                correlationId
-            );
+            this.removeRefreshToken(refreshTokenKey, correlationId);
             return null;
         }
         const parsedRefreshToken = this.validateAndParseJson(value);
@@ -757,11 +752,7 @@ export class BrowserCacheManager extends CacheManager {
                 "BrowserCacheManager: addTokenKey - refreshToken added to map"
             );
             tokenKeys.refreshToken.push(refreshTokenKey);
-            this.setItem(
-                `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
-                JSON.stringify(tokenKeys),
-                correlationId
-            );
+            this.setTokenKeys(tokenKeys, correlationId);
         }
     }
 
