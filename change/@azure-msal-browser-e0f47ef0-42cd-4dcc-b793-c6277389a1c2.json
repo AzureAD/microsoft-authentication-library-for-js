@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "added UX_NOT_ALLOWED suberror to InteractionRequired error type #7834",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}
