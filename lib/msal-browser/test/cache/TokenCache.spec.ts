@@ -28,6 +28,7 @@ import {
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
     TEST_URIS,
+    RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
 import {
     BrowserAuthError,
@@ -125,7 +126,7 @@ describe("TokenCache tests", () => {
         });
 
         afterEach(() => {
-            browserStorage.clear();
+            browserStorage.clear(RANDOM_TEST_GUID);
         });
 
         it("loads id token with a request account", () => {
@@ -157,7 +158,8 @@ describe("TokenCache tests", () => {
 
             expect(result.idToken).toEqual(testIdToken);
             expect(setSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testIdToken })
+                expect.objectContaining({ secret: testIdToken }),
+                expect.stringContaining("")
             );
         });
 
@@ -185,7 +187,8 @@ describe("TokenCache tests", () => {
 
             expect(result.idToken).toEqual(testIdToken);
             expect(setSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testIdToken })
+                expect.objectContaining({ secret: testIdToken }),
+                expect.stringContaining("")
             );
         });
 
@@ -221,10 +224,12 @@ describe("TokenCache tests", () => {
             expect(result.idToken).toEqual(testIdToken);
             expect(result.account).toEqual(testAccountInfo);
             expect(setSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testIdToken })
+                expect.objectContaining({ secret: testIdToken }),
+                expect.stringContaining("")
             );
             expect(
-                browserStorage.getAccount(testAccountKey)?.homeAccountId
+                browserStorage.getAccount(testAccountKey, RANDOM_TEST_GUID)
+                    ?.homeAccountId
             ).toEqual(testAccountInfo.homeAccountId);
         });
 
@@ -250,7 +255,8 @@ describe("TokenCache tests", () => {
 
             expect(result.idToken).toEqual(testIdToken);
             expect(setSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testIdToken })
+                expect.objectContaining({ secret: testIdToken }),
+                expect.stringContaining("")
             );
         });
 
@@ -320,7 +326,8 @@ describe("TokenCache tests", () => {
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(idSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testIdToken })
+                expect.objectContaining({ secret: testIdToken }),
+                expect.stringContaining("")
             );
             expect(result.accessToken).toEqual("");
             expect(accessSpy).not.toHaveBeenCalled();
@@ -358,7 +365,8 @@ describe("TokenCache tests", () => {
 
             expect(result.accessToken).toEqual(testAccessToken);
             expect(accessSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testAccessToken })
+                expect.objectContaining({ secret: testAccessToken }),
+                expect.stringContaining("")
             );
         });
 
@@ -408,7 +416,8 @@ describe("TokenCache tests", () => {
             tokenCache.loadExternalTokens(request, response, options);
 
             expect(refreshSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testRefreshToken })
+                expect.objectContaining({ secret: testRefreshToken }),
+                expect.stringContaining("")
             );
         });
 
@@ -448,7 +457,8 @@ describe("TokenCache tests", () => {
 
             // Validate tokens can be retrieved
             expect(refreshSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testRefreshToken })
+                expect.objectContaining({ secret: testRefreshToken }),
+                expect.stringContaining("")
             );
         });
 
@@ -479,10 +489,12 @@ describe("TokenCache tests", () => {
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(idSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testIdToken })
+                expect.objectContaining({ secret: testIdToken }),
+                expect.stringContaining("")
             );
             expect(refreshSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ secret: testRefreshToken })
+                expect.objectContaining({ secret: testRefreshToken }),
+                expect.stringContaining("")
             );
         });
     });

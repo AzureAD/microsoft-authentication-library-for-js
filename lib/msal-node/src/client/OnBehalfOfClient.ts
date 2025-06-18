@@ -128,7 +128,8 @@ export class OnBehalfOfClient extends BaseClient {
 
         // fetch the idToken from cache
         const cachedIdToken = this.readIdTokenFromCacheForOBO(
-            cachedAccessToken.homeAccountId
+            cachedAccessToken.homeAccountId,
+            request.correlationId
         );
         let idTokenClaims: TokenClaims | undefined;
         let cachedAccount: AccountEntity | null = null;
@@ -146,7 +147,10 @@ export class OnBehalfOfClient extends BaseClient {
                 localAccountId: localAccountId || Constants.EMPTY_STRING,
             };
 
-            cachedAccount = this.cacheManager.readAccountFromCache(accountInfo);
+            cachedAccount = this.cacheManager.readAccountFromCache(
+                accountInfo,
+                request.correlationId
+            );
         }
 
         // increment telemetry cache hit counter
@@ -176,7 +180,8 @@ export class OnBehalfOfClient extends BaseClient {
      * @param atHomeAccountId - account id
      */
     private readIdTokenFromCacheForOBO(
-        atHomeAccountId: string
+        atHomeAccountId: string,
+        correlationId: string
     ): IdTokenEntity | null {
         const idTokenFilter: CredentialFilter = {
             homeAccountId: atHomeAccountId,
@@ -188,7 +193,7 @@ export class OnBehalfOfClient extends BaseClient {
         };
 
         const idTokenMap: Map<string, IdTokenEntity> =
-            this.cacheManager.getIdTokensByFilter(idTokenFilter);
+            this.cacheManager.getIdTokensByFilter(idTokenFilter, correlationId);
 
         // When acquiring a token on behalf of an application, there might not be an id token in the cache
         if (Object.values(idTokenMap).length < 1) {
@@ -229,8 +234,10 @@ export class OnBehalfOfClient extends BaseClient {
             userAssertionHash: this.userAssertionHash,
         };
 
-        const accessTokens =
-            this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
+        const accessTokens = this.cacheManager.getAccessTokensByFilter(
+            accessTokenFilter,
+            request.correlationId
+        );
 
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {

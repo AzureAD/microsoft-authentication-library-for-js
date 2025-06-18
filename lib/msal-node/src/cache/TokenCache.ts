@@ -25,6 +25,7 @@ import {
 import { Deserializer } from "./serializer/Deserializer.js";
 import { Serializer } from "./serializer/Serializer.js";
 import { ITokenCache } from "./ITokenCache.js";
+import { CryptoProvider } from "../crypto/CryptoProvider.js";
 
 const defaultSerializedCache: JsonCache = {
     Account: {},
@@ -119,7 +120,9 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     /**
      * API that retrieves all accounts currently in cache to the user
      */
-    async getAllAccounts(): Promise<AccountInfo[]> {
+    async getAllAccounts(
+        correlationId: string = new CryptoProvider().createNewGuid()
+    ): Promise<AccountInfo[]> {
         this.logger.trace("getAllAccounts called");
         let cacheContext;
         try {
@@ -127,7 +130,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 cacheContext = new TokenCacheContext(this, false);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
-            return this.storage.getAllAccounts();
+            return this.storage.getAllAccounts(correlationId);
         } finally {
             if (this.persistence && cacheContext) {
                 await this.persistence.afterCacheAccess(cacheContext);
@@ -181,7 +184,10 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * API to remove a specific account and the relevant data from cache
      * @param account - AccountInfo passed by the user
      */
-    async removeAccount(account: AccountInfo): Promise<void> {
+    async removeAccount(
+        account: AccountInfo,
+        correlationId: string = new CryptoProvider().createNewGuid()
+    ): Promise<void> {
         this.logger.trace("removeAccount called");
         let cacheContext;
         try {
@@ -190,7 +196,8 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
             await this.storage.removeAccount(
-                AccountEntity.generateAccountCacheKey(account)
+                AccountEntity.generateAccountCacheKey(account),
+                correlationId
             );
         } finally {
             if (this.persistence && cacheContext) {

@@ -220,7 +220,11 @@ export class NodeStorage extends CacheManager {
     getAccount(accountKey: string): AccountEntity | null {
         const accountEntity = this.getCachedAccountEntity(accountKey);
         if (accountEntity && AccountEntity.isAccountEntity(accountEntity)) {
-            return this.updateOutdatedCachedAccount(accountKey, accountEntity);
+            return this.updateOutdatedCachedAccount(
+                accountKey,
+                accountEntity,
+                ""
+            );
         }
         return null;
     }

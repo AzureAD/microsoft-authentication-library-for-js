@@ -281,9 +281,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
         // fetch the account from browser cache
-        const account = this.browserStorage.getBaseAccountInfo({
-            nativeAccountId,
-        });
+        const account = this.browserStorage.getBaseAccountInfo(
+            {
+                nativeAccountId,
+            },
+            request.correlationId
+        );
 
         if (!account) {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
@@ -487,9 +490,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
 
         const cachedhomeAccountId =
-            this.browserStorage.getAccountInfoFilteredBy({
-                nativeAccountId: request.accountId,
-            })?.homeAccountId;
+            this.browserStorage.getAccountInfoFilteredBy(
+                {
+                    nativeAccountId: request.accountId,
+                },
+                this.correlationId
+            )?.homeAccountId;
 
         if (
             homeAccountIdentifier !== cachedhomeAccountId &&
@@ -509,6 +515,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             authority,
             homeAccountIdentifier,
             base64Decode,
+            this.correlationId,
             idTokenClaims,
             response.client_info,
             undefined, // environment
@@ -724,14 +731,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     cacheAccount(accountEntity: AccountEntity): void {
         // Store the account info and hence `nativeAccountId` in browser cache
-        this.browserStorage.setAccount(accountEntity);
+        this.browserStorage.setAccount(accountEntity, this.correlationId);
 
         // Remove any existing cached tokens for this account in browser storage
-        this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
-            this.logger.error(
-                `Error occurred while removing account context from browser storage. ${e}`
-            );
-        });
+        this.browserStorage
+            .removeAccountContext(accountEntity, this.correlationId)
+            .catch((e) => {
+                this.logger.error(
+                    `Error occurred while removing account context from browser storage. ${e}`
+                );
+            });
     }
 
     /**
@@ -796,6 +805,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         void this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
+            request.correlationId,
             request.storeInCache
         );
     }

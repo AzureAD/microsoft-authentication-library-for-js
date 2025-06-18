@@ -85,6 +85,8 @@ export class TokenCache implements ITokenCache {
                 BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
+        const correlationId =
+            request.correlationId || BrowserCrypto.createNewGuid();
 
         const idTokenClaims = response.id_token
             ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
@@ -115,6 +117,7 @@ export class TokenCache implements ITokenCache {
         const cacheRecordAccount: AccountEntity = this.loadAccount(
             request,
             options.clientInfo || response.client_info || "",
+            correlationId,
             idTokenClaims,
             authority
         );
@@ -123,7 +126,8 @@ export class TokenCache implements ITokenCache {
             response,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
-            cacheRecordAccount.realm
+            cacheRecordAccount.realm,
+            correlationId
         );
 
         const accessToken = this.loadAccessToken(
@@ -132,13 +136,15 @@ export class TokenCache implements ITokenCache {
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             cacheRecordAccount.realm,
-            options
+            options,
+            correlationId
         );
 
         const refreshToken = this.loadRefreshToken(
             response,
             cacheRecordAccount.homeAccountId,
-            cacheRecordAccount.environment
+            cacheRecordAccount.environment,
+            correlationId
         );
 
         return this.generateAuthenticationResult(
@@ -166,6 +172,7 @@ export class TokenCache implements ITokenCache {
     private loadAccount(
         request: SilentRequest,
         clientInfo: string,
+        correlationId: string,
         idTokenClaims?: TokenClaims,
         authority?: Authority
     ): AccountEntity {
@@ -175,7 +182,7 @@ export class TokenCache implements ITokenCache {
             const accountEntity = AccountEntity.createFromAccountInfo(
                 request.account
             );
-            this.storage.setAccount(accountEntity);
+            this.storage.setAccount(accountEntity, correlationId);
             return accountEntity;
         } else if (!authority || (!clientInfo && !idTokenClaims)) {
             this.logger.error(
@@ -201,6 +208,7 @@ export class TokenCache implements ITokenCache {
             authority,
             homeAccountId,
             base64Decode,
+            correlationId,
             idTokenClaims,
             clientInfo,
             authority.hostnameAndPort,
@@ -210,7 +218,7 @@ export class TokenCache implements ITokenCache {
             this.logger
         );
 
-        this.storage.setAccount(cachedAccount);
+        this.storage.setAccount(cachedAccount, correlationId);
         return cachedAccount;
     }
 
@@ -226,7 +234,8 @@ export class TokenCache implements ITokenCache {
         response: ExternalTokenResponse,
         homeAccountId: string,
         environment: string,
-        tenantId: string
+        tenantId: string,
+        correlationId: string
     ): IdTokenEntity | null {
         if (!response.id_token) {
             this.logger.verbose("TokenCache - no id token found in response");
@@ -242,7 +251,7 @@ export class TokenCache implements ITokenCache {
             tenantId
         );
 
-        this.storage.setIdTokenCredential(idTokenEntity);
+        this.storage.setIdTokenCredential(idTokenEntity, correlationId);
         return idTokenEntity;
     }
 
@@ -261,7 +270,8 @@ export class TokenCache implements ITokenCache {
         homeAccountId: string,
         environment: string,
         tenantId: string,
-        options: LoadTokenOptions
+        options: LoadTokenOptions,
+        correlationId: string
     ): AccessTokenEntity | null {
         if (!response.access_token) {
             this.logger.verbose(
@@ -309,7 +319,7 @@ export class TokenCache implements ITokenCache {
             base64Decode
         );
 
-        this.storage.setAccessTokenCredential(accessTokenEntity);
+        this.storage.setAccessTokenCredential(accessTokenEntity, correlationId);
         return accessTokenEntity;
     }
 
@@ -324,7 +334,8 @@ export class TokenCache implements ITokenCache {
     private loadRefreshToken(
         response: ExternalTokenResponse,
         homeAccountId: string,
-        environment: string
+        environment: string,
+        correlationId: string
     ): RefreshTokenEntity | null {
         if (!response.refresh_token) {
             this.logger.verbose(
@@ -344,7 +355,10 @@ export class TokenCache implements ITokenCache {
             response.refresh_token_expires_in
         );
 
-        this.storage.setRefreshTokenCredential(refreshTokenEntity);
+        this.storage.setRefreshTokenCredential(
+            refreshTokenEntity,
+            correlationId
+        );
         return refreshTokenEntity;
     }
 

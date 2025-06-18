@@ -11,6 +11,7 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_URIS,
     TEST_TOKENS,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
 import {
@@ -1034,7 +1035,10 @@ describe("SilentFlowClient unit tests", () => {
                         if (accessTokenKey) {
                             // use it to get the access token (from the cache)
                             const accessTokenFromCache: AccessTokenEntity | null =
-                                cache.getAccessTokenCredential(accessTokenKey);
+                                cache.getAccessTokenCredential(
+                                    accessTokenKey,
+                                    RANDOM_TEST_GUID
+                                );
                             // return it and clear the interval
                             resolve(accessTokenFromCache);
                             clearInterval(interval);

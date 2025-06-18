@@ -186,7 +186,11 @@ export abstract class BaseClient {
         options: NetworkRequestOptions,
         correlationId: string
     ): Promise<NetworkResponse<T>> {
-        ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
+        ThrottlingUtils.preProcess(
+            this.cacheManager,
+            thumbprint,
+            correlationId
+        );
 
         let response;
         try {
@@ -243,7 +247,12 @@ export abstract class BaseClient {
             }
         }
 
-        ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
+        ThrottlingUtils.postProcess(
+            this.cacheManager,
+            thumbprint,
+            response,
+            correlationId
+        );
 
         return response;
     }

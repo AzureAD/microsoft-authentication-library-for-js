@@ -39,6 +39,8 @@ import {
     CacheHelpers,
     StoreInCache,
     CacheError,
+    CacheErrorCodes,
+    createCacheError,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -198,6 +200,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     private createKeyMaps(): void {
         this.logger.trace("BrowserCacheManager - createKeyMaps called.");
+        const correlationId = this.cryptoImpl.createNewGuid();
         const accountKeys = this.getItem(StaticCacheKeys.ACCOUNT_KEYS);
         const tokenKeys = this.getItem(
             `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`
@@ -232,11 +235,13 @@ export class BrowserCacheManager extends CacheManager {
                                     const newKey =
                                         this.updateCredentialCacheKey(
                                             key,
-                                            idTokenEntity
+                                            idTokenEntity,
+                                            correlationId
                                         );
                                     this.addTokenKey(
                                         newKey,
-                                        CredentialType.ID_TOKEN
+                                        CredentialType.ID_TOKEN,
+                                        correlationId
                                     );
                                     return;
                                 } else {
@@ -262,11 +267,13 @@ export class BrowserCacheManager extends CacheManager {
                                     const newKey =
                                         this.updateCredentialCacheKey(
                                             key,
-                                            accessTokenEntity
+                                            accessTokenEntity,
+                                            correlationId
                                         );
                                     this.addTokenKey(
                                         newKey,
-                                        CredentialType.ACCESS_TOKEN
+                                        CredentialType.ACCESS_TOKEN,
+                                        correlationId
                                     );
                                     return;
                                 } else {
@@ -293,11 +300,13 @@ export class BrowserCacheManager extends CacheManager {
                                     const newKey =
                                         this.updateCredentialCacheKey(
                                             key,
-                                            refreshTokenEntity
+                                            refreshTokenEntity,
+                                            correlationId
                                         );
                                     this.addTokenKey(
                                         newKey,
-                                        CredentialType.REFRESH_TOKEN
+                                        CredentialType.REFRESH_TOKEN,
+                                        correlationId
                                     );
                                     return;
                                 } else {
@@ -330,7 +339,7 @@ export class BrowserCacheManager extends CacheManager {
                         this.logger.tracePii(
                             `BrowserCacheManager:createKeyMaps - account with key: ${key} found, saving key to account key map`
                         );
-                        this.addAccountKeyToMap(key);
+                        this.addAccountKeyToMap(key, correlationId);
                     }
                 }
             }
@@ -371,21 +380,93 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      * @param value
      */
-    setItem(key: string, value: string): void {
-        this.browserStorage.setItem(key, value);
+    setItem(key: string, value: string, correlationId: string): void {
+        let tokenKeys: TokenKeys | null = null;
+        let trySetItem = true;
+        while (trySetItem) {
+            try {
+                this.browserStorage.setItem(key, value);
+                trySetItem = false; // If setItem succeeds, exit the loop
+            } catch (e) {
+                const cacheError = createCacheError(e);
+                if (
+                    cacheError.errorCode === CacheErrorCodes.cacheQuotaExceeded
+                ) {
+                    if (!tokenKeys) {
+                        if (
+                            key ===
+                            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`
+                        ) {
+                            // If we are currently trying to set the token keys, use the value we're trying to set
+                            tokenKeys = JSON.parse(value) as TokenKeys;
+                        } else {
+                            // If token keys have not been initialized, get them
+                            tokenKeys = this.getTokenKeys();
+                        }
+                    }
+                    if (tokenKeys.accessToken.length === 0) {
+                        // Nothing to remove, rethrow the error
+                        throw cacheError;
+                    }
+                    // When cache quota is exceeded, start removing access tokens until we can successfully set the item
+                    trySetItem = this.removeOldestAccessToken(
+                        tokenKeys,
+                        correlationId
+                    );
+                } else {
+                    // If the error is not a quota exceeded error, rethrow it
+                    throw cacheError;
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes oldest access token from the cache to make room in case of quota exceeded errors
+     * @returns
+     */
+    private removeOldestAccessToken(
+        tokenKeys: TokenKeys,
+        correlationId: string
+    ): boolean {
+        this.logger.trace("removeOldestAccessToken called", correlationId);
+        if (tokenKeys.accessToken.length > 0) {
+            // Remove the first access token key in the array
+            const oldestAccessTokenKey = tokenKeys.accessToken[0];
+            this.removeAccessToken(
+                oldestAccessTokenKey,
+                correlationId,
+                tokenKeys
+            );
+            this.performanceClient?.incrementFields(
+                { accessTokensRemoved: 1 },
+                correlationId
+            );
+            return true; // Successfully removed an access token to make room
+        } else {
+            return false; // No access tokens to remove
+        }
     }
 
     /**
      * fetch the account entity from the platform cache
      * @param accountKey
      */
-    getAccount(accountKey: string, logger?: Logger): AccountEntity | null {
+    getAccount(
+        accountKey: string,
+        correlationId: string,
+        logger?: Logger
+    ): AccountEntity | null {
         this.logger.trace("BrowserCacheManager.getAccount called");
-        const accountEntity = this.getCachedAccountEntity(accountKey);
+        const accountEntity = this.getCachedAccountEntity(
+            accountKey,
+            correlationId
+        );
 
         return this.updateOutdatedCachedAccount(
             accountKey,
             accountEntity,
+            correlationId,
             logger
         );
     }
@@ -396,10 +477,13 @@ export class BrowserCacheManager extends CacheManager {
      * @param accountKey
      * @returns
      */
-    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+    getCachedAccountEntity(
+        accountKey: string,
+        correlationId: string
+    ): AccountEntity | null {
         const serializedAccount = this.getItem(accountKey);
         if (!serializedAccount) {
-            this.removeAccountKeyFromMap(accountKey);
+            this.removeAccountKeyFromMap(accountKey, correlationId);
             return null;
         }
 
@@ -418,12 +502,12 @@ export class BrowserCacheManager extends CacheManager {
      * set account entity in the platform cache
      * @param account
      */
-    setAccount(account: AccountEntity): void {
+    setAccount(account: AccountEntity, correlationId: string): void {
         this.logger.trace("BrowserCacheManager.setAccount called");
         const key = account.generateAccountKey();
         account.lastUpdatedAt = Date.now().toString();
-        this.setItem(key, JSON.stringify(account));
-        this.addAccountKeyToMap(key);
+        this.setItem(key, JSON.stringify(account), correlationId);
+        this.addAccountKeyToMap(key, correlationId);
     }
 
     /**
@@ -447,7 +531,7 @@ export class BrowserCacheManager extends CacheManager {
      * Add a new account to the key map
      * @param key
      */
-    addAccountKeyToMap(key: string): void {
+    addAccountKeyToMap(key: string, correlationId: string): void {
         this.logger.trace("BrowserCacheManager.addAccountKeyToMap called");
         this.logger.tracePii(
             `BrowserCacheManager.addAccountKeyToMap called with key: ${key}`
@@ -458,7 +542,8 @@ export class BrowserCacheManager extends CacheManager {
             accountKeys.push(key);
             this.setItem(
                 StaticCacheKeys.ACCOUNT_KEYS,
-                JSON.stringify(accountKeys)
+                JSON.stringify(accountKeys),
+                correlationId
             );
             this.logger.verbose(
                 "BrowserCacheManager.addAccountKeyToMap account key added"
@@ -474,7 +559,7 @@ export class BrowserCacheManager extends CacheManager {
      * Remove an account from the key map
      * @param key
      */
-    removeAccountKeyFromMap(key: string): void {
+    removeAccountKeyFromMap(key: string, correlationId: string): void {
         this.logger.trace("BrowserCacheManager.removeAccountKeyFromMap called");
         this.logger.tracePii(
             `BrowserCacheManager.removeAccountKeyFromMap called with key: ${key}`
@@ -490,7 +575,8 @@ export class BrowserCacheManager extends CacheManager {
             } else {
                 this.setItem(
                     StaticCacheKeys.ACCOUNT_KEYS,
-                    JSON.stringify(accountKeys)
+                    JSON.stringify(accountKeys),
+                    correlationId
                 );
             }
             this.logger.trace(
@@ -507,45 +593,54 @@ export class BrowserCacheManager extends CacheManager {
      * Extends inherited removeAccount function to include removal of the account key from the map
      * @param key
      */
-    async removeAccount(key: string): Promise<void> {
-        void super.removeAccount(key);
-        this.removeAccountKeyFromMap(key);
+    async removeAccount(key: string, correlationId: string): Promise<void> {
+        void super.removeAccount(key, correlationId);
+        this.removeAccountKeyFromMap(key, correlationId);
     }
 
     /**
      * Remove account entity from the platform cache if it's outdated
      * @param accountKey
      */
-    removeOutdatedAccount(accountKey: string): void {
+    removeOutdatedAccount(accountKey: string, correlationId: string): void {
         this.removeItem(accountKey);
-        this.removeAccountKeyFromMap(accountKey);
+        this.removeAccountKeyFromMap(accountKey, correlationId);
     }
 
     /**
      * Removes given idToken from the cache and from the key map
      * @param key
      */
-    removeIdToken(key: string): void {
-        super.removeIdToken(key);
-        this.removeTokenKey(key, CredentialType.ID_TOKEN);
+    removeIdToken(key: string, correlationId: string): void {
+        super.removeIdToken(key, correlationId);
+        this.removeTokenKey(key, CredentialType.ID_TOKEN, correlationId);
     }
 
     /**
      * Removes given accessToken from the cache and from the key map
      * @param key
      */
-    async removeAccessToken(key: string): Promise<void> {
-        void super.removeAccessToken(key);
-        this.removeTokenKey(key, CredentialType.ACCESS_TOKEN);
+    async removeAccessToken(
+        key: string,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): Promise<void> {
+        super.removeAccessToken(key, correlationId);
+        this.removeTokenKey(
+            key,
+            CredentialType.ACCESS_TOKEN,
+            correlationId,
+            tokenKeys
+        );
     }
 
     /**
      * Removes given refreshToken from the cache and from the key map
      * @param key
      */
-    removeRefreshToken(key: string): void {
-        super.removeRefreshToken(key);
-        this.removeTokenKey(key, CredentialType.REFRESH_TOKEN);
+    removeRefreshToken(key: string, correlationId: string): void {
+        super.removeRefreshToken(key, correlationId);
+        this.removeTokenKey(key, CredentialType.REFRESH_TOKEN, correlationId);
     }
 
     /**
@@ -589,7 +684,11 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      * @param type
      */
-    addTokenKey(key: string, type: CredentialType): void {
+    addTokenKey(
+        key: string,
+        type: CredentialType,
+        correlationId: string
+    ): void {
         this.logger.trace("BrowserCacheManager addTokenKey called");
         const tokenKeys = this.getTokenKeys();
 
@@ -603,12 +702,16 @@ export class BrowserCacheManager extends CacheManager {
                 }
                 break;
             case CredentialType.ACCESS_TOKEN:
-                if (tokenKeys.accessToken.indexOf(key) === -1) {
-                    this.logger.info(
-                        "BrowserCacheManager: addTokenKey - accessToken added to map"
-                    );
-                    tokenKeys.accessToken.push(key);
+                const index = tokenKeys.accessToken.indexOf(key);
+                if (index !== -1) {
+                    tokenKeys.accessToken.splice(index, 1); // Remove existing key before pushing to the end
                 }
+                this.logger.trace(
+                    `access token ${
+                        index === -1 ? "added to" : "updated in"
+                    } map`
+                );
+                tokenKeys.accessToken.push(key);
                 break;
             case CredentialType.REFRESH_TOKEN:
                 if (tokenKeys.refreshToken.indexOf(key) === -1) {
@@ -629,7 +732,8 @@ export class BrowserCacheManager extends CacheManager {
 
         this.setItem(
             `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
-            JSON.stringify(tokenKeys)
+            JSON.stringify(tokenKeys),
+            correlationId
         );
     }
 
@@ -638,9 +742,13 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      * @param type
      */
-    removeTokenKey(key: string, type: CredentialType): void {
+    removeTokenKey(
+        key: string,
+        type: CredentialType,
+        correlationId: string,
+        tokenKeys: TokenKeys = this.getTokenKeys()
+    ): void {
         this.logger.trace("BrowserCacheManager removeTokenKey called");
-        const tokenKeys = this.getTokenKeys();
 
         switch (type) {
             case CredentialType.ID_TOKEN:
@@ -711,7 +819,8 @@ export class BrowserCacheManager extends CacheManager {
         } else {
             this.setItem(
                 `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
-                JSON.stringify(tokenKeys)
+                JSON.stringify(tokenKeys),
+                correlationId
             );
         }
     }
@@ -720,13 +829,16 @@ export class BrowserCacheManager extends CacheManager {
      * generates idToken entity from a string
      * @param idTokenKey
      */
-    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
+    getIdTokenCredential(
+        idTokenKey: string,
+        correlationId: string
+    ): IdTokenEntity | null {
         const value = this.getItem(idTokenKey);
         if (!value) {
             this.logger.trace(
                 "BrowserCacheManager.getIdTokenCredential: called, no cache hit"
             );
-            this.removeTokenKey(idTokenKey, CredentialType.ID_TOKEN);
+            this.removeIdToken(idTokenKey, correlationId);
             return null;
         }
 
@@ -748,27 +860,34 @@ export class BrowserCacheManager extends CacheManager {
      * set IdToken credential to the platform cache
      * @param idToken
      */
-    setIdTokenCredential(idToken: IdTokenEntity): void {
+    setIdTokenCredential(idToken: IdTokenEntity, correlationId: string): void {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
         idToken.lastUpdatedAt = Date.now().toString();
 
-        this.setItem(idTokenKey, JSON.stringify(idToken));
+        this.setItem(idTokenKey, JSON.stringify(idToken), correlationId);
 
-        this.addTokenKey(idTokenKey, CredentialType.ID_TOKEN);
+        this.addTokenKey(idTokenKey, CredentialType.ID_TOKEN, correlationId);
     }
 
     /**
      * generates accessToken entity from a string
      * @param key
      */
-    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
+    getAccessTokenCredential(
+        accessTokenKey: string,
+        correlationId: string
+    ): AccessTokenEntity | null {
         const value = this.getItem(accessTokenKey);
         if (!value) {
             this.logger.trace(
                 "BrowserCacheManager.getAccessTokenCredential: called, no cache hit"
             );
-            this.removeTokenKey(accessTokenKey, CredentialType.ACCESS_TOKEN);
+            this.removeTokenKey(
+                accessTokenKey,
+                CredentialType.ACCESS_TOKEN,
+                correlationId
+            );
             return null;
         }
         const parsedAccessToken = this.validateAndParseJson(value);
@@ -792,16 +911,27 @@ export class BrowserCacheManager extends CacheManager {
      * set accessToken credential to the platform cache
      * @param accessToken
      */
-    setAccessTokenCredential(accessToken: AccessTokenEntity): void {
+    setAccessTokenCredential(
+        accessToken: AccessTokenEntity,
+        correlationId: string
+    ): void {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called"
         );
         const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         accessToken.lastUpdatedAt = Date.now().toString();
 
-        this.setItem(accessTokenKey, JSON.stringify(accessToken));
+        this.setItem(
+            accessTokenKey,
+            JSON.stringify(accessToken),
+            correlationId
+        );
 
-        this.addTokenKey(accessTokenKey, CredentialType.ACCESS_TOKEN);
+        this.addTokenKey(
+            accessTokenKey,
+            CredentialType.ACCESS_TOKEN,
+            correlationId
+        );
     }
 
     /**
@@ -809,14 +939,19 @@ export class BrowserCacheManager extends CacheManager {
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(
-        refreshTokenKey: string
+        refreshTokenKey: string,
+        correlationId: string
     ): RefreshTokenEntity | null {
         const value = this.getItem(refreshTokenKey);
         if (!value) {
             this.logger.trace(
                 "BrowserCacheManager.getRefreshTokenCredential: called, no cache hit"
             );
-            this.removeTokenKey(refreshTokenKey, CredentialType.REFRESH_TOKEN);
+            this.removeTokenKey(
+                refreshTokenKey,
+                CredentialType.REFRESH_TOKEN,
+                correlationId
+            );
             return null;
         }
         const parsedRefreshToken = this.validateAndParseJson(value);
@@ -840,7 +975,10 @@ export class BrowserCacheManager extends CacheManager {
      * set refreshToken credential to the platform cache
      * @param refreshToken
      */
-    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
+    setRefreshTokenCredential(
+        refreshToken: RefreshTokenEntity,
+        correlationId: string
+    ): void {
         this.logger.trace(
             "BrowserCacheManager.setRefreshTokenCredential called"
         );
@@ -848,9 +986,17 @@ export class BrowserCacheManager extends CacheManager {
             CacheHelpers.generateCredentialKey(refreshToken);
 
         refreshToken.lastUpdatedAt = Date.now().toString();
-        this.setItem(refreshTokenKey, JSON.stringify(refreshToken));
+        this.setItem(
+            refreshTokenKey,
+            JSON.stringify(refreshToken),
+            correlationId
+        );
 
-        this.addTokenKey(refreshTokenKey, CredentialType.REFRESH_TOKEN);
+        this.addTokenKey(
+            refreshTokenKey,
+            CredentialType.REFRESH_TOKEN,
+            correlationId
+        );
     }
 
     /**
@@ -885,10 +1031,17 @@ export class BrowserCacheManager extends CacheManager {
      * set appMetadata entity to the platform cache
      * @param appMetadata
      */
-    setAppMetadata(appMetadata: AppMetadataEntity): void {
+    setAppMetadata(
+        appMetadata: AppMetadataEntity,
+        correlationId: string
+    ): void {
         this.logger.trace("BrowserCacheManager.setAppMetadata called");
         const appMetadataKey = CacheHelpers.generateAppMetadataKey(appMetadata);
-        this.setItem(appMetadataKey, JSON.stringify(appMetadata));
+        this.setItem(
+            appMetadataKey,
+            JSON.stringify(appMetadata),
+            correlationId
+        );
     }
 
     /**
@@ -930,10 +1083,15 @@ export class BrowserCacheManager extends CacheManager {
      */
     setServerTelemetry(
         serverTelemetryKey: string,
-        serverTelemetry: ServerTelemetryEntity
+        serverTelemetry: ServerTelemetryEntity,
+        correlationId: string
     ): void {
         this.logger.trace("BrowserCacheManager.setServerTelemetry called");
-        this.setItem(serverTelemetryKey, JSON.stringify(serverTelemetry));
+        this.setItem(
+            serverTelemetryKey,
+            JSON.stringify(serverTelemetry),
+            correlationId
+        );
     }
 
     /**
@@ -1008,7 +1166,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets the active account
      */
-    getActiveAccount(): AccountInfo | null {
+    getActiveAccount(correlationId: string): AccountInfo | null {
         const activeAccountKeyFilters = this.generateCacheKey(
             PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS
         );
@@ -1028,9 +1186,12 @@ export class BrowserCacheManager extends CacheManager {
                 );
                 return null;
             }
-            const activeAccount = this.getAccountInfoFilteredBy({
-                localAccountId: activeAccountValueLocal,
-            });
+            const activeAccount = this.getAccountInfoFilteredBy(
+                {
+                    localAccountId: activeAccountValueLocal,
+                },
+                correlationId
+            );
             if (activeAccount) {
                 this.logger.trace(
                     "BrowserCacheManager.getActiveAccount: Legacy active account cache schema found"
@@ -1038,7 +1199,7 @@ export class BrowserCacheManager extends CacheManager {
                 this.logger.trace(
                     "BrowserCacheManager.getActiveAccount: Adding active account filters cache schema"
                 );
-                this.setActiveAccount(activeAccount);
+                this.setActiveAccount(activeAccount, correlationId);
                 return activeAccount;
             }
             return null;
@@ -1050,11 +1211,14 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.getActiveAccount: Active account filters schema found"
             );
-            return this.getAccountInfoFilteredBy({
-                homeAccountId: activeAccountValueObj.homeAccountId,
-                localAccountId: activeAccountValueObj.localAccountId,
-                tenantId: activeAccountValueObj.tenantId,
-            });
+            return this.getAccountInfoFilteredBy(
+                {
+                    homeAccountId: activeAccountValueObj.homeAccountId,
+                    localAccountId: activeAccountValueObj.localAccountId,
+                    tenantId: activeAccountValueObj.tenantId,
+                },
+                correlationId
+            );
         }
         this.logger.trace(
             "BrowserCacheManager.getActiveAccount: No active account found"
@@ -1066,7 +1230,7 @@ export class BrowserCacheManager extends CacheManager {
      * Sets the active account's localAccountId in cache
      * @param account
      */
-    setActiveAccount(account: AccountInfo | null): void {
+    setActiveAccount(account: AccountInfo | null, correlationId: string): void {
         const activeAccountKey = this.generateCacheKey(
             PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS
         );
@@ -1081,13 +1245,15 @@ export class BrowserCacheManager extends CacheManager {
                 tenantId: account.tenantId,
                 lastUpdatedAt: Date.now().toString(),
             };
-            this.browserStorage.setItem(
+            this.setItem(
                 activeAccountKey,
-                JSON.stringify(activeAccountValue)
+                JSON.stringify(activeAccountValue),
+                correlationId
             );
-            this.browserStorage.setItem(
+            this.setItem(
                 activeAccountKeyLocal,
-                account.localAccountId
+                account.localAccountId,
+                correlationId
             );
         } else {
             this.logger.verbose(
@@ -1136,10 +1302,15 @@ export class BrowserCacheManager extends CacheManager {
      */
     setThrottlingCache(
         throttlingCacheKey: string,
-        throttlingCache: ThrottlingEntity
+        throttlingCache: ThrottlingEntity,
+        correlationId: string
     ): void {
         this.logger.trace("BrowserCacheManager.setThrottlingCache called");
-        this.setItem(throttlingCacheKey, JSON.stringify(throttlingCache));
+        this.setItem(
+            throttlingCacheKey,
+            JSON.stringify(throttlingCache),
+            correlationId
+        );
     }
 
     /**
@@ -1246,10 +1417,10 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Clears all cache entries created by MSAL.
      */
-    async clear(): Promise<void> {
+    async clear(correlationId: string): Promise<void> {
         // Removes all accounts and their credentials
-        await this.removeAllAccounts();
-        this.removeAppMetadata();
+        await this.removeAllAccounts(correlationId);
+        this.removeAppMetadata(correlationId);
 
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
@@ -1294,12 +1465,17 @@ export class BrowserCacheManager extends CacheManager {
         const removedAccessTokens: Array<Promise<void>> = [];
         tokenKeys.accessToken.forEach((key: string) => {
             // if the access token has claims in its key, remove the token key and the token
-            const credential = this.getAccessTokenCredential(key);
+            const credential = this.getAccessTokenCredential(
+                key,
+                correlationId
+            );
             if (
                 credential?.requestedClaimsHash &&
                 key.includes(credential.requestedClaimsHash.toLowerCase())
             ) {
-                removedAccessTokens.push(this.removeAccessToken(key));
+                removedAccessTokens.push(
+                    this.removeAccessToken(key, correlationId)
+                );
             }
         });
         await Promise.all(removedAccessTokens);
@@ -1711,7 +1887,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     updateCredentialCacheKey(
         currentCacheKey: string,
-        credential: ValidCredentialType
+        credential: ValidCredentialType,
+        correlationId: string
     ): string {
         const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
 
@@ -1719,7 +1896,7 @@ export class BrowserCacheManager extends CacheManager {
             const cacheItem = this.getItem(currentCacheKey);
             if (cacheItem) {
                 this.browserStorage.removeItem(currentCacheKey);
-                this.setItem(updatedCacheKey, cacheItem);
+                this.setItem(updatedCacheKey, cacheItem, correlationId);
                 this.logger.verbose(
                     `Updated an outdated ${credential.credentialType} cache key`
                 );
@@ -1790,7 +1967,7 @@ export class BrowserCacheManager extends CacheManager {
             idToken: idTokenEntity,
             accessToken: accessTokenEntity,
         };
-        return this.saveCacheRecord(cacheRecord);
+        return this.saveCacheRecord(cacheRecord, result.correlationId);
     }
 
     /**
@@ -1801,14 +1978,14 @@ export class BrowserCacheManager extends CacheManager {
      */
     async saveCacheRecord(
         cacheRecord: CacheRecord,
-        storeInCache?: StoreInCache,
-        correlationId?: string
+        correlationId: string,
+        storeInCache?: StoreInCache
     ): Promise<void> {
         try {
             await super.saveCacheRecord(
                 cacheRecord,
-                storeInCache,
-                correlationId
+                correlationId,
+                storeInCache
             );
         } catch (e) {
             if (
