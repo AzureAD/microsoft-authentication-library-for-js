@@ -29,12 +29,12 @@
   "exports": {
     "./custom-auth": {
       "import": {
-        "types": "./dist/custom_auth/index.d.ts",
-        "default": "./dist/custom_auth/index.mjs"
+        "types": "./dist/custom-auth-path/custom_auth/index.d.ts",
+        "default": "./dist/custom-auth-path/custom_auth/index.mjs"
       },
       "require": {
-        "types": "./lib/types/custom_auth/index.d.ts",
-        "default": "./lib/msal-custom-auth.cjs"
+        "types": "./lib/custom-auth-path/types/custom_auth/index.d.ts",
+        "default": "./lib/custom-auth-path/msal-custom-auth.cjs"
       }
     },
     ".": {
