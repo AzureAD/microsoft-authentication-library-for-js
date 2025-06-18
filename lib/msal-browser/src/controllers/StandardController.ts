@@ -19,6 +19,7 @@ import {
     InProgressPerformanceEvent,
     getRequestThumbprint,
     invokeAsync,
+    invoke,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountFilter,
@@ -357,7 +358,7 @@ export class StandardController implements IController {
             }
         }
 
-        await invokeAsync(
+        invoke(
             this.browserStorage.clearTokensAndKeysWithClaims.bind(
                 this.browserStorage
             ),
@@ -365,7 +366,7 @@ export class StandardController implements IController {
             this.logger,
             this.performanceClient,
             initCorrelationId
-        )();
+        )(initCorrelationId);
 
         if (
             this.config.cache.cacheLocation ===
