@@ -493,9 +493,8 @@ describe("BrowserCacheManager tests", () => {
             const newCacheKey = "test-cache-entry";
             const newCacheVal = "test-cache-value";
 
-            jest
-                // @ts-ignore
-                .spyOn(browserCacheManager.browserStorage, "setItem")
+            const spy = jest
+                .spyOn(Storage.prototype, "setItem")
                 .mockImplementation(() => {
                     const error: any = new DOMException(
                         "The quota has been exceeded",
@@ -520,6 +519,7 @@ describe("BrowserCacheManager tests", () => {
             expect(browserCacheManager.getTokenKeys().accessToken).toHaveLength(
                 0
             );
+            expect(spy).toHaveBeenCalledTimes(4); // First attempt + one attempt for each access token removed
         });
 
         it("setUserData removes old access tokens if cache quota is reached", async () => {
