@@ -612,7 +612,6 @@ export abstract class CacheManager implements ICacheManager {
         const tokenKeys = this.getTokenKeys();
         const currentScopes = ScopeSet.fromString(credential.target);
 
-        const removedAccessTokens: Array<Promise<void>> = [];
         tokenKeys.accessToken.forEach((key) => {
             if (
                 !this.accessTokenKeyMatchesFilter(key, accessTokenFilter, false)
@@ -631,13 +630,10 @@ export abstract class CacheManager implements ICacheManager {
             ) {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
                 if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
-                    removedAccessTokens.push(
-                        this.removeAccessToken(key, correlationId)
-                    );
+                    this.removeAccessToken(key, correlationId);
                 }
             }
         });
-        await Promise.all(removedAccessTokens);
         this.setAccessTokenCredential(credential, correlationId);
     }
 
@@ -1033,7 +1029,6 @@ export abstract class CacheManager implements ICacheManager {
     ): Promise<void> {
         const allTokenKeys = this.getTokenKeys();
         const accountId = account.generateAccountId();
-        const removedCredentials: Array<Promise<void>> = [];
 
         allTokenKeys.idToken.forEach((key) => {
             if (key.indexOf(accountId) === 0) {
@@ -1043,9 +1038,7 @@ export abstract class CacheManager implements ICacheManager {
 
         allTokenKeys.accessToken.forEach((key) => {
             if (key.indexOf(accountId) === 0) {
-                removedCredentials.push(
-                    this.removeAccessToken(key, correlationId)
-                );
+                this.removeAccessToken(key, correlationId);
             }
         });
 
@@ -1054,8 +1047,6 @@ export abstract class CacheManager implements ICacheManager {
                 this.removeRefreshToken(key, correlationId);
             }
         });
-
-        await Promise.all(removedCredentials);
     }
 
     /**
@@ -1145,7 +1136,7 @@ export abstract class CacheManager implements ICacheManager {
      * returns a boolean if the given credential is removed
      * @param credential
      */
-    async removeAccessToken(key: string, correlationId: string): Promise<void> {
+    removeAccessToken(key: string, correlationId: string): void {
         const credential = this.getAccessTokenCredential(key, correlationId);
         this.removeItem(key, correlationId);
 
@@ -1162,13 +1153,11 @@ export abstract class CacheManager implements ICacheManager {
         const kid = credential.keyId;
 
         if (kid) {
-            try {
-                await this.cryptoImpl.removeTokenBindingKey(kid);
-            } catch (error) {
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.bindingKeyNotRemoved
+            void this.cryptoImpl.removeTokenBindingKey(kid).catch((_e) => {
+                this.commonLogger.error(
+                    "Binding key could not be removed"
                 );
-            }
+            });
         }
     }
 

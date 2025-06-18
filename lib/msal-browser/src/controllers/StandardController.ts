@@ -87,7 +87,6 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
-import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 
 function getAccountType(
     account?: AccountInfo

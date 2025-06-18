@@ -620,11 +620,11 @@ export class BrowserCacheManager extends CacheManager {
      * Removes given accessToken from the cache and from the key map
      * @param key
      */
-    async removeAccessToken(
+    removeAccessToken(
         key: string,
         correlationId: string,
         tokenKeys?: TokenKeys
-    ): Promise<void> {
+    ): void {
         super.removeAccessToken(key, correlationId);
         this.removeTokenKey(
             key,
@@ -1462,7 +1462,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const tokenKeys = this.getTokenKeys();
 
-        const removedAccessTokens: Array<Promise<void>> = [];
+        let removedAccessTokens: number = 0;
         tokenKeys.accessToken.forEach((key: string) => {
             // if the access token has claims in its key, remove the token key and the token
             const credential = this.getAccessTokenCredential(
@@ -1473,17 +1473,15 @@ export class BrowserCacheManager extends CacheManager {
                 credential?.requestedClaimsHash &&
                 key.includes(credential.requestedClaimsHash.toLowerCase())
             ) {
-                removedAccessTokens.push(
-                    this.removeAccessToken(key, correlationId)
-                );
+                this.removeAccessToken(key, correlationId);
+                removedAccessTokens++;
             }
         });
-        await Promise.all(removedAccessTokens);
 
         // warn if any access tokens are removed
-        if (removedAccessTokens.length > 0) {
+        if (removedAccessTokens > 0) {
             this.logger.warning(
-                `${removedAccessTokens.length} access tokens with claims in the cache keys have been removed from the cache.`
+                `${removedAccessTokens} access tokens with claims in the cache keys have been removed from the cache.`
             );
         }
     }

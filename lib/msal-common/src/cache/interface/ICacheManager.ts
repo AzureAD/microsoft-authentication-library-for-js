@@ -234,7 +234,7 @@ export interface ICacheManager {
     /**
      * @param key
      */
-    removeAccessToken(key: string, correlationId: string): Promise<void>;
+    removeAccessToken(key: string, correlationId: string): void;
 
     /**
      * @param key
