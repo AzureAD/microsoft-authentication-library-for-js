@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Fri, 30 May 2025 17:59:15 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Jun 2025 15:21:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.7.1
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- added UX_NOT_ALLOWED suberror to InteractionRequired error type #7834 (lalimasharda@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.7.0
 

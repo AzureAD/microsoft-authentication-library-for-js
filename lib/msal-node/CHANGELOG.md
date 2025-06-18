@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Fri, 30 May 2025 22:36:44 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Jun 2025 15:21:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.6.1
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- Added support for DEFAULT_IDENTITY_CLIENT_ID environment variable in Machine Learning Managed Identity #7616 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.6.0
 
