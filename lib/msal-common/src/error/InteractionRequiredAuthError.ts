@@ -16,6 +16,7 @@ export const InteractionRequiredServerErrorMessage = [
     InteractionRequiredAuthErrorCodes.consentRequired,
     InteractionRequiredAuthErrorCodes.loginRequired,
     InteractionRequiredAuthErrorCodes.badToken,
+    InteractionRequiredAuthErrorCodes.uxNotAllowed,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -36,6 +37,8 @@ const InteractionRequiredAuthErrorMessages = {
         "Refresh token has expired.",
     [InteractionRequiredAuthErrorCodes.badToken]:
         "Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.",
+    [InteractionRequiredAuthErrorCodes.uxNotAllowed]:
+        "`canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.",
 };
 
 /**
