@@ -1258,6 +1258,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     getConfiguration(): BrowserConfiguration;
     getLogger(): Logger;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     handleRedirectPromise(hash?: string | undefined, options?: {
         navigateToLoginRequestUrl?: boolean;
     }): Promise<AuthenticationResult | null>;
