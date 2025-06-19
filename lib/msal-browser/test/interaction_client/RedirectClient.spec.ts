@@ -26,15 +26,12 @@ import {
 } from "../utils/StringConstants.js";
 import {
     ServerError,
-    Constants,
     AccountInfo,
     TokenClaims,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
-    ResponseMode,
     ProtocolUtils,
-    AuthenticationScheme,
     Logger,
     ServerTelemetryEntity,
     LogLevel,
@@ -50,6 +47,9 @@ import {
     InProgressPerformanceEvent,
     StubPerformanceClient,
     ProtocolMode,
+    AccessTokenEntity,
+    AccountEntityUtils,
+    Constants,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -57,14 +57,15 @@ import {
     ApiId,
     BrowserCacheLocation,
     InteractionType,
+    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
     BrowserAuthError,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
@@ -77,8 +78,8 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { EventType } from "../../src/event/EventType.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import {
@@ -87,13 +88,10 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
+import { version } from "../../src/packageMetadata.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
-    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-    storeAuthStateInCookie: false,
-    cacheMigrationEnabled: false,
-    claimsBasedCachingEnabled: false,
 };
 
 const testRequest: CommonAuthorizationUrlRequest = {
@@ -101,8 +99,9 @@ const testRequest: CommonAuthorizationUrlRequest = {
     scopes: TEST_CONFIG.DEFAULT_SCOPES,
     authority: `${Constants.DEFAULT_AUTHORITY}`,
     correlationId: RANDOM_TEST_GUID,
-    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-    responseMode: ResponseMode.FRAGMENT,
+    authenticationScheme:
+        TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+    responseMode: Constants.ResponseMode.FRAGMENT,
     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
     nonce: ID_TOKEN_CLAIMS.nonce,
 };
@@ -204,7 +203,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     done();
                 });
         });
@@ -222,7 +224,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     done();
                 });
         });
@@ -240,7 +245,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     expect(window.location.hash).toEqual(
                         TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
                     );
@@ -389,7 +397,7 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
@@ -410,8 +418,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -427,7 +436,7 @@ describe("RedirectClient", () => {
                     testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(
@@ -485,7 +494,7 @@ describe("RedirectClient", () => {
             pca = (pca as any).controller;
 
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -538,7 +547,7 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
@@ -559,11 +568,11 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo = buildAccountFromIdTokenClaims(
-                ID_TOKEN_CLAIMS,
-                undefined,
-                { nativeAccountId: "test-nativeAccountId" }
-            ).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, undefined, {
+                    nativeAccountId: "test-nativeAccountId",
+                })
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -579,7 +588,7 @@ describe("RedirectClient", () => {
                     testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(
@@ -593,7 +602,7 @@ describe("RedirectClient", () => {
                 }
             });
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
 
@@ -680,7 +689,7 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
@@ -699,9 +708,9 @@ describe("RedirectClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                        ]
+                        )
                     );
                     done();
                 });
@@ -715,7 +724,7 @@ describe("RedirectClient", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
@@ -781,7 +790,7 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             window.sessionStorage.setItem(
@@ -803,8 +812,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -820,7 +830,7 @@ describe("RedirectClient", () => {
                     testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(
@@ -920,7 +930,7 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             window.sessionStorage.setItem(
@@ -943,8 +953,9 @@ describe("RedirectClient", () => {
                     },
                 };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -960,7 +971,7 @@ describe("RedirectClient", () => {
                     testServerTokenResponse.body.expires_in!
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(
@@ -1076,7 +1087,7 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             window.sessionStorage.setItem(
@@ -1098,8 +1109,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1115,7 +1127,7 @@ describe("RedirectClient", () => {
                     testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(
@@ -1766,9 +1778,10 @@ describe("RedirectClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
             };
 
             expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
@@ -1785,9 +1798,10 @@ describe("RedirectClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
@@ -1820,10 +1834,11 @@ describe("RedirectClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             redirectClient.acquireToken(loginRequest);
@@ -1844,10 +1859,11 @@ describe("RedirectClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -1902,10 +1918,11 @@ describe("RedirectClient", () => {
                 correlationId: RANDOM_TEST_GUID,
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -1947,7 +1964,7 @@ describe("RedirectClient", () => {
             );
             expect(cachedRequest.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(cachedRequest.authenticationScheme).toEqual(
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme
             );
         });
 
@@ -1971,7 +1988,7 @@ describe("RedirectClient", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 nonce: "",
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             redirectClient.acquireToken(loginRequest);
         });
@@ -2065,7 +2082,7 @@ describe("RedirectClient", () => {
                         idToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
-                    responseMode: ResponseMode.FRAGMENT,
+                    responseMode: Constants.ResponseMode.FRAGMENT,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     correlationId: RANDOM_TEST_GUID,
                     authority: TEST_CONFIG.validAuthority,
@@ -2106,7 +2123,7 @@ describe("RedirectClient", () => {
                         accessToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
-                    responseMode: ResponseMode.FRAGMENT,
+                    responseMode: Constants.ResponseMode.FRAGMENT,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     correlationId: RANDOM_TEST_GUID,
                     authority: TEST_CONFIG.validAuthority,
@@ -2147,7 +2164,7 @@ describe("RedirectClient", () => {
                         refreshToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
-                    responseMode: ResponseMode.FRAGMENT,
+                    responseMode: Constants.ResponseMode.FRAGMENT,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     correlationId: RANDOM_TEST_GUID,
                     authority: TEST_CONFIG.validAuthority,
@@ -2420,16 +2437,16 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             jest.spyOn(
                 NavigationClient.prototype,
@@ -2477,16 +2494,16 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             jest.spyOn(
                 NavigationClient.prototype,
@@ -2566,16 +2583,16 @@ describe("RedirectClient", () => {
                 username: "AbeLi@microsoft.com",
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
@@ -2680,16 +2697,16 @@ describe("RedirectClient", () => {
                 username: "AbeLi@microsoft.com",
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
@@ -2791,7 +2808,7 @@ describe("RedirectClient", () => {
             const testAccountEntity =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
             const testAccountInfo: AccountInfo = {
-                ...testAccountEntity.getAccountInfo(),
+                ...AccountEntityUtils.getAccountInfo(testAccountEntity),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
             };
@@ -3002,6 +3019,8 @@ describe("RedirectClient", () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
                     protocolMode: ProtocolMode.EAR,
                 },
             });

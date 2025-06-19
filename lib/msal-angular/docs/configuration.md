@@ -58,7 +58,6 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
         },
         cache: {
           cacheLocation: BrowserCacheLocation.LocalStorage,
-          storeAuthStateInCookie: true, // set to true for IE 11
         },
         system: {
           loggerOptions: {
@@ -165,7 +164,7 @@ export class AppModule {}
 
 ## platformBrowserDynamic
 
-If you need to dynamically configure MSAL Angular (e.g. based on values returned from an API), you can use `platformBrowserDynamic`. `platformBrowserDyamic` is a platform factory, used to bootstrap the application, and is able to take in configuration options. `platformBrowserDynamic` should already be present when the Angular application is set up.
+If you need to dynamically configure MSAL Angular (e.g. based on values returned from an API), you can use `platformBrowserDynamic`. `platformBrowserDynamic` is a platform factory, used to bootstrap the application, and is able to take in configuration options. `platformBrowserDynamic` should already be present when the Angular application is set up.
 
 The following is an example of how to dynamically configure `@azure/msal-angular` with `platformBrowserDynamic` and a json file:
 
@@ -261,7 +260,6 @@ fetch("/assets/configuration.json")
     },
     "cache": {
       "cacheLocation": "localStorage",
-      "storeAuthStateInCookie": true
     }
   },
   "guard": {
@@ -471,7 +469,6 @@ export class AppModule {}
     },
     "cache": {
       "cacheLocation": "localStorage",
-      "storeAuthStateInCookie": true
     }
   },
   "guard": {

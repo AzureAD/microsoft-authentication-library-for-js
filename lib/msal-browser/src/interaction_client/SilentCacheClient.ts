@@ -7,9 +7,9 @@ import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     CommonSilentFlowRequest,
     SilentFlowClient,
-    PerformanceEvents,
     invokeAsync,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { ApiId } from "../utils/BrowserConstants.js";
 import {
     BrowserAuthError,
@@ -26,10 +26,6 @@ export class SilentCacheClient extends StandardInteractionClient {
     async acquireToken(
         silentRequest: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.SilentCacheClientAcquireToken,
-            silentRequest.correlationId
-        );
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow
@@ -37,7 +33,7 @@ export class SilentCacheClient extends StandardInteractionClient {
 
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -56,7 +52,7 @@ export class SilentCacheClient extends StandardInteractionClient {
         try {
             const response = await invokeAsync(
                 silentAuthClient.acquireCachedToken.bind(silentAuthClient),
-                PerformanceEvents.SilentFlowClientAcquireCachedToken,
+                BrowserPerformanceEvents.SilentFlowClientAcquireCachedToken,
                 this.logger,
                 this.performanceClient,
                 silentRequest.correlationId

@@ -8,12 +8,7 @@ import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCo
 import { Authority } from "../authority/Authority.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
 import * as UrlUtils from "../utils/UrlUtils.js";
-import {
-    GrantType,
-    AuthenticationScheme,
-    Separators,
-    HeaderNames,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import {
     ClientConfiguration,
@@ -44,7 +39,7 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { RequestValidator } from "../request/RequestValidator.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
@@ -77,11 +72,6 @@ export class AuthorizationCodeClient extends BaseClient {
         request: CommonAuthorizationCodeRequest,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthClientAcquireToken,
-            request.correlationId
-        );
-
         if (!request.code) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.requestCannotBeMade
@@ -98,7 +88,8 @@ export class AuthorizationCodeClient extends BaseClient {
         )(this.authority, request);
 
         // Retrieve requestId from response headers
-        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+        const requestId =
+            response.headers?.[Constants.HeaderNames.X_MS_REQUEST_ID];
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -106,8 +97,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.cryptoUtils,
             this.logger,
             this.config.serializableCache,
-            this.config.persistencePlugin,
-            this.performanceClient
+            this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
@@ -162,11 +152,6 @@ export class AuthorizationCodeClient extends BaseClient {
         authority: Authority,
         request: CommonAuthorizationCodeRequest
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthClientExecuteTokenRequest,
-            request.correlationId
-        );
-
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
@@ -189,7 +174,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils.base64Decode
                 );
                 ccsCredential = {
-                    credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
+                    credential: `${clientInfo.uid}${Constants.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 };
             } catch (e) {
@@ -213,14 +198,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint,
-            request.correlationId,
-            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint
-        );
+        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
     }
 
     /**
@@ -230,11 +208,6 @@ export class AuthorizationCodeClient extends BaseClient {
     private async createTokenRequestBody(
         request: CommonAuthorizationCodeRequest
     ): Promise<string> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthClientCreateTokenRequestBody,
-            request.correlationId
-        );
-
         const parameters = new Map<string, string>();
 
         RequestParameterBuilder.addClientId(
@@ -323,11 +296,13 @@ export class AuthorizationCodeClient extends BaseClient {
 
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.AUTHORIZATION_CODE_GRANT
+            Constants.GrantType.AUTHORIZATION_CODE_GRANT
         );
         RequestParameterBuilder.addClientInfo(parameters);
 
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.POP
+        ) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
                 this.performanceClient
@@ -349,7 +324,9 @@ export class AuthorizationCodeClient extends BaseClient {
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             RequestParameterBuilder.addPopToken(parameters, reqCnfData);
-        } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.SSH
+        ) {
             if (request.sshJwk) {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
@@ -379,7 +356,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils.base64Decode
                 );
                 ccsCred = {
-                    credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
+                    credential: `${clientInfo.uid}${Constants.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 };
             } catch (e) {

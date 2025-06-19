@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "./Constants.js";
+import { RESOURCE_DELIM } from "./Constants.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import {
     ClientAuthErrorCodes,
@@ -49,7 +49,7 @@ export class ProtocolUtils {
             meta
         );
         return userState
-            ? `${libraryState}${Constants.RESOURCE_DELIM}${userState}`
+            ? `${libraryState}${RESOURCE_DELIM}${userState}`
             : libraryState;
     }
 
@@ -99,18 +99,18 @@ export class ProtocolUtils {
 
         try {
             // Split the state between library state and user passed state and decode them separately
-            const splitState = state.split(Constants.RESOURCE_DELIM);
+            const splitState = state.split(RESOURCE_DELIM);
             const libraryState = splitState[0];
             const userState =
                 splitState.length > 1
-                    ? splitState.slice(1).join(Constants.RESOURCE_DELIM)
-                    : Constants.EMPTY_STRING;
+                    ? splitState.slice(1).join(RESOURCE_DELIM)
+                    : "";
             const libraryStateString = cryptoObj.base64Decode(libraryState);
             const libraryStateObj = JSON.parse(
                 libraryStateString
             ) as LibraryStateObject;
             return {
-                userRequestState: userState || Constants.EMPTY_STRING,
+                userRequestState: userState || "",
                 libraryState: libraryStateObj,
             };
         } catch (e) {

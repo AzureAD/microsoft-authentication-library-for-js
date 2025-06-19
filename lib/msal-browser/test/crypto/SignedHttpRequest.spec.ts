@@ -98,8 +98,8 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
         });
         const kid = await shr.generatePublicKeyThumbprint();
 
-        const removeOp = await shr.removeKeys(kid);
-
-        expect(removeOp).toEqual(true);
+        expect(mockDatabase["TestDB.keys"][kid]).toBeDefined();
+        await shr.removeKeys(kid);
+        expect(mockDatabase["TestDB.keys"][kid]).toBeUndefined();
     });
 });

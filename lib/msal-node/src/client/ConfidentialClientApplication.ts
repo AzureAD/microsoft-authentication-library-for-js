@@ -15,15 +15,12 @@ import {
     MSAL_FORCE_REGION,
 } from "../utils/Constants.js";
 import {
-    CommonClientCredentialRequest,
-    CommonOnBehalfOfRequest,
     AuthenticationResult,
     AzureRegionConfiguration,
     AuthError,
     IAppTokenProvider,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     UrlString,
-    AADAuthorityConstants,
     createClientAuthError,
     ClientAuthErrorCodes,
     ClientAssertion as ClientAssertionType,
@@ -32,6 +29,8 @@ import {
 } from "@azure/msal-common/node";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
+import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
 import { ClientCredentialClient } from "./ClientCredentialClient.js";
 import { OnBehalfOfClient } from "./OnBehalfOfClient.js";
@@ -168,7 +167,8 @@ export class ConfidentialClientApplication
         const validBaseRequest = {
             ...baseRequest,
             scopes: baseRequest.scopes.filter(
-                (scope: string) => !OIDC_DEFAULT_SCOPES.includes(scope)
+                (scope: string) =>
+                    !Constants.OIDC_DEFAULT_SCOPES.includes(scope)
             ),
         };
 
@@ -185,8 +185,8 @@ export class ConfidentialClientApplication
         const authority = new UrlString(validRequest.authority);
         const tenantId = authority.getUrlComponents().PathSegments[0];
         if (
-            Object.values(AADAuthorityConstants).includes(
-                tenantId as AADAuthorityConstants
+            Object.values(Constants.AADAuthority).includes(
+                tenantId as Constants.AADAuthority
             )
         ) {
             throw createClientAuthError(

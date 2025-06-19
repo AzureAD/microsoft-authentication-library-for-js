@@ -1,80 +1,22 @@
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils.js";
-import {
-    RANDOM_TEST_GUID,
-    TEST_CRYPTO_VALUES,
-    TEST_POP_VALUES,
-} from "../test_kit/StringConstants.js";
+import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
-import { Constants } from "../../src/utils/Constants.js";
+import { RESOURCE_DELIM } from "../../src/utils/Constants.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
+import { mockCrypto } from "../client/ClientTestUtils.js";
 
 describe("ProtocolUtils.ts Class Unit Tests", () => {
     const userState = "userState";
     const decodedLibState = `{"id":"${RANDOM_TEST_GUID}"}`;
     const encodedLibState = `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSJ9`;
-    const testState = `${encodedLibState}${Constants.RESOURCE_DELIM}${userState}`;
+    const testState = `${encodedLibState}${RESOURCE_DELIM}${userState}`;
 
     let cryptoInterface: ICrypto;
     beforeEach(() => {
-        cryptoInterface = {
-            createNewGuid(): string {
-                return RANDOM_TEST_GUID;
-            },
-            base64Decode(input: string): string {
-                switch (input) {
-                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        return TEST_POP_VALUES.DECODED_REQ_CNF;
-                    case encodedLibState:
-                        return decodedLibState;
-                    default:
-                        return input;
-                }
-            },
-            base64Encode(input: string): string {
-                switch (input) {
-                    case TEST_POP_VALUES.DECODED_REQ_CNF:
-                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case `${decodedLibState}`:
-                        return encodedLibState;
-                    default:
-                        return input;
-                }
-            },
-            base64UrlEncode(input: string): string {
-                switch (input) {
-                    case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                        return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                    default:
-                        return input;
-                }
-            },
-            encodeKid(input: string): string {
-                switch (input) {
-                    case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                        return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                    default:
-                        return input;
-                }
-            },
-            async getPublicKeyThumbprint(): Promise<string> {
-                return TEST_POP_VALUES.KID;
-            },
-            async signJwt(): Promise<string> {
-                return "";
-            },
-            async removeTokenBindingKey(): Promise<boolean> {
-                return Promise.resolve(true);
-            },
-            async clearKeystore(): Promise<boolean> {
-                return Promise.resolve(true);
-            },
-            async hashString(): Promise<string> {
-                return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-            },
-        };
+        cryptoInterface = mockCrypto;
     });
 
     afterEach(() => {
@@ -115,7 +57,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     it("parseRequestState() returns empty userRequestState if no resource delimiter found in state string", () => {
         const requestState = ProtocolUtils.parseRequestState(
             cryptoInterface,
-            decodedLibState
+            cryptoInterface.base64Encode(decodedLibState)
         );
         expect(requestState.userRequestState).toHaveLength(0);
     });
@@ -131,7 +73,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     it("parseRequestState returns user state without decoding", () => {
         const requestState = ProtocolUtils.parseRequestState(
             cryptoInterface,
-            `${encodedLibState}${Constants.RESOURCE_DELIM}${"test%25u00f1"}`
+            `${encodedLibState}${RESOURCE_DELIM}${"test%25u00f1"}`
         );
         expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
     });

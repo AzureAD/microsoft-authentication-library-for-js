@@ -11,11 +11,13 @@ import { AuthError } from "../../src/error/AuthError.js";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity.js";
 import { CacheOutcome } from "../../src/utils/Constants.js";
 import { Logger } from "../../src/logger/Logger.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     mockCrypto,
-    new Logger({})
+    new Logger({}),
+    new StubPerformanceClient()
 );
 const testApiCode = 9999999;
 const testError = "interaction_required";

@@ -10,10 +10,8 @@ import {
     CcsCredentialType,
     ClientAssertion,
     ClientConfiguration,
-    CommonUsernamePasswordRequest,
-    GrantType,
     NetworkResponse,
-    OAuthResponseType,
+    Constants,
     RequestParameterBuilder,
     RequestThumbprint,
     ResponseHandler,
@@ -24,6 +22,7 @@ import {
     UrlUtils,
     getClientAssertion,
 } from "@azure/msal-common/node";
+import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
 
 /**
  * Oauth2.0 Password grant client
@@ -133,12 +132,12 @@ export class UsernamePasswordClient extends BaseClient {
 
         RequestParameterBuilder.addResponseType(
             parameters,
-            OAuthResponseType.IDTOKEN_TOKEN
+            Constants.OAuthResponseType.IDTOKEN_TOKEN
         );
 
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.RESOURCE_OWNER_PASSWORD_GRANT
+            Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT
         );
         RequestParameterBuilder.addClientInfo(parameters);
 

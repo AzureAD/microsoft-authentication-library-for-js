@@ -7,11 +7,12 @@ import { INetworkModule } from "../network/INetworkModule.js";
 import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto.js";
 import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger.js";
 import {
-    Constants,
+    DEFAULT_COMMON_TENANT,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    SKU,
 } from "../utils/Constants.js";
 import { version } from "../packageMetadata.js";
-import { Authority } from "../authority/Authority.js";
+import type { Authority } from "../authority/Authority.js";
 import { AzureCloudInstance } from "../authority/AuthorityOptions.js";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
@@ -23,6 +24,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
+import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceClient.js";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -43,7 +45,6 @@ export type ClientConfiguration = {
     authOptions: AuthOptions;
     systemOptions?: SystemOptions;
     loggerOptions?: LoggerOptions;
-    cacheOptions?: CacheOptions;
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
@@ -59,7 +60,6 @@ export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
-    cacheOptions: Required<CacheOptions>;
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
@@ -79,8 +79,6 @@ export type CommonClientConfiguration = {
  * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
- * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
- * - skipAuthorityMetadataCache  - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * - instanceAware               - A flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
  * - redirectUri                 - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  * @internal
@@ -91,7 +89,6 @@ export type AuthOptions = {
     redirectUri: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
-    skipAuthorityMetadataCache?: boolean;
     instanceAware?: boolean;
 };
 
@@ -99,6 +96,7 @@ export type AuthOptions = {
  * Use this to configure token renewal info in the Configuration object
  *
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
+ * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  */
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
@@ -118,15 +116,6 @@ export type LoggerOptions = {
     piiLoggingEnabled?: boolean;
     logLevel?: LogLevel;
     correlationId?: string;
-};
-
-/**
- *  Use this to configure credential cache preferences in the ClientConfiguration object
- *
- * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is false.
- */
-export type CacheOptions = {
-    claimsBasedCachingEnabled?: boolean;
 };
 
 /**
@@ -175,11 +164,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
-    correlationId: Constants.EMPTY_STRING,
-};
-
-const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
-    claimsBasedCachingEnabled: false,
+    correlationId: "",
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -192,20 +177,20 @@ const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
 };
 
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
-    sku: Constants.SKU,
+    sku: SKU,
     version: version,
-    cpu: Constants.EMPTY_STRING,
-    os: Constants.EMPTY_STRING,
+    cpu: "",
+    os: "",
 };
 
 const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
-    clientSecret: Constants.EMPTY_STRING,
+    clientSecret: "",
     clientAssertion: undefined,
 };
 
 const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
     azureCloudInstance: AzureCloudInstance.None,
-    tenant: `${Constants.DEFAULT_COMMON_TENANT}`,
+    tenant: `${DEFAULT_COMMON_TENANT}`,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {
@@ -226,7 +211,6 @@ export function buildClientConfiguration({
     authOptions: userAuthOptions,
     systemOptions: userSystemOptions,
     loggerOptions: userLoggerOption,
-    cacheOptions: userCacheOptions,
     storageInterface: storageImplementation,
     networkInterface: networkImplementation,
     cryptoInterface: cryptoImplementation,
@@ -246,13 +230,13 @@ export function buildClientConfiguration({
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
-        cacheOptions: { ...DEFAULT_CACHE_OPTIONS, ...userCacheOptions },
         storageInterface:
             storageImplementation ||
             new DefaultStorageClass(
                 userAuthOptions.clientId,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
-                new Logger(loggerOptions)
+                new Logger(loggerOptions),
+                new StubPerformanceClient()
             ),
         networkInterface:
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
@@ -274,7 +258,6 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
         clientCapabilities: [],
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
-        skipAuthorityMetadataCache: false,
         instanceAware: false,
         ...authOptions,
     };

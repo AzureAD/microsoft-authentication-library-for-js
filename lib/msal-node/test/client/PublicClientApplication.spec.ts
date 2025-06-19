@@ -29,17 +29,16 @@ import {
     AuthorityFactory,
     ProtocolMode,
     AADServerParamKeys,
-    CacheOutcome,
     TokenCacheContext,
     Authority,
     IdTokenEntity,
-    CredentialType,
     AccessTokenEntity,
     TimeUtils,
-    AuthenticationScheme,
+    Constants as CommonConstants,
     RefreshTokenEntity,
     CacheManager,
     CommonSilentFlowRequest,
+    AccountEntityUtils,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -81,6 +80,7 @@ import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -244,7 +244,7 @@ describe("PublicClientApplication", () => {
         const testAccountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccount: AccountInfo = {
-            ...testAccountEntity.getAccountInfo(),
+            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -254,7 +254,7 @@ describe("PublicClientApplication", () => {
             environment: testAccountEntity.environment,
             realm: ID_TOKEN_CLAIMS.tid,
             secret: AUTHENTICATION_RESULT.body.id_token,
-            credentialType: CredentialType.ID_TOKEN,
+            credentialType: CommonConstants.CredentialType.ID_TOKEN,
         };
         const testAccessTokenEntity: AccessTokenEntity = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -266,12 +266,12 @@ describe("PublicClientApplication", () => {
                 TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
                 " " +
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
-            credentialType: CredentialType.ACCESS_TOKEN,
+            credentialType: CommonConstants.CredentialType.ACCESS_TOKEN,
             cachedAt: `${TimeUtils.nowSeconds()}`,
             expiresOn: (
                 TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
             ).toString(),
-            tokenType: AuthenticationScheme.BEARER,
+            tokenType: CommonConstants.AuthenticationScheme.BEARER,
         };
         const testRefreshTokenEntity: RefreshTokenEntity = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -279,7 +279,7 @@ describe("PublicClientApplication", () => {
             environment: testAccountEntity.environment,
             realm: ID_TOKEN_CLAIMS.tid,
             secret: AUTHENTICATION_RESULT.body.refresh_token,
-            credentialType: CredentialType.REFRESH_TOKEN,
+            credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
         };
         testAccessTokenEntity.refreshOn = `${
             Number(testAccessTokenEntity.cachedAt) - 1
@@ -304,7 +304,7 @@ describe("PublicClientApplication", () => {
                 "acquireCachedToken"
             ).mockResolvedValue([
                 mockAuthenticationResult,
-                CacheOutcome.NOT_APPLICABLE,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
             ]);
 
             const authApp = new PublicClientApplication(appConfig);
@@ -424,7 +424,7 @@ describe("PublicClientApplication", () => {
                 .spyOn(silentFlowClient.prototype, "acquireCachedToken")
                 .mockResolvedValue([
                     mockAuthenticationResult,
-                    CacheOutcome.NOT_APPLICABLE,
+                    CommonConstants.CacheOutcome.NOT_APPLICABLE,
                 ]);
 
             let cacheSpy = jest.spyOn(TokenCache.prototype, "overwriteCache");
@@ -1037,32 +1037,34 @@ describe("PublicClientApplication", () => {
             });
 
             const cryptoProvider = new CryptoProvider();
-            const accountEntity: AccountEntity = AccountEntity.createAccount(
-                {
-                    homeAccountId: mockAccountInfo.homeAccountId,
-                    idTokenClaims: AuthToken.extractTokenClaims(
-                        mockAuthenticationResult.idToken,
-                        cryptoProvider.base64Decode
-                    ),
-                },
-                await AuthorityFactory.createDiscoveredInstance(
-                    TEST_CONFIG.validAuthority,
-                    new HttpClient(),
-                    new MockStorageClass(
-                        TEST_CONFIG.MSAL_CLIENT_ID,
-                        cryptoProvider,
-                        new Logger({})
-                    ),
+            const accountEntity: AccountEntity =
+                AccountEntityUtils.createAccountEntity(
                     {
-                        protocolMode: ProtocolMode.AAD,
-                        knownAuthorities: [],
-                        cloudDiscoveryMetadata: "",
-                        authorityMetadata: "",
+                        homeAccountId: mockAccountInfo.homeAccountId,
+                        idTokenClaims: AuthToken.extractTokenClaims(
+                            mockAuthenticationResult.idToken,
+                            cryptoProvider.base64Decode
+                        ),
                     },
-                    new Logger({}),
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            );
+                    await AuthorityFactory.createDiscoveredInstance(
+                        TEST_CONFIG.validAuthority,
+                        new HttpClient(),
+                        new MockStorageClass(
+                            TEST_CONFIG.MSAL_CLIENT_ID,
+                            cryptoProvider,
+                            new Logger({}),
+                            new StubPerformanceClient()
+                        ),
+                        {
+                            protocolMode: ProtocolMode.AAD,
+                            knownAuthorities: [],
+                            cloudDiscoveryMetadata: "",
+                            authorityMetadata: "",
+                        },
+                        new Logger({}),
+                        TEST_CONFIG.CORRELATION_ID
+                    )
+                );
 
             // @ts-ignore
             await authApp.storage.setAccount(accountEntity);
@@ -1139,7 +1141,9 @@ describe("PublicClientApplication", () => {
             });
 
             const accountEntity: AccountEntity =
-                AccountEntity.createFromAccountInfo(mockAccountInfo);
+                AccountEntityUtils.createAccountEntityFromAccountInfo(
+                    mockAccountInfo
+                );
 
             // @ts-ignore
             await authApp.storage.setAccount(accountEntity);

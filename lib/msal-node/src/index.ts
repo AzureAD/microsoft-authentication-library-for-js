@@ -13,6 +13,7 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 import * as internals from "./internals.js";
+import { Constants as CommonConstants } from "@azure/msal-common/node";
 export { internals };
 
 // Interfaces
@@ -78,11 +79,12 @@ export type { InteractiveRequest } from "./request/InteractiveRequest.js";
 export type { SignOutRequest } from "./request/SignOutRequest.js";
 export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequestParams.js";
 
+const PromptValue = CommonConstants.PromptValue;
+const ResponseMode = CommonConstants.ResponseMode;
+export { PromptValue, ResponseMode };
+
 // Common Object Formats
 export {
-    // Request
-    PromptValue,
-    ResponseMode,
     AuthorizationCodePayload,
     // Response
     AuthenticationResult,
@@ -93,14 +95,11 @@ export {
     ValidCacheType,
     // Error
     AuthError,
-    AuthErrorMessages,
     AuthErrorCodes,
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessages,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessages,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     ServerError,

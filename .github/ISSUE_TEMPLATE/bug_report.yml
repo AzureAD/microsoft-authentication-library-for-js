@@ -109,7 +109,6 @@ body:
                 },
                 cache: {
                   cacheLocation: "sessionStorage"
-                  storeAuthStateInCookie: false
                 }
               }
       validations:

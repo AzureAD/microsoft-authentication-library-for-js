@@ -6,9 +6,9 @@
 import jwt from "jsonwebtoken";
 import {
     TimeUtils,
-    Constants,
     createClientAuthError,
     ClientAuthErrorCodes,
+    Constants,
 } from "@azure/msal-common/node";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
@@ -145,7 +145,7 @@ export class ClientAssertion {
         Object.assign(header, {
             [thumbprintHeader]: EncodingUtils.base64EncodeUrl(
                 this.thumbprint,
-                "hex"
+                Constants.EncodingTypes.HEX
             ),
         } as Partial<jwt.JwtHeader>);
 
@@ -194,7 +194,7 @@ export class ClientAssertion {
         let matches;
         while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
             // matches[1] represents the first parens capture group in the regex.
-            certs.push(matches[1].replace(/\r*\n/g, Constants.EMPTY_STRING));
+            certs.push(matches[1].replace(/\r*\n/g, ""));
         }
 
         return certs;

@@ -4,8 +4,8 @@
 [![npm version](https://img.shields.io/npm/dm/@azure/msal-react.svg)](https://nodei.co/npm/@azure/msal-react/)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-react)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)
 
-| <a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-react" target="blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a>
-|--- | --- | --- | --- |
+| <a href="https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-react" target="blank">Getting Started</a> | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a> |
+| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 
 1. [About](#about)
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
@@ -32,16 +32,16 @@ The `@azure/msal-react` package described by the code in this folder uses the [`
 
 ## Prerequisites
 
-- `@azure/msal-react` is meant to be used in [Single-Page Application scenarios](https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-overview).
+-   `@azure/msal-react` is meant to be used in [Single-Page Application scenarios](https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-overview).
 
-- Before using `@azure/msal-react` you will need to [register a Single Page Application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
+-   Before using `@azure/msal-react` you will need to [register a Single Page Application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration) to get a valid `clientId` for configuration, and to register the routes that your app will accept redirect traffic on.
 
 ## Version Support
 
-| MSAL React version | MSAL support status | Supported React versions   |
-| ------------------ | ------------------- | -------------------------- |
-| MSAL React v2      | Active development  | 16, 17, 18                 |
-| MSAL React v1      | In maintenance      | 16, 17, 18                 |
+| MSAL React version | MSAL support status | Supported React versions |
+| ------------------ | ------------------- | ------------------------ |
+| MSAL React v3      | Active development  | 16, 17, 18, 19           |
+| MSAL React v1, v2  | In maintenance      | 16, 17, 18               |
 
 **Note:** There have been no functional changes in the MSAL React v2 release.
 
@@ -111,11 +111,11 @@ Since `@azure/msal-react` is a wrapper around `@azure/msal-browser` many docs fr
 
 ### Advanced Topics
 
-- [Configuration Options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md)
-- [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
-- [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md)
-- [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
-- [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
+-   [Configuration Options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md)
+-   [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
+-   [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md)
+-   [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
+-   [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
 
 ### MSAL React Specific Concepts
 
@@ -128,18 +128,18 @@ Since `@azure/msal-react` is a wrapper around `@azure/msal-browser` many docs fr
 
 Our [samples directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples) contains several example apps you can spin up to see how this library can be used in different contexts.
 
-- [Create React App (JS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
-- [Create React App (TS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/typescript-sample)
-- [Next.js Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/nextjs-sample)
-- [Gatsby Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/gatsby-sample)
-- [B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/b2c-sample)
+-   [Create React App (JS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
+-   [Create React App (TS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/typescript-sample)
+-   [Next.js Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/nextjs-sample)
+-   [Gatsby Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/gatsby-sample)
+-   [B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/b2c-sample)
 
 More advanced samples backed with a tutorial can be found in the [Azure Samples](https://github.com/Azure-Samples) space on GitHub:
 
-- [React SPA calling Express.js web API](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/3-Authorization-II/1-call-api)
-- [React SPA calling Express.js web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/5-AccessControl/1-call-api-roles)
-- [React SPA calling Microsoft Graph via Express.js web API using on-behalf-of flow](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/6-AdvancedScenarios/1-call-api-obo)
-- [Deployment tutorial for Azure Static Web Apps](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/4-Deployment/2-deploy-static)
+-   [React SPA calling Express.js web API](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/3-Authorization-II/1-call-api)
+-   [React SPA calling Express.js web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/5-AccessControl/1-call-api-roles)
+-   [React SPA calling Microsoft Graph via Express.js web API using on-behalf-of flow](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/6-AdvancedScenarios/1-call-api-obo)
+-   [Deployment tutorial for Azure Static Web Apps](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/4-Deployment/2-deploy-static)
 
 ## Security Reporting
 
@@ -147,7 +147,7 @@ If you find a security issue with our libraries or services please report it to 
 
 ## License
 
-Copyright (c) Microsoft Corporation.  All rights reserved. Licensed under the MIT License.
+Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License.
 
 ## We Value and Adhere to the Microsoft Open Source Code of Conduct
 

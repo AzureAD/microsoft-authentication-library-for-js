@@ -18,7 +18,7 @@ import {
     AuthorizeProtocol,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import {
     createBrowserAuthError,
@@ -58,11 +58,6 @@ export class InteractionHandler {
         response: AuthorizeResponse,
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponse,
-            request.correlationId
-        );
-
         let authCodeResponse;
         try {
             authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
@@ -105,10 +100,6 @@ export class InteractionHandler {
         request: CommonAuthorizationUrlRequest,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponseFromServer,
-            request.correlationId
-        );
         this.logger.trace(
             "InteractionHandler.handleCodeResponseFromServer called"
         );
@@ -120,7 +111,7 @@ export class InteractionHandler {
         if (authCodeResponse.cloud_instance_host_name) {
             await invokeAsync(
                 this.authModule.updateAuthority.bind(this.authModule),
-                PerformanceEvents.UpdateTokenEndpointAuthority,
+                BrowserPerformanceEvents.UpdateTokenEndpointAuthority,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -148,7 +139,7 @@ export class InteractionHandler {
         // Acquire token with retrieved code.
         const tokenResponse = (await invokeAsync(
             this.authModule.acquireToken.bind(this.authModule),
-            PerformanceEvents.AuthClientAcquireToken,
+            BrowserPerformanceEvents.AuthClientAcquireToken,
             this.logger,
             this.performanceClient,
             request.correlationId

@@ -13,15 +13,13 @@ import {
     TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants.js";
 import {
-    Constants,
     AccountInfo,
     TokenClaims,
     AuthenticationResult,
-    AuthenticationScheme,
     RefreshTokenClient,
     CommonSilentFlowRequest,
     AccountEntity,
-    CredentialType,
+    Constants,
 } from "@azure/msal-common";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
@@ -122,7 +120,7 @@ describe("SilentRefreshClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentATStub = jest
                 .spyOn(
@@ -134,7 +132,7 @@ describe("SilentRefreshClient", () => {
                 scopes: ["scope1"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             };
@@ -176,7 +174,7 @@ describe("SilentRefreshClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentATStub = jest
                 .spyOn(
@@ -188,7 +186,7 @@ describe("SilentRefreshClient", () => {
                 scopes: ["scope1"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
                 redirectUri: "/", // relative redirectUri
@@ -212,13 +210,13 @@ describe("SilentRefreshClient", () => {
             beforeEach(() => {
                 const rtEntity = {
                     secret: TEST_TOKENS.REFRESH_TOKEN,
-                    credentialType: CredentialType.REFRESH_TOKEN,
+                    credentialType: Constants.CredentialType.REFRESH_TOKEN,
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: "login.windows.net",
                     realm: testIdTokenClaims.tid || "",
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 };
-                const accountEntity = new AccountEntity();
+                const accountEntity = {} as AccountEntity;
                 jest.spyOn(
                     BrowserCacheManager.prototype,
                     "getAccount"

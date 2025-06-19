@@ -8,7 +8,7 @@ import {
     AuthorizeProtocol,
     CommonAuthorizationUrlRequest,
     Logger,
-    OAuthResponseType,
+    Constants,
     ProtocolMode,
     RequestParameterBuilder,
 } from "@azure/msal-common/node";
@@ -45,13 +45,16 @@ export function getAuthCodeRequestUrl(
         cpu: process.arch || "",
         os: process.platform || "",
     });
-    if (config.auth.protocolMode !== ProtocolMode.OIDC) {
+    if (config.system.protocolMode !== ProtocolMode.OIDC) {
         RequestParameterBuilder.addApplicationTelemetry(
             parameters,
             config.telemetry.application
         );
     }
-    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
+    RequestParameterBuilder.addResponseType(
+        parameters,
+        Constants.OAuthResponseType.CODE
+    );
     if (request.codeChallenge && request.codeChallengeMethod) {
         RequestParameterBuilder.addCodeChallengeParams(
             parameters,

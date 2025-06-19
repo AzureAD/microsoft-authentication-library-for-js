@@ -4,15 +4,17 @@
  */
 
 import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
     ICrypto,
     IPerformanceClient,
     JoseHeader,
     Logger,
-    PerformanceEvents,
     ShrOptions,
     SignedHttpRequest,
     SignedHttpRequestParameters,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     base64Encode,
     urlEncode,
@@ -114,7 +116,7 @@ export class CryptoOps implements ICrypto {
     ): Promise<string> {
         const publicKeyThumbMeasurement =
             this.performanceClient?.startMeasurement(
-                PerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
+                BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
                 request.correlationId
             );
 
@@ -168,10 +170,14 @@ export class CryptoOps implements ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      */
-    async removeTokenBindingKey(kid: string): Promise<boolean> {
+    async removeTokenBindingKey(kid: string): Promise<void> {
         await this.cache.removeItem(kid);
         const keyFound = await this.cache.containsKey(kid);
-        return !keyFound;
+        if (keyFound) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.bindingKeyNotRemoved
+            );
+        }
     }
 
     /**
@@ -215,7 +221,7 @@ export class CryptoOps implements ICrypto {
         correlationId?: string
     ): Promise<string> {
         const signJwtMeasurement = this.performanceClient?.startMeasurement(
-            PerformanceEvents.CryptoOptsSignJwt,
+            BrowserPerformanceEvents.CryptoOptsSignJwt,
             correlationId
         );
         const cachedKeyPair = await this.cache.getItem(kid);

@@ -8,12 +8,11 @@ import {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
 } from "@azure/msal-common";
-import {
-    BrowserAuthError,
-    BrowserAuthErrorMessages,
-} from "../../src/error/BrowserAuthError";
 import * as NativeStatusCode from "../../src/broker/nativeBroker/NativeStatusCodes";
-import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
+import {
+    BrowserAuthErrorCodes,
+    BrowserAuthError,
+} from "../../src/error/BrowserAuthError.js";
 
 describe("NativeAuthError Unit Tests", () => {
     describe("NativeAuthError", () => {
@@ -116,6 +115,23 @@ describe("NativeAuthError Unit Tests", () => {
                 expect(error).toBeInstanceOf(InteractionRequiredAuthError);
                 expect(error.errorCode).toBe(
                     InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                );
+            });
+
+            it("translates UX_NOT_ALLOWED status into corresponding InteractionRequiredError", () => {
+                const error = createNativeAuthError(
+                    "interaction_required",
+                    "interaction is required",
+                    {
+                        error: 1,
+                        protocol_error: "testProtocolError",
+                        properties: {},
+                        status: NativeStatusCode.UX_NOT_ALLOWED,
+                    }
+                );
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(error.errorCode).toBe(
+                    InteractionRequiredAuthErrorCodes.uxNotAllowed
                 );
             });
 

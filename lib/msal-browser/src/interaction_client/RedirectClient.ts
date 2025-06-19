@@ -8,7 +8,6 @@ import {
     UrlString,
     AuthError,
     ServerTelemetryManager,
-    Constants,
     AuthorizeResponse,
     ICrypto,
     Logger,
@@ -16,14 +15,16 @@ import {
     PerformanceEvents,
     ProtocolMode,
     invokeAsync,
-    ResponseMode,
+    Constants,
     UrlUtils,
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,
+    INTERACTION_TYPE,
     InteractionType,
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
@@ -36,7 +37,6 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -46,7 +46,9 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -76,7 +78,7 @@ export class RedirectClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthHandler?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         super(
@@ -87,7 +89,7 @@ export class RedirectClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthHandler,
             correlationId
         );
         this.nativeStorage = nativeStorageImpl;
@@ -100,19 +102,18 @@ export class RedirectClient extends StandardInteractionClient {
     async acquireToken(request: RedirectRequest): Promise<void> {
         const validRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
         )(request, InteractionType.Redirect);
 
-        validRequest.platformBroker =
-            NativeMessageHandler.isPlatformBrokerAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                request.authenticationScheme
-            );
+        validRequest.platformBroker = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            this.platformAuthProvider,
+            request.authenticationScheme
+        );
 
         const handleBackButton = (event: PageTransitionEvent) => {
             // Clear temporary cache if the back button is clicked during the redirect flow.
@@ -143,7 +144,7 @@ export class RedirectClient extends StandardInteractionClient {
         window.addEventListener("pageshow", handleBackButton);
 
         try {
-            if (this.config.auth.protocolMode === ProtocolMode.EAR) {
+            if (this.config.system.protocolMode === ProtocolMode.EAR) {
                 await this.executeEarFlow(validRequest);
             } else {
                 await this.executeCodeFlow(validRequest);
@@ -172,7 +173,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
-            PerformanceEvents.GeneratePkceCodes,
+            BrowserPerformanceEvents.GeneratePkceCodes,
             this.logger,
             this.performanceClient,
             correlationId
@@ -192,7 +193,7 @@ export class RedirectClient extends StandardInteractionClient {
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
@@ -241,7 +242,7 @@ export class RedirectClient extends StandardInteractionClient {
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             correlationId
@@ -254,7 +255,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         const earJwk = await invokeAsync(
             generateEarKey,
-            PerformanceEvents.GenerateEarKey,
+            BrowserPerformanceEvents.GenerateEarKey,
             this.logger,
             this.performanceClient,
             correlationId
@@ -320,7 +321,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.getTemporaryCache(
                     TemporaryCacheKeys.ORIGIN_URI,
                     true
-                ) || Constants.EMPTY_STRING;
+                ) || "";
             const loginRequestUrlNormalized =
                 UrlString.removeHashFromUrl(loginRequestUrl);
             const currentUrlNormalized = UrlString.removeHashFromUrl(
@@ -446,7 +447,8 @@ export class RedirectClient extends StandardInteractionClient {
         let responseString = userProvidedResponse;
         if (!responseString) {
             if (
-                this.config.auth.OIDCOptions.responseMode === ResponseMode.QUERY
+                this.config.auth.OIDCOptions.responseMode ===
+                Constants.ResponseMode.QUERY
             ) {
                 responseString = window.location.search;
             } else {
@@ -518,7 +520,7 @@ export class RedirectClient extends StandardInteractionClient {
         if (serverParams.ear_jwe) {
             const discoveredAuthority = await invokeAsync(
                 this.getDiscoveredAuthority.bind(this),
-                PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+                BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -530,7 +532,7 @@ export class RedirectClient extends StandardInteractionClient {
             });
             return invokeAsync(
                 Authorize.handleResponseEAR,
-                PerformanceEvents.HandleResponseEar,
+                BrowserPerformanceEvents.HandleResponseEar,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -545,20 +547,20 @@ export class RedirectClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.nativeMessageHandler
+                this.platformAuthProvider
             );
         }
 
         const authClient = await invokeAsync(
             this.createAuthCodeClient.bind(this),
-            PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+            BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
             this.logger,
             this.performanceClient,
             this.correlationId
         )({ serverTelemetryManager, requestAuthority: request.authority });
         return invokeAsync(
             Authorize.handleResponseCode,
-            PerformanceEvents.HandleResponseCode,
+            BrowserPerformanceEvents.HandleResponseCode,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -574,7 +576,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.nativeMessageHandler
+            this.platformAuthProvider
         );
     }
 
@@ -673,7 +675,7 @@ export class RedirectClient extends StandardInteractionClient {
 
             const authClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
@@ -690,8 +692,9 @@ export class RedirectClient extends StandardInteractionClient {
                     authClient.authority.endSessionEndpoint;
                 } catch {
                     if (validLogoutRequest.account?.homeAccountId) {
-                        void this.browserStorage.removeAccount(
-                            validLogoutRequest.account?.homeAccountId
+                        this.browserStorage.removeAccount(
+                            validLogoutRequest.account?.homeAccountId,
+                            this.correlationId
                         );
 
                         this.eventHandler.emitEvent(
@@ -727,7 +730,10 @@ export class RedirectClient extends StandardInteractionClient {
                     );
                     // Ensure interaction is in progress
                     if (!this.browserStorage.getInteractionInProgress()) {
-                        this.browserStorage.setInteractionInProgress(true);
+                        this.browserStorage.setInteractionInProgress(
+                            true,
+                            INTERACTION_TYPE.SIGNOUT
+                        );
                     }
                     await this.navigationClient.navigateExternal(
                         logoutUri,
@@ -744,7 +750,10 @@ export class RedirectClient extends StandardInteractionClient {
             } else {
                 // Ensure interaction is in progress
                 if (!this.browserStorage.getInteractionInProgress()) {
-                    this.browserStorage.setInteractionInProgress(true);
+                    this.browserStorage.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNOUT
+                    );
                 }
                 await this.navigationClient.navigateExternal(
                     logoutUri,

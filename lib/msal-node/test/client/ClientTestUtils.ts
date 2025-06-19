@@ -5,11 +5,9 @@
 
 import {
     AADServerParamKeys,
-    ThrottlingConstants,
     ServerTelemetryEntity,
     CacheManager,
     ClientConfiguration,
-    Constants,
     PkceCodes,
     AccountEntity,
     AppMetadataEntity,
@@ -30,8 +28,9 @@ import {
     INetworkModule,
     ClientAssertionCallback,
     ClientAssertionConfig,
-    PasswordGrantConstants,
-    OAuthResponseType,
+    AccountEntityUtils,
+    Constants,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -56,7 +55,7 @@ export class MockStorageClass extends CacheManager {
     // Accounts
     getAccount(key: string): AccountEntity | null {
         const account: AccountEntity = this.store[key] as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
+        if (AccountEntityUtils.isAccountEntity(account)) {
             return account;
         }
         return null;
@@ -67,7 +66,7 @@ export class MockStorageClass extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = value.generateAccountKey();
+        const key = AccountEntityUtils.generateAccountKey(value);
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
@@ -77,8 +76,8 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+    removeAccount(key: string): void {
+        super.removeAccount(key, RANDOM_TEST_GUID);
         const currentAccounts = this.getAccountKeys();
         const removalIndex = currentAccounts.indexOf(key);
         if (removalIndex > -1) {
@@ -250,8 +249,8 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
+    async removeTokenBindingKey(): Promise<void> {
+        return Promise.resolve();
     },
     async signJwt(): Promise<string> {
         return "";
@@ -272,7 +271,8 @@ export class ClientTestUtils {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
-            new Logger({})
+            new Logger({}),
+            new StubPerformanceClient()
         );
 
         const testLoggerCallback = (): void => {
@@ -391,12 +391,12 @@ export class ClientTestUtils {
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
                 clientCapabilities,
-                protocolMode: ProtocolMode.AAD,
             },
             // broker, cache
             system: {
                 loggerOptions,
                 networkClient: mockHttpClient,
+                protocolMode: ProtocolMode.AAD,
             },
             telemetry: {
                 application: {
@@ -528,7 +528,7 @@ export const checkMockedNetworkRequest = (
         expect(
             returnVal.includes(
                 `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${encodeURIComponent(
-                    ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    Constants.X_MS_LIB_CAPABILITY_VALUE
                 )}`
             )
         ).toBe(checks.msLibraryCapability);
@@ -578,7 +578,7 @@ export const checkMockedNetworkRequest = (
         expect(
             returnVal.includes(
                 `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
-                    OAuthResponseType.IDTOKEN_TOKEN
+                    Constants.OAuthResponseType.IDTOKEN_TOKEN
                 )}`
             )
         ).toBe(checks.responseType);
@@ -587,7 +587,7 @@ export const checkMockedNetworkRequest = (
     if (checks.username) {
         expect(
             returnVal.includes(
-                `${PasswordGrantConstants.username}=${checks.username}`
+                `${Constants.PasswordGrantConstants.username}=${checks.username}`
             )
         ).toBe(true);
     }
@@ -595,7 +595,7 @@ export const checkMockedNetworkRequest = (
     if (checks.password) {
         expect(
             returnVal.includes(
-                `${PasswordGrantConstants.password}=${checks.password}`
+                `${Constants.PasswordGrantConstants.password}=${checks.password}`
             )
         ).toBe(true);
     }

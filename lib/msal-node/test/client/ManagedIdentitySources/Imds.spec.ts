@@ -6,6 +6,7 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import { ManagedIdentityConfiguration } from "../../../src/config/Configuration.js";
 import {
+    CAE_CONSTANTS,
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS,
@@ -31,9 +32,11 @@ import {
     managedIdentityRequestParams,
     systemAssignedConfig,
     userAssignedResourceIdConfig,
+    userAssignedObjectIdConfig,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants.js";
 import {
@@ -42,8 +45,7 @@ import {
     CacheHelpers,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
-    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    HttpStatus,
+    Constants,
     ServerError,
     TimeUtils,
 } from "@azure/msal-common";
@@ -76,17 +78,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         new ManagedIdentityNetworkErrorClient(
             MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
             undefined,
-            HttpStatus.BAD_REQUEST
+            Constants.HTTP_BAD_REQUEST
         );
-
-    const userAssignedObjectIdConfig: ManagedIdentityConfiguration = {
-        system: {
-            networkClient,
-        },
-        managedIdentityIdParams: {
-            userAssignedObjectId: MANAGED_IDENTITY_RESOURCE_ID,
-        },
-    };
 
     describe("User Assigned", () => {
         test("acquires a User Assigned Client Id token", async () => {
@@ -293,7 +286,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     new ManagedIdentityNetworkErrorClient(
                         MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
                         undefined,
-                        HttpStatus.NOT_FOUND
+                        Constants.HTTP_NOT_FOUND
                     );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
@@ -316,10 +309,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 2 x exponential backoff (1 second -> 2 seconds)
-                 */
+                // exponential backoff (1 second -> 2 seconds)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -347,7 +337,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     new ManagedIdentityNetworkErrorClient(
                         MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
                         undefined,
-                        HttpStatus.GONE
+                        Constants.HTTP_GONE
                     );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
@@ -378,10 +368,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 7 x linear backoff (10 seconds)
-                 */
+                // linear backoff (10 seconds * 4 retries)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -410,12 +397,12 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     new ManagedIdentityNetworkErrorClient(
                         MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
                         undefined,
-                        HttpStatus.GONE
+                        Constants.HTTP_GONE
                     );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // permanently override the networkClient's sendGetRequestAsync method to return a 504
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 410
                     .mockReturnValue(
                         managedIdentityNetworkErrorClient410.sendGetRequestAsync()
                     );
@@ -433,10 +420,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 7 x linear backoff (10 seconds)
-                 */
+                // linear backoff (10 seconds * 7 retries)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -467,7 +451,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     new ManagedIdentityNetworkErrorClient(
                         MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
                         undefined,
-                        HttpStatus.GATEWAY_TIMEOUT
+                        Constants.HTTP_GATEWAY_TIMEOUT
                     );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
@@ -490,10 +474,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 3 x exponential backoff (1 second -> 2 seconds -> 4 seconds)
-                 */
+                // exponential backoff (1 second -> 2 seconds -> 4 seconds)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -531,9 +512,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft1.com",
                     });
                 } catch (e) {
+                    // 4 total: request + 3 retries
                     expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
                         IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS
-                    ); // request + 3 retries
+                    );
                 }
 
                 try {
@@ -541,9 +523,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft2.com",
                     });
                 } catch (e) {
+                    // 8 total: 2 x (request + 3 retries)
                     expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
                         IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS * 2
-                    ); // 8 total, 2 x (request + 3 retries)
+                    );
                 }
 
                 try {
@@ -551,9 +534,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft3.com",
                     });
                 } catch (e) {
+                    // 12 total: 3 x (request + 3 retries)
                     expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
                         IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS * 3
-                    ); // 12 total, 3 x (request + 3 retries)
+                    );
                 }
             }
         );
@@ -673,28 +657,48 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             );
         });
 
-        test("ignores a cached token when claims are provided", async () => {
+        test("ignores a cached token when claims are provided and the Managed Identity does not support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh was not included in the network request to the Managed Identity", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    ...systemAssignedConfig,
+                    clientCapabilities: CAE_CONSTANTS.CLIENT_CAPABILITIES,
+                });
+
             let networkManagedIdentityResult: AuthenticationResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
 
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
+            const firstNetworkRequestUrlParams: URLSearchParams =
+                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
+            expect(
+                firstNetworkRequestUrlParams.get(
+                    ManagedIdentityQueryParameters.XMS_CC
+                )
+            ).toEqual(CAE_CONSTANTS.CLIENT_CAPABILITIES.toString());
+
             const cachedManagedIdentityResult: AuthenticationResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(cachedManagedIdentityResult.fromCache).toBe(true);
             expect(cachedManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
 
             networkManagedIdentityResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     claims: TEST_CONFIG.CLAIMS,
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
@@ -702,6 +706,15 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(2);
+            const secondNetworkRequestUrlParams: URLSearchParams =
+                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
+            expect(
+                secondNetworkRequestUrlParams.has(
+                    ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
+                )
+            ).toBe(false);
         });
 
         test("ignores a cached token when forceRefresh is set to true", async () => {
@@ -710,7 +723,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -730,7 +742,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -742,7 +753,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -782,7 +792,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         cachedManagedIdentityResult.refreshOn !== undefined &&
                         cachedManagedIdentityResult.refreshOn.getTime() / 1000
                     ).toString(),
-                    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+                    Constants.DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
                 )
             ).toBe(true);
 
@@ -805,7 +815,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         cachedManagedIdentityResult.refreshOn !== undefined &&
                         cachedManagedIdentityResult.refreshOn.getTime() / 1000
                     ).toString(),
-                    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+                    Constants.DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
                 )
             ).toBe(false);
         }, 10000); // double the timeout value for this test because it waits two seconds in between the acquireToken call and the cache lookup

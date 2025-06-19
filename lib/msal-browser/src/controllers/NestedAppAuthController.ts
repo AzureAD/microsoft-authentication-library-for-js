@@ -12,16 +12,15 @@ import {
     ICrypto,
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    PerformanceEvents,
     TimeUtils,
     buildStaticAuthorityOptions,
-    AccountEntity,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     BaseAuthRequest,
     AccountFilter,
     AuthError,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
-import { ITokenCache } from "../cache/ITokenCache.js";
+import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
@@ -159,7 +158,11 @@ export class NestedAppAuthController implements IController {
      * Specific implementation of initialize function for NestedAppAuthController
      * @returns
      */
-    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+    async initialize(
+        request?: InitializeApplicationRequest,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        isBroker?: boolean
+    ): Promise<void> {
         const initCorrelationId = request?.correlationId || createNewGuid();
         await this.browserStorage.initialize(initCorrelationId);
         return Promise.resolve();
@@ -203,7 +206,7 @@ export class NestedAppAuthController implements IController {
         );
 
         const atPopupMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenPopup,
+            RootPerformanceEvents.AcquireTokenPopup,
             validRequest.correlationId
         );
 
@@ -302,7 +305,7 @@ export class NestedAppAuthController implements IController {
 
         // proceed with acquiring tokens via the host
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.SsoSilent,
+            RootPerformanceEvents.SsoSilent,
             validRequest.correlationId
         );
 
@@ -381,7 +384,7 @@ export class NestedAppAuthController implements IController {
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
         const atsMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
+            RootPerformanceEvents.AcquireTokenSilent,
             request.correlationId
         );
 
@@ -492,7 +495,7 @@ export class NestedAppAuthController implements IController {
             authority: request.authority || currentAccount.environment,
             scopes: request.scopes?.length
                 ? request.scopes
-                : [...OIDC_DEFAULT_SCOPES],
+                : [...Constants.OIDC_DEFAULT_SCOPES],
         };
 
         // fetch access token and check for expiry
@@ -501,9 +504,7 @@ export class NestedAppAuthController implements IController {
             currentAccount,
             authRequest,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         // If there is no access token, log it and return null
@@ -790,9 +791,6 @@ export class NestedAppAuthController implements IController {
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(request as SilentRequest);
     }
-    getTokenCache(): ITokenCache {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
 
     /**
      * Returns the logger instance
@@ -860,11 +858,12 @@ export class NestedAppAuthController implements IController {
     ): Promise<void> {
         this.logger.verbose("hydrateCache called");
 
-        const accountEntity = AccountEntity.createFromAccountInfo(
-            result.account,
-            result.cloudGraphHostName,
-            result.msGraphHost
-        );
+        const accountEntity =
+            AccountEntityUtils.createAccountEntityFromAccountInfo(
+                result.account,
+                result.cloudGraphHostName,
+                result.msGraphHost
+            );
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId
