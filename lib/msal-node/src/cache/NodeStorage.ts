@@ -29,6 +29,7 @@ import {
     JsonCache,
     CacheKVStore,
 } from "./serializer/SerializerTypes.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -46,7 +47,13 @@ export class NodeStorage extends CacheManager {
         cryptoImpl: ICrypto,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            new StubPerformanceClient(),
+            staticAuthorityOptions
+        );
         this.logger = logger;
     }
 

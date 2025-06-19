@@ -230,7 +230,7 @@ export class CryptoProvider implements ICrypto {
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<boolean>;
+    removeTokenBindingKey(): Promise<void>;
     signJwt(): Promise<string>;
 }
 
@@ -607,7 +607,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     overwriteCache(): Promise<void>;
     // (undocumented)
     readonly persistence: ICachePlugin;
-    removeAccount(account: AccountInfo): Promise<void>;
+    removeAccount(account: AccountInfo, correlationId?: string): Promise<void>;
     serialize(): string;
 }
 
@@ -631,7 +631,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.5.3";
+export const version = "3.6.1";
 
 // Warnings were encountered during analysis:
 //
