@@ -2487,19 +2487,19 @@ describe("BrowserCacheManager tests", () => {
                         testIdToken,
                         RANDOM_TEST_GUID
                     );
-                    browserSessionStorage.setIdTokenCredential(
-                        testIdToken,
-                        RANDOM_TEST_GUID
-                    );
-
                     expect(
-                        browserSessionStorage.getIdTokenCredential(
+                        browserLocalStorage.getIdTokenCredential(
                             CacheHelpers.generateCredentialKey(testIdToken),
                             RANDOM_TEST_GUID
                         )
                     ).toEqual(testIdToken);
+
+                    browserSessionStorage.setIdTokenCredential(
+                        testIdToken,
+                        RANDOM_TEST_GUID
+                    );
                     expect(
-                        browserLocalStorage.getIdTokenCredential(
+                        browserSessionStorage.getIdTokenCredential(
                             CacheHelpers.generateCredentialKey(testIdToken),
                             RANDOM_TEST_GUID
                         )

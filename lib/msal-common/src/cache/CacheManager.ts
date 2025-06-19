@@ -1154,9 +1154,7 @@ export abstract class CacheManager implements ICacheManager {
 
         if (kid) {
             void this.cryptoImpl.removeTokenBindingKey(kid).catch(() => {
-                this.commonLogger.error(
-                    "Binding key could not be removed"
-                );
+                this.commonLogger.error("Binding key could not be removed");
             });
         }
     }
