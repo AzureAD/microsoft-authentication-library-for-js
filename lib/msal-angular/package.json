@@ -17,7 +17,7 @@
     "start": "ng serve",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
-    "build:all": "npm run build:browser && npm run build",
+    "build:all": "npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser && ng build --configuration production",
     "build:all:prod": "npm run build:browser && npm run build:prod",
     "build:browser": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:pack": "npm run build && cd dist && npm pack",
