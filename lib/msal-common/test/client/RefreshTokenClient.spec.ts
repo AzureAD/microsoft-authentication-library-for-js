@@ -21,13 +21,7 @@ import {
     BAD_TOKEN_ERROR_RESPONSE,
 } from "../test_kit/StringConstants.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
-import {
-    GrantType,
-    Constants,
-    CredentialType,
-    AuthenticationScheme,
-    ThrottlingConstants,
-} from "../../src/utils/Constants.js";
+import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils.js";
 import { Authority } from "../../src/authority/Authority.js";
@@ -62,14 +56,16 @@ import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
-const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-testAccountEntity.environment = "login.windows.net";
-testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
-testAccountEntity.authorityType = "MSSTS";
+const testAccountEntity: AccountEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    localAccountId: ID_TOKEN_CLAIMS.oid,
+    environment: "login.windows.net",
+    realm: ID_TOKEN_CLAIMS.tid,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    authorityType: "MSSTS",
+};
 
 const testAppMetadata: AppMetadataEntity = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -83,7 +79,7 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     environment: testAccountEntity.environment,
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.refresh_token,
-    credentialType: CredentialType.REFRESH_TOKEN,
+    credentialType: Constants.CredentialType.REFRESH_TOKEN,
 };
 
 const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
@@ -92,7 +88,7 @@ const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
     environment: testAccountEntity.environment,
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.refresh_token,
-    credentialType: CredentialType.REFRESH_TOKEN,
+    credentialType: Constants.CredentialType.REFRESH_TOKEN,
     familyId: TEST_CONFIG.THE_FAMILY_ID,
 };
 
@@ -134,7 +130,7 @@ describe("RefreshTokenClient unit tests", () => {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
         };
 
         beforeEach(async () => {
@@ -172,7 +168,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 tokenQueryParameters: {
                     testParam: "testValue",
                 },
@@ -204,7 +200,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 tokenQueryParameters: {
                     testParam: "testValue",
                 },
@@ -234,7 +230,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 tokenBodyParameters: {
                     testParam: "testValue",
                 },
@@ -325,8 +321,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -400,7 +397,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             client.acquireToken(refreshTokenRequest);
@@ -426,7 +423,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
@@ -472,7 +469,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.GrantType.REFRESH_TOKEN_GRANT}`
                 )
             ).toBe(true);
             expect(
@@ -522,7 +519,7 @@ describe("RefreshTokenClient unit tests", () => {
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
                     )}`
                 )
             ).toBe(true);
@@ -558,7 +555,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 tokenQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
@@ -587,7 +584,7 @@ describe("RefreshTokenClient unit tests", () => {
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 refreshToken: testRefreshTokenEntity.secret,
                 ccsCredential: {
                     credential: testAccount.homeAccountId,
@@ -616,7 +613,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
-                authenticationScheme: AuthenticationScheme.POP,
+                authenticationScheme: Constants.AuthenticationScheme.POP,
             };
 
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
@@ -650,7 +647,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
@@ -692,7 +689,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
@@ -738,7 +735,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.GrantType.REFRESH_TOKEN_GRANT}`
                 )
             ).toBe(true);
             expect(
@@ -788,7 +785,7 @@ describe("RefreshTokenClient unit tests", () => {
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
                     )}`
                 )
             ).toBe(true);
@@ -814,7 +811,7 @@ describe("RefreshTokenClient unit tests", () => {
                 claims: "{}",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
@@ -860,7 +857,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.GrantType.REFRESH_TOKEN_GRANT}`
                 )
             ).toBe(true);
             expect(
@@ -910,7 +907,7 @@ describe("RefreshTokenClient unit tests", () => {
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
                     )}`
                 )
             ).toBe(true);
@@ -932,7 +929,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
@@ -961,7 +958,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
@@ -1000,7 +997,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             await client.acquireToken(refreshTokenRequest);
 
@@ -1044,7 +1041,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             await client.acquireToken(refreshTokenRequest);
 
@@ -1064,8 +1061,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -1122,7 +1120,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
@@ -1171,7 +1169,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.GrantType.REFRESH_TOKEN_GRANT}`
                 )
             ).toBe(true);
             expect(
@@ -1201,7 +1199,7 @@ describe("RefreshTokenClient unit tests", () => {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 ccsCredential: {
                     credential: testAccount.homeAccountId,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
@@ -1288,14 +1286,15 @@ describe("RefreshTokenClient unit tests", () => {
                 username: "testname@contoso.com",
             };
             const testScope2 = "scope2";
-            const testAccountEntity: AccountEntity = new AccountEntity();
-            testAccountEntity.homeAccountId =
-                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
-            testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-            testAccountEntity.environment = "login.windows.net";
-            testAccountEntity.realm = "testTenantId";
-            testAccountEntity.username = "username@contoso.com";
-            testAccountEntity.authorityType = "MSSTS";
+            const testAccountEntity: AccountEntity = {
+                homeAccountId:
+                    TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                environment: "login.windows.net",
+                realm: "testTenantId",
+                username: "username@contoso.com",
+                authorityType: "MSSTS",
+            };
             jest.spyOn(
                 MockStorageClass.prototype,
                 "getAccount"
@@ -1325,7 +1324,7 @@ describe("RefreshTokenClient unit tests", () => {
             const testScope2 = "scope2";
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
-                account: testAccountEntity.getAccountInfo(),
+                account: AccountEntityUtils.getAccountInfo(testAccountEntity),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -1366,7 +1365,7 @@ describe("RefreshTokenClient unit tests", () => {
             const testScope2 = "scope2";
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
-                account: testAccountEntity.getAccountInfo(),
+                account: AccountEntityUtils.getAccountInfo(testAccountEntity),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -1421,8 +1420,9 @@ describe("RefreshTokenClient unit tests", () => {
                 resEvents = events;
             });
             const client = new RefreshTokenClient(config, mockPerfClient);
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
             jest.spyOn(
                 RefreshTokenClient.prototype,
@@ -1434,11 +1434,11 @@ describe("RefreshTokenClient unit tests", () => {
                 serverResponse.error,
                 serverResponse.error_description,
                 serverResponse.suberror,
-                serverResponse.timestamp || Constants.EMPTY_STRING,
-                serverResponse.trace_id || Constants.EMPTY_STRING,
-                serverResponse.correlation_id || Constants.EMPTY_STRING,
+                serverResponse.timestamp || "",
+                serverResponse.trace_id || "",
+                serverResponse.correlation_id || "",
                 // @ts-ignore
-                serverResponse.claims || Constants.EMPTY_STRING
+                serverResponse.claims || ""
             );
 
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -1480,7 +1480,7 @@ describe("RefreshTokenClient unit tests", () => {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
         };
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
             const createTokenRequestBodySpy = jest.spyOn(

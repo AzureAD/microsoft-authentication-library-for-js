@@ -267,7 +267,6 @@ export function getAuthorizeUrl(
     requestParameters: Map<string, string>
 ): string {
     const queryString = mapToQueryString(requestParameters);
-
     return UrlString.appendQueryString(
         authority.authorizationEndpoint,
         queryString

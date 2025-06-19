@@ -6,11 +6,11 @@
 import {
     IPerformanceClient,
     Logger,
-    PerformanceEvents,
     PkceCodes,
     invoke,
     invokeAsync,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -33,20 +33,16 @@ export async function generatePkceCodes(
     logger: Logger,
     correlationId: string
 ): Promise<PkceCodes> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.GeneratePkceCodes,
-        correlationId
-    );
     const codeVerifier = invoke(
         generateCodeVerifier,
-        PerformanceEvents.GenerateCodeVerifier,
+        BrowserPerformanceEvents.GenerateCodeVerifier,
         logger,
         performanceClient,
         correlationId
     )(performanceClient, logger, correlationId);
     const codeChallenge = await invokeAsync(
         generateCodeChallengeFromVerifier,
-        PerformanceEvents.GenerateCodeChallengeFromVerifier,
+        BrowserPerformanceEvents.GenerateCodeChallengeFromVerifier,
         logger,
         performanceClient,
         correlationId
@@ -71,7 +67,7 @@ function generateCodeVerifier(
         const buffer: Uint8Array = new Uint8Array(RANDOM_BYTE_ARR_LENGTH);
         invoke(
             getRandomValues,
-            PerformanceEvents.GetRandomValues,
+            BrowserPerformanceEvents.GetRandomValues,
             logger,
             performanceClient,
             correlationId
@@ -94,19 +90,15 @@ async function generateCodeChallengeFromVerifier(
     logger: Logger,
     correlationId: string
 ): Promise<string> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.GenerateCodeChallengeFromVerifier,
-        correlationId
-    );
     try {
         // hashed verifier
         const pkceHashedCodeVerifier = await invokeAsync(
             sha256Digest,
-            PerformanceEvents.Sha256Digest,
+            BrowserPerformanceEvents.Sha256Digest,
             logger,
             performanceClient,
             correlationId
-        )(pkceCodeVerifier, performanceClient, correlationId);
+        )(pkceCodeVerifier);
         // encode hash as base64
         return urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));
     } catch (e) {

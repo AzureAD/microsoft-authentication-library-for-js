@@ -11,7 +11,7 @@ import {
     DEFAULT_MANAGED_IDENTITY_ID,
     ManagedIdentityIdType,
 } from "../utils/Constants.js";
-import { ManagedIdentityIdParams } from "./Configuration.js";
+import type { ManagedIdentityIdParams } from "./Configuration.js";
 
 export class ManagedIdentityId {
     private _id: string;

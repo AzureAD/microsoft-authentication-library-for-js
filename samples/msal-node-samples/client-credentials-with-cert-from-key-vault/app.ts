@@ -9,7 +9,8 @@ import {
     Configuration,
     LogLevel,
 } from "@azure/msal-node";
-import argv from "../cliArgs"; // command line arguments - see samples/msal-node-samples/cliArgs.ts
+const argv = require("./cliArgs").default;
+require("dotenv").config();
 
 const getClientCredentialsToken = async (
     cca: ConfidentialClientApplication,
@@ -29,7 +30,7 @@ const getClientCredentialsToken = async (
             await cca.acquireTokenByClientCredential(clientCredentialRequest);
         return response;
     } catch (error) {
-        throw error.errorMessage;
+        throw error;
     }
 };
 
@@ -38,18 +39,28 @@ const getClientCredentialsToken = async (
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample client credentials application.
  */
-if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
+if (argv.$0 === "dist/app.js") {
     (async () => {
+        if (
+            !process.env.CLIENT_ID ||
+            !process.env.TENANT_ID ||
+            !process.env.CLIENT_CERTIFICATE_THUMBPRINT_SHA_256 ||
+            !process.env.CLIENT_CERTIFICATE_PRIVATE_KEY ||
+            !process.env.CLIENT_CERTIFICATE_X5C
+        ) {
+            throw new Error(
+                "Please set the environment variables CLIENT_ID, TENANT_ID, CLIENT_CERTIFICATE_THUMBPRINT_SHA_256, CLIENT_CERTIFICATE_PRIVATE_KEY, and CLIENT_CERTIFICATE_X5C."
+            );
+        }
         const clientConfig: Configuration = {
             auth: {
-                clientId: "<ENTER_CLIENT_ID>",
-                authority:
-                    "https://login.microsoftonline.com/<ENTER_TENANT_ID>",
+                clientId: process.env.CLIENT_ID,
+                authority: `https://login.microsoftonline.com/${process.env.TENANT_ID}`,
                 clientCertificate: {
                     thumbprintSha256:
-                        "<ENTER_CLIENT_CERTIFICATE_THUMBPRINT_SHA_256>",
-                    privateKey: "ENTER_CLIENT_CERTIFICATE_PRIVATE_KEY",
-                    x5c: "ENTER_CLIENT_CERTIFICATE_X5C",
+                        process.env.CLIENT_CERTIFICATE_THUMBPRINT_SHA_256,
+                    privateKey: process.env.CLIENT_CERTIFICATE_PRIVATE_KEY,
+                    x5c: process.env.CLIENT_CERTIFICATE_X5C,
                 },
             },
             system: {

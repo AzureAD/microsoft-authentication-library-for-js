@@ -1,4 +1,4 @@
-import { AADAuthorityConstants, StaticAuthorityOptions } from "../../src";
+import { StaticAuthorityOptions, Constants } from "../../src";
 import {
     InstanceDiscoveryMetadata,
     getAliasesFromStaticSources,
@@ -14,7 +14,7 @@ function buildCanonicalAuthorityUrl(host: string, tenant: string): string {
 }
 
 const TENANTS = [
-    ...Object.values(AADAuthorityConstants),
+    ...Object.values(Constants.AADAuthority),
     TEST_CONFIG.MSAL_TENANT_ID,
 ];
 const CLOUD_KEYS = Object.keys(CLOUD_HOSTS);

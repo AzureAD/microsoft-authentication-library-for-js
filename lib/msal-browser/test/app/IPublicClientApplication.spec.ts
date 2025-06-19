@@ -4,8 +4,10 @@
  */
 
 import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication";
-import { BrowserConfigurationAuthErrorMessages } from "../../src/error/BrowserConfigurationAuthError";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    BrowserAuthError,
+    getDefaultErrorMessage,
+} from "../../src/error/BrowserAuthError.js";
 import { BrowserConfigurationAuthErrorCodes } from "../../src/error/BrowserConfigurationAuthError.js";
 
 describe("IPublicClientApplication.ts Class Unit Tests", () => {
@@ -18,10 +20,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                         BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserConfigurationAuthErrorMessages[
-                            BrowserConfigurationAuthErrorCodes
-                                .stubbedPublicClientApplicationCalled
-                        ]
+                        getDefaultErrorMessage(
+                            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                        )
                     );
                     done();
                 });
@@ -35,10 +36,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                         BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserConfigurationAuthErrorMessages[
-                            BrowserConfigurationAuthErrorCodes
-                                .stubbedPublicClientApplicationCalled
-                        ]
+                        getDefaultErrorMessage(
+                            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                        )
                     );
                     done();
                 });
@@ -52,10 +52,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                         BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserConfigurationAuthErrorMessages[
-                            BrowserConfigurationAuthErrorCodes
-                                .stubbedPublicClientApplicationCalled
-                        ]
+                        getDefaultErrorMessage(
+                            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                        )
                     );
                     done();
                 });
@@ -68,10 +67,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                         BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserConfigurationAuthErrorMessages[
-                            BrowserConfigurationAuthErrorCodes
-                                .stubbedPublicClientApplicationCalled
-                        ]
+                        getDefaultErrorMessage(
+                            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                        )
                     );
                     done();
                 });
@@ -83,10 +81,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                     BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessages[
-                        BrowserConfigurationAuthErrorCodes
-                            .stubbedPublicClientApplicationCalled
-                    ]
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
@@ -98,10 +95,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                     BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessages[
-                        BrowserConfigurationAuthErrorCodes
-                            .stubbedPublicClientApplicationCalled
-                    ]
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
@@ -113,10 +109,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                     BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessages[
-                        BrowserConfigurationAuthErrorCodes
-                            .stubbedPublicClientApplicationCalled
-                    ]
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
@@ -128,10 +123,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                     BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessages[
-                        BrowserConfigurationAuthErrorCodes
-                            .stubbedPublicClientApplicationCalled
-                    ]
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
@@ -143,30 +137,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                     BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessages[
-                        BrowserConfigurationAuthErrorCodes
-                            .stubbedPublicClientApplicationCalled
-                    ]
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
-        });
-
-        it("getTokenCache throws", () => {
-            try {
-                stubbedPublicClientApplication.getTokenCache();
-            } catch (e) {
-                const browserAuthError = e as BrowserAuthError;
-                expect(browserAuthError.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-                );
-                expect(browserAuthError.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessages[
-                        BrowserConfigurationAuthErrorCodes
-                            .stubbedPublicClientApplicationCalled
-                    ]
-                );
-            }
         });
 
         it("getLogger throws", () => {
@@ -178,10 +154,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                     BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(browserAuthError.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessages[
-                        BrowserConfigurationAuthErrorCodes
-                            .stubbedPublicClientApplicationCalled
-                    ]
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
             }
         });

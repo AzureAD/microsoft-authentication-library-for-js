@@ -77,6 +77,7 @@ function initializeMsal(providers: any[] = []) {
       provideHttpClientTesting(),
       provideRouter([]),
     ],
+    teardown: { destroyAfterEach: false },
   });
 
   authService = TestBed.inject(MsalService);

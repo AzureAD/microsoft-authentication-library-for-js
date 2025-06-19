@@ -25,12 +25,7 @@ import {
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
 import { CacheManager } from "../cache/CacheManager.js";
 import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils.js";
-import {
-    AuthenticationScheme,
-    Constants,
-    THE_FAMILY_ID,
-    HttpStatus,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
 import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
@@ -38,8 +33,6 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
 import {
     TokenClaims,
@@ -52,6 +45,7 @@ import {
 } from "../account/AccountInfo.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
+import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 
 /**
  * Class that handles response parsing.
@@ -65,7 +59,6 @@ export class ResponseHandler {
     private homeAccountIdentifier: string;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
-    private performanceClient?: IPerformanceClient;
 
     constructor(
         clientId: string,
@@ -73,8 +66,7 @@ export class ResponseHandler {
         cryptoObj: ICrypto,
         logger: Logger,
         serializableCache: ISerializableTokenCache | null,
-        persistencePlugin: ICachePlugin | null,
-        performanceClient?: IPerformanceClient
+        persistencePlugin: ICachePlugin | null
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
@@ -82,7 +74,6 @@ export class ResponseHandler {
         this.logger = logger;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
-        this.performanceClient = performanceClient;
     }
 
     /**
@@ -126,8 +117,9 @@ export class ResponseHandler {
             if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START &&
-                serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END
+                serverResponse.status >=
+                    Constants.HTTP_SERVER_ERROR_RANGE_START &&
+                serverResponse.status <= Constants.HTTP_SERVER_ERROR_RANGE_END
             ) {
                 this.logger.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
@@ -139,8 +131,9 @@ export class ResponseHandler {
             } else if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                serverResponse.status >= HttpStatus.CLIENT_ERROR_RANGE_START &&
-                serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END
+                serverResponse.status >=
+                    Constants.HTTP_CLIENT_ERROR_RANGE_START &&
+                serverResponse.status <= Constants.HTTP_CLIENT_ERROR_RANGE_END
             ) {
                 this.logger.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
@@ -161,10 +154,10 @@ export class ResponseHandler {
                     serverResponse.error,
                     serverResponse.error_description,
                     serverResponse.suberror,
-                    serverResponse.timestamp || Constants.EMPTY_STRING,
-                    serverResponse.trace_id || Constants.EMPTY_STRING,
-                    serverResponse.correlation_id || Constants.EMPTY_STRING,
-                    serverResponse.claims || Constants.EMPTY_STRING,
+                    serverResponse.timestamp || "",
+                    serverResponse.trace_id || "",
+                    serverResponse.correlation_id || "",
+                    serverResponse.claims || "",
                     serverErrorNo
                 );
             }
@@ -189,16 +182,11 @@ export class ResponseHandler {
         forceCacheRefreshTokenResponse?: boolean,
         serverRequestId?: string
     ): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.HandleServerTokenResponse,
-            serverTokenResponse.correlation_id
-        );
-
         // create an idToken object (not entity)
         let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {
             idTokenClaims = extractTokenClaims(
-                serverTokenResponse.id_token || Constants.EMPTY_STRING,
+                serverTokenResponse.id_token || "",
                 this.cryptoObj.base64Decode
             );
 
@@ -225,8 +213,8 @@ export class ResponseHandler {
         }
 
         // generate homeAccountId
-        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(
-            serverTokenResponse.client_info || Constants.EMPTY_STRING,
+        this.homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
+            serverTokenResponse.client_info || "",
             authority.authorityType,
             this.logger,
             this.cryptoObj,
@@ -278,7 +266,9 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = cacheRecord.account.generateAccountKey();
+                const key = AccountEntityUtils.generateAccountKey(
+                    cacheRecord.account
+                );
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning(
@@ -497,12 +487,12 @@ export class ResponseHandler {
         serverTokenResponse?: ServerAuthorizationTokenResponse,
         requestId?: string
     ): Promise<AuthenticationResult> {
-        let accessToken: string = Constants.EMPTY_STRING;
+        let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
         let refreshOn: Date | undefined;
-        let familyId: string = Constants.EMPTY_STRING;
+        let familyId: string = "";
 
         if (cacheRecord.accessToken) {
             /*
@@ -511,7 +501,7 @@ export class ResponseHandler {
              */
             if (
                 cacheRecord.accessToken.tokenType ===
-                    AuthenticationScheme.POP &&
+                    Constants.AuthenticationScheme.POP &&
                 !request.popKid
             ) {
                 const popTokenGenerator: PopTokenGenerator =
@@ -551,8 +541,8 @@ export class ResponseHandler {
 
         if (cacheRecord.appMetadata) {
             familyId =
-                cacheRecord.appMetadata.familyId === THE_FAMILY_ID
-                    ? THE_FAMILY_ID
+                cacheRecord.appMetadata.familyId === Constants.THE_FAMILY_ID
+                    ? Constants.THE_FAMILY_ID
                     : "";
         }
         const uid = idTokenClaims?.oid || idTokenClaims?.sub || "";
@@ -566,7 +556,7 @@ export class ResponseHandler {
 
         const accountInfo: AccountInfo | null = cacheRecord.account
             ? updateAccountTenantProfileData(
-                  cacheRecord.account.getAccountInfo(),
+                  AccountEntityUtils.getAccountInfo(cacheRecord.account),
                   undefined, // tenantProfile optional
                   idTokenClaims,
                   cacheRecord.idToken?.secret
@@ -587,18 +577,12 @@ export class ResponseHandler {
             extExpiresOn: extExpiresOn,
             refreshOn: refreshOn,
             correlationId: request.correlationId,
-            requestId: requestId || Constants.EMPTY_STRING,
+            requestId: requestId || "",
             familyId: familyId,
-            tokenType:
-                cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,
-            state: requestState
-                ? requestState.userRequestState
-                : Constants.EMPTY_STRING,
-            cloudGraphHostName:
-                cacheRecord.account?.cloudGraphHostName ||
-                Constants.EMPTY_STRING,
-            msGraphHost:
-                cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
+            tokenType: cacheRecord.accessToken?.tokenType || "",
+            state: requestState ? requestState.userRequestState : "",
+            cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
+            msGraphHost: cacheRecord.account?.msGraphHost || "",
             code: serverTokenResponse?.spa_code,
             fromNativeBroker: false,
         };
@@ -633,7 +617,7 @@ export function buildAccountToCache(
 
     const baseAccount =
         cachedAccount ||
-        AccountEntity.createAccount(
+        AccountEntityUtils.createAccountEntity(
             {
                 homeAccountId,
                 idTokenClaims,

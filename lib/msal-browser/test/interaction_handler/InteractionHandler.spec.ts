@@ -14,7 +14,7 @@ import {
     CommonAuthorizationCodeRequest,
     AuthenticationResult,
     AuthorizationCodeClient,
-    AuthenticationScheme,
+    Constants,
     ProtocolMode,
     Authority,
     ClientConfiguration,
@@ -73,7 +73,7 @@ class TestInteractionHandler extends InteractionHandler {
 }
 
 const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
-    authenticationScheme: AuthenticationScheme.BEARER,
+    authenticationScheme: Constants.AuthenticationScheme.BEARER,
     authority: TEST_CONFIG.validAuthority,
     redirectUri: TEST_URIS.TEST_REDIR_URI,
     scopes: ["scope1", "scope2"],
@@ -139,8 +139,8 @@ const cryptoInterface = {
     signJwt: async (): Promise<string> => {
         return "signedJwt";
     },
-    removeTokenBindingKey: async (): Promise<boolean> => {
-        return Promise.resolve(true);
+    removeTokenBindingKey: async (): Promise<void> => {
+        return Promise.resolve();
     },
     clearKeystore: async (): Promise<boolean> => {
         return Promise.resolve(true);
@@ -221,7 +221,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             storageInterface: new TestStorageManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cryptoInterface,
-                logger
+                logger,
+                new StubPerformanceClient()
             ),
             networkInterface: {
                 sendGetRequestAsync: async (
@@ -300,7 +301,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             testAuthCodeRequest.ccsCredential = testCcsCred;
             const acquireTokenSpy = jest
@@ -377,7 +378,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const updateAuthoritySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
@@ -458,7 +459,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             testAuthCodeRequest.ccsCredential = testCcsCred;
             const acquireTokenSpy = jest

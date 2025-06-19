@@ -3,8 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, invoke, invokeAsync } from "@azure/msal-common/browser";
-import { UrlUtils } from "@azure/msal-common";
+import {
+    UrlString,
+    invoke,
+    invokeAsync,
+    UrlUtils,
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -15,7 +19,7 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import { BrowserConfiguration } from "../config/Configuration.js";
+import type { BrowserConfiguration } from "../config/Configuration.js";
 
 /**
  * Clears hash from window url.
@@ -171,11 +175,8 @@ export function redirectPreflightCheck(
 ): void {
     preflightCheck(initialized);
     blockRedirectInIframe(config.system.allowRedirectInIframe);
-    // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
-    if (
-        config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
-        !config.cache.storeAuthStateInCookie
-    ) {
+    // Block redirects if memory storage is enabled
+    if (config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage) {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
         );

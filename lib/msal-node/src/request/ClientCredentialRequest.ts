@@ -3,13 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ClientAssertionCallback,
-    CommonClientCredentialRequest,
-} from "@azure/msal-common/node";
+import { ClientAssertionCallback } from "@azure/msal-common/node";
+import { CommonClientCredentialRequest } from "./CommonClientCredentialRequest.js";
 
 /**
- * CommonClientCredentialRequest
+ * ClientCredentialRequest
  * - scopes                  - Array of scopes the application is requesting access to. Typically contains only the .default scope for a single resource. See: https://learn.microsoft.com/azure/active-directory/develop/scopes-oidc#the-default-scope
  * - authority               - URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.

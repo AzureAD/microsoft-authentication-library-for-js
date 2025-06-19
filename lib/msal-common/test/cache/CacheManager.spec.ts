@@ -23,11 +23,8 @@ import {
     TEST_TOKEN_LIFETIMES,
     ID_TOKEN_ALT_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
-import {
-    ClientAuthErrorCodes,
-    createClientAuthError,
-} from "../../src/error/ClientAuthError.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { MockCache } from "./MockCache.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
@@ -38,12 +35,13 @@ import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetad
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity.js";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import {
     CacheHelpers,
     CommonSilentFlowRequest,
-    PerformanceEvents,
     ScopeSet,
 } from "../../src/index.js";
+import * as PerformanceEvents from "../../src/telemetry/performance/PerformanceEvents.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
@@ -86,15 +84,16 @@ describe("CacheManager.ts test cases", () => {
 
     describe("saveCacheRecord tests", () => {
         it("save account", async () => {
-            const ac = new AccountEntity();
-            ac.homeAccountId = "someUid.someUtid";
-            ac.environment = "login.microsoftonline.com";
-            ac.realm = "microsoft";
-            ac.localAccountId = "object1234";
-            ac.username = "Jane Goodman";
-            ac.authorityType = "MSSTS";
+            const ac: AccountEntity = {
+                homeAccountId: "someUid.someUtid",
+                environment: "login.microsoftonline.com",
+                realm: "microsoft",
+                localAccountId: "object1234",
+                username: "Jane Goodman",
+                authorityType: "MSSTS",
+            };
 
-            const accountKey = ac.generateAccountKey();
+            const accountKey = AccountEntityUtils.generateAccountKey(ac);
             const cacheRecord: CacheRecord = {};
             cacheRecord.account = ac;
             await mockCache.cacheManager.saveCacheRecord(
@@ -272,7 +271,7 @@ describe("CacheManager.ts test cases", () => {
                 });
 
                 const measurement = mockPerfClient.startMeasurement(
-                    PerformanceEvents.AcquireTokenSilent,
+                    PerformanceEvents.RefreshTokenClientAcquireToken,
                     correlationId
                 );
 
@@ -324,10 +323,12 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAllAccounts", () => {
-        const account1 =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
-        const account2 =
-            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
+        const account1 = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
+        const account2 = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS)
+        );
         it("getAllAccounts returns an empty array if there are no accounts in the cache", () => {
             mockCache.clearCache();
             expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(0);
@@ -589,10 +590,11 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAccountInfoFilteredBy", () => {
-        const multiTenantAccount = buildAccountFromIdTokenClaims(
-            ID_TOKEN_CLAIMS,
-            [GUEST_ID_TOKEN_CLAIMS]
-        ).getAccountInfo();
+        const multiTenantAccount = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+                GUEST_ID_TOKEN_CLAIMS,
+            ])
+        );
         it("returns null if no accounts match filter", () => {
             expect(
                 mockCache.cacheManager.getAccountInfoFilteredBy({
@@ -661,10 +663,11 @@ describe("CacheManager.ts test cases", () => {
 
     describe("getBaseAccountInfo", () => {
         it("returns base account regardless of tenantId", () => {
-            const multiTenantAccount = buildAccountFromIdTokenClaims(
-                ID_TOKEN_CLAIMS,
-                [GUEST_ID_TOKEN_CLAIMS]
-            ).getAccountInfo();
+            const multiTenantAccount = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+                    GUEST_ID_TOKEN_CLAIMS,
+                ])
+            );
             const resultAccount = mockCache.cacheManager.getBaseAccountInfo({
                 homeAccountId: multiTenantAccount.homeAccountId,
                 tenantId: GUEST_ID_TOKEN_CLAIMS.tid,
@@ -683,15 +686,16 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getAccount (gets one AccountEntity object)", async () => {
-        const ac = new AccountEntity();
-        ac.homeAccountId = "someUid.someUtid";
-        ac.environment = "login.microsoftonline.com";
-        ac.realm = "microsoft";
-        ac.localAccountId = "object1234";
-        ac.username = "Jane Goodman";
-        ac.authorityType = "MSSTS";
+        const ac: AccountEntity = {
+            homeAccountId: "someUid.someUtid",
+            environment: "login.microsoftonline.com",
+            realm: "microsoft",
+            localAccountId: "object1234",
+            username: "Jane Goodman",
+            authorityType: "MSSTS",
+        };
 
-        const accountKey = ac.generateAccountKey();
+        const accountKey = AccountEntityUtils.generateAccountKey(ac);
         const cacheRecord: CacheRecord = {};
         cacheRecord.account = ac;
         await mockCache.cacheManager.saveCacheRecord(
@@ -1561,22 +1565,23 @@ describe("CacheManager.ts test cases", () => {
         ).toBeUndefined();
     });
 
-    it("removeAllAccounts", async () => {
+    it("removeAllAccounts", () => {
         const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts();
-        await mockCache.cacheManager.removeAllAccounts();
+        mockCache.cacheManager.removeAllAccounts(RANDOM_TEST_GUID);
         const accountsAfterRemove = mockCache.cacheManager.getAllAccounts();
 
         expect(accountsBeforeRemove).toHaveLength(3);
         expect(accountsAfterRemove).toHaveLength(0);
     });
 
-    it("removeAccount", async () => {
+    it("removeAccount", () => {
         const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountToRemoveKey = accountToRemove.generateAccountKey();
+        const accountToRemoveKey =
+            AccountEntityUtils.generateAccountKey(accountToRemove);
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();
-        await mockCache.cacheManager.removeAccount(accountToRemoveKey);
+        mockCache.cacheManager.removeAccount(accountToRemoveKey);
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).toBeNull();
@@ -1596,8 +1601,9 @@ describe("CacheManager.ts test cases", () => {
             extendedExpiresOn: "4600",
         };
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(at)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(at),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(at);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
@@ -1624,8 +1630,9 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(atWithAuthScheme)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
@@ -1655,43 +1662,13 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(atWithAuthScheme)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy).toHaveBeenCalledTimes(0);
-    });
-
-    it("throws bindingKeyNotRemoved error when key is not deleted from storage", async () => {
-        const atWithAuthScheme = {
-            environment: "login.microsoftonline.com",
-            credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-            secret: "an access token",
-            realm: "microsoft",
-            target: "scope1 scope2 scope3",
-            clientId: "mock_client_id",
-            cachedAt: "1000",
-            homeAccountId: "uid.utid",
-            extendedExpiresOn: "4600",
-            expiresOn: "4600",
-            keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
-            tokenType: AuthenticationScheme.POP,
-        };
-
-        jest.spyOn(mockCrypto, "removeTokenBindingKey").mockImplementation(
-            (keyId: string): Promise<boolean> => {
-                return Promise.reject();
-            }
-        );
-
-        return await expect(
-            mockCache.cacheManager.removeAccessToken(
-                CacheHelpers.generateCredentialKey(atWithAuthScheme)
-            )
-        ).rejects.toThrow(
-            createClientAuthError(ClientAuthErrorCodes.bindingKeyNotRemoved)
-        );
     });
 
     it("getAccessToken matches multiple tokens, removes them and returns null", (done) => {
@@ -1738,7 +1715,7 @@ describe("CacheManager.ts test cases", () => {
                 clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
             };
             const mockedAccount: AccountEntity = CacheManager.toObject(
-                new AccountEntity(),
+                {} as AccountEntity,
                 accountData
             );
 
@@ -1770,35 +1747,18 @@ describe("CacheManager.ts test cases", () => {
                 forceRefresh: false,
             };
 
-            const mockPerfClient = new MockPerformanceClient();
-            const correlationId = "test-correlation-id";
-
-            mockPerfClient.addPerformanceCallback((events) => {
-                expect(events.length).toBe(1);
-                expect(events[0].multiMatchedAT).toEqual(2);
-                done();
-            });
-
-            const measurement = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
-                correlationId
-            );
-
             expect(
                 mockCache.cacheManager.getAccessToken(
                     mockedAccountInfo,
                     silentFlowRequest,
                     undefined,
-                    undefined,
-                    mockPerfClient,
-                    correlationId
+                    undefined
                 )
             ).toBeNull();
             expect(
                 mockCache.cacheManager.getTokenKeys().accessToken.length
             ).toEqual(0);
-
-            measurement.end();
+            done();
         });
     });
 
@@ -1862,7 +1822,7 @@ describe("CacheManager.ts test cases", () => {
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             accountData
         );
 
@@ -1927,7 +1887,7 @@ describe("CacheManager.ts test cases", () => {
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             accountData
         );
 
@@ -2019,7 +1979,7 @@ describe("CacheManager.ts test cases", () => {
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             accountData
         );
 
@@ -2119,7 +2079,7 @@ describe("CacheManager.ts test cases", () => {
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             accountData
         );
 
@@ -2159,8 +2119,9 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readAccountFromCache", () => {
-        const matchAccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const matchAccountInfo = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         const account = mockCache.cacheManager.readAccountFromCache(
             matchAccountInfo
         ) as AccountEntity;
@@ -2189,8 +2150,9 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getIdToken", () => {
-        const baseAccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
+        const baseAccountInfo = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS)
+        );
         // Get home ID token by default
         const idToken = mockCache.cacheManager.getIdToken(
             baseAccountInfo

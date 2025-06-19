@@ -9,6 +9,7 @@
  */
 
 import * as BrowserUtils from "./utils/BrowserUtils.js";
+import { Constants } from "@azure/msal-common/browser";
 export { BrowserUtils };
 
 export {
@@ -64,7 +65,7 @@ export { InitializeApplicationRequest } from "./request/InitializeApplicationReq
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";
-export { ITokenCache } from "./cache/ITokenCache.js";
+export { loadExternalTokens } from "./cache/TokenCache.js";
 
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";
@@ -80,6 +81,7 @@ export {
     EventCallbackFunction,
     EventMessageUtils,
     PopupEvent,
+    BrokerConnectionEvent,
 } from "./event/EventMessage.js";
 export { EventType } from "./event/EventType.js";
 export { EventHandler } from "./event/EventHandler.js";
@@ -99,23 +101,30 @@ export {
 export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient.js";
 export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement.js";
 
+// Common constants
+export const AuthenticationScheme = Constants.AuthenticationScheme;
+export type AuthenticationScheme = Constants.AuthenticationScheme;
+export const ResponseMode = Constants.ResponseMode;
+export type ResponseMode = Constants.ResponseMode;
+export const PromptValue = Constants.PromptValue;
+export const JsonWebTokenTypes = Constants.JsonWebTokenTypes;
+export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
+export const OIDC_DEFAULT_SCOPES = Constants.OIDC_DEFAULT_SCOPES;
+
 // Common Object Formats
 export {
-    AuthenticationScheme,
     // Account
     AccountInfo,
     AccountEntity,
+    AccountEntityUtils,
     IdTokenClaims,
     // Error
     AuthError,
     AuthErrorCodes,
-    AuthErrorMessages,
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessages,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessages,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     ServerError,
@@ -129,27 +138,25 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
-    ResponseMode,
-    PromptValue,
     // Server Response
     ExternalTokenResponse,
     // Utils
     StringUtils,
     UrlString,
-    JsonWebTokenTypes,
     // AzureCloudInstance enum
     AzureCloudInstance,
     AzureCloudOptions,
     AuthenticationHeaderParser,
-    OIDC_DEFAULT_SCOPES,
     PerformanceCallbackFunction,
     PerformanceEvent,
-    PerformanceEvents,
     // Telemetry
     InProgressPerformanceEvent,
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
+export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 
 export { version } from "./packageMetadata.js";
+
+export { isPlatformBrokerAvailable } from "./broker/nativeBroker/PlatformAuthProvider.js";

@@ -5,7 +5,10 @@
 
 // This file contains the string constants used by the test classes.
 
-import { AuthenticationScheme, Constants } from "../../src/utils/Constants.js";
+import {
+    AuthenticationScheme,
+    RESOURCE_DELIM,
+} from "../../src/utils/Constants.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint.js";
 import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity.js";
@@ -284,7 +287,7 @@ export const TEST_STATE_VALUES = {
         "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==",
     URI_ENCODED_LIB_STATE:
         "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3D%3D",
-    TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${Constants.RESOURCE_DELIM}userState`,
+    TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${RESOURCE_DELIM}userState`,
 };
 
 export const CLOUD_HOSTS = {

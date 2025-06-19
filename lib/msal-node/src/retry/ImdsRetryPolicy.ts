@@ -3,15 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { HttpStatus, Logger } from "@azure/msal-common";
+import { Constants, Logger } from "@azure/msal-common";
 import { ExponentialRetryStrategy } from "./ExponentialRetryStrategy.js";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 
 const HTTP_STATUS_400_CODES_FOR_EXPONENTIAL_STRATEGY: Array<number> = [
-    HttpStatus.NOT_FOUND,
-    HttpStatus.REQUEST_TIMEOUT,
-    HttpStatus.GONE,
-    HttpStatus.TOO_MANY_REQUESTS,
+    Constants.HTTP_NOT_FOUND,
+    Constants.HTTP_REQUEST_TIMEOUT,
+    Constants.HTTP_GONE,
+    Constants.HTTP_TOO_MANY_REQUESTS,
 ];
 
 const EXPONENTIAL_STRATEGY_NUM_RETRIES = 3;
@@ -73,7 +73,7 @@ export class ImdsRetryPolicy implements IHttpRetryPolicy {
 
             // calculate the maxRetries based on the status code, once per request
             this.maxRetries =
-                httpStatusCode === HttpStatus.GONE
+                httpStatusCode === Constants.HTTP_GONE
                     ? LINEAR_STRATEGY_NUM_RETRIES
                     : EXPONENTIAL_STRATEGY_NUM_RETRIES;
         }
@@ -89,13 +89,13 @@ export class ImdsRetryPolicy implements IHttpRetryPolicy {
             (HTTP_STATUS_400_CODES_FOR_EXPONENTIAL_STRATEGY.includes(
                 httpStatusCode
             ) ||
-                (httpStatusCode >= HttpStatus.SERVER_ERROR_RANGE_START &&
-                    httpStatusCode <= HttpStatus.SERVER_ERROR_RANGE_END &&
+                (httpStatusCode >= Constants.HTTP_SERVER_ERROR_RANGE_START &&
+                    httpStatusCode <= Constants.HTTP_SERVER_ERROR_RANGE_END &&
                     currentRetry < this.maxRetries)) &&
             currentRetry < this.maxRetries
         ) {
             const retryAfterDelay: number =
-                httpStatusCode === HttpStatus.GONE
+                httpStatusCode === Constants.HTTP_GONE
                     ? ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS
                     : this.exponentialRetryStrategy.calculateDelay(
                           currentRetry

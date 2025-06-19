@@ -1,12 +1,4 @@
-import {
-    Constants,
-    PromptValue,
-    ResponseMode,
-    GrantType,
-    AuthenticationScheme,
-    HeaderNames,
-    OAuthResponseType,
-} from "../../src/utils/Constants.js";
+import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import {
     TEST_CONFIG,
@@ -37,11 +29,11 @@ describe("RequestParameterBuilder unit tests", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addResponseType(
             parameters,
-            OAuthResponseType.CODE
+            Constants.OAuthResponseType.CODE
         );
         RequestParameterBuilder.addResponseMode(
             parameters,
-            ResponseMode.FORM_POST
+            Constants.ResponseMode.FORM_POST
         );
         RequestParameterBuilder.addScopes(
             parameters,
@@ -70,7 +62,7 @@ describe("RequestParameterBuilder unit tests", () => {
         );
         RequestParameterBuilder.addPrompt(
             parameters,
-            PromptValue.SELECT_ACCOUNT
+            Constants.PromptValue.SELECT_ACCOUNT
         );
         RequestParameterBuilder.addState(parameters, TEST_CONFIG.STATE);
         RequestParameterBuilder.addNonce(parameters, TEST_CONFIG.NONCE);
@@ -93,7 +85,7 @@ describe("RequestParameterBuilder unit tests", () => {
         );
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.DEVICE_CODE_GRANT
+            Constants.GrantType.DEVICE_CODE_GRANT
         );
         RequestParameterBuilder.addSid(parameters, TEST_CONFIG.SID);
         RequestParameterBuilder.addLogoutHint(
@@ -104,13 +96,13 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${OAuthResponseType.CODE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.OAuthResponseType.CODE}`
             )
         ).toBe(true);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                    ResponseMode.FORM_POST
+                    Constants.ResponseMode.FORM_POST
                 )}`
             )
         ).toBe(true);
@@ -161,7 +153,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.PROMPT}=${PromptValue.SELECT_ACCOUNT}`
+                `${AADServerParamKeys.PROMPT}=${Constants.PromptValue.SELECT_ACCOUNT}`
             )
         ).toBe(true);
         expect(
@@ -229,6 +221,21 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
+    it("Encodes extra params", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            extra_params: "param1,param2",
+        });
+
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+
+        expect(
+            requestQueryString.includes(
+                `extra_params=${encodeURIComponent("param1,param2")}`
+            )
+        ).toBe(true);
+    });
+
     it("Adds token type and req_cnf correctly for proof-of-possession tokens", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addPopToken(
@@ -238,7 +245,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`
+                `${AADServerParamKeys.TOKEN_TYPE}=${Constants.AuthenticationScheme.POP}`
             )
         ).toBe(true);
         expect(
@@ -263,7 +270,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`
+                `${AADServerParamKeys.TOKEN_TYPE}=${Constants.AuthenticationScheme.SSH}`
             )
         ).toBe(true);
         expect(
@@ -371,13 +378,13 @@ describe("RequestParameterBuilder unit tests", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addResponseType(
             parameters,
-            OAuthResponseType.IDTOKEN_TOKEN
+            Constants.OAuthResponseType.IDTOKEN_TOKEN
         );
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
-                    OAuthResponseType.IDTOKEN_TOKEN
+                    Constants.OAuthResponseType.IDTOKEN_TOKEN
                 )}`
             )
         ).toBe(true);
@@ -553,7 +560,7 @@ describe("RequestParameterBuilder unit tests", () => {
             const requestQueryString = UrlUtils.mapToQueryString(parameters);
             expect(
                 requestQueryString.includes(
-                    `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
+                    `${Constants.HeaderNames.CCS_HEADER}=${encodeURIComponent(
                         `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
                     )}`
                 )
@@ -567,7 +574,7 @@ describe("RequestParameterBuilder unit tests", () => {
             const requestQueryString = UrlUtils.mapToQueryString(parameters);
             expect(
                 requestQueryString.includes(
-                    `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
+                    `${Constants.HeaderNames.CCS_HEADER}=${encodeURIComponent(
                         `UPN:${testUpn}`
                     )}`
                 )

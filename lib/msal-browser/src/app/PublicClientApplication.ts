@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -42,6 +41,7 @@ import { EventType } from "../event/EventType.js";
  */
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
+    protected isBroker: boolean = false;
 
     /**
      * Creates StandardController and passes it to the PublicClientApplication
@@ -92,7 +92,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request {?InitializeApplicationRequest}
      */
     async initialize(request?: InitializeApplicationRequest): Promise<void> {
-        return this.controller.initialize(request);
+        return this.controller.initialize(request, this.isBroker);
     }
 
     /**
@@ -280,13 +280,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         return this.controller.ssoSilent(request);
-    }
-
-    /**
-     * Gets the token cache for the application.
-     */
-    getTokenCache(): ITokenCache {
-        return this.controller.getTokenCache();
     }
 
     /**

@@ -7,11 +7,10 @@ import {
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
 import {
     LogLevel,
-    Constants,
     AzureCloudInstance,
     ProtocolMode,
-    ResponseMode,
     Logger,
+    Constants,
 } from "@azure/msal-common";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 
@@ -52,9 +51,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.cache).toBeDefined();
         expect(emptyConfig.cache?.cacheLocation).toBeDefined();
         expect(emptyConfig.cache?.cacheLocation).toBe("sessionStorage");
-        expect(emptyConfig.cache?.storeAuthStateInCookie).toBeDefined();
-        expect(emptyConfig.cache?.storeAuthStateInCookie).toBe(false);
-        expect(emptyConfig.cache?.claimsBasedCachingEnabled).toBe(false);
         // System config checks
         expect(emptyConfig.system).toBeDefined();
         expect(emptyConfig.system?.loggerOptions).toBeDefined();
@@ -72,7 +68,7 @@ describe("Configuration.ts Class Unit Tests", () => {
             DEFAULT_IFRAME_TIMEOUT_MS
         );
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
-        expect(emptyConfig.system?.asyncPopups).toBe(false);
+        expect(emptyConfig.system?.navigatePopups).toBe(true);
         expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
     });
 
@@ -242,8 +238,6 @@ describe("Configuration.ts Class Unit Tests", () => {
                 },
                 cache: {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
-                    storeAuthStateInCookie: true,
-                    claimsBasedCachingEnabled: true,
                 },
                 system: {
                     windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
@@ -252,7 +246,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                         loggerCallback: testLoggerCallback,
                         piiLoggingEnabled: true,
                     },
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             },
             true
@@ -272,9 +266,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.cache).not.toBeNull();
         expect(newConfig.cache?.cacheLocation).not.toBeNull();
         expect(newConfig.cache?.cacheLocation).toBe("localStorage");
-        expect(newConfig.cache?.storeAuthStateInCookie).not.toBeNull();
-        expect(newConfig.cache?.storeAuthStateInCookie).toBe(true);
-        expect(newConfig.cache?.claimsBasedCachingEnabled).toBe(true);
         // System config checks
         expect(newConfig.system).not.toBeNull();
         expect(newConfig.system?.windowHashTimeout).not.toBeNull();
@@ -284,7 +275,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.loggerOptions).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
-        expect(newConfig.system?.asyncPopups).toBe(true);
+        expect(newConfig.system?.navigatePopups).toBe(false);
     });
     it("Setting OIDCOptions when in AAD protocol mode logs a warning", async () => {
         const loggerSpy = jest
@@ -295,10 +286,12 @@ describe("Configuration.ts Class Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     authority: TEST_CONFIG.validAuthority,
-                    protocolMode: ProtocolMode.AAD,
                     OIDCOptions: {
-                        responseMode: ResponseMode.QUERY,
+                        responseMode: Constants.ResponseMode.QUERY,
                     },
+                },
+                system: {
+                    protocolMode: ProtocolMode.AAD,
                 },
             },
             true

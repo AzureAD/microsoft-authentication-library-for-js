@@ -7,10 +7,6 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import {
-    IPerformanceClient,
-    PerformanceEvents,
-} from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
 import { base64Encode, urlEncodeArr } from "../encode/Base64Encode.js";
 import { base64Decode, base64DecToArr } from "../encode/Base64Decode.js";
@@ -83,15 +79,7 @@ export function validateCryptoAvailable(
  * @param performanceClient {?IPerformanceClient}
  * @param correlationId {?string} correlation id
  */
-export async function sha256Digest(
-    dataString: string,
-    performanceClient?: IPerformanceClient,
-    correlationId?: string
-): Promise<ArrayBuffer> {
-    performanceClient?.addQueueMeasurement(
-        PerformanceEvents.Sha256Digest,
-        correlationId
-    );
+export async function sha256Digest(dataString: string): Promise<ArrayBuffer> {
     const encoder = new TextEncoder();
     const data = encoder.encode(dataString);
     return window.crypto.subtle.digest(

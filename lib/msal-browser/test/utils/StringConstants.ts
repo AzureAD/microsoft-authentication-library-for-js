@@ -5,10 +5,8 @@
 
 import {
     AccountInfo,
-    AuthenticationScheme,
-    Constants,
     NetworkResponse,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     ServerAuthorizationTokenResponse,
     TimeUtils,
 } from "@azure/msal-common";
@@ -62,8 +60,8 @@ export const TEST_CONFIG = {
     TEST_VERIFIER:
         "Y5LnOOlAWK0kt370Bjm0ZcrW9Sc2pMXR1slip9TFZXoyUV8Y8lCn0WHXyyQ1QcTnALMbrUAj85dC7WIe6gYqc8o8jsHCezP3xiUNB143A5IfwtSfO6Kb8oy7pNqcT9vN",
     TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
-    TOKEN_TYPE_BEARER: AuthenticationScheme.BEARER,
-    TOKEN_TYPE_POP: AuthenticationScheme.POP,
+    TOKEN_TYPE_BEARER: Constants.AuthenticationScheme.BEARER,
+    TOKEN_TYPE_POP: Constants.AuthenticationScheme.POP,
     DEFAULT_SCOPES: ["openid", "profile"],
     CORRELATION_ID: RANDOM_TEST_GUID,
     SID: "session-id",
@@ -405,8 +403,8 @@ export const TEST_TOKEN_RESPONSE: NetworkResponse<ServerAuthorizationTokenRespon
     {
         headers: {},
         body: {
-            token_type: AuthenticationScheme.BEARER,
-            scope: OIDC_DEFAULT_SCOPES.join(", "),
+            token_type: Constants.AuthenticationScheme.BEARER,
+            scope: Constants.OIDC_DEFAULT_SCOPES.join(", "),
             expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
             access_token: TEST_TOKENS.ACCESS_TOKEN,
             refresh_token: TEST_TOKENS.REFRESH_TOKEN,
@@ -579,3 +577,47 @@ export function getTestAuthenticationResult(): AuthenticationResult {
         familyId: "",
     };
 }
+
+export const PlatformDOMTestTokenResponseObject = {
+    isSuccess: true,
+    state: "1234state",
+    accessToken: "eyJ0eXAiOiJKV1QiLCJub25j…",
+    expiresIn: 1744768881,
+    account: {
+        userName: "idlab@msidlab4.onmicrosoft.com",
+        id: "test-nativeAccountId",
+        properties: {},
+    },
+    clientInfo:
+        "clienteyJ1aWQiOiJkMTdkMzcwNi0xZTRlLTQ2OTUtODA0OC1lZjYxOTZlOTZm",
+    idToken: TEST_TOKENS.IDTOKEN_V2,
+    scopes: "openid profile User.Read email",
+    proofOfPossessionPayload: "successshr",
+    extendedLifetimeToken: true,
+    properties: {},
+    error: {
+        code: "",
+        description: "",
+        errorCode: "",
+        properties: {},
+        status: "",
+        protocolError: "",
+    },
+};
+
+export const PlatformDOMTestErrorResponseObject = {
+    isSuccess: false,
+    expiresIn: 0,
+    extendedLifetimeToken: false,
+    error: {
+        code: "OSError",
+        description:
+            'Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=-6000 "(null)" UserInfo={NSUnderlyingError=0x1319056b0 {Error Domain=MSALErrorDomain Code=-50000 "(null)" UserInfo={MSALErrorDescriptionKey=redirectUri host doesn\'t match sender host., MSALBrokerVersionKey=1.0, MSALInternalErrorCodeKey=-42008, MSALBrowserNativeMessageErrorStatus=PERSISTENT_ERROR}}}',
+        errorCode: "-6000",
+        properties: {
+            MATS: '{"x_ms_clitelem":"1,0,0,,I","ui_visible":true}',
+        },
+        status: "PERSISTENT_ERROR",
+        protocolError: "",
+    },
+};

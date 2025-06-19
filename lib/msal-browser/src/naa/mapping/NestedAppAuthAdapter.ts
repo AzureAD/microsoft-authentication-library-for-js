@@ -19,17 +19,16 @@ import {
     AuthToken,
     TokenClaims,
     ClientAuthErrorCodes,
-    AuthenticationScheme,
     RequestParameterBuilder,
     StringUtils,
     createClientAuthError,
-    OIDC_DEFAULT_SCOPES,
     AccountInfo,
     IdTokenEntity,
     AccessTokenEntity,
     TenantProfile,
     buildTenantProfile,
     TimeUtils,
+    Constants,
 } from "@azure/msal-common/browser";
 import { isBridgeError } from "../BridgeError.js";
 import { BridgeStatusCode } from "../BridgeStatusCode.js";
@@ -79,7 +78,7 @@ export class NestedAppAuthAdapter {
             request.claims,
             this.clientCapabilities
         );
-        const scopes = request.scopes || OIDC_DEFAULT_SCOPES;
+        const scopes = request.scopes || Constants.OIDC_DEFAULT_SCOPES;
         const tokenRequest: TokenRequest = {
             platformBrokerId: request.account?.homeAccountId,
             clientId: this.clientId,
@@ -89,7 +88,8 @@ export class NestedAppAuthAdapter {
             claims: !StringUtils.isEmptyObj(claims) ? claims : undefined,
             state: request.state,
             authenticationScheme:
-                request.authenticationScheme || AuthenticationScheme.BEARER,
+                request.authenticationScheme ||
+                Constants.AuthenticationScheme.BEARER,
             extraParameters: extraParams,
         };
 
@@ -132,7 +132,8 @@ export class NestedAppAuthAdapter {
             fromCache: false,
             expiresOn: expiresOn,
             tokenType:
-                request.authenticationScheme || AuthenticationScheme.BEARER,
+                request.authenticationScheme ||
+                Constants.AuthenticationScheme.BEARER,
             correlationId: request.correlationId,
             extExpiresOn: expiresOn,
             state: request.state,
@@ -310,7 +311,8 @@ export class NestedAppAuthAdapter {
                 accessToken.extendedExpiresOn
             ),
             tokenType:
-                request.authenticationScheme || AuthenticationScheme.BEARER,
+                request.authenticationScheme ||
+                Constants.AuthenticationScheme.BEARER,
             correlationId,
             state: request.state,
         };

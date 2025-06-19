@@ -5,7 +5,6 @@
 
 import {
     ServerTelemetryManager,
-    Constants,
     AuthorizationCodeClient,
     ClientConfiguration,
     UrlString,
@@ -14,12 +13,12 @@ import {
     IdTokenClaims,
     AccountInfo,
     AzureCloudOptions,
-    PerformanceEvents,
     invokeAsync,
     BaseAuthRequest,
     StringDict,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import {
     BrowserConstants,
@@ -183,14 +182,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
     }): Promise<AuthorizationCodeClient> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-            this.correlationId
-        );
         // Create auth module.
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -227,13 +222,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             account,
         } = params;
 
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.correlationId
-        );
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -263,10 +254,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 logLevel: logger.logLevel,
                 correlationId: this.correlationId,
             },
-            cacheOptions: {
-                claimsBasedCachingEnabled:
-                    this.config.cache.claimsBasedCachingEnabled,
-            },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
@@ -274,8 +261,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
-                cpu: Constants.EMPTY_STRING,
-                os: Constants.EMPTY_STRING,
+                cpu: "",
+                os: "",
             },
             telemetry: this.config.telemetry,
         };
@@ -290,24 +277,19 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         interactionType: InteractionType
     ): Promise<CommonAuthorizationUrlRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-            this.correlationId
-        );
-
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
         };
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || Constants.EMPTY_STRING,
+            (request && request.state) || "",
             browserState
         );
 
         const baseRequest: BaseAuthRequest = await invokeAsync(
             initializeBaseRequest,
-            PerformanceEvents.InitializeBaseRequest,
+            BrowserPerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
             this.correlationId

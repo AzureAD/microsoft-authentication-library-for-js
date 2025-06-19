@@ -8,9 +8,8 @@ import {
     CommonAuthorizationUrlRequest,
     InteractionRequiredAuthError,
     Logger,
-    OAuthResponseType,
     ProtocolMode,
-    ResponseMode,
+    Constants,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import * as Authorize from "../../src/protocol/Authorize.js";
@@ -33,8 +32,8 @@ import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 
 describe("Authorize Protocol Tests", () => {
     describe("EAR Protocol Tests", () => {
@@ -67,7 +66,7 @@ describe("Authorize Protocol Tests", () => {
             redirectUri: window.location.href,
             state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             nonce: ID_TOKEN_CLAIMS.nonce,
-            responseMode: ResponseMode.FRAGMENT,
+            responseMode: Constants.ResponseMode.FRAGMENT,
             earJwk: validEarJWK,
             extraQueryParameters: {
                 extraKey1: "extraVal1",
@@ -170,7 +169,7 @@ describe("Authorize Protocol Tests", () => {
                 );
                 checkInputProperties(
                     AADServerParamKeys.RESPONSE_TYPE,
-                    OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
+                    Constants.OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
                 );
                 checkInputProperties(
                     AADServerParamKeys.EAR_JWK,
@@ -295,13 +294,16 @@ describe("Authorize Protocol Tests", () => {
                 );
                 const response = { ...validResponse, ear_jwe: jwe };
 
-                const nativeMessageHandler = new NativeMessageHandler(
+                const nativeMessageHandler = new PlatformAuthExtensionHandler(
                     logger,
                     2000,
                     performanceClient
                 );
                 const platformBrokerSpy = jest
-                    .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                    .spyOn(
+                        PlatformAuthInteractionClient.prototype,
+                        "acquireToken"
+                    )
                     .mockResolvedValue(getTestAuthenticationResult());
 
                 const authResult = await Authorize.handleResponseEAR(

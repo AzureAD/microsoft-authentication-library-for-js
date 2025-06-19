@@ -15,12 +15,7 @@ import {
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError.js";
 import { INetworkModule } from "../network/INetworkModule.js";
-import {
-    AADAuthorityConstants,
-    AuthorityMetadataSource,
-    Constants,
-    RegionDiscoveryOutcomes,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import {
     EndpointMetadata,
     getCloudDiscoveryMetadataFromHardcodedValues,
@@ -51,11 +46,11 @@ import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
 import { RegionDiscovery } from "./RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
 import { ImdsOptions } from "./ImdsOptions.js";
-import { AzureCloudOptions } from "../config/ClientConfiguration.js";
+import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { Logger } from "../logger/Logger.js";
 import { AuthError } from "../error/AuthError.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 
@@ -93,9 +88,9 @@ export class Authority {
     private static reservedTenantDomains: Set<string> = new Set([
         "{tenant}",
         "{tenantid}",
-        AADAuthorityConstants.COMMON,
-        AADAuthorityConstants.CONSUMERS,
-        AADAuthorityConstants.ORGANIZATIONS,
+        Constants.AADAuthority.COMMON,
+        Constants.AADAuthority.CONSUMERS,
+        Constants.AADAuthority.ORGANIZATIONS,
     ]);
 
     constructor(
@@ -398,11 +393,6 @@ export class Authority {
      * and the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityResolveEndpointsAsync,
-            this.correlationId
-        );
-
         const metadataEntity = this.getCurrentMetadataEntity();
 
         const cloudDiscoverySource = await invokeAsync(
@@ -472,15 +462,16 @@ export class Authority {
      */
     private updateCachedMetadata(
         metadataEntity: AuthorityMetadataEntity,
-        cloudDiscoverySource: AuthorityMetadataSource | null,
+        cloudDiscoverySource: Constants.AuthorityMetadataSource | null,
         endpointMetadataResult: {
-            source: AuthorityMetadataSource;
+            source: Constants.AuthorityMetadataSource;
             metadata?: OpenIdConfigResponse;
         } | null
     ): void {
         if (
-            cloudDiscoverySource !== AuthorityMetadataSource.CACHE &&
-            endpointMetadataResult?.source !== AuthorityMetadataSource.CACHE
+            cloudDiscoverySource !== Constants.AuthorityMetadataSource.CACHE &&
+            endpointMetadataResult?.source !==
+                Constants.AuthorityMetadataSource.CACHE
         ) {
             // Reset the expiration time unless both values came from a successful cache lookup
             metadataEntity.expiresAt =
@@ -501,12 +492,7 @@ export class Authority {
      */
     private async updateEndpointMetadata(
         metadataEntity: AuthorityMetadataEntity
-    ): Promise<AuthorityMetadataSource> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityUpdateEndpointMetadata,
-            this.correlationId
-        );
-
+    ): Promise<Constants.AuthorityMetadataSource> {
         const localMetadata =
             this.updateEndpointMetadataFromLocalSources(metadataEntity);
 
@@ -514,7 +500,7 @@ export class Authority {
         if (localMetadata) {
             if (
                 localMetadata.source ===
-                AuthorityMetadataSource.HARDCODED_VALUES
+                Constants.AuthorityMetadataSource.HARDCODED_VALUES
             ) {
                 // If the user prefers to use an azure region replace the global endpoints with regional information.
                 if (
@@ -568,7 +554,7 @@ export class Authority {
                 metadata,
                 true
             );
-            return AuthorityMetadataSource.NETWORK;
+            return Constants.AuthorityMetadataSource.NETWORK;
         } else {
             // Metadata could not be obtained from the config, cache, network or hardcoded values
             throw createClientAuthError(
@@ -587,7 +573,7 @@ export class Authority {
     private updateEndpointMetadataFromLocalSources(
         metadataEntity: AuthorityMetadataEntity
     ): {
-        source: AuthorityMetadataSource;
+        source: Constants.AuthorityMetadataSource;
         metadata?: OpenIdConfigResponse;
     } | null {
         this.logger.verbose(
@@ -604,7 +590,7 @@ export class Authority {
                 false
             );
             return {
-                source: AuthorityMetadataSource.CONFIG,
+                source: Constants.AuthorityMetadataSource.CONFIG,
             };
         }
 
@@ -612,29 +598,21 @@ export class Authority {
             "Did not find endpoint metadata in the config... Attempting to get endpoint metadata from the hardcoded values."
         );
 
-        // skipAuthorityMetadataCache is used to bypass hardcoded authority metadata and force a network metadata cache lookup and network metadata request if no cached response is available.
-        if (this.authorityOptions.skipAuthorityMetadataCache) {
-            this.logger.verbose(
-                "Skipping hardcoded metadata cache since skipAuthorityMetadataCache is set to true. Attempting to get endpoint metadata from the network metadata cache."
+        const hardcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
+        if (hardcodedMetadata) {
+            CacheHelpers.updateAuthorityEndpointMetadata(
+                metadataEntity,
+                hardcodedMetadata,
+                false
             );
+            return {
+                source: Constants.AuthorityMetadataSource.HARDCODED_VALUES,
+                metadata: hardcodedMetadata,
+            };
         } else {
-            const hardcodedMetadata =
-                this.getEndpointMetadataFromHardcodedValues();
-            if (hardcodedMetadata) {
-                CacheHelpers.updateAuthorityEndpointMetadata(
-                    metadataEntity,
-                    hardcodedMetadata,
-                    false
-                );
-                return {
-                    source: AuthorityMetadataSource.HARDCODED_VALUES,
-                    metadata: hardcodedMetadata,
-                };
-            } else {
-                this.logger.verbose(
-                    "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the network metadata cache."
-                );
-            }
+            this.logger.verbose(
+                "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the network metadata cache."
+            );
         }
 
         // Check cached metadata entity expiration status
@@ -647,7 +625,7 @@ export class Authority {
         ) {
             // No need to update
             this.logger.verbose("Found endpoint metadata in the cache.");
-            return { source: AuthorityMetadataSource.CACHE };
+            return { source: Constants.AuthorityMetadataSource.CACHE };
         } else if (metadataEntityExpired) {
             this.logger.verbose("The metadata entity is expired.");
         }
@@ -700,11 +678,6 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork,
-            this.correlationId
-        );
-
         const options: ImdsOptions = {};
 
         /*
@@ -759,11 +732,6 @@ export class Authority {
     private async updateMetadataWithRegionalInformation(
         metadata: OpenIdConfigResponse
     ): Promise<OpenIdConfigResponse> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
-            this.correlationId
-        );
-
         const userConfiguredAzureRegion =
             this.authorityOptions.azureRegionConfiguration?.azureRegion;
 
@@ -773,7 +741,7 @@ export class Authority {
                 Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
             ) {
                 this.regionDiscoveryMetadata.region_outcome =
-                    RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
+                    Constants.RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
                 this.regionDiscoveryMetadata.region_used =
                     userConfiguredAzureRegion;
                 return Authority.replaceWithRegionalInformation(
@@ -796,7 +764,7 @@ export class Authority {
 
             if (autodetectedRegionName) {
                 this.regionDiscoveryMetadata.region_outcome =
-                    RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL;
+                    Constants.RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL;
                 this.regionDiscoveryMetadata.region_used =
                     autodetectedRegionName;
                 return Authority.replaceWithRegionalInformation(
@@ -806,7 +774,7 @@ export class Authority {
             }
 
             this.regionDiscoveryMetadata.region_outcome =
-                RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
+                Constants.RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
         }
 
         return metadata;
@@ -820,11 +788,7 @@ export class Authority {
      */
     private async updateCloudDiscoveryMetadata(
         metadataEntity: AuthorityMetadataEntity
-    ): Promise<AuthorityMetadataSource> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityUpdateCloudDiscoveryMetadata,
-            this.correlationId
-        );
+    ): Promise<Constants.AuthorityMetadataSource> {
         const localMetadataSource =
             this.updateCloudDiscoveryMetadataFromLocalSources(metadataEntity);
         if (localMetadataSource) {
@@ -846,7 +810,7 @@ export class Authority {
                 metadata,
                 true
             );
-            return AuthorityMetadataSource.NETWORK;
+            return Constants.AuthorityMetadataSource.NETWORK;
         }
 
         // Metadata could not be obtained from the config, cache, network or hardcoded values
@@ -857,7 +821,7 @@ export class Authority {
 
     private updateCloudDiscoveryMetadataFromLocalSources(
         metadataEntity: AuthorityMetadataEntity
-    ): AuthorityMetadataSource | null {
+    ): Constants.AuthorityMetadataSource | null {
         this.logger.verbose(
             "Attempting to get cloud discovery metadata  from authority configuration"
         );
@@ -888,7 +852,7 @@ export class Authority {
                 metadata,
                 false
             );
-            return AuthorityMetadataSource.CONFIG;
+            return Constants.AuthorityMetadataSource.CONFIG;
         }
 
         // If the cached metadata came from config but that config was not passed to this instance, we must go to hardcoded values
@@ -896,31 +860,24 @@ export class Authority {
             "Did not find cloud discovery metadata in the config... Attempting to get cloud discovery metadata from the hardcoded values."
         );
 
-        if (this.options.skipAuthorityMetadataCache) {
+        const hardcodedMetadata = getCloudDiscoveryMetadataFromHardcodedValues(
+            this.hostnameAndPort
+        );
+        if (hardcodedMetadata) {
             this.logger.verbose(
-                "Skipping hardcoded cloud discovery metadata cache since skipAuthorityMetadataCache is set to true. Attempting to get cloud discovery metadata from the network metadata cache."
+                "Found cloud discovery metadata from hardcoded values."
             );
-        } else {
-            const hardcodedMetadata =
-                getCloudDiscoveryMetadataFromHardcodedValues(
-                    this.hostnameAndPort
-                );
-            if (hardcodedMetadata) {
-                this.logger.verbose(
-                    "Found cloud discovery metadata from hardcoded values."
-                );
-                CacheHelpers.updateCloudDiscoveryMetadata(
-                    metadataEntity,
-                    hardcodedMetadata,
-                    false
-                );
-                return AuthorityMetadataSource.HARDCODED_VALUES;
-            }
-
-            this.logger.verbose(
-                "Did not find cloud discovery metadata in hardcoded values... Attempting to get cloud discovery metadata from the network metadata cache."
+            CacheHelpers.updateCloudDiscoveryMetadata(
+                metadataEntity,
+                hardcodedMetadata,
+                false
             );
+            return Constants.AuthorityMetadataSource.HARDCODED_VALUES;
         }
+
+        this.logger.verbose(
+            "Did not find cloud discovery metadata in hardcoded values... Attempting to get cloud discovery metadata from the network metadata cache."
+        );
 
         const metadataEntityExpired =
             CacheHelpers.isAuthorityMetadataExpired(metadataEntity);
@@ -931,7 +888,7 @@ export class Authority {
         ) {
             this.logger.verbose("Found cloud discovery metadata in the cache.");
             // No need to update
-            return AuthorityMetadataSource.CACHE;
+            return Constants.AuthorityMetadataSource.CACHE;
         } else if (metadataEntityExpired) {
             this.logger.verbose("The metadata entity is expired.");
         }
@@ -1009,10 +966,6 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityGetCloudDiscoveryMetadataFromNetwork,
-            this.correlationId
-        );
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};
 
@@ -1325,9 +1278,9 @@ export function getTenantFromAuthorityString(
         authorityUrlComponents.PathSegments.slice(-1)[0]?.toLowerCase();
 
     switch (tenantId) {
-        case AADAuthorityConstants.COMMON:
-        case AADAuthorityConstants.ORGANIZATIONS:
-        case AADAuthorityConstants.CONSUMERS:
+        case Constants.AADAuthority.COMMON:
+        case Constants.AADAuthority.ORGANIZATIONS:
+        case Constants.AADAuthority.CONSUMERS:
             return undefined;
         default:
             return tenantId;

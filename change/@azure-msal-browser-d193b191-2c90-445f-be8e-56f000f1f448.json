@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Remove encodeExtraQueryParams from config #7701",
+  "packageName": "@azure/msal-browser",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
