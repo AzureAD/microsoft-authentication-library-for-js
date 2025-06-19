@@ -215,9 +215,12 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(
-        hash?: string | undefined
+        hash?: string | undefined,
+        options?: {
+            navigateToLoginRequestUrl?: boolean;
+        }
     ): Promise<AuthenticationResult | null> {
-        return this.controller.handleRedirectPromise(hash);
+        return this.controller.handleRedirectPromise(hash, options);
     }
 
     /**
