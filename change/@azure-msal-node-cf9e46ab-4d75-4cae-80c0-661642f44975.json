@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Added Constants for Encoding Types #7766",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}

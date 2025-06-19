@@ -4,7 +4,10 @@
  */
 
 import { INetworkModule, Logger } from "@azure/msal-common/node";
-import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
+import {
+    BaseManagedIdentitySource,
+    ManagedIdentityUserAssignedIdQueryParameterNames,
+} from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
     ManagedIdentityEnvironmentVariableNames,
@@ -19,6 +22,8 @@ import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 
 const MACHINE_LEARNING_MSI_API_VERSION: string = "2017-09-01";
+
+export const MANAGED_IDENTITY_MACHINE_LEARNING_UNSUPPORTED_ID_TYPE_ERROR = `Only client id is supported for user-assigned managed identity in ${ManagedIdentitySourceNames.MACHINE_LEARNING}.`; // referenced in unit test
 
 export class MachineLearning extends BaseManagedIdentitySource {
     private msiEndpoint: string;
@@ -115,7 +120,17 @@ export class MachineLearning extends BaseManagedIdentitySource {
             resource;
 
         if (
-            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+            managedIdentityId.idType === ManagedIdentityIdType.SYSTEM_ASSIGNED
+        ) {
+            request.queryParameters[
+                ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
+            ] = process.env[
+                ManagedIdentityEnvironmentVariableNames
+                    .DEFAULT_IDENTITY_CLIENT_ID
+            ] as string; // this environment variable is always set in an Azure Machine Learning source
+        } else if (
+            managedIdentityId.idType ===
+            ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID
         ) {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(
@@ -124,6 +139,10 @@ export class MachineLearning extends BaseManagedIdentitySource {
                     true // uses2017API
                 )
             ] = managedIdentityId.id;
+        } else {
+            throw new Error(
+                MANAGED_IDENTITY_MACHINE_LEARNING_UNSUPPORTED_ID_TYPE_ERROR
+            );
         }
 
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
