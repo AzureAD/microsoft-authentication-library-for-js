@@ -212,6 +212,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @param options Object containing optional configuration for redirect promise handling.
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(

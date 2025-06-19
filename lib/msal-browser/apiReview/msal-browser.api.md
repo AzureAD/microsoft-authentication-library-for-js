@@ -281,7 +281,6 @@ export type BrowserAuthOptions = {
     authorityMetadata?: string;
     redirectUri?: string;
     postLogoutRedirectUri?: string | null;
-    navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
     OIDCOptions?: OIDCOptions;
     azureCloudOptions?: AzureCloudOptions;
@@ -731,7 +730,9 @@ export interface IController {
     // @internal (undocumented)
     getPerformanceClient(): IPerformanceClient;
     // (undocumented)
-    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(hash?: string, options?: {
+        navigateToLoginRequestUrl?: boolean;
+    }): Promise<AuthenticationResult | null>;
     // (undocumented)
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // (undocumented)
@@ -1257,7 +1258,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     getConfiguration(): BrowserConfiguration;
     getLogger(): Logger;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    handleRedirectPromise(hash?: string | undefined): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(hash?: string | undefined, options?: {
+        navigateToLoginRequestUrl?: boolean;
+    }): Promise<AuthenticationResult | null>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1382,6 +1385,7 @@ function redirectPreflightCheck(initialized: boolean, config: BrowserConfigurati
 export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
+    navigateToLoginRequestUrl?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "replaceHash" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1569,7 +1573,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:297:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:355:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:386:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:210:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:207:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
