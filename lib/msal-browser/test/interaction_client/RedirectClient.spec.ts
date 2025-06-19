@@ -346,7 +346,6 @@ describe("RedirectClient", () => {
                         auth: {
                             // @ts-ignore
                             ...pca.config.auth,
-                            navigateToLoginRequestUrl: false,
                         },
                     },
                     browserStorage,
@@ -368,7 +367,10 @@ describe("RedirectClient", () => {
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    {
+                        navigateToLoginRequestUrl: false,
+                    }
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -850,7 +852,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -883,7 +884,10 @@ describe("RedirectClient", () => {
                 "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    navigateToLoginRequestUrl: false,
+                }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -1147,7 +1151,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -1180,7 +1183,10 @@ describe("RedirectClient", () => {
                 "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    navigateToLoginRequestUrl: false,
+                }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -1667,7 +1673,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -1717,7 +1722,10 @@ describe("RedirectClient", () => {
                 "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    navigateToLoginRequestUrl: false,
+                }
             );
         });
 

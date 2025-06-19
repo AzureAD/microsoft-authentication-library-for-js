@@ -311,6 +311,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         const nativeRequest = await this.initializeNativeRequest(request);
+        const navigateToLoginRequestUrl =
+            request.navigateToLoginRequestUrl ?? true;
 
         try {
             await this.platformAuthProvider.sendMessage(nativeRequest);
@@ -336,7 +338,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             timeout: this.config.system.redirectNavigationTimeout,
             noHistory: false,
         };
-        const redirectUri = this.config.auth.navigateToLoginRequestUrl
+        const redirectUri = navigateToLoginRequestUrl
             ? window.location.href
             : this.getRedirectUri(request.redirectUri);
         rootMeasurement.end({ success: true });

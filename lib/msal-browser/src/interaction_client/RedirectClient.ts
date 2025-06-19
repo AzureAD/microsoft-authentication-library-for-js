@@ -288,11 +288,17 @@ export class RedirectClient extends StandardInteractionClient {
         hash: string = "",
         request: CommonAuthorizationUrlRequest,
         pkceVerifier: string,
-        parentMeasurement: InProgressPerformanceEvent
+        parentMeasurement: InProgressPerformanceEvent,
+        options?: {
+            navigateToLoginRequestUrl?: boolean;
+        }
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.handleRedirectPromise
         );
+
+        const navigateToLoginRequestUrl =
+            options?.navigateToLoginRequestUrl ?? true;
 
         try {
             const [serverParams, responseString] = this.getRedirectResponse(
@@ -330,7 +336,7 @@ export class RedirectClient extends StandardInteractionClient {
 
             if (
                 loginRequestUrlNormalized === currentUrlNormalized &&
-                this.config.auth.navigateToLoginRequestUrl
+                navigateToLoginRequestUrl
             ) {
                 // We are on the page we need to navigate to - handle hash
                 this.logger.verbose(
@@ -350,7 +356,7 @@ export class RedirectClient extends StandardInteractionClient {
                 );
 
                 return handleHashResult;
-            } else if (!this.config.auth.navigateToLoginRequestUrl) {
+            } else if (!navigateToLoginRequestUrl) {
                 this.logger.verbose(
                     "NavigateToLoginRequestUrl set to false, handling response"
                 );

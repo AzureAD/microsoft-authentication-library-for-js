@@ -69,10 +69,7 @@ export type BrowserAuthOptions = {
      * The redirect URI where the window navigates after a successful logout.
      */
     postLogoutRedirectUri?: string | null;
-    /**
-     * Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
-     */
-    navigateToLoginRequestUrl?: boolean;
+
     /**
      * Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
      */
@@ -241,7 +238,6 @@ export function buildConfiguration(
         redirectUri:
             typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
         postLogoutRedirectUri: "",
-        navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         OIDCOptions: {
             responseMode: Constants.ResponseMode.FRAGMENT,

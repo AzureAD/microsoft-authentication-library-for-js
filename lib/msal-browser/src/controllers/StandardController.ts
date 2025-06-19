@@ -392,10 +392,14 @@ export class StandardController implements IController {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @param options Object containing optional configuration for redirect promise handling.
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(
-        hash?: string
+        hash?: string,
+        options?: {
+            navigateToLoginRequestUrl?: boolean;
+        }
     ): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
         // Block token acquisition before initialize has been called
@@ -410,7 +414,7 @@ export class StandardController implements IController {
             const redirectResponseKey = hash || "";
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
-                response = this.handleRedirectPromiseInternal(hash);
+                response = this.handleRedirectPromiseInternal(hash, options);
                 this.redirectResponse.set(redirectResponseKey, response);
                 this.logger.verbose(
                     "handleRedirectPromise has been called for the first time, storing the promise"
@@ -435,7 +439,10 @@ export class StandardController implements IController {
      * @returns
      */
     private async handleRedirectPromiseInternal(
-        hash?: string
+        hash?: string,
+        options?: {
+            navigateToLoginRequestUrl?: boolean;
+        }
     ): Promise<AuthenticationResult | null> {
         if (!this.browserStorage.isInteractionInProgress(true)) {
             this.logger.info(
@@ -518,7 +525,13 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(hash, standardRequest, codeVerifier, rootMeasurement);
+                )(
+                    hash,
+                    standardRequest,
+                    codeVerifier,
+                    rootMeasurement,
+                    options
+                );
             }
         } catch (e) {
             this.browserStorage.resetRequestCache();
