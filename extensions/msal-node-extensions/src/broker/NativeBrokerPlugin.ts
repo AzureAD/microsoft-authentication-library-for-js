@@ -40,6 +40,7 @@ import {
 import { ErrorCodes } from "../utils/Constants.js";
 import { NativeAuthError } from "../error/NativeAuthError.js";
 import { version, name } from "../packageMetadata.js";
+import * as fs from "fs";
 
 export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private logger: Logger;
@@ -457,7 +458,24 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 request.clientId,
                 request.authority
             );
-            authParams.SetRedirectUri(request.redirectUri);
+            let redirectUri: string;
+
+            switch (process.platform) {
+                case "darwin":
+                    redirectUri = "msauth.com.msauth.unsignedapp://auth";
+                    break;
+                case "win32":
+                    redirectUri = `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`;
+                    break;
+                default:
+                    if(this.isWsl()) {
+                        redirectUri = `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`;
+                    } else {
+                        redirectUri = "https://login.microsoftonline.com/common/oauth2/nativeclient";
+                    }
+            }
+
+            authParams.SetRedirectUri(redirectUri);
             authParams.SetRequestedScopes(request.scopes.join(" "));
 
             if (request.claims) {
@@ -656,5 +674,14 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             }
         }
         throw error;
+    }
+
+    private isWsl(): boolean {
+        try {
+            const content = fs.readFileSync("/proc/version", "utf8").toLowerCase();
+            return content.includes("microsoft");
+        } catch {
+            return false;
+        }
     }
 }
