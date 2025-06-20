@@ -377,8 +377,7 @@ describe("BrowserCacheManager tests", () => {
 
             // Simulate quota exceeded error on first setItem call, then succeed
             const setItemSpy = jest
-                // @ts-ignore
-                .spyOn(browserCacheManager.browserStorage, "setItem")
+                .spyOn(Storage.prototype, "setItem")
                 .mockImplementationOnce(() => {
                     const error: any = new DOMException(
                         "The quota has been exceeded",
@@ -517,9 +516,85 @@ describe("BrowserCacheManager tests", () => {
             expect(window.sessionStorage.getItem(atKey3)).toBeNull();
             expect(window.sessionStorage.getItem(newCacheKey)).toBeNull();
             expect(browserCacheManager.getTokenKeys().accessToken).toHaveLength(
-                0
+                3 // Failed to update token keys map, so it should still contain all 3 keys
             );
-            expect(spy).toHaveBeenCalledTimes(4); // First attempt + one attempt for each access token removed
+            expect(spy).toHaveBeenCalledTimes(4); // First attempt + 3 attempts after each access token removed
+        });
+
+        it("setItem throws error if cache quota is reached and 20 access tokens have already been removed", async () => {
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+
+            const atKeys = [];
+            for (let i = 0; i < 25; i++) {
+                const accessToken = CacheHelpers.createAccessTokenEntity(
+                    `homeAccountId${i}`,
+                    `environment${i}`,
+                    TEST_TOKENS.ACCESS_TOKEN,
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    `tenantId${i}`,
+                    `openid${i}`,
+                    1000,
+                    1000,
+                    browserCrypto.base64Decode,
+                    500,
+                    AuthenticationScheme.BEARER
+                );
+                const atKey = CacheHelpers.generateCredentialKey(accessToken);
+                atKeys.push(atKey);
+                await browserCacheManager.setAccessTokenCredential(
+                    accessToken,
+                    RANDOM_TEST_GUID
+                );
+                expect(window.sessionStorage.getItem(atKey)).toBe(
+                    JSON.stringify(accessToken)
+                );
+            }
+            expect(browserCacheManager.getTokenKeys().accessToken).toEqual(
+                atKeys
+            );
+
+            // Create a new AccessTokenEntity to be removed
+            const newCacheKey = "test-cache-entry";
+            const newCacheVal = "test-cache-value";
+
+            const spy = jest
+                // @ts-ignore
+                .spyOn(browserCacheManager.browserStorage, "setItem")
+                .mockImplementation(() => {
+                    const error: any = new DOMException(
+                        "The quota has been exceeded",
+                        "QuotaExceededError"
+                    );
+                    throw error;
+                });
+
+            expect(() =>
+                browserCacheManager.setItem(
+                    newCacheKey,
+                    newCacheVal,
+                    RANDOM_TEST_GUID
+                )
+            ).toThrow(new CacheError(CacheErrorCodes.cacheQuotaExceeded));
+
+            // The access token should have been removed from storage
+            for (let i = 0; i < 20; i++) {
+                expect(window.sessionStorage.getItem(atKeys[i])).toBeNull();
+            }
+            for (let i = 20; i < 25; i++) {
+                expect(window.sessionStorage.getItem(atKeys[i])).not.toBeNull();
+            }
+            expect(window.sessionStorage.getItem(newCacheKey)).toBeNull();
+            expect(browserCacheManager.getTokenKeys().accessToken).toHaveLength(
+                25 // Failed to update the token keys map, so it should still contain all 25 keys
+            );
+            expect(spy).toHaveBeenCalledTimes(21); // First attempt + 20 attempts after each access token removed
         });
 
         it("setUserData removes old access tokens if cache quota is reached", async () => {
@@ -585,8 +660,7 @@ describe("BrowserCacheManager tests", () => {
 
             // Simulate quota exceeded error on first setItem call, then succeed
             const setItemSpy = jest
-                // @ts-ignore
-                .spyOn(browserCacheManager.browserStorage, "setItem")
+                .spyOn(Storage.prototype, "setItem")
                 .mockImplementationOnce(() => {
                     const error: any = new DOMException(
                         "The quota has been exceeded",
@@ -617,6 +691,81 @@ describe("BrowserCacheManager tests", () => {
             ]);
 
             expect(setItemSpy).toHaveBeenCalledTimes(3);
+        });
+
+        it("setUserData throws error if cache quota is reached and there are no access tokens left to remove", async () => {
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            const atKeys = [];
+            for (let i = 0; i < 25; i++) {
+                const accessToken = CacheHelpers.createAccessTokenEntity(
+                    `homeAccountId${i}`,
+                    `environment${i}`,
+                    TEST_TOKENS.ACCESS_TOKEN,
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    `tenantId${i}`,
+                    `openid${i}`,
+                    1000,
+                    1000,
+                    browserCrypto.base64Decode,
+                    500,
+                    AuthenticationScheme.BEARER
+                );
+                const atKey = CacheHelpers.generateCredentialKey(accessToken);
+                atKeys.push(atKey);
+                await browserCacheManager.setAccessTokenCredential(
+                    accessToken,
+                    RANDOM_TEST_GUID
+                );
+                expect(window.sessionStorage.getItem(atKey)).toBe(
+                    JSON.stringify(accessToken)
+                );
+            }
+            expect(browserCacheManager.getTokenKeys().accessToken).toEqual(
+                atKeys
+            );
+
+            // Create a new AccessTokenEntity to be removed
+            const newCacheKey = "test-cache-entry";
+            const newCacheVal = "test-cache-value";
+            const spy = jest
+                .spyOn(Storage.prototype, "setItem")
+                .mockImplementation(() => {
+                    const error: any = new DOMException(
+                        "The quota has been exceeded",
+                        "QuotaExceededError"
+                    );
+                    throw error;
+                });
+            await expect(() =>
+                browserCacheManager.setUserData(
+                    newCacheKey,
+                    newCacheVal,
+                    RANDOM_TEST_GUID,
+                    Date.now().toString()
+                )
+            ).rejects.toEqual(
+                new CacheError(CacheErrorCodes.cacheQuotaExceeded)
+            );
+
+            // The access token should have been removed from storage
+            for (let i = 0; i < 20; i++) {
+                expect(window.sessionStorage.getItem(atKeys[i])).toBeNull();
+            }
+            for (let i = 20; i < 25; i++) {
+                expect(window.sessionStorage.getItem(atKeys[i])).not.toBeNull();
+            }
+            expect(window.sessionStorage.getItem(newCacheKey)).toBeNull();
+            expect(browserCacheManager.getTokenKeys().accessToken).toHaveLength(
+                25 // Failed to update token keys map, so it should still contain all 25 keys
+            );
+            expect(spy).toHaveBeenCalledTimes(21); // First attempt + an attempt after each access token removed
         });
 
         it("setUserData throws error if cache quota is reached and there are no access tokens left to remove", async () => {
@@ -701,7 +850,7 @@ describe("BrowserCacheManager tests", () => {
             // Create a new AccessTokenEntity to be removed
             const newCacheKey = "test-cache-entry";
             const newCacheVal = "test-cache-value";
-            jest
+            const spy = jest
                 // @ts-ignore
                 .spyOn(browserCacheManager.browserStorage, "setItem")
                 .mockImplementation(() => {
@@ -728,8 +877,9 @@ describe("BrowserCacheManager tests", () => {
             expect(window.sessionStorage.getItem(atKey3)).toBeNull();
             expect(window.sessionStorage.getItem(newCacheKey)).toBeNull();
             expect(browserCacheManager.getTokenKeys().accessToken).toHaveLength(
-                0
+                3 // Failed to update token keys map, so it should still contain all 3 keys
             );
+            expect(spy).toHaveBeenCalledTimes(4); // First attempt + 3 attempts after each access token removed
         });
 
         it("removeItem()", () => {

@@ -1029,6 +1029,10 @@ export abstract class CacheManager implements ICacheManager {
     removeAccessToken(key: string, correlationId: string): void {
         const credential = this.getAccessTokenCredential(key, correlationId);
         this.removeItem(key, correlationId);
+        this.performanceClient.incrementFields(
+            { accessTokensRemoved: 1 },
+            correlationId
+        );
 
         if (
             !credential ||

@@ -177,37 +177,48 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string, correlationId: string): void {
-        let tokenKeys: TokenKeys | null = null;
-        let trySetItem = true;
-        while (trySetItem) {
+        let accessTokenKeys: Array<string> = [];
+        const maxRetries = 20;
+        for (let i = 0; i <= maxRetries; i++) {
             try {
                 this.browserStorage.setItem(key, value);
-                trySetItem = false; // If setItem succeeds, exit the loop
+                if (i > 0) {
+                    // Finally update the token keys array with the tokens removed
+                    this.removeAccessTokenKeys(
+                        accessTokenKeys.slice(0, i),
+                        correlationId
+                    );
+                }
+                break; // If setItem succeeds, exit the loop
             } catch (e) {
                 const cacheError = createCacheError(e);
                 if (
-                    cacheError.errorCode === CacheErrorCodes.cacheQuotaExceeded
+                    cacheError.errorCode ===
+                        CacheErrorCodes.cacheQuotaExceeded &&
+                    i < maxRetries
                 ) {
-                    if (!tokenKeys) {
+                    if (!accessTokenKeys.length) {
                         if (
                             key ===
                             `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`
                         ) {
                             // If we are currently trying to set the token keys, use the value we're trying to set
-                            tokenKeys = JSON.parse(value) as TokenKeys;
+                            accessTokenKeys = (JSON.parse(value) as TokenKeys)
+                                .accessToken;
                         } else {
                             // If token keys have not been initialized, get them
-                            tokenKeys = this.getTokenKeys();
+                            accessTokenKeys = this.getTokenKeys().accessToken;
                         }
                     }
-                    if (tokenKeys.accessToken.length === 0) {
+                    if (accessTokenKeys.length <= i) {
                         // Nothing to remove, rethrow the error
                         throw cacheError;
                     }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    trySetItem = this.removeOldestAccessToken(
-                        tokenKeys,
-                        correlationId
+                    this.removeAccessToken(
+                        accessTokenKeys[i],
+                        correlationId,
+                        false // Don't save token keys yet, do it at the end
                     );
                 } else {
                     // If the error is not a quota exceeded error, rethrow it
@@ -229,9 +240,9 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string,
         timestamp: string
     ): Promise<void> {
-        let tokenKeys: TokenKeys | null = null;
-        let trySetItem = true;
-        while (trySetItem) {
+        let accessTokenKeys: Array<string> = [];
+        const maxRetries = 20;
+        for (let i = 0; i <= maxRetries; i++) {
             try {
                 await invokeAsync(
                     this.browserStorage.setUserData.bind(this.browserStorage),
@@ -239,65 +250,39 @@ export class BrowserCacheManager extends CacheManager {
                     this.logger,
                     this.performanceClient
                 )(key, value, correlationId, timestamp);
-                trySetItem = false; // If setItem succeeds, exit the loop
+                if (i > 0) {
+                    // Finally update the token keys array with the tokens removed
+                    this.removeAccessTokenKeys(
+                        accessTokenKeys.slice(0, i),
+                        correlationId
+                    );
+                }
+                break; // If setItem succeeds, exit the loop
             } catch (e) {
                 const cacheError = createCacheError(e);
                 if (
-                    cacheError.errorCode === CacheErrorCodes.cacheQuotaExceeded
+                    cacheError.errorCode ===
+                        CacheErrorCodes.cacheQuotaExceeded &&
+                    i < maxRetries
                 ) {
-                    if (!tokenKeys) {
-                        if (
-                            key ===
-                            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`
-                        ) {
-                            // If we are currently trying to set the token keys, use the value we're trying to set
-                            tokenKeys = JSON.parse(value) as TokenKeys;
-                        } else {
-                            // If token keys have not been initialized, get them
-                            tokenKeys = this.getTokenKeys();
-                        }
+                    if (!accessTokenKeys.length) {
+                        accessTokenKeys = this.getTokenKeys().accessToken;
                     }
-                    if (tokenKeys.accessToken.length === 0) {
-                        // Nothing to remove, rethrow the error
+                    if (accessTokenKeys.length <= i) {
+                        // Nothing left to remove, rethrow the error
                         throw cacheError;
                     }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    trySetItem = this.removeOldestAccessToken(
-                        tokenKeys,
-                        correlationId
+                    this.removeAccessToken(
+                        accessTokenKeys[i],
+                        correlationId,
+                        false // Don't save token keys yet, do it at the end
                     );
                 } else {
                     // If the error is not a quota exceeded error, rethrow it
                     throw cacheError;
                 }
             }
-        }
-    }
-
-    /**
-     * Removes oldest access token from the cache to make room in case of quota exceeded errors
-     * @returns
-     */
-    removeOldestAccessToken(
-        tokenKeys: TokenKeys,
-        correlationId: string
-    ): boolean {
-        this.logger.trace("removeOldestAccessToken called", correlationId);
-        if (tokenKeys.accessToken.length > 0) {
-            // Remove the first access token key in the array
-            const oldestAccessTokenKey = tokenKeys.accessToken[0];
-            this.removeAccessToken(
-                oldestAccessTokenKey,
-                correlationId,
-                tokenKeys
-            );
-            this.performanceClient.incrementFields(
-                { accessTokensRemoved: 1 },
-                correlationId
-            );
-            return true; // Successfully removed an access token to make room
-        } else {
-            return false; // No access tokens to remove
         }
     }
 
@@ -489,10 +474,10 @@ export class BrowserCacheManager extends CacheManager {
     removeAccessToken(
         key: string,
         correlationId: string,
-        tokenKeys?: TokenKeys
+        updateTokenKeys: boolean = true
     ): void {
         super.removeAccessToken(key, correlationId);
-        this.removeAccessTokenKey(key, correlationId, tokenKeys);
+        updateTokenKeys && this.removeAccessTokenKeys([key], correlationId);
     }
 
     /**
@@ -501,17 +486,24 @@ export class BrowserCacheManager extends CacheManager {
      * @param correlationId
      * @param tokenKeys
      */
-    removeAccessTokenKey(
-        key: string,
-        correlationId: string,
-        tokenKeys: TokenKeys = this.getTokenKeys()
-    ): void {
+    removeAccessTokenKeys(keys: Array<string>, correlationId: string): void {
         this.logger.trace("removeAccessTokenKey called");
-        const accessRemoval = tokenKeys.accessToken.indexOf(key);
-        if (accessRemoval > -1) {
-            this.logger.info("accessToken removed from tokenKeys map");
-            tokenKeys.accessToken.splice(accessRemoval, 1);
+        const tokenKeys = this.getTokenKeys();
+        let keysRemoved = 0;
+        keys.forEach((key) => {
+            const accessRemoval = tokenKeys.accessToken.indexOf(key);
+            if (accessRemoval > -1) {
+                tokenKeys.accessToken.splice(accessRemoval, 1);
+                keysRemoved++;
+            }
+        });
+
+        if (keysRemoved > 0) {
+            this.logger.info(
+                `removed ${keysRemoved} accessToken keys from tokenKeys map`
+            );
             this.setTokenKeys(tokenKeys, correlationId);
+            return;
         }
     }
 
@@ -636,7 +628,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.getAccessTokenCredential: called, no cache hit"
             );
-            this.removeAccessTokenKey(accessTokenKey, correlationId);
+            this.removeAccessTokenKeys([accessTokenKey], correlationId);
             return null;
         }
         const parsedAccessToken = this.validateAndParseJson(value);
