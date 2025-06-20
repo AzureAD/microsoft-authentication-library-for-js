@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 10 Jun 2025 20:38:38 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Jun 2025 15:21:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.13.2
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- added UX_NOT_ALLOWED suberror to InteractionRequired error type #7834 (lalimasharda@microsoft.com)
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.13.1
 
