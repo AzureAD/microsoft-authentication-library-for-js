@@ -2819,12 +2819,13 @@ describe("BrowserCacheManager tests", () => {
                         testAccessTokenWithAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
+
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             ),
-                            TEST_CONFIG.CORRELATION_ID
+                            RANDOM_TEST_GUID
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
@@ -2832,7 +2833,7 @@ describe("BrowserCacheManager tests", () => {
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             ),
-                            TEST_CONFIG.CORRELATION_ID
+                            RANDOM_TEST_GUID
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN);
                 });
@@ -2907,7 +2908,7 @@ describe("BrowserCacheManager tests", () => {
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             ),
-                            TEST_CONFIG.CORRELATION_ID
+                            RANDOM_TEST_GUID
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
@@ -2915,7 +2916,7 @@ describe("BrowserCacheManager tests", () => {
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             ),
-                            TEST_CONFIG.CORRELATION_ID
+                            RANDOM_TEST_GUID
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
                 });
