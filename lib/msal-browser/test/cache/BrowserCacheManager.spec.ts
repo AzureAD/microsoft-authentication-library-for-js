@@ -399,11 +399,21 @@ describe("BrowserCacheManager tests", () => {
                         testAccount,
                         TEST_CONFIG.CORRELATION_ID
                     );
+                    expect(
+                        browserLocalStorage.getAccount(
+                            testAccount.generateAccountKey()
+                        )
+                    ).toEqual(testAccount);
+                    expect(
+                        browserLocalStorage.getAccount(
+                            testAccount.generateAccountKey()
+                        )
+                    ).toBeInstanceOf(AccountEntity);
+
                     await browserSessionStorage.setAccount(
                         testAccount,
                         TEST_CONFIG.CORRELATION_ID
                     );
-
                     expect(
                         browserSessionStorage.getAccount(
                             testAccount.generateAccountKey()
@@ -411,16 +421,6 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(testAccount);
                     expect(
                         browserSessionStorage.getAccount(
-                            testAccount.generateAccountKey()
-                        )
-                    ).toBeInstanceOf(AccountEntity);
-                    expect(
-                        browserLocalStorage.getAccount(
-                            testAccount.generateAccountKey()
-                        )
-                    ).toEqual(testAccount);
-                    expect(
-                        browserLocalStorage.getAccount(
                             testAccount.generateAccountKey()
                         )
                     ).toBeInstanceOf(AccountEntity);
@@ -487,18 +487,18 @@ describe("BrowserCacheManager tests", () => {
                         testIdToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
+                    expect(
+                        browserLocalStorage.getIdTokenCredential(
+                            CacheHelpers.generateCredentialKey(testIdToken)
+                        )
+                    ).toEqual(testIdToken);
+
                     await browserSessionStorage.setIdTokenCredential(
                         testIdToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
-
                     expect(
                         browserSessionStorage.getIdTokenCredential(
-                            CacheHelpers.generateCredentialKey(testIdToken)
-                        )
-                    ).toEqual(testIdToken);
-                    expect(
-                        browserLocalStorage.getIdTokenCredential(
                             CacheHelpers.generateCredentialKey(testIdToken)
                         )
                     ).toEqual(testIdToken);
@@ -573,139 +573,96 @@ describe("BrowserCacheManager tests", () => {
                         testAccessToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessToken,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAccessToken)
-                        )
-                    ).toEqual(testAccessToken);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAccessToken)
                         )
                     ).toEqual(testAccessToken);
-                });
 
-                it("getAccessTokenCredential returns Bearer access token when authentication scheme is set to Bearer and both a Bearer and pop token are in the cache", async () => {
-                    const testAccessTokenWithoutAuthScheme =
-                        CacheHelpers.createAccessTokenEntity(
-                            "homeAccountId",
-                            "environment",
-                            TEST_TOKENS.ACCESS_TOKEN,
-                            "client-id",
-                            "tenantId",
-                            "openid",
-                            1000,
-                            1000,
-                            browserCrypto.base64Decode,
-                            500,
-                            AuthenticationScheme.BEARER,
-                            "oboAssertion"
-                        );
-                    const testAccessTokenWithAuthScheme =
-                        CacheHelpers.createAccessTokenEntity(
-                            "homeAccountId",
-                            "environment",
-                            TEST_TOKENS.POP_TOKEN,
-                            "client-id",
-                            "tenantId",
-                            "openid",
-                            1000,
-                            1000,
-                            browserCrypto.base64Decode,
-                            500,
-                            AuthenticationScheme.POP,
-                            "oboAssertion"
-                        );
-                    // Cache bearer token
-                    await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme,
+                        testAccessToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                });
-
-                it("getAccessTokenCredential returns Bearer access token when authentication scheme is set to Bearer and both a Bearer and pop token are in the cache", async () => {
-                    const testAccessTokenWithoutAuthScheme =
-                        CacheHelpers.createAccessTokenEntity(
-                            "homeAccountId",
-                            "environment",
-                            TEST_TOKENS.ACCESS_TOKEN,
-                            "client-id",
-                            "tenantId",
-                            "openid",
-                            1000,
-                            1000,
-                            browserCrypto.base64Decode,
-                            500,
-                            AuthenticationScheme.BEARER,
-                            "oboAssertion"
-                        );
-                    const testAccessTokenWithAuthScheme =
-                        CacheHelpers.createAccessTokenEntity(
-                            "homeAccountId",
-                            "environment",
-                            TEST_TOKENS.POP_TOKEN,
-                            "client-id",
-                            "tenantId",
-                            "openid",
-                            1000,
-                            1000,
-                            browserCrypto.base64Decode,
-                            500,
-                            AuthenticationScheme.POP,
-                            "oboAssertion"
-                        );
-                    // Cache bearer token
-                    await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
-                    // Cache pop token
-                    await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAccessToken)
+                        )
+                    ).toEqual(testAccessToken);
+                });
+
+                it("getAccessTokenCredential returns Bearer access token when authentication scheme is set to Bearer and both a Bearer and pop token are in the cache", async () => {
+                    const testAccessTokenWithoutAuthScheme =
+                        CacheHelpers.createAccessTokenEntity(
+                            "homeAccountId",
+                            "environment",
+                            TEST_TOKENS.ACCESS_TOKEN,
+                            "client-id",
+                            "tenantId",
+                            "openid",
+                            1000,
+                            1000,
+                            browserCrypto.base64Decode,
+                            500,
+                            AuthenticationScheme.BEARER,
+                            "oboAssertion"
+                        );
+                    const testAccessTokenWithAuthScheme =
+                        CacheHelpers.createAccessTokenEntity(
+                            "homeAccountId",
+                            "environment",
+                            TEST_TOKENS.POP_TOKEN,
+                            "client-id",
+                            "tenantId",
+                            "openid",
+                            1000,
+                            1000,
+                            browserCrypto.base64Decode,
+                            500,
+                            AuthenticationScheme.POP,
+                            "oboAssertion"
+                        );
+                    // Cache bearer token
+                    await browserLocalStorage.setAccessTokenCredential(
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserLocalStorage.setAccessTokenCredential(
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    expect(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN);
+
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
@@ -749,44 +706,43 @@ describe("BrowserCacheManager tests", () => {
                         testAccessTokenWithoutAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
-                    // Cache pop token
                     await browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
@@ -876,15 +832,7 @@ describe("BrowserCacheManager tests", () => {
                         testAT1,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAT1,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAT2,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                    await browserSessionStorage.setAccessTokenCredential(
                         testAT2,
                         TEST_CONFIG.CORRELATION_ID
                     );
@@ -892,19 +840,10 @@ describe("BrowserCacheManager tests", () => {
                         testAT3,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAT3,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
                     await browserLocalStorage.setAccessTokenCredential(
                         testAT4,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAT4,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
                     expect(browserLocalStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
                         accessToken: [
@@ -915,120 +854,54 @@ describe("BrowserCacheManager tests", () => {
                         ],
                         refreshToken: [],
                     });
-
-                    expect(browserSessionStorage.getTokenKeys()).toStrictEqual({
-                        idToken: [],
-                        accessToken: [
-                            CacheHelpers.generateCredentialKey(testAT1),
-                            CacheHelpers.generateCredentialKey(testAT2),
-                            CacheHelpers.generateCredentialKey(testAT3),
-                            CacheHelpers.generateCredentialKey(testAT4),
-                        ],
-                        refreshToken: [],
-                    });
-
-                    expect(
-                        browserSessionStorage.getTokenKeys().accessToken.length
-                    ).toBe(4);
                     expect(
                         browserLocalStorage.getTokenKeys().accessToken.length
                     ).toBe(4);
-
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAT1)
-                        )
-                    ).toEqual(testAT1);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAT1)
                         )
                     ).toEqual(testAT1);
-
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAT2)
-                        )
-                    ).toEqual(testAT2);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAT2)
                         )
                     ).toEqual(testAT2);
-
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAT3)
-                        )
-                    ).toEqual(testAT3);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAT3)
                         )
                     ).toEqual(testAT3);
-
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAT4)
-                        )
-                    ).toEqual(testAT4);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAT4)
                         )
                     ).toEqual(testAT4);
 
-                    browserSessionStorage.clearTokensAndKeysWithClaims(
-                        "test-correlation-id"
-                    );
                     browserLocalStorage.clearTokensAndKeysWithClaims(
                         "test-correlation-id"
                     );
 
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAT1)
                         )
                     ).toEqual(testAT1);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAT1)
-                        )
-                    ).toEqual(testAT1);
-
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAT2)
                         )
                     ).toBeNull();
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAT2)
-                        )
-                    ).toBeNull();
-
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAT3)
                         )
                     ).toEqual(testAT3);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAT3)
-                        )
-                    ).toEqual(testAT3);
-
-                    expect(
-                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAT2)
                         )
                     ).toBeNull();
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAT2)
-                        )
-                    ).toBeNull();
-
                     expect(browserLocalStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
                         accessToken: [
@@ -1037,7 +910,85 @@ describe("BrowserCacheManager tests", () => {
                         ],
                         refreshToken: [],
                     });
+                    expect(
+                        browserLocalStorage.getTokenKeys().accessToken.length
+                    ).toBe(2);
 
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAT1,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAT2,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAT3,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAT4,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    expect(browserSessionStorage.getTokenKeys()).toStrictEqual({
+                        idToken: [],
+                        accessToken: [
+                            CacheHelpers.generateCredentialKey(testAT1),
+                            CacheHelpers.generateCredentialKey(testAT2),
+                            CacheHelpers.generateCredentialKey(testAT3),
+                            CacheHelpers.generateCredentialKey(testAT4),
+                        ],
+                        refreshToken: [],
+                    });
+
+                    expect(
+                        browserSessionStorage.getTokenKeys().accessToken.length
+                    ).toBe(4);
+                    expect(
+                        browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAT1)
+                        )
+                    ).toEqual(testAT1);
+                    expect(
+                        browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAT2)
+                        )
+                    ).toEqual(testAT2);
+                    expect(
+                        browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAT3)
+                        )
+                    ).toEqual(testAT3);
+                    expect(
+                        browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAT4)
+                        )
+                    ).toEqual(testAT4);
+                    browserSessionStorage.clearTokensAndKeysWithClaims(
+                        "test-correlation-id"
+                    );
+
+                    expect(
+                        browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAT1)
+                        )
+                    ).toEqual(testAT1);
+                    expect(
+                        browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAT2)
+                        )
+                    ).toBeNull();
+                    expect(
+                        browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAT3)
+                        )
+                    ).toEqual(testAT3);
+                    expect(
+                        browserSessionStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAT2)
+                        )
+                    ).toBeNull();
                     expect(browserSessionStorage.getTokenKeys()).toStrictEqual({
                         idToken: [],
                         accessToken: [
@@ -1049,9 +1000,6 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getTokenKeys().accessToken.length
-                    ).toBe(2);
-                    expect(
-                        browserLocalStorage.getTokenKeys().accessToken.length
                     ).toBe(2);
                 });
             });
@@ -1118,18 +1066,18 @@ describe("BrowserCacheManager tests", () => {
                         testRefreshToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
+                    expect(
+                        browserLocalStorage.getRefreshTokenCredential(
+                            CacheHelpers.generateCredentialKey(testRefreshToken)
+                        )
+                    ).toEqual(testRefreshToken);
+
                     await browserSessionStorage.setRefreshTokenCredential(
                         testRefreshToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
-
                     expect(
                         browserSessionStorage.getRefreshTokenCredential(
-                            CacheHelpers.generateCredentialKey(testRefreshToken)
-                        )
-                    ).toEqual(testRefreshToken);
-                    expect(
-                        browserLocalStorage.getRefreshTokenCredential(
                             CacheHelpers.generateCredentialKey(testRefreshToken)
                         )
                     ).toEqual(testRefreshToken);
@@ -1795,6 +1743,17 @@ describe("BrowserCacheManager tests", () => {
                         testAccount,
                         TEST_CONFIG.CORRELATION_ID
                     );
+                    expect(
+                        browserLocalStorage.getAccount(
+                            testAccount.generateAccountKey()
+                        )
+                    ).toEqual(testAccount);
+                    expect(
+                        browserLocalStorage.getAccount(
+                            testAccount.generateAccountKey()
+                        )
+                    ).toBeInstanceOf(AccountEntity);
+
                     await browserSessionStorage.setAccount(
                         testAccount,
                         TEST_CONFIG.CORRELATION_ID
@@ -1807,16 +1766,6 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(testAccount);
                     expect(
                         browserSessionStorage.getAccount(
-                            testAccount.generateAccountKey()
-                        )
-                    ).toBeInstanceOf(AccountEntity);
-                    expect(
-                        browserLocalStorage.getAccount(
-                            testAccount.generateAccountKey()
-                        )
-                    ).toEqual(testAccount);
-                    expect(
-                        browserLocalStorage.getAccount(
                             testAccount.generateAccountKey()
                         )
                     ).toBeInstanceOf(AccountEntity);
@@ -1883,18 +1832,18 @@ describe("BrowserCacheManager tests", () => {
                         testIdToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
+                    expect(
+                        browserLocalStorage.getIdTokenCredential(
+                            CacheHelpers.generateCredentialKey(testIdToken)
+                        )
+                    ).toEqual(testIdToken);
+
                     await browserSessionStorage.setIdTokenCredential(
                         testIdToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
-
                     expect(
                         browserSessionStorage.getIdTokenCredential(
-                            CacheHelpers.generateCredentialKey(testIdToken)
-                        )
-                    ).toEqual(testIdToken);
-                    expect(
-                        browserLocalStorage.getIdTokenCredential(
                             CacheHelpers.generateCredentialKey(testIdToken)
                         )
                     ).toEqual(testIdToken);
@@ -1969,18 +1918,18 @@ describe("BrowserCacheManager tests", () => {
                         testAccessToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
+                    expect(
+                        browserLocalStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAccessToken)
+                        )
+                    ).toEqual(testAccessToken);
+
                     await browserSessionStorage.setAccessTokenCredential(
                         testAccessToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
-
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAccessToken)
-                        )
-                    ).toEqual(testAccessToken);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAccessToken)
                         )
                     ).toEqual(testAccessToken);
@@ -2022,44 +1971,42 @@ describe("BrowserCacheManager tests", () => {
                         testAccessTokenWithoutAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
-                    // Cache pop token
                     await browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN);
+
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
@@ -2103,44 +2050,42 @@ describe("BrowserCacheManager tests", () => {
                         testAccessTokenWithoutAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
-                    // Cache pop token
                     await browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
@@ -2211,18 +2156,18 @@ describe("BrowserCacheManager tests", () => {
                         testRefreshToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
+                    expect(
+                        browserLocalStorage.getRefreshTokenCredential(
+                            CacheHelpers.generateCredentialKey(testRefreshToken)
+                        )
+                    ).toEqual(testRefreshToken);
+
                     await browserSessionStorage.setRefreshTokenCredential(
                         testRefreshToken,
                         TEST_CONFIG.CORRELATION_ID
                     );
-
                     expect(
                         browserSessionStorage.getRefreshTokenCredential(
-                            CacheHelpers.generateCredentialKey(testRefreshToken)
-                        )
-                    ).toEqual(testRefreshToken);
-                    expect(
-                        browserLocalStorage.getRefreshTokenCredential(
                             CacheHelpers.generateCredentialKey(testRefreshToken)
                         )
                     ).toEqual(testRefreshToken);
