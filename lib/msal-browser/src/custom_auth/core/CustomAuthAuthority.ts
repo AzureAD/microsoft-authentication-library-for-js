@@ -39,12 +39,11 @@ export class CustomAuthAuthority extends Authority {
             CustomAuthAuthority.transformCIAMAuthority(authority);
 
         const authorityOptions: AuthorityOptions = {
-            protocolMode: config.auth.protocolMode,
+            protocolMode: config.system.protocolMode,
             OIDCOptions: config.auth.OIDCOptions,
             knownAuthorities: config.auth.knownAuthorities,
             cloudDiscoveryMetadata: config.auth.cloudDiscoveryMetadata,
             authorityMetadata: config.auth.authorityMetadata,
-            skipAuthorityMetadataCache: config.auth.skipAuthorityMetadataCache,
         };
 
         super(

@@ -83,12 +83,13 @@ describe("ResetPasswordClient", () => {
     );
     const mockConfig = {
         auth: {
-            protocolMode: "",
             OIDCOptions: {},
             knownAuthorities: [],
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipAuthorityMetadataCache: false,
+        },
+        system: {
+            protocolMode: "",
         },
     } as unknown as jest.Mocked<BrowserConfiguration>;
 

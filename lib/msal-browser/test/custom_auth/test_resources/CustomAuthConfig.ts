@@ -19,7 +19,6 @@ export const customAuthConfig: CustomAuthConfiguration = {
     },
     cache: {
         cacheLocation: "sessionStorage",
-        storeAuthStateInCookie: false,
     },
     system: {
         loggerOptions: {

@@ -4,9 +4,9 @@ import { CustomAuthAuthority } from "../../../../src/custom_auth/core/CustomAuth
 import {
     AccessTokenEntity,
     AccountEntity,
-    AuthenticationScheme,
     CacheHelpers,
     CommonSilentFlowRequest,
+    Constants,
     createInteractionRequiredAuthError,
     ICrypto,
     INetworkModule,
@@ -18,7 +18,7 @@ import {
 } from "@azure/msal-common/browser";
 import {
     TestTokenResponse,
-    TestAccounDetails,
+    TestAccountDetails,
     TestServerTokenResponse,
     TestHomeAccountId,
     TestTenantId,
@@ -30,6 +30,7 @@ import { BrowserCacheManager } from "../../../../src/cache/BrowserCacheManager.j
 import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
 import { INavigationClient } from "../../../../src/navigation/INavigationClient.js";
 import { EventHandler } from "../../../../src/event/EventHandler.js";
+import { CryptoOps } from "../../../../src/crypto/CryptoOps.js";
 
 jest.mock("@azure/msal-browser", () => {
     const actualModule = jest.requireActual("@azure/msal-browser");
@@ -92,12 +93,6 @@ describe("CustomAuthSilentCacheClient", () => {
             telemetry: {},
         } as unknown as jest.Mocked<BrowserConfiguration>;
 
-        const decodedStr = JSON.stringify(TestIdTokenClaims);
-        mockCrypto = {
-            createNewGuid: jest.fn(),
-            base64Decode: jest.fn().mockReturnValue(decodedStr),
-        } as unknown as jest.Mocked<ICrypto>;
-
         const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
         const mockPerformanceClient = new StubPerformanceClient();
         const mockedApiClient = {} as unknown as jest.Mocked<any>;
@@ -116,6 +111,7 @@ describe("CustomAuthSilentCacheClient", () => {
         } as unknown as jest.Mocked<Logger>;
 
         mockLogger.clone.mockReturnValue(mockLogger);
+        mockCrypto = new CryptoOps(mockLogger);
 
         mockCacheManager = new BrowserCacheManager(
             customAuthConfig.auth.clientId,
@@ -162,7 +158,7 @@ describe("CustomAuthSilentCacheClient", () => {
             authority: customAuthConfig.auth.authority,
             correlationId: "test-correlation-id",
             scopes: defaultScopes,
-            account: TestAccounDetails,
+            account: TestAccountDetails,
             forceRefresh: false,
             storeInCache: {
                 idToken: true,
@@ -172,14 +168,9 @@ describe("CustomAuthSilentCacheClient", () => {
         } as CommonSilentFlowRequest;
 
         beforeEach(() => {
-            accountEntityToCache =
-                AccountEntity.createFromAccountInfo(TestAccounDetails);
+            accountEntityToCache = createAccountEntityFromAccountInfo();
             accessTokenEntityToCache = createAccessTokenEntity(mockCrypto);
             refreshTokenEntityToCache = createRefreshTokenEntity();
-
-            jest.spyOn(AccountEntity, "generateHomeAccountId").mockReturnValue(
-                TestHomeAccountId
-            );
         });
 
         afterEach(() => {
@@ -425,7 +416,7 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
 
     return CacheHelpers.createAccessTokenEntity(
         TestHomeAccountId,
-        TestAccounDetails.environment,
+        TestAccountDetails.environment,
         TestTokenResponse.ACCESS_TOKEN,
         customAuthConfig.auth.clientId,
         TestTenantId,
@@ -434,15 +425,31 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
         expiresOn + 0,
         browserCrypto.base64Decode,
         undefined,
-        TestServerTokenResponse.token_type as AuthenticationScheme
+        TestServerTokenResponse.token_type as Constants.AuthenticationScheme
     );
 }
 
 function createRefreshTokenEntity(): RefreshTokenEntity {
     return CacheHelpers.createRefreshTokenEntity(
         TestHomeAccountId,
-        TestAccounDetails.environment,
+        TestAccountDetails.environment,
         TestServerTokenResponse.refresh_token,
         customAuthConfig.auth.clientId
     );
+}
+
+function createAccountEntityFromAccountInfo(): AccountEntity {
+    console.log(
+        "🎯 DEBUG: Local createAccountEntityFromAccountInfo called in test!"
+    );
+
+    return {
+        authorityType: Constants.CACHE_ACCOUNT_TYPE_GENERIC,
+        homeAccountId: TestAccountDetails.homeAccountId,
+        localAccountId: TestAccountDetails.localAccountId,
+        realm: TestAccountDetails.tenantId,
+        environment: TestAccountDetails.environment,
+        username: TestAccountDetails.username,
+        name: TestAccountDetails.name,
+    } as AccountEntity;
 }

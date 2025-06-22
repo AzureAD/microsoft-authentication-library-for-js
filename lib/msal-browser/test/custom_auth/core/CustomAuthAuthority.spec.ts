@@ -25,12 +25,13 @@ describe("CustomAuthAuthority", () => {
     const mockLogger = {} as unknown as jest.Mocked<Logger>;
     const mockConfig = {
         auth: {
-            protocolMode: "",
             OIDCOptions: {},
             knownAuthorities: [],
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipAuthorityMetadataCache: false,
+        },
+        system: {
+            protocolMode: "",
         },
     } as unknown as jest.Mocked<BrowserConfiguration>;
 

@@ -12,8 +12,8 @@ import { DefaultScopes } from "../../CustomAuthConstants.js";
 import { AccessTokenRetrievalInputs } from "../../CustomAuthActionInputs.js";
 import {
     AccountInfo,
-    AuthenticationScheme,
     CommonSilentFlowRequest,
+    Constants,
     Logger,
     TokenClaims,
 } from "@azure/msal-common/browser";
@@ -175,7 +175,7 @@ export class CustomAuthAccountData {
 
         return {
             ...silentRequest,
-            authenticationScheme: AuthenticationScheme.BEARER,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
         } as CommonSilentFlowRequest;
     }
 }

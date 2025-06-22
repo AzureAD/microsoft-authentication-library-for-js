@@ -189,10 +189,6 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
                 logLevel: logger.logLevel,
                 correlationId: this.correlationId,
             },
-            cacheOptions: {
-                claimsBasedCachingEnabled:
-                    this.config.cache.claimsBasedCachingEnabled,
-            },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,

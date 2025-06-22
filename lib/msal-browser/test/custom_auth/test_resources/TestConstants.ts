@@ -18,7 +18,7 @@ export const TestHomeAccountId =
 export const TestTenantId = "d37e5645-4170-4ce0-a618-1b9008b14e58"; // fake tenantId
 export const TestUsername = "abc@test.com"; // fake username
 
-export const TestAccounDetails = {
+export const TestAccountDetails = {
     homeAccountId: TestHomeAccountId,
     environment: "spasamples.ciamlogin.com",
     tenantId: TestTenantId,
