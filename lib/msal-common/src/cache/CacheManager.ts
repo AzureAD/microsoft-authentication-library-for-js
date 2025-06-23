@@ -52,7 +52,8 @@ import { getAliasesFromStaticSources } from "../authority/AuthorityMetadata.js";
 import { StaticAuthorityOptions } from "../authority/AuthorityOptions.js";
 import { TokenClaims } from "../account/TokenClaims.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { CacheError, CacheErrorCodes } from "../error/CacheError.js";
+import { createCacheError } from "../error/CacheError.js";
+import { AuthError } from "../error/AuthError.js";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -86,7 +87,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract getAccount(
         accountKey: string,
-        logger?: Logger
+        correlationId: string
     ): AccountEntity | null;
 
     /**
@@ -103,7 +104,10 @@ export abstract class CacheManager implements ICacheManager {
      * fetch the idToken entity from the platform cache
      * @param idTokenKey
      */
-    abstract getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
+    abstract getIdTokenCredential(
+        idTokenKey: string,
+        correlationId: string
+    ): IdTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
@@ -120,7 +124,8 @@ export abstract class CacheManager implements ICacheManager {
      * @param accessTokenKey
      */
     abstract getAccessTokenCredential(
-        accessTokenKey: string
+        accessTokenKey: string,
+        correlationId: string
     ): AccessTokenEntity | null;
 
     /**
@@ -138,7 +143,8 @@ export abstract class CacheManager implements ICacheManager {
      * @param refreshTokenKey
      */
     abstract getRefreshTokenCredential(
-        refreshTokenKey: string
+        refreshTokenKey: string,
+        correlationId: string
     ): RefreshTokenEntity | null;
 
     /**
@@ -161,7 +167,10 @@ export abstract class CacheManager implements ICacheManager {
      * set appMetadata entity to the platform cache
      * @param appMetadata
      */
-    abstract setAppMetadata(appMetadata: AppMetadataEntity): void;
+    abstract setAppMetadata(
+        appMetadata: AppMetadataEntity,
+        correlationId: string
+    ): void;
 
     /**
      * fetch server telemetry entity from the platform cache
@@ -178,7 +187,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setServerTelemetry(
         serverTelemetryKey: string,
-        serverTelemetry: ServerTelemetryEntity
+        serverTelemetry: ServerTelemetryEntity,
+        correlationId: string
     ): void;
 
     /**
@@ -217,14 +227,15 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setThrottlingCache(
         throttlingCacheKey: string,
-        throttlingCache: ThrottlingEntity
+        throttlingCache: ThrottlingEntity,
+        correlationId: string
     ): void;
 
     /**
      * Function to remove an item from cache given its key.
      * @param key
      */
-    abstract removeItem(key: string): void;
+    abstract removeItem(key: string, correlationId: string): void;
 
     /**
      * Function which retrieves all current keys from the cache.
@@ -246,9 +257,13 @@ export abstract class CacheManager implements ICacheManager {
      * @param accountFilter - (Optional) filter to narrow down the accounts returned
      * @returns Array of AccountInfo objects in cache
      */
-    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
+    getAllAccounts(
+        accountFilter: AccountFilter,
+        correlationId: string
+    ): AccountInfo[] {
         return this.buildTenantProfiles(
-            this.getAccountsFilteredBy(accountFilter || {}),
+            this.getAccountsFilteredBy(accountFilter, correlationId),
+            correlationId,
             accountFilter
         );
     }
@@ -256,8 +271,11 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Gets first tenanted AccountInfo object found based on provided filters
      */
-    getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null {
-        const allAccounts = this.getAllAccounts(accountFilter);
+    getAccountInfoFilteredBy(
+        accountFilter: AccountFilter,
+        correlationId: string
+    ): AccountInfo | null {
+        const allAccounts = this.getAllAccounts(accountFilter, correlationId);
         if (allAccounts.length > 1) {
             // If one or more accounts are found, prioritize accounts that have an ID token
             const sortedAccounts = allAccounts.sort((account) => {
@@ -277,8 +295,14 @@ export abstract class CacheManager implements ICacheManager {
      * @param accountFilter
      * @returns
      */
-    getBaseAccountInfo(accountFilter: AccountFilter): AccountInfo | null {
-        const accountEntities = this.getAccountsFilteredBy(accountFilter);
+    getBaseAccountInfo(
+        accountFilter: AccountFilter,
+        correlationId: string
+    ): AccountInfo | null {
+        const accountEntities = this.getAccountsFilteredBy(
+            accountFilter,
+            correlationId
+        );
         if (accountEntities.length > 0) {
             return accountEntities[0].getAccountInfo();
         } else {
@@ -295,11 +319,13 @@ export abstract class CacheManager implements ICacheManager {
      */
     private buildTenantProfiles(
         cachedAccounts: AccountEntity[],
+        correlationId: string,
         accountFilter?: AccountFilter
     ): AccountInfo[] {
         return cachedAccounts.flatMap((accountEntity) => {
             return this.getTenantProfilesFromAccountEntity(
                 accountEntity,
+                correlationId,
                 accountFilter?.tenantId,
                 accountFilter
             );
@@ -310,6 +336,7 @@ export abstract class CacheManager implements ICacheManager {
         accountInfo: AccountInfo,
         tokenKeys: TokenKeys,
         tenantProfile: TenantProfile,
+        correlationId: string,
         tenantProfileFilter?: TenantProfileFilter
     ): AccountInfo | null {
         let tenantedAccountInfo: AccountInfo | null = null;
@@ -328,6 +355,7 @@ export abstract class CacheManager implements ICacheManager {
 
         const idToken = this.getIdToken(
             accountInfo,
+            correlationId,
             tokenKeys,
             tenantProfile.tenantId
         );
@@ -362,6 +390,7 @@ export abstract class CacheManager implements ICacheManager {
 
     private getTenantProfilesFromAccountEntity(
         accountEntity: AccountEntity,
+        correlationId: string,
         targetTenantId?: string,
         tenantProfileFilter?: TenantProfileFilter
     ): AccountInfo[] {
@@ -390,6 +419,7 @@ export abstract class CacheManager implements ICacheManager {
                 accountInfo,
                 tokenKeys,
                 tenantProfile,
+                correlationId,
                 tenantProfileFilter
             );
             if (tenantedAccountInfo) {
@@ -535,37 +565,14 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (!!cacheRecord.appMetadata) {
-                this.setAppMetadata(cacheRecord.appMetadata);
+                this.setAppMetadata(cacheRecord.appMetadata, correlationId);
             }
         } catch (e: unknown) {
             this.commonLogger?.error(`CacheManager.saveCacheRecord: failed`);
-            if (e instanceof Error) {
-                this.commonLogger?.errorPii(
-                    `CacheManager.saveCacheRecord: ${e.message}`,
-                    correlationId
-                );
-
-                if (
-                    e.name === "QuotaExceededError" ||
-                    e.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
-                    e.message.includes("exceeded the quota")
-                ) {
-                    this.commonLogger?.error(
-                        `CacheManager.saveCacheRecord: exceeded storage quota`,
-                        correlationId
-                    );
-                    throw new CacheError(
-                        CacheErrorCodes.cacheQuotaExceededErrorCode
-                    );
-                } else {
-                    throw new CacheError(e.name, e.message);
-                }
+            if (e instanceof AuthError) {
+                throw e;
             } else {
-                this.commonLogger?.errorPii(
-                    `CacheManager.saveCacheRecord: ${e}`,
-                    correlationId
-                );
-                throw new CacheError(CacheErrorCodes.cacheUnknownErrorCode);
+                throw createCacheError(e);
             }
         }
     }
@@ -598,7 +605,10 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            const tokenEntity = this.getAccessTokenCredential(key);
+            const tokenEntity = this.getAccessTokenCredential(
+                key,
+                correlationId
+            );
 
             if (
                 tokenEntity &&
@@ -618,7 +628,10 @@ export abstract class CacheManager implements ICacheManager {
      * Not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
      * @param accountFilter - An object containing Account properties to filter by
      */
-    getAccountsFilteredBy(accountFilter: AccountFilter): AccountEntity[] {
+    getAccountsFilteredBy(
+        accountFilter: AccountFilter,
+        correlationId: string
+    ): AccountEntity[] {
         const allAccountKeys = this.getAccountKeys();
         const matchingAccounts: AccountEntity[] = [];
         allAccountKeys.forEach((cacheKey) => {
@@ -629,7 +642,7 @@ export abstract class CacheManager implements ICacheManager {
 
             const entity: AccountEntity | null = this.getAccount(
                 cacheKey,
-                this.commonLogger
+                correlationId
             );
 
             // Match base account fields
@@ -973,12 +986,12 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      */
     removeAccount(accountKey: string, correlationId: string): void {
-        const account = this.getAccount(accountKey, this.commonLogger);
+        const account = this.getAccount(accountKey, correlationId);
         if (!account) {
             return;
         }
         this.removeAccountContext(account, correlationId);
-        this.removeItem(accountKey);
+        this.removeItem(accountKey, correlationId);
     }
 
     /**
@@ -991,7 +1004,7 @@ export abstract class CacheManager implements ICacheManager {
 
         allTokenKeys.idToken.forEach((key) => {
             if (key.indexOf(accountId) === 0) {
-                this.removeIdToken(key);
+                this.removeIdToken(key, correlationId);
             }
         });
 
@@ -1003,59 +1016,59 @@ export abstract class CacheManager implements ICacheManager {
 
         allTokenKeys.refreshToken.forEach((key) => {
             if (key.indexOf(accountId) === 0) {
-                this.removeRefreshToken(key);
+                this.removeRefreshToken(key, correlationId);
             }
         });
     }
 
     /**
-     * returns a boolean if the given credential is removed
-     * @param credential
+     * Removes accessToken from the cache
+     * @param key
+     * @param correlationId
      */
     removeAccessToken(key: string, correlationId: string): void {
-        const credential = this.getAccessTokenCredential(key);
-        if (!credential) {
+        const credential = this.getAccessTokenCredential(key, correlationId);
+        this.removeItem(key, correlationId);
+        this.performanceClient.incrementFields(
+            { accessTokensRemoved: 1 },
+            correlationId
+        );
+
+        if (
+            !credential ||
+            credential.credentialType.toLowerCase() !==
+                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase() ||
+            credential.tokenType !== AuthenticationScheme.POP
+        ) {
+            // If the credential is not a PoP token, we can return
             return;
         }
 
-        this.removeItem(key);
-
         // Remove Token Binding Key from key store for PoP Tokens Credentials
-        if (
-            credential.credentialType.toLowerCase() ===
-            CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
-        ) {
-            if (credential.tokenType === AuthenticationScheme.POP) {
-                const accessTokenWithAuthSchemeEntity =
-                    credential as AccessTokenEntity;
-                const kid = accessTokenWithAuthSchemeEntity.keyId;
+        const kid = credential.keyId;
 
-                if (kid) {
-                    void this.cryptoImpl
-                        .removeTokenBindingKey(kid)
-                        .catch(() => {
-                            this.commonLogger.error(
-                                `Failed to remove token binding key ${kid}`,
-                                correlationId
-                            );
-                            this.performanceClient?.incrementFields(
-                                { removeTokenBindingKeyFailure: 1 },
-                                correlationId
-                            );
-                        });
-                }
-            }
+        if (kid) {
+            void this.cryptoImpl.removeTokenBindingKey(kid).catch(() => {
+                this.commonLogger.error(
+                    `Failed to remove token binding key ${kid}`,
+                    correlationId
+                );
+                this.performanceClient?.incrementFields(
+                    { removeTokenBindingKeyFailure: 1 },
+                    correlationId
+                );
+            });
         }
     }
 
     /**
      * Removes all app metadata objects from cache.
      */
-    removeAppMetadata(): boolean {
+    removeAppMetadata(correlationId: string): boolean {
         const allCacheKeys = this.getKeys();
         allCacheKeys.forEach((cacheKey) => {
             if (this.isAppMetadata(cacheKey)) {
-                this.removeItem(cacheKey);
+                this.removeItem(cacheKey, correlationId);
             }
         });
 
@@ -1066,10 +1079,13 @@ export abstract class CacheManager implements ICacheManager {
      * Retrieve AccountEntity from cache
      * @param account
      */
-    readAccountFromCache(account: AccountInfo): AccountEntity | null {
+    readAccountFromCache(
+        account: AccountInfo,
+        correlationId: string
+    ): AccountEntity | null {
         const accountKey: string =
             AccountEntity.generateAccountCacheKey(account);
-        return this.getAccount(accountKey, this.commonLogger);
+        return this.getAccount(accountKey, correlationId);
     }
 
     /**
@@ -1082,10 +1098,10 @@ export abstract class CacheManager implements ICacheManager {
      */
     getIdToken(
         account: AccountInfo,
+        correlationId: string,
         tokenKeys?: TokenKeys,
         targetRealm?: string,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
+        performanceClient?: IPerformanceClient
     ): IdTokenEntity | null {
         this.commonLogger.trace("CacheManager - getIdToken called");
         const idTokenFilter: CredentialFilter = {
@@ -1098,6 +1114,7 @@ export abstract class CacheManager implements ICacheManager {
 
         const idTokenMap: Map<string, IdTokenEntity> = this.getIdTokensByFilter(
             idTokenFilter,
+            correlationId,
             tokenKeys
         );
 
@@ -1140,7 +1157,7 @@ export abstract class CacheManager implements ICacheManager {
                 "CacheManager:getIdToken - Multiple matching ID tokens found, clearing them"
             );
             tokensToBeRemoved.forEach((idToken, key) => {
-                this.removeIdToken(key);
+                this.removeIdToken(key, correlationId);
             });
             if (performanceClient && correlationId) {
                 performanceClient.addFields(
@@ -1162,6 +1179,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     getIdTokensByFilter(
         filter: CredentialFilter,
+        correlationId: string,
         tokenKeys?: TokenKeys
     ): Map<string, IdTokenEntity> {
         const idTokenKeys =
@@ -1180,7 +1198,7 @@ export abstract class CacheManager implements ICacheManager {
             ) {
                 return;
             }
-            const idToken = this.getIdTokenCredential(key);
+            const idToken = this.getIdTokenCredential(key, correlationId);
             if (idToken && this.credentialMatchesFilter(idToken, filter)) {
                 idTokens.set(key, idToken);
             }
@@ -1221,22 +1239,23 @@ export abstract class CacheManager implements ICacheManager {
      * Removes idToken from the cache
      * @param key
      */
-    removeIdToken(key: string): void {
-        this.removeItem(key);
+    removeIdToken(key: string, correlationId: string): void {
+        this.removeItem(key, correlationId);
     }
 
     /**
      * Removes refresh token from the cache
      * @param key
      */
-    removeRefreshToken(key: string): void {
-        this.removeItem(key);
+    removeRefreshToken(key: string, correlationId: string): void {
+        this.removeItem(key, correlationId);
     }
 
     /**
      * Retrieve AccessTokenEntity from cache
      * @param account {AccountInfo}
      * @param request {BaseAuthRequest}
+     * @param correlationId {?string}
      * @param tokenKeys {?TokenKeys}
      * @param performanceClient {?IPerformanceClient}
      */
@@ -1287,7 +1306,10 @@ export abstract class CacheManager implements ICacheManager {
             if (
                 this.accessTokenKeyMatchesFilter(key, accessTokenFilter, true)
             ) {
-                const accessToken = this.getAccessTokenCredential(key);
+                const accessToken = this.getAccessTokenCredential(
+                    key,
+                    correlationId
+                );
 
                 // Validate value
                 if (
@@ -1396,7 +1418,10 @@ export abstract class CacheManager implements ICacheManager {
      * @param filter
      * @returns
      */
-    getAccessTokensByFilter(filter: CredentialFilter): AccessTokenEntity[] {
+    getAccessTokensByFilter(
+        filter: CredentialFilter,
+        correlationId: string
+    ): AccessTokenEntity[] {
         const tokenKeys = this.getTokenKeys();
 
         const accessTokens: AccessTokenEntity[] = [];
@@ -1405,7 +1430,10 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            const accessToken = this.getAccessTokenCredential(key);
+            const accessToken = this.getAccessTokenCredential(
+                key,
+                correlationId
+            );
             if (
                 accessToken &&
                 this.credentialMatchesFilter(accessToken, filter)
@@ -1421,16 +1449,16 @@ export abstract class CacheManager implements ICacheManager {
      * Helper to retrieve the appropriate refresh token from cache
      * @param account {AccountInfo}
      * @param familyRT {boolean}
+     * @param correlationId {?string}
      * @param tokenKeys {?TokenKeys}
      * @param performanceClient {?IPerformanceClient}
-     * @param correlationId {?string}
      */
     getRefreshToken(
         account: AccountInfo,
         familyRT: boolean,
+        correlationId: string,
         tokenKeys?: TokenKeys,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
+        performanceClient?: IPerformanceClient
     ): RefreshTokenEntity | null {
         this.commonLogger.trace("CacheManager - getRefreshToken called");
         const id = familyRT ? THE_FAMILY_ID : undefined;
@@ -1450,7 +1478,10 @@ export abstract class CacheManager implements ICacheManager {
         refreshTokenKeys.forEach((key) => {
             // Validate key
             if (this.refreshTokenKeyMatchesFilter(key, refreshTokenFilter)) {
-                const refreshToken = this.getRefreshTokenCredential(key);
+                const refreshToken = this.getRefreshTokenCredential(
+                    key,
+                    correlationId
+                );
                 // Validate value
                 if (
                     refreshToken &&

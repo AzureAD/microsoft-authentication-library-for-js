@@ -38,14 +38,15 @@ export class ThrottlingUtils {
      */
     static preProcess(
         cacheManager: CacheManager,
-        thumbprint: RequestThumbprint
+        thumbprint: RequestThumbprint,
+        correlationId: string
     ): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
         const value = cacheManager.getThrottlingCache(key);
 
         if (value) {
             if (value.throttleTime < Date.now()) {
-                cacheManager.removeItem(key);
+                cacheManager.removeItem(key, correlationId);
                 return;
             }
             throw new ServerError(
@@ -65,7 +66,8 @@ export class ThrottlingUtils {
     static postProcess(
         cacheManager: CacheManager,
         thumbprint: RequestThumbprint,
-        response: NetworkResponse<ServerAuthorizationTokenResponse>
+        response: NetworkResponse<ServerAuthorizationTokenResponse>,
+        correlationId: string
     ): void {
         if (
             ThrottlingUtils.checkResponseStatus(response) ||
@@ -82,7 +84,8 @@ export class ThrottlingUtils {
             };
             cacheManager.setThrottlingCache(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-                thumbprintValue
+                thumbprintValue,
+                correlationId
             );
         }
     }
@@ -146,6 +149,6 @@ export class ThrottlingUtils {
             homeAccountIdentifier
         );
         const key = this.generateThrottlingStorageKey(thumbprint);
-        cacheManager.removeItem(key);
+        cacheManager.removeItem(key, request.correlationId);
     }
 }

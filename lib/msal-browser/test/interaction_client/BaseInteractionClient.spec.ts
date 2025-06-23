@@ -21,6 +21,7 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
+    RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient.js";
 import {
@@ -36,7 +37,7 @@ class testInteractionClient extends BaseInteractionClient {
     }
 
     logout(request: EndSessionRequest): Promise<void> {
-        return this.clearCacheOnLogout(request.account);
+        return this.clearCacheOnLogout(RANDOM_TEST_GUID, request.account);
     }
 }
 

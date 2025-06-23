@@ -212,9 +212,9 @@ export class RefreshTokenClient extends BaseClient {
         )(
             request.account,
             foci,
+            request.correlationId,
             undefined,
-            this.performanceClient,
-            request.correlationId
+            this.performanceClient
         );
 
         if (!refreshToken) {
@@ -274,7 +274,10 @@ export class RefreshTokenClient extends BaseClient {
                     );
                     const badRefreshTokenKey =
                         generateCredentialKey(refreshToken);
-                    this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+                    this.cacheManager.removeRefreshToken(
+                        badRefreshTokenKey,
+                        request.correlationId
+                    );
                 }
             }
 
