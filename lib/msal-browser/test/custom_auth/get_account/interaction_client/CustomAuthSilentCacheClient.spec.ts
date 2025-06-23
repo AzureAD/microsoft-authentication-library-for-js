@@ -30,6 +30,7 @@ import { BrowserCacheManager } from "../../../../src/cache/BrowserCacheManager.j
 import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
 import { INavigationClient } from "../../../../src/navigation/INavigationClient.js";
 import { EventHandler } from "../../../../src/event/EventHandler.js";
+import { RANDOM_TEST_GUID } from "../../../utils/StringConstants.js";
 
 jest.mock("@azure/msal-browser", () => {
     const actualModule = jest.requireActual("@azure/msal-browser");
@@ -226,8 +227,10 @@ describe("CustomAuthSilentCacheClient", () => {
                 .refreshToken.filter((key) =>
                     key.includes(TestHomeAccountId)
                 )[0];
-            const refreshToken =
-                mockCacheManager.getRefreshTokenCredential(refreshTokenKey);
+            const refreshToken = mockCacheManager.getRefreshTokenCredential(
+                refreshTokenKey,
+                RANDOM_TEST_GUID
+            );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
 
@@ -254,8 +257,10 @@ describe("CustomAuthSilentCacheClient", () => {
                 .refreshToken.filter((key) =>
                     key.includes(TestHomeAccountId)
                 )[0];
-            const refreshToken =
-                mockCacheManager.getRefreshTokenCredential(refreshTokenKey);
+            const refreshToken = mockCacheManager.getRefreshTokenCredential(
+                refreshTokenKey,
+                RANDOM_TEST_GUID
+            );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
 
@@ -280,8 +285,10 @@ describe("CustomAuthSilentCacheClient", () => {
                 .refreshToken.filter((key) =>
                     key.includes(TestHomeAccountId)
                 )[0];
-            const refreshToken =
-                mockCacheManager.getRefreshTokenCredential(refreshTokenKey);
+            const refreshToken = mockCacheManager.getRefreshTokenCredential(
+                refreshTokenKey,
+                RANDOM_TEST_GUID
+            );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
 
