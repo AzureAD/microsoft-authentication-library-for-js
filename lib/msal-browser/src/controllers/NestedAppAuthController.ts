@@ -56,6 +56,7 @@ import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { create } from "domain";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -467,12 +468,14 @@ export class NestedAppAuthController implements IController {
         // always prioritize the account context from the bridge
         const accountContext =
             this.bridgeProxy.getAccountContext() || this.currentAccountContext;
+        const correlationId = request.correlationId || createNewGuid();
         let currentAccount: AccountInfo | null = null;
         if (accountContext) {
             currentAccount = AccountManager.getAccount(
                 accountContext,
                 this.logger,
-                this.browserStorage
+                this.browserStorage,
+                correlationId
             );
         }
 
@@ -490,8 +493,7 @@ export class NestedAppAuthController implements IController {
 
         const authRequest: BaseAuthRequest = {
             ...request,
-            correlationId:
-                request.correlationId || this.browserCrypto.createNewGuid(),
+            correlationId: correlationId,
             authority: request.authority || currentAccount.environment,
             scopes: request.scopes?.length
                 ? request.scopes
@@ -524,10 +526,9 @@ export class NestedAppAuthController implements IController {
 
         const cachedIdToken = this.browserStorage.getIdToken(
             currentAccount,
+            authRequest.correlationId,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         if (!cachedIdToken) {
@@ -667,6 +668,7 @@ export class NestedAppAuthController implements IController {
             this.logger,
             this.browserStorage,
             this.isBrowserEnv(),
+            createNewGuid(),
             accountFilter
         );
     }
@@ -680,7 +682,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccount(
             accountFilter,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -696,7 +699,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccountByUsername(
             username,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -711,7 +715,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccountByHomeId(
             homeAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -726,7 +731,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccountByLocalId(
             localAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -739,14 +745,21 @@ export class NestedAppAuthController implements IController {
          * StandardController uses this to allow the developer to set the active account
          * in the nested app auth scenario the active account is controlled by the app hosting the nested app
          */
-        return AccountManager.setActiveAccount(account, this.browserStorage);
+        return AccountManager.setActiveAccount(
+            account,
+            this.browserStorage,
+            createNewGuid()
+        );
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return AccountManager.getActiveAccount(this.browserStorage);
+        return AccountManager.getActiveAccount(
+            this.browserStorage,
+            createNewGuid()
+        );
     }
 
     // #endregion

@@ -93,12 +93,12 @@ export abstract class BaseInteractionClient {
             if (
                 AccountEntityUtils.accountInfoIsEqual(
                     account,
-                    this.browserStorage.getActiveAccount(),
+                    this.browserStorage.getActiveAccount(this.correlationId),
                     false
                 )
             ) {
                 this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
+                this.browserStorage.setActiveAccount(null, this.correlationId);
             }
             // Clear given account.
             try {
