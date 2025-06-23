@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749685246475,
+  "lastUpdate": 1750701808262,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15640,6 +15640,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.77%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eb56717ca9890d2be5be6f553d93e139527bf1ce",
+          "message": "Remove access tokens when cache quota is reached (#7819)\n\nAdds logic to remove access tokens from the cache anytime cache quota is\nreached using a First In First Out strategy.\n\nPR is noisy due to needing to pass in `correlationId` all over the place\nfor telemetry purposes, reviews can focus on the changes to\n`BrowserCacheManager.ts` in `msal-browser`",
+          "timestamp": "2025-06-23T10:57:01-07:00",
+          "tree_id": "cda11e3e6314277b68f6fbbbfbc74cdd4146b646",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/eb56717ca9890d2be5be6f553d93e139527bf1ce"
+        },
+        "date": 1750701806924,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 249105,
+            "range": "±0.70%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 240952,
+            "range": "±0.99%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
