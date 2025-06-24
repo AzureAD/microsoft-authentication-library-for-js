@@ -494,7 +494,9 @@ describe("ConfidentialClientApplication", () => {
             await expect(
                 client.acquireTokenByClientCredential(request)
             ).rejects.toMatchObject(
-                createClientAuthError(NodeClientAuthErrorCodes.missingTenantIdError)
+                createClientAuthError(
+                    NodeClientAuthErrorCodes.missingTenantIdError
+                )
             );
         });
 

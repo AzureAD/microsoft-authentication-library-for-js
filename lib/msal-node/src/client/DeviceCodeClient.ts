@@ -240,7 +240,9 @@ export class DeviceCodeClient extends BaseClient {
             this.logger.error(
                 `Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`
             );
-            throw createClientAuthError(NodeClientAuthErrorCodes.deviceCodeExpired);
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.deviceCodeExpired
+            );
         }
         return true;
     }
