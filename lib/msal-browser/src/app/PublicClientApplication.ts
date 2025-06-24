@@ -20,7 +20,10 @@ import {
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import * as ControllerFactory from "../controllers/ControllerFactory.js";
-import { HandleRedirectPromiseOptions, StandardController } from "../controllers/StandardController.js";
+import {
+    HandleRedirectPromiseOptions,
+    StandardController,
+} from "../controllers/StandardController.js";
 import {
     BrowserConfiguration,
     Configuration,

@@ -122,7 +122,7 @@ function preflightCheck(
 
 export type HandleRedirectPromiseOptions = {
     navigateToLoginRequestUrl?: boolean;
-}
+};
 
 export class StandardController implements IController {
     // OperatingContext
