@@ -58,6 +58,23 @@ await loadExternalTokens(
 );
 ```
 
+### `handleRedirectPromise` API signature has changed
+
+Previously, `PublicClientApplication.handleRedirectPromise` took in an optional hash parameter. A new options type called `HandleRedirectPromiseOptions` has been introduced. As of MSAL Browser v5, an optional object with type `HandleRedirectPromiseOptions` is the only parameter `handleRedirectPromise()` accepts.
+
+```javascript
+// BEFORE
+const hash = window.location.hash; // Arbitrary example value
+pca.handleRedirectPromise(hash)
+
+
+// AFTER
+pca.handleRedirectPromise({
+    hash: window.location.hash, // Option nested inside a `HandleRedirectPromiseOptions` object
+    navigateToLoginRequestUrl: true // Additional option
+})
+```
+
 ## Configuration changes
 
 ### BrowserAuthOptions changes
@@ -66,11 +83,10 @@ await loadExternalTokens(
 1. The `protocolMode` parameter has been moved to SystemOptions instead of BrowserAuthOptions in Configuration.
 1. The `supportsNestedAppAuth` parameter has been removed. Use the `createNestablePublicClientApplication` API for Nested Apps instead. Read more about Nested Apps [here](./initialization.md#nested-app-configuration).
 1. The `navigateTologinRequestUrl` parameter has been removed from BrowserAuthOptions in Configuration. Default behavior remains the same (set to true), in order to maintain custom configuration:
-    1. For APIs that take a `RedirectRequest` object, the type now has a `navigateToLoginRequestUrl` parameter
-    1. For `handleRedirectPromise`, `navigateToLoginRequestUrl` has to be passed in as an option as follows:
+    1. For `handleRedirectPromise()`, `navigateToLoginRequestUrl` can be passed in as an part of the `HandleRedirectPromiseOptions` object as follows:
 
     ```typescript
-      pca.handleRedirectPromise(hash, { navigateToLoginRequestUrl: false })
+      pca.handleRedirectPromise({ navigateToLoginRequestUrl: false })
     ```
 
 ### CacheOptions changes

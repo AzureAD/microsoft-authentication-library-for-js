@@ -25,7 +25,6 @@ import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
-import { HandleRedirectPromiseOptions } from "./StandardController.js";
 
 export interface IController {
     // TODO: Make request mandatory in the next major version?
@@ -74,7 +73,6 @@ export interface IController {
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
     handleRedirectPromise(
-        hash?: string,
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null>;
 
@@ -120,3 +118,8 @@ export interface IController {
     /** @internal */
     getPerformanceClient(): IPerformanceClient;
 }
+
+export type HandleRedirectPromiseOptions = {
+    hash?: string;
+    navigateToLoginRequestUrl?: boolean;
+};

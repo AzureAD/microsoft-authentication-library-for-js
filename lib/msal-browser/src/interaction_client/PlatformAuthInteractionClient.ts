@@ -72,7 +72,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { HandleRedirectPromiseOptions } from "../controllers/StandardController.js";
+import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;

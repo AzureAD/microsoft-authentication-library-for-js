@@ -49,7 +49,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { HandleRedirectPromiseOptions } from "../controllers/StandardController.js";
+import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -289,7 +289,6 @@ export class RedirectClient extends StandardInteractionClient {
      * @param options {HandleRedirectPromiseOptions} options for handling redirect promise
      */
     async handleRedirectPromise(
-        hash: string = "",
         request: CommonAuthorizationUrlRequest,
         pkceVerifier: string,
         parentMeasurement: InProgressPerformanceEvent,
@@ -304,7 +303,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             const [serverParams, responseString] = this.getRedirectResponse(
-                hash || ""
+                options?.hash || ""
             );
             if (!serverParams) {
                 // Not a recognized server response hash or hash not associated with a redirect request

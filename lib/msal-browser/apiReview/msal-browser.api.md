@@ -1313,8 +1313,8 @@ export class PublicClientNext implements IPublicClientApplication {
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
@@ -1351,8 +1351,8 @@ export class PublicClientNext implements IPublicClientApplication {
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     removeEventCallback(callbackId: string): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     removePerformanceCallback(callbackId: string): boolean;
@@ -1560,8 +1560,8 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 
 // Warnings were encountered during analysis:
 //
-// src/app/PublicClientNext.ts:69:8 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
-// src/app/PublicClientNext.ts:78:87 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:68:5 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:68:5 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
 // src/app/PublicClientNext.ts:78:60 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/app/PublicClientNext.ts:84:64 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // src/app/PublicClientNext.ts:84:77 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag

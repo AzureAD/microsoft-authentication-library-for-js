@@ -78,7 +78,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js
 import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
-import { IController } from "./IController.js";
+import { HandleRedirectPromiseOptions, IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
@@ -119,10 +119,6 @@ function preflightCheck(
         throw e;
     }
 }
-
-export type HandleRedirectPromiseOptions = {
-    navigateToLoginRequestUrl?: boolean;
-};
 
 export class StandardController implements IController {
     // OperatingContext
@@ -400,23 +396,21 @@ export class StandardController implements IController {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(
-        hash?: string,
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
         // Block token acquisition before initialize has been called
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-
         if (this.isBrowserEnvironment) {
             /**
              * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey = hash || "";
+            const redirectResponseKey = options?.hash || "";
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
-                response = this.handleRedirectPromiseInternal(hash, options);
+                response = this.handleRedirectPromiseInternal(options);
                 this.redirectResponse.set(redirectResponseKey, response);
                 this.logger.verbose(
                     "handleRedirectPromise has been called for the first time, storing the promise"
@@ -441,10 +435,7 @@ export class StandardController implements IController {
      * @returns
      */
     private async handleRedirectPromiseInternal(
-        hash?: string,
-        options?: {
-            navigateToLoginRequestUrl?: boolean;
-        }
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         if (!this.browserStorage.isInteractionInProgress(true)) {
             this.logger.info(
@@ -467,7 +458,9 @@ export class StandardController implements IController {
         const platformBrokerRequest: PlatformAuthRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
-            platformBrokerRequest && this.platformAuthProvider && !hash;
+            platformBrokerRequest &&
+            this.platformAuthProvider &&
+            !options?.hash;
 
         let rootMeasurement: InProgressPerformanceEvent;
 
@@ -527,13 +520,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(
-                    hash,
-                    standardRequest,
-                    codeVerifier,
-                    rootMeasurement,
-                    options
-                );
+                )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
             this.browserStorage.resetRequestCache();

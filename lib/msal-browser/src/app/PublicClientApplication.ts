@@ -10,7 +10,10 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
-import { IController } from "../controllers/IController.js";
+import {
+    HandleRedirectPromiseOptions,
+    IController,
+} from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
@@ -20,10 +23,7 @@ import {
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import * as ControllerFactory from "../controllers/ControllerFactory.js";
-import {
-    HandleRedirectPromiseOptions,
-    StandardController,
-} from "../controllers/StandardController.js";
+import { StandardController } from "../controllers/StandardController.js";
 import {
     BrowserConfiguration,
     Configuration,
@@ -219,10 +219,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(
-        hash?: string | undefined,
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        return this.controller.handleRedirectPromise(hash, options);
+        return this.controller.handleRedirectPromise(options);
     }
 
     /**
