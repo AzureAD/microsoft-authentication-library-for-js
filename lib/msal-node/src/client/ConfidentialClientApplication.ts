@@ -22,7 +22,6 @@ import {
     Constants,
     UrlString,
     createClientAuthError,
-    ClientAuthErrorCodes,
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     AzureRegion,
@@ -34,6 +33,7 @@ import { CommonClientCredentialRequest } from "../request/CommonClientCredential
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
 import { ClientCredentialClient } from "./ClientCredentialClient.js";
 import { OnBehalfOfClient } from "./OnBehalfOfClient.js";
+import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
@@ -90,7 +90,7 @@ export class ConfidentialClientApplication
             (clientSecretNotEmpty && certificateNotEmpty)
         ) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.invalidClientCredential
             );
         }
 
@@ -107,7 +107,7 @@ export class ConfidentialClientApplication
 
         if (!certificateNotEmpty) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.invalidClientCredential
             );
         } else {
             this.clientAssertion = !!this.config.auth.clientCertificate
@@ -190,7 +190,7 @@ export class ConfidentialClientApplication
             )
         ) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.missingTenantIdError
+                NodeClientAuthErrorCodes.missingTenantIdError
             );
         }
 
