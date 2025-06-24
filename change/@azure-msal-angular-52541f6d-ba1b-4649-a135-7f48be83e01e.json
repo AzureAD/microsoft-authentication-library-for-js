@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Update handleRedirectPromise signature to consolidate hash into options type",
+  "packageName": "@azure/msal-angular",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
