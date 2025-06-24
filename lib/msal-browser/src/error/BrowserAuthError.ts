@@ -100,6 +100,7 @@ export const BrowserAuthErrorMessages = {
         "Failed to parse response headers",
     [BrowserAuthErrorCodes.failedToDecryptEarResponse]:
         "Failed to decrypt ear response",
+    [BrowserAuthErrorCodes.timedOut]: "The request timed out.",
 };
 
 /**
