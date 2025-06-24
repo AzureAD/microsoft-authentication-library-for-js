@@ -59,7 +59,9 @@ export class MsalService implements IMsalService {
       this.instance
         .initialize()
         .then(() =>
-          this.instance.handleRedirectPromise({ hash: hash || this.redirectHash})
+          this.instance.handleRedirectPromise({
+            hash: hash || this.redirectHash,
+          })
         )
         .finally(() => {
           // update inProgress state to none
