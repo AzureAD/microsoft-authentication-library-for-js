@@ -68,7 +68,7 @@ MSAL Node fires events when the in-memory cache is accessed and apps can choose 
 1. Load the cache from persistence to MSAL's memory before accessing the cache
 2. If the in-memory cache has changed since last access, save the cache back to persistence
 
-For persisting the cache, MSAL accepts a custom cache plugin in [configuration](./configuration.md). This plugin should implement the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) interface:
+For persisting the cache, MSAL accepts a custom cache plugin in [configuration](./configuration.md). This plugin should implement the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.ICachePlugin.html) interface:
 
 ```typescript
 interface ICachePlugin {
@@ -123,10 +123,10 @@ On confidential client apps that handle users (web apps that sign in users and c
 
 ### Web apps
 
-Since web apps are user-facing and often rely on sessions to keep track of each user, the appropriate partition key for caching is often stored within the session data, and needs to be retrieved before the cache lookup can take place. To help with this, MSAL Node provides the [DistributedCachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.distributedcacheplugin.html) class, which implements the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html). An instance of `DistributedCachePlugin` requires:
+Since web apps are user-facing and often rely on sessions to keep track of each user, the appropriate partition key for caching is often stored within the session data, and needs to be retrieved before the cache lookup can take place. To help with this, MSAL Node provides the [DistributedCachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.distributedcacheplugin.html) class, which implements the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.ICachePlugin.html). An instance of `DistributedCachePlugin` requires:
 
--   a **client interface** ([ICacheClient](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.icacheclient.html)), which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
--   a **partition manager** ([IPartitionManager](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.ipartitionmanager.html)), for reading from and writing to cache with respect to a given **session ID**.
+-   a **client interface** ([ICacheClient](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.ICacheClient.html)), which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
+-   a **partition manager** ([IPartitionManager](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.IPartitionManager.html)), for reading from and writing to cache with respect to a given **session ID**.
 
 Please refer to the [Web app using DistributedCachePlugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md) for a sample implementation.
 
