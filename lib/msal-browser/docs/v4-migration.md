@@ -82,8 +82,7 @@ pca.handleRedirectPromise({
 1. The `skipAuthorityMetadataCache` parameter has been removed from BrowserAuthOptions in Configuration.
 1. The `protocolMode` parameter has been moved to SystemOptions instead of BrowserAuthOptions in Configuration.
 1. The `supportsNestedAppAuth` parameter has been removed. Use the `createNestablePublicClientApplication` API for Nested Apps instead. Read more about Nested Apps [here](./initialization.md#nested-app-configuration).
-1. The `navigateTologinRequestUrl` parameter has been removed from BrowserAuthOptions in Configuration. Default behavior remains the same (set to true), in order to maintain custom configuration:
-    1. For `handleRedirectPromise()`, `navigateToLoginRequestUrl` can be passed in as an part of the `HandleRedirectPromiseOptions` object as follows:
+1. The `navigateTologinRequestUrl` parameter has been removed from BrowserAuthOptions in Configuration and can instead now be provided inside an options object as a parameter on the call to `handleRedirectPromise`:
 
     ```typescript
       pca.handleRedirectPromise({ navigateToLoginRequestUrl: false })
