@@ -20,7 +20,7 @@ import {
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import * as ControllerFactory from "../controllers/ControllerFactory.js";
-import { StandardController } from "../controllers/StandardController.js";
+import { HandleRedirectPromiseOptions, StandardController } from "../controllers/StandardController.js";
 import {
     BrowserConfiguration,
     Configuration,
@@ -217,9 +217,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     handleRedirectPromise(
         hash?: string | undefined,
-        options?: {
-            navigateToLoginRequestUrl?: boolean;
-        }
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         return this.controller.handleRedirectPromise(hash, options);
     }

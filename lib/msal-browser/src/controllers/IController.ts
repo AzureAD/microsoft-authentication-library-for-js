@@ -25,6 +25,7 @@ import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
+import { HandleRedirectPromiseOptions } from "./StandardController.js";
 
 export interface IController {
     // TODO: Make request mandatory in the next major version?
@@ -74,7 +75,7 @@ export interface IController {
 
     handleRedirectPromise(
         hash?: string,
-        options?: { navigateToLoginRequestUrl?: boolean }
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null>;
 
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;

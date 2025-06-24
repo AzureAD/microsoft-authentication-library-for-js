@@ -49,6 +49,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { HandleRedirectPromiseOptions } from "../controllers/StandardController.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -283,15 +284,16 @@ export class RedirectClient extends StandardInteractionClient {
      * - if false, handles hash string and parses response
      * @param hash {string} url hash
      * @param parentMeasurement {InProgressPerformanceEvent} parent measurement
+     * @param request {CommonAuthorizationUrlRequest} request object
+     * @param pkceVerifier {string} PKCE verifier
+     * @param options {HandleRedirectPromiseOptions} options for handling redirect promise
      */
     async handleRedirectPromise(
         hash: string = "",
         request: CommonAuthorizationUrlRequest,
         pkceVerifier: string,
         parentMeasurement: InProgressPerformanceEvent,
-        options?: {
-            navigateToLoginRequestUrl?: boolean;
-        }
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.handleRedirectPromise

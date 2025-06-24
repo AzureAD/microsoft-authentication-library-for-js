@@ -120,6 +120,10 @@ function preflightCheck(
     }
 }
 
+export type HandleRedirectPromiseOptions = {
+    navigateToLoginRequestUrl?: boolean;
+}
+
 export class StandardController implements IController {
     // OperatingContext
     protected readonly operatingContext: StandardOperatingContext;
@@ -397,9 +401,7 @@ export class StandardController implements IController {
      */
     async handleRedirectPromise(
         hash?: string,
-        options?: {
-            navigateToLoginRequestUrl?: boolean;
-        }
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
         // Block token acquisition before initialize has been called

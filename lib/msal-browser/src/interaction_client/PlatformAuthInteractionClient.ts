@@ -72,6 +72,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { HandleRedirectPromiseOptions } from "../controllers/StandardController.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -301,10 +302,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * Acquires a token from native platform then redirects to the redirectUri instead of returning the response
      * @param {RedirectRequest} request
      * @param {InProgressPerformanceEvent} rootMeasurement
+     * @param {HandleRedirectPromiseOptions} options
      */
     async acquireTokenRedirect(
         request: RedirectRequest,
-        rootMeasurement: InProgressPerformanceEvent
+        rootMeasurement: InProgressPerformanceEvent,
+        options?: HandleRedirectPromiseOptions
     ): Promise<void> {
         this.logger.trace(
             "NativeInteractionClient - acquireTokenRedirect called."
@@ -312,7 +315,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         const nativeRequest = await this.initializeNativeRequest(request);
         const navigateToLoginRequestUrl =
-            request.navigateToLoginRequestUrl ?? true;
+            options?.navigateToLoginRequestUrl ?? true;
 
         try {
             await this.platformAuthProvider.sendMessage(nativeRequest);
