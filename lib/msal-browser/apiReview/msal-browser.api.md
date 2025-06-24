@@ -681,6 +681,14 @@ function getHomepage(): string;
 // @public (undocumented)
 const getRequestFailed = "get_request_failed";
 
+// Warning: (ae-missing-release-tag) "HandleRedirectPromiseOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export type HandleRedirectPromiseOptions = {
+    hash?: string;
+    navigateToLoginRequestUrl?: boolean;
+};
+
 // Warning: (ae-missing-release-tag) "hashDoesNotContainKnownProperties" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -730,9 +738,7 @@ export interface IController {
     // @internal (undocumented)
     getPerformanceClient(): IPerformanceClient;
     // (undocumented)
-    handleRedirectPromise(hash?: string, options?: {
-        navigateToLoginRequestUrl?: boolean;
-    }): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     // (undocumented)
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // (undocumented)
@@ -886,7 +892,7 @@ export interface IPublicClientApplication {
     // (undocumented)
     getLogger(): Logger;
     // (undocumented)
-    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     // (undocumented)
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // (undocumented)
@@ -1213,8 +1219,8 @@ export { ProtocolMode }
 //
 // @public
 export class PublicClientApplication implements IPublicClientApplication {
-    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
+    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
@@ -1238,8 +1244,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
@@ -1247,8 +1253,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
     // (undocumented)
     protected controller: IController;
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     static createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
@@ -1259,9 +1265,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     getLogger(): Logger;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    handleRedirectPromise(hash?: string | undefined, options?: {
-        navigateToLoginRequestUrl?: boolean;
-    }): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1282,8 +1286,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     removeEventCallback(callbackId: string): void;
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     removePerformanceCallback(callbackId: string): boolean;
@@ -1313,8 +1317,8 @@ export class PublicClientNext implements IPublicClientApplication {
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
@@ -1334,7 +1338,7 @@ export class PublicClientNext implements IPublicClientApplication {
     getConfiguration(): BrowserConfiguration;
     getLogger(): Logger;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    handleRedirectPromise(hash?: string | undefined): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     initialize(): Promise<void>;
@@ -1351,8 +1355,8 @@ export class PublicClientNext implements IPublicClientApplication {
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     removeEventCallback(callbackId: string): void;
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     removePerformanceCallback(callbackId: string): boolean;
@@ -1386,7 +1390,6 @@ function redirectPreflightCheck(initialized: boolean, config: BrowserConfigurati
 export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
-    navigateToLoginRequestUrl?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "replaceHash" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1560,17 +1563,17 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 
 // Warnings were encountered during analysis:
 //
-// src/app/PublicClientNext.ts:68:5 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:68:5 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
-// src/app/PublicClientNext.ts:78:60 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:84:64 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:84:77 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:84:90 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:84:55 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:84:70 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:84:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:87:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/app/PublicClientNext.ts:88:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/app/PublicClientNext.ts:72:8 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
+// src/app/PublicClientNext.ts:81:87 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:81:60 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:87:64 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:87:77 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:87:90 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:87:55 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:87:70 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:87:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:90:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/app/PublicClientNext.ts:91:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:297:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:355:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:386:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
