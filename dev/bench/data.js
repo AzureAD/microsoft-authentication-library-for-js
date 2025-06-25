@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750886186993,
+  "lastUpdate": 1750894649253,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15716,6 +15716,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.76%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "91617f2aaa4d3f8d66c99361be51b61a50c55541",
+          "message": "v3 update puppeteer to unblock CI (#7864)\n\nCI is hanging on the install step in the v3 branch. Updating puppeteer\nseems to unblock the pipeline",
+          "timestamp": "2025-06-25T16:31:26-07:00",
+          "tree_id": "d160af2efeadd27f8979e7afe547997afa5c13bf",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/91617f2aaa4d3f8d66c99361be51b61a50c55541"
+        },
+        "date": 1750894647752,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 246998,
+            "range": "±0.98%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 251085,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
