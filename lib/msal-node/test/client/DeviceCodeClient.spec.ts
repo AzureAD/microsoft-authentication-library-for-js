@@ -6,7 +6,6 @@
 import {
     AuthErrorCodes,
     BaseClient,
-    ClientAuthErrorCodes,
     ClientConfiguration,
     createAuthError,
     createClientAuthError,
@@ -30,6 +29,7 @@ import {
 import { DeviceCodeClient } from "../../src/index.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest.js";
+import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 
 describe("DeviceCodeClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -329,7 +329,7 @@ describe("DeviceCodeClient unit tests", () => {
             request.cancel = true;
             await expect(client.acquireToken(request)).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.deviceCodePollingCancelled
+                    NodeClientAuthErrorCodes.deviceCodePollingCancelled
                 )
             );
         }, 6000);
@@ -355,7 +355,9 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.deviceCodeExpired)
+                createClientAuthError(
+                    NodeClientAuthErrorCodes.deviceCodeExpired
+                )
             );
         }, 6000);
 
@@ -377,7 +379,9 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.userTimeoutReached)
+                createClientAuthError(
+                    NodeClientAuthErrorCodes.userTimeoutReached
+                )
             );
 
             expect(executePostToTokenEndpointSpy.mock.calls.length).toBe(1);

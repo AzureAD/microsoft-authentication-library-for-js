@@ -29,7 +29,7 @@ import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
-import { IController } from "./IController.js";
+import { IController, HandleRedirectPromiseOptions } from "./IController.js";
 import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
@@ -238,7 +238,7 @@ export class UnknownOperatingContextController implements IController {
 
     handleRedirectPromise(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        hash?: string | undefined
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         blockAPICallsBeforeInitialize(this.initialized);
         return Promise.resolve(null);

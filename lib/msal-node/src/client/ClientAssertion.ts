@@ -7,12 +7,12 @@ import jwt from "jsonwebtoken";
 import {
     TimeUtils,
     createClientAuthError,
-    ClientAuthErrorCodes,
     Constants,
 } from "@azure/msal-common/node";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { JwtConstants } from "../utils/Constants.js";
+import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
  * Client assertion of type jwt-bearer used in confidential client flows
@@ -116,7 +116,7 @@ export class ClientAssertion {
             return this.jwt;
         }
 
-        throw createClientAuthError(ClientAuthErrorCodes.invalidAssertion);
+        throw createClientAuthError(NodeClientAuthErrorCodes.invalidAssertion);
     }
 
     /**
