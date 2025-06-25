@@ -109,8 +109,7 @@ describe("/profile", () => {
             "xpath=//header//button"
         );
         await profileButton.click();
-        const logoutButtons = await page.$x(
-            "//li[contains(., 'Logout using')]"
+        const logoutButtons = await page.$$("xpath=//li[contains(., 'Logout using')]"
         );
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
@@ -156,8 +155,7 @@ describe("/profile", () => {
             "xpath=//header//button"
         );
         await profileButton.click();
-        const logoutButtons = await page.$x(
-            "//li[contains(., 'Logout using')]"
+        const logoutButtons = await page.$$("xpath=//li[contains(., 'Logout using')]"
         );
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
