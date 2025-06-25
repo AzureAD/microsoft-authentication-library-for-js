@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750894649253,
+  "lastUpdate": 1750895473539,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15754,6 +15754,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.71%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8f1c0c33e16af25afe7fb147b51c88eaebce20c6",
+          "message": "[v3] Remove access tokens when cache quota is reached (#7850)\n\nV3 changes to remove access tokens when cache quota is reached,\npractically identical to #7819",
+          "timestamp": "2025-06-25T16:45:30-07:00",
+          "tree_id": "6aa03a59c737fae494e321bb25bae251ffef0f31",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8f1c0c33e16af25afe7fb147b51c88eaebce20c6"
+        },
+        "date": 1750895471987,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 247095,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245927,
+            "range": "±0.97%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
