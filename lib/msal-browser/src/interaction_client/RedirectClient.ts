@@ -567,7 +567,8 @@ export class RedirectClient extends StandardInteractionClient {
                 } catch {
                     if (validLogoutRequest.account?.homeAccountId) {
                         void this.browserStorage.removeAccount(
-                            validLogoutRequest.account?.homeAccountId
+                            validLogoutRequest.account?.homeAccountId,
+                            this.correlationId
                         );
 
                         this.eventHandler.emitEvent(

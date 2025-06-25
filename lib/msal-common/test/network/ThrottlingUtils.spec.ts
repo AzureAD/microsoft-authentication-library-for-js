@@ -13,6 +13,7 @@ import {
     THUMBPRINT,
     THROTTLING_ENTITY,
     TEST_CONFIG,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
 import { ServerError } from "../../src/error/ServerError.js";
 import { BaseAuthRequest, Logger } from "../../src/index.js";
@@ -51,12 +52,12 @@ describe("ThrottlingUtils", () => {
             jest.spyOn(Date, "now").mockReturnValue(1);
 
             try {
-                ThrottlingUtils.preProcess(cache, thumbprint);
+                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID);
             } catch {}
             expect(removeItemStub).toHaveBeenCalledTimes(0);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint)
+                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID)
             ).toThrowError(ServerError);
         });
 
@@ -76,11 +77,11 @@ describe("ThrottlingUtils", () => {
             );
             jest.spyOn(Date, "now").mockReturnValue(10);
 
-            ThrottlingUtils.preProcess(cache, thumbprint);
+            ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID);
             expect(removeItemStub).toHaveBeenCalledTimes(1);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint)
+                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID)
             ).not.toThrow();
         });
 
@@ -96,11 +97,11 @@ describe("ThrottlingUtils", () => {
                 .mockImplementation();
             jest.spyOn(cache, "getThrottlingCache").mockReturnValue(null);
 
-            ThrottlingUtils.preProcess(cache, thumbprint);
+            ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID);
             expect(removeItemStub).toHaveBeenCalledTimes(0);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint)
+                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID)
             ).not.toThrow();
         });
     });
@@ -122,7 +123,12 @@ describe("ThrottlingUtils", () => {
                 .spyOn(cache, "setThrottlingCache")
                 .mockImplementation();
 
-            ThrottlingUtils.postProcess(cache, thumbprint, res);
+            ThrottlingUtils.postProcess(
+                cache,
+                thumbprint,
+                res,
+                RANDOM_TEST_GUID
+            );
             expect(setItemStub).toHaveBeenCalledTimes(1);
         });
 
@@ -142,7 +148,12 @@ describe("ThrottlingUtils", () => {
                 .spyOn(cache, "setThrottlingCache")
                 .mockImplementation();
 
-            ThrottlingUtils.postProcess(cache, thumbprint, res);
+            ThrottlingUtils.postProcess(
+                cache,
+                thumbprint,
+                res,
+                RANDOM_TEST_GUID
+            );
             expect(setItemStub).toHaveBeenCalledTimes(0);
         });
     });

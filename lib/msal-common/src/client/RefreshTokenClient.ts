@@ -211,9 +211,9 @@ export class RefreshTokenClient extends BaseClient {
         )(
             request.account,
             foci,
+            request.correlationId,
             undefined,
-            this.performanceClient,
-            request.correlationId
+            this.performanceClient
         );
 
         if (!refreshToken) {
@@ -265,7 +265,10 @@ export class RefreshTokenClient extends BaseClient {
                     "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
                 );
                 const badRefreshTokenKey = generateCredentialKey(refreshToken);
-                this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+                this.cacheManager.removeRefreshToken(
+                    badRefreshTokenKey,
+                    request.correlationId
+                );
             }
 
             throw e;

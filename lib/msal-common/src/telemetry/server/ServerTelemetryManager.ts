@@ -204,7 +204,8 @@ export class ServerTelemetryManager {
 
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
+            this.correlationId
         );
 
         return;
@@ -219,7 +220,8 @@ export class ServerTelemetryManager {
 
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
+            this.correlationId
         );
         return lastRequests.cacheHits;
     }
@@ -250,7 +252,10 @@ export class ServerTelemetryManager {
         const errorCount = lastRequests.errors.length;
         if (numErrorsFlushed === errorCount) {
             // All errors were sent on last request, clear Telemetry cache
-            this.cacheManager.removeItem(this.telemetryCacheKey);
+            this.cacheManager.removeItem(
+                this.telemetryCacheKey,
+                this.correlationId
+            );
         } else {
             // Partial data was flushed to server, construct a new telemetry cache item with errors that were not flushed
             const serverTelemEntity: ServerTelemetryEntity = {
@@ -263,7 +268,8 @@ export class ServerTelemetryManager {
 
             this.cacheManager.setServerTelemetry(
                 this.telemetryCacheKey,
-                serverTelemEntity
+                serverTelemEntity,
+                this.correlationId
             );
         }
     }
@@ -351,7 +357,8 @@ export class ServerTelemetryManager {
         lastRequests.nativeBrokerErrorCode = errorCode;
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
+            this.correlationId
         );
     }
 
@@ -364,7 +371,8 @@ export class ServerTelemetryManager {
         delete lastRequests.nativeBrokerErrorCode;
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
+            this.correlationId
         );
     }
 

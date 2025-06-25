@@ -174,7 +174,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-        browserStorage.clear();
+        browserStorage.clear(RANDOM_TEST_GUID);
     });
 
     describe("Constructor", () => {

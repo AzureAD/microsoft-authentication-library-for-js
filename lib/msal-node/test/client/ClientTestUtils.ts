@@ -51,7 +51,7 @@ const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class MockStorageClass extends CacheManager {
-    store = {};
+    store: Record<string, any> = {};
 
     // Accounts
     getAccount(key: string): AccountEntity | null {
@@ -78,7 +78,7 @@ export class MockStorageClass extends CacheManager {
     }
 
     async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+        await super.removeAccount(key, RANDOM_TEST_GUID);
         const currentAccounts = this.getAccountKeys();
         const removalIndex = currentAccounts.indexOf(key);
         if (removalIndex > -1) {

@@ -19,6 +19,7 @@ import {
     CORS_RESPONSE_HEADERS,
     TEST_SSH_VALUES,
     BAD_TOKEN_ERROR_RESPONSE,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
 import {
@@ -346,14 +347,22 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockReturnValue(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            config.storageInterface!.setAccount(
+                testAccountEntity,
+                RANDOM_TEST_GUID
             );
             config.storageInterface!.setRefreshTokenCredential(
-                testFamilyRefreshTokenEntity
+                testRefreshTokenEntity,
+                RANDOM_TEST_GUID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setRefreshTokenCredential(
+                testFamilyRefreshTokenEntity,
+                RANDOM_TEST_GUID
+            );
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -1074,14 +1083,22 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockReturnValue(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            config.storageInterface!.setAccount(
+                testAccountEntity,
+                RANDOM_TEST_GUID
             );
             config.storageInterface!.setRefreshTokenCredential(
-                testFamilyRefreshTokenEntity
+                testRefreshTokenEntity,
+                RANDOM_TEST_GUID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setRefreshTokenCredential(
+                testFamilyRefreshTokenEntity,
+                RANDOM_TEST_GUID
+            );
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -1313,10 +1330,16 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setRefreshTokenCredential({
-                ...testRefreshTokenEntity,
-                expiresOn: (TimeUtils.nowSeconds() - 48 * 60 * 60).toString(), // Set expiration to yesterday
-            });
+            config.storageInterface!.setRefreshTokenCredential(
+                {
+                    ...testRefreshTokenEntity,
+                    expiresOn: (
+                        TimeUtils.nowSeconds() -
+                        48 * 60 * 60
+                    ).toString(), // Set expiration to yesterday
+                },
+                RANDOM_TEST_GUID
+            );
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -1342,10 +1365,13 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setRefreshTokenCredential({
-                ...testRefreshTokenEntity,
-                expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
-            });
+            config.storageInterface!.setRefreshTokenCredential(
+                {
+                    ...testRefreshTokenEntity,
+                    expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
+                },
+                RANDOM_TEST_GUID
+            );
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -1362,11 +1388,18 @@ describe("RefreshTokenClient unit tests", () => {
         it("Removes refresh token if server returns invalid_grant with bad_token suberror", async () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            config.storageInterface!.setAccount(
+                testAccountEntity,
+                RANDOM_TEST_GUID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setRefreshTokenCredential(
+                testRefreshTokenEntity,
+                RANDOM_TEST_GUID
+            );
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -1405,7 +1438,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(testRefreshTokenEntity);
 
@@ -1415,7 +1449,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(null);
         });

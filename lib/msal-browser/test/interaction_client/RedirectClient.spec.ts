@@ -3499,7 +3499,7 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            browserStorage.setAccount(testAccount);
+            browserStorage.setAccount(testAccount, RANDOM_TEST_GUID);
 
             jest.spyOn(
                 NavigationClient.prototype,
@@ -3554,7 +3554,7 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            browserStorage.setAccount(testAccount);
+            browserStorage.setAccount(testAccount, RANDOM_TEST_GUID);
 
             jest.spyOn(
                 NavigationClient.prototype,
@@ -3641,7 +3641,7 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            browserStorage.setAccount(testAccount);
+            browserStorage.setAccount(testAccount, RANDOM_TEST_GUID);
 
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
@@ -3751,7 +3751,7 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            browserStorage.setAccount(testAccount);
+            browserStorage.setAccount(testAccount, RANDOM_TEST_GUID);
 
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
@@ -3876,8 +3876,8 @@ describe("RedirectClient", () => {
                 }
             );
 
-            browserStorage.setAccount(testAccountEntity);
-            browserStorage.setIdTokenCredential(testIdToken);
+            browserStorage.setAccount(testAccountEntity, RANDOM_TEST_GUID);
+            browserStorage.setIdTokenCredential(testIdToken, RANDOM_TEST_GUID);
 
             pca.setActiveAccount(testAccountInfo);
             expect(pca.getActiveAccount()).toStrictEqual(testAccountInfo);

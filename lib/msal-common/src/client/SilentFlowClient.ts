@@ -131,8 +131,7 @@ export class SilentFlowClient extends BaseClient {
             request,
             tokenKeys,
             requestTenantId,
-            this.performanceClient,
-            request.correlationId
+            this.performanceClient
         );
 
         if (!cachedAccessToken) {
@@ -172,14 +171,17 @@ export class SilentFlowClient extends BaseClient {
         const environment =
             request.authority || this.authority.getPreferredCache();
         const cacheRecord: CacheRecord = {
-            account: this.cacheManager.readAccountFromCache(request.account),
+            account: this.cacheManager.readAccountFromCache(
+                request.account,
+                request.correlationId
+            ),
             accessToken: cachedAccessToken,
             idToken: this.cacheManager.getIdToken(
                 request.account,
+                request.correlationId,
                 tokenKeys,
                 requestTenantId,
-                this.performanceClient,
-                request.correlationId
+                this.performanceClient
             ),
             refreshToken: null,
             appMetadata:
