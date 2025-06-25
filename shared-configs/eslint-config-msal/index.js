@@ -66,6 +66,13 @@ module.exports = {
         "@typescript-eslint/no-floating-promises": 2,
         "@typescript-eslint/return-await": 2,
         "custom-msal/no-class-methods-in-constructor": 2,
+        "custom-msal/error-description-is-defined": [
+            2,
+            {
+                "errorDocPath": "../../docs/errors.md",
+                "ignoreModules": ["msal-node"]
+            }
+        ],
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [

@@ -440,7 +440,7 @@ describe("MsalService", () => {
           expect(response.accessToken).toBe(sampleAccessToken.accessToken);
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
-          ).toHaveBeenCalledWith(hash);
+          ).toHaveBeenCalledWith({ hash: hash });
           done();
         });
     });

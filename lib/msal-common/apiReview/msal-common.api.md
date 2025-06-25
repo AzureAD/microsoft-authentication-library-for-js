@@ -1502,25 +1502,18 @@ declare namespace ClientAuthErrorCodes {
         authTimeNotFound,
         maxAgeTranspired,
         multipleMatchingTokens,
-        multipleMatchingAccounts,
         multipleMatchingAppMetadata,
         requestCannotBeMade,
         cannotRemoveEmptyScope,
         cannotAppendScopeSet,
         emptyInputScopeSet,
-        deviceCodePollingCancelled,
-        deviceCodeExpired,
-        deviceCodeUnknownError,
         noAccountInSilentRequest,
         invalidCacheRecord,
         invalidCacheEnvironment,
         noAccountFound,
         noCryptoObject,
         unexpectedCredentialType,
-        invalidAssertion,
-        invalidClientCredential,
         tokenRefreshRequired,
-        userTimeoutReached,
         tokenClaimsCnfRequiredForSignedJwt,
         authorizationCodeMissingFromServerResponse,
         bindingKeyNotRemoved,
@@ -1528,7 +1521,6 @@ declare namespace ClientAuthErrorCodes {
         keyIdMissing,
         noNetworkConnectivity,
         userCanceled,
-        missingTenantIdError,
         methodNotImplemented,
         nestedAppAuthBridgeDisabled
     }
@@ -2079,16 +2071,6 @@ function delay<T>(t: number, value?: T): Promise<T | void>;
 // @public (undocumented)
 const DEVICE_CODE = "device_code";
 
-// Warning: (ae-missing-release-tag) "deviceCodeExpired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const deviceCodeExpired = "device_code_expired";
-
-// Warning: (ae-missing-release-tag) "deviceCodePollingCancelled" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const deviceCodePollingCancelled = "device_code_polling_cancelled";
-
 // Warning: (ae-missing-release-tag) "DeviceCodeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -2100,11 +2082,6 @@ export type DeviceCodeResponse = {
     interval: number;
     message: string;
 };
-
-// Warning: (ae-missing-release-tag) "deviceCodeUnknownError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const deviceCodeUnknownError = "device_code_unknown_error";
 
 // Warning: (ae-missing-release-tag) "DOMAIN_HINT" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2684,11 +2661,6 @@ const INVALID_GRANT_ERROR: string;
 // @public (undocumented)
 const INVALID_INSTANCE = "invalid_instance";
 
-// Warning: (ae-missing-release-tag) "invalidAssertion" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const invalidAssertion = "invalid_assertion";
-
 // Warning: (ae-missing-release-tag) "invalidAuthenticationHeader" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -2713,11 +2685,6 @@ const invalidCacheRecord = "invalid_cache_record";
 //
 // @public (undocumented)
 const invalidClaims = "invalid_claims";
-
-// Warning: (ae-missing-release-tag) "invalidClientCredential" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const invalidClientCredential = "invalid_client_credential";
 
 // Warning: (ae-missing-release-tag) "invalidCloudDiscoveryMetadata" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3049,16 +3016,6 @@ const missingSshJwk = "missing_ssh_jwk";
 //
 // @public (undocumented)
 const missingSshKid = "missing_ssh_kid";
-
-// Warning: (ae-missing-release-tag) "missingTenantIdError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const missingTenantIdError = "missing_tenant_id_error";
-
-// Warning: (ae-missing-release-tag) "multipleMatchingAccounts" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const multipleMatchingAccounts = "multiple_matching_accounts";
 
 // Warning: (ae-missing-release-tag) "multipleMatchingAppMetadata" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -4546,11 +4503,6 @@ export { UrlUtils }
 //
 // @public (undocumented)
 const userCanceled = "user_canceled";
-
-// Warning: (ae-missing-release-tag) "userTimeoutReached" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const userTimeoutReached = "user_timeout_reached";
 
 // Warning: (ae-missing-release-tag) "uxNotAllowed" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
