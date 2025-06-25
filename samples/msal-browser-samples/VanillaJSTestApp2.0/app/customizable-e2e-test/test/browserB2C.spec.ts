@@ -77,7 +77,7 @@ describe("B2C Tests", () => {
 
         describe("login Tests", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -152,7 +152,7 @@ describe("B2C Tests", () => {
             let screenshot: Screenshot;
 
             beforeAll(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -311,7 +311,7 @@ describe("B2C Tests", () => {
 
         describe("login Tests", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -386,7 +386,7 @@ describe("B2C Tests", () => {
             let screenshot: Screenshot;
 
             beforeAll(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
