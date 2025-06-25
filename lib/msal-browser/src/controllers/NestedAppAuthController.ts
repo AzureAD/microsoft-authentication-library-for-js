@@ -56,8 +56,6 @@ import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import { create } from "domain";
-
 export class NestedAppAuthController implements IController {
     // OperatingContext
     protected readonly operatingContext: NestedAppOperatingContext;
