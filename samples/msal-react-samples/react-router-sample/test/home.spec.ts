@@ -101,7 +101,7 @@ describe("/ (Home Page)", () => {
         await screenshot.takeScreenshot(page, "Returned to app");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath=//header[contains(., 'Welcome,')]");
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
@@ -143,13 +143,13 @@ describe("/ (Home Page)", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForXPath("//header[contains(., 'Welcome,')]", {
+        await page.waitForSelector("xpath=//header[contains(., 'Welcome,')]", {
             timeout: 3000,
         });
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath=//header[contains(., 'Welcome,')]");
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );

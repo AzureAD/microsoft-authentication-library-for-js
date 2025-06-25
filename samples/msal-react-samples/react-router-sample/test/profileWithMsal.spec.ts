@@ -98,7 +98,7 @@ describe("/profileWithMsal", () => {
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {
+        await page.waitForSelector("xpath=//div/ul/li[contains(., 'Name')]", {
             timeout: 5000,
         });
         await screenshot.takeScreenshot(page, "Graph data acquired");

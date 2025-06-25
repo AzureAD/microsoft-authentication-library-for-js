@@ -77,8 +77,8 @@ describe('B2C user-flow tests (local account)', () => {
     );
 
     // Verify UI now displays logged in content
-    await page.waitForXPath("//p[contains(., 'Login successful!')]");
-    await page.waitForXPath("//button[contains(., 'Logout')]");
+    await page.waitForSelector("xpath=//p[contains(., 'Login successful!')]");
+    await page.waitForSelector("xpath=//button[contains(., 'Logout')]");
 
     await screenshot.takeScreenshot(page, 'Signed in with the policy');
 

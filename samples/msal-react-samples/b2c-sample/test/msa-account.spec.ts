@@ -89,7 +89,7 @@ describe("B2C user-flow tests (msa account)", () => {
         );
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath=//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Signed in with the policy");
 
         // Verify tokens are in cache

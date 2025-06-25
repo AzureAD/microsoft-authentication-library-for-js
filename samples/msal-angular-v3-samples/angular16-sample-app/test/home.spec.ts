@@ -100,14 +100,14 @@ describe('/ (Home Page)', () => {
     await enterCredentials(page, screenshot, username, accountPwd);
 
     // Verify UI now displays logged in content
-    await page.waitForXPath("//p[contains(., 'Login successful!')]");
+    await page.waitForSelector("xpath=//p[contains(., 'Login successful!')]");
     const logoutButton = await page.waitForSelector(
       "xpath=//button[contains(., 'Logout')]"
     );
     if (logoutButton) {
       await logoutButton.click();
     }
-    await page.waitForXPath("//button[contains(., 'Logout using')]");
+    await page.waitForSelector("xpath=//button[contains(., 'Logout using')]");
     const logoutButtons = await page.$x(
       "//button[contains(., 'Logout using')]"
     );
@@ -130,7 +130,7 @@ describe('/ (Home Page)', () => {
     await screenshot.takeScreenshot(page, 'Profile page loaded');
 
     // Verify displays profile page without activating MsalGuard
-    await page.waitForXPath("//strong[contains(., 'First Name: ')]");
+    await page.waitForSelector("xpath=//strong[contains(., 'First Name: ')]");
   });
 
   it('Home page - children are rendered after logging in with loginPopup', async (): Promise<void> => {
@@ -163,13 +163,13 @@ describe('/ (Home Page)', () => {
     await enterCredentials(popupPage, screenshot, username, accountPwd);
     await popupWindowClosed;
 
-    await page.waitForXPath("//p[contains(., 'Login successful!')]", {
+    await page.waitForSelector("xpath=//p[contains(., 'Login successful!')]", {
       timeout: 3000,
     });
     await screenshot.takeScreenshot(page, 'Popup closed');
 
     // Verify UI now displays logged in content
-    await page.waitForXPath("//p[contains(., 'Login successful!')]");
+    await page.waitForSelector("xpath=//p[contains(., 'Login successful!')]");
     const logoutButton = await page.waitForSelector(
       "xpath=//button[contains(., 'Logout')]"
     );
@@ -198,6 +198,6 @@ describe('/ (Home Page)', () => {
     await screenshot.takeScreenshot(page, 'Profile page loaded');
 
     // Verify displays profile page without activating MsalGuard
-    await page.waitForXPath("//strong[contains(., 'First Name: ')]");
+    await page.waitForSelector("xpath=//strong[contains(., 'First Name: ')]");
   });
 });
