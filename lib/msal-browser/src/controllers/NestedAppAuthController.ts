@@ -37,7 +37,7 @@ import {
     DEFAULT_REQUEST,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
-import { IController } from "./IController.js";
+import { IController, HandleRedirectPromiseOptions } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -752,7 +752,7 @@ export class NestedAppAuthController implements IController {
     // #endregion
 
     handleRedirectPromise(
-        hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        options?: HandleRedirectPromiseOptions // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {
         return Promise.resolve(null);
     }

@@ -49,6 +49,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -283,20 +284,26 @@ export class RedirectClient extends StandardInteractionClient {
      * - if false, handles hash string and parses response
      * @param hash {string} url hash
      * @param parentMeasurement {InProgressPerformanceEvent} parent measurement
+     * @param request {CommonAuthorizationUrlRequest} request object
+     * @param pkceVerifier {string} PKCE verifier
+     * @param options {HandleRedirectPromiseOptions} options for handling redirect promise
      */
     async handleRedirectPromise(
-        hash: string = "",
         request: CommonAuthorizationUrlRequest,
         pkceVerifier: string,
-        parentMeasurement: InProgressPerformanceEvent
+        parentMeasurement: InProgressPerformanceEvent,
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.handleRedirectPromise
         );
 
+        const navigateToLoginRequestUrl =
+            options?.navigateToLoginRequestUrl ?? true;
+
         try {
             const [serverParams, responseString] = this.getRedirectResponse(
-                hash || ""
+                options?.hash || ""
             );
             if (!serverParams) {
                 // Not a recognized server response hash or hash not associated with a redirect request
@@ -330,7 +337,7 @@ export class RedirectClient extends StandardInteractionClient {
 
             if (
                 loginRequestUrlNormalized === currentUrlNormalized &&
-                this.config.auth.navigateToLoginRequestUrl
+                navigateToLoginRequestUrl
             ) {
                 // We are on the page we need to navigate to - handle hash
                 this.logger.verbose(
@@ -350,7 +357,7 @@ export class RedirectClient extends StandardInteractionClient {
                 );
 
                 return handleHashResult;
-            } else if (!this.config.auth.navigateToLoginRequestUrl) {
+            } else if (!navigateToLoginRequestUrl) {
                 this.logger.verbose(
                     "NavigateToLoginRequestUrl set to false, handling response"
                 );
