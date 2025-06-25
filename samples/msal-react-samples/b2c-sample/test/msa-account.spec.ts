@@ -128,8 +128,9 @@ describe("B2C user-flow tests (msa account)", () => {
                 `window.location.href.startsWith("http://localhost:${port}")`
             ),
             page.waitForSelector("#idTokenClaims"),
-            page.waitForSelector("xpath=//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
-                { timeout: 4000 }
+            page.waitForSelector(
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
+                { timeout: 10000 }
             ),
         ]);
         const idTokenClaims = await page.$eval(

@@ -113,9 +113,8 @@ describe('B2C user-flow tests (local account)', () => {
       `window.location.href.startsWith("http://localhost:${port}")`
     );
     await page.waitForSelector('#idTokenClaims');
-    const htmlBody = await page.evaluate(() => document.body.innerHTML);
-    expect(htmlBody).toContain(`${displayName}`);
-    expect(htmlBody).toContain('B2C_1_SISOPolicy'); // implies the current active account
+    await page.waitForSelector(`xpath=//td[contains(., ${displayName})]`);
+    await page.waitForSelector(`xpath=//td[contains(., 'B2C_1_SISOPolicy')]`); // implies the current active account
 
     // Verify tokens are in cache
     const tokenStoreAfterEdit = await BrowserCache.getTokens();
