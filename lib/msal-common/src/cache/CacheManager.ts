@@ -48,7 +48,6 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 import { createCacheError } from "../error/CacheError.js";
 import * as AccountEntityUtils from "./utils/AccountEntityUtils.js";
 import { AuthError } from "../error/AuthError.js";
-import { remove } from "lodash";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
