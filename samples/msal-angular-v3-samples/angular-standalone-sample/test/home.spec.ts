@@ -155,6 +155,9 @@ describe('/ (Home Page)', () => {
       await loginPopupButton.click();
     }
     const popupPage = await newPopupWindowPromise;
+    if (!popupPage) {
+        throw new Error('Popup window was not opened');
+      }
     const popupWindowClosed = new Promise<void>((resolve) =>
       popupPage.once('close', resolve)
     );
