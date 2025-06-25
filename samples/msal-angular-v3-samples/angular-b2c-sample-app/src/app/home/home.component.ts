@@ -18,12 +18,12 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.msalBroadcastService.msalSubject$
       .pipe(
-        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
+        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
       )
       .subscribe((result: EventMessage) => {
         console.log(result);
-        const payload = result.payload as AuthenticationResult;
-        this.authService.instance.setActiveAccount(payload.account);
+        this.setLoginDisplay();
+        this.getClaims((result.payload as AuthenticationResult).account?.idTokenClaims as Record<string, any>);
       });
 
     this.msalBroadcastService.inProgress$
