@@ -148,7 +148,7 @@ describe('/ (Home Page)', () => {
     const loginPopupButton = await page.waitForSelector(
       "xpath=//button[contains(., 'Login using Popup')]"
     );
-    const newPopupWindowPromise = new Promise<puppeteer.Page>((resolve) =>
+    const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
       page.once('popup', resolve)
     );
     if (loginPopupButton) {

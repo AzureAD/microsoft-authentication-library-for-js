@@ -201,16 +201,14 @@ describe("/profile", () => {
         // Wait until the popup has navigated to login page
         await popupPage.waitForNavigation({ waitUntil: "networkidle0" });
 
-        await page.waitForXPath(
-            "//h6[contains(., 'Authentication in progress...')]"
+        await page.waitForSelector("xpath=//h6[contains(., 'Authentication in progress...')]"
         );
         await screenshot.takeScreenshot(page, "Loading component rendered");
 
         await popupPage.close();
         await popupWindowClosed;
 
-        await page.waitForXPath(
-            "//h6[contains(., 'An Error Occurred: user_cancelled')]"
+        await page.waitForSelector("xpath=//h6[contains(., 'An Error Occurred: user_cancelled')]"
         );
         await screenshot.takeScreenshot(page, "Error component rendered");
     });

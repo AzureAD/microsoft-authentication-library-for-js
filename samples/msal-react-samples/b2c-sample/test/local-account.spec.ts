@@ -122,8 +122,7 @@ describe("B2C user-flow tests (local account)", () => {
                 `window.location.href.startsWith("http://localhost:${port}")`
             ),
             page.waitForSelector("#idTokenClaims"),
-            page.waitForXPath(
-                "//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
+            page.waitForSelector("xpath=//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
                 { timeout: 4000 }
             ),
         ]);
