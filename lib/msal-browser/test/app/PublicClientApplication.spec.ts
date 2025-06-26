@@ -6056,8 +6056,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowPlatformBroker: false,
                 },
                 cache: {
-                    cacheLocation: BrowserCacheLocation.LocalStorage
-                }
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
             });
             pca.initialize().then(() => {
                 const testAccount: AccountInfo = {

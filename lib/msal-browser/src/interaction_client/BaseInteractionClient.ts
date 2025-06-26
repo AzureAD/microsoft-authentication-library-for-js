@@ -76,9 +76,12 @@ export abstract class BaseInteractionClient {
             this.correlationId
         );
         this.performanceClient = performanceClient;
-        this.performanceClient.addFields({
-            cacheLocation: config.cache.cacheLocation
-        }, this.correlationId);
+        this.performanceClient.addFields(
+            {
+                cacheLocation: config.cache.cacheLocation,
+            },
+            this.correlationId
+        );
     }
 
     abstract acquireToken(

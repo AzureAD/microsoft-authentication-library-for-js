@@ -3463,6 +3463,7 @@ export type PerformanceEvent = {
     usePreGeneratedPkce?: boolean;
     msalInstanceCount?: number;
     sameClientIdInstanceCount?: number;
+    cacheLocation?: string;
 };
 
 // Warning: (tsdoc-undefined-tag) The TSDoc tag "@export" is not defined in this configuration
