@@ -3015,14 +3015,6 @@ describe("RedirectClient", () => {
     });
 
     describe("EAR Flow Tests", () => {
-        beforeAll(() => {
-            jest.useFakeTimers();
-        });
-
-        afterAll(() => {
-            jest.useRealTimers();
-        });
-
         beforeEach(async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -3030,6 +3022,9 @@ describe("RedirectClient", () => {
                 },
                 system: {
                     protocolMode: ProtocolMode.EAR,
+                },
+                system: {
+                    redirectNavigationTimeout: 1000,
                 },
             });
             await pca.initialize();
@@ -3039,7 +3034,7 @@ describe("RedirectClient", () => {
             );
         });
 
-        it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+        it("Invokes EAR flow when protocolMode is set to EAR", (done) => {
             const validRequest: RedirectRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["openid", "profile", "offline_access"],
@@ -3051,18 +3046,40 @@ describe("RedirectClient", () => {
             jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
+            jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
+                () => {
+                    // Supress navigation
+                    pca.handleRedirectPromise(
+                        `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+                    ).then((result) => {
+                        expect(result).toEqual(getTestAuthenticationResult());
+                        done();
+                    });
+                }
+            );
+
+            pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
+        it("Throws a timeout error if the form post failed to redirect within the alloted time", async () => {
+            const validRequest: RedirectRequest = {
+                scopes: ["openid", "profile", "offline_access"],
+            };
             const earFormSpy = jest
                 .spyOn(HTMLFormElement.prototype, "submit")
                 .mockImplementation(() => {
                     // Supress navigation
                 });
 
-            await pca.acquireTokenRedirect(validRequest);
+            await expect(() =>
+                pca.acquireTokenRedirect(validRequest)
+            ).rejects.toEqual(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "failed_to_redirect"
+                )
+            );
             expect(earFormSpy).toHaveBeenCalled();
-            const result = await pca.handleRedirectPromise({
-                hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
-            });
-            expect(result).toEqual(getTestAuthenticationResult());
         });
     });
 });
