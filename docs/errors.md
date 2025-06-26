@@ -733,7 +733,7 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 #### acquireTokenRedirect timed out
 
-If this error is thrown from `acquireTokenRedirect` it means your application failed to redirect to your identity provider's /authorize endpoint in time. Review a network trace to identify potential causes.
+If this error is thrown from `acquireTokenRedirect` it means your application failed to redirect to your identity provider's /authorize endpoint in time. Review the network trace to identify potential causes.
 
 ## Browser configuration errors
 
