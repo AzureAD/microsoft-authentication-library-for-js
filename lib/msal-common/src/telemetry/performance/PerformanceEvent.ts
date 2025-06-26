@@ -898,6 +898,8 @@ export type PerformanceEvent = {
     msalInstanceCount?: number;
     // Number of MSAL JS instances using the same client id in the frame
     sameClientIdInstanceCount?: number;
+    // Browser cache location
+    cacheLocation?: string;
 };
 
 export type PerformanceEventContext = {

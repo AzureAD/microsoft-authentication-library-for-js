@@ -926,6 +926,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Calls NativeInteractionClient.handleRedirectPromise and emits telemetry event", (done) => {
             const config = {
+                cache: {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
@@ -960,6 +963,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ).toEqual(1);
                     expect(event.success).toBeTruthy();
                     expect(event.accountType).toEqual("MSA");
+                    expect(event.cacheLocation).toEqual("localStorage");
                     pca.removePerformanceCallback(callbackId);
                     done();
                 });
@@ -3636,6 +3640,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBeUndefined();
+                expect(events[0].cacheLocation).toEqual("sessionStorage");
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -6023,6 +6028,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBe("AAD");
+                expect(events[0].cacheLocation).toBe("sessionStorage");
 
                 pca.removePerformanceCallback(callbackId);
                 done();
@@ -6031,6 +6037,79 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
+            });
+        });
+
+        it("instruments local storage cache location", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+                cache: {
+                    cacheLocation: BrowserCacheLocation.LocalStorage
+                }
+            });
+            pca.initialize().then(() => {
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    idTokenClaims: {
+                        tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    },
+                };
+                const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: testAccount.localAccountId,
+                    tenantId: testAccount.tenantId,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: "test-idToken",
+                    idTokenClaims: {},
+                    accessToken: "test-accessToken",
+                    fromCache: false,
+                    correlationId: RANDOM_TEST_GUID,
+                    expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER,
+                };
+                const silentCacheSpy: jest.SpyInstance = jest
+                    .spyOn(SilentCacheClient.prototype, "acquireToken")
+                    .mockRejectedValue(new Error("Expired"));
+                const silentRefreshSpy: jest.SpyInstance = jest
+                    .spyOn(SilentRefreshClient.prototype, "acquireToken")
+                    .mockRejectedValue(
+                        new ServerError(
+                            BrowserConstants.INVALID_GRANT_ERROR,
+                            "Refresh Token expired"
+                        )
+                    );
+                const silentIframeSpy: jest.SpyInstance = jest
+                    .spyOn(SilentIframeClient.prototype, "acquireToken")
+                    .mockResolvedValue(testTokenResponse);
+
+                const callbackId = pca.addPerformanceCallback((events) => {
+                    expect(events[0].cacheLocation).toBe("localStorage");
+
+                    pca.removePerformanceCallback(callbackId);
+                    done();
+                });
+                pca.acquireTokenSilent({
+                    scopes: ["openid"],
+                    account: testAccount,
+                    correlationId: RANDOM_TEST_GUID,
+                });
             });
         });
 
