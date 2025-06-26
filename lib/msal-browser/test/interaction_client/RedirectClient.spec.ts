@@ -3047,9 +3047,9 @@ describe("RedirectClient", () => {
             jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
                 () => {
                     // Supress navigation
-                    pca.handleRedirectPromise(
-                        `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
-                    ).then((result) => {
+                    pca.handleRedirectPromise({
+                        hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+                    }).then((result) => {
                         expect(result).toEqual(getTestAuthenticationResult());
                         done();
                     });
