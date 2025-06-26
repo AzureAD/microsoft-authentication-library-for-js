@@ -3048,7 +3048,7 @@ describe("RedirectClient", () => {
                 () => {
                     // Supress navigation
                     pca.handleRedirectPromise({
-                        hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+                        hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
                     }).then((result) => {
                         expect(result).toEqual(getTestAuthenticationResult());
                         done();
