@@ -3022,8 +3022,6 @@ describe("RedirectClient", () => {
                 },
                 system: {
                     protocolMode: ProtocolMode.EAR,
-                },
-                system: {
                     redirectNavigationTimeout: 1000,
                 },
             });
@@ -3071,7 +3069,7 @@ describe("RedirectClient", () => {
                     // Supress navigation
                 });
 
-            await expect(() =>
+            await expect(
                 pca.acquireTokenRedirect(validRequest)
             ).rejects.toEqual(
                 createBrowserAuthError(

@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { create } from "domain";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { TEST_URIS } from "../utils/StringConstants.js";
-import { BrowserAuthError, BrowserAuthErrorCodes } from "../../src/index.js";
+import { BrowserAuthErrorCodes } from "../../src/index.js";
 import { createBrowserAuthError } from "../../src/error/BrowserAuthError.js";
 
 describe("NavigationClient.ts Unit Tests", () => {
