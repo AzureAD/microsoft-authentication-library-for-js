@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Instrument cache location #7868",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
