@@ -34,14 +34,6 @@ import {
     getDefaultPerformanceClient,
 } from "../../test_resources/TestModules.js";
 
-jest.mock("@azure/msal-browser", () => {
-    const actualModule = jest.requireActual("@azure/msal-browser");
-    return {
-        ...actualModule,
-        ServerTelemetryManager: jest.fn(),
-    };
-});
-
 describe("CustomAuthSilentCacheClient", () => {
     let client: CustomAuthSilentCacheClient;
     let mockBrowserConfig: BrowserConfiguration;
