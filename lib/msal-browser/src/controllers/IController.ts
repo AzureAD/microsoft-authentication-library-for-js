@@ -72,7 +72,9 @@ export interface IController {
 
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
-    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(
+        options?: HandleRedirectPromiseOptions
+    ): Promise<AuthenticationResult | null>;
 
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
 
@@ -116,3 +118,8 @@ export interface IController {
     /** @internal */
     getPerformanceClient(): IPerformanceClient;
 }
+
+export type HandleRedirectPromiseOptions = {
+    hash?: string;
+    navigateToLoginRequestUrl?: boolean;
+};
