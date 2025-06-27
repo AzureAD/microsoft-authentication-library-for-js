@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix build output during publishing",
-  "packageName": "@azure/msal-angular",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "none"
-}
