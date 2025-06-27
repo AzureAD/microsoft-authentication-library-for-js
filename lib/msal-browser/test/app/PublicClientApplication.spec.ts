@@ -610,9 +610,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     BrowserRootPerformanceEvents.InitializeClientApplication
                 );
                 expect(events[0].correlationId).toEqual("test-correlation-id");
-                expect(
-                    events[0]["clearTokensAndKeysWithClaimsDurationMs"]
-                ).toBeGreaterThanOrEqual(0);
+
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -1699,13 +1697,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events.length).toBeGreaterThanOrEqual(1);
                 for (const event of events) {
-                    if (
-                        event.name ===
-                        BrowserPerformanceEvents.ClearTokensAndKeysWithClaims
-                    ) {
-                        expect(event.success).toBeTruthy();
-                    }
-
                     if (
                         event.name ===
                         BrowserRootPerformanceEvents.InitializeClientApplication

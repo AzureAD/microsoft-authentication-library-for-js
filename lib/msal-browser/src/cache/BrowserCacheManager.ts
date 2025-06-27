@@ -1024,35 +1024,6 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Clears all access tokes that have claims prior to saving the current one
-     * @param performanceClient {IPerformanceClient}
-     * @param correlationId {string} correlation id
-     * @returns
-     */
-    clearTokensAndKeysWithClaims(correlationId: string): void {
-        const tokenKeys = this.getTokenKeys();
-        let removedAccessTokens = 0;
-        tokenKeys.accessToken.forEach((key: string) => {
-            // if the access token has claims in its key, remove the token key and the token
-            const credential = this.getAccessTokenCredential(key);
-            if (
-                credential?.requestedClaimsHash &&
-                key.includes(credential.requestedClaimsHash.toLowerCase())
-            ) {
-                this.removeAccessToken(key, correlationId);
-                removedAccessTokens++;
-            }
-        });
-
-        // warn if any access tokens are removed
-        if (removedAccessTokens > 0) {
-            this.logger.warning(
-                `${removedAccessTokens} access tokens with claims in the cache keys have been removed from the cache.`
-            );
-        }
-    }
-
-    /**
      * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
      * @param key
      * @param addInstanceId
