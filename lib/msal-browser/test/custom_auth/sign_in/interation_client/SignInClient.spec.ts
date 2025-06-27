@@ -74,58 +74,6 @@ describe("SignInClient", () => {
     );
 
     beforeEach(() => {
-        // jest.resetAllMocks();
-        // const mockBrowserConfiguration = {
-        //     system: {
-        //         networkClient: {
-        //             sendGetRequestAsync: jest.fn(),
-        //             sendPostRequestAsync: jest.fn(),
-        //         } as unknown as jest.Mocked<INetworkModule>,
-        //     },
-        //     auth: {
-        //         clientId: customAuthConfig.auth.clientId,
-        //     },
-        // } as unknown as jest.Mocked<BrowserConfiguration>;
-
-        // const mockCacheManager = {
-        //     getWrapperMetadata: jest.fn(),
-        //     getServerTelemetry: jest.fn(),
-        //     generateAuthorityMetadataCacheKey: jest.fn(),
-        //     setAuthorityMetadata: jest.fn(),
-        // } as unknown as jest.Mocked<BrowserCacheManager>;
-        // mockCacheManager.getWrapperMetadata.mockReturnValue(["", ""]);
-        // mockCacheManager.getServerTelemetry.mockReturnValue(null);
-        // const mockNetworkModule = {} as unknown as jest.Mocked<INetworkModule>;
-
-        // const mockCrypto = {
-        //     createNewGuid: jest.fn(),
-        // } as unknown as jest.Mocked<ICrypto>;
-
-        // const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
-        // const mockNavigationClient =
-        //     {} as unknown as jest.Mocked<INavigationClient>;
-        // const mockPerformanceClient =
-        //     {} as unknown as jest.Mocked<IPerformanceClient>;
-
-        // const mockLogger = {
-        //     clone: jest.fn(),
-        //     verbose: jest.fn(),
-        //     info: jest.fn(),
-        //     errorPii: jest.fn(),
-        // } as unknown as jest.Mocked<Logger>;
-        // mockLogger.clone.mockReturnValue(mockLogger);
-
-        // const mockConfig = {
-        //     auth: {
-        //         protocolMode: "",
-        //         OIDCOptions: {},
-        //         knownAuthorities: [],
-        //         cloudDiscoveryMetadata: "",
-        //         authorityMetadata: "",
-        //         skipAuthorityMetadataCache: false,
-        //     },
-        // } as unknown as jest.Mocked<BrowserConfiguration>;
-
         const clientId = customAuthConfig.auth.clientId;
         const mockBrowserConfiguration = buildConfiguration(
             { auth: { clientId: clientId } },
@@ -168,29 +116,6 @@ describe("SignInClient", () => {
             mockedApiClient,
             authority
         );
-
-        // (client as any).tokenResponseHandler = {
-        //     handleServerTokenResponse: jest.fn().mockResolvedValue({
-        //         uniqueId: "test-unique-id",
-        //         tenantId: "test-tenant-id",
-        //         scopes: ["test-scope"],
-        //         account: {
-        //             homeAccountId: "test-home-account-id",
-        //             environment: "test-environment",
-        //             tenantId: "test-tenant-id",
-        //             username: "abc@abc.com",
-        //         },
-        //         idToken: "test-id-token",
-        //         idTokenClaims: {},
-        //         accessToken: "test-access-token",
-        //         refreshToken: "test-refresh-token",
-        //         expiresOn: new Date(),
-        //         extExpiresOn: new Date(),
-        //         tokenType: "Bearer",
-        //         authority:
-        //             "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/",
-        //     }),
-        // } as any;
     });
 
     afterEach(() => {

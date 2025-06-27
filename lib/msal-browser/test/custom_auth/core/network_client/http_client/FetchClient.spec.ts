@@ -1,5 +1,5 @@
-import { Logger } from "@azure/msal-browser";
 import { FetchHttpClient } from "../../../../../src/custom_auth/core/network_client/http_client/FetchHttpClient.js";
+import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 class MockResponse {
     public readonly status: number;
@@ -20,7 +20,7 @@ class MockResponse {
 describe("FetchHttpClient", () => {
     let httpClient: FetchHttpClient;
     let mockFetch: jest.Mock;
-    const logger = new Logger({}, "test", "1.0.0");
+    const logger = getDefaultLogger();
 
     beforeEach(() => {
         // Create a mock for the global fetch
