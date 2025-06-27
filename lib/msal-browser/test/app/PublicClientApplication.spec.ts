@@ -1275,7 +1275,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const promise2 = pca.handleRedirectPromise();
             const tokenResponse1 = await promise1;
             const tokenResponse2 = await promise2;
-            const tokenResponse3 = await pca.handleRedirectPromise("testHash");
+            const tokenResponse3 = await pca.handleRedirectPromise({
+                hash: "testHash",
+            });
             expect(tokenResponse3).toBe(null);
             const tokenResponse4 = await pca.handleRedirectPromise();
 

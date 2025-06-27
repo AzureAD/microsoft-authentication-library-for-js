@@ -10,7 +10,10 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
-import { IController } from "../controllers/IController.js";
+import {
+    HandleRedirectPromiseOptions,
+    IController,
+} from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
@@ -237,9 +240,9 @@ export class PublicClientNext implements IPublicClientApplication {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(
-        hash?: string | undefined
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        return this.controller.handleRedirectPromise(hash);
+        return this.controller.handleRedirectPromise(options);
     }
 
     /**
