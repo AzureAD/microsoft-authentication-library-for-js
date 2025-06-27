@@ -24,31 +24,8 @@ import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity.js";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity.js";
-import { CredentialEntity } from "../entities/CredentialEntity.js";
 import { IdTokenEntity } from "../entities/IdTokenEntity.js";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity.js";
-
-/**
- * Cache Key: <home_account_id>-<environment>-<credential_type>-<client_id or familyId>-<realm>-<scopes>-<claims hash>-<scheme>
- * IdToken Example: uid.utid-login.microsoftonline.com-idtoken-app_client_id-contoso.com
- * AccessToken Example: uid.utid-login.microsoftonline.com-accesstoken-app_client_id-contoso.com-scope1 scope2--pop
- * RefreshToken Example: uid.utid-login.microsoftonline.com-refreshtoken-1-contoso.com
- * @param credentialEntity
- * @returns
- */
-export function generateCredentialKey(
-    credentialEntity: CredentialEntity
-): string {
-    const credentialKey = [
-        generateAccountId(credentialEntity),
-        generateCredentialId(credentialEntity),
-        generateTarget(credentialEntity),
-        generateClaimsHash(credentialEntity),
-        generateScheme(credentialEntity),
-    ];
-
-    return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-}
 
 /**
  * Create IdTokenEntity
@@ -259,63 +236,6 @@ export function isRefreshTokenEntity(entity: object): boolean {
         isCredentialEntity(entity) &&
         entity["credentialType"] === CredentialType.REFRESH_TOKEN
     );
-}
-
-/**
- * Generate Account Id key component as per the schema: <home_account_id>-<environment>
- */
-function generateAccountId(credentialEntity: CredentialEntity): string {
-    const accountId: Array<string> = [
-        credentialEntity.homeAccountId,
-        credentialEntity.environment,
-    ];
-    return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-}
-
-/**
- * Generate Credential Id key component as per the schema: <credential_type>-<client_id>-<realm>
- */
-function generateCredentialId(credentialEntity: CredentialEntity): string {
-    const clientOrFamilyId =
-        credentialEntity.credentialType === CredentialType.REFRESH_TOKEN
-            ? credentialEntity.familyId || credentialEntity.clientId
-            : credentialEntity.clientId;
-    const credentialId: Array<string> = [
-        credentialEntity.credentialType,
-        clientOrFamilyId,
-        credentialEntity.realm || "",
-    ];
-
-    return credentialId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-}
-
-/**
- * Generate target key component as per schema: <target>
- */
-function generateTarget(credentialEntity: CredentialEntity): string {
-    return (credentialEntity.target || "").toLowerCase();
-}
-
-/**
- * Generate requested claims key component as per schema: <requestedClaims>
- */
-function generateClaimsHash(credentialEntity: CredentialEntity): string {
-    return (credentialEntity.requestedClaimsHash || "").toLowerCase();
-}
-
-/**
- * Generate scheme key componenet as per schema: <scheme>
- */
-function generateScheme(credentialEntity: CredentialEntity): string {
-    /*
-     * PoP Tokens and SSH certs include scheme in cache key
-     * Cast to lowercase to handle "bearer" from ADFS
-     */
-    return credentialEntity.tokenType &&
-        credentialEntity.tokenType.toLowerCase() !==
-            AuthenticationScheme.BEARER.toLowerCase()
-        ? credentialEntity.tokenType.toLowerCase()
-        : "";
 }
 
 /**

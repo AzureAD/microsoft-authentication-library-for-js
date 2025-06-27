@@ -256,3 +256,8 @@ export const LOG_PII_CACHE_KEY = "msal.browser.log.pii";
 export const BROWSER_PERF_ENABLED_KEY = "msal.browser.performance.enabled";
 
 export const PLATFORM_AUTH_DOM_SUPPORT = "msal.browser.platform.auth.dom";
+
+export const CACHE_KEY_PREFIX = "msal";
+export const CACHE_KEY_CREDENTIAL_SCHEMA_VERSION = "1";
+export const CACHE_KEY_ACCOUNT_SCHEMA_VERSION = "1";
+export const CACHE_KEY_SEPARATOR = "-";

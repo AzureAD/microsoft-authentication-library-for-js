@@ -35,6 +35,8 @@ import {
     ThrottlingEntity,
     TimeUtils,
     TokenKeys,
+    CredentialEntity,
+    CredentialType
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -43,6 +45,10 @@ import {
 } from "../error/BrowserAuthError.js";
 import {
     BrowserCacheLocation,
+    CACHE_KEY_ACCOUNT_SCHEMA_VERSION,
+    CACHE_KEY_CREDENTIAL_SCHEMA_VERSION,
+    CACHE_KEY_PREFIX,
+    CACHE_KEY_SEPARATOR,
     InMemoryCacheKeys,
     INTERACTION_TYPE,
     StaticCacheKeys,
@@ -323,7 +329,7 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
-        const key = account.generateAccountKey();
+        const key = this.generateAccountKey(account.getAccountInfo());
         const timestamp = Date.now().toString();
         account.lastUpdatedAt = timestamp;
         await this.setUserData(
@@ -426,17 +432,14 @@ export class BrowserCacheManager extends CacheManager {
      * Extends inherited removeAccount function to include removal of the account key from the map
      * @param key
      */
-    removeAccount(key: string, correlationId: string): void {
-        super.removeAccount(key, correlationId);
-        this.removeAccountKeyFromMap(key, correlationId);
-    }
+    removeAccount(account: AccountInfo, correlationId: string): void {
+        const activeAccount = this.getActiveAccount(correlationId);
+        if (activeAccount?.homeAccountId === account.homeAccountId && activeAccount?.environment === account.environment) {
+            this.setActiveAccount(null, correlationId);
+        }
 
-    /**
-     * Removes credentials associated with the provided account
-     * @param account
-     */
-    removeAccountContext(account: AccountEntity, correlationId: string): void {
-        super.removeAccountContext(account, correlationId);
+        super.removeAccount(account, correlationId);
+        this.removeAccountKeyFromMap(this.generateAccountKey(account), correlationId);
 
         /**
          * @deprecated - Remove this in next major version in favor of more consistent LOGOUT event
@@ -447,7 +450,7 @@ export class BrowserCacheManager extends CacheManager {
             this.eventHandler.emitEvent(
                 EventType.ACCOUNT_REMOVED,
                 undefined,
-                account.getAccountInfo()
+                account
             );
         }
     }
@@ -594,7 +597,7 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
-        const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
+        const idTokenKey = this.generateCredentialKey(idToken);
         const timestamp = Date.now().toString();
         idToken.lastUpdatedAt = timestamp;
 
@@ -659,7 +662,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called"
         );
-        const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
+        const accessTokenKey = this.generateCredentialKey(accessToken);
         const timestamp = Date.now().toString();
         accessToken.lastUpdatedAt = timestamp;
 
@@ -727,7 +730,7 @@ export class BrowserCacheManager extends CacheManager {
             "BrowserCacheManager.setRefreshTokenCredential called"
         );
         const refreshTokenKey =
-            CacheHelpers.generateCredentialKey(refreshToken);
+            this.generateCredentialKey(refreshToken);
         const timestamp = Date.now().toString();
         refreshToken.lastUpdatedAt = timestamp;
 
@@ -1141,7 +1144,7 @@ export class BrowserCacheManager extends CacheManager {
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1 ||
+                cacheKey.indexOf(CACHE_KEY_PREFIX) !== -1 ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.removeTemporaryItem(cacheKey);
@@ -1151,7 +1154,7 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all remaining MSAL cache items
         this.browserStorage.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1 ||
+                cacheKey.indexOf(CACHE_KEY_PREFIX) !== -1 ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.browserStorage.removeItem(cacheKey);
@@ -1199,20 +1202,61 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
+     * Prepend msal.<client-id> to each key
      * @param key
      * @param addInstanceId
      */
     generateCacheKey(key: string): string {
-        const generatedKey = this.validateAndParseJson(key);
-        if (!generatedKey) {
-            if (StringUtils.startsWith(key, Constants.CACHE_PREFIX)) {
-                return key;
-            }
-            return `${Constants.CACHE_PREFIX}.${this.clientId}.${key}`;
+        if (StringUtils.startsWith(key, CACHE_KEY_PREFIX)) {
+            return key;
         }
+        return `${CACHE_KEY_PREFIX}.${this.clientId}.${key}`;
+    }
 
-        return JSON.stringify(key);
+    /**
+     * Cache Key: msal.<schema_version>-<home_account_id>-<environment>-<credential_type>-<client_id or familyId>-<realm>-<scopes>-<claims hash>-<scheme>
+     * IdToken Example: uid.utid-login.microsoftonline.com-idtoken-app_client_id-contoso.com
+     * AccessToken Example: uid.utid-login.microsoftonline.com-accesstoken-app_client_id-contoso.com-scope1 scope2--pop
+     * RefreshToken Example: uid.utid-login.microsoftonline.com-refreshtoken-1-contoso.com
+     * @param credentialEntity
+     * @returns
+     */
+    generateCredentialKey(credential: CredentialEntity): string {
+        const familyId = (credential.credentialType === CredentialType.REFRESH_TOKEN && credential.familyId) || credential.clientId;
+        const scheme = credential.tokenType && credential.tokenType.toLowerCase() !==
+                AuthenticationScheme.BEARER.toLowerCase()
+            ? credential.tokenType.toLowerCase()
+            : "";
+        const credentialKey = [
+            `${CACHE_KEY_PREFIX}.${CACHE_KEY_CREDENTIAL_SCHEMA_VERSION}`,
+            credential.homeAccountId,
+            credential.environment,
+            credential.credentialType,
+            familyId,
+            credential.realm || "",
+            credential.target || "",
+            credential.requestedClaimsHash || "",
+            scheme
+        ];
+    
+        return credentialKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    /**
+     * Cache Key: msal.<schema_version>.<home_account_id>.<environment>.<tenant_id>
+     * @param account 
+     * @returns 
+     */
+    generateAccountKey(account: AccountInfo): string {
+        const homeTenantId = account.homeAccountId.split(".")[1];
+        const accountKey = [
+            `${CACHE_KEY_PREFIX}.${CACHE_KEY_ACCOUNT_SCHEMA_VERSION}`,
+            account.homeAccountId,
+            account.environment,
+            homeTenantId || account.tenantId || ""
+        ];
+
+        return accountKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**
@@ -1346,7 +1390,7 @@ export class BrowserCacheManager extends CacheManager {
         clientId: string;
         type: INTERACTION_TYPE;
     } | null {
-        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        const key = `${CACHE_KEY_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         const value = this.getTemporaryCache(key, false);
         try {
             return value ? JSON.parse(value) : null;
@@ -1367,7 +1411,7 @@ export class BrowserCacheManager extends CacheManager {
         type: INTERACTION_TYPE = INTERACTION_TYPE.SIGNIN
     ): void {
         // Ensure we don't overwrite interaction in progress for a different clientId
-        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        const key = `${CACHE_KEY_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
             if (this.getInteractionInProgress()) {
                 throw createBrowserAuthError(

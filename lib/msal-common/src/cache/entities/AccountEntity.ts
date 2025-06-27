@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CacheAccountType, Separators } from "../../utils/Constants.js";
+import { CacheAccountType } from "../../utils/Constants.js";
 import type { Authority } from "../../authority/Authority.js";
 import { ICrypto } from "../../crypto/ICrypto.js";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
@@ -65,27 +65,6 @@ export class AccountEntity {
     lastUpdatedAt?: string;
 
     /**
-     * Generate Account Id key component as per the schema: <home_account_id>-<environment>
-     */
-    generateAccountId(): string {
-        const accountId: Array<string> = [this.homeAccountId, this.environment];
-        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-    }
-
-    /**
-     * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
-     */
-    generateAccountKey(): string {
-        return AccountEntity.generateAccountCacheKey({
-            homeAccountId: this.homeAccountId,
-            environment: this.environment,
-            tenantId: this.realm,
-            username: this.username,
-            localAccountId: this.localAccountId,
-        });
-    }
-
-    /**
      * Returns the AccountInfo interface for this account.
      */
     getAccountInfo(): AccountInfo {
@@ -112,21 +91,6 @@ export class AccountEntity {
      */
     isSingleTenant(): boolean {
         return !this.tenantProfiles;
-    }
-
-    /**
-     * Generates account key from interface
-     * @param accountInterface
-     */
-    static generateAccountCacheKey(accountInterface: AccountInfo): string {
-        const homeTenantId = accountInterface.homeAccountId.split(".")[1];
-        const accountKey = [
-            accountInterface.homeAccountId,
-            accountInterface.environment || "",
-            homeTenantId || accountInterface.tenantId || "",
-        ];
-
-        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**

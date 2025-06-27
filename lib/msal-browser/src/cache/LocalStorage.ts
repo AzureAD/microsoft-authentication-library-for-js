@@ -4,7 +4,6 @@
  */
 
 import {
-    Constants,
     TokenKeys,
     IPerformanceClient,
     invokeAsync,
@@ -33,7 +32,7 @@ import { CookieStorage, SameSiteOptions } from "./CookieStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
-import { StaticCacheKeys } from "../utils/BrowserConstants.js";
+import { CACHE_KEY_PREFIX, StaticCacheKeys } from "../utils/BrowserConstants.js";
 
 const ENCRYPTION_KEY = "msal.cache.encryption";
 const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
@@ -252,7 +251,7 @@ export class LocalStorage implements IWindowStorage<string> {
         // Clean up anything left
         this.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.startsWith(Constants.CACHE_PREFIX) ||
+                cacheKey.startsWith(CACHE_KEY_PREFIX) ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.removeItem(cacheKey);
