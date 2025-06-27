@@ -799,6 +799,7 @@ describe("BrowserCacheManager tests", () => {
                         Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
                     );
                 });
+            });
 
             describe("RefreshTokenCredential", () => {
                 it("getRefreshTokenCredential returns null if key not in cache", () => {
