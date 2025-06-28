@@ -223,7 +223,6 @@ export class OnBehalfOfClient extends BaseClient {
             target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
             tokenType: authScheme,
             keyId: request.sshKid,
-            requestedClaimsHash: request.requestedClaimsHash,
             userAssertionHash: this.userAssertionHash,
         };
 

@@ -31,6 +31,4 @@ export type CredentialEntity = {
     tokenType?: AuthenticationScheme;
     /** KeyId for PoP and SSH tokens stored in the kid claim */
     keyId?: string;
-    /** Matches the SHA 256 hash of the claims object included in the token request */
-    requestedClaimsHash?: string;
 };

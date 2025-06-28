@@ -851,7 +851,7 @@ describe("CacheManager.ts test cases", () => {
         it("Returns false if key does not contain a valid credential type", () => {
             expect(
                 mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-credentialType-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-requestedClaimsHash-scheme`
+                    `homeAccountId-environment-credentialType-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-scheme`
                 )
             ).toBe(false);
         });
@@ -859,7 +859,7 @@ describe("CacheManager.ts test cases", () => {
         it("Returns false if key does not contain clientId", () => {
             expect(
                 mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-accessToken-clientId-realm-target-requestedClaimsHash-scheme`
+                    `homeAccountId-environment-accessToken-clientId-realm-target-scheme`
                 )
             ).toBe(false);
         });
@@ -877,7 +877,7 @@ describe("CacheManager.ts test cases", () => {
             ).toBe(true);
             expect(
                 mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-${CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-requestedClaimsHash-scheme`
+                    `homeAccountId-environment-${CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-scheme`
                 )
             ).toBe(true);
             expect(
@@ -1472,30 +1472,6 @@ describe("CacheManager.ts test cases", () => {
 
             accessTokens =
                 mockCache.cacheManager.getAccessTokensByFilter(wrongFilter);
-            expect(accessTokens.length).toEqual(0);
-        });
-
-        it("requestedClaimsHash filter", () => {
-            // requestedClaimsHash present and matching in request and cache
-            const successFilterWithRCHash = {
-                credentialType: CredentialType.ACCESS_TOKEN,
-                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
-            };
-
-            let accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
-                successFilterWithRCHash
-            );
-            expect(accessTokens.length).toEqual(1);
-
-            // requestedClaimsHash present in requeste and cache, not matching
-            const wrongFilterWithRCHash = {
-                ...successFilterWithRCHash,
-                requestedClaimsHash: "wrong_hash",
-            };
-
-            accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
-                wrongFilterWithRCHash
-            );
             expect(accessTokens.length).toEqual(0);
         });
 

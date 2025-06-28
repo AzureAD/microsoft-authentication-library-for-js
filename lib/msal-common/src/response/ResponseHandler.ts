@@ -415,9 +415,7 @@ export class ResponseHandler {
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
-                serverTokenResponse.key_id,
-                request.claims,
-                request.requestedClaimsHash
+                serverTokenResponse.key_id
             );
         }
 

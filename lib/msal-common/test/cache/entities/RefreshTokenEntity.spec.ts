@@ -10,7 +10,7 @@ describe("RefreshTokenEntity.ts Unit Tests", () => {
         expect(
             CacheHelpers.generateCredentialKey(mockRefreshTokenEntity)
         ).toEqual(
-            "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id----"
+            "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id---"
         );
     });
 
@@ -19,7 +19,7 @@ describe("RefreshTokenEntity.ts Unit Tests", () => {
             CacheHelpers.generateCredentialKey(
                 mockRefreshTokenEntityWithFamilyId
             )
-        ).toEqual("uid.utid-login.microsoftonline.com-refreshtoken-1----");
+        ).toEqual("uid.utid-login.microsoftonline.com-refreshtoken-1---");
     });
 
     it("verify if an object is a refresh token entity", () => {

@@ -1235,11 +1235,6 @@ export class BrowserCacheManager extends CacheManager {
             result.tenantId
         );
 
-        let claimsHash;
-        if (request.claims) {
-            claimsHash = await this.cryptoImpl.hashString(request.claims);
-        }
-
         /**
          * meta data for cache stores time in seconds from epoch
          * AuthenticationResult returns expiresOn and extExpiresOn in milliseconds (as a Date object which is in ms)
@@ -1266,9 +1261,7 @@ export class BrowserCacheManager extends CacheManager {
             undefined, // refreshOn
             result.tokenType as Constants.AuthenticationScheme,
             undefined, // userAssertionHash
-            request.sshKid,
-            request.claims,
-            claimsHash
+            request.sshKid
         );
 
         const cacheRecord = {

@@ -21,7 +21,6 @@ export type OnBehalfOfRequest = Partial<
         | "scopes"
         | "resourceRequestMethod"
         | "resourceRequestUri"
-        | "requestedClaimsHash"
         | "storeInCache"
     >
 > & {

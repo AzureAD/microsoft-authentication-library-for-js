@@ -35,7 +35,6 @@ export type SilentRequest = Omit<
     | "correlationId"
     | "forceRefresh"
     | "account"
-    | "requestedClaimsHash"
 > & {
     redirectUri?: string;
     extraQueryParameters?: StringDict;

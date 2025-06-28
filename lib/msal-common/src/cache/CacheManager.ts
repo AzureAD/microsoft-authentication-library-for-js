@@ -579,7 +579,6 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
             tokenType: credential.tokenType,
-            requestedClaimsHash: credential.requestedClaimsHash,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -847,14 +846,6 @@ export abstract class CacheManager implements ICacheManager {
          */
         if (!!filter.target && !this.matchTarget(entity, filter.target)) {
             return false;
-        }
-
-        // If request OR cached entity has requested Claims Hash, check if they match
-        if (filter.requestedClaimsHash || entity.requestedClaimsHash) {
-            // Don't match if either is undefined or they are different
-            if (entity.requestedClaimsHash !== filter.requestedClaimsHash) {
-                return false;
-            }
         }
 
         // Access Token with Auth Scheme specific matching
@@ -1273,7 +1264,6 @@ export abstract class CacheManager implements ICacheManager {
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
-            requestedClaimsHash: request.requestedClaimsHash,
         };
 
         const accessTokenKeys =
@@ -1358,13 +1348,6 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (filter.realm && key.indexOf(filter.realm.toLowerCase()) === -1) {
-            return false;
-        }
-
-        if (
-            filter.requestedClaimsHash &&
-            key.indexOf(filter.requestedClaimsHash.toLowerCase()) === -1
-        ) {
             return false;
         }
 

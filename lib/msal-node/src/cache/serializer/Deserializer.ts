@@ -130,8 +130,6 @@ export class Deserializer {
                     keyId: serializedAT.key_id,
                     tokenType:
                         serializedAT.token_type as Constants.AuthenticationScheme,
-                    requestedClaims: serializedAT.requestedClaims,
-                    requestedClaimsHash: serializedAT.requestedClaimsHash,
                     userAssertionHash: serializedAT.userAssertionHash,
                 };
                 atObjects[key] = accessToken;
