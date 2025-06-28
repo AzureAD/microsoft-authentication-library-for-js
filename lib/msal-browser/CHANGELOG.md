@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 18 Jun 2025 15:21:55 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 28 Jun 2025 00:44:05 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.14.0
+
+Sat, 28 Jun 2025 00:44:05 GMT
+
+### Minor changes
+
+- Remove access tokens when cache quota is exceeded #7819 (thomas.norling@microsoft.com)
+- Add native authentication feaetures for the external ID (shen.jian@live.com)
+- Bump @azure/msal-common to v15.8.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Track cache lastUpdatedAt timestamp and stop removing cache entries in get calls (thomas.norling@microsoft.com)
+- Throw timeout error in acquireTokenRedirect if the redirect doesn't happen (thomas.norling@microsoft.com)
 
 ## 4.13.2
 

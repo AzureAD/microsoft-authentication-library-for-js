@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 18 Jun 2025 15:21:55 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 28 Jun 2025 00:44:06 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.6.2
+
+Sat, 28 Jun 2025 00:44:06 GMT
+
+### Patches
+
+- Add correlationIds to cache APIs #7819 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.8.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.6.1
 
