@@ -9,7 +9,33 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { StringDict } from "./MsalTypes.js";
-import { UrlString } from "../url/UrlString.js";
+import { StringUtils } from "./StringUtils.js";
+
+/**
+ * Canonicalizes a URL by making it lowercase and ensuring it ends with /
+ * Inlined version of UrlString.canonicalizeUri to avoid circular dependency
+ * @param url - URL to canonicalize
+ * @returns Canonicalized URL
+ */
+function canonicalizeUrl(url: string): string {
+    if (!url) {
+        return url;
+    }
+
+    let lowerCaseUrl = url.toLowerCase();
+
+    if (StringUtils.endsWith(lowerCaseUrl, "?")) {
+        lowerCaseUrl = lowerCaseUrl.slice(0, -1);
+    } else if (StringUtils.endsWith(lowerCaseUrl, "?/")) {
+        lowerCaseUrl = lowerCaseUrl.slice(0, -2);
+    }
+
+    if (!StringUtils.endsWith(lowerCaseUrl, "/")) {
+        lowerCaseUrl += "/";
+    }
+
+    return lowerCaseUrl;
+}
 
 /**
  * Parses hash string from given string. Returns empty string if no hash symbol is found.
@@ -107,14 +133,16 @@ export function normalizeUrlForComparison(url: string): string {
         // Parse the URL to handle encoding consistently
         const urlObj = new URL(urlWithoutHash);
 
-        // Reconstruct the URL with properly decoded query parameters
-        // This ensures that %27 and ' are treated as equivalent
+        /*
+         * Reconstruct the URL with properly decoded query parameters
+         * This ensures that %27 and ' are treated as equivalent
+         */
         const normalizedUrl = urlObj.origin + urlObj.pathname + urlObj.search;
 
-        // Apply the existing canonicalization logic
-        return UrlString.canonicalizeUri(normalizedUrl);
+        // Apply canonicalization logic inline to avoid circular dependency
+        return canonicalizeUrl(normalizedUrl);
     } catch (e) {
         // Fallback to original logic if URL parsing fails
-        return UrlString.canonicalizeUri(urlWithoutHash);
+        return canonicalizeUrl(urlWithoutHash);
     }
 }
