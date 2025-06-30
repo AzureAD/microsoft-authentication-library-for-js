@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Remove all requested claims references",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
