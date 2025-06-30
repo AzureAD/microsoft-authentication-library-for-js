@@ -144,7 +144,7 @@ export { AuthErrorCodes }
 // Warning: (ae-missing-release-tag) "AuthorizationCodeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "code" | "enableSpaAuthorizationCode" | "requestedClaimsHash">> & {
+export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "code" | "enableSpaAuthorizationCode">> & {
     code?: string;
     nativeAccountId?: string;
     cloudGraphHostName?: string;
@@ -1157,7 +1157,7 @@ export type PopupPosition = {
 // Warning: (ae-missing-release-tag) "PopupRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
+export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
@@ -1387,7 +1387,7 @@ function redirectPreflightCheck(initialized: boolean, config: BrowserConfigurati
 // Warning: (ae-missing-release-tag) "RedirectRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
+export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
 };
@@ -1469,7 +1469,7 @@ const silentPromptValueError = "silent_prompt_value_error";
 // Warning: (ae-missing-release-tag) "SilentRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correlationId" | "forceRefresh" | "account" | "requestedClaimsHash"> & {
+export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correlationId" | "forceRefresh" | "account"> & {
     redirectUri?: string;
     extraQueryParameters?: StringDict;
     authority?: string;
@@ -1494,7 +1494,7 @@ const SsoSilent = "ssoSilent";
 // Warning: (ae-missing-release-tag) "SsoSilentRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">>;
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">>;
 
 // Warning: (ae-missing-release-tag) "stateInteractionTypeMismatch" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

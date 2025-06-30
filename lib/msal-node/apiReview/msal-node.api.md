@@ -93,7 +93,7 @@ export { AuthErrorCodes }
 export { AuthorizationCodePayload }
 
 // @public
-export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     scopes: Array<string>;
     redirectUri: string;
     code: string;
@@ -101,7 +101,7 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
 };
 
 // @public
-export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme" | "requestedClaimsHash" | "storeInCache">> & {
+export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme" | "storeInCache">> & {
     scopes: Array<string>;
     redirectUri: string;
 };
@@ -185,7 +185,7 @@ export class ClientCredentialClient extends BaseClient {
 }
 
 // @public
-export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "clientAssertion" | "storeInCache">> & {
+export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "clientAssertion" | "storeInCache">> & {
     clientAssertion?: string | ClientAssertionCallback;
 };
 
@@ -242,7 +242,7 @@ export class DeviceCodeClient extends BaseClient {
 }
 
 // @public
-export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     scopes: Array<string>;
     deviceCodeCallback: (response: DeviceCodeResponse_2) => void;
 };
@@ -311,7 +311,7 @@ export { InteractionRequiredAuthError }
 export { InteractionRequiredAuthErrorCodes }
 
 // @public
-export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "storeInCache">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
@@ -463,7 +463,7 @@ export class OnBehalfOfClient extends BaseClient {
 }
 
 // @public
-export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     oboAssertion: string;
     scopes: Array<string>;
 };
@@ -493,7 +493,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 }
 
 // @public
-export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     scopes: Array<string>;
     refreshToken: string;
     forceCache?: boolean;
@@ -523,8 +523,6 @@ export type SerializedAccessTokenEntity = {
     refresh_on?: string;
     key_id?: string;
     token_type?: string;
-    requestedClaims?: string;
-    requestedClaimsHash?: string;
     userAssertionHash?: string;
 };
 
@@ -592,7 +590,7 @@ export type SignOutRequest = {
 };
 
 // @public
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "requestedClaimsHash" | "storeInCache">> & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "storeInCache">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
@@ -624,7 +622,7 @@ export class UsernamePasswordClient extends BaseClient {
 }
 
 // @public
-export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "requestedClaimsHash" | "storeInCache">> & {
+export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "storeInCache">> & {
     scopes: Array<string>;
     username: string;
     password: string;
