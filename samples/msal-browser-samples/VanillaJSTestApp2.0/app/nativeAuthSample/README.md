@@ -71,12 +71,12 @@ Each authentication flow requires specific query parameters to configure the cor
 5. **Locate folder VanillaJSTestApp2.0 folder and start the development server**:
 
    ```bash
-   npm start -- --port 3000 --sample nativeAuthSample
+   npm start -- --port 30670 --sample nativeAuthSample
    ```
 
 6. **Open your browser**:
 
-   Navigate to [http://localhost:3000](http://localhost:3000)
+   Navigate to [http://localhost:30670](http://localhost:30670)
 
 ## Authentication Flows
 
@@ -95,23 +95,20 @@ The sample supports multiple sign-in methods:
    - Enter the code to complete authentication
 
 3. **Redirect Authentication**:
-   - Enter email address
-   - System redirects to authentication provider
-   - Complete authentication on provider page
-   - Return to application with tokens
+   - Enter email address, show redirect error
 
 ### Sign Up
 
 The sign-up flow includes:
 
 1. **Email/Password**:
-   - Enter email address and basic profile information
+   - Enter email address and user attributes
    - Verify email with a verification code
    - Create a password
    - Complete account creation
 
 2. **Email OTP Authentication**:
-   - Enter email address and basic profile information
+   - Enter email address and user attributes
    - Verify email with a verification code
    - Complete account creation
 
@@ -121,7 +118,7 @@ The password reset flow allows users to:
 
 1. Request a password reset using their email
 2. Receive a verification code via email
-3. Verify identity with the code
+3. Verify the code
 4. Create a new password
 5. Complete password reset
 
@@ -156,29 +153,6 @@ nativeAuthSample/
 └── package-lock.json   # Dependencies lock file
 ```
 
-### Key Components:
-
-1. **Core Files**
-   - `index.html`: Main entry point and UI layout
-   - `styles.css`: Application styling
-   - `cors.js`: CORS handling for authentication endpoints
-
-2. **Application Logic** (`app/` directory)
-   - Main application setup and configuration
-   - Authentication flows implementation
-   - User interface management
-   - Helper utilities
-
-3. **Test Suite** (`test/` directory)
-   - End-to-end test specifications
-   - Test utilities and helpers
-   - Visual regression testing screenshots
-
-4. **Configuration**
-   - Jest test configuration
-   - Package dependencies
-   - CORS and proxy settings
-
 ## Key Components
 
 ### CustomAuthPublicClientApplication
@@ -211,38 +185,6 @@ The `CustomAuthConfiguration` object includes:
    ```bash
    npm run test:e2e -- --sample=nativeAuthSample --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit
    ```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **MSAL not initialized**: Ensure your configuration is correct and the authority URL is accessible
-2. **CORS errors**: Make sure your API proxy URL is configured to accept requests from your domain
-3. **Invalid authority**: Verify your CIAM tenant URL is correct and includes the proper format
-
-### Debug Information
-
-- Check the browser console for detailed error messages
-- The results section shows all MSAL operations and their outcomes
-- Enable verbose logging by setting `logLevel: LogLevel.Verbose` in the configuration
-
-## Native Authentication Flow
-
-This sample demonstrates the basic Native Authentication flow:
-
-1. **Initialize**: Create `CustomAuthPublicClientApplication` instance
-2. **Sign In**: Call `signIn()` with username and optional password
-3. **Handle Result**: Process the `SignInResult` which may indicate:
-   - Successful authentication
-   - Additional challenges required (OTP, password, etc.)
-   - Error conditions
-
-## Security Considerations
-
-- This is a sample application for development and testing purposes
-- In production, ensure proper validation of all inputs
-- Use HTTPS for all authentication flows
-- Store sensitive configuration securely (environment variables, key vault, etc.)
 
 ## Authentication Flow Configurations
 
