@@ -133,7 +133,7 @@ export class MockCache {
             homeAccountId: "uid.utid",
             extendedExpiresOn: "4600",
             expiresOn: "4600",
-            tokenType: AuthenticationScheme.BEARER
+            tokenType: AuthenticationScheme.BEARER,
         };
 
         await this.cacheManager.setAccessTokenCredential(atThree);

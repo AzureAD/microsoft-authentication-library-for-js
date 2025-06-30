@@ -17,10 +17,7 @@ import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common/node";
  * @public
  */
 export type SilentFlowRequest = Partial<
-    Omit<
-        CommonSilentFlowRequest,
-        "account" | "scopes" | "storeInCache"
-    >
+    Omit<CommonSilentFlowRequest, "account" | "scopes" | "storeInCache">
 > & {
     account: AccountInfo;
     scopes: Array<string>;

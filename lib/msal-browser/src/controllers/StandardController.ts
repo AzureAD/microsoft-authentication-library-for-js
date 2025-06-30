@@ -19,7 +19,6 @@ import {
     InProgressPerformanceEvent,
     getRequestThumbprint,
     invokeAsync,
-    invoke,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountFilter,
