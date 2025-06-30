@@ -1643,19 +1643,20 @@ describe("RedirectClient", () => {
         it("processes hash if navigateToLoginRequestUri is true and URLs have different encoding (encoded vs decoded apostrophe)", (done) => {
             browserStorage.setInteractionInProgress(true);
             // Set up a URL with encoded apostrophe as the stored login request URL
-            const loginRequestUrl = window.location.href + "?comments=blah%27blah";
+            const loginRequestUrl =
+                window.location.href + "?comments=blah%27blah";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
-            
+
             // Mock window.location.href to simulate the current URL with decoded apostrophe
             const originalHref = window.location.href;
             Object.defineProperty(window.location, "href", {
                 value: originalHref + "?comments=blah'blah",
                 writable: true,
-                configurable: true
+                configurable: true,
             });
 
             jest.spyOn(
@@ -1667,16 +1668,16 @@ describe("RedirectClient", () => {
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 });
-                
+
                 // Restore original window.location.href
                 Object.defineProperty(window.location, "href", {
                     value: originalHref,
                     writable: true,
-                    configurable: true
+                    configurable: true,
                 });
                 done();
             });
-            
+
             redirectClient.handleRedirectPromise(
                 "",
                 testRequest,

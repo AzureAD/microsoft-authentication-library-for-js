@@ -821,5 +821,4 @@ export class RedirectClient extends StandardInteractionClient {
             BrowserUtils.getCurrentUri()
         );
     }
-
 }

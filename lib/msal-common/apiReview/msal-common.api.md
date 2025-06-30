@@ -3135,6 +3135,11 @@ const nonceMismatch = "nonce_mismatch";
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
 
+// Warning: (ae-missing-release-tag) "normalizeUrlForComparison" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function normalizeUrlForComparison(url: string): string;
+
 // Warning: (ae-missing-release-tag) "noTokensFound" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -4480,7 +4485,8 @@ declare namespace UrlUtils {
     export {
         stripLeadingHashOrQuery,
         getDeserializedResponse,
-        mapToQueryString
+        mapToQueryString,
+        normalizeUrlForComparison
     }
 }
 export { UrlUtils }

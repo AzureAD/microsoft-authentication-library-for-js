@@ -89,7 +89,7 @@ export function mapToQueryString(
 }
 
 /**
- * Normalizes URLs for comparison by removing hash, canonicalizing, 
+ * Normalizes URLs for comparison by removing hash, canonicalizing,
  * and ensuring consistent URL encoding in query parameters.
  * This fixes redirect loops when URLs contain encoded characters like apostrophes (%27).
  * @param url - URL to normalize
@@ -102,15 +102,15 @@ export function normalizeUrlForComparison(url: string): string {
 
     // Remove hash first
     const urlWithoutHash = url.split("#")[0];
-    
+
     try {
         // Parse the URL to handle encoding consistently
         const urlObj = new URL(urlWithoutHash);
-        
+
         // Reconstruct the URL with properly decoded query parameters
         // This ensures that %27 and ' are treated as equivalent
         const normalizedUrl = urlObj.origin + urlObj.pathname + urlObj.search;
-        
+
         // Apply the existing canonicalization logic
         return UrlString.canonicalizeUri(normalizedUrl);
     } catch (e) {
