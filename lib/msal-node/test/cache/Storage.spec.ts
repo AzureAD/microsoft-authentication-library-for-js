@@ -230,7 +230,7 @@ describe("Storage tests for msal-node: ", () => {
         );
 
         const accessTokenKey =
-            "uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite--";
+            "uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite-";
         const invalidAccessTokenKey =
             "uid1.utid1-login.windows.net-accesstoken_invalid-mock_client_id-samplerealm-scoperead scopewrite";
         const accessToken: AccessTokenEntity = {
@@ -265,7 +265,7 @@ describe("Storage tests for msal-node: ", () => {
         );
 
         const idTokenKey =
-            "uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm---";
+            "uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm--";
         const invalidIdTokenKey =
             "uid1.utid1-login.windows.net-idtoken_invalid-mock_client_id-samplerealm-";
         const idToken: IdTokenEntity = {
@@ -295,7 +295,7 @@ describe("Storage tests for msal-node: ", () => {
         );
 
         const refreshTokenKey =
-            "uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm---";
+            "uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm--";
         const invalidRefreshTokenKey =
             "uid1.utid1-login.windows.net-refreshtoken_invalid-mock_client_id-samplerealm-";
         const refreshToken: RefreshTokenEntity = {
