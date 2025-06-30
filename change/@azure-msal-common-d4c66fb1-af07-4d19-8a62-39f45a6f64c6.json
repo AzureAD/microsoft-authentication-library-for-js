@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add lastUpdatedAt to cache entities",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

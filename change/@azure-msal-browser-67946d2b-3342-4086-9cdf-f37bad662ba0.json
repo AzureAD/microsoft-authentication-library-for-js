@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Track cache lastUpdatedAt timestamp and stop removing cache entries in get calls",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
