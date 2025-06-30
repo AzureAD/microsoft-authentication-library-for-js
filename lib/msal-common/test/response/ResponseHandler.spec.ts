@@ -98,7 +98,7 @@ const authorityOptions: AuthorityOptions = {
 const testLoggerCallback = (
     level: LogLevel,
     message: string,
-    containsPii: boolean,
+    containsPii: boolean
 ): void => {
     if (containsPii) {
         console.log(`Log level: ${level} Message: ${message}`);
@@ -113,7 +113,7 @@ const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     cryptoInterface,
     logger,
-    new StubPerformanceClient(),
+    new StubPerformanceClient()
 );
 
 const testAuthority = new Authority(
@@ -122,7 +122,7 @@ const testAuthority = new Authority(
     testCacheManager,
     authorityOptions,
     logger,
-    TEST_CONFIG.CORRELATION_ID,
+    TEST_CONFIG.CORRELATION_ID
 );
 
 describe("ResponseHandler.ts", () => {
@@ -167,7 +167,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
             try {
                 const timestamp = TimeUtils.nowSeconds();
@@ -176,14 +176,14 @@ describe("ResponseHandler.ts", () => {
                         testResponse,
                         testAuthority,
                         timestamp,
-                        testRequest,
+                        testRequest
                     );
                 expect(tokenResp).toBeUndefined();
             } catch (e) {
                 if (e instanceof AuthError) {
                     expect(e).toBeInstanceOf(ClientAuthError);
                     expect(e.errorCode).toBe(
-                        ClientAuthErrorCodes.invalidCacheEnvironment,
+                        ClientAuthErrorCodes.invalidCacheEnvironment
                     );
                 } else {
                     throw e;
@@ -213,7 +213,7 @@ describe("ResponseHandler.ts", () => {
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
                 expiresOn: TestTimeUtils.nowDateWithOffset(
-                    testServerTokenResponse.body.expires_in,
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -225,12 +225,12 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             jest.spyOn(
                 ResponseHandler,
-                "generateAuthenticationResult",
+                "generateAuthenticationResult"
             ).mockImplementation(
                 async (
                     cryptoObj,
@@ -239,7 +239,7 @@ describe("ResponseHandler.ts", () => {
                     request,
                     idTokenObj,
                     fromTokenCache,
-                    stateString,
+                    stateString
                 ) => {
                     expect(authority).toBe(testAuthority);
                     expect(cacheRecord.idToken).not.toBeNull();
@@ -247,14 +247,14 @@ describe("ResponseHandler.ts", () => {
                     expect(cacheRecord.refreshToken).not.toBeNull();
                     done();
                     return testTokenResponse;
-                },
+                }
             );
             const timestamp = TimeUtils.nowSeconds();
             responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
         });
 
@@ -280,7 +280,7 @@ describe("ResponseHandler.ts", () => {
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
                 expiresOn: TestTimeUtils.nowDateWithOffset(
-                    testServerTokenResponse.body.expires_in,
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -292,12 +292,12 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             jest.spyOn(
                 ResponseHandler,
-                "generateAuthenticationResult",
+                "generateAuthenticationResult"
             ).mockImplementation(
                 async (
                     cryptoObj,
@@ -306,7 +306,7 @@ describe("ResponseHandler.ts", () => {
                     request,
                     idTokenObj,
                     fromTokenCache,
-                    stateString,
+                    stateString
                 ) => {
                     expect(authority).toBe(testAuthority);
                     expect(cacheRecord.idToken).not.toBeNull();
@@ -314,7 +314,7 @@ describe("ResponseHandler.ts", () => {
                     expect(cacheRecord.refreshToken).toBeNull();
                     done();
                     return testTokenResponse;
-                },
+                }
             );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -322,7 +322,7 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
         });
 
@@ -346,7 +346,7 @@ describe("ResponseHandler.ts", () => {
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
                 expiresOn: TestTimeUtils.nowDateWithOffset(
-                    testServerTokenResponse.body.expires_in,
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -358,12 +358,12 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             jest.spyOn(
                 ResponseHandler,
-                "generateAuthenticationResult",
+                "generateAuthenticationResult"
             ).mockImplementation(
                 async (
                     cryptoObj,
@@ -372,7 +372,7 @@ describe("ResponseHandler.ts", () => {
                     request,
                     idTokenObj,
                     fromTokenCache,
-                    stateString,
+                    stateString
                 ) => {
                     expect(authority).toBe(testAuthority);
                     expect(cacheRecord.idToken).not.toBeNull();
@@ -380,7 +380,7 @@ describe("ResponseHandler.ts", () => {
                     expect(cacheRecord.refreshToken).not.toBeNull();
                     done();
                     return testTokenResponse;
-                },
+                }
             );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -388,7 +388,7 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
         });
 
@@ -411,7 +411,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -419,7 +419,7 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
             expect(response.code).toEqual(testSpaCode);
         });
@@ -453,7 +453,7 @@ describe("ResponseHandler.ts", () => {
                     authorityMetadata: "",
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -470,12 +470,12 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             jest.spyOn(
                 ResponseHandler,
-                "generateAuthenticationResult",
+                "generateAuthenticationResult"
             ).mockImplementation(
                 async (
                     _cryptoObj,
@@ -486,21 +486,21 @@ describe("ResponseHandler.ts", () => {
                     _idTokenClaims,
                     _requestState,
                     _serverTokenResponse,
-                    _requestId,
+                    _requestId
                 ) => {
                     expect(cacheRecord.accessToken?.realm).toBeDefined();
 
                     done();
 
                     return {} as AuthenticationResult;
-                },
+                }
             );
 
             responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
         });
     });
@@ -523,14 +523,14 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
 
             expect(result.familyId).toBe("");
@@ -561,7 +561,7 @@ describe("ResponseHandler.ts", () => {
                         default:
                             return null;
                     }
-                },
+                }
             );
 
             const responseHandler = new ResponseHandler(
@@ -570,14 +570,14 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -608,7 +608,7 @@ describe("ResponseHandler.ts", () => {
                         default:
                             return null;
                     }
-                },
+                }
             );
 
             const responseHandler = new ResponseHandler(
@@ -617,14 +617,14 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -648,14 +648,14 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest,
+                testRequest
             );
 
             expect(result.requestId).toBe("");
@@ -676,7 +676,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             try {
@@ -686,10 +686,10 @@ describe("ResponseHandler.ts", () => {
                 const serverError = e as ServerError;
                 expect(serverError.errorCode).toEqual(testTokenResponse.error);
                 expect(serverError.errorMessage).toContain(
-                    testTokenResponse.error_description,
+                    testTokenResponse.error_description
                 );
                 expect(serverError.errorNo).toEqual(
-                    testTokenResponse.error_codes![0],
+                    testTokenResponse.error_codes![0]
                 );
                 done();
             }
@@ -708,7 +708,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             try {
@@ -718,10 +718,10 @@ describe("ResponseHandler.ts", () => {
                 const serverError = e as InteractionRequiredAuthError;
                 expect(serverError.errorCode).toEqual(testTokenResponse.error);
                 expect(serverError.errorMessage).toContain(
-                    testTokenResponse.error_description,
+                    testTokenResponse.error_description
                 );
                 expect(serverError.errorNo).toEqual(
-                    testTokenResponse.error_codes![0],
+                    testTokenResponse.error_codes![0]
                 );
                 done();
             }
@@ -740,7 +740,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             try {
@@ -750,10 +750,10 @@ describe("ResponseHandler.ts", () => {
                 const serverError = e as ServerError;
                 expect(serverError.errorCode).toEqual(testTokenResponse.error);
                 expect(serverError.errorMessage).toContain(
-                    testTokenResponse.error_description,
+                    testTokenResponse.error_description
                 );
                 expect(serverError.errorNo).toEqual(
-                    testTokenResponse.error_codes![0],
+                    testTokenResponse.error_codes![0]
                 );
                 done();
             }
@@ -772,7 +772,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             try {
@@ -782,7 +782,7 @@ describe("ResponseHandler.ts", () => {
                 const serverError = e as ServerError;
                 expect(serverError.errorCode).toEqual(testTokenResponse.error);
                 expect(serverError.errorMessage).toContain(
-                    testTokenResponse.error_description,
+                    testTokenResponse.error_description
                 );
                 expect(serverError.errorNo).toBeUndefined();
                 done();
@@ -806,7 +806,7 @@ describe("ResponseHandler.ts", () => {
 
             jest.spyOn(
                 CacheManager.prototype,
-                <any>"saveAccessToken",
+                <any>"saveAccessToken"
             ).mockRejectedValue(quotaExceededError);
 
             const responseHandler = new ResponseHandler(
@@ -815,7 +815,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             try {
@@ -824,7 +824,7 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest,
+                    testRequest
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -832,7 +832,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[cacheQuotaExceeded],
+                    CacheErrorMessages[cacheQuotaExceeded]
                 );
             }
         });
@@ -852,7 +852,7 @@ describe("ResponseHandler.ts", () => {
 
             jest.spyOn(
                 CacheManager.prototype,
-                <any>"saveAccessToken",
+                <any>"saveAccessToken"
             ).mockRejectedValue(quotaExceededError);
 
             const responseHandler = new ResponseHandler(
@@ -861,7 +861,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             try {
@@ -870,7 +870,7 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest,
+                    testRequest
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -878,7 +878,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[cacheQuotaExceeded],
+                    CacheErrorMessages[cacheQuotaExceeded]
                 );
             }
         });
@@ -898,7 +898,7 @@ describe("ResponseHandler.ts", () => {
 
             jest.spyOn(
                 CacheManager.prototype,
-                <any>"saveAccessToken",
+                <any>"saveAccessToken"
             ).mockRejectedValue(error);
 
             const responseHandler = new ResponseHandler(
@@ -907,7 +907,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             try {
@@ -916,7 +916,7 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest,
+                    testRequest
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -941,7 +941,7 @@ describe("ResponseHandler.ts", () => {
 
             jest.spyOn(
                 CacheManager.prototype,
-                <any>"saveAccessToken",
+                <any>"saveAccessToken"
             ).mockRejectedValue(error);
 
             const responseHandler = new ResponseHandler(
@@ -950,7 +950,7 @@ describe("ResponseHandler.ts", () => {
                 cryptoInterface,
                 logger,
                 null,
-                null,
+                null
             );
 
             try {
@@ -959,17 +959,17 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest,
+                    testRequest
                 );
                 throw Error("should throw cache error");
             } catch (e) {
                 expect(e).toBeInstanceOf(CacheError);
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual(
-                    CacheErrorCodes.cacheErrorUnknown,
+                    CacheErrorCodes.cacheErrorUnknown
                 );
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[CacheErrorCodes.cacheErrorUnknown],
+                    CacheErrorMessages[CacheErrorCodes.cacheErrorUnknown]
                 );
             }
         });

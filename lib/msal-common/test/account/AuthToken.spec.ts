@@ -36,13 +36,13 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 expect(err instanceof Error).toBe(true);
                 const parsedErr = err as ClientAuthError;
                 expect(parsedErr.errorCode).toBe(
-                    ClientAuthErrorMessage.nullOrEmptyToken.code,
+                    ClientAuthErrorMessage.nullOrEmptyToken.code
                 );
                 expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessage.nullOrEmptyToken.desc,
+                    ClientAuthErrorMessage.nullOrEmptyToken.desc
                 );
                 expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessage.nullOrEmptyToken.desc,
+                    ClientAuthErrorMessage.nullOrEmptyToken.desc
                 );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");
@@ -59,13 +59,13 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 expect(err instanceof Error).toBe(true);
                 const parsedErr = err as ClientAuthError;
                 expect(parsedErr.errorCode).toBe(
-                    ClientAuthErrorMessage.nullOrEmptyToken.code,
+                    ClientAuthErrorMessage.nullOrEmptyToken.code
                 );
                 expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessage.nullOrEmptyToken.desc,
+                    ClientAuthErrorMessage.nullOrEmptyToken.desc
                 );
                 expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessage.nullOrEmptyToken.desc,
+                    ClientAuthErrorMessage.nullOrEmptyToken.desc
                 );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");
@@ -82,13 +82,13 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 expect(err instanceof Error).toBe(true);
                 const parsedErr = err as ClientAuthError;
                 expect(parsedErr.errorCode).toBe(
-                    ClientAuthErrorMessage.tokenParsingError.code,
+                    ClientAuthErrorMessage.tokenParsingError.code
                 );
                 expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessage.tokenParsingError.desc,
+                    ClientAuthErrorMessage.tokenParsingError.desc
                 );
                 expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessage.tokenParsingError.desc,
+                    ClientAuthErrorMessage.tokenParsingError.desc
                 );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");
@@ -100,37 +100,37 @@ describe("AuthToken.ts Class Unit Tests", () => {
     describe("extractIdToken()", () => {
         it("Throws error if rawIdToken is null or empty", () => {
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode),
+                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
             ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode),
+                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
             ).toThrowError(ClientAuthError);
 
             expect(() =>
                 // @ts-ignore
-                AuthToken.extractTokenClaims(null, cryptoInterface),
+                AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
                 // @ts-ignore
-                AuthToken.extractTokenClaims(null, cryptoInterface),
+                AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrowError(ClientAuthError);
         });
 
         it("Throws error if idToken is null or empty", () => {
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode),
+                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
             ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
-                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode),
+                AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
             ).toThrowError(ClientAuthError);
 
             expect(() =>
                 // @ts-ignore
-                AuthToken.extractTokenClaims(null, cryptoInterface),
+                AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
                 // @ts-ignore
-                AuthToken.extractTokenClaims(null, cryptoInterface),
+                AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrowError(ClientAuthError);
         });
 
@@ -138,14 +138,14 @@ describe("AuthToken.ts Class Unit Tests", () => {
             expect(() =>
                 AuthToken.extractTokenClaims(
                     "not-a-real-token",
-                    cryptoInterface.base64Decode,
-                ),
+                    cryptoInterface.base64Decode
+                )
             ).toThrowError(ClientAuthErrorMessage.tokenParsingError.desc);
             expect(() =>
                 AuthToken.extractTokenClaims(
                     "not-a-real-token",
-                    cryptoInterface.base64Decode,
-                ),
+                    cryptoInterface.base64Decode
+                )
             ).toThrowError(ClientAuthError);
         });
 
@@ -153,8 +153,8 @@ describe("AuthToken.ts Class Unit Tests", () => {
             expect(
                 AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode,
-                ),
+                    cryptoInterface.base64Decode
+                )
             ).toEqual(ID_TOKEN_CLAIMS);
         });
     });

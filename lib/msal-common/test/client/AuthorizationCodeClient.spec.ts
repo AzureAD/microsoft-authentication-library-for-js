@@ -50,7 +50,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("creates a AuthorizationCodeClient that extends BaseClient", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -70,35 +70,35 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Throws error if null code request is passed", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
             const client = new AuthorizationCodeClient(config);
 
             await expect(
                 // @ts-ignore
-                client.acquireToken({ code: null }, null),
+                client.acquireToken({ code: null }, null)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade),
+                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
 
             expect(
                 // @ts-ignore
-                config.storageInterface.getAuthorityMetadataKeys().length,
+                config.storageInterface.getAuthorityMetadataKeys().length
             ).toBe(1);
         });
 
         it("Throws error if code response does not contain authorization code", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
             if (!config.storageInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration storageInterface not initialized correctly.",
+                    "configuration storageInterface not initialized correctly."
                 );
             }
             const client = new AuthorizationCodeClient(config);
@@ -114,15 +114,15 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             await expect(
                 // @ts-ignore
-                client.acquireToken(codeRequest, null),
+                client.acquireToken(codeRequest, null)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade),
+                createClientAuthError(ClientAuthErrorCodes.requestCannotBeMade)
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
             // @ts-ignore
             expect(
-                config.storageInterface.getAuthorityMetadataKeys().length,
+                config.storageInterface.getAuthorityMetadataKeys().length
             ).toBe(1);
         });
 
@@ -130,34 +130,34 @@ describe("AuthorizationCodeClient unit tests", () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const executePostToTokenEndpointSpy: jest.SpyInstance = jest
                 .spyOn(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint",
+                    <any>"executePostToTokenEndpoint"
                 )
                 .mockImplementation(
                     // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
-                        headers: Record<string, string>,
+                        headers: Record<string, string>
                     ) => {
                         const headerNames = Object.keys(headers);
                         headerNames.forEach((name) => {
                             expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(
-                                expect.arrayContaining([name.toLowerCase()]),
+                                expect.arrayContaining([name.toLowerCase()])
                             );
                         });
 
                         return Promise.resolve(AUTHENTICATION_RESULT);
-                    },
+                    }
                 );
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly.",
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
                 );
             }
             config.systemOptions.preventCorsPreflight = true;
@@ -168,7 +168,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -184,7 +184,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -213,7 +213,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -247,7 +247,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const reqHeaders = [
                 ...CORS_SIMPLE_REQUEST_HEADERS,
@@ -256,29 +256,29 @@ describe("AuthorizationCodeClient unit tests", () => {
             const executePostToTokenEndpointSpy: jest.SpyInstance = jest
                 .spyOn(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint",
+                    <any>"executePostToTokenEndpoint"
                 )
                 .mockImplementation(
                     // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
-                        headers: Record<string, string>,
+                        headers: Record<string, string>
                     ) => {
                         const headerNames = Object.keys(headers);
                         headerNames.forEach((name) => {
                             expect(reqHeaders).toEqual(
-                                expect.arrayContaining([name.toLowerCase()]),
+                                expect.arrayContaining([name.toLowerCase()])
                             );
                         });
 
                         return Promise.resolve(AUTHENTICATION_RESULT);
-                    },
+                    }
                 );
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly.",
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
                 );
             }
             config.systemOptions.preventCorsPreflight = false;
@@ -289,7 +289,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -305,7 +305,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -334,7 +334,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -368,34 +368,34 @@ describe("AuthorizationCodeClient unit tests", () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const executePostToTokenEndpointSpy: jest.SpyInstance = jest
                 .spyOn(
                     AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint",
+                    <any>"executePostToTokenEndpoint"
                 )
                 .mockImplementation(
                     // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
-                        headers: Record<string, string>,
+                        headers: Record<string, string>
                     ) => {
                         const headerNames = Object.keys(headers);
                         headerNames.forEach((name) => {
                             expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(
-                                expect.arrayContaining([name.toLowerCase()]),
+                                expect.arrayContaining([name.toLowerCase()])
                             );
                         });
 
                         return Promise.resolve(AUTHENTICATION_RESULT);
-                    },
+                    }
                 );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -405,7 +405,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -421,7 +421,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -450,7 +450,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -479,16 +479,16 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Throws error if max age is equal to 0 or has transpired since the last end-user authentication", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -498,7 +498,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -514,7 +514,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -544,7 +544,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 auth_time: Date.now() - ONE_DAY_IN_MS * 2,
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -567,25 +567,25 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }),
+                })
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired),
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
             );
         });
 
         it("Throws error if max age is requested and auth time is not included in the token claims", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -595,7 +595,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -611,7 +611,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -641,7 +641,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // "auth_time" is missing for the purpose of this test
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -664,28 +664,28 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }),
+                })
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound),
+                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
             );
         });
 
         it("Acquires a token successfully", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody",
+                <any>"createTokenRequestBody"
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -695,7 +695,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -711,7 +711,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -740,7 +740,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -763,112 +763,112 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                },
+                }
             );
             if (!authenticationResult.expiresOn) {
                 throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value",
+                    "mockedAccountInfo does not have a value"
                 );
             }
 
             expect(authenticationResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token,
+                AUTHENTICATION_RESULT.body.access_token
             );
             // @ts-ignore
             expect(
                 Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                    authenticationResult.expiresOn.getMilliseconds(),
+                    authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                authCodeRequest,
+                authCodeRequest
             );
 
             const returnVal = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
-                ),
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                    )}`,
-                ),
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+                    )}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`,
-                ),
+                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`,
-                ),
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`,
-                ),
+                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
-                ),
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
-                ),
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
-                ),
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
-                ),
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE,
-                    )}`,
-                ),
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
+                )
             ).toBe(true);
         });
 
         it("Acquires a token successfully when max age is provided and has not transpired yet", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody",
+                <any>"createTokenRequestBody"
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -878,7 +878,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -894,7 +894,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -924,7 +924,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 auth_time: Date.now() - ONE_DAY_IN_MS * 2,
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -948,109 +948,109 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                },
+                }
             );
             if (!authenticationResult.expiresOn) {
                 throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value",
+                    "mockedAccountInfo does not have a value"
                 );
             }
 
             expect(authenticationResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token,
+                AUTHENTICATION_RESULT.body.access_token
             );
             // @ts-ignore
             expect(
                 Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                    authenticationResult.expiresOn.getMilliseconds(),
+                    authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                authCodeRequest,
+                authCodeRequest
             );
 
             const returnVal = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
-                ),
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                    )}`,
-                ),
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+                    )}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`,
-                ),
+                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`,
-                ),
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`,
-                ),
+                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
-                ),
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
-                ),
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
-                ),
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
-                ),
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE,
-                    )}`,
-                ),
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
+                )
             ).toBe(true);
         });
 
         it("Adds correlationId to the /token query string", (done) => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
                     expect(url).toContain(
-                        `client-request-id=${RANDOM_TEST_GUID}`,
+                        `client-request-id=${RANDOM_TEST_GUID}`
                     );
                     done();
                 } catch (error) {
@@ -1081,18 +1081,18 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Adds tokenQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
                     expect(
                         url.includes(
-                            "/token?testParam1=testValue1&testParam3=testValue3",
-                        ),
+                            "/token?testParam1=testValue1&testParam3=testValue3"
+                        )
                     ).toBeTruthy();
                     expect(!url.includes("/token?testParam2=")).toBeTruthy();
                     done();
@@ -1129,11 +1129,11 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Adds tokenBodyParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).toContain("extra_body_parameter=true");
@@ -1142,7 +1142,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly.",
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
                 );
             }
             const client = new AuthorizationCodeClient(config);
@@ -1172,11 +1172,11 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Adds return_spa_code=1 to body when enableSpaAuthCode is set", (done) => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).toContain("return_spa_code=1");
@@ -1185,7 +1185,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly.",
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
                 );
             }
             const client = new AuthorizationCodeClient(config);
@@ -1219,11 +1219,11 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 TestAuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).not.toContain("redirect_uri=");
@@ -1232,7 +1232,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface or systemOptions not initialized correctly.",
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
                 );
             }
             const client = new TestAuthorizationCodeClient(config);
@@ -1262,19 +1262,19 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Sends the required parameters when a pop token is requested", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody",
+                <any>"createTokenRequestBody"
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -1284,7 +1284,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1300,7 +1300,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1322,10 +1322,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore
                 payload: SignedHttpRequest,
-                kid: string,
+                kid: string
             ): Promise<string> => {
                 expect(payload.at).toBe(
-                    POP_AUTHENTICATION_RESULT.body.access_token,
+                    POP_AUTHENTICATION_RESULT.body.access_token
                 );
                 return signedJwt;
             };
@@ -1344,7 +1344,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockImplementation(
                 (
                     encodedToken: string,
-                    base64Decode: (val: string) => string,
+                    base64Decode: (val: string) => string
                 ): TokenClaims => {
                     switch (encodedToken) {
                         case POP_AUTHENTICATION_RESULT.body.id_token:
@@ -1358,7 +1358,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         default:
                             return {};
                     }
-                },
+                }
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -1383,7 +1383,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                },
+                }
             );
 
             expect(authenticationResult.accessToken).toBe(signedJwt);
@@ -1391,85 +1391,85 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(
                 Date.now() + POP_AUTHENTICATION_RESULT.body.expires_in * 1000 >=
                     // @ts-ignore
-                    authenticationResult.expiresOn.getMilliseconds(),
+                    authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                authCodeRequest,
+                authCodeRequest
             );
             const returnVal = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
-                ),
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                    )}`,
-                ),
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+                    )}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`,
-                ),
+                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`,
-                ),
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`,
-                ),
+                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`,
-                ),
+                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.REQ_CNF}=${TEST_POP_VALUES.ENCODED_REQ_CNF}`,
-                ),
+                    `${AADServerParamKeys.REQ_CNF}=${TEST_POP_VALUES.ENCODED_REQ_CNF}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS,
-                    )}`,
-                ),
+                        TEST_CONFIG.CLAIMS
+                    )}`
+                )
             ).toBe(true);
         });
 
         it("Sends the required parameters when a SSH certificate is requested", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody",
+                <any>"createTokenRequestBody"
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -1511,10 +1511,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore
                 payload: SignedHttpRequest,
-                kid: string,
+                kid: string
             ): Promise<string> => {
                 expect(payload.at).toBe(
-                    POP_AUTHENTICATION_RESULT.body.access_token,
+                    POP_AUTHENTICATION_RESULT.body.access_token
                 );
                 return signedJwt;
             };
@@ -1533,7 +1533,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockImplementation(
                 (
                     encodedToken: string,
-                    base64Decode: (val: string) => string,
+                    base64Decode: (val: string) => string
                 ): TokenClaims => {
                     switch (encodedToken) {
                         case POP_AUTHENTICATION_RESULT.body.id_token:
@@ -1547,7 +1547,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         default:
                             return {};
                     }
-                },
+                }
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -1572,89 +1572,89 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                },
+                }
             );
 
             expect(authenticationResult.accessToken).toBe(signedJwt);
             expect(
                 Date.now() + POP_AUTHENTICATION_RESULT.body.expires_in * 1000 >=
                     // @ts-ignore
-                    authenticationResult.expiresOn.getMilliseconds(),
+                    authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                authCodeRequest,
+                authCodeRequest
             );
             const returnVal = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
-                ),
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                    )}`,
-                ),
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+                    )}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`,
-                ),
+                    `${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`,
-                ),
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`,
-                ),
+                    `${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`,
-                ),
+                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.REQ_CNF}=${TEST_SSH_VALUES.ENCODED_SSH_JWK}`,
-                ),
+                    `${AADServerParamKeys.REQ_CNF}=${TEST_SSH_VALUES.ENCODED_SSH_JWK}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS,
-                    )}`,
-                ),
+                        TEST_CONFIG.CLAIMS
+                    )}`
+                )
             ).toBe(true);
         });
 
         it("Throws missing SSH JWK error when the token request has Authentication Scheme set to SSH and SSH JWK is missing", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -1695,10 +1695,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore
                 payload: SignedHttpRequest,
-                kid: string,
+                kid: string
             ): Promise<string> => {
                 expect(payload.at).toBe(
-                    POP_AUTHENTICATION_RESULT.body.access_token,
+                    POP_AUTHENTICATION_RESULT.body.access_token
                 );
                 return signedJwt;
             };
@@ -1717,7 +1717,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockImplementation(
                 (
                     encodedToken: string,
-                    base64Decode: (val: string) => string,
+                    base64Decode: (val: string) => string
                 ): TokenClaims => {
                     switch (encodedToken) {
                         case POP_AUTHENTICATION_RESULT.body.id_token:
@@ -1731,7 +1731,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         default:
                             return {};
                     }
-                },
+                }
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -1753,22 +1753,22 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                }),
+                })
             ).rejects.toThrow(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.missingSshJwk,
-                ),
+                    ClientConfigurationErrorCodes.missingSshJwk
+                )
             );
         });
 
         it("properly handles expiration timestamps as strings", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue({
                 ...AUTHENTICATION_RESULT,
                 body: {
@@ -1779,12 +1779,12 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody",
+                <any>"createTokenRequestBody"
             );
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
             // Set up required objects and mocked return values
@@ -1793,7 +1793,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1809,7 +1809,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1838,7 +1838,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -1861,18 +1861,18 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                },
+                }
             );
 
             expect(authenticationResult.expiresOn?.toString()).not.toBe(
-                "Invalid Date",
+                "Invalid Date"
             );
         });
 
         it("Saves refresh_in correctly to the cache", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const authResult = {
                 ...AUTHENTICATION_RESULT,
@@ -1883,15 +1883,15 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(authResult);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody",
+                <any>"createTokenRequestBody"
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
             // Set up required objects and mocked return values
@@ -1900,7 +1900,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Decode",
+                "base64Decode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1916,7 +1916,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             jest.spyOn(
                 config.cryptoInterface,
-                "base64Encode",
+                "base64Encode"
             ).mockImplementation((input) => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1945,7 +1945,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -1968,7 +1968,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
-                },
+                }
             );
             const accessTokenKey = config.storageInterface
                 ?.getKeys()
@@ -1976,43 +1976,43 @@ describe("AuthorizationCodeClient unit tests", () => {
             const accessTokenCacheItem = accessTokenKey
                 ? config.storageInterface?.getAccessTokenCredential(
                       accessTokenKey,
-                      RANDOM_TEST_GUID,
+                      RANDOM_TEST_GUID
                   )
                 : null;
 
             expect(authenticationResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token,
+                AUTHENTICATION_RESULT.body.access_token
             );
             expect(
                 authenticationResult.expiresOn &&
                     Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                        authenticationResult.expiresOn.getMilliseconds(),
+                        authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                authCodeRequest,
+                authCodeRequest
             );
             expect(
                 accessTokenCacheItem &&
                     accessTokenCacheItem.refreshOn &&
                     accessTokenCacheItem.refreshOn ===
                         accessTokenCacheItem.cachedAt +
-                            authResult.body.refresh_in,
+                            authResult.body.refresh_in
             );
         });
 
         it("includes the requestId in the result when received in server response", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
 
@@ -2029,7 +2029,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -2051,33 +2051,33 @@ describe("AuthorizationCodeClient unit tests", () => {
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
-                },
+                }
             );
             if (!authenticationResult.expiresOn) {
                 throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value",
+                    "mockedAccountInfo does not have a value"
                 );
             }
 
             expect(authenticationResult.requestId).toBeTruthy;
             expect(authenticationResult.requestId).toEqual(
-                CORS_RESPONSE_HEADERS.xMsRequestId,
+                CORS_RESPONSE_HEADERS.xMsRequestId
             );
         });
 
         it("does not include the requestId in the result when none in server response", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint",
+                <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
             // Set up stubs
@@ -2093,7 +2093,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -2115,11 +2115,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
-                },
+                }
             );
             if (!authenticationResult.expiresOn) {
                 throw TestError.createTestSetupError(
-                    "mockedAccountInfo does not have a value",
+                    "mockedAccountInfo does not have a value"
                 );
             }
 
@@ -2146,21 +2146,21 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient,
+                performanceClient
             );
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
-                "sendPostRequestAsync",
+                "sendPostRequestAsync"
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
             // Set up stubs
@@ -2176,7 +2176,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -2205,7 +2205,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                             ?.length,
                     requestId: "xMsRequestId",
                 },
-                RANDOM_TEST_GUID,
+                RANDOM_TEST_GUID
             );
         });
 
@@ -2227,21 +2227,21 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient,
+                performanceClient
             );
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
-                "sendPostRequestAsync",
+                "sendPostRequestAsync"
             ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
             // Set up stubs
@@ -2257,7 +2257,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -2285,26 +2285,27 @@ describe("AuthorizationCodeClient unit tests", () => {
                         AUTHENTICATION_RESULT.body.refresh_token?.length,
                     requestId: "",
                 },
-                RANDOM_TEST_GUID,
+                RANDOM_TEST_GUID
             );
         });
     });
 
     describe("Telemetry protocol mode tests", () => {
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
-            let config =
-                await ClientTestUtils.createTestClientConfiguration(true);
+            let config = await ClientTestUtils.createTestClientConfiguration(
+                true
+            );
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody",
+                <any>"createTokenRequestBody"
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
             // Set up stubs
@@ -2320,7 +2321,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const performanceClient = {
                 startMeasurement: jest.fn(),
@@ -2342,7 +2343,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     add: (fields: { [key: string]: {} | undefined }) =>
                         performanceClient.addFields(
                             fields,
-                            TEST_CONFIG.CORRELATION_ID,
+                            TEST_CONFIG.CORRELATION_ID
                         ),
                     increment: jest.fn(),
                     end: jest.fn(),
@@ -2350,7 +2351,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient,
+                performanceClient
             );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -2372,34 +2373,34 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
             } catch {}
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                authCodeRequest,
+                authCodeRequest
             );
 
             const returnVal = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`),
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(true);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`),
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
             ).toBe(true);
         });
         it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
             let config = await ClientTestUtils.createTestClientConfiguration(
                 true,
-                ProtocolMode.OIDC,
+                ProtocolMode.OIDC
             );
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                <any>"createTokenRequestBody",
+                <any>"createTokenRequestBody"
             );
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly.",
+                    "configuration cryptoInterface not initialized correctly."
                 );
             }
             // Set up stubs
@@ -2415,7 +2416,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims,
+                idTokenClaims
             );
             const performanceClient = {
                 startMeasurement: jest.fn(),
@@ -2437,7 +2438,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     add: (fields: { [key: string]: {} | undefined }) =>
                         performanceClient.addFields(
                             fields,
-                            TEST_CONFIG.CORRELATION_ID,
+                            TEST_CONFIG.CORRELATION_ID
                         ),
                     increment: jest.fn(),
                     end: jest.fn(),
@@ -2445,7 +2446,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient,
+                performanceClient
             );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -2467,16 +2468,16 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
             } catch {}
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                authCodeRequest,
+                authCodeRequest
             );
 
             const returnVal = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`),
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(false);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`),
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
             ).toBe(false);
         });
     });
@@ -2485,7 +2486,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Returns a uri", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -2499,15 +2500,15 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(logoutUri).toBe(
                 `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
                     "{tenant}",
-                    "common",
-                )}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`,
+                    "common"
+                )}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
             );
         });
 
         it("Returns a uri with given parameters", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork",
+                <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -2522,11 +2523,11 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
                 "{tenant}",
-                "common",
+                "common"
             )}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(
-                TEST_URIS.TEST_LOGOUT_URI,
+                TEST_URIS.TEST_LOGOUT_URI
             )}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(
-                RANDOM_TEST_GUID,
+                RANDOM_TEST_GUID
             )}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${
                 AADServerParamKeys.STATE
             }=test_state`;
@@ -2536,7 +2537,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Does not append an extra '?' when the end session endpoint already contains a query string", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromHardcodedValues",
+                <any>"getEndpointMetadataFromHardcodedValues"
             ).mockReturnValue({
                 token_endpoint:
                     "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
@@ -2588,7 +2589,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
 
             expect(queryString).toContain(
-                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`
             );
         });
 
@@ -2625,10 +2626,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
-                `brk_client_id=${config.authOptions.clientId}`,
+                `brk_client_id=${config.authOptions.clientId}`
             );
             expect(queryString).toContain(
-                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`,
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
             );
         });
 
@@ -2652,10 +2653,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
-                `brk_client_id=${config.authOptions.clientId}`,
+                `brk_client_id=${config.authOptions.clientId}`
             );
             expect(queryString).toContain(
-                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`,
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
             );
         });
     });

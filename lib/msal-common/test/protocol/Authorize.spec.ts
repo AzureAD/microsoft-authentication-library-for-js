@@ -41,7 +41,7 @@ describe("Authorize Protocol Tests", () => {
     beforeEach(async () => {
         jest.spyOn(
             Authority.prototype,
-            <any>"getEndpointMetadataFromNetwork",
+            <any>"getEndpointMetadataFromNetwork"
         ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         authority = await getDiscoveredAuthority();
         authOptions = {
@@ -72,44 +72,44 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(loginUrl.includes(Constants.DEFAULT_AUTHORITY)).toBe(true);
             expect(
                 loginUrl.includes(
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
                         "{tenant}",
-                        "common",
-                    ),
-                ),
+                        "common"
+                    )
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
-                ),
+                    `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                    )}`,
-                ),
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                        ResponseMode.QUERY,
-                    )}`,
-                ),
+                        ResponseMode.QUERY
+                    )}`
+                )
             ).toBe(true);
         });
 
@@ -137,84 +137,84 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(loginUrl.includes(TEST_CONFIG.validAuthority)).toBe(true);
             expect(
                 loginUrl.includes(
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
                         "{tenant}",
-                        "common",
-                    ),
-                ),
+                        "common"
+                    )
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`,
-                ),
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                ),
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
-                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                    )}`,
-                ),
+                        TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                        ResponseMode.FORM_POST,
-                    )}`,
-                ),
+                        ResponseMode.FORM_POST
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.STATE}=${encodeURIComponent(
-                        TEST_CONFIG.STATE,
-                    )}`,
-                ),
+                        TEST_CONFIG.STATE
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.PROMPT}=${PromptValue.LOGIN}`,
-                ),
+                    `${AADServerParamKeys.PROMPT}=${PromptValue.LOGIN}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.NONCE}=${encodeURIComponent(
-                        TEST_CONFIG.NONCE,
-                    )}`,
-                ),
+                        TEST_CONFIG.NONCE
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.LOGIN_HINT
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.DOMAIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.DOMAIN_HINT
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS,
-                    )}`,
-                ),
+                        TEST_CONFIG.CLAIMS
+                    )}`
+                )
             ).toBe(true);
         });
 
@@ -242,32 +242,32 @@ describe("Authorize Protocol Tests", () => {
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
-                authCodeUrlRequest.correlationId,
+                authCodeUrlRequest.correlationId
             );
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
                     new Logger({}),
-                    mockPerfClient,
+                    mockPerfClient
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.LOGIN_HINT
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `UPN:${TEST_CONFIG.LOGIN_HINT}`,
-                    )}`,
-                ),
+                        `UPN:${TEST_CONFIG.LOGIN_HINT}`
+                    )}`
+                )
             ).toBe(true);
             rootMeasurement.end({ success: true });
             // @ts-ignore
@@ -325,25 +325,25 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        testTokenClaims.sid,
-                    )}`,
-                ),
+                        testTokenClaims.sid
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-                    )}`,
-                ),
+                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
+                    )}`
+                )
             ).toBe(true);
         });
 
@@ -398,39 +398,39 @@ describe("Authorize Protocol Tests", () => {
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
-                authCodeUrlRequest.correlationId,
+                authCodeUrlRequest.correlationId
             );
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
                     new Logger({}),
-                    mockPerfClient,
+                    mockPerfClient
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        testTokenClaims.sid,
-                    )}`,
-                ),
+                        testTokenClaims.sid
+                    )}`
+                )
             ).toBe(false);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        testTokenClaims.login_hint,
-                    )}`,
-                ),
+                        testTokenClaims.login_hint
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-                    )}`,
-                ),
+                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
+                    )}`
+                )
             ).toBe(true);
 
             rootMeasurement.end({ success: true });
@@ -495,46 +495,46 @@ describe("Authorize Protocol Tests", () => {
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
-                authCodeUrlRequest.correlationId,
+                authCodeUrlRequest.correlationId
             );
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
                     new Logger({}),
-                    mockPerfClient,
+                    mockPerfClient
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        testTokenClaims.sid,
-                    )}`,
-                ),
+                        testTokenClaims.sid
+                    )}`
+                )
             ).toBe(false);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        testAccount.username,
-                    )}`,
-                ),
+                        testAccount.username
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.DOMAIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.DOMAIN_HINT
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
-                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-                    )}`,
-                ),
+                        `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
+                    )}`
+                )
             ).toBe(true);
 
             rootMeasurement.end({ success: true });
@@ -597,32 +597,32 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        testTokenClaims.sid,
-                    )}`,
-                ),
+                        testTokenClaims.sid
+                    )}`
+                )
             ).toBe(false);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.LOGIN_HINT
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.DOMAIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.DOMAIN_HINT
+                    )}`
+                )
             ).toBe(true);
         });
 
@@ -651,30 +651,30 @@ describe("Authorize Protocol Tests", () => {
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
-                authCodeUrlRequest.correlationId,
+                authCodeUrlRequest.correlationId
             );
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
                     new Logger({}),
-                    mockPerfClient,
+                    mockPerfClient
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(loginUrl).toEqual(
                 expect.not.arrayContaining([
                     `${AADServerParamKeys.LOGIN_HINT}=`,
-                ]),
+                ])
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        TEST_CONFIG.SID,
-                    )}`,
-                ),
+                        TEST_CONFIG.SID
+                    )}`
+                )
             ).toBe(true);
 
             rootMeasurement.end({ success: true });
@@ -709,18 +709,18 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.LOGIN_HINT
+                    )}`
+                )
             ).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -749,21 +749,21 @@ describe("Authorize Protocol Tests", () => {
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
-                authCodeUrlRequest.correlationId,
+                authCodeUrlRequest.correlationId
             );
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
                     new Logger({}),
-                    mockPerfClient,
+                    mockPerfClient
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false,
+                false
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
 
@@ -799,25 +799,25 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.LOGIN_HINT
+                    )}`
+                )
             ).toBe(true);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_ACCOUNT_INFO.username,
-                    )}`,
-                ),
+                        TEST_ACCOUNT_INFO.username
+                    )}`
+                )
             ).toBe(false);
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -870,21 +870,21 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SID}=${encodeURIComponent(
-                        testTokenClaims.sid,
-                    )}`,
-                ),
+                        testTokenClaims.sid
+                    )}`
+                )
             ).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false,
+                false
             );
         });
 
@@ -953,19 +953,19 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.LOGIN_HINT
+                    )}`
+                )
             ).toBe(true);
         });
 
@@ -1033,18 +1033,18 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_CONFIG.LOGIN_HINT,
-                    )}`,
-                ),
+                        TEST_CONFIG.LOGIN_HINT
+                    )}`
+                )
             ).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -1068,18 +1068,18 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
-                        TEST_ACCOUNT_INFO.username,
-                    )}`,
-                ),
+                        TEST_ACCOUNT_INFO.username
+                    )}`
+                )
             ).toBe(true);
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -1104,14 +1104,14 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false,
+                false
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -1136,14 +1136,14 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false,
+                false
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -1168,14 +1168,14 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     authCodeUrlRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
-                false,
+                false
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
@@ -1200,18 +1200,18 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     loginRequest,
-                    new Logger({}),
+                    new Logger({})
                 );
             const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
                 authority,
-                params,
+                params
             );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SCOPE}=${encodeURIComponent(
-                        `${testScope1} ${testScope2}`,
-                    )}`,
-                ),
+                        `${testScope1} ${testScope2}`
+                    )}`
+                )
             ).toBe(true);
         });
     });
@@ -1233,12 +1233,12 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     request,
-                    new Logger({}),
+                    new Logger({})
                 );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(
-                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`
             );
         });
 
@@ -1260,7 +1260,7 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     request,
-                    new Logger({}),
+                    new Logger({})
                 );
             const queryString = UrlUtils.mapToQueryString(params);
 
@@ -1285,7 +1285,7 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     request,
-                    new Logger({}),
+                    new Logger({})
                 );
             const queryString = UrlUtils.mapToQueryString(params);
 
@@ -1309,7 +1309,7 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     request,
-                    new Logger({}),
+                    new Logger({})
                 );
             const queryString = UrlUtils.mapToQueryString(params);
 
@@ -1336,11 +1336,11 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     request,
-                    new Logger({}),
+                    new Logger({})
                 );
             RequestParameterBuilder.addExtraQueryParameters(
                 params,
-                request.extraQueryParameters!,
+                request.extraQueryParameters!
             );
             const queryString = UrlUtils.mapToQueryString(params);
 
@@ -1368,11 +1368,11 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     request,
-                    new Logger({}),
+                    new Logger({})
                 );
             RequestParameterBuilder.addExtraQueryParameters(
                 params,
-                request.extraQueryParameters!,
+                request.extraQueryParameters!
             );
             const queryString = UrlUtils.mapToQueryString(params);
 
@@ -1395,15 +1395,15 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     request,
-                    new Logger({}),
+                    new Logger({})
                 );
             const queryString = UrlUtils.mapToQueryString(params);
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
-                `brk_client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                `brk_client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`
             );
             expect(queryString).toContain(
-                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`,
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
             );
         });
 
@@ -1428,19 +1428,19 @@ describe("Authorize Protocol Tests", () => {
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
                     authOptions,
                     request,
-                    new Logger({}),
+                    new Logger({})
                 );
             RequestParameterBuilder.addExtraQueryParameters(
                 params,
-                request.extraQueryParameters!,
+                request.extraQueryParameters!
             );
             const queryString = UrlUtils.mapToQueryString(params);
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
-                `brk_client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                `brk_client_id=${TEST_CONFIG.MSAL_CLIENT_ID}`
             );
             expect(queryString).toContain(
-                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`,
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
             );
         });
     });
@@ -1454,11 +1454,11 @@ describe("Authorize Protocol Tests", () => {
                         state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
                         client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                     },
-                    TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.ENCODED_LIB_STATE
                 );
             expect(authCodePayload.code).toBe("thisIsATestCode");
             expect(authCodePayload.state).toBe(
-                TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                TEST_STATE_VALUES.ENCODED_LIB_STATE
             );
         });
 
@@ -1471,7 +1471,7 @@ describe("Authorize Protocol Tests", () => {
                         error_description: "msal error description",
                         state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
                     },
-                    TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.ENCODED_LIB_STATE
                 );
             } catch (e) {
                 error = e as AuthError;
@@ -1493,7 +1493,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    "differentState",
+                    "differentState"
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
@@ -1512,7 +1512,7 @@ describe("Authorize Protocol Tests", () => {
 
             AuthorizeProtocol.validateAuthorizationResponse(
                 testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
             );
         });
 
@@ -1528,7 +1528,7 @@ describe("Authorize Protocol Tests", () => {
 
             AuthorizeProtocol.validateAuthorizationResponse(
                 testServerCodeResponse,
-                testAltState,
+                testAltState
             );
         });
 
@@ -1543,7 +1543,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
@@ -1562,7 +1562,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -1581,7 +1581,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -1600,7 +1600,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -1618,7 +1618,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    "dummy-state-%20%%%30%%%%%40",
+                    "dummy-state-%20%%%30%%%%%40"
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
@@ -1641,7 +1641,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -1664,7 +1664,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
@@ -1686,7 +1686,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -1708,7 +1708,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
@@ -1730,7 +1730,7 @@ describe("Authorize Protocol Tests", () => {
             try {
                 AuthorizeProtocol.validateAuthorizationResponse(
                     testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
                 );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);

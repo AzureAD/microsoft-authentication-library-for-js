@@ -58,7 +58,7 @@ export function stripLeadingHashOrQuery(responseString: string): string {
  * Returns URL hash as server auth code response object.
  */
 export function getDeserializedResponse(
-    responseString: string,
+    responseString: string
 ): AuthorizeResponse | null {
     // Check if given hash is empty
     if (!responseString || responseString.indexOf("=") < 0) {
@@ -69,7 +69,7 @@ export function getDeserializedResponse(
         const normalizedResponse = stripLeadingHashOrQuery(responseString);
         // If # symbol was not present, above will return empty string, so give original hash value
         const deserializedHash: AuthorizeResponse = Object.fromEntries(
-            new URLSearchParams(normalizedResponse),
+            new URLSearchParams(normalizedResponse)
         );
 
         // Check for known response properties
@@ -95,7 +95,7 @@ export function getDeserializedResponse(
 export function mapToQueryString(
     parameters: Map<string, string>,
     encodeExtraParams: boolean = true,
-    extraQueryParameters?: StringDict,
+    extraQueryParameters?: StringDict
 ): string {
     const queryParameterArray: Array<string> = new Array<string>();
 

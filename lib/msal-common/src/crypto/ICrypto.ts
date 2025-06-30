@@ -64,7 +64,7 @@ export interface ICrypto {
      * @param request
      */
     getPublicKeyThumbprint(
-        request: SignedHttpRequestParameters,
+        request: SignedHttpRequestParameters
     ): Promise<string>;
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
@@ -83,7 +83,7 @@ export interface ICrypto {
         payload: SignedHttpRequest,
         kid: string,
         shrOptions?: ShrOptions,
-        correlationId?: string,
+        correlationId?: string
     ): Promise<string>;
     /**
      * Returns the SHA-256 hash of an input string

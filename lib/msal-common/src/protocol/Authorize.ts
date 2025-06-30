@@ -40,7 +40,7 @@ export function getStandardAuthorizeRequestParameters(
     authOptions: AuthOptions,
     request: CommonAuthorizationUrlRequest,
     logger: Logger,
-    performanceClient?: IPerformanceClient,
+    performanceClient?: IPerformanceClient
 ): Map<string, string> {
     // generate the correlationId if not set by the user and add
     const correlationId = request.correlationId;
@@ -51,7 +51,7 @@ export function getStandardAuthorizeRequestParameters(
         parameters,
         request.embeddedClientId ||
             request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
-            authOptions.clientId,
+            authOptions.clientId
     );
 
     const requestScopes = [
@@ -62,7 +62,7 @@ export function getStandardAuthorizeRequestParameters(
         parameters,
         requestScopes,
         true,
-        authOptions.authority.options.OIDCOptions?.defaultScopes,
+        authOptions.authority.options.OIDCOptions?.defaultScopes
     );
 
     RequestParameterBuilder.addRedirectUri(parameters, request.redirectUri);
@@ -84,7 +84,7 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addDomainHint(parameters, request.domainHint);
         performanceClient?.addFields(
             { domainHintFromRequest: true },
-            correlationId,
+            correlationId
         );
     }
 
@@ -94,12 +94,12 @@ export function getStandardAuthorizeRequestParameters(
         if (request.sid && request.prompt === PromptValue.NONE) {
             // SessionID is only used in silent calls
             logger.verbose(
-                "createAuthCodeUrlQueryString: Prompt is none, adding sid from request",
+                "createAuthCodeUrlQueryString: Prompt is none, adding sid from request"
             );
             RequestParameterBuilder.addSid(parameters, request.sid);
             performanceClient?.addFields(
                 { sidFromRequest: true },
-                correlationId,
+                correlationId
             );
         } else if (request.account) {
             const accountSid = extractAccountSid(request.account);
@@ -107,7 +107,7 @@ export function getStandardAuthorizeRequestParameters(
 
             if (accountLoginHintClaim && request.domainHint) {
                 logger.warning(
-                    `AuthorizationCodeClient.createAuthCodeUrlQueryString: "domainHint" param is set, skipping opaque "login_hint" claim. Please consider not passing domainHint`,
+                    `AuthorizationCodeClient.createAuthCodeUrlQueryString: "domainHint" param is set, skipping opaque "login_hint" claim. Please consider not passing domainHint`
                 );
                 accountLoginHintClaim = null;
             }
@@ -115,24 +115,24 @@ export function getStandardAuthorizeRequestParameters(
             // If login_hint claim is present, use it over sid/username
             if (accountLoginHintClaim) {
                 logger.verbose(
-                    "createAuthCodeUrlQueryString: login_hint claim present on account",
+                    "createAuthCodeUrlQueryString: login_hint claim present on account"
                 );
                 RequestParameterBuilder.addLoginHint(
                     parameters,
-                    accountLoginHintClaim,
+                    accountLoginHintClaim
                 );
                 performanceClient?.addFields(
                     { loginHintFromClaim: true },
-                    correlationId,
+                    correlationId
                 );
                 try {
                     const clientInfo = buildClientInfoFromHomeAccountId(
-                        request.account.homeAccountId,
+                        request.account.homeAccountId
                     );
                     RequestParameterBuilder.addCcsOid(parameters, clientInfo);
                 } catch (e) {
                     logger.verbose(
-                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
+                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
                     );
                 }
             } else if (accountSid && request.prompt === PromptValue.NONE) {
@@ -141,77 +141,77 @@ export function getStandardAuthorizeRequestParameters(
                  * SessionId is only used in silent calls
                  */
                 logger.verbose(
-                    "createAuthCodeUrlQueryString: Prompt is none, adding sid from account",
+                    "createAuthCodeUrlQueryString: Prompt is none, adding sid from account"
                 );
                 RequestParameterBuilder.addSid(parameters, accountSid);
                 performanceClient?.addFields(
                     { sidFromClaim: true },
-                    correlationId,
+                    correlationId
                 );
                 try {
                     const clientInfo = buildClientInfoFromHomeAccountId(
-                        request.account.homeAccountId,
+                        request.account.homeAccountId
                     );
                     RequestParameterBuilder.addCcsOid(parameters, clientInfo);
                 } catch (e) {
                     logger.verbose(
-                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
+                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
                     );
                 }
             } else if (request.loginHint) {
                 logger.verbose(
-                    "createAuthCodeUrlQueryString: Adding login_hint from request",
+                    "createAuthCodeUrlQueryString: Adding login_hint from request"
                 );
                 RequestParameterBuilder.addLoginHint(
                     parameters,
-                    request.loginHint,
+                    request.loginHint
                 );
                 RequestParameterBuilder.addCcsUpn(
                     parameters,
-                    request.loginHint,
+                    request.loginHint
                 );
                 performanceClient?.addFields(
                     { loginHintFromRequest: true },
-                    correlationId,
+                    correlationId
                 );
             } else if (request.account.username) {
                 // Fallback to account username if provided
                 logger.verbose(
-                    "createAuthCodeUrlQueryString: Adding login_hint from account",
+                    "createAuthCodeUrlQueryString: Adding login_hint from account"
                 );
                 RequestParameterBuilder.addLoginHint(
                     parameters,
-                    request.account.username,
+                    request.account.username
                 );
                 performanceClient?.addFields(
                     { loginHintFromUpn: true },
-                    correlationId,
+                    correlationId
                 );
                 try {
                     const clientInfo = buildClientInfoFromHomeAccountId(
-                        request.account.homeAccountId,
+                        request.account.homeAccountId
                     );
                     RequestParameterBuilder.addCcsOid(parameters, clientInfo);
                 } catch (e) {
                     logger.verbose(
-                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
+                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
                     );
                 }
             }
         } else if (request.loginHint) {
             logger.verbose(
-                "createAuthCodeUrlQueryString: No account, adding login_hint from request",
+                "createAuthCodeUrlQueryString: No account, adding login_hint from request"
             );
             RequestParameterBuilder.addLoginHint(parameters, request.loginHint);
             RequestParameterBuilder.addCcsUpn(parameters, request.loginHint);
             performanceClient?.addFields(
                 { loginHintFromRequest: true },
-                correlationId,
+                correlationId
             );
         }
     } else {
         logger.verbose(
-            "createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints",
+            "createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints"
         );
     }
 
@@ -231,7 +231,7 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addClaims(
             parameters,
             request.claims,
-            authOptions.clientCapabilities,
+            authOptions.clientCapabilities
         );
     }
 
@@ -239,7 +239,7 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addBrokerParameters(
             parameters,
             authOptions.clientId,
-            authOptions.redirectUri,
+            authOptions.redirectUri
         );
     }
 
@@ -248,7 +248,7 @@ export function getStandardAuthorizeRequestParameters(
         authOptions.instanceAware &&
         (!request.extraQueryParameters ||
             !Object.keys(request.extraQueryParameters).includes(
-                AADServerParamKeys.INSTANCE_AWARE,
+                AADServerParamKeys.INSTANCE_AWARE
             ))
     ) {
         RequestParameterBuilder.addInstanceAware(parameters);
@@ -267,16 +267,16 @@ export function getAuthorizeUrl(
     authority: Authority,
     requestParameters: Map<string, string>,
     encodeParams?: boolean,
-    extraQueryParameters?: StringDict | undefined,
+    extraQueryParameters?: StringDict | undefined
 ): string {
     const queryString = mapToQueryString(
         requestParameters,
         encodeParams,
-        extraQueryParameters,
+        extraQueryParameters
     );
     return UrlString.appendQueryString(
         authority.authorizationEndpoint,
-        queryString,
+        queryString
     );
 }
 
@@ -288,7 +288,7 @@ export function getAuthorizeUrl(
  */
 export function getAuthorizationCodePayload(
     serverParams: AuthorizeResponse,
-    cachedState: string,
+    cachedState: string
 ): AuthorizationCodePayload {
     // Get code response
     validateAuthorizationResponse(serverParams, cachedState);
@@ -296,7 +296,7 @@ export function getAuthorizationCodePayload(
     // throw when there is no auth code in the response
     if (!serverParams.code) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse,
+            ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
         );
     }
 
@@ -310,17 +310,17 @@ export function getAuthorizationCodePayload(
  */
 export function validateAuthorizationResponse(
     serverResponse: AuthorizeResponse,
-    requestState: string,
+    requestState: string
 ): void {
     if (!serverResponse.state || !requestState) {
         throw serverResponse.state
             ? createClientAuthError(
                   ClientAuthErrorCodes.stateNotFound,
-                  "Cached State",
+                  "Cached State"
               )
             : createClientAuthError(
                   ClientAuthErrorCodes.stateNotFound,
-                  "Server State",
+                  "Server State"
               );
     }
 
@@ -332,7 +332,7 @@ export function validateAuthorizationResponse(
     } catch (e) {
         throw createClientAuthError(
             ClientAuthErrorCodes.invalidState,
-            serverResponse.state,
+            serverResponse.state
         );
     }
 
@@ -341,7 +341,7 @@ export function validateAuthorizationResponse(
     } catch (e) {
         throw createClientAuthError(
             ClientAuthErrorCodes.invalidState,
-            serverResponse.state,
+            serverResponse.state
         );
     }
 
@@ -360,7 +360,7 @@ export function validateAuthorizationResponse(
             isInteractionRequiredError(
                 serverResponse.error,
                 serverResponse.error_description,
-                serverResponse.suberror,
+                serverResponse.suberror
             )
         ) {
             throw new InteractionRequiredAuthError(
@@ -371,7 +371,7 @@ export function validateAuthorizationResponse(
                 serverResponse.trace_id || "",
                 serverResponse.correlation_id || "",
                 serverResponse.claims || "",
-                serverErrorNo,
+                serverErrorNo
             );
         }
 
@@ -379,7 +379,7 @@ export function validateAuthorizationResponse(
             serverResponse.error || "",
             serverResponse.error_description,
             serverResponse.suberror,
-            serverErrorNo,
+            serverErrorNo
         );
     }
 }
@@ -390,14 +390,14 @@ export function validateAuthorizationResponse(
  * @returns
  */
 function parseServerErrorNo(
-    serverResponse: AuthorizeResponse,
+    serverResponse: AuthorizeResponse
 ): string | undefined {
     const errorCodePrefix = "code=";
     const errorCodePrefixIndex =
         serverResponse.error_uri?.lastIndexOf(errorCodePrefix);
     return errorCodePrefixIndex && errorCodePrefixIndex >= 0
         ? serverResponse.error_uri?.substring(
-              errorCodePrefixIndex + errorCodePrefix.length,
+              errorCodePrefixIndex + errorCodePrefix.length
           )
         : undefined;
 }

@@ -39,7 +39,7 @@ export interface ICacheManager {
     isAccountKey(
         key: string,
         homeAccountId?: string,
-        tenantId?: string,
+        tenantId?: string
     ): boolean;
 
     /**
@@ -48,7 +48,7 @@ export interface ICacheManager {
      */
     getIdTokenCredential(
         idTokenKey: string,
-        correlationId: string,
+        correlationId: string
     ): IdTokenEntity | null;
 
     /**
@@ -57,7 +57,7 @@ export interface ICacheManager {
      */
     setIdTokenCredential(
         idToken: IdTokenEntity,
-        correlationId: string,
+        correlationId: string
     ): Promise<void>;
 
     /**
@@ -66,7 +66,7 @@ export interface ICacheManager {
      */
     getAccessTokenCredential(
         accessTokenKey: string,
-        correlationId: string,
+        correlationId: string
     ): AccessTokenEntity | null;
 
     /**
@@ -75,7 +75,7 @@ export interface ICacheManager {
      */
     setAccessTokenCredential(
         accessToken: AccessTokenEntity,
-        correlationId: string,
+        correlationId: string
     ): Promise<void>;
 
     /**
@@ -84,7 +84,7 @@ export interface ICacheManager {
      */
     getRefreshTokenCredential(
         refreshTokenKey: string,
-        correlationId: string,
+        correlationId: string
     ): RefreshTokenEntity | null;
 
     /**
@@ -93,7 +93,7 @@ export interface ICacheManager {
      */
     setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity,
-        correlationId: string,
+        correlationId: string
     ): Promise<void>;
 
     /**
@@ -113,7 +113,7 @@ export interface ICacheManager {
      * @param serverTelemetryKey
      */
     getServerTelemetry(
-        serverTelemetryKey: string,
+        serverTelemetryKey: string
     ): ServerTelemetryEntity | null;
 
     /**
@@ -124,7 +124,7 @@ export interface ICacheManager {
     setServerTelemetry(
         serverTelemetryKey: string,
         serverTelemetry: ServerTelemetryEntity,
-        correlationId: string,
+        correlationId: string
     ): void;
 
     /**
@@ -171,7 +171,7 @@ export interface ICacheManager {
     setThrottlingCache(
         throttlingCacheKey: string,
         throttlingCache: ThrottlingEntity,
-        correlationId: string,
+        correlationId: string
     ): void;
 
     /**
@@ -179,7 +179,7 @@ export interface ICacheManager {
      */
     getAllAccounts(
         accountFilter: AccountFilter,
-        correlationId: string,
+        correlationId: string
     ): AccountInfo[];
 
     /**
@@ -189,7 +189,7 @@ export interface ICacheManager {
     saveCacheRecord(
         cacheRecord: CacheRecord,
         correlationId: string,
-        storeInCache?: StoreInCache,
+        storeInCache?: StoreInCache
     ): Promise<void>;
 
     /**
@@ -200,7 +200,7 @@ export interface ICacheManager {
      */
     getAccountsFilteredBy(
         filter: AccountFilter,
-        correlationId: string,
+        correlationId: string
     ): AccountEntity[];
 
     /**
@@ -209,7 +209,7 @@ export interface ICacheManager {
      */
     getAccountInfoFilteredBy(
         filter: AccountFilter,
-        correlationId: string,
+        correlationId: string
     ): AccountInfo | null;
 
     /**

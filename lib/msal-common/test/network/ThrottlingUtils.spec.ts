@@ -45,13 +45,13 @@ describe("ThrottlingUtils", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
                 new Logger({}),
-                performanceClient,
+                performanceClient
             );
             const removeItemStub = jest
                 .spyOn(cache, "removeItem")
                 .mockImplementation();
             jest.spyOn(cache, "getThrottlingCache").mockReturnValue(
-                thumbprintValue,
+                thumbprintValue
             );
             jest.spyOn(Date, "now").mockReturnValue(1);
 
@@ -61,7 +61,7 @@ describe("ThrottlingUtils", () => {
             expect(removeItemStub).toHaveBeenCalledTimes(0);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID),
+                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID)
             ).toThrowError(ServerError);
         });
 
@@ -72,13 +72,13 @@ describe("ThrottlingUtils", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
                 new Logger({}),
-                performanceClient,
+                performanceClient
             );
             const removeItemStub = jest
                 .spyOn(cache, "removeItem")
                 .mockImplementation();
             jest.spyOn(cache, "getThrottlingCache").mockReturnValue(
-                thumbprintValue,
+                thumbprintValue
             );
             jest.spyOn(Date, "now").mockReturnValue(10);
 
@@ -86,7 +86,7 @@ describe("ThrottlingUtils", () => {
             expect(removeItemStub).toHaveBeenCalledTimes(1);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID),
+                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID)
             ).not.toThrow();
         });
 
@@ -96,7 +96,7 @@ describe("ThrottlingUtils", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
                 new Logger({}),
-                performanceClient,
+                performanceClient
             );
             const removeItemStub = jest
                 .spyOn(cache, "removeItem")
@@ -107,7 +107,7 @@ describe("ThrottlingUtils", () => {
             expect(removeItemStub).toHaveBeenCalledTimes(0);
 
             expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID),
+                ThrottlingUtils.preProcess(cache, thumbprint, RANDOM_TEST_GUID)
             ).not.toThrow();
         });
     });
@@ -124,7 +124,7 @@ describe("ThrottlingUtils", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
                 new Logger({}),
-                performanceClient,
+                performanceClient
             );
             const setItemStub = jest
                 .spyOn(cache, "setThrottlingCache")
@@ -134,7 +134,7 @@ describe("ThrottlingUtils", () => {
                 cache,
                 thumbprint,
                 res,
-                RANDOM_TEST_GUID,
+                RANDOM_TEST_GUID
             );
             expect(setItemStub).toHaveBeenCalledTimes(1);
         });
@@ -150,7 +150,7 @@ describe("ThrottlingUtils", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
                 new Logger({}),
-                performanceClient,
+                performanceClient
             );
             const setItemStub = jest
                 .spyOn(cache, "setThrottlingCache")
@@ -160,7 +160,7 @@ describe("ThrottlingUtils", () => {
                 cache,
                 thumbprint,
                 res,
-                RANDOM_TEST_GUID,
+                RANDOM_TEST_GUID
             );
             expect(setItemStub).toHaveBeenCalledTimes(0);
         });
@@ -289,7 +289,7 @@ describe("ThrottlingUtils", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
                 new Logger({}),
-                performanceClient,
+                performanceClient
             );
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
             const removeItemStub = jest.spyOn(cache, "removeItem");

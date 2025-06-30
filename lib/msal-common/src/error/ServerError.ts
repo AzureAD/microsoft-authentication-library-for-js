@@ -24,7 +24,7 @@ export class ServerError extends AuthError {
         errorMessage?: string,
         subError?: string,
         errorNo?: string,
-        status?: number,
+        status?: number
     ) {
         super(errorCode, errorMessage, subError);
         this.name = "ServerError";

@@ -11,7 +11,7 @@ import {
 export async function getClientAssertion(
     clientAssertion: string | ClientAssertionCallback,
     clientId: string,
-    tokenEndpoint?: string,
+    tokenEndpoint?: string
 ): Promise<string> {
     if (typeof clientAssertion === "string") {
         return clientAssertion;

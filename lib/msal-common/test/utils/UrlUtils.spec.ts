@@ -12,7 +12,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
 
         it("strips leading #/ if present", () => {
             expect(UrlUtils.stripLeadingHashOrQuery("#/value")).toEqual(
-                "value",
+                "value"
             );
         });
 
@@ -33,7 +33,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
                 error: "value",
             });
             expect(
-                UrlUtils.getDeserializedResponse("#error_description=value"),
+                UrlUtils.getDeserializedResponse("#error_description=value")
             ).toEqual({ error_description: "value" });
         });
 
@@ -48,7 +48,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
                 error: "value",
             });
             expect(
-                UrlUtils.getDeserializedResponse("?error_description=value"),
+                UrlUtils.getDeserializedResponse("?error_description=value")
             ).toEqual({ error_description: "value" });
         });
 
@@ -62,7 +62,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             };
 
             expect(UrlUtils.getDeserializedResponse(serializedHash)).toEqual(
-                deserializedHash,
+                deserializedHash
             );
         });
 
@@ -76,7 +76,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             };
 
             expect(UrlUtils.getDeserializedResponse(serializedHash)).toEqual(
-                deserializedHash,
+                deserializedHash
             );
         });
 
@@ -98,10 +98,10 @@ describe("UrlUtils.ts Class Unit Tests", () => {
                 "https://localhost:4200/profile?comments=blah'blah";
 
             const normalizedEncoded = UrlUtils.normalizeUrlForComparison(
-                urlWithEncodedApostrophe,
+                urlWithEncodedApostrophe
             );
             const normalizedDecoded = UrlUtils.normalizeUrlForComparison(
-                urlWithDecodedApostrophe,
+                urlWithDecodedApostrophe
             );
 
             expect(normalizedEncoded).toEqual(normalizedDecoded);
@@ -140,7 +140,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
         it("returns original value for null/undefined input", () => {
             expect(UrlUtils.normalizeUrlForComparison(null as any)).toBe(null);
             expect(UrlUtils.normalizeUrlForComparison(undefined as any)).toBe(
-                undefined,
+                undefined
             );
         });
 
@@ -148,7 +148,7 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             const malformedUrl = "not-a-valid-url";
             // Should not throw and should return a canonicalized version
             expect(() =>
-                UrlUtils.normalizeUrlForComparison(malformedUrl),
+                UrlUtils.normalizeUrlForComparison(malformedUrl)
             ).not.toThrow();
         });
     });

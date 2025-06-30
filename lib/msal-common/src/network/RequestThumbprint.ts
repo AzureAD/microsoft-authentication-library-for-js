@@ -28,7 +28,7 @@ export type RequestThumbprint = {
 export function getRequestThumbprint(
     clientId: string,
     request: BaseAuthRequest,
-    homeAccountId?: string,
+    homeAccountId?: string
 ): RequestThumbprint {
     return {
         clientId: clientId,

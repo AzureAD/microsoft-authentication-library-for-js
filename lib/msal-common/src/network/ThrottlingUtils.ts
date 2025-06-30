@@ -27,7 +27,7 @@ export class ThrottlingUtils {
      */
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
         return `${ThrottlingConstants.THROTTLING_PREFIX}.${JSON.stringify(
-            thumbprint,
+            thumbprint
         )}`;
     }
 
@@ -39,7 +39,7 @@ export class ThrottlingUtils {
     static preProcess(
         cacheManager: CacheManager,
         thumbprint: RequestThumbprint,
-        correlationId: string,
+        correlationId: string
     ): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
         const value = cacheManager.getThrottlingCache(key);
@@ -52,7 +52,7 @@ export class ThrottlingUtils {
             throw new ServerError(
                 value.errorCodes?.join(" ") || Constants.EMPTY_STRING,
                 value.errorMessage,
-                value.subError,
+                value.subError
             );
         }
     }
@@ -67,7 +67,7 @@ export class ThrottlingUtils {
         cacheManager: CacheManager,
         thumbprint: RequestThumbprint,
         response: NetworkResponse<ServerAuthorizationTokenResponse>,
-        correlationId: string,
+        correlationId: string
     ): void {
         if (
             ThrottlingUtils.checkResponseStatus(response) ||
@@ -75,7 +75,7 @@ export class ThrottlingUtils {
         ) {
             const thumbprintValue: ThrottlingEntity = {
                 throttleTime: ThrottlingUtils.calculateThrottleTime(
-                    parseInt(response.headers[HeaderNames.RETRY_AFTER]),
+                    parseInt(response.headers[HeaderNames.RETRY_AFTER])
                 ),
                 error: response.body.error,
                 errorCodes: response.body.error_codes,
@@ -85,7 +85,7 @@ export class ThrottlingUtils {
             cacheManager.setThrottlingCache(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
                 thumbprintValue,
-                correlationId,
+                correlationId
             );
         }
     }
@@ -95,7 +95,7 @@ export class ThrottlingUtils {
      * @param response
      */
     static checkResponseStatus(
-        response: NetworkResponse<ServerAuthorizationTokenResponse>,
+        response: NetworkResponse<ServerAuthorizationTokenResponse>
     ): boolean {
         return (
             response.status === 429 ||
@@ -108,7 +108,7 @@ export class ThrottlingUtils {
      * @param response
      */
     static checkResponseForRetryAfter(
-        response: NetworkResponse<ServerAuthorizationTokenResponse>,
+        response: NetworkResponse<ServerAuthorizationTokenResponse>
     ): boolean {
         if (response.headers) {
             return (
@@ -132,8 +132,8 @@ export class ThrottlingUtils {
                 currentSeconds +
                     (time || ThrottlingConstants.DEFAULT_THROTTLE_TIME_SECONDS),
                 currentSeconds +
-                    ThrottlingConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS,
-            ) * 1000,
+                    ThrottlingConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
+            ) * 1000
         );
     }
 
@@ -141,12 +141,12 @@ export class ThrottlingUtils {
         cacheManager: CacheManager,
         clientId: string,
         request: BaseAuthRequest,
-        homeAccountIdentifier?: string,
+        homeAccountIdentifier?: string
     ): void {
         const thumbprint = getRequestThumbprint(
             clientId,
             request,
-            homeAccountIdentifier,
+            homeAccountIdentifier
         );
         const key = this.generateThrottlingStorageKey(thumbprint);
         cacheManager.removeItem(key, request.correlationId);

@@ -70,7 +70,7 @@ export abstract class BaseClient {
 
     protected constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient,
+        performanceClient?: IPerformanceClient
     ) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
@@ -101,7 +101,7 @@ export abstract class BaseClient {
      * Creates default headers for requests to token endpoint
      */
     protected createTokenRequestHeaders(
-        ccsCred?: CcsCredential,
+        ccsCred?: CcsCredential
     ): Record<string, string> {
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
@@ -110,20 +110,22 @@ export abstract class BaseClient {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
-                            ccsCred.credential,
+                            ccsCred.credential
                         );
-                        headers[HeaderNames.CCS_HEADER] =
-                            `Oid:${clientInfo.uid}@${clientInfo.utid}`;
+                        headers[
+                            HeaderNames.CCS_HEADER
+                        ] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
                     } catch (e) {
                         this.logger.verbose(
                             "Could not parse home account ID for CCS Header: " +
-                                e,
+                                e
                         );
                     }
                     break;
                 case CcsCredentialType.UPN:
-                    headers[HeaderNames.CCS_HEADER] =
-                        `UPN: ${ccsCred.credential}`;
+                    headers[
+                        HeaderNames.CCS_HEADER
+                    ] = `UPN: ${ccsCred.credential}`;
                     break;
             }
         }
@@ -143,12 +145,12 @@ export abstract class BaseClient {
         headers: Record<string, string>,
         thumbprint: RequestThumbprint,
         correlationId: string,
-        queuedEvent?: string,
+        queuedEvent?: string
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         if (queuedEvent) {
             this.performanceClient?.addQueueMeasurement(
                 queuedEvent,
-                correlationId,
+                correlationId
             );
         }
 
@@ -157,7 +159,7 @@ export abstract class BaseClient {
                 thumbprint,
                 tokenEndpoint,
                 { body: queryString, headers: headers },
-                correlationId,
+                correlationId
             );
 
         if (
@@ -183,24 +185,24 @@ export abstract class BaseClient {
         thumbprint: RequestThumbprint,
         tokenEndpoint: string,
         options: NetworkRequestOptions,
-        correlationId: string,
+        correlationId: string
     ): Promise<NetworkResponse<T>> {
         ThrottlingUtils.preProcess(
             this.cacheManager,
             thumbprint,
-            correlationId,
+            correlationId
         );
 
         let response;
         try {
             response = await invokeAsync(
                 this.networkClient.sendPostRequestAsync.bind(
-                    this.networkClient,
+                    this.networkClient
                 )<T>,
                 PerformanceEvents.NetworkClientSendPostRequestAsync,
                 this.logger,
                 this.performanceClient,
-                correlationId,
+                correlationId
             )(tokenEndpoint, options);
             const responseHeaders = response.headers || {};
             this.performanceClient?.addFields(
@@ -211,7 +213,7 @@ export abstract class BaseClient {
                     requestId:
                         responseHeaders[HeaderNames.X_MS_REQUEST_ID] || "",
                 },
-                correlationId,
+                correlationId
             );
         } catch (e) {
             if (e instanceof NetworkError) {
@@ -234,7 +236,7 @@ export abstract class BaseClient {
                                 undefined,
                             httpStatus: e.httpStatus,
                         },
-                        correlationId,
+                        correlationId
                     );
                 }
                 throw e.error;
@@ -250,7 +252,7 @@ export abstract class BaseClient {
             this.cacheManager,
             thumbprint,
             response,
-            correlationId,
+            correlationId
         );
 
         return response;
@@ -262,11 +264,11 @@ export abstract class BaseClient {
      */
     async updateAuthority(
         cloudInstanceHostname: string,
-        correlationId: string,
+        correlationId: string
     ): Promise<void> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.UpdateTokenEndpointAuthority,
-            correlationId,
+            correlationId
         );
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${this.authority.tenant}/`;
         const cloudInstanceAuthority = await createDiscoveredInstance(
@@ -276,7 +278,7 @@ export abstract class BaseClient {
             this.authority.options,
             this.logger,
             correlationId,
-            this.performanceClient,
+            this.performanceClient
         );
         this.authority = cloudInstanceAuthority;
     }
@@ -292,26 +294,26 @@ export abstract class BaseClient {
             RequestParameterBuilder.addBrokerParameters(
                 parameters,
                 this.config.authOptions.clientId,
-                this.config.authOptions.redirectUri,
+                this.config.authOptions.redirectUri
             );
         }
 
         if (request.tokenQueryParameters) {
             RequestParameterBuilder.addExtraQueryParameters(
                 parameters,
-                request.tokenQueryParameters,
+                request.tokenQueryParameters
             );
         }
 
         RequestParameterBuilder.addCorrelationId(
             parameters,
-            request.correlationId,
+            request.correlationId
         );
 
         RequestParameterBuilder.instrumentBrokerParams(
             parameters,
             request.correlationId,
-            this.performanceClient,
+            this.performanceClient
         );
         return UrlUtils.mapToQueryString(parameters);
     }
