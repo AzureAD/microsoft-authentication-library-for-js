@@ -127,32 +127,57 @@ The password reset flow allows users to:
 
 ## Project Structure
 
+The sample application is organized into the following structure:
+
+```
 nativeAuthSample/
-├── app/                        # Application source code
-│   ├── app.js                  # Main application logic
-│   ├── authConfig.js           # MSAL configuration
-│   ├── utilities.js            # Helper functions
-│   ├── signin/                 # Sign-in functionality
-│   │   ├── SignInService.js    # Sign-in business logic
-│   │   ├── SignInUIManager.js  # Sign-in UI management
-│   │   └── index.js            # Sign-in module exports
-│   ├── signup/                 # Sign-up functionality
-│   │   ├── SignUpService.js    # Sign-up business logic
-│   │   ├── SignUpUIManager.js  # Sign-up UI management
-│   │   └── index.js            # Sign-up module exports
-│   └── resetPassword/          # Password reset functionality
-│       ├── ResetPasswordService.js  # Reset password logic
-│       ├── ResetPasswordUIManager.js # Reset UI management
-│       └── index.js            # Reset password module exports
-├── test/                       # Automated tests
-│   ├── signin.spec.ts          # Sign-in flow tests
-│   ├── signup.spec.ts          # Sign-up flow tests
-│   ├── resetpassword.spec.ts   # Password reset tests
-│   └── signout.spec.ts         # Sign-out tests
-├── index.html                  # Main HTML page
-├── styles.css                  # Application styles
-├── cors.js                     # CORS configuration
-└── proxy.config.js             # Proxy configuration
+├── app/                    # Application source code
+│   ├── app.js             # Main application logic
+│   ├── authConfig.js      # MSAL configuration
+│   ├── ui.js             # UI handling functions
+│   ├── utilities.js       # Helper functions
+│   ├── UserAccountAttributes.js  # User account management
+│   ├── signin/           # Sign-in implementation
+│   ├── signup/           # Sign-up implementation
+│   └── resetPassword/    # Password reset implementation
+│
+├── test/                  # Test files
+│   ├── proxyUtils.ts     # Test proxy utilities
+│   ├── signin.spec.ts    # Sign-in tests
+│   ├── signup.spec.ts    # Sign-up tests
+│   ├── signout.spec.ts   # Sign-out tests
+│   ├── resetpassword.spec.ts  # Password reset tests
+│   └── screenshots/      # Test result screenshots
+│
+├── index.html            # Application entry point
+├── styles.css           # Application styles
+├── cors.js             # CORS configuration
+├── jest.config.cjs     # Jest test configuration
+└── package-lock.json   # Dependencies lock file
+```
+
+### Key Components:
+
+1. **Core Files**
+   - `index.html`: Main entry point and UI layout
+   - `styles.css`: Application styling
+   - `cors.js`: CORS handling for authentication endpoints
+
+2. **Application Logic** (`app/` directory)
+   - Main application setup and configuration
+   - Authentication flows implementation
+   - User interface management
+   - Helper utilities
+
+3. **Test Suite** (`test/` directory)
+   - End-to-end test specifications
+   - Test utilities and helpers
+   - Visual regression testing screenshots
+
+4. **Configuration**
+   - Jest test configuration
+   - Package dependencies
+   - CORS and proxy settings
 
 ## Key Components
 
