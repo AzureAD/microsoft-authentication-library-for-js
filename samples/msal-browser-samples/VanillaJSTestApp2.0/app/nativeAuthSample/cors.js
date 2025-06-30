@@ -58,12 +58,19 @@ http.createServer((req, res) => {
             "Incoming request -> " + req.url + " ===> " + reqUrl.pathname
         );
 
+        const newHeaders = {};
+        for (let [key, value] of Object.entries(req.headers)) {
+            if (key !='origin') {
+                newHeaders[key] = value;
+            }
+        }
+
         const proxyReq = https.request(
             targetUrl, // CodeQL [SM04580] The newly generated target URL utilizes the configured proxy URL to resolve the CORS issue and will be used exclusively for demo purposes and run locally.
             {
                 method: req.method,
                 headers: {
-                    ...req.headers,
+                    ...newHeaders,
                     host: domain,
                 },
             },
