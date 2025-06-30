@@ -22,63 +22,75 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 authOptions: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
-            }
+            },
         );
         // Crypto interface checks
         expect(emptyConfig.cryptoInterface).not.toBeNull();
         expect(emptyConfig.cryptoInterface.base64Decode).not.toBeNull();
         expect(() =>
-            emptyConfig.cryptoInterface.base64Decode("test input")
+            emptyConfig.cryptoInterface.base64Decode("test input"),
         ).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
         expect(() =>
-            emptyConfig.cryptoInterface.base64Decode("test input")
+            emptyConfig.cryptoInterface.base64Decode("test input"),
         ).toThrowError(AuthError);
         expect(emptyConfig.cryptoInterface.base64Encode).not.toBeNull();
         expect(() =>
-            emptyConfig.cryptoInterface.base64Encode("test input")
+            emptyConfig.cryptoInterface.base64Encode("test input"),
         ).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
         expect(() =>
-            emptyConfig.cryptoInterface.base64Encode("test input")
+            emptyConfig.cryptoInterface.base64Encode("test input"),
         ).toThrowError(AuthError);
         // Storage interface checks
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.getAccount).not.toBeNull();
         expect(() =>
-            emptyConfig.storageInterface.getAccount("testKey", RANDOM_TEST_GUID)
+            emptyConfig.storageInterface.getAccount(
+                "testKey",
+                RANDOM_TEST_GUID,
+            ),
         ).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
         expect(() =>
-            emptyConfig.storageInterface.getAccount("testKey", RANDOM_TEST_GUID)
+            emptyConfig.storageInterface.getAccount(
+                "testKey",
+                RANDOM_TEST_GUID,
+            ),
         ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.getKeys).not.toBeNull();
         expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
         expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
-            AuthError
+            AuthError,
         );
         expect(emptyConfig.storageInterface.removeItem).not.toBeNull();
         expect(() =>
-            emptyConfig.storageInterface.removeItem("testKey", RANDOM_TEST_GUID)
+            emptyConfig.storageInterface.removeItem(
+                "testKey",
+                RANDOM_TEST_GUID,
+            ),
         ).toThrowError(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
         expect(() =>
-            emptyConfig.storageInterface.removeItem("testKey", RANDOM_TEST_GUID)
+            emptyConfig.storageInterface.removeItem(
+                "testKey",
+                RANDOM_TEST_GUID,
+            ),
         ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.setAccount).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.setAccount(
                 MockCache.acc,
-                TEST_CONFIG.CORRELATION_ID
-            )
+                TEST_CONFIG.CORRELATION_ID,
+            ),
         ).rejects.toEqual(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
         // Network interface checks
         expect(emptyConfig.networkInterface).not.toBeNull();
@@ -86,19 +98,19 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
 
         expect(
             //@ts-ignore
-            emptyConfig.networkInterface.sendGetRequestAsync("", null)
+            emptyConfig.networkInterface.sendGetRequestAsync("", null),
         ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
         expect(
-            emptyConfig.networkInterface.sendPostRequestAsync
+            emptyConfig.networkInterface.sendPostRequestAsync,
         ).not.toBeNull();
 
         await expect(
             //@ts-ignore
-            emptyConfig.networkInterface.sendPostRequestAsync("", null)
+            emptyConfig.networkInterface.sendPostRequestAsync("", null),
         ).rejects.toMatchObject(
-            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
+            createClientAuthError(ClientAuthErrorCodes.methodNotImplemented),
         );
         // Logger options checks
         expect(emptyConfig.loggerOptions).not.toBeNull();
@@ -122,7 +134,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         TEST_CONFIG.MSAL_CLIENT_ID,
         mockCrypto,
         new Logger({}),
-        new StubPerformanceClient()
+        new StubPerformanceClient(),
     );
 
     const testNetworkResult = {
@@ -140,13 +152,13 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
-                    options?: NetworkRequestOptions
+                    options?: NetworkRequestOptions,
                 ): Promise<any> => {
                     return testNetworkResult;
                 },
                 sendPostRequestAsync: async (
                     url: string,
-                    options?: NetworkRequestOptions
+                    options?: NetworkRequestOptions,
                 ): Promise<any> => {
                     return testNetworkResult;
                 },
@@ -155,7 +167,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {},
                 piiLoggingEnabled: true,
             },
@@ -188,10 +200,10 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.libraryInfo.cpu).toBe(TEST_CONFIG.TEST_CPU);
         // App telemetry tests
         expect(newConfig.telemetry.application.appName).toBe(
-            TEST_CONFIG.TEST_APP_NAME
+            TEST_CONFIG.TEST_APP_NAME,
         );
         expect(newConfig.telemetry.application.appVersion).toBe(
-            TEST_CONFIG.TEST_APP_VER
+            TEST_CONFIG.TEST_APP_VER,
         );
     });
 });

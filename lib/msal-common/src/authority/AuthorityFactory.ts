@@ -34,14 +34,14 @@ export async function createDiscoveredInstance(
     authorityOptions: AuthorityOptions,
     logger: Logger,
     correlationId: string,
-    performanceClient?: IPerformanceClient
+    performanceClient?: IPerformanceClient,
 ): Promise<Authority> {
     performanceClient?.addQueueMeasurement(
         PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
-        correlationId
+        correlationId,
     );
     const authorityUriFinal = Authority.transformCIAMAuthority(
-        formatAuthorityUri(authorityUri)
+        formatAuthorityUri(authorityUri),
     );
 
     // Initialize authority and perform discovery endpoint check.
@@ -52,23 +52,23 @@ export async function createDiscoveredInstance(
         authorityOptions,
         logger,
         correlationId,
-        performanceClient
+        performanceClient,
     );
 
     try {
         await invokeAsync(
             acquireTokenAuthority.resolveEndpointsAsync.bind(
-                acquireTokenAuthority
+                acquireTokenAuthority,
             ),
             PerformanceEvents.AuthorityResolveEndpointsAsync,
             logger,
             performanceClient,
-            correlationId
+            correlationId,
         )();
         return acquireTokenAuthority;
     } catch (e) {
         throw createClientAuthError(
-            ClientAuthErrorCodes.endpointResolutionError
+            ClientAuthErrorCodes.endpointResolutionError,
         );
     }
 }

@@ -52,7 +52,7 @@ const loggerOptions = {
     loggerCallback: (
         level: LogLevel,
         message: string,
-        containsPii: boolean
+        containsPii: boolean,
     ): void => {
         console.log(`Log level: ${level} Message: ${message}`);
     },
@@ -68,13 +68,13 @@ const authority = new Authority(
     new MockStorageClass("client-id", mockCrypto, logger, performanceClient),
     authorityOptions,
     logger,
-    TEST_CONFIG.CORRELATION_ID
+    TEST_CONFIG.CORRELATION_ID,
 );
 
 describe("AccountEntity.ts Unit Tests", () => {
     beforeEach(() => {
         jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
-            "login.windows.net"
+            "login.windows.net",
         );
     });
 
@@ -91,7 +91,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
         expect(ac.generateAccountKey()).toEqual(
-            "uid.utid-login.microsoftonline.com-utid"
+            "uid.utid-login.microsoftonline.com-utid",
         );
     });
 
@@ -114,7 +114,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idTokenClaims
+            idTokenClaims,
         );
 
         const acc = AccountEntity.createAccount(
@@ -122,11 +122,11 @@ describe("AccountEntity.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
-            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
+            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`,
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
@@ -153,7 +153,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idTokenClaims
+            idTokenClaims,
         );
 
         const acc = AccountEntity.createAccount(
@@ -161,11 +161,11 @@ describe("AccountEntity.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
-            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
+            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`,
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
@@ -192,7 +192,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idTokenClaims
+            idTokenClaims,
         );
 
         const acc = AccountEntity.createAccount(
@@ -200,10 +200,10 @@ describe("AccountEntity.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
         );
         expect(acc.generateAccountKey()).toEqual(
-            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
+            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`,
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
@@ -220,11 +220,11 @@ describe("AccountEntity.ts Unit Tests", () => {
                 "client-id",
                 mockCrypto,
                 logger,
-                performanceClient
+                performanceClient,
             ),
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         );
 
         // Set up stubs
@@ -244,7 +244,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idTokenClaims
+            idTokenClaims,
         );
 
         const acc = AccountEntity.createAccount(
@@ -252,11 +252,11 @@ describe("AccountEntity.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: idTokenClaims,
             },
-            authority
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
-            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
+            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`,
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
@@ -273,7 +273,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 "client-id",
                 mockCrypto,
                 logger,
-                performanceClient
+                performanceClient,
             ),
             {
                 protocolMode: ProtocolMode.OIDC,
@@ -282,7 +282,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 authorityMetadata: "",
             },
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         );
 
         // Set up stubs
@@ -297,7 +297,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             upn: "testupn",
         };
         jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-            idTokenClaims
+            idTokenClaims,
         );
 
         const homeAccountId =
@@ -307,14 +307,14 @@ describe("AccountEntity.ts Unit Tests", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
                 ),
             },
-            authority
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
-            `${idTokenClaims.sub.toLowerCase()}-login.windows.net-`
+            `${idTokenClaims.sub.toLowerCase()}-login.windows.net-`,
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
@@ -358,7 +358,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(accountInfo.tenantProfiles).toBeDefined();
         expect(accountInfo.tenantProfiles?.size).toBe(0);
         expect(accountInfo.tenantProfiles).toMatchObject(
-            new Map<string, TenantProfile>()
+            new Map<string, TenantProfile>(),
         );
     });
 
@@ -398,7 +398,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
-                idTokenClaims
+                idTokenClaims,
             );
 
             acc = AccountEntity.createAccount(
@@ -406,7 +406,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
                 },
-                authority
+                authority,
             );
         });
 
@@ -414,10 +414,10 @@ describe("AccountEntity.ts Unit Tests", () => {
             const acc1: AccountInfo = acc.getAccountInfo();
             const acc2: AccountInfo = { ...acc1 };
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
-                true
+                true,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(
-                true
+                true,
             );
         });
 
@@ -451,18 +451,18 @@ describe("AccountEntity.ts Unit Tests", () => {
 
             // iat claims are different
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
-                true
+                true,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(
-                false
+                false,
             );
 
             // iat claim is missing on 1 account
             expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(
-                true
+                true,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(
-                false
+                false,
             );
         });
 
@@ -496,18 +496,18 @@ describe("AccountEntity.ts Unit Tests", () => {
 
             // nonce claims are different
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
-                true
+                true,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(
-                false
+                false,
             );
 
             // nonce claim is missing on 1 account
             expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(
-                true
+                true,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(
-                false
+                false,
             );
         });
 
@@ -525,52 +525,52 @@ describe("AccountEntity.ts Unit Tests", () => {
             const acc8: AccountInfo = { ...acc1 };
             acc2.homeAccountId = "mockHomeAccountId2";
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
-                false
+                false,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(
-                false
+                false,
             );
             acc3.localAccountId = "mockLocalAccountId2";
             expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(
-                false
+                false,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(
-                false
+                false,
             );
             acc4.environment = "mockEnv2";
             expect(AccountEntity.accountInfoIsEqual(acc1, acc4, false)).toBe(
-                false
+                false,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc4, true)).toBe(
-                false
+                false,
             );
             acc5.tenantId = "mockTenant2";
             expect(AccountEntity.accountInfoIsEqual(acc1, acc5, false)).toBe(
-                false
+                false,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc5, true)).toBe(
-                false
+                false,
             );
             acc6.username = "mockUsername2";
             expect(AccountEntity.accountInfoIsEqual(acc1, acc6, false)).toBe(
-                false
+                false,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc6, true)).toBe(
-                false
+                false,
             );
             acc7.name = "mockName2";
             expect(AccountEntity.accountInfoIsEqual(acc1, acc7, false)).toBe(
-                true
+                true,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc7, true)).toBe(
-                true
+                true,
             );
             acc8.idTokenClaims = {};
             expect(AccountEntity.accountInfoIsEqual(acc1, acc8, false)).toBe(
-                true
+                true,
             );
             expect(AccountEntity.accountInfoIsEqual(acc1, acc8, true)).toBe(
-                false
+                false,
             );
         });
 
@@ -593,7 +593,7 @@ describe("AccountEntity.ts Unit Tests", () => {
 describe("AccountEntity.ts Unit Tests for ADFS", () => {
     beforeEach(() => {
         jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
-            "myadfs.com"
+            "myadfs.com",
         );
     });
 
@@ -611,11 +611,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
                 "client-id",
                 mockCrypto,
                 logger,
-                performanceClient
+                performanceClient,
             ),
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         );
 
         // Set up stubs
@@ -630,7 +630,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             upn: "testupn",
         };
         jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-            idTokenClaims
+            idTokenClaims,
         );
 
         const homeAccountId =
@@ -640,14 +640,14 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
                 ),
             },
-            authority
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
-            `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
+            `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`,
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe("myadfs.com");
@@ -672,11 +672,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
                 "client-id",
                 mockCrypto,
                 logger,
-                performanceClient
+                performanceClient,
             ),
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         );
 
         // Set up stubs
@@ -690,7 +690,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             upn: "testupn",
         };
         jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-            idTokenClaims
+            idTokenClaims,
         );
 
         const homeAccountId =
@@ -700,14 +700,14 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
                 homeAccountId,
                 idTokenClaims: AuthToken.extractTokenClaims(
                     TEST_TOKENS.IDTOKEN_V2,
-                    cryptoInterface.base64Decode
+                    cryptoInterface.base64Decode,
                 ),
             },
-            authority
+            authority,
         );
 
         expect(acc.generateAccountKey()).toEqual(
-            `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
+            `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`,
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe("myadfs.com");

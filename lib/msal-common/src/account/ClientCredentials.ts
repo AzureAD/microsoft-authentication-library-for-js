@@ -9,7 +9,7 @@ export type ClientAssertionConfig = {
 };
 
 export type ClientAssertionCallback = (
-    config: ClientAssertionConfig
+    config: ClientAssertionConfig,
 ) => Promise<string>;
 
 /**

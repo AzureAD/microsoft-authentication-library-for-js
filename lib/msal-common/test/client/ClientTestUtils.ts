@@ -202,7 +202,7 @@ export const mockCrypto = {
     },
     base64Encode(input: string): string {
         return Buffer.from(input, EncodingTypes.UTF8).toString(
-            EncodingTypes.BASE64
+            EncodingTypes.BASE64,
         );
     },
     base64UrlEncode(input: string): string {
@@ -211,7 +211,7 @@ export const mockCrypto = {
     encodeKid(input: string): string {
         return Buffer.from(
             JSON.stringify({ kid: input }),
-            EncodingTypes.UTF8
+            EncodingTypes.UTF8,
         ).toString("base64url");
     },
     async getPublicKeyThumbprint(): Promise<string> {
@@ -234,7 +234,7 @@ export const mockCrypto = {
 export class ClientTestUtils {
     static async createTestClientConfiguration(
         telem: boolean = false,
-        protocolMode: ProtocolMode = ProtocolMode.AAD
+        protocolMode: ProtocolMode = ProtocolMode.AAD,
     ): Promise<ClientConfiguration> {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
@@ -243,7 +243,7 @@ export class ClientTestUtils {
             new StubPerformanceClient(),
             {
                 canonicalAuthority: TEST_CONFIG.validAuthority,
-            }
+            },
         );
 
         const testLoggerCallback = (): void => {
@@ -261,7 +261,7 @@ export class ClientTestUtils {
 
         const authority = await getDiscoveredAuthority(
             protocolMode,
-            mockStorage
+            mockStorage,
         );
 
         let serverTelemetryManager = null;
@@ -273,7 +273,7 @@ export class ClientTestUtils {
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     apiId: 866,
                 },
-                mockStorage
+                mockStorage,
             );
         }
 
@@ -322,8 +322,8 @@ export async function getDiscoveredAuthority(
         new StubPerformanceClient(),
         {
             canonicalAuthority: TEST_CONFIG.validAuthority,
-        }
-    )
+        },
+    ),
 ): Promise<Authority> {
     const mockHttpClient = {
         sendGetRequestAsync<T>(): T {
@@ -354,12 +354,12 @@ export async function getDiscoveredAuthority(
         mockStorage,
         authorityOptions,
         logger,
-        TEST_CONFIG.CORRELATION_ID
+        TEST_CONFIG.CORRELATION_ID,
     );
 
     await authority.resolveEndpointsAsync().catch((error) => {
         throw createClientAuthError(
-            ClientAuthErrorCodes.endpointResolutionError
+            ClientAuthErrorCodes.endpointResolutionError,
         );
     });
 

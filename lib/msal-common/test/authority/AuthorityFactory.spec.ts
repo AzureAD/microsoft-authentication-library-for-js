@@ -28,14 +28,14 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
     const networkInterface: INetworkModule = {
         sendGetRequestAsync<T>(
             url: string,
-            options?: NetworkRequestOptions
+            options?: NetworkRequestOptions,
         ): T {
             // @ts-ignore
             return null;
         },
         sendPostRequestAsync<T>(
             url: string,
-            options?: NetworkRequestOptions
+            options?: NetworkRequestOptions,
         ): T {
             // @ts-ignore
             return null;
@@ -71,7 +71,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
@@ -88,11 +88,11 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             mockStorage,
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
         ).catch((e) => {
             expect(e).toBeInstanceOf(ClientAuthError);
             expect(e.errorCode).toBe(
-                ClientAuthErrorCodes.endpointResolutionError
+                ClientAuthErrorCodes.endpointResolutionError,
             );
             expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
             done();
@@ -110,11 +110,11 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
-            "https://test.ciamlogin.com/test.onmicrosoft.com/"
+            "https://test.ciamlogin.com/test.onmicrosoft.com/",
         );
         expect(authorityInstance instanceof Authority);
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
@@ -131,11 +131,11 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
-            "https://test.ciamlogin.com/test.onmicrosoft.com/"
+            "https://test.ciamlogin.com/test.onmicrosoft.com/",
         );
         expect(authorityInstance instanceof Authority);
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
@@ -152,11 +152,11 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
-            "https://test.ciamlogin.com/tenant/"
+            "https://test.ciamlogin.com/tenant/",
         );
         expect(authorityInstance instanceof Authority);
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
@@ -173,11 +173,11 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
-            "https://test.ciamlogin.com/tenant/"
+            "https://test.ciamlogin.com/tenant/",
         );
         expect(authorityInstance instanceof Authority);
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
@@ -194,11 +194,11 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
-            "https://test.ciamlogin.com/e458a5d7-3227-49a6-a1f1-8e5317c8a790/"
+            "https://test.ciamlogin.com/e458a5d7-3227-49a6-a1f1-8e5317c8a790/",
         );
         expect(authorityInstance instanceof Authority);
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);

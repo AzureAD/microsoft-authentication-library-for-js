@@ -108,7 +108,7 @@ describe("SilentFlowClient unit tests", () => {
         it("creates a SilentFlowClient", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -129,22 +129,22 @@ describe("SilentFlowClient unit tests", () => {
             testAccessTokenEntity.target = testScopes.join(" ");
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
 
             const config =
@@ -163,7 +163,7 @@ describe("SilentFlowClient unit tests", () => {
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(authResult.authority).toBe(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
+                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`,
             );
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -172,7 +172,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toHaveLength(0);
         });
@@ -186,22 +186,22 @@ describe("SilentFlowClient unit tests", () => {
             testAccessTokenEntity.target = testScopes.join(" ");
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -220,7 +220,7 @@ describe("SilentFlowClient unit tests", () => {
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(authResult.authority).toEqual(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
+                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`,
             );
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -229,7 +229,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toBe("");
         });
@@ -237,22 +237,22 @@ describe("SilentFlowClient unit tests", () => {
         it("acquireCachedToken returns token from cache if scopes are undefined in request object", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
             jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
 
@@ -272,29 +272,29 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
         });
 
         it("acquireCachedToken returns token from cache if scopes are empty in request object", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
             jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
 
@@ -313,7 +313,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
         });
 
@@ -326,22 +326,22 @@ describe("SilentFlowClient unit tests", () => {
             testAccessTokenEntity.target = testScopes.join(" ");
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -358,9 +358,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             await expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
@@ -373,22 +375,22 @@ describe("SilentFlowClient unit tests", () => {
             testAccessTokenEntity.target = testScopes.join(" ");
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -400,7 +402,7 @@ describe("SilentFlowClient unit tests", () => {
                         claimsBasedCachingEnabled: true,
                     },
                 },
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
 
@@ -416,7 +418,7 @@ describe("SilentFlowClient unit tests", () => {
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(authResult.authority).toEqual(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
+                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`,
             );
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -425,7 +427,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toBe("");
         });
@@ -439,7 +441,7 @@ describe("SilentFlowClient unit tests", () => {
             testAccessTokenEntity.target = testScopes.join(" ");
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
             const idTokenClaimsWithAuthTime = {
@@ -447,22 +449,22 @@ describe("SilentFlowClient unit tests", () => {
                 auth_time: Date.now() - ONE_DAY_IN_MS * 2,
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaimsWithAuthTime
+                idTokenClaimsWithAuthTime,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
 
             const config =
@@ -482,7 +484,7 @@ describe("SilentFlowClient unit tests", () => {
             const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(authResult.authority).toBe(
-                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`
+                `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`,
             );
             expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
@@ -494,7 +496,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(idTokenClaimsWithAuthTime);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toHaveLength(0);
         });
@@ -504,7 +506,7 @@ describe("SilentFlowClient unit tests", () => {
         it("Throws error if account is not included in request object", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -517,11 +519,11 @@ describe("SilentFlowClient unit tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     forceRefresh: false,
-                })
+                }),
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                    ClientAuthErrorCodes.noAccountInSilentRequest,
+                ),
             );
             await expect(
                 client.acquireCachedToken({
@@ -531,11 +533,11 @@ describe("SilentFlowClient unit tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     forceRefresh: false,
-                })
+                }),
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                    ClientAuthErrorCodes.noAccountInSilentRequest,
+                ),
             );
         });
 
@@ -551,11 +553,11 @@ describe("SilentFlowClient unit tests", () => {
             testAccountEntity.authorityType = "MSSTS";
             jest.spyOn(
                 MockStorageClass.prototype,
-                "getAccount"
+                "getAccount",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
@@ -568,31 +570,33 @@ describe("SilentFlowClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
             await expect(
-                client.acquireCachedToken(tokenRequest)
+                client.acquireCachedToken(tokenRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
         it("acquireCachedToken throws refresh requiredError if forceRefresh set to true", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
 
             const config =
@@ -609,31 +613,33 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
         it("acquireCachedToken throws refresh requiredError if access token is expired", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -649,37 +655,39 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
         it("acquireCachedToken throws refresh requiredError if access token was cached after the current time", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
             jest.spyOn(TimeUtils, <any>"wasClockTurnedBack").mockReturnValue(
-                true
+                true,
             );
 
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -691,31 +699,33 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
         it("acquireCachedToken throws refresh requiredError if no access token is cached", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(null);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -731,9 +741,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
     });
@@ -745,28 +757,28 @@ describe("SilentFlowClient unit tests", () => {
         beforeEach(async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(
                 CacheManager.prototype,
-                "readAccountFromCache"
+                "readAccountFromCache",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                testIdToken,
             );
             jest.spyOn(
                 CacheManager.prototype,
-                "getAccessToken"
+                "getAccessToken",
             ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
@@ -784,8 +796,8 @@ describe("SilentFlowClient unit tests", () => {
                     TEST_CONFIG.MSAL_CLIENT_ID,
                     mockCrypto,
                     logger,
-                    new StubPerformanceClient()
-                )
+                    new StubPerformanceClient(),
+                ),
             );
             client = new SilentFlowClient(config, stubPerformanceClient);
             const telemetryCacheHitSpy = jest
@@ -818,7 +830,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                testAccessTokenEntity.secret
+                testAccessTokenEntity.secret,
             );
             expect(authResult.state).toHaveLength(0);
         });
@@ -832,7 +844,7 @@ describe("SilentFlowClient unit tests", () => {
                 auth_time: Date.now() - ONE_DAY_IN_MS * 2,
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaimsWithAuthTime
+                idTokenClaimsWithAuthTime,
             );
 
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -845,9 +857,9 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             await expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired)
+                createClientAuthError(ClientAuthErrorCodes.maxAgeTranspired),
             );
         });
 
@@ -865,9 +877,9 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             await expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound)
+                createClientAuthError(ClientAuthErrorCodes.authTimeNotFound),
             );
         });
 
@@ -884,9 +896,11 @@ describe("SilentFlowClient unit tests", () => {
             };
 
             expect(
-                client.acquireCachedToken(silentFlowRequest)
+                client.acquireCachedToken(silentFlowRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
     });

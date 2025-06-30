@@ -87,7 +87,7 @@ export type TokenClaims = {
  * @returns
  */
 export function getTenantIdFromIdTokenClaims(
-    idTokenClaims?: TokenClaims
+    idTokenClaims?: TokenClaims,
 ): string | null {
     if (idTokenClaims) {
         const tenantId =

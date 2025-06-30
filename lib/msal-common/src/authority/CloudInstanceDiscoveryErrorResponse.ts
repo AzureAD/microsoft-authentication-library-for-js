@@ -17,7 +17,7 @@ export type CloudInstanceDiscoveryErrorResponse = {
 };
 
 export function isCloudInstanceDiscoveryErrorResponse(
-    response: object
+    response: object,
 ): boolean {
     return (
         response.hasOwnProperty("error") &&

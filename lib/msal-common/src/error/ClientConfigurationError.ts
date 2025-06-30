@@ -204,7 +204,7 @@ export class ClientConfigurationError extends AuthError {
 }
 
 export function createClientConfigurationError(
-    errorCode: string
+    errorCode: string,
 ): ClientConfigurationError {
     return new ClientConfigurationError(errorCode);
 }

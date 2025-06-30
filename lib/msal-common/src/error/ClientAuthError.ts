@@ -325,7 +325,7 @@ export class ClientAuthError extends AuthError {
             errorCode,
             additionalMessage
                 ? `${ClientAuthErrorMessages[errorCode]}: ${additionalMessage}`
-                : ClientAuthErrorMessages[errorCode]
+                : ClientAuthErrorMessages[errorCode],
         );
         this.name = "ClientAuthError";
 
@@ -335,7 +335,7 @@ export class ClientAuthError extends AuthError {
 
 export function createClientAuthError(
     errorCode: string,
-    additionalMessage?: string
+    additionalMessage?: string,
 ): ClientAuthError {
     return new ClientAuthError(errorCode, additionalMessage);
 }

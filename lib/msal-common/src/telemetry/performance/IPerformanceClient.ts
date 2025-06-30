@@ -11,7 +11,7 @@ export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 export type InProgressPerformanceEvent = {
     end: (
         event?: Partial<PerformanceEvent>,
-        error?: unknown
+        error?: unknown,
     ) => PerformanceEvent | null;
     discard: () => void;
     add: (fields: { [key: string]: {} | undefined }) => void;
@@ -26,17 +26,17 @@ export type InProgressPerformanceEvent = {
 export interface IPerformanceClient {
     startMeasurement(
         measureName: string,
-        correlationId?: string
+        correlationId?: string,
     ): InProgressPerformanceEvent;
     endMeasurement(event: PerformanceEvent): PerformanceEvent | null;
     discardMeasurements(correlationId: string): void;
     addFields(
         fields: { [key: string]: {} | undefined },
-        correlationId: string
+        correlationId: string,
     ): void;
     incrementFields(
         fields: { [key: string]: number | undefined },
-        correlationId: string
+        correlationId: string,
     ): void;
     removePerformanceCallback(callbackId: string): boolean;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
@@ -46,7 +46,7 @@ export interface IPerformanceClient {
      */
     startPerformanceMeasurement(
         measureName: string,
-        correlationId: string
+        correlationId: string,
     ): IPerformanceMeasurement;
     generateId(): string;
     calculateQueuedTime(preQueueTime: number, currentTime: number): number;
@@ -54,7 +54,7 @@ export interface IPerformanceClient {
         eventName: string,
         correlationId?: string,
         queueTime?: number,
-        manuallyCompleted?: boolean
+        manuallyCompleted?: boolean,
     ): void;
     setPreQueueTime(eventName: string, correlationId?: string): void;
 }

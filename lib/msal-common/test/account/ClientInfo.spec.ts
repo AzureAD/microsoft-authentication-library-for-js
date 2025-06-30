@@ -28,18 +28,18 @@ describe("ClientInfo.ts Class Unit Tests", () => {
         it("Throws error if clientInfo is null or empty", () => {
             // @ts-ignore
             expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(
-                ClientAuthErrorMessage.clientInfoEmptyError.desc
+                ClientAuthErrorMessage.clientInfoEmptyError.desc,
             );
             // @ts-ignore
             expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
 
             expect(() =>
-                buildClientInfo("", cryptoInterface.base64Decode)
+                buildClientInfo("", cryptoInterface.base64Decode),
             ).toThrowError(ClientAuthErrorMessage.clientInfoEmptyError.desc);
             expect(() =>
-                buildClientInfo("", cryptoInterface.base64Decode)
+                buildClientInfo("", cryptoInterface.base64Decode),
             ).toThrowError(ClientAuthError);
         });
 
@@ -47,21 +47,21 @@ describe("ClientInfo.ts Class Unit Tests", () => {
             expect(() =>
                 buildClientInfo(
                     "ThisCan'tbeParsed",
-                    cryptoInterface.base64Decode
-                )
+                    cryptoInterface.base64Decode,
+                ),
             ).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(() =>
                 buildClientInfo(
                     "ThisCan'tbeParsed",
-                    cryptoInterface.base64Decode
-                )
+                    cryptoInterface.base64Decode,
+                ),
             ).toThrowError(ClientAuthError);
         });
 
         it("Succesfully returns decoded client info", () => {
             const clientInfo = buildClientInfo(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                cryptoInterface.base64Decode
+                cryptoInterface.base64Decode,
             );
 
             expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
@@ -72,12 +72,12 @@ describe("ClientInfo.ts Class Unit Tests", () => {
     describe("buildClientInfoFromHomeAccountId", () => {
         it("throws error if homeAccountId is not in the correct format", () => {
             expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(
-                ClientAuthError
+                ClientAuthError,
             );
             expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(
                 createClientAuthError(
-                    ClientAuthErrorCodes.clientInfoDecodingError
-                )
+                    ClientAuthErrorCodes.clientInfoDecodingError,
+                ),
             );
         });
 
@@ -87,7 +87,9 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 utid: Constants.EMPTY_STRING,
             };
             expect(
-                buildClientInfoFromHomeAccountId(TEST_DATA_CLIENT_INFO.TEST_UID)
+                buildClientInfoFromHomeAccountId(
+                    TEST_DATA_CLIENT_INFO.TEST_UID,
+                ),
             ).toMatchObject(expectedClientInfo);
         });
 
@@ -98,8 +100,8 @@ describe("ClientInfo.ts Class Unit Tests", () => {
             };
             expect(
                 buildClientInfoFromHomeAccountId(
-                    TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID
-                )
+                    TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID,
+                ),
             ).toMatchObject(expectedClientInfo);
         });
     });

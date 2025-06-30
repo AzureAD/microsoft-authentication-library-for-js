@@ -12,29 +12,29 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
         it("Generate AccessTokenEntity key", () => {
             const at = mockCache.createMockATOne();
             expect(CacheHelpers.generateCredentialKey(at)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--"
+                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--",
             );
         });
 
         it("Generate AccessTokenEntity key (adfs)", () => {
             const at = mockCache.createMockAdfsAt();
             expect(CacheHelpers.generateCredentialKey(at)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--"
+                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--",
             );
         });
 
         it("verify if an object is an access token entity", () => {
             expect(
-                CacheHelpers.isAccessTokenEntity(mockAccessTokenEntity_1)
+                CacheHelpers.isAccessTokenEntity(mockAccessTokenEntity_1),
             ).toEqual(true);
             expect(
-                CacheHelpers.isAccessTokenEntity(mockAccessTokenEntity_2)
+                CacheHelpers.isAccessTokenEntity(mockAccessTokenEntity_2),
             ).toEqual(true);
         });
 
         it("verify if an object is not an access token entity", () => {
             expect(
-                CacheHelpers.isAccessTokenEntity(mockRefreshTokenEntity)
+                CacheHelpers.isAccessTokenEntity(mockRefreshTokenEntity),
             ).toEqual(false);
         });
     });
@@ -43,15 +43,15 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
         it("Generate AccessTokenEntity key", () => {
             const popAT = mockCache.createMockPopAT();
             expect(CacheHelpers.generateCredentialKey(popAT)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope1 scope2 scope3--pop"
+                "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope1 scope2 scope3--pop",
             );
         });
 
         it("verify if an object is an access token entity", () => {
             expect(
                 CacheHelpers.isAccessTokenEntity(
-                    mockAccessTokenWithAuthSchemeEntity
-                )
+                    mockAccessTokenWithAuthSchemeEntity,
+                ),
             ).toEqual(true);
         });
     });

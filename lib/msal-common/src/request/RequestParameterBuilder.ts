@@ -32,7 +32,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 export function instrumentBrokerParams(
     parameters: Map<string, string>,
     correlationId?: string,
-    performanceClient?: IPerformanceClient
+    performanceClient?: IPerformanceClient,
 ): void {
     if (!correlationId) {
         return;
@@ -44,10 +44,10 @@ export function instrumentBrokerParams(
             {
                 embeddedClientId: clientId,
                 embeddedRedirectUri: parameters.get(
-                    AADServerParamKeys.REDIRECT_URI
+                    AADServerParamKeys.REDIRECT_URI,
                 ),
             },
-            correlationId
+            correlationId,
         );
     }
 }
@@ -59,7 +59,7 @@ export function instrumentBrokerParams(
  */
 export function addResponseType(
     parameters: Map<string, string>,
-    responseType: OAuthResponseType
+    responseType: OAuthResponseType,
 ): void {
     parameters.set(AADServerParamKeys.RESPONSE_TYPE, responseType);
 }
@@ -70,11 +70,11 @@ export function addResponseType(
  */
 export function addResponseMode(
     parameters: Map<string, string>,
-    responseMode?: ResponseMode
+    responseMode?: ResponseMode,
 ): void {
     parameters.set(
         AADServerParamKeys.RESPONSE_MODE,
-        responseMode ? responseMode : ResponseMode.QUERY
+        responseMode ? responseMode : ResponseMode.QUERY,
     );
 }
 
@@ -94,7 +94,7 @@ export function addScopes(
     parameters: Map<string, string>,
     scopes: string[],
     addOidcScopes: boolean = true,
-    defaultScopes: Array<string> = OIDC_DEFAULT_SCOPES
+    defaultScopes: Array<string> = OIDC_DEFAULT_SCOPES,
 ): void {
     // Always add openid to the scopes when adding OIDC scopes
     if (
@@ -117,7 +117,7 @@ export function addScopes(
  */
 export function addClientId(
     parameters: Map<string, string>,
-    clientId: string
+    clientId: string,
 ): void {
     parameters.set(AADServerParamKeys.CLIENT_ID, clientId);
 }
@@ -128,7 +128,7 @@ export function addClientId(
  */
 export function addRedirectUri(
     parameters: Map<string, string>,
-    redirectUri: string
+    redirectUri: string,
 ): void {
     parameters.set(AADServerParamKeys.REDIRECT_URI, redirectUri);
 }
@@ -139,7 +139,7 @@ export function addRedirectUri(
  */
 export function addPostLogoutRedirectUri(
     parameters: Map<string, string>,
-    redirectUri: string
+    redirectUri: string,
 ): void {
     parameters.set(AADServerParamKeys.POST_LOGOUT_URI, redirectUri);
 }
@@ -150,7 +150,7 @@ export function addPostLogoutRedirectUri(
  */
 export function addIdTokenHint(
     parameters: Map<string, string>,
-    idTokenHint: string
+    idTokenHint: string,
 ): void {
     parameters.set(AADServerParamKeys.ID_TOKEN_HINT, idTokenHint);
 }
@@ -161,7 +161,7 @@ export function addIdTokenHint(
  */
 export function addDomainHint(
     parameters: Map<string, string>,
-    domainHint: string
+    domainHint: string,
 ): void {
     parameters.set(AADServerParamKeys.DOMAIN_HINT, domainHint);
 }
@@ -172,7 +172,7 @@ export function addDomainHint(
  */
 export function addLoginHint(
     parameters: Map<string, string>,
-    loginHint: string
+    loginHint: string,
 ): void {
     parameters.set(AADServerParamKeys.LOGIN_HINT, loginHint);
 }
@@ -183,7 +183,7 @@ export function addLoginHint(
  */
 export function addCcsUpn(
     parameters: Map<string, string>,
-    loginHint: string
+    loginHint: string,
 ): void {
     parameters.set(HeaderNames.CCS_HEADER, `UPN:${loginHint}`);
 }
@@ -194,11 +194,11 @@ export function addCcsUpn(
  */
 export function addCcsOid(
     parameters: Map<string, string>,
-    clientInfo: ClientInfo
+    clientInfo: ClientInfo,
 ): void {
     parameters.set(
         HeaderNames.CCS_HEADER,
-        `Oid:${clientInfo.uid}@${clientInfo.utid}`
+        `Oid:${clientInfo.uid}@${clientInfo.utid}`,
     );
 }
 
@@ -217,17 +217,17 @@ export function addSid(parameters: Map<string, string>, sid: string): void {
 export function addClaims(
     parameters: Map<string, string>,
     claims?: string,
-    clientCapabilities?: Array<string>
+    clientCapabilities?: Array<string>,
 ): void {
     const mergedClaims = addClientCapabilitiesToClaims(
         claims,
-        clientCapabilities
+        clientCapabilities,
     );
     try {
         JSON.parse(mergedClaims);
     } catch (e) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidClaims
+            ClientConfigurationErrorCodes.invalidClaims,
         );
     }
     parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
@@ -239,7 +239,7 @@ export function addClaims(
  */
 export function addCorrelationId(
     parameters: Map<string, string>,
-    correlationId: string
+    correlationId: string,
 ): void {
     parameters.set(AADServerParamKeys.CLIENT_REQUEST_ID, correlationId);
 }
@@ -250,7 +250,7 @@ export function addCorrelationId(
  */
 export function addLibraryInfo(
     parameters: Map<string, string>,
-    libraryInfo: LibraryInfo
+    libraryInfo: LibraryInfo,
 ): void {
     // Telemetry Info
     parameters.set(AADServerParamKeys.X_CLIENT_SKU, libraryInfo.sku);
@@ -269,7 +269,7 @@ export function addLibraryInfo(
  */
 export function addApplicationTelemetry(
     parameters: Map<string, string>,
-    appTelemetry: ApplicationTelemetry
+    appTelemetry: ApplicationTelemetry,
 ): void {
     if (appTelemetry?.appName) {
         parameters.set(AADServerParamKeys.X_APP_NAME, appTelemetry.appName);
@@ -286,7 +286,7 @@ export function addApplicationTelemetry(
  */
 export function addPrompt(
     parameters: Map<string, string>,
-    prompt: string
+    prompt: string,
 ): void {
     parameters.set(AADServerParamKeys.PROMPT, prompt);
 }
@@ -318,17 +318,17 @@ export function addNonce(parameters: Map<string, string>, nonce: string): void {
 export function addCodeChallengeParams(
     parameters: Map<string, string>,
     codeChallenge?: string,
-    codeChallengeMethod?: string
+    codeChallengeMethod?: string,
 ): void {
     if (codeChallenge && codeChallengeMethod) {
         parameters.set(AADServerParamKeys.CODE_CHALLENGE, codeChallenge);
         parameters.set(
             AADServerParamKeys.CODE_CHALLENGE_METHOD,
-            codeChallengeMethod
+            codeChallengeMethod,
         );
     } else {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.pkceParamsMissing
+            ClientConfigurationErrorCodes.pkceParamsMissing,
         );
     }
 }
@@ -339,7 +339,7 @@ export function addCodeChallengeParams(
  */
 export function addAuthorizationCode(
     parameters: Map<string, string>,
-    code: string
+    code: string,
 ): void {
     parameters.set(AADServerParamKeys.CODE, code);
 }
@@ -350,7 +350,7 @@ export function addAuthorizationCode(
  */
 export function addDeviceCode(
     parameters: Map<string, string>,
-    code: string
+    code: string,
 ): void {
     parameters.set(AADServerParamKeys.DEVICE_CODE, code);
 }
@@ -361,7 +361,7 @@ export function addDeviceCode(
  */
 export function addRefreshToken(
     parameters: Map<string, string>,
-    refreshToken: string
+    refreshToken: string,
 ): void {
     parameters.set(AADServerParamKeys.REFRESH_TOKEN, refreshToken);
 }
@@ -372,7 +372,7 @@ export function addRefreshToken(
  */
 export function addCodeVerifier(
     parameters: Map<string, string>,
-    codeVerifier: string
+    codeVerifier: string,
 ): void {
     parameters.set(AADServerParamKeys.CODE_VERIFIER, codeVerifier);
 }
@@ -383,7 +383,7 @@ export function addCodeVerifier(
  */
 export function addClientSecret(
     parameters: Map<string, string>,
-    clientSecret: string
+    clientSecret: string,
 ): void {
     parameters.set(AADServerParamKeys.CLIENT_SECRET, clientSecret);
 }
@@ -394,7 +394,7 @@ export function addClientSecret(
  */
 export function addClientAssertion(
     parameters: Map<string, string>,
-    clientAssertion: string
+    clientAssertion: string,
 ): void {
     if (clientAssertion) {
         parameters.set(AADServerParamKeys.CLIENT_ASSERTION, clientAssertion);
@@ -407,12 +407,12 @@ export function addClientAssertion(
  */
 export function addClientAssertionType(
     parameters: Map<string, string>,
-    clientAssertionType: string
+    clientAssertionType: string,
 ): void {
     if (clientAssertionType) {
         parameters.set(
             AADServerParamKeys.CLIENT_ASSERTION_TYPE,
-            clientAssertionType
+            clientAssertionType,
         );
     }
 }
@@ -423,7 +423,7 @@ export function addClientAssertionType(
  */
 export function addOboAssertion(
     parameters: Map<string, string>,
-    oboAssertion: string
+    oboAssertion: string,
 ): void {
     parameters.set(AADServerParamKeys.OBO_ASSERTION, oboAssertion);
 }
@@ -434,7 +434,7 @@ export function addOboAssertion(
  */
 export function addRequestTokenUse(
     parameters: Map<string, string>,
-    tokenUse: string
+    tokenUse: string,
 ): void {
     parameters.set(AADServerParamKeys.REQUESTED_TOKEN_USE, tokenUse);
 }
@@ -445,7 +445,7 @@ export function addRequestTokenUse(
  */
 export function addGrantType(
     parameters: Map<string, string>,
-    grantType: string
+    grantType: string,
 ): void {
     parameters.set(AADServerParamKeys.GRANT_TYPE, grantType);
 }
@@ -470,7 +470,7 @@ export function addInstanceAware(parameters: Map<string, string>): void {
  */
 export function addExtraQueryParameters(
     parameters: Map<string, string>,
-    eQParams: StringDict
+    eQParams: StringDict,
 ): void {
     Object.entries(eQParams).forEach(([key, value]) => {
         if (!parameters.has(key) && value) {
@@ -481,7 +481,7 @@ export function addExtraQueryParameters(
 
 export function addClientCapabilitiesToClaims(
     claims?: string,
-    clientCapabilities?: Array<string>
+    clientCapabilities?: Array<string>,
 ): string {
     let mergedClaims: object;
 
@@ -493,7 +493,7 @@ export function addClientCapabilitiesToClaims(
             mergedClaims = JSON.parse(claims);
         } catch (e) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaims
+                ClientConfigurationErrorCodes.invalidClaims,
             );
         }
     }
@@ -520,7 +520,7 @@ export function addClientCapabilitiesToClaims(
  */
 export function addUsername(
     parameters: Map<string, string>,
-    username: string
+    username: string,
 ): void {
     parameters.set(PasswordGrantConstants.username, username);
 }
@@ -531,7 +531,7 @@ export function addUsername(
  */
 export function addPassword(
     parameters: Map<string, string>,
-    password: string
+    password: string,
 ): void {
     parameters.set(PasswordGrantConstants.password, password);
 }
@@ -542,7 +542,7 @@ export function addPassword(
  */
 export function addPopToken(
     parameters: Map<string, string>,
-    cnfString: string
+    cnfString: string,
 ): void {
     if (cnfString) {
         parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
@@ -555,7 +555,7 @@ export function addPopToken(
  */
 export function addSshJwk(
     parameters: Map<string, string>,
-    sshJwkString: string
+    sshJwkString: string,
 ): void {
     if (sshJwkString) {
         parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.SSH);
@@ -569,15 +569,15 @@ export function addSshJwk(
  */
 export function addServerTelemetry(
     parameters: Map<string, string>,
-    serverTelemetryManager: ServerTelemetryManager
+    serverTelemetryManager: ServerTelemetryManager,
 ): void {
     parameters.set(
         AADServerParamKeys.X_CLIENT_CURR_TELEM,
-        serverTelemetryManager.generateCurrentRequestHeaderValue()
+        serverTelemetryManager.generateCurrentRequestHeaderValue(),
     );
     parameters.set(
         AADServerParamKeys.X_CLIENT_LAST_TELEM,
-        serverTelemetryManager.generateLastRequestHeaderValue()
+        serverTelemetryManager.generateLastRequestHeaderValue(),
     );
 }
 
@@ -587,7 +587,7 @@ export function addServerTelemetry(
 export function addThrottling(parameters: Map<string, string>): void {
     parameters.set(
         AADServerParamKeys.X_MS_LIB_CAPABILITY,
-        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE,
     );
 }
 
@@ -596,7 +596,7 @@ export function addThrottling(parameters: Map<string, string>): void {
  */
 export function addLogoutHint(
     parameters: Map<string, string>,
-    logoutHint: string
+    logoutHint: string,
 ): void {
     parameters.set(AADServerParamKeys.LOGOUT_HINT, logoutHint);
 }
@@ -604,7 +604,7 @@ export function addLogoutHint(
 export function addBrokerParameters(
     parameters: Map<string, string>,
     brokerClientId: string,
-    brokerRedirectUri: string
+    brokerRedirectUri: string,
 ): void {
     if (!parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)) {
         parameters.set(AADServerParamKeys.BROKER_CLIENT_ID, brokerClientId);
@@ -612,7 +612,7 @@ export function addBrokerParameters(
     if (!parameters.has(AADServerParamKeys.BROKER_REDIRECT_URI)) {
         parameters.set(
             AADServerParamKeys.BROKER_REDIRECT_URI,
-            brokerRedirectUri
+            brokerRedirectUri,
         );
     }
 }
@@ -624,7 +624,7 @@ export function addBrokerParameters(
  */
 export function addEARParameters(
     parameters: Map<string, string>,
-    jwk: string
+    jwk: string,
 ): void {
     parameters.set(AADServerParamKeys.EAR_JWK, encodeURIComponent(jwk));
 

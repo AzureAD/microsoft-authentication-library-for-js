@@ -62,7 +62,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
         it("Creates a valid BaseClient object", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -74,7 +74,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
         it("Sets fields on BaseClient object", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -91,7 +91,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
         beforeEach(() => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         });
 
@@ -102,7 +102,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const headers = client.createTokenRequestHeaders();
 
             expect(headers[HeaderNames.CONTENT_TYPE]).toBe(
-                Constants.URL_FORM_CONTENT_TYPE
+                Constants.URL_FORM_CONTENT_TYPE,
             );
         });
     });
@@ -124,28 +124,28 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 .spyOn(
                     // @ts-ignore
                     client.networkClient,
-                    "sendPostRequestAsync"
+                    "sendPostRequestAsync",
                 )
                 .mockResolvedValue(mockRes);
             const getThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "getThrottlingCache"
+                    "getThrottlingCache",
                 )
                 .mockImplementation();
             const setThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "setThrottlingCache"
+                    "setThrottlingCache",
                 )
                 .mockImplementation();
             const removeItemStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "removeItem"
+                    "removeItem",
                 )
                 .mockImplementation();
             jest.spyOn(Date, "now").mockReturnValue(1);
@@ -155,7 +155,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
                 );
 
             expect(networkStub).toHaveBeenCalledTimes(1);
@@ -177,28 +177,28 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 .spyOn(
                     // @ts-ignore
                     client.networkClient,
-                    "sendPostRequestAsync"
+                    "sendPostRequestAsync",
                 )
                 .mockImplementation();
             const getThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "getThrottlingCache"
+                    "getThrottlingCache",
                 )
                 .mockReturnValue(mockThrottlingEntity);
             const setThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "setThrottlingCache"
+                    "setThrottlingCache",
                 )
                 .mockImplementation();
             const removeItemStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "removeItem"
+                    "removeItem",
                 )
                 .mockImplementation();
             jest.spyOn(Date, "now").mockReturnValue(1);
@@ -208,7 +208,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
                 );
             } catch {}
 
@@ -221,8 +221,8 @@ describe("BaseClient.ts Class Unit Tests", () => {
                     // @ts-ignore
                     client.cacheManager,
                     thumbprint,
-                    RANDOM_TEST_GUID
-                )
+                    RANDOM_TEST_GUID,
+                ),
             ).toThrowError(ServerError);
         });
 
@@ -243,28 +243,28 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 .spyOn(
                     // @ts-ignore
                     client.networkClient,
-                    "sendPostRequestAsync"
+                    "sendPostRequestAsync",
                 )
                 .mockResolvedValue(mockRes);
             const getThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "getThrottlingCache"
+                    "getThrottlingCache",
                 )
                 .mockReturnValue(mockThrottlingEntity);
             const setThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "setThrottlingCache"
+                    "setThrottlingCache",
                 )
                 .mockImplementation();
             const removeItemStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "removeItem"
+                    "removeItem",
                 )
                 .mockImplementation();
             jest.spyOn(Date, "now").mockReturnValue(10);
@@ -274,7 +274,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
                 );
 
             expect(networkStub).toHaveBeenCalledTimes(1);
@@ -300,28 +300,28 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 .spyOn(
                     // @ts-ignore
                     client.networkClient,
-                    "sendPostRequestAsync"
+                    "sendPostRequestAsync",
                 )
                 .mockResolvedValue(mockRes);
             const getThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "getThrottlingCache"
+                    "getThrottlingCache",
                 )
                 .mockImplementation();
             const setThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "setThrottlingCache"
+                    "setThrottlingCache",
                 )
                 .mockImplementation();
             const removeItemStub = jest
                 .spyOn(
                     // @ts-ignore
                     client.cacheManager,
-                    "removeItem"
+                    "removeItem",
                 )
                 .mockImplementation();
             jest.spyOn(Date, "now").mockReturnValue(1);
@@ -331,7 +331,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
                 );
 
             expect(networkStub).toHaveBeenCalledTimes(1);
@@ -352,7 +352,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
-                "sendPostRequestAsync"
+                "sendPostRequestAsync",
             ).mockRejectedValue(new Error("Fetch failed"));
 
             try {
@@ -360,13 +360,13 @@ describe("BaseClient.ts Class Unit Tests", () => {
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
                 );
                 throw new Error("Function did not throw");
             } catch (e) {
                 expect(e).toBeInstanceOf(ClientAuthError);
                 expect((e as ClientAuthError).errorCode).toBe(
-                    ClientAuthErrorCodes.networkError
+                    ClientAuthErrorCodes.networkError,
                 );
             }
         });

@@ -12,7 +12,7 @@ describe("ServerError.ts Class Unit Tests", () => {
             TEST_ERROR_MSG,
             undefined,
             undefined,
-            TEST_ERROR_STATUS
+            TEST_ERROR_STATUS,
         );
 
         expect(err instanceof ServerError).toBe(true);

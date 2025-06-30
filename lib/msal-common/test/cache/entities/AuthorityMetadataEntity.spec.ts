@@ -35,18 +35,18 @@ describe("AuthorityMetadataEntity.ts Unit Tests", () => {
         };
         delete metadata["end_session_endpoint"];
         expect(CacheHelpers.isAuthorityMetadataEntity(key, metadata)).toBe(
-            true
+            true,
         );
     });
 
     it("Verify an object is not a AuthorityMetadataEntity", () => {
         expect(
             // @ts-ignore
-            CacheHelpers.isAuthorityMetadataEntity(key, null)
+            CacheHelpers.isAuthorityMetadataEntity(key, null),
         ).toBe(false);
         expect(CacheHelpers.isAuthorityMetadataEntity(key, {})).toBe(false);
         expect(
-            CacheHelpers.isAuthorityMetadataEntity("not-a-real-key", testObj)
+            CacheHelpers.isAuthorityMetadataEntity("not-a-real-key", testObj),
         ).toBe(false);
 
         Object.keys(testObj).forEach((key) => {
@@ -56,8 +56,8 @@ describe("AuthorityMetadataEntity.ts Unit Tests", () => {
             expect(
                 CacheHelpers.isAuthorityMetadataEntity(
                     key,
-                    incompleteTestObject
-                )
+                    incompleteTestObject,
+                ),
             ).toBe(false);
         });
     });

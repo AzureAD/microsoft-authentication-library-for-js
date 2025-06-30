@@ -27,7 +27,7 @@ export class UrlString {
         if (!this._urlString) {
             // Throws error if url is empty
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlEmptyError
+                ClientConfigurationErrorCodes.urlEmptyError,
             );
         }
 
@@ -70,14 +70,14 @@ export class UrlString {
             components = this.getUrlComponents();
         } catch (e) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlParseError
+                ClientConfigurationErrorCodes.urlParseError,
             );
         }
 
         // Throw error if URI or path segments are not parseable.
         if (!components.HostNameAndPort || !components.PathSegments) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlParseError
+                ClientConfigurationErrorCodes.urlParseError,
             );
         }
 
@@ -87,7 +87,7 @@ export class UrlString {
             components.Protocol.toLowerCase() !== "https:"
         ) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.authorityUriInsecure
+                ClientConfigurationErrorCodes.authorityUriInsecure,
             );
         }
     }
@@ -141,14 +141,14 @@ export class UrlString {
     getUrlComponents(): IUri {
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
         const regEx = RegExp(
-            "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?"
+            "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?",
         );
 
         // If url string does not match regEx, we throw an error
         const match = this.urlString.match(regEx);
         if (!match) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlParseError
+                ClientConfigurationErrorCodes.urlParseError,
             );
         }
 
@@ -170,7 +170,7 @@ export class UrlString {
         ) {
             urlComponents.QueryString = urlComponents.QueryString.substring(
                 0,
-                urlComponents.QueryString.length - 1
+                urlComponents.QueryString.length - 1,
             );
         }
         return urlComponents;
@@ -183,7 +183,7 @@ export class UrlString {
 
         if (!match) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlParseError
+                ClientConfigurationErrorCodes.urlParseError,
             );
         }
 
@@ -212,7 +212,7 @@ export class UrlString {
                 "//" +
                 urlObject.HostNameAndPort +
                 "/" +
-                urlObject.PathSegments.join("/")
+                urlObject.PathSegments.join("/"),
         );
     }
 

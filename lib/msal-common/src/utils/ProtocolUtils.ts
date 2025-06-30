@@ -42,11 +42,11 @@ export class ProtocolUtils {
     static setRequestState(
         cryptoObj: ICrypto,
         userState?: string,
-        meta?: Record<string, string>
+        meta?: Record<string, string>,
     ): string {
         const libraryState = ProtocolUtils.generateLibraryState(
             cryptoObj,
-            meta
+            meta,
         );
         return userState
             ? `${libraryState}${Constants.RESOURCE_DELIM}${userState}`
@@ -60,7 +60,7 @@ export class ProtocolUtils {
      */
     static generateLibraryState(
         cryptoObj: ICrypto,
-        meta?: Record<string, string>
+        meta?: Record<string, string>,
     ): string {
         if (!cryptoObj) {
             throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject);
@@ -87,7 +87,7 @@ export class ProtocolUtils {
      */
     static parseRequestState(
         cryptoObj: ICrypto,
-        state: string
+        state: string,
     ): RequestStateObject {
         if (!cryptoObj) {
             throw createClientAuthError(ClientAuthErrorCodes.noCryptoObject);
@@ -107,7 +107,7 @@ export class ProtocolUtils {
                     : Constants.EMPTY_STRING;
             const libraryStateString = cryptoObj.base64Decode(libraryState);
             const libraryStateObj = JSON.parse(
-                libraryStateString
+                libraryStateString,
             ) as LibraryStateObject;
             return {
                 userRequestState: userState || Constants.EMPTY_STRING,

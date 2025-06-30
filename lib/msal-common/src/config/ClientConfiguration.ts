@@ -262,7 +262,7 @@ export function buildClientConfiguration({
                 userAuthOptions.clientId,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
                 new Logger(loggerOptions),
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
             ),
         networkInterface:
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,

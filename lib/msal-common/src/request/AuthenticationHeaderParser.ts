@@ -38,13 +38,13 @@ export class AuthenticationHeaderParser {
         if (authenticationInfo) {
             const authenticationInfoChallenges =
                 this.parseChallenges<AuthenticationInfoChallenges>(
-                    authenticationInfo
+                    authenticationInfo,
                 );
             if (authenticationInfoChallenges.nextnonce) {
                 return authenticationInfoChallenges.nextnonce;
             }
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidAuthenticationHeader
+                ClientConfigurationErrorCodes.invalidAuthenticationHeader,
             );
         }
 
@@ -53,19 +53,19 @@ export class AuthenticationHeaderParser {
         if (wwwAuthenticate) {
             const wwwAuthenticateChallenges =
                 this.parseChallenges<WWWAuthenticateChallenges>(
-                    wwwAuthenticate
+                    wwwAuthenticate,
                 );
             if (wwwAuthenticateChallenges.nonce) {
                 return wwwAuthenticateChallenges.nonce;
             }
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidAuthenticationHeader
+                ClientConfigurationErrorCodes.invalidAuthenticationHeader,
             );
         }
 
         // If neither header is present, throw missing headers error
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.missingNonceAuthenticationHeader
+            ClientConfigurationErrorCodes.missingNonceAuthenticationHeader,
         );
     }
 
@@ -83,7 +83,7 @@ export class AuthenticationHeaderParser {
             const [key, value] = challenge.split("=");
             // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
             challengeMap[key] = unescape(
-                value.replace(/['"]+/g, Constants.EMPTY_STRING)
+                value.replace(/['"]+/g, Constants.EMPTY_STRING),
             );
         });
 

@@ -19,7 +19,7 @@ describe("JoseHeader.ts Unit Tests", () => {
             });
 
             expect(shrHeaderString).toBe(
-                `{"typ":"${JsonWebTokenTypes.Pop}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`
+                `{"typ":"${JsonWebTokenTypes.Pop}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`,
             );
         });
 
@@ -31,7 +31,7 @@ describe("JoseHeader.ts Unit Tests", () => {
             });
 
             expect(shrHeaderString).toBe(
-                `{"typ":"${JsonWebTokenTypes.Jwt}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`
+                `{"typ":"${JsonWebTokenTypes.Jwt}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`,
             );
         });
 
@@ -40,9 +40,9 @@ describe("JoseHeader.ts Unit Tests", () => {
                 JoseHeader.getShrHeaderString({
                     alg: TEST_CRYPTO_ALGORITHMS.rsa,
                     typ: JsonWebTokenTypes.Pop,
-                })
+                }),
             ).toThrowError(
-                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingKidError]
+                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingKidError],
             );
         });
 
@@ -51,9 +51,9 @@ describe("JoseHeader.ts Unit Tests", () => {
                 JoseHeader.getShrHeaderString({
                     kid: TEST_POP_VALUES.KID,
                     typ: JsonWebTokenTypes.Pop,
-                })
+                }),
             ).toThrowError(
-                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingAlgError]
+                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingAlgError],
             );
         });
     });

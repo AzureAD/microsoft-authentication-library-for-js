@@ -67,7 +67,7 @@ export type ActiveAccountFilters = {
  */
 export function tenantIdMatchesHomeTenant(
     tenantId?: string,
-    homeAccountId?: string
+    homeAccountId?: string,
 ): boolean {
     return (
         !!tenantId &&
@@ -88,7 +88,7 @@ export function buildTenantProfile(
     homeAccountId: string,
     localAccountId: string,
     tenantId: string,
-    idTokenClaims?: TokenClaims
+    idTokenClaims?: TokenClaims,
 ): TenantProfile {
     if (idTokenClaims) {
         const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
@@ -126,7 +126,7 @@ export function updateAccountTenantProfileData(
     baseAccountInfo: AccountInfo,
     tenantProfile?: TenantProfile,
     idTokenClaims?: TokenClaims,
-    idTokenSecret?: string
+    idTokenSecret?: string,
 ): AccountInfo {
     let updatedAccountInfo = baseAccountInfo;
     // Tenant Profile overrides passed in account info
@@ -145,7 +145,7 @@ export function updateAccountTenantProfileData(
                 baseAccountInfo.homeAccountId,
                 baseAccountInfo.localAccountId,
                 baseAccountInfo.tenantId,
-                idTokenClaims
+                idTokenClaims,
             );
 
         updatedAccountInfo = {

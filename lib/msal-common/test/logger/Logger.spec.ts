@@ -15,7 +15,7 @@ describe("Logger.ts Class Unit Tests", () => {
             loggerCallback: (
                 level: LogLevel,
                 message: string,
-                containsPii: boolean
+                containsPii: boolean,
             ): void => {
                 logStore[level] = message;
             },
@@ -115,7 +115,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {
                     logStore[level] = message;
                 },
@@ -139,7 +139,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {
                     logStore[level] = message;
                 },
@@ -165,7 +165,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {
                     logStore[level] = message;
                 },
@@ -191,7 +191,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 loggerCallback: (
                     level: LogLevel,
                     message: string,
-                    containsPii: boolean
+                    containsPii: boolean,
                 ): void => {
                     logStore[level] = message;
                 },
@@ -218,7 +218,7 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "1.0.0");
             expect(loggerClone.isPiiLoggingEnabled()).toBe(
-                logger.isPiiLoggingEnabled()
+                logger.isPiiLoggingEnabled(),
             );
         });
 
@@ -237,7 +237,7 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "1.0.0");
             expect(loggerClone.isPiiLoggingEnabled()).toBe(
-                logger.isPiiLoggingEnabled()
+                logger.isPiiLoggingEnabled(),
             );
         });
 
@@ -263,7 +263,7 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Executes error APIs", () => {
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -271,14 +271,14 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Error,
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
             );
         });
 
         it("Executes errorPii APIs", () => {
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -286,7 +286,7 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Error,
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
             );
         });
 
@@ -294,7 +294,7 @@ describe("Logger.ts Class Unit Tests", () => {
             loggerOptions.piiLoggingEnabled = false;
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -307,7 +307,7 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Executes warning APIs", () => {
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -315,14 +315,14 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Warning,
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
             );
         });
 
         it("Executes warningPii APIs", () => {
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -330,7 +330,7 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Warning,
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
             );
         });
 
@@ -338,7 +338,7 @@ describe("Logger.ts Class Unit Tests", () => {
             loggerOptions.piiLoggingEnabled = false;
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -351,7 +351,7 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Executes info APIs", () => {
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -359,14 +359,14 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
             );
         });
 
         it("Executes infoPii APIs", () => {
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -374,7 +374,7 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
             );
         });
 
@@ -382,7 +382,7 @@ describe("Logger.ts Class Unit Tests", () => {
             loggerOptions.piiLoggingEnabled = false;
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -395,7 +395,7 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Executes verbose APIs", () => {
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -403,14 +403,14 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
             );
         });
 
         it("Executes verbosePii APIs", () => {
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -418,7 +418,7 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
             );
         });
 
@@ -426,7 +426,7 @@ describe("Logger.ts Class Unit Tests", () => {
             loggerOptions.piiLoggingEnabled = false;
             const executeCbSpy = jest.spyOn(
                 Logger.prototype,
-                "executeCallback"
+                "executeCallback",
             );
 
             const logger = new Logger(loggerOptions);
@@ -466,7 +466,7 @@ describe("Logger.ts Class Unit Tests", () => {
             logger.verbose("Message", testCorrelationId);
             expect(logStore[LogLevel.Verbose]).toContain(testCorrelationId);
             expect(logStore[LogLevel.Verbose]).not.toContain(
-                optionsCorrelationId
+                optionsCorrelationId,
             );
         });
 

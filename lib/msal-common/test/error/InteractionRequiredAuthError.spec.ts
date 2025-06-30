@@ -24,7 +24,7 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
                 TEST_ERROR_TIMESTAMP,
                 TEST_ERROR_TRACE_ID,
                 TEST_ERROR_CORRELATION_ID,
-                TEST_ERROR_CLAIMS
+                TEST_ERROR_CLAIMS,
             );
 
         expect(err instanceof InteractionRequiredAuthError).toBe(true);
@@ -39,7 +39,7 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
         expect(err.correlationId).toBe(TEST_ERROR_CORRELATION_ID);
         expect(err.claims).toBe(TEST_ERROR_CLAIMS);
         expect(
-            err.stack?.includes("InteractionRequiredAuthError.spec.ts")
+            err.stack?.includes("InteractionRequiredAuthError.spec.ts"),
         ).toBe(true);
     });
 
@@ -53,15 +53,15 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
                 expect(
                     isInteractionRequiredError(
                         "",
-                        `This is a ${errorCode} error!`
-                    )
+                        `This is a ${errorCode} error!`,
+                    ),
                 ).toBe(true);
             });
             expect(
                 isInteractionRequiredError(
                     "not_interaction_required",
-                    "This is not an interaction required error"
-                )
+                    "This is not an interaction required error",
+                ),
             ).toBe(false);
         });
 
@@ -70,28 +70,28 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
                 expect(
                     isInteractionRequiredError(
                         errorCode,
-                        `This is a ${errorCode} error!`
-                    )
+                        `This is a ${errorCode} error!`,
+                    ),
                 ).toBe(true);
             });
             expect(
                 isInteractionRequiredError(
                     "",
-                    "This is not an interaction required error"
-                )
+                    "This is not an interaction required error",
+                ),
             ).toBe(false);
         });
 
         it("Returns expected value for given sub-error", () => {
-            InteractionRequiredAuthSubErrorMessage.forEach(function (
-                subErrorCode
-            ) {
-                expect(isInteractionRequiredError("", "", subErrorCode)).toBe(
-                    true
-                );
-            });
+            InteractionRequiredAuthSubErrorMessage.forEach(
+                function (subErrorCode) {
+                    expect(
+                        isInteractionRequiredError("", "", subErrorCode),
+                    ).toBe(true);
+                },
+            );
             expect(
-                isInteractionRequiredError("", "", "not_interaction_required")
+                isInteractionRequiredError("", "", "not_interaction_required"),
             ).toBe(false);
         });
     });

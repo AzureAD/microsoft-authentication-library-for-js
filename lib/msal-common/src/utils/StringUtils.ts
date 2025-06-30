@@ -98,7 +98,7 @@ export class StringUtils {
             pattern
                 .replace(/\\/g, "\\\\")
                 .replace(/\*/g, "[^ ]*")
-                .replace(/\?/g, "\\?")
+                .replace(/\?/g, "\\?"),
         );
 
         return regex.test(input);

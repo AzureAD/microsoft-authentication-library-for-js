@@ -10,9 +10,9 @@ describe("AppMetadataEntity.ts Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 environment: TEST_CONFIG.validAuthorityHost,
                 familyId: TEST_CONFIG.THE_FAMILY_ID,
-            })
+            }),
         ).toEqual(
-            `appmetadata-${TEST_CONFIG.validAuthorityHost}-${TEST_CONFIG.MSAL_CLIENT_ID}`
+            `appmetadata-${TEST_CONFIG.validAuthorityHost}-${TEST_CONFIG.MSAL_CLIENT_ID}`,
         );
     });
 
@@ -24,16 +24,16 @@ describe("AppMetadataEntity.ts Unit Tests", () => {
         };
         const key = CacheHelpers.generateAppMetadataKey(appM);
         expect(
-            CacheHelpers.isAppMetadataEntity(key, mockAppMetaDataEntity)
+            CacheHelpers.isAppMetadataEntity(key, mockAppMetaDataEntity),
         ).toEqual(true);
     });
 
     it("verify if an object is not an appMetadata entity", () => {
         const key = CacheHelpers.generateCredentialKey(
-            mockIdTokenEntity as IdTokenEntity
+            mockIdTokenEntity as IdTokenEntity,
         );
         expect(
-            CacheHelpers.isAppMetadataEntity(key, mockIdTokenEntity)
+            CacheHelpers.isAppMetadataEntity(key, mockIdTokenEntity),
         ).toEqual(false);
     });
 });

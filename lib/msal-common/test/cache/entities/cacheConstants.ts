@@ -161,7 +161,7 @@ export const MockCache = {
     rtKey: CacheHelpers.generateCredentialKey(mockCache.createMockRT()),
     rtF: mockCache.createMockRTWithFamilyId(),
     rtFKey: CacheHelpers.generateCredentialKey(
-        mockCache.createMockRTWithFamilyId()
+        mockCache.createMockRTWithFamilyId(),
     ),
     acc: mockCache.createMockAcc(),
     accKey: mockCache.createMockAcc().generateAccountKey(),

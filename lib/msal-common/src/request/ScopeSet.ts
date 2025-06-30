@@ -35,7 +35,7 @@ export class ScopeSet {
         // Check if scopes array has at least one member
         if (!filteredInput || !filteredInput.length) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.emptyInputScopesError
+                ClientConfigurationErrorCodes.emptyInputScopesError,
             );
         }
 
@@ -132,7 +132,7 @@ export class ScopeSet {
             newScopes.forEach((newScope) => this.appendScope(newScope));
         } catch (e) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.cannotAppendScopeSet
+                ClientAuthErrorCodes.cannotAppendScopeSet,
             );
         }
     }
@@ -144,7 +144,7 @@ export class ScopeSet {
     removeScope(scope: string): void {
         if (!scope) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.cannotRemoveEmptyScope
+                ClientAuthErrorCodes.cannotRemoveEmptyScope,
             );
         }
         this.scopes.delete(scope.trim());
@@ -167,12 +167,12 @@ export class ScopeSet {
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
         if (!otherScopes) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.emptyInputScopeSet
+                ClientAuthErrorCodes.emptyInputScopeSet,
             );
         }
         const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
         otherScopes.scopes.forEach((scope) =>
-            unionScopes.add(scope.toLowerCase())
+            unionScopes.add(scope.toLowerCase()),
         );
         this.scopes.forEach((scope) => unionScopes.add(scope.toLowerCase()));
         return unionScopes;
@@ -185,7 +185,7 @@ export class ScopeSet {
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.emptyInputScopeSet
+                ClientAuthErrorCodes.emptyInputScopeSet,
             );
         }
 

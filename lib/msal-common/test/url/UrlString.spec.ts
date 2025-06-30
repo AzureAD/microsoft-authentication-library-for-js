@@ -21,18 +21,18 @@ describe("UrlString.ts Class Unit Tests", () => {
         // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(
             createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlEmptyError
-            )
+                ClientConfigurationErrorCodes.urlEmptyError,
+            ),
         );
         // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(
-            ClientConfigurationError
+            ClientConfigurationError,
         );
 
         expect(() => new UrlString("")).toThrowError(
             createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlEmptyError
-            )
+                ClientConfigurationErrorCodes.urlEmptyError,
+            ),
         );
         expect(() => new UrlString("")).toThrowError(ClientConfigurationError);
     });
@@ -42,16 +42,16 @@ describe("UrlString.ts Class Unit Tests", () => {
         jest.spyOn(UrlString.prototype, "getUrlComponents").mockImplementation(
             () => {
                 throw urlComponentError;
-            }
+            },
         );
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
         expect(() => urlObj.validateAsUri()).toThrowError(
             createClientConfigurationError(
-                ClientConfigurationErrorCodes.urlParseError
-            )
+                ClientConfigurationErrorCodes.urlParseError,
+            ),
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
-            ClientConfigurationError
+            ClientConfigurationError,
         );
     });
 
@@ -60,11 +60,11 @@ describe("UrlString.ts Class Unit Tests", () => {
         let urlObj = new UrlString(insecureUrlString);
         expect(() => urlObj.validateAsUri()).toThrowError(
             createClientConfigurationError(
-                ClientConfigurationErrorCodes.authorityUriInsecure
-            )
+                ClientConfigurationErrorCodes.authorityUriInsecure,
+            ),
         );
         expect(() => urlObj.validateAsUri()).toThrowError(
-            ClientConfigurationError
+            ClientConfigurationError,
         );
     });
 
@@ -78,10 +78,13 @@ describe("UrlString.ts Class Unit Tests", () => {
         const baseUrl = "https://localhost/";
         const queryString = "param1=value1&param2=value2";
         expect(UrlString.appendQueryString(baseUrl, queryString)).toEqual(
-            `${baseUrl}?${queryString}`
+            `${baseUrl}?${queryString}`,
         );
         expect(
-            UrlString.appendQueryString(`${baseUrl}?param3=value3`, queryString)
+            UrlString.appendQueryString(
+                `${baseUrl}?param3=value3`,
+                queryString,
+            ),
         ).toEqual(`${baseUrl}?param3=value3&${queryString}`);
         expect(UrlString.appendQueryString(baseUrl, "")).toEqual(baseUrl);
     });
@@ -155,82 +158,82 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("hashContainsKnownProperties returns true if correct hash is given", () => {
         expect(
             UrlString.hashContainsKnownProperties(
-                TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH
-            )
+                TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH,
+            ),
         ).toBe(true);
         expect(
             UrlString.hashContainsKnownProperties(
-                TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH
-            )
+                TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH,
+            ),
         ).toBe(true);
         expect(
             UrlString.hashContainsKnownProperties(
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH
-            )
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH,
+            ),
         ).toBe(true);
         expect(
-            UrlString.hashContainsKnownProperties(TEST_HASHES.TEST_ERROR_HASH)
+            UrlString.hashContainsKnownProperties(TEST_HASHES.TEST_ERROR_HASH),
         ).toBe(true);
     });
 
     it("hashContainsKnownProperties returns false if incorrect hash is given", () => {
         const exampleUnknownHash = "#param1=value1&param2=value2&param3=value3";
         expect(UrlString.hashContainsKnownProperties(exampleUnknownHash)).toBe(
-            false
+            false,
         );
     });
 
     it("hashContainsKnownProperties returns false if hash does not contain key/value pairs", () => {
         const exampleUnknownHash = "#testPage";
         expect(UrlString.hashContainsKnownProperties(exampleUnknownHash)).toBe(
-            false
+            false,
         );
     });
 
     describe("getDomainFromUrl tests", () => {
         it("tests domain is returned when provided url includes protocol", () => {
             expect(UrlString.getDomainFromUrl("https://domain.com")).toBe(
-                "domain.com"
+                "domain.com",
             );
             expect(UrlString.getDomainFromUrl("https://domain.com/")).toBe(
-                "domain.com"
+                "domain.com",
             );
             expect(UrlString.getDomainFromUrl("http://domain.com")).toBe(
-                "domain.com"
+                "domain.com",
             );
         });
 
         it("tests domain is returned when only domain is provided", () => {
             expect(UrlString.getDomainFromUrl("domain.com/")).toBe(
-                "domain.com"
+                "domain.com",
             );
             expect(UrlString.getDomainFromUrl("domain.com")).toBe("domain.com");
         });
 
         it("tests domain is returned when provided url is not homepage", () => {
             expect(UrlString.getDomainFromUrl("domain.com/page")).toBe(
-                "domain.com"
+                "domain.com",
             );
             expect(UrlString.getDomainFromUrl("domain.com/index.html")).toBe(
-                "domain.com"
+                "domain.com",
             );
         });
 
         it("tests domain is returned when provided url includes hash", () => {
             expect(UrlString.getDomainFromUrl("domain.com#customHash")).toBe(
-                "domain.com"
+                "domain.com",
             );
             expect(UrlString.getDomainFromUrl("domain.com/#customHash")).toBe(
-                "domain.com"
+                "domain.com",
             );
         });
 
         it("tests domain is returned when provided url includes query string", () => {
             expect(UrlString.getDomainFromUrl("domain.com?queryString=1")).toBe(
-                "domain.com"
+                "domain.com",
             );
             expect(
-                UrlString.getDomainFromUrl("domain.com/?queryString=1")
+                UrlString.getDomainFromUrl("domain.com/?queryString=1"),
             ).toBe("domain.com");
         });
     });
@@ -239,7 +242,10 @@ describe("UrlString.ts Class Unit Tests", () => {
         it("Returns url provided if it is already absolute", () => {
             const absoluteUrl = "https://localhost:30662";
             expect(
-                UrlString.getAbsoluteUrl(absoluteUrl, absoluteUrl + "/testPath")
+                UrlString.getAbsoluteUrl(
+                    absoluteUrl,
+                    absoluteUrl + "/testPath",
+                ),
             ).toBe(absoluteUrl);
         });
 
@@ -247,10 +253,10 @@ describe("UrlString.ts Class Unit Tests", () => {
             const basePath = "https://localhost:30662";
             const absoluteUrl = "https://localhost:30662/testPath";
             expect(UrlString.getAbsoluteUrl("/testPath", basePath)).toBe(
-                absoluteUrl
+                absoluteUrl,
             );
             expect(UrlString.getAbsoluteUrl("/testPath", basePath + "/")).toBe(
-                absoluteUrl
+                absoluteUrl,
             );
         });
 
@@ -258,7 +264,7 @@ describe("UrlString.ts Class Unit Tests", () => {
             const basePath = "https://localhost:30662/differentPath";
             const expectedUrl = "https://localhost:30662/testPath";
             expect(UrlString.getAbsoluteUrl("/testPath", basePath)).toBe(
-                expectedUrl
+                expectedUrl,
             );
         });
     });

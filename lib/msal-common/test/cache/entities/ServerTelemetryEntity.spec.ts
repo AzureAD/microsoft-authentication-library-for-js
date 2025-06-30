@@ -21,8 +21,8 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
         expect(
             CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
-                serverTelemetryObject
-            )
+                serverTelemetryObject,
+            ),
         ).toBe(true);
     });
 
@@ -36,8 +36,8 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
         expect(
             CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
-                missingCacheHits
-            )
+                missingCacheHits,
+            ),
         ).toBe(false);
 
         const missingErrors = {
@@ -48,8 +48,8 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
         expect(
             CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
-                missingErrors
-            )
+                missingErrors,
+            ),
         ).toBe(false);
 
         const missingFailedRequests = {
@@ -60,8 +60,8 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
         expect(
             CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
-                missingFailedRequests
-            )
+                missingFailedRequests,
+            ),
         ).toBe(false);
 
         const noCommonValues = {
@@ -70,14 +70,14 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
         expect(
             CacheHelpers.isServerTelemetryEntity(
                 ServerTelemetryKey,
-                noCommonValues
-            )
+                noCommonValues,
+            ),
         ).toBe(false);
     });
 
     it("Verify an object is a ServerTelemetry Entity only when cache key is passed", () => {
         expect(CacheHelpers.isServerTelemetryEntity(ServerTelemetryKey)).toBe(
-            true
+            true,
         );
     });
 
@@ -87,7 +87,7 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             SERVER_TELEM_CONSTANTS.CACHE_KEY +
             TEST_CONFIG.MSAL_CLIENT_ID;
         expect(CacheHelpers.isServerTelemetryEntity(ServerTelemetryKey)).toBe(
-            false
+            false,
         );
     });
 });

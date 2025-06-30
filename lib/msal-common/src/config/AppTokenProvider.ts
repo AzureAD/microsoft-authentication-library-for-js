@@ -13,7 +13,7 @@
  */
 export interface IAppTokenProvider {
     (
-        appTokenProviderParameters: AppTokenProviderParameters
+        appTokenProviderParameters: AppTokenProviderParameters,
     ): Promise<AppTokenProviderResult>;
 }
 

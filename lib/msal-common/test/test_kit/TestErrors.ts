@@ -52,14 +52,14 @@ export class TestError extends Error {
     static createTestSetupError(errDesc: string): TestError {
         return new TestError(
             TestErrorMessage.testSetupError.code,
-            `${TestErrorMessage.testSetupError.desc}: ${errDesc}`
+            `${TestErrorMessage.testSetupError.desc}: ${errDesc}`,
         );
     }
 
     static createTestFailureError(errDesc: string): TestError {
         return new TestError(
             TestErrorMessage.testSetupError.code,
-            `${TestErrorMessage.testSetupError.desc}: ${errDesc}`
+            `${TestErrorMessage.testSetupError.desc}: ${errDesc}`,
         );
     }
 }

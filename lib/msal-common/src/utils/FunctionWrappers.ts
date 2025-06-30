@@ -23,20 +23,20 @@ export const invoke = <T extends Array<any>, U>(
     eventName: string,
     logger: Logger,
     telemetryClient?: IPerformanceClient,
-    correlationId?: string
+    correlationId?: string,
 ) => {
     return (...args: T): U => {
         logger.trace(`Executing function ${eventName}`);
         const inProgressEvent = telemetryClient?.startMeasurement(
             eventName,
-            correlationId
+            correlationId,
         );
         if (correlationId) {
             // Track number of times this API is called in a single request
             const eventCount = eventName + "CallCount";
             telemetryClient?.incrementFields(
                 { [eventCount]: 1 },
-                correlationId
+                correlationId,
             );
         }
         try {
@@ -57,7 +57,7 @@ export const invoke = <T extends Array<any>, U>(
                 {
                     success: false,
                 },
-                e
+                e,
             );
             throw e;
         }
@@ -82,20 +82,20 @@ export const invokeAsync = <T extends Array<any>, U>(
     eventName: string,
     logger: Logger,
     telemetryClient?: IPerformanceClient,
-    correlationId?: string
+    correlationId?: string,
 ) => {
     return (...args: T): Promise<U> => {
         logger.trace(`Executing function ${eventName}`);
         const inProgressEvent = telemetryClient?.startMeasurement(
             eventName,
-            correlationId
+            correlationId,
         );
         if (correlationId) {
             // Track number of times this API is called in a single request
             const eventCount = eventName + "CallCount";
             telemetryClient?.incrementFields(
                 { [eventCount]: 1 },
-                correlationId
+                correlationId,
             );
         }
         telemetryClient?.setPreQueueTime(eventName, correlationId);
@@ -118,7 +118,7 @@ export const invokeAsync = <T extends Array<any>, U>(
                     {
                         success: false,
                     },
-                    e
+                    e,
                 );
                 throw e;
             });

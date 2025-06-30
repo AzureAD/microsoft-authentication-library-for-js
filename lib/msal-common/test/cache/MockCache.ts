@@ -28,14 +28,14 @@ export class MockCache {
     constructor(
         clientId: string,
         cryptoImpl: ICrypto,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
     ) {
         this.cacheManager = new MockStorageClass(
             clientId,
             cryptoImpl,
             new Logger({}),
             new StubPerformanceClient(),
-            staticAuthorityOptions
+            staticAuthorityOptions,
         );
     }
 
@@ -77,7 +77,7 @@ export class MockCache {
         const guestIdToken = buildIdToken(
             GUEST_ID_TOKEN_CLAIMS,
             TEST_TOKENS.ID_TOKEN_V2_GUEST,
-            { homeAccountId: idToken.homeAccountId }
+            { homeAccountId: idToken.homeAccountId },
         );
 
         await this.cacheManager.setIdTokenCredential(guestIdToken);
@@ -85,7 +85,7 @@ export class MockCache {
         const altIdToken = buildIdToken(
             ID_TOKEN_ALT_CLAIMS,
             TEST_TOKENS.IDTOKEN_V2_ALT,
-            { environment: "login.windows.net" }
+            { environment: "login.windows.net" },
         );
         await this.cacheManager.setIdTokenCredential(altIdToken);
     }
@@ -156,7 +156,7 @@ export class MockCache {
             tokenType: AuthenticationScheme.BEARER,
         };
         await this.cacheManager.setAccessTokenCredential(
-            bearerAtWithAuthScheme
+            bearerAtWithAuthScheme,
         );
 
         // POP Token
@@ -209,7 +209,7 @@ export class MockCache {
             userAssertionHash: "nFDCbX7CudvdluSPGh34Y-VKZIXRG1rquljNBbn7xuE",
         };
         await this.cacheManager.setAccessTokenCredential(
-            atWithUserAssertionHash
+            atWithUserAssertionHash,
         );
     }
 
@@ -272,7 +272,7 @@ export class MockCache {
         };
 
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
-            authorityMetadata.preferred_cache
+            authorityMetadata.preferred_cache,
         );
 
         this.cacheManager.setAuthorityMetadata(cacheKey, authorityMetadata);

@@ -18,7 +18,7 @@ describe("ThrottlingEntity", () => {
                 throttleTime: 0,
             };
             expect(CacheHelpers.isThrottlingEntity(key, throttlingObject)).toBe(
-                true
+                true,
             );
         });
 
@@ -33,7 +33,7 @@ describe("ThrottlingEntity", () => {
                 test: 0,
             };
             expect(CacheHelpers.isThrottlingEntity(key, throttlingObject)).toBe(
-                false
+                false,
             );
         });
 
@@ -42,14 +42,14 @@ describe("ThrottlingEntity", () => {
                 throttleTime: 0,
             };
             expect(
-                CacheHelpers.isThrottlingEntity("asd", throttlingObject)
+                CacheHelpers.isThrottlingEntity("asd", throttlingObject),
             ).toBe(false);
             expect(CacheHelpers.isThrottlingEntity("", throttlingObject)).toBe(
-                false
+                false,
             );
             expect(
                 // @ts-ignore
-                CacheHelpers.isThrottlingEntity(null, throttlingObject)
+                CacheHelpers.isThrottlingEntity(null, throttlingObject),
             ).toBe(false);
         });
     });

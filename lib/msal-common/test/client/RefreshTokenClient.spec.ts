@@ -111,13 +111,13 @@ describe("RefreshTokenClient unit tests", () => {
         it("creates a RefreshTokenClient", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             expect(client).not.toBeNull();
             expect(client instanceof RefreshTokenClient).toBe(true);
@@ -141,7 +141,7 @@ describe("RefreshTokenClient unit tests", () => {
         beforeEach(async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             config = await ClientTestUtils.createTestClientConfiguration();
         });
@@ -149,12 +149,12 @@ describe("RefreshTokenClient unit tests", () => {
         it("Adds correlationId to the /token query string", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
                     expect(url).toContain(
-                        `client-request-id=${TEST_CONFIG.CORRELATION_ID}`
+                        `client-request-id=${TEST_CONFIG.CORRELATION_ID}`,
                     );
                     done();
                 } catch (error) {
@@ -164,7 +164,7 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -187,7 +187,7 @@ describe("RefreshTokenClient unit tests", () => {
         it("Adds tokenQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 expect(url.includes("/token?testParam=testValue")).toBe(true);
@@ -196,7 +196,7 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -219,7 +219,7 @@ describe("RefreshTokenClient unit tests", () => {
         it("Adds tokenBodyParameters to the /token request", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).toContain("testParam=testValue");
@@ -251,11 +251,11 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             await client.acquireToken(refreshTokenRequest);
@@ -267,12 +267,12 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
-                "sendPostRequestAsync"
+                "sendPostRequestAsync",
             ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
             let refreshTokenSize;
@@ -295,12 +295,12 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
-                "sendPostRequestAsync"
+                "sendPostRequestAsync",
             ).mockResolvedValue({
                 ...AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
                 headers: { ...AUTHENTICATION_RESULT_WITH_HEADERS.headers },
@@ -334,35 +334,35 @@ describe("RefreshTokenClient unit tests", () => {
         beforeEach(async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 Authority.prototype,
-                "getPreferredCache"
+                "getPreferredCache",
             ).mockReturnValue("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
@@ -371,31 +371,31 @@ describe("RefreshTokenClient unit tests", () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockImplementation(
                 // @ts-expect-error
                 (
                     tokenEndpoint: string,
                     queryString: string,
-                    headers: Record<string, string>
+                    headers: Record<string, string>,
                 ) => {
                     const headerNames = Object.keys(headers);
                     headerNames.forEach((name) => {
                         expect(
                             CORS_SIMPLE_REQUEST_HEADERS.includes(
-                                name.toLowerCase()
-                            )
+                                name.toLowerCase(),
+                            ),
                         ).toBe(true);
                     });
 
                     done();
                     return Promise.resolve(AUTHENTICATION_RESULT);
-                }
+                },
             );
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -413,15 +413,15 @@ describe("RefreshTokenClient unit tests", () => {
         it("acquires a token", async () => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -433,9 +433,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -448,101 +447,101 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.scopes).toEqual(expectedScopes);
             expect(authResult.account).toMatchObject(testAccount);
             expect(authResult.idToken).toEqual(
-                AUTHENTICATION_RESULT.body.id_token
+                AUTHENTICATION_RESULT.body.id_token,
             );
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             expect(authResult.state).toHaveLength(0);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                refreshTokenRequest
+                refreshTokenRequest,
             );
 
             const result = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
-                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`
-                )
+                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-                )
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-                )
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
-                )
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
                     expect(
                         url.includes(
-                            "/token?testParam1=testValue1&testParam3=testValue3"
-                        )
+                            "/token?testParam1=testValue1&testParam3=testValue3",
+                        ),
                     ).toBeTruthy();
                     expect(!url.includes("/token?testParam2=")).toBeTruthy();
                     done();
@@ -553,7 +552,7 @@ describe("RefreshTokenClient unit tests", () => {
 
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -578,7 +577,7 @@ describe("RefreshTokenClient unit tests", () => {
         it("acquireTokenByRefreshToken refreshes a token", async () => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -600,19 +599,19 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const refreshTokenClientSpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
-                expectedRefreshRequest
+                expectedRefreshRequest,
             );
         });
 
         it("acquireTokenByRefreshToken refreshes a POP token", async () => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -633,20 +632,20 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const refreshTokenClientSpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(refreshTokenClientSpy).toHaveBeenCalled();
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
-                expectedRefreshRequest
+                expectedRefreshRequest,
             );
         });
 
         it("acquireTokenByRefreshToken refreshes an SSH Cert", async () => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(SSH_AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -668,27 +667,27 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const refreshTokenClientSpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
-                expectedRefreshRequest
+                expectedRefreshRequest,
             );
         });
 
         it("does not add claims if none are provided", async () => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -699,9 +698,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -714,102 +712,102 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.scopes).toEqual(expectedScopes);
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(
-                AUTHENTICATION_RESULT.body.id_token
+                AUTHENTICATION_RESULT.body.id_token,
             );
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             expect(authResult.state).toBe("");
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                refreshTokenRequest
+                refreshTokenRequest,
             );
 
             const result = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
-                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`
-                )
+                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(false);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-                )
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-                )
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
-                )
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
         it("does not add claims if empty object is provided", async () => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -821,9 +819,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -836,98 +833,98 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.scopes).toEqual(expectedScopes);
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(
-                AUTHENTICATION_RESULT.body.id_token
+                AUTHENTICATION_RESULT.body.id_token,
             );
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT.body.access_token
+                AUTHENTICATION_RESULT.body.access_token,
             );
             expect(authResult.state).toBe("");
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                refreshTokenRequest
+                refreshTokenRequest,
             );
 
             const result = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
-                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`
-                )
+                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(false);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-                )
+                    `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-                )
+                    `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-                )
+                    `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
                     }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
-                )
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
         it("includes the requestId in the result when received in server response", async () => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -939,24 +936,23 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
 
             expect(authResult.requestId).toBeTruthy;
             expect(authResult.requestId).toEqual(
-                CORS_RESPONSE_HEADERS.xMsRequestId
+                CORS_RESPONSE_HEADERS.xMsRequestId,
             );
         });
 
         it("does not include the requestId in the result when none in server response", async () => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -968,9 +964,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
 
             expect(authResult.requestId).toBeFalsy;
             expect(authResult.requestId).toEqual("");
@@ -996,7 +991,7 @@ describe("RefreshTokenClient unit tests", () => {
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
-                "sendPostRequestAsync"
+                "sendPostRequestAsync",
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1017,7 +1012,7 @@ describe("RefreshTokenClient unit tests", () => {
                             .length,
                     requestId: "xMsRequestId",
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         });
 
@@ -1041,7 +1036,7 @@ describe("RefreshTokenClient unit tests", () => {
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
-                "sendPostRequestAsync"
+                "sendPostRequestAsync",
             ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1061,7 +1056,7 @@ describe("RefreshTokenClient unit tests", () => {
                         AUTHENTICATION_RESULT.body.refresh_token.length,
                     requestId: "",
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
         });
     });
@@ -1078,39 +1073,39 @@ describe("RefreshTokenClient unit tests", () => {
         beforeEach(async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 Authority.prototype,
-                "getPreferredCache"
+                "getPreferredCache",
             ).mockReturnValue("login.windows.net");
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_FOCI);
             jest.spyOn(
                 CacheManager.prototype,
-                "getRefreshToken"
+                "getRefreshToken",
             ).mockReturnValue(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
@@ -1118,11 +1113,11 @@ describe("RefreshTokenClient unit tests", () => {
         it("acquires a token (FOCI)", async () => {
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1134,9 +1129,8 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
-            );
+            const authResult: AuthenticationResult =
+                await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -1148,52 +1142,52 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.scopes).toEqual(expectedScopes);
             expect(authResult.account).toEqual(testAccount);
             expect(authResult.idToken).toEqual(
-                AUTHENTICATION_RESULT_WITH_FOCI.body.id_token
+                AUTHENTICATION_RESULT_WITH_FOCI.body.id_token,
             );
             expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(authResult.accessToken).toEqual(
-                AUTHENTICATION_RESULT_WITH_FOCI.body.access_token
+                AUTHENTICATION_RESULT_WITH_FOCI.body.access_token,
             );
             expect(authResult.familyId).toEqual(
-                AUTHENTICATION_RESULT_WITH_FOCI.body.foci
+                AUTHENTICATION_RESULT_WITH_FOCI.body.foci,
             );
             expect(authResult.state).toHaveLength(0);
 
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                refreshTokenRequest
+                refreshTokenRequest,
             );
 
             const result = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
-                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
+                result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
-                )
+                    `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`
-                )
+                    `${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
-                )
+                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`
-                )
+                    `${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`,
+                ),
             ).toBe(true);
             expect(
                 result.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
+                        TEST_CONFIG.CLAIMS,
+                    )}`,
+                ),
             ).toBe(true);
         });
 
@@ -1218,12 +1212,12 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const refreshTokenClientSpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                "acquireToken"
+                "acquireToken",
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
-                expectedRefreshRequest
+                expectedRefreshRequest,
             );
         });
     });
@@ -1232,13 +1226,13 @@ describe("RefreshTokenClient unit tests", () => {
         it("Throws error if account is not included in request object", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             await expect(
                 client.acquireTokenByRefreshToken({
@@ -1248,42 +1242,42 @@ describe("RefreshTokenClient unit tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     forceRefresh: false,
-                })
+                }),
             ).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.noAccountInSilentRequest
-                )
+                    ClientAuthErrorCodes.noAccountInSilentRequest,
+                ),
             );
         });
 
         it("Throws error if request object is null or undefined", async () => {
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
 
             await expect(
                 //@ts-ignore
-                client.acquireTokenByRefreshToken(null)
+                client.acquireTokenByRefreshToken(null),
             ).rejects.toMatchObject(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
+                    ClientConfigurationErrorCodes.tokenRequestEmpty,
+                ),
             );
 
             await expect(
                 //@ts-ignore
-                client.acquireTokenByRefreshToken(undefined)
+                client.acquireTokenByRefreshToken(undefined),
             ).rejects.toMatchObject(
                 createClientConfigurationError(
-                    ClientConfigurationErrorCodes.tokenRequestEmpty
-                )
+                    ClientConfigurationErrorCodes.tokenRequestEmpty,
+                ),
             );
         });
 
@@ -1307,11 +1301,11 @@ describe("RefreshTokenClient unit tests", () => {
             testAccountEntity.authorityType = "MSSTS";
             jest.spyOn(
                 MockStorageClass.prototype,
-                "getAccount"
+                "getAccount",
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(
                 Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
+                <any>"getEndpointMetadataFromNetwork",
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
@@ -1324,9 +1318,11 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
             await expect(
-                client.acquireCachedToken(tokenRequest)
+                client.acquireCachedToken(tokenRequest),
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                ),
             );
         });
 
@@ -1347,24 +1343,24 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: rtExpiresOn.toString(), // Set expiration to yesterday
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             const mockPerfClient = new MockPerformanceClient();
             const client = new RefreshTokenClient(config, mockPerfClient);
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "test-measurement",
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             let resEvents;
             mockPerfClient.addPerformanceCallback((events) => {
                 resEvents = events;
             });
             await expect(
-                client.acquireTokenByRefreshToken(tokenRequest)
+                client.acquireTokenByRefreshToken(tokenRequest),
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                )
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                ),
             );
             rootMeasurement.end({ success: false });
             // @ts-ignore
@@ -1388,18 +1384,18 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             await expect(
-                client.acquireTokenByRefreshToken(tokenRequest)
+                client.acquireTokenByRefreshToken(tokenRequest),
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
-                )
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                ),
             );
         });
 
@@ -1408,7 +1404,7 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             const rtExpiresOn = TimeUtils.nowSeconds() + 60 * 60;
             const rtEntity = {
@@ -1417,16 +1413,16 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await config.storageInterface!.setRefreshTokenCredential(
                 rtEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
             );
             const mockPerfClient = new MockPerformanceClient();
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "test-measurement",
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
             );
             let resEvents;
             mockPerfClient.addPerformanceCallback((events) => {
@@ -1438,7 +1434,7 @@ describe("RefreshTokenClient unit tests", () => {
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
             jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                <any>"executePostToTokenEndpoint",
             ).mockResolvedValue(BAD_TOKEN_ERROR_RESPONSE);
 
             const serverResponse = BAD_TOKEN_ERROR_RESPONSE.body;
@@ -1450,7 +1446,7 @@ describe("RefreshTokenClient unit tests", () => {
                 serverResponse.trace_id || Constants.EMPTY_STRING,
                 serverResponse.correlation_id || Constants.EMPTY_STRING,
                 // @ts-ignore
-                serverResponse.claims || Constants.EMPTY_STRING
+                serverResponse.claims || Constants.EMPTY_STRING,
             );
 
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -1466,19 +1462,19 @@ describe("RefreshTokenClient unit tests", () => {
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
                     badRefreshTokenKey,
-                    RANDOM_TEST_GUID
-                )
+                    RANDOM_TEST_GUID,
+                ),
             ).toBe(rtEntity);
 
             await expect(
-                client.acquireTokenByRefreshToken(silentFlowRequest)
+                client.acquireTokenByRefreshToken(silentFlowRequest),
             ).rejects.toMatchObject(invalidGrantAuthError);
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
                     badRefreshTokenKey,
-                    RANDOM_TEST_GUID
-                )
+                    RANDOM_TEST_GUID,
+                ),
             ).toBe(null);
 
             rootMeasurement.end({ success: false });
@@ -1499,58 +1495,57 @@ describe("RefreshTokenClient unit tests", () => {
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
-            const config = await ClientTestUtils.createTestClientConfiguration(
-                true
-            );
+            const config =
+                await ClientTestUtils.createTestClientConfiguration(true);
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             try {
                 await client.acquireToken(refreshTokenRequest);
             } catch {}
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                refreshTokenRequest
+                refreshTokenRequest,
             );
 
             const returnVal = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`),
             ).toBe(true);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`),
             ).toBe(true);
         });
         it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
-                <any>"createTokenRequestBody"
+                <any>"createTokenRequestBody",
             );
             const config = await ClientTestUtils.createTestClientConfiguration(
                 true,
-                ProtocolMode.OIDC
+                ProtocolMode.OIDC,
             );
             const client = new RefreshTokenClient(
                 config,
-                stubPerformanceClient
+                stubPerformanceClient,
             );
             try {
                 await client.acquireToken(refreshTokenRequest);
             } catch {}
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
-                refreshTokenRequest
+                refreshTokenRequest,
             );
 
             const returnVal = (await createTokenRequestBodySpy.mock.results[0]
                 .value) as string;
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`),
             ).toBe(false);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`)
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_LAST_TELEM}`),
             ).toBe(false);
         });
     });
@@ -1571,10 +1566,10 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
-                `brk_client_id=${config.authOptions.clientId}`
+                `brk_client_id=${config.authOptions.clientId}`,
             );
             expect(queryString).toContain(
-                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`,
             );
         });
 
@@ -1598,10 +1593,10 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
-                `brk_client_id=${config.authOptions.clientId}`
+                `brk_client_id=${config.authOptions.clientId}`,
             );
             expect(queryString).toContain(
-                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`,
             );
         });
     });
