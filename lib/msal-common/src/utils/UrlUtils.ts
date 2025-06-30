@@ -9,6 +9,7 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { StringDict } from "./MsalTypes.js";
+import { UrlString } from "../url/UrlString.js";
 
 /**
  * Parses hash string from given string. Returns empty string if no hash symbol is found.
@@ -85,4 +86,35 @@ export function mapToQueryString(
     });
 
     return queryParameterArray.join("&");
+}
+
+/**
+ * Normalizes URLs for comparison by removing hash, canonicalizing, 
+ * and ensuring consistent URL encoding in query parameters.
+ * This fixes redirect loops when URLs contain encoded characters like apostrophes (%27).
+ * @param url - URL to normalize
+ * @returns Normalized URL string for comparison
+ */
+export function normalizeUrlForComparison(url: string): string {
+    if (!url) {
+        return url;
+    }
+
+    // Remove hash first
+    const urlWithoutHash = url.split("#")[0];
+    
+    try {
+        // Parse the URL to handle encoding consistently
+        const urlObj = new URL(urlWithoutHash);
+        
+        // Reconstruct the URL with properly decoded query parameters
+        // This ensures that %27 and ' are treated as equivalent
+        const normalizedUrl = urlObj.origin + urlObj.pathname + urlObj.search;
+        
+        // Apply the existing canonicalization logic
+        return UrlString.canonicalizeUri(normalizedUrl);
+    } catch (e) {
+        // Fallback to original logic if URL parsing fails
+        return UrlString.canonicalizeUri(urlWithoutHash);
+    }
 }

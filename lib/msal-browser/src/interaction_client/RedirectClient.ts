@@ -340,8 +340,8 @@ export class RedirectClient extends StandardInteractionClient {
                     true
                 ) || Constants.EMPTY_STRING;
             const loginRequestUrlNormalized =
-                this.normalizeUrlForComparison(loginRequestUrl);
-            const currentUrlNormalized = this.normalizeUrlForComparison(
+                UrlUtils.normalizeUrlForComparison(loginRequestUrl);
+            const currentUrlNormalized = UrlUtils.normalizeUrlForComparison(
                 window.location.href
             );
 
@@ -822,37 +822,4 @@ export class RedirectClient extends StandardInteractionClient {
         );
     }
 
-    /**
-     * Normalizes URLs for comparison by removing hash, canonicalizing, 
-     * and ensuring consistent URL encoding in query parameters.
-     * This fixes redirect loops when URLs contain encoded characters like apostrophes (%27).
-     * @param url - URL to normalize
-     * @returns Normalized URL string for comparison
-     */
-    private normalizeUrlForComparison(url: string): string {
-        if (!url) {
-            return url;
-        }
-
-        // Remove hash first
-        const urlWithoutHash = url.split("#")[0];
-        
-        try {
-            // Parse the URL to handle encoding consistently
-            const urlObj = new URL(urlWithoutHash);
-            
-            // Reconstruct the URL with properly decoded query parameters
-            // This ensures that %27 and ' are treated as equivalent
-            const normalizedUrl = urlObj.origin + urlObj.pathname + urlObj.search;
-            
-            // Apply the existing canonicalization logic
-            return UrlString.canonicalizeUri(normalizedUrl);
-        } catch (e) {
-            // Fallback to original logic if URL parsing fails
-            this.logger.warning(
-                `Failed to parse URL for comparison: ${url}. Using fallback normalization.`
-            );
-            return UrlString.canonicalizeUri(urlWithoutHash);
-        }
-    }
 }
