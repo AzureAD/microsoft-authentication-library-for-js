@@ -24,5 +24,6 @@ This repository contains JavaScript/TypeScript SDKs for integrating with Microso
 - Never make breaking, non-backwards compatible, changes. Follow semantic versioning principles.
 - Maintain existing code structure, organization and naming conventions.
 - Use descriptive commit messages that explain the changes made.
-- Write unit tests for new functionality and bug fixes
+- Write unit tests for new functionality and bug fixes.
+- Any new public facing functionality should update samples and documentation to demonstrate usage.
 - Update documentation as needed to reflect changes in functionality or usage.
