@@ -40,7 +40,7 @@ import { InteractionRequiredAuthError } from "../../src/error/InteractionRequire
 import { ServerError } from "../../src/error/ServerError.js";
 import { CacheError, CacheErrorCodes } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
-import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
+import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
@@ -832,7 +832,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(cacheQuotaExceededErrorCode)
+                    getDefaultErrorMessage(cacheQuotaExceeded)
                 );
             }
         });
@@ -878,7 +878,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(cacheQuotaExceededErrorCode)
+                    getDefaultErrorMessage(cacheQuotaExceeded)
                 );
             }
         });
@@ -966,12 +966,10 @@ describe("ResponseHandler.ts", () => {
                 expect(e).toBeInstanceOf(CacheError);
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual(
-                    CacheErrorCodes.cacheUnknownErrorCode
+                    CacheErrorCodes.cacheErrorUnknown
                 );
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(
-                        CacheErrorCodes.cacheUnknownErrorCode
-                    )
+                    getDefaultErrorMessage(CacheErrorCodes.cacheErrorUnknown)
                 );
             }
         });
