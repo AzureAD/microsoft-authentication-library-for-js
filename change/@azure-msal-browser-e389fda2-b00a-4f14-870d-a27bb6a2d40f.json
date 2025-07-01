@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Remove access tokens when cache quota is exceeded #7819",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
