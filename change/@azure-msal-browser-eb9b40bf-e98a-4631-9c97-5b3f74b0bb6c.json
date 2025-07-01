@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Add support for new platform broker flow via DOM API #7632",
+  "type": "patch",
+  "comment": "Adding new UX_NOT_ALLOWED suberror under InteractionRequired error type #7844",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"

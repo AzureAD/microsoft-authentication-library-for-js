@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -11,7 +10,10 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
-import { IController } from "../controllers/IController.js";
+import {
+    HandleRedirectPromiseOptions,
+    IController,
+} from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
@@ -213,12 +215,13 @@ export class PublicClientApplication implements IPublicClientApplication {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @param options Object containing optional configuration for redirect promise handling.
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(
-        hash?: string | undefined
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        return this.controller.handleRedirectPromise(hash);
+        return this.controller.handleRedirectPromise(options);
     }
 
     /**
@@ -281,13 +284,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         return this.controller.ssoSilent(request);
-    }
-
-    /**
-     * Gets the token cache for the application.
-     */
-    getTokenCache(): ITokenCache {
-        return this.controller.getTokenCache();
     }
 
     /**

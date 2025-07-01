@@ -8,9 +8,8 @@ import {
     CommonAuthorizationUrlRequest,
     InteractionRequiredAuthError,
     Logger,
-    OAuthResponseType,
     ProtocolMode,
-    ResponseMode,
+    Constants,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import * as Authorize from "../../src/protocol/Authorize.js";
@@ -67,7 +66,7 @@ describe("Authorize Protocol Tests", () => {
             redirectUri: window.location.href,
             state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             nonce: ID_TOKEN_CLAIMS.nonce,
-            responseMode: ResponseMode.FRAGMENT,
+            responseMode: Constants.ResponseMode.FRAGMENT,
             earJwk: validEarJWK,
             extraQueryParameters: {
                 extraKey1: "extraVal1",
@@ -170,7 +169,7 @@ describe("Authorize Protocol Tests", () => {
                 );
                 checkInputProperties(
                     AADServerParamKeys.RESPONSE_TYPE,
-                    OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
+                    Constants.OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
                 );
                 checkInputProperties(
                     AADServerParamKeys.EAR_JWK,

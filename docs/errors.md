@@ -223,6 +223,9 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `bad_token`
 - Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.
 
+### `ux_not_allowed`
+- `canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.
+
 ## JOSE header errors
 
 ### `missing_kid_error`

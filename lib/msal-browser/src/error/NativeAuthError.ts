@@ -99,6 +99,10 @@ export function createNativeAuthError(
                 return createBrowserAuthError(
                     BrowserAuthErrorCodes.noNetworkConnectivity
                 );
+            case NativeStatusCodes.UX_NOT_ALLOWED:
+                return createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.uxNotAllowed
+                );
         }
     }
 

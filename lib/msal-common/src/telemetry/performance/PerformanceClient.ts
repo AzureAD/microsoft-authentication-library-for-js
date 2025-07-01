@@ -13,7 +13,6 @@ import {
 import {
     IntFields,
     PerformanceEvent,
-    PerformanceEventAbbreviations,
     PerformanceEventContext,
     PerformanceEventStackedContext,
     PerformanceEventStatus,
@@ -26,12 +25,10 @@ import { InteractionRequiredAuthError } from "../../error/InteractionRequiredAut
 /**
  * Starts context by adding payload to the stack
  * @param event {PerformanceEvent}
- * @param abbreviations {Map<string, string>} event name abbreviations
  * @param stack {?PerformanceEventStackedContext[]} stack
  */
 export function startContext(
     event: PerformanceEvent,
-    abbreviations: Map<string, string>,
     stack?: PerformanceEventStackedContext[]
 ): void {
     if (!stack) {
@@ -39,7 +36,7 @@ export function startContext(
     }
 
     stack.push({
-        name: abbreviations.get(event.name) || event.name,
+        name: event.name,
     });
 }
 
@@ -47,13 +44,11 @@ export function startContext(
  * Ends context by removing payload from the stack and returning parent or self, if stack is empty, payload
  *
  * @param event {PerformanceEvent}
- * @param abbreviations {Map<string, string>} event name abbreviations
  * @param stack {?PerformanceEventStackedContext[]} stack
  * @param error {?unknown} error
  */
 export function endContext(
     event: PerformanceEvent,
-    abbreviations: Map<string, string>,
     stack?: PerformanceEventStackedContext[],
     error?: unknown
 ): PerformanceEventContext | undefined {
@@ -65,7 +60,7 @@ export function endContext(
         return stack.length ? stack[stack.length - 1] : undefined;
     };
 
-    const abbrEventName = abbreviations.get(event.name) || event.name;
+    const abbrEventName = event.name;
     const top = peek(stack);
     if (top?.name !== abbrEventName) {
         return;
@@ -281,13 +276,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected eventStack: Map<string, PerformanceEventStackedContext[]>;
 
     /**
-     * Event name abbreviations
-     *
-     * @protected
-     */
-    protected abbreviations: Map<string, string>;
-
-    /**
      * Creates an instance of PerformanceClient,
      * an abstract class containing core performance telemetry logic.
      *
@@ -299,7 +287,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} libraryVersion Version of the library
      * @param {ApplicationTelemetry} applicationTelemetry application name and version
      * @param {Set<String>} intFields integer fields to be truncated
-     * @param {Map<string, string>} abbreviations event name abbreviations
      */
     constructor(
         clientId: string,
@@ -308,8 +295,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         libraryName: string,
         libraryVersion: string,
         applicationTelemetry: ApplicationTelemetry,
-        intFields?: Set<string>,
-        abbreviations?: Map<string, string>
+        intFields?: Set<string>
     ) {
         this.authority = authority;
         this.libraryName = libraryName;
@@ -323,10 +309,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.intFields = intFields || new Set();
         for (const item of IntFields) {
             this.intFields.add(item);
-        }
-        this.abbreviations = abbreviations || new Map();
-        for (const [key, value] of PerformanceEventAbbreviations) {
-            this.abbreviations.set(key, value);
         }
     }
 
@@ -379,11 +361,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
-        startContext(
-            inProgressEvent,
-            this.abbreviations,
-            this.eventStack.get(eventCorrelationId)
-        );
+        startContext(inProgressEvent, this.eventStack.get(eventCorrelationId));
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
@@ -450,7 +428,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const context = JSON.stringify(
             endContext(
                 event,
-                this.abbreviations,
                 this.eventStack.get(rootEvent.correlationId),
                 error
             )

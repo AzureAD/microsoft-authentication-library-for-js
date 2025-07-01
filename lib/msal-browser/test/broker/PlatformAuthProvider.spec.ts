@@ -1,7 +1,7 @@
 import {
     Logger,
     IPerformanceClient,
-    AuthenticationScheme,
+    Constants,
 } from "@azure/msal-common/browser";
 import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -204,7 +204,7 @@ describe("PlatformAuthProvider tests", () => {
         });
     });
 
-    describe("isBrokerAvailable", () => {
+    describe("isPlatformAuthAllowed", () => {
         let config: BrowserConfiguration;
         beforeEach(() => {
             config = buildConfiguration(
@@ -224,7 +224,7 @@ describe("PlatformAuthProvider tests", () => {
 
         it("returns false when config is not set to enable paltform broker", () => {
             config.system.allowPlatformBroker = false;
-            const result = PlatformAuthProvider.isBrokerAvailable(
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
                 new PlatformAuthDOMHandler(
@@ -232,22 +232,22 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
             expect(result).toBe(false);
         });
 
         it("returns false when platform auth provider is not initialized", () => {
-            const result = PlatformAuthProvider.isBrokerAvailable(
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
                 undefined,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
             expect(result).toBe(false);
         });
         it("returns false when authentication scheme is not supported", () => {
-            const result = PlatformAuthProvider.isBrokerAvailable(
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
                 new PlatformAuthDOMHandler(
@@ -255,13 +255,13 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                "unknown-scheme" as AuthenticationScheme
+                "unknown-scheme" as Constants.AuthenticationScheme
             );
             expect(result).toBe(false);
         });
 
         it("returns true when platform auth provider is initialized and authentication scheme is supported", () => {
-            const result = PlatformAuthProvider.isBrokerAvailable(
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
                 new PlatformAuthDOMHandler(
@@ -269,7 +269,7 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
             expect(result).toBe(true);
         });

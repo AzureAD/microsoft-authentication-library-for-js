@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { OIDC_DEFAULT_SCOPES } from "@azure/msal-common/browser";
+import { Constants } from "@azure/msal-common/browser";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 
@@ -185,7 +185,7 @@ export type InteractionStatus =
     (typeof InteractionStatus)[keyof typeof InteractionStatus];
 
 export const DEFAULT_REQUEST: RedirectRequest | PopupRequest = {
-    scopes: OIDC_DEFAULT_SCOPES,
+    scopes: Constants.OIDC_DEFAULT_SCOPES,
 };
 
 /**

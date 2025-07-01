@@ -17,12 +17,12 @@ import {
     AuthorityOptions,
     AuthorityFactory,
     IPerformanceClient,
-    PerformanceEvents,
     AzureCloudOptions,
     invokeAsync,
     StringDict,
     AccountEntityUtils,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -102,8 +102,9 @@ export abstract class BaseInteractionClient {
             }
             // Clear given account.
             try {
-                await this.browserStorage.removeAccount(
-                    AccountEntityUtils.generateAccountCacheKey(account)
+                this.browserStorage.removeAccount(
+                    AccountEntityUtils.generateAccountCacheKey(account),
+                    this.correlationId
                 );
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
@@ -120,7 +121,7 @@ export abstract class BaseInteractionClient {
                     this.correlationId
                 );
                 // Clear all accounts and tokens
-                await this.browserStorage.clear();
+                this.browserStorage.clear(this.correlationId);
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
             } catch (e) {
@@ -226,7 +227,7 @@ export abstract class BaseInteractionClient {
         );
         const discoveredAuthority = await invokeAsync(
             AuthorityFactory.createDiscoveredInstance,
-            PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
+            BrowserPerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
             this.logger,
             this.performanceClient,
             this.correlationId

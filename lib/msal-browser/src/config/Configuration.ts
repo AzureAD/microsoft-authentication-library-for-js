@@ -8,10 +8,8 @@ import {
     LoggerOptions,
     INetworkModule,
     DEFAULT_SYSTEM_OPTIONS,
-    Constants,
     ProtocolMode,
     OIDCOptions,
-    ResponseMode,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -22,6 +20,7 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     Logger,
+    Constants,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheLocation,
@@ -70,10 +69,7 @@ export type BrowserAuthOptions = {
      * The redirect URI where the window navigates after a successful logout.
      */
     postLogoutRedirectUri?: string | null;
-    /**
-     * Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
-     */
-    navigateToLoginRequestUrl?: boolean;
+
     /**
      * Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
      */
@@ -145,9 +141,9 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     redirectNavigationTimeout?: number;
     /**
-     * Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
+     * Sets whether popups are opened and navigated to later. By default, this flag is set to true. When set to true, blank popups are opened and navigates to login domain. When set to false, popups are opened directly to the login domain.
      */
-    asyncPopups?: boolean;
+    navigatePopups?: boolean;
     /**
      * Flag to enable redirect opertaions when the app is rendered in an iframe (to support scenarios such as embedded B2C login).
      */
@@ -234,18 +230,17 @@ export function buildConfiguration(
 ): BrowserConfiguration {
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
-        clientId: Constants.EMPTY_STRING,
+        clientId: "",
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
-        cloudDiscoveryMetadata: Constants.EMPTY_STRING,
-        authorityMetadata: Constants.EMPTY_STRING,
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
         redirectUri:
             typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
-        postLogoutRedirectUri: Constants.EMPTY_STRING,
-        navigateToLoginRequestUrl: true,
+        postLogoutRedirectUri: "",
         clientCapabilities: [],
         OIDCOptions: {
-            responseMode: ResponseMode.FRAGMENT,
+            responseMode: Constants.ResponseMode.FRAGMENT,
             defaultScopes: [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -254,7 +249,7 @@ export function buildConfiguration(
         },
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
-            tenant: Constants.EMPTY_STRING,
+            tenant: "",
         },
         instanceAware: false,
     };
@@ -289,8 +284,8 @@ export function buildConfiguration(
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
-        asyncPopups: false,
         allowRedirectInIframe: false,
+        navigatePopups: true,
         allowPlatformBroker: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
@@ -307,8 +302,8 @@ export function buildConfiguration(
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
-            appName: Constants.EMPTY_STRING,
-            appVersion: Constants.EMPTY_STRING,
+            appName: "",
+            appVersion: "",
         },
         client: new StubPerformanceClient(),
     };

@@ -9,7 +9,7 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { StringUtils } from "../utils/StringUtils.js";
 import { IUri } from "./IUri.js";
-import { AADAuthorityConstants, Constants } from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -125,8 +125,8 @@ export class UrlString {
         if (
             tenantId &&
             pathArray.length !== 0 &&
-            (pathArray[0] === AADAuthorityConstants.COMMON ||
-                pathArray[0] === AADAuthorityConstants.ORGANIZATIONS)
+            (pathArray[0] === Constants.AADAuthority.COMMON ||
+                pathArray[0] === Constants.AADAuthority.ORGANIZATIONS)
         ) {
             pathArray[0] = tenantId;
         }

@@ -23,8 +23,7 @@ import {
 import {
     AccountInfo,
     TokenClaims,
-    PromptValue,
-    AuthenticationScheme,
+    Constants,
     ServerTelemetryManager,
     ProtocolUtils,
     TenantProfile,
@@ -147,7 +146,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -176,14 +175,14 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(tokenResp).toEqual(testTokenResponse);
             expect(initializeAuthorizationRequestSpy).toBeCalledWith(
                 {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
-                    prompt: PromptValue.NONE,
+                    prompt: Constants.PromptValue.NONE,
                 },
                 InteractionType.Silent
             );
@@ -300,7 +299,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -323,7 +322,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.NO_SESSION,
+                prompt: Constants.PromptValue.NO_SESSION,
             });
             expect(tokenResp).toEqual(testTokenResponse);
         });
@@ -369,7 +368,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -480,7 +479,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -582,7 +581,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -723,7 +722,7 @@ describe("SilentIframeClient", () => {
                         testServerTokenResponse.ext_expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 refreshOn: undefined,
                 requestId: "",
                 familyId: "",
@@ -752,7 +751,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.NO_SESSION,
+                prompt: Constants.PromptValue.NO_SESSION,
                 nonce: "123523",
                 state: TEST_STATE_VALUES.USER_STATE,
             });
@@ -805,7 +804,7 @@ describe("SilentIframeClient", () => {
                 .acquireToken({
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
-                    prompt: PromptValue.NO_SESSION,
+                    prompt: Constants.PromptValue.NO_SESSION,
                     state: TEST_STATE_VALUES.USER_STATE,
                 })
                 .catch((e) => {
@@ -887,7 +886,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -915,7 +914,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
             });
             expect(generateAuthoritySpy.mock.calls[0][0]).toEqual(
@@ -990,7 +989,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -1022,7 +1021,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
             });
             expect(
@@ -1100,7 +1099,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 AuthorizeProtocol,
@@ -1133,7 +1132,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
                 extraQueryParameters: {
                     instance_aware: "false",

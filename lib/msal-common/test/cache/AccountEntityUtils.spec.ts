@@ -4,20 +4,21 @@ import {
     mockIdTokenEntity,
 } from "./entities/cacheConstants.js";
 import * as AuthToken from "../../src/account/AuthToken.js";
-import { CacheAccountType, Constants } from "../../src/utils/Constants.js";
+import {
+    CACHE_ACCOUNT_TYPE_ADFS,
+    CACHE_ACCOUNT_TYPE_GENERIC,
+    DEFAULT_AUTHORITY,
+} from "../../src/utils/Constants.js";
 import {
     NetworkRequestOptions,
     INetworkModule,
 } from "../../src/network/INetworkModule.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import {
-    RANDOM_TEST_GUID,
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
     TEST_URIS,
-    TEST_POP_VALUES,
     PREFERRED_CACHE_ALIAS,
-    TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
     TEST_CONFIG,
@@ -32,67 +33,9 @@ import { AuthorityType } from "../../src/authority/AuthorityType.js";
 import { TokenClaims } from "../../src/index.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
-const cryptoInterface: ICrypto = {
-    createNewGuid(): string {
-        return RANDOM_TEST_GUID;
-    },
-    base64Decode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                return TEST_POP_VALUES.DECODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
-            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS;
-            default:
-                return input;
-        }
-    },
-    base64Encode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.DECODED_REQ_CNF:
-                return TEST_POP_VALUES.ENCODED_REQ_CNF;
-            case "uid":
-                return "dWlk";
-            case "utid":
-                return "dXRpZA==";
-            default:
-                return input;
-        }
-    },
-    base64UrlEncode(input: string): string {
-        switch (input) {
-            case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    encodeKid(input: string): string {
-        switch (input) {
-            case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
-    async signJwt(): Promise<string> {
-        return "";
-    },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async clearKeystore(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async hashString(): Promise<string> {
-        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-    },
-};
+const cryptoInterface: ICrypto = mockCrypto;
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -105,7 +48,7 @@ const networkInterface: INetworkModule = {
 
 const authorityOptions: AuthorityOptions = {
     protocolMode: ProtocolMode.AAD,
-    knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+    knownAuthorities: [DEFAULT_AUTHORITY],
     cloudDiscoveryMetadata: "",
     authorityMetadata: "",
 };
@@ -122,11 +65,12 @@ const loggerOptions = {
     logLevel: LogLevel.Verbose,
 };
 const logger = new Logger(loggerOptions);
+const performanceClient = new StubPerformanceClient();
 
 const authority = new Authority(
-    Constants.DEFAULT_AUTHORITY,
+    DEFAULT_AUTHORITY,
     networkInterface,
-    new MockStorageClass("client-id", mockCrypto, logger),
+    new MockStorageClass("client-id", mockCrypto, logger, performanceClient),
     authorityOptions,
     logger,
     TEST_CONFIG.CORRELATION_ID
@@ -268,9 +212,14 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
 
     it("create an Account no preferred_username or emails claim", () => {
         const authority = new Authority(
-            Constants.DEFAULT_AUTHORITY,
+            DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -316,12 +265,17 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
 
     it("creates a generic account", () => {
         const authority = new Authority(
-            Constants.DEFAULT_AUTHORITY,
+            DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             {
                 protocolMode: ProtocolMode.OIDC,
-                knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+                knownAuthorities: [DEFAULT_AUTHORITY],
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
             },
@@ -365,7 +319,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
         expect(acc.realm).toBe(""); // Realm empty for generic accounts
         expect(acc.username).toBe("testupn");
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
-        expect(acc.authorityType).toBe(CacheAccountType.GENERIC_ACCOUNT_TYPE);
+        expect(acc.authorityType).toBe(CACHE_ACCOUNT_TYPE_GENERIC);
         expect(AccountEntityUtils.isAccountEntity(acc)).toEqual(true);
     });
 
@@ -661,7 +615,12 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -703,7 +662,7 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         expect(acc.realm).toBe("");
         expect(acc.username).toBe("testupn");
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
-        expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
+        expect(acc.authorityType).toBe(CACHE_ACCOUNT_TYPE_ADFS);
         expect(AccountEntityUtils.isAccountEntity(acc)).toEqual(true);
     });
 
@@ -717,7 +676,12 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -757,7 +721,7 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         expect(acc.environment).toBe("myadfs.com");
         expect(acc.realm).toBe("");
         expect(acc.username).toBe("testupn");
-        expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
+        expect(acc.authorityType).toBe(CACHE_ACCOUNT_TYPE_ADFS);
         expect(acc.localAccountId).toBe(idTokenClaims.sub);
         expect(AccountEntityUtils.isAccountEntity(acc)).toEqual(true);
     });

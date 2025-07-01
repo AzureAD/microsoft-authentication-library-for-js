@@ -6,20 +6,15 @@
 import {
     Logger,
     ICrypto,
-    PromptValue,
     AuthToken,
-    Constants,
     AccountEntity,
     AuthorityType,
     ScopeSet,
     TimeUtils,
-    AuthenticationScheme,
     UrlString,
-    OIDC_DEFAULT_SCOPES,
     PopTokenGenerator,
     SignedHttpRequestParameters,
     IPerformanceClient,
-    PerformanceEvents,
     IdTokenEntity,
     AccessTokenEntity,
     AuthError,
@@ -36,7 +31,10 @@ import {
     InProgressPerformanceEvent,
     ServerTelemetryManager,
     AccountEntityUtils,
+    Constants,
+    PerformanceEvents,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -51,14 +49,11 @@ import {
     BrowserConstants,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
-import {
-    PlatformBrokerRequest,
-    PlatformDOMTokenRequest,
-} from "../broker/nativeBroker/PlatformBrokerRequest.js";
+import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
-    PlatformBrokerResponse,
-} from "../broker/nativeBroker/PlatformBrokerResponse.js";
+    PlatformAuthResponse,
+} from "../broker/nativeBroker/PlatformAuthResponse.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
@@ -77,6 +72,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -139,12 +135,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
     /**
      * Adds SKUs to request extra query parameters
-     * @param request {PlatformBrokerRequest}
+     * @param request {PlatformAuthRequest}
      * @private
      */
-    private addRequestSKUs(
-        request: PlatformBrokerRequest | PlatformDOMTokenRequest
-    ): void {
+    private addRequestSKUs(request: PlatformAuthRequest): void {
         request.extraParameters = {
             ...request.extraParameters,
             [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
@@ -163,7 +157,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.NativeInteractionClientAcquireToken,
+            BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
             request.correlationId
         );
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -201,7 +195,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 );
             }
 
-            const validatedResponse: PlatformBrokerResponse =
+            const validatedResponse: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(nativeRequest);
 
             return await this.handleNativeResponse(
@@ -242,7 +236,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @returns CommonSilentFlowRequest
      */
     private createSilentCacheRequest(
-        request: PlatformBrokerRequest,
+        request: PlatformAuthRequest,
         cachedAccount: AccountInfo
     ): CommonSilentFlowRequest {
         return {
@@ -262,7 +256,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     protected async acquireTokensFromCache(
         nativeAccountId: string,
-        request: PlatformBrokerRequest
+        request: PlatformAuthRequest
     ): Promise<AuthenticationResult> {
         if (!nativeAccountId) {
             this.logger.warning(
@@ -308,16 +302,20 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * Acquires a token from native platform then redirects to the redirectUri instead of returning the response
      * @param {RedirectRequest} request
      * @param {InProgressPerformanceEvent} rootMeasurement
+     * @param {HandleRedirectPromiseOptions} options
      */
     async acquireTokenRedirect(
         request: RedirectRequest,
-        rootMeasurement: InProgressPerformanceEvent
+        rootMeasurement: InProgressPerformanceEvent,
+        options?: HandleRedirectPromiseOptions
     ): Promise<void> {
         this.logger.trace(
             "NativeInteractionClient - acquireTokenRedirect called."
         );
 
         const nativeRequest = await this.initializeNativeRequest(request);
+        const navigateToLoginRequestUrl =
+            options?.navigateToLoginRequestUrl ?? true;
 
         try {
             await this.platformAuthProvider.sendMessage(nativeRequest);
@@ -343,7 +341,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             timeout: this.config.system.redirectNavigationTimeout,
             noHistory: false,
         };
-        const redirectUri = this.config.auth.navigateToLoginRequestUrl
+        const redirectUri = navigateToLoginRequestUrl
             ? window.location.href
             : this.getRedirectUri(request.redirectUri);
         rootMeasurement.end({ success: true });
@@ -406,7 +404,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise sending message to native broker."
             );
-            const response: PlatformBrokerResponse =
+            const response: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(request);
             const authResult = await this.handleNativeResponse(
                 response,
@@ -439,8 +437,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp
      */
     protected async handleNativeResponse(
-        response: PlatformBrokerResponse,
-        request: PlatformBrokerRequest,
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest,
         reqTimestamp: number
     ): Promise<AuthenticationResult> {
         this.logger.trace(
@@ -533,12 +531,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @returns
      */
     protected createHomeAccountIdentifier(
-        response: PlatformBrokerResponse,
+        response: PlatformAuthResponse,
         idTokenClaims: TokenClaims
     ): string {
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
-            response.client_info || Constants.EMPTY_STRING,
+            response.client_info || "",
             AuthorityType.Default,
             this.logger,
             this.browserCrypto,
@@ -566,11 +564,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param response
      */
     async generatePopAccessToken(
-        response: PlatformBrokerResponse,
-        request: PlatformBrokerRequest
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest
     ): Promise<string> {
         if (
-            request.tokenType === AuthenticationScheme.POP &&
+            request.tokenType === Constants.AuthenticationScheme.POP &&
             request.signPopToken
         ) {
             /**
@@ -625,8 +623,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @returns
      */
     protected async generateAuthenticationResult(
-        response: PlatformBrokerResponse,
-        request: PlatformBrokerRequest,
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest,
         idTokenClaims: TokenClaims,
         accountEntity: AccountEntity,
         authority: string,
@@ -648,11 +646,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             accountProperties["UID"] ||
             idTokenClaims.oid ||
             idTokenClaims.sub ||
-            Constants.EMPTY_STRING;
-        const tid =
-            accountProperties["TenantId"] ||
-            idTokenClaims.tid ||
-            Constants.EMPTY_STRING;
+            "";
+        const tid = accountProperties["TenantId"] || idTokenClaims.tid || "";
 
         const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
             AccountEntityUtils.getAccountInfo(accountEntity),
@@ -675,9 +670,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request
         );
         const tokenType =
-            request.tokenType === AuthenticationScheme.POP
-                ? AuthenticationScheme.POP
-                : AuthenticationScheme.BEARER;
+            request.tokenType === Constants.AuthenticationScheme.POP
+                ? Constants.AuthenticationScheme.POP
+                : Constants.AuthenticationScheme.BEARER;
 
         const result: AuthenticationResult = {
             authority: authority,
@@ -711,11 +706,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         await this.browserStorage.setAccount(accountEntity, this.correlationId);
 
         // Remove any existing cached tokens for this account in browser storage
-        this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
-            this.logger.error(
-                `Error occurred while removing account context from browser storage. ${e}`
-            );
-        });
+        this.browserStorage.removeAccountContext(
+            accountEntity,
+            this.correlationId
+        );
     }
 
     /**
@@ -729,8 +723,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp
      */
     cacheNativeTokens(
-        response: PlatformBrokerResponse,
-        request: PlatformBrokerRequest,
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest,
         homeAccountIdentifier: string,
         idTokenClaims: TokenClaims,
         responseAccessToken: string,
@@ -748,7 +742,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // cache accessToken in inmemory storage
         const expiresIn: number =
-            request.tokenType === AuthenticationScheme.POP
+            request.tokenType === Constants.AuthenticationScheme.POP
                 ? Constants.SHR_NONCE_VALIDITY
                 : (typeof response.expires_in === "string"
                       ? parseInt(response.expires_in, 10)
@@ -771,7 +765,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 0,
                 base64Decode,
                 undefined,
-                request.tokenType as AuthenticationScheme,
+                request.tokenType as Constants.AuthenticationScheme,
                 undefined,
                 request.keyId
             );
@@ -792,7 +786,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         tokenType: string,
         expiresIn: string | number | undefined
     ): number {
-        return tokenType === AuthenticationScheme.POP
+        return tokenType === Constants.AuthenticationScheme.POP
             ? Constants.SHR_NONCE_VALIDITY
             : (typeof expiresIn === "string"
                   ? parseInt(expiresIn, 10)
@@ -874,7 +868,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     protected async initializeNativeRequest(
         request: PopupRequest | SsoSilentRequest
-    ): Promise<PlatformBrokerRequest> {
+    ): Promise<PlatformAuthRequest> {
         this.logger.trace(
             "NativeInteractionClient - initializeNativeRequest called"
         );
@@ -884,9 +878,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
         const { scopes, ...remainingProperties } = request;
         const scopeSet = new ScopeSet(scopes || []);
-        scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
+        scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
-        const validatedRequest: PlatformBrokerRequest = {
+        const validatedRequest: PlatformAuthRequest = {
             ...remainingProperties,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
@@ -918,7 +912,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         validatedRequest.extraParameters.telemetry =
             PlatformAuthConstants.MATS_TELEMETRY;
 
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.POP
+        ) {
             // add POP request type
             const shrParameters: SignedHttpRequestParameters = {
                 resourceRequestUri: request.resourceRequestUri,
@@ -985,7 +981,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.logger.trace(
                     "initializeNativeRequest: silent request sets prompt to none"
                 );
-                return PromptValue.NONE;
+                return Constants.PromptValue.NONE;
             default:
                 break;
         }
@@ -1000,9 +996,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // If request is interactive, check if prompt provided is allowed to go directly to native broker
         switch (prompt) {
-            case PromptValue.NONE:
-            case PromptValue.CONSENT:
-            case PromptValue.LOGIN:
+            case Constants.PromptValue.NONE:
+            case Constants.PromptValue.CONSENT:
+            case Constants.PromptValue.LOGIN:
                 this.logger.trace(
                     "initializeNativeRequest: prompt is compatible with native flow"
                 );
@@ -1019,12 +1015,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
     /**
      * Handles extra broker request parameters
-     * @param request {PlatformBrokerRequest}
+     * @param request {PlatformAuthRequest}
      * @private
      */
-    private handleExtraBrokerParams(
-        request: PlatformBrokerRequest | PlatformDOMTokenRequest
-    ): void {
+    private handleExtraBrokerParams(request: PlatformAuthRequest): void {
         const hasExtraBrokerParams =
             request.extraParameters &&
             request.extraParameters.hasOwnProperty(

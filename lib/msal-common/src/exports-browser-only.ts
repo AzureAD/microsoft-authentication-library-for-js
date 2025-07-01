@@ -14,10 +14,10 @@ export {
 export {
     IntFields,
     PerformanceEvent,
-    PerformanceEvents,
     PerformanceEventStatus,
     SubMeasurement,
 } from "./telemetry/performance/PerformanceEvent.js";
+export * as PerformanceEvents from "./telemetry/performance/PerformanceEvents.js";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement.js";
 export { PerformanceClient } from "./telemetry/performance/PerformanceClient.js";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient.js";

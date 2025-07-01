@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants.js";
 import { AuthError } from "./AuthError.js";
 import * as InteractionRequiredAuthErrorCodes from "./InteractionRequiredAuthErrorCodes.js";
 export { InteractionRequiredAuthErrorCodes };
@@ -16,6 +15,7 @@ export const InteractionRequiredServerErrorMessage = [
     InteractionRequiredAuthErrorCodes.consentRequired,
     InteractionRequiredAuthErrorCodes.loginRequired,
     InteractionRequiredAuthErrorCodes.badToken,
+    InteractionRequiredAuthErrorCodes.uxNotAllowed,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -25,6 +25,7 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "user_password_expired",
     "consent_required",
     "bad_token",
+    "ux_not_allowed",
 ];
 
 /**
@@ -70,10 +71,10 @@ export class InteractionRequiredAuthError extends AuthError {
         super(errorCode, errorMessage, subError);
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
 
-        this.timestamp = timestamp || Constants.EMPTY_STRING;
-        this.traceId = traceId || Constants.EMPTY_STRING;
-        this.correlationId = correlationId || Constants.EMPTY_STRING;
-        this.claims = claims || Constants.EMPTY_STRING;
+        this.timestamp = timestamp || "";
+        this.traceId = traceId || "";
+        this.correlationId = correlationId || "";
+        this.claims = claims || "";
         this.name = "InteractionRequiredAuthError";
         this.errorNo = errorNo;
     }

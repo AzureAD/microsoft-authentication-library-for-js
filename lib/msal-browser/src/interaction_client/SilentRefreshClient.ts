@@ -10,11 +10,11 @@ import {
     RefreshTokenClient,
     AuthError,
     AzureCloudOptions,
-    PerformanceEvents,
     invokeAsync,
     AccountInfo,
     StringDict,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { ApiId } from "../utils/BrowserConstants.js";
 import {
     createBrowserAuthError,
@@ -33,7 +33,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         const baseRequest = await invokeAsync(
             initializeBaseRequest,
-            PerformanceEvents.InitializeBaseRequest,
+            BrowserPerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -65,7 +65,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             refreshTokenClient.acquireTokenByRefreshToken.bind(
                 refreshTokenClient
             ),
-            PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
+            BrowserPerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -108,7 +108,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
         // Create auth module.
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
             this.correlationId

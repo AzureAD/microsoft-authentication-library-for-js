@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update build:all:prod",
+  "packageName": "@azure/msal-angular",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "none"
+}

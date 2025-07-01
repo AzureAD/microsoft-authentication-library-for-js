@@ -19,7 +19,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 import { StringUtils } from "../utils/StringUtils.js";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
 import { TokenClaims } from "../account/TokenClaims.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { getTenantFromAuthorityString } from "../authority/Authority.js";
 
@@ -67,9 +67,7 @@ export class SilentFlowClient extends BaseClient {
             request.account,
             request,
             tokenKeys,
-            requestTenantId,
-            this.performanceClient,
-            request.correlationId
+            requestTenantId
         );
 
         if (!cachedAccessToken) {

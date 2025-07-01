@@ -7,12 +7,8 @@ import {
     AuthErrorCodes,
     AuthenticationResult,
     BaseClient,
-    ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonDeviceCodeRequest,
-    Constants,
     DeviceCodeResponse,
-    GrantType,
     RequestParameterBuilder,
     RequestThumbprint,
     ResponseHandler,
@@ -24,7 +20,10 @@ import {
     UrlUtils,
     createAuthError,
     createClientAuthError,
+    Constants,
 } from "@azure/msal-common/node";
+import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
+import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
  * OAuth2.0 Device code client
@@ -219,7 +218,7 @@ export class DeviceCodeClient extends BaseClient {
                 "Token request cancelled by setting DeviceCodeRequest.cancel = true"
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.deviceCodePollingCancelled
+                NodeClientAuthErrorCodes.deviceCodePollingCancelled
             );
         } else if (
             userSpecifiedTimeout &&
@@ -230,7 +229,7 @@ export class DeviceCodeClient extends BaseClient {
                 `User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`
             );
             throw createClientAuthError(
-                ClientAuthErrorCodes.userTimeoutReached
+                NodeClientAuthErrorCodes.userTimeoutReached
             );
         } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
             if (userSpecifiedTimeout) {
@@ -241,7 +240,9 @@ export class DeviceCodeClient extends BaseClient {
             this.logger.error(
                 `Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`
             );
-            throw createClientAuthError(ClientAuthErrorCodes.deviceCodeExpired);
+            throw createClientAuthError(
+                NodeClientAuthErrorCodes.deviceCodeExpired
+            );
         }
         return true;
     }
@@ -335,7 +336,7 @@ export class DeviceCodeClient extends BaseClient {
          */
         this.logger.error("Polling stopped for unknown reasons.");
         throw createClientAuthError(
-            ClientAuthErrorCodes.deviceCodeUnknownError
+            NodeClientAuthErrorCodes.deviceCodeUnknownError
         );
     }
 
@@ -357,7 +358,7 @@ export class DeviceCodeClient extends BaseClient {
         );
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.DEVICE_CODE_GRANT
+            Constants.GrantType.DEVICE_CODE_GRANT
         );
         RequestParameterBuilder.addDeviceCode(
             parameters,

@@ -7,21 +7,19 @@ import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
     InteractionRequiredAuthError,
     AccountInfo,
-    Constants,
     INetworkModule,
     Logger,
     CommonSilentFlowRequest,
     ICrypto,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     AuthError,
-    PerformanceEvents,
     PerformanceCallbackFunction,
     IPerformanceClient,
     BaseAuthRequest,
-    PromptValue,
     InProgressPerformanceEvent,
     getRequestThumbprint,
     invokeAsync,
+    invoke,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountFilter,
@@ -29,7 +27,10 @@ import {
     InteractionRequiredAuthErrorCodes,
     PkceCodes,
     AccountEntityUtils,
+    Constants,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
@@ -61,8 +62,6 @@ import { PopupClient } from "../interaction_client/PopupClient.js";
 import { RedirectClient } from "../interaction_client/RedirectClient.js";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
-import { TokenCache } from "../cache/TokenCache.js";
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import {
@@ -76,10 +75,10 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
-import { PlatformBrokerRequest } from "../broker/nativeBroker/PlatformBrokerRequest.js";
+import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
-import { IController } from "./IController.js";
+import { HandleRedirectPromiseOptions, IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
@@ -88,7 +87,7 @@ import { InitializeApplicationRequest } from "../request/InitializeApplicationRe
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import {
     getPlatformAuthProvider,
-    isBrokerAvailable,
+    isPlatformAuthAllowed,
 } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
@@ -142,9 +141,6 @@ export class StandardController implements IController {
 
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
-
-    // Token cache implementation
-    private tokenCache: TokenCache;
 
     // Logger
     protected logger: Logger;
@@ -271,14 +267,6 @@ export class StandardController implements IController {
             this.eventHandler
         );
 
-        // Initialize the token cache
-        this.tokenCache = new TokenCache(
-            this.config,
-            this.browserStorage,
-            this.logger,
-            this.browserCrypto
-        );
-
         this.activeSilentTokenRequests = new Map();
 
         // Register listener functions
@@ -336,7 +324,7 @@ export class StandardController implements IController {
             request?.correlationId || this.getRequestCorrelationId();
         const allowPlatformBroker = this.config.system.allowPlatformBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.InitializeClientApplication,
+            BrowserRootPerformanceEvents.InitializeClientApplication,
             initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
@@ -350,7 +338,7 @@ export class StandardController implements IController {
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
-            PerformanceEvents.InitializeCache,
+            BrowserPerformanceEvents.InitializeCache,
             this.logger,
             this.performanceClient,
             initCorrelationId
@@ -370,15 +358,15 @@ export class StandardController implements IController {
             }
         }
 
-        await invokeAsync(
+        invoke(
             this.browserStorage.clearTokensAndKeysWithClaims.bind(
                 this.browserStorage
             ),
-            PerformanceEvents.ClearTokensAndKeysWithClaims,
+            BrowserPerformanceEvents.ClearTokensAndKeysWithClaims,
             this.logger,
             this.performanceClient,
             initCorrelationId
-        )();
+        )(initCorrelationId);
 
         if (
             this.config.cache.cacheLocation ===
@@ -387,7 +375,7 @@ export class StandardController implements IController {
             this.eventHandler.subscribeCrossTab();
         }
 
-        this.config.system.asyncPopups &&
+        !this.config.system.navigatePopups &&
             (await this.preGeneratePkceCodes(initCorrelationId));
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
@@ -404,25 +392,25 @@ export class StandardController implements IController {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @param options Object containing optional configuration for redirect promise handling.
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(
-        hash?: string
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
         // Block token acquisition before initialize has been called
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-
         if (this.isBrowserEnvironment) {
             /**
              * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey = hash || "";
+            const redirectResponseKey = options?.hash || "";
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
-                response = this.handleRedirectPromiseInternal(hash);
+                response = this.handleRedirectPromiseInternal(options);
                 this.redirectResponse.set(redirectResponseKey, response);
                 this.logger.verbose(
                     "handleRedirectPromise has been called for the first time, storing the promise"
@@ -447,7 +435,7 @@ export class StandardController implements IController {
      * @returns
      */
     private async handleRedirectPromiseInternal(
-        hash?: string
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         if (!this.browserStorage.isInteractionInProgress(true)) {
             this.logger.info(
@@ -467,10 +455,12 @@ export class StandardController implements IController {
         }
 
         const loggedInAccounts = this.getAllAccounts();
-        const platformBrokerRequest: PlatformBrokerRequest | null =
+        const platformBrokerRequest: PlatformAuthRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
-            platformBrokerRequest && this.platformAuthProvider && !hash;
+            platformBrokerRequest &&
+            this.platformAuthProvider &&
+            !options?.hash;
 
         let rootMeasurement: InProgressPerformanceEvent;
 
@@ -483,7 +473,7 @@ export class StandardController implements IController {
         try {
             if (useNative && this.platformAuthProvider) {
                 rootMeasurement = this.performanceClient.startMeasurement(
-                    PerformanceEvents.AcquireTokenRedirect,
+                    BrowserRootPerformanceEvents.AcquireTokenRedirect,
                     platformBrokerRequest?.correlationId || ""
                 );
                 this.logger.trace(
@@ -506,7 +496,7 @@ export class StandardController implements IController {
 
                 redirectResponse = invokeAsync(
                     nativeClient.handleRedirectPromise.bind(nativeClient),
-                    PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
+                    BrowserPerformanceEvents.HandleNativeRedirectPromiseMeasurement,
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
@@ -517,7 +507,7 @@ export class StandardController implements IController {
                 const correlationId = standardRequest.correlationId;
                 // Reset rootMeasurement now that we have correlationId
                 rootMeasurement = this.performanceClient.startMeasurement(
-                    PerformanceEvents.AcquireTokenRedirect,
+                    BrowserRootPerformanceEvents.AcquireTokenRedirect,
                     correlationId
                 );
                 this.logger.trace(
@@ -526,11 +516,11 @@ export class StandardController implements IController {
                 const redirectClient = this.createRedirectClient(correlationId);
                 redirectResponse = invokeAsync(
                     redirectClient.handleRedirectPromise.bind(redirectClient),
-                    PerformanceEvents.HandleRedirectPromiseMeasurement,
+                    BrowserPerformanceEvents.HandleRedirectPromiseMeasurement,
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(hash, standardRequest, codeVerifier, rootMeasurement);
+                )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
             this.browserStorage.resetRequestCache();
@@ -636,7 +626,7 @@ export class StandardController implements IController {
         this.logger.verbose("acquireTokenRedirect called", correlationId);
 
         const atrMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenPreRedirect,
+            BrowserRootPerformanceEvents.AcquireTokenPreRedirect,
             correlationId
         );
         atrMeasurement.add({
@@ -764,7 +754,7 @@ export class StandardController implements IController {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const atPopupMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenPopup,
+            BrowserRootPerformanceEvents.AcquireTokenPopup,
             correlationId
         );
 
@@ -902,7 +892,7 @@ export class StandardController implements IController {
             })
             .finally(async () => {
                 this.browserStorage.setInteractionInProgress(false);
-                if (this.config.system.asyncPopups) {
+                if (!this.config.system.navigatePopups) {
                     await this.preGeneratePkceCodes(correlationId);
                 }
             });
@@ -952,7 +942,7 @@ export class StandardController implements IController {
             correlationId: correlationId,
         };
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.SsoSilent,
+            BrowserRootPerformanceEvents.SsoSilent,
             correlationId
         );
         this.ssoSilentMeasurement?.add({
@@ -1054,7 +1044,7 @@ export class StandardController implements IController {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("acquireTokenByCode called", correlationId);
         const atbcMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenByCode,
+            BrowserRootPerformanceEvents.AcquireTokenByCode,
             correlationId
         );
         preflightCheck(this.initialized, atbcMeasurement);
@@ -1191,7 +1181,7 @@ export class StandardController implements IController {
         );
         this.acquireTokenByCodeAsyncMeasurement =
             this.performanceClient.startMeasurement(
-                PerformanceEvents.AcquireTokenByCodeAsync,
+                BrowserPerformanceEvents.AcquireTokenByCodeAsync,
                 request.correlationId
             );
         this.acquireTokenByCodeAsyncMeasurement?.increment({
@@ -1252,7 +1242,7 @@ export class StandardController implements IController {
                 );
                 return invokeAsync(
                     silentCacheClient.acquireToken.bind(silentCacheClient),
-                    PerformanceEvents.SilentCacheClientAcquireToken,
+                    BrowserPerformanceEvents.SilentCacheClientAcquireToken,
                     this.logger,
                     this.performanceClient,
                     commonRequest.correlationId
@@ -1285,7 +1275,7 @@ export class StandardController implements IController {
 
                 return invokeAsync(
                     silentRefreshClient.acquireToken.bind(silentRefreshClient),
-                    PerformanceEvents.SilentRefreshClientAcquireToken,
+                    BrowserPerformanceEvents.SilentRefreshClientAcquireToken,
                     this.logger,
                     this.performanceClient,
                     commonRequest.correlationId
@@ -1311,7 +1301,7 @@ export class StandardController implements IController {
 
         return invokeAsync(
             silentIframeClient.acquireToken.bind(silentIframeClient),
-            PerformanceEvents.SilentIframeClientAcquireToken,
+            BrowserPerformanceEvents.SilentIframeClientAcquireToken,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -1563,7 +1553,7 @@ export class StandardController implements IController {
         }
 
         if (
-            !isBrokerAvailable(
+            !isPlatformAuthAllowed(
                 this.config,
                 this.logger,
                 this.platformAuthProvider,
@@ -1578,9 +1568,9 @@ export class StandardController implements IController {
 
         if (request.prompt) {
             switch (request.prompt) {
-                case PromptValue.NONE:
-                case PromptValue.CONSENT:
-                case PromptValue.LOGIN:
+                case Constants.PromptValue.NONE:
+                case Constants.PromptValue.CONSENT:
+                case Constants.PromptValue.LOGIN:
                     this.logger.trace(
                         "canUsePlatformBroker: prompt is compatible with platform broker flow"
                     );
@@ -1781,13 +1771,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Gets the token cache for the application.
-     */
-    getTokenCache(): ITokenCache {
-        return this.tokenCache;
-    }
-
-    /**
      * Returns the logger instance
      */
     public getLogger(): Logger {
@@ -1863,7 +1846,7 @@ export class StandardController implements IController {
          * Included for fallback for non-browser environments,
          * and to ensure this method always returns a string.
          */
-        return Constants.EMPTY_STRING;
+        return "";
     }
 
     // #endregion
@@ -1913,7 +1896,7 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
+            BrowserRootPerformanceEvents.AcquireTokenSilent,
             correlationId
         );
         atsMeasurement.add({
@@ -1996,7 +1979,7 @@ export class StandardController implements IController {
 
             const activeRequest = invokeAsync(
                 this.acquireTokenSilentAsync.bind(this),
-                PerformanceEvents.AcquireTokenSilentAsync,
+                BrowserPerformanceEvents.AcquireTokenSilentAsync,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -2051,7 +2034,7 @@ export class StandardController implements IController {
 
         const silentRequest = await invokeAsync(
             initializeSilentRequest,
-            PerformanceEvents.InitializeSilentRequest,
+            BrowserPerformanceEvents.InitializeSilentRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -2085,7 +2068,7 @@ export class StandardController implements IController {
                     );
                     return invokeAsync(
                         this.acquireTokenBySilentIframe.bind(this),
-                        PerformanceEvents.AcquireTokenBySilentIframe,
+                        BrowserPerformanceEvents.AcquireTokenBySilentIframe,
                         this.logger,
                         this.performanceClient,
                         silentRequest.correlationId
@@ -2110,7 +2093,7 @@ export class StandardController implements IController {
                     );
                     const awaitConcurrentIframeMeasure =
                         this.performanceClient.startMeasurement(
-                            PerformanceEvents.AwaitConcurrentIframe,
+                            BrowserPerformanceEvents.AwaitConcurrentIframe,
                             silentRequest.correlationId
                         );
                     awaitConcurrentIframeMeasure.add({
@@ -2146,7 +2129,7 @@ export class StandardController implements IController {
                     );
                     return invokeAsync(
                         this.acquireTokenBySilentIframe.bind(this),
-                        PerformanceEvents.AcquireTokenBySilentIframe,
+                        BrowserPerformanceEvents.AcquireTokenBySilentIframe,
                         this.logger,
                         this.performanceClient,
                         silentRequest.correlationId
@@ -2206,7 +2189,7 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            isBrokerAvailable(
+            isPlatformAuthAllowed(
                 this.config,
                 this.logger,
                 this.platformAuthProvider,
@@ -2248,7 +2231,7 @@ export class StandardController implements IController {
             }
             return invokeAsync(
                 this.acquireTokenFromCache.bind(this),
-                PerformanceEvents.AcquireTokenFromCache,
+                BrowserPerformanceEvents.AcquireTokenFromCache,
                 this.logger,
                 this.performanceClient,
                 silentRequest.correlationId
@@ -2266,7 +2249,7 @@ export class StandardController implements IController {
 
                     return invokeAsync(
                         this.acquireTokenByRefreshToken.bind(this),
-                        PerformanceEvents.AcquireTokenByRefreshToken,
+                        BrowserPerformanceEvents.AcquireTokenByRefreshToken,
                         this.logger,
                         this.performanceClient,
                         silentRequest.correlationId
@@ -2284,7 +2267,7 @@ export class StandardController implements IController {
         this.logger.verbose("Generating new PKCE codes");
         this.pkceCode = await invokeAsync(
             generatePkceCodes,
-            PerformanceEvents.GeneratePkceCodes,
+            BrowserPerformanceEvents.GeneratePkceCodes,
             this.logger,
             this.performanceClient,
             correlationId

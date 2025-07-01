@@ -3,7 +3,7 @@
  */
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { AccountInfo, AuthenticationScheme, Logger } from "@azure/msal-common";
+import { AccountInfo, Constants, Logger } from "@azure/msal-common";
 import {
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
@@ -304,18 +304,6 @@ describe("Non-browser environment", () => {
         }
     });
 
-    it("getTokenCache returns an ITokenCache", async () => {
-        const instance = new PublicClientApplication({
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            },
-        });
-
-        await instance.initialize();
-        const tokenCache = instance.getTokenCache();
-        expect(typeof tokenCache.loadExternalTokens).toBe("function");
-    });
-
     it("getLogger should not throw", async () => {
         const instance = new PublicClientApplication({
             auth: {
@@ -406,7 +394,7 @@ describe("Non-browser environment", () => {
             correlationId: RANDOM_TEST_GUID,
             expiresOn: TestTimeUtils.nowDateWithOffset(3600),
             account: testAccount,
-            tokenType: AuthenticationScheme.BEARER,
+            tokenType: Constants.AuthenticationScheme.BEARER,
         };
         const request: SilentRequest = {
             scopes: ["openid", "profile"],

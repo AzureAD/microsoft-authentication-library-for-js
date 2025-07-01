@@ -12,16 +12,15 @@ import {
     ICrypto,
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    PerformanceEvents,
     TimeUtils,
     buildStaticAuthorityOptions,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     BaseAuthRequest,
     AccountFilter,
     AuthError,
     AccountEntityUtils,
 } from "@azure/msal-common/browser";
-import { ITokenCache } from "../cache/ITokenCache.js";
+import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
@@ -38,7 +37,7 @@ import {
     DEFAULT_REQUEST,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
-import { IController } from "./IController.js";
+import { IController, HandleRedirectPromiseOptions } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -207,7 +206,7 @@ export class NestedAppAuthController implements IController {
         );
 
         const atPopupMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenPopup,
+            RootPerformanceEvents.AcquireTokenPopup,
             validRequest.correlationId
         );
 
@@ -306,7 +305,7 @@ export class NestedAppAuthController implements IController {
 
         // proceed with acquiring tokens via the host
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.SsoSilent,
+            RootPerformanceEvents.SsoSilent,
             validRequest.correlationId
         );
 
@@ -385,7 +384,7 @@ export class NestedAppAuthController implements IController {
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
         const atsMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
+            RootPerformanceEvents.AcquireTokenSilent,
             request.correlationId
         );
 
@@ -496,7 +495,7 @@ export class NestedAppAuthController implements IController {
             authority: request.authority || currentAccount.environment,
             scopes: request.scopes?.length
                 ? request.scopes
-                : [...OIDC_DEFAULT_SCOPES],
+                : [...Constants.OIDC_DEFAULT_SCOPES],
         };
 
         // fetch access token and check for expiry
@@ -505,9 +504,7 @@ export class NestedAppAuthController implements IController {
             currentAccount,
             authRequest,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         // If there is no access token, log it and return null
@@ -755,7 +752,7 @@ export class NestedAppAuthController implements IController {
     // #endregion
 
     handleRedirectPromise(
-        hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        options?: HandleRedirectPromiseOptions // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {
         return Promise.resolve(null);
     }
@@ -793,9 +790,6 @@ export class NestedAppAuthController implements IController {
         >
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(request as SilentRequest);
-    }
-    getTokenCache(): ITokenCache {
-        throw NestedAppAuthError.createUnsupportedError();
     }
 
     /**

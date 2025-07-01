@@ -18,7 +18,6 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -73,7 +72,9 @@ export interface IController {
 
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
-    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(
+        options?: HandleRedirectPromiseOptions
+    ): Promise<AuthenticationResult | null>;
 
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
 
@@ -86,8 +87,6 @@ export interface IController {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
 
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
-
-    getTokenCache(): ITokenCache;
 
     getLogger(): Logger;
 
@@ -119,3 +118,8 @@ export interface IController {
     /** @internal */
     getPerformanceClient(): IPerformanceClient;
 }
+
+export type HandleRedirectPromiseOptions = {
+    hash?: string;
+    navigateToLoginRequestUrl?: boolean;
+};

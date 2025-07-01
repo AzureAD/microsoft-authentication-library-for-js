@@ -13,9 +13,9 @@ import {
     LogLevel,
     Logger,
     createClientAuthError,
+    Constants,
 } from "@azure/msal-common";
 import {
-    AuthenticationScheme,
     AuthError,
     BrowserCacheLocation,
     CacheLookupPolicy,
@@ -160,7 +160,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 state: "test-state",
             };
 

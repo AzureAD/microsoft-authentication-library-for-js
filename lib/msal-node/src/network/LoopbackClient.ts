@@ -4,9 +4,8 @@
  */
 
 import {
-    Constants as CommonConstants,
     AuthorizeResponse,
-    HttpStatus,
+    Constants as CommonConstants,
     UrlUtils,
 } from "@azure/msal-common/node";
 import http from "http";
@@ -58,7 +57,7 @@ export class LoopbackClient implements ILoopbackClient {
                         UrlUtils.getDeserializedResponse(parsedUrl.search) ||
                         {};
                     if (authCodeResponse.code) {
-                        res.writeHead(HttpStatus.REDIRECT, {
+                        res.writeHead(CommonConstants.HTTP_REDIRECT, {
                             location: redirectUri,
                         }); // Prevent auth code from being saved in the browser history
                         res.end();

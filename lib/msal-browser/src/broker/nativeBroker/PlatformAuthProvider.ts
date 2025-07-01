@@ -7,7 +7,7 @@ import {
     LoggerOptions,
     IPerformanceClient,
     Logger,
-    AuthenticationScheme,
+    Constants,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { name, version } from "../../packageMetadata.js";
@@ -122,16 +122,16 @@ export function isDomEnabledForPlatformAuth(): boolean {
  * @param platformAuthProvider
  * @param authenticationScheme
  */
-export function isBrokerAvailable(
+export function isPlatformAuthAllowed(
     config: BrowserConfiguration,
     logger: Logger,
     platformAuthProvider?: IPlatformAuthHandler,
-    authenticationScheme?: AuthenticationScheme
+    authenticationScheme?: Constants.AuthenticationScheme
 ): boolean {
-    logger.trace("isBrokerAvailable called");
+    logger.trace("isPlatformAuthAllowed called");
     if (!config.system.allowPlatformBroker) {
         logger.trace(
-            "isBrokerAvailable: allowPlatformBroker is not enabled, returning false"
+            "isPlatformAuthAllowed: allowPlatformBroker is not enabled, returning false"
         );
         // Developer disabled WAM
         return false;
@@ -139,7 +139,7 @@ export function isBrokerAvailable(
 
     if (!platformAuthProvider) {
         logger.trace(
-            "isBrokerAvailable: Platform auth provider is not initialized, returning false"
+            "isPlatformAuthAllowed: Platform auth provider is not initialized, returning false"
         );
         // Platform broker auth providers are not available
         return false;
@@ -147,15 +147,15 @@ export function isBrokerAvailable(
 
     if (authenticationScheme) {
         switch (authenticationScheme) {
-            case AuthenticationScheme.BEARER:
-            case AuthenticationScheme.POP:
+            case Constants.AuthenticationScheme.BEARER:
+            case Constants.AuthenticationScheme.POP:
                 logger.trace(
-                    "isBrokerAvailable: authenticationScheme is supported, returning true"
+                    "isPlatformAuthAllowed: authenticationScheme is supported, returning true"
                 );
                 return true;
             default:
                 logger.trace(
-                    "isBrokerAvailable: authenticationScheme is not supported, returning false"
+                    "isPlatformAuthAllowed: authenticationScheme is not supported, returning false"
                 );
                 return false;
         }
