@@ -31,6 +31,7 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     DSTS_OPENID_CONFIG_RESPONSE,
+    RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_TOKENS,
 } from "../test_kit/StringConstants.js";
@@ -816,7 +817,10 @@ describe("ClientCredentialClient unit tests", () => {
                     if (accessTokenKey) {
                         // use it to get the access token (from the cache)
                         const accessTokenFromCache: AccessTokenEntity | null =
-                            cache.getAccessTokenCredential(accessTokenKey);
+                            cache.getAccessTokenCredential(
+                                accessTokenKey,
+                                RANDOM_TEST_GUID
+                            );
                         // return it and clear the interval
                         resolve(accessTokenFromCache);
                         clearInterval(interval);
