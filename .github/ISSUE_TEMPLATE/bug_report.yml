@@ -11,12 +11,14 @@ body:
               - [@azure/msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/faq.md)
               - [@azure/msal-angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/FAQ.md)
               - [@azure/msal-react](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
-              - [@azure/msal or msal](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/lib/msal-core/docs/FAQ.md)
 
               In the case your question is not answered in the FAQ, please verify your question has not been covered on [Stack Overflow](https://stackoverflow.com/questions/tagged/msal.js).
               If you can't find a similar question on Stack Overflow, please create a new Stack Overflow thread using the tag `msal.js`.
 
               If you have questions about timelines, please see our [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md). Issues pertaining to timelines without an explicit feature request may be closed without comment.
+
+              > [!IMPORTANT]
+              > If you are a Microsoft employee please post your question in our [Teams Channel](https://aka.ms/msaljs/teams) instead.
 
     - type: markdown
       attributes:
@@ -170,16 +172,6 @@ body:
           label: Regression
           description: "If this behavior worked before, please enter the last working version(s)."
           placeholder: "@azure/msal-browser 2.0.0"
-
-    - type: dropdown
-      attributes:
-          label: Source
-          description: "Are you an internal or external customer?"
-          options:
-              - Internal (Microsoft)
-              - External (Customer)
-      validations:
-          required: true
 
     - type: markdown
       attributes:

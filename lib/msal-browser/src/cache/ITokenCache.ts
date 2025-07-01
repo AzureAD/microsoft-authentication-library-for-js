@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ExternalTokenResponse } from "@azure/msal-common";
-import { SilentRequest } from "../request/SilentRequest";
-import { LoadTokenOptions } from "./TokenCache";
-import { AuthenticationResult } from "../response/AuthenticationResult";
+import type { ExternalTokenResponse } from "@azure/msal-common/browser";
+import type { SilentRequest } from "../request/SilentRequest.js";
+import type { LoadTokenOptions } from "./TokenCache.js";
+import type { AuthenticationResult } from "../response/AuthenticationResult.js";
 
 export interface ITokenCache {
     /**
@@ -17,5 +17,5 @@ export interface ITokenCache {
         request: SilentRequest,
         response: ExternalTokenResponse,
         options: LoadTokenOptions
-    ): AuthenticationResult;
+    ): Promise<AuthenticationResult>;
 }

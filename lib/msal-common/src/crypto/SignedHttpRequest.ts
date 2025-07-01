@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { JoseHeaderOptions } from "./JoseHeader";
+import { JoseHeaderOptions } from "./JoseHeader.js";
 
 export type SignedHttpRequest = {
     at?: string;

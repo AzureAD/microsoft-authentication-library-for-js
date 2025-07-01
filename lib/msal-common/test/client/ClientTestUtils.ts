@@ -4,36 +4,36 @@
  */
 
 import {
-    ClientConfiguration,
-    Constants,
-    AccountEntity,
-    AppMetadataEntity,
-    ThrottlingEntity,
-    IdTokenEntity,
-    AccessTokenEntity,
-    RefreshTokenEntity,
-    ProtocolMode,
-    AuthorityOptions,
-    AuthorityMetadataEntity,
-    ValidCredentialType,
-    Logger,
-    LogLevel,
-    TokenKeys,
-    ServerTelemetryManager,
-    createClientAuthError,
-    ClientAuthErrorCodes,
-    CacheHelpers,
-    Authority,
-} from "../../src";
-import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
     TEST_POP_VALUES,
-} from "../test_kit/StringConstants";
+    TEST_TOKENS,
+} from "../test_kit/StringConstants.js";
 
-import { CacheManager } from "../../src/cache/CacheManager";
-import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
+import { CacheManager } from "../../src/cache/CacheManager.js";
+import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity.js";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
+import * as CacheHelpers from "../../src/cache/utils/CacheHelpers.js";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
+import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity.js";
+import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity.js";
+import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity.js";
+import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
+import { Logger, LogLevel } from "../../src/logger/Logger.js";
+import { Authority } from "../../src/authority/Authority.js";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../../src/error/ClientAuthError.js";
+import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager.js";
+import { Constants, EncodingTypes } from "../../src/utils/Constants.js";
+import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
+import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -42,18 +42,15 @@ export class MockStorageClass extends CacheManager {
     store = {};
 
     // Accounts
-    getCachedAccountEntity(accountKey: string): AccountEntity | null {
-        const account: AccountEntity = this.store[accountKey] as AccountEntity;
+    getAccount(key: string): AccountEntity | null {
+        const account: AccountEntity = this.store[key] as AccountEntity;
         if (AccountEntity.isAccountEntity(account)) {
             return account;
         }
         return null;
     }
-    getAccount(key: string): AccountEntity | null {
-        return this.getCachedAccountEntity(key);
-    }
 
-    setAccount(value: AccountEntity): void {
+    async setAccount(value: AccountEntity): Promise<void> {
         const key = value.generateAccountKey();
         this.store[key] = value;
 
@@ -64,8 +61,8 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+    removeAccount(key: string): void {
+        super.removeAccount(key, RANDOM_TEST_GUID);
         const currentAccounts = this.getAccountKeys();
         const removalIndex = currentAccounts.indexOf(key);
         if (removalIndex > -1) {
@@ -74,29 +71,25 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    removeOutdatedAccount(accountKey: string): void {
-        delete this.store[accountKey];
-    }
-
     getAccountKeys(): string[] {
-        return this.store[ACCOUNT_KEYS] || [];
+        return [...(this.store[ACCOUNT_KEYS] || [])];
     }
 
     getTokenKeys(): TokenKeys {
-        return (
-            this.store[TOKEN_KEYS] || {
+        return {
+            ...(this.store[TOKEN_KEYS] || {
                 idToken: [],
                 accessToken: [],
                 refreshToken: [],
-            }
-        );
+            }),
+        } as TokenKeys;
     }
 
     // Credentials (idtokens)
     getIdTokenCredential(key: string): IdTokenEntity | null {
         return (this.store[key] as IdTokenEntity) || null;
     }
-    setIdTokenCredential(value: IdTokenEntity): void {
+    async setIdTokenCredential(value: IdTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -111,7 +104,7 @@ export class MockStorageClass extends CacheManager {
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
         return (this.store[key] as AccessTokenEntity) || null;
     }
-    setAccessTokenCredential(value: AccessTokenEntity): void {
+    async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -126,7 +119,7 @@ export class MockStorageClass extends CacheManager {
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
-    setRefreshTokenCredential(value: RefreshTokenEntity): void {
+    async setRefreshTokenCredential(value: RefreshTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -198,23 +191,6 @@ export class MockStorageClass extends CacheManager {
     async clear(): Promise<void> {
         this.store = {};
     }
-    updateCredentialCacheKey(
-        currentCacheKey: string,
-        credential: ValidCredentialType
-    ): string {
-        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
-
-        if (currentCacheKey !== updatedCacheKey) {
-            const cacheItem = this.store[currentCacheKey];
-            if (cacheItem) {
-                this.removeItem(currentCacheKey);
-                this.store[updatedCacheKey] = cacheItem;
-                return updatedCacheKey;
-            }
-        }
-
-        return currentCacheKey;
-    }
 }
 
 export const mockCrypto = {
@@ -222,19 +198,30 @@ export const mockCrypto = {
         return RANDOM_TEST_GUID;
     },
     base64Decode(input: string): string {
-        return Buffer.from(input, "base64").toString("utf8");
+        return Buffer.from(input, EncodingTypes.BASE64).toString("utf8");
     },
     base64Encode(input: string): string {
-        return Buffer.from(input, "utf-8").toString("base64");
+        return Buffer.from(input, EncodingTypes.UTF8).toString(
+            EncodingTypes.BASE64
+        );
+    },
+    base64UrlEncode(input: string): string {
+        return Buffer.from(input, EncodingTypes.UTF8).toString("base64url");
+    },
+    encodeKid(input: string): string {
+        return Buffer.from(
+            JSON.stringify({ kid: input }),
+            EncodingTypes.UTF8
+        ).toString("base64url");
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async removeTokenBindingKey(keyId: string): Promise<boolean> {
-        return Promise.resolve(true);
+    async removeTokenBindingKey(keyId: string): Promise<void> {
+        return Promise.resolve();
     },
     async signJwt(): Promise<string> {
-        return "";
+        return TEST_TOKENS.POP_TOKEN;
     },
     async clearKeystore(): Promise<boolean> {
         return Promise.resolve(true);
@@ -253,6 +240,7 @@ export class ClientTestUtils {
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
             new Logger({}),
+            new StubPerformanceClient(),
             {
                 canonicalAuthority: TEST_CONFIG.validAuthority,
             }
@@ -271,34 +259,10 @@ export class ClientTestUtils {
             },
         };
 
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: protocolMode,
-            knownAuthorities: [TEST_CONFIG.validAuthority],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-        };
-
-        const loggerOptions = {
-            loggerCallback: (): void => {},
-            piiLoggingEnabled: true,
-            logLevel: LogLevel.Verbose,
-        };
-        const logger = new Logger(loggerOptions);
-
-        const authority = new Authority(
-            TEST_CONFIG.validAuthority,
-            mockHttpClient,
-            mockStorage,
-            authorityOptions,
-            logger,
-            TEST_CONFIG.CORRELATION_ID
+        const authority = await getDiscoveredAuthority(
+            protocolMode,
+            mockStorage
         );
-
-        await authority.resolveEndpointsAsync().catch((error) => {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
-            );
-        });
 
         let serverTelemetryManager = null;
 
@@ -317,6 +281,7 @@ export class ClientTestUtils {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: authority,
+                redirectUri: "https://localhost",
             },
             storageInterface: mockStorage,
             networkInterface: mockHttpClient,
@@ -346,4 +311,57 @@ export class ClientTestUtils {
             serverTelemetryManager: serverTelemetryManager,
         };
     }
+}
+
+export async function getDiscoveredAuthority(
+    protocolMode: ProtocolMode = ProtocolMode.AAD,
+    mockStorage: MockStorageClass = new MockStorageClass(
+        TEST_CONFIG.MSAL_CLIENT_ID,
+        mockCrypto,
+        new Logger({}),
+        new StubPerformanceClient(),
+        {
+            canonicalAuthority: TEST_CONFIG.validAuthority,
+        }
+    )
+): Promise<Authority> {
+    const mockHttpClient = {
+        sendGetRequestAsync<T>(): T {
+            return {} as T;
+        },
+        sendPostRequestAsync<T>(): T {
+            return {} as T;
+        },
+    };
+
+    const authorityOptions: AuthorityOptions = {
+        protocolMode: protocolMode,
+        knownAuthorities: [TEST_CONFIG.validAuthority],
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
+    };
+
+    const loggerOptions = {
+        loggerCallback: (): void => {},
+        piiLoggingEnabled: true,
+        logLevel: LogLevel.Verbose,
+    };
+    const logger = new Logger(loggerOptions);
+
+    const authority = new Authority(
+        TEST_CONFIG.validAuthority,
+        mockHttpClient,
+        mockStorage,
+        authorityOptions,
+        logger,
+        TEST_CONFIG.CORRELATION_ID
+    );
+
+    await authority.resolveEndpointsAsync().catch((error) => {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.endpointResolutionError
+        );
+    });
+
+    return authority;
 }

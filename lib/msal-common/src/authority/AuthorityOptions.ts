@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ProtocolMode } from "./ProtocolMode";
-import { OIDCOptions } from "./OIDCOptions";
-import { AzureRegionConfiguration } from "./AzureRegionConfiguration";
-import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
+import { ProtocolMode } from "./ProtocolMode.js";
+import { OIDCOptions } from "./OIDCOptions.js";
+import { AzureRegionConfiguration } from "./AzureRegionConfiguration.js";
+import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse.js";
 
 export type AuthorityOptions = {
     protocolMode: ProtocolMode;

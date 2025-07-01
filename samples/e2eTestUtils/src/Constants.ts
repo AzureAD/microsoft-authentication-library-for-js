@@ -1,11 +1,13 @@
 export const ENV_VARIABLES = {
     TENANT: "AZURE_TENANT_ID",
     CLIENT_ID: "AZURE_CLIENT_ID",
-    SECRET: "AZURE_CLIENT_SECRET",
+    CERTIFICATE_PATH: "AZURE_CLIENT_CERTIFICATE_PATH",
 };
 
 export const LAB_API_ENDPOINT = "https://msidlab.com/api";
-export const LAB_SCOPE = "https://msidlab.com/.default";
+export const LAB_SCOPE = "https://request.msidlab.com/.default";
+export const LAB_KEY_VAULT_URL = "https://msidlabs.vault.azure.net";
+export const LAB_CERT_NAME = "LabAuth";
 
 export const ParamKeys = {
     AZURE_ENVIRONMENT: "azureenvironment",
@@ -83,4 +85,38 @@ export const AppPlatforms = {
 export const GuestHomedIn = {
     HOSTAZUREAD: "hostazuread",
     ONPREM: "onprem",
+};
+
+export const UsernameSelectors = {
+    I0116: "#i0116, input[name='i0116']",
+    USERNAME_ENTRY: "#usernameEntry, input[name='usernameEntry']",
+    LOGON_IDENTIFIER: "#logonIdentifier, input[type='email']",
+}
+
+export const SubmitButtonSelectors = {
+    IDSIBUTTON9: "#idSIButton9, input[name='idSIButton9']",
+    NEXT: "#next, input[name='next']",
+    ACCEPTBUTTON: "#acceptButton, input[name='acceptButton']",
+    REMOTE_CONNECT_SUBMIT: "#remoteConnectSubmit, input[name='remoteConnectSubmit']",
+    SUBMITBUTTON: "#submitButton, input[name='submitButton']",
+    SUBMIT: "button[type='submit']"
+}
+
+export const PasswordInputSelectors = {
+    PASSWORD: "#password, input[name='password']",
+    PASSWORD_INPUT: "#passwordInput, input[name='passwordInput']",
+    I0118: "#i0118, input[name='i0118']",
+    PASSWORDENTRY: "#passwordEntry, input[type='password']",
+}
+
+export const HtmlSelectors = {
+    AAD_TITLE: "#aadTile, input[name='aadTile']",
+    B2C_AAD_MSIDLAB4_SIGNIN_PAGE:
+        "#MSIDLAB4_AzureAD, input[name='MSIDLAB4_AzureAD']",
+    B2C_MSA_SIGNIN_PAGE:
+        "#MicrosoftAccountExchange, input[name='MicrosoftAccountExchange']",
+    KMSI_PAGE: "#kmsiTitle, input[name='kmsiTitle']",
+    REMOTE_LOCATION_DESCRPITION:
+        "#remoteConnectDescription, input[name='remoteConnectDescription']",
+    DEVICE_OTC_INPUT_SELECTOR: "#otc, input[name='otc']",
 };

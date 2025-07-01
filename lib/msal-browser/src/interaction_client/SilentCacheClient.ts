@@ -3,24 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { StandardInteractionClient } from "./StandardInteractionClient";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     CommonSilentFlowRequest,
     SilentFlowClient,
-    ServerTelemetryManager,
-    AccountInfo,
-    AzureCloudOptions,
     PerformanceEvents,
     invokeAsync,
-} from "@azure/msal-common";
-import { SilentRequest } from "../request/SilentRequest";
-import { ApiId } from "../utils/BrowserConstants";
+} from "@azure/msal-common/browser";
+import { ApiId } from "../utils/BrowserConstants.js";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
+} from "../error/BrowserAuthError.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -39,11 +35,21 @@ export class SilentCacheClient extends StandardInteractionClient {
             ApiId.acquireTokenSilent_silentFlow
         );
 
-        const silentAuthClient = await this.createSilentFlowClient(
+        const clientConfig = await invokeAsync(
+            this.getClientConfiguration.bind(this),
+            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )({
             serverTelemetryManager,
-            silentRequest.authority,
-            silentRequest.azureCloudOptions,
-            silentRequest.account
+            requestAuthority: silentRequest.authority,
+            requestAzureCloudOptions: silentRequest.azureCloudOptions,
+            account: silentRequest.account,
+        });
+        const silentAuthClient = new SilentFlowClient(
+            clientConfig,
+            this.performanceClient
         );
         this.logger.verbose("Silent auth client created");
 
@@ -84,52 +90,9 @@ export class SilentCacheClient extends StandardInteractionClient {
     logout(logoutRequest?: ClearCacheRequest): Promise<void> {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        return this.clearCacheOnLogout(validLogoutRequest?.account);
-    }
-
-    /**
-     * Creates an Silent Flow Client with the given authority, or the default authority.
-     * @param serverTelemetryManager
-     * @param authorityUrl
-     */
-    protected async createSilentFlowClient(
-        serverTelemetryManager: ServerTelemetryManager,
-        authorityUrl?: string,
-        azureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<SilentFlowClient> {
-        // Create auth module.
-        const clientConfig = await invokeAsync(
-            this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(serverTelemetryManager, authorityUrl, azureCloudOptions, account);
-        return new SilentFlowClient(clientConfig, this.performanceClient);
-    }
-
-    async initializeSilentRequest(
-        request: SilentRequest,
-        account: AccountInfo
-    ): Promise<CommonSilentFlowRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.InitializeSilentRequest,
-            this.correlationId
+        return this.clearCacheOnLogout(
+            validLogoutRequest.correlationId,
+            validLogoutRequest?.account
         );
-
-        const baseRequest = await invokeAsync(
-            this.initializeBaseRequest.bind(this),
-            PerformanceEvents.InitializeBaseRequest,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(request);
-        return {
-            ...request,
-            ...baseRequest,
-            account: account,
-            forceRefresh: request.forceRefresh || false,
-        };
     }
 }

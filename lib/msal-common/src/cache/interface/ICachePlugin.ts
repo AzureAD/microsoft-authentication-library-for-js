@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TokenCacheContext } from "../persistence/TokenCacheContext";
+import { TokenCacheContext } from "../persistence/TokenCacheContext.js";
 
 export interface ICachePlugin {
     beforeCacheAccess: (tokenCacheContext: TokenCacheContext) => Promise<void>;

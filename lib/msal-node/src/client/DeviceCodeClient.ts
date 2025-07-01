@@ -21,12 +21,14 @@ import {
     StringUtils,
     TimeUtils,
     UrlString,
+    UrlUtils,
     createAuthError,
     createClientAuthError,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 
 /**
  * OAuth2.0 Device code client
+ * @public
  */
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
@@ -36,7 +38,7 @@ export class DeviceCodeClient extends BaseClient {
     /**
      * Gets device code from device code endpoint, calls back to with device code response, and
      * polls token endpoint to exchange device code for tokens
-     * @param request
+     * @param request - developer provided CommonDeviceCodeRequest
      */
     public async acquireToken(
         request: CommonDeviceCodeRequest
@@ -70,7 +72,7 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates device code request and executes http GET
-     * @param request
+     * @param request - developer provided CommonDeviceCodeRequest
      */
     private async getDeviceCode(
         request: CommonDeviceCodeRequest
@@ -98,37 +100,44 @@ export class DeviceCodeClient extends BaseClient {
             endpoint,
             queryString,
             headers,
-            thumbprint
+            thumbprint,
+            request.correlationId
         );
     }
 
     /**
      * Creates query string for the device code request
-     * @param request
+     * @param request - developer provided CommonDeviceCodeRequest
      */
-    createExtraQueryParameters(request: CommonDeviceCodeRequest): string {
-        const parameterBuilder = new RequestParameterBuilder();
+    public createExtraQueryParameters(
+        request: CommonDeviceCodeRequest
+    ): string {
+        const parameters = new Map<string, string>();
 
         if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.extraQueryParameters
             );
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 
     /**
      * Executes POST request to device code endpoint
-     * @param deviceCodeEndpoint
-     * @param queryString
-     * @param headers
+     * @param deviceCodeEndpoint - token endpoint
+     * @param queryString - string to be used in the body of the request
+     * @param headers - headers for the request
+     * @param thumbprint - unique request thumbprint
+     * @param correlationId - correlation id to be used in the request
      */
     private async executePostRequestToDeviceCodeEndpoint(
         deviceCodeEndpoint: string,
         queryString: string,
         headers: Record<string, string>,
-        thumbprint: RequestThumbprint
+        thumbprint: RequestThumbprint,
+        correlationId: string
     ): Promise<DeviceCodeResponse> {
         const {
             body: {
@@ -139,13 +148,14 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message,
             },
-        } = await this.networkManager.sendPostRequest<ServerDeviceCodeResponse>(
+        } = await this.sendPostRequest<ServerDeviceCodeResponse>(
             thumbprint,
             deviceCodeEndpoint,
             {
                 body: queryString,
                 headers: headers,
-            }
+            },
+            correlationId
         );
 
         return {
@@ -160,16 +170,20 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Create device code endpoint query parameters and returns string
+     * @param request - developer provided CommonDeviceCodeRequest
      */
     private createQueryString(request: CommonDeviceCodeRequest): string {
-        const parameterBuilder: RequestParameterBuilder =
-            new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
-        parameterBuilder.addScopes(request.scopes);
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addClientId(
+            parameters,
+            this.config.authOptions.clientId
+        );
 
         if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.extraQueryParameters
             );
         }
@@ -179,19 +193,21 @@ export class DeviceCodeClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            parameterBuilder.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 
     /**
-     * Breaks the polling with specific conditions.
-     * @param request CommonDeviceCodeRequest
-     * @param deviceCodeResponse DeviceCodeResponse
+     * Breaks the polling with specific conditions
+     * @param deviceCodeExpirationTime - expiration time for the device code request
+     * @param userSpecifiedTimeout - developer provided timeout, to be compared against deviceCodeExpirationTime
+     * @param userSpecifiedCancelFlag - boolean indicating the developer would like to cancel the request
      */
     private continuePolling(
         deviceCodeExpirationTime: number,
@@ -231,10 +247,9 @@ export class DeviceCodeClient extends BaseClient {
     }
 
     /**
-     * Creates token request with device code response and polls token endpoint at interval set by the device code
-     * response
-     * @param request
-     * @param deviceCodeResponse
+     * Creates token request with device code response and polls token endpoint at interval set by the device code response
+     * @param request - developer provided CommonDeviceCodeRequest
+     * @param deviceCodeResponse - DeviceCodeResponse returned by the security token service device code endpoint
      */
     private async acquireTokenWithDeviceCode(
         request: CommonDeviceCodeRequest,
@@ -326,32 +341,47 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates query parameters and converts to string.
-     * @param request
-     * @param deviceCodeResponse
+     * @param request - developer provided CommonDeviceCodeRequest
+     * @param deviceCodeResponse - DeviceCodeResponse returned by the security token service device code endpoint
      */
     private createTokenRequestBody(
         request: CommonDeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse
     ): string {
-        const requestParameters: RequestParameterBuilder =
-            new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
-        requestParameters.addScopes(request.scopes);
-        requestParameters.addClientId(this.config.authOptions.clientId);
-        requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
-        requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
+        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addClientId(
+            parameters,
+            this.config.authOptions.clientId
+        );
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            GrantType.DEVICE_CODE_GRANT
+        );
+        RequestParameterBuilder.addDeviceCode(
+            parameters,
+            deviceCodeResponse.deviceCode
+        );
         const correlationId =
             request.correlationId ||
             this.config.cryptoInterface.createNewGuid();
-        requestParameters.addCorrelationId(correlationId);
-        requestParameters.addClientInfo();
-        requestParameters.addLibraryInfo(this.config.libraryInfo);
-        requestParameters.addApplicationTelemetry(
+        RequestParameterBuilder.addCorrelationId(parameters, correlationId);
+        RequestParameterBuilder.addClientInfo(parameters);
+        RequestParameterBuilder.addLibraryInfo(
+            parameters,
+            this.config.libraryInfo
+        );
+        RequestParameterBuilder.addApplicationTelemetry(
+            parameters,
             this.config.telemetry.application
         );
-        requestParameters.addThrottling();
+        RequestParameterBuilder.addThrottling(parameters);
         if (this.serverTelemetryManager) {
-            requestParameters.addServerTelemetry(this.serverTelemetryManager);
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
         }
 
         if (
@@ -359,11 +389,12 @@ export class DeviceCodeClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            requestParameters.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
         }
-        return requestParameters.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

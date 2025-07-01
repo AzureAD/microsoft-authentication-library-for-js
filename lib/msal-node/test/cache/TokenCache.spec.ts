@@ -1,27 +1,36 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     LogLevel,
     Logger,
     TokenCacheContext,
     ICachePlugin,
     buildStaticAuthorityOptions,
+    EncodingTypes,
 } from "@azure/msal-common";
-import { NodeStorage } from "../../src/cache/NodeStorage";
-import { TokenCache } from "../../src/cache/TokenCache";
-import { promises as fs } from "fs";
+import { NodeStorage } from "../../src/cache/NodeStorage.js";
+import { TokenCache } from "../../src/cache/TokenCache.js";
+import { existsSync, watch, promises, FSWatcher } from "fs";
 import { version, name } from "../../package.json";
 import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ID_TOKEN_CLAIMS,
-} from "../utils/TestConstants";
-import { Deserializer } from "../../src/cache/serializer/Deserializer";
-import { JsonCache } from "../../src";
-import { MSALCommonModule } from "../utils/MockUtils";
+} from "../utils/TestConstants.js";
+import { Deserializer } from "../../src/cache/serializer/Deserializer.js";
+import { JsonCache } from "../../src/index.js";
+import { MSALCommonModule } from "../utils/MockUtils.js";
 
-const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
+const msalCommon: MSALCommonModule = jest.requireActual(
+    "@azure/msal-common/node"
+);
 
 describe("TokenCache tests", () => {
     let logger: Logger;
     let storage: NodeStorage;
+    let watcher: FSWatcher;
 
     beforeEach(() => {
         const loggerOptions = {
@@ -46,6 +55,12 @@ describe("TokenCache tests", () => {
             })
         );
         jest.restoreAllMocks();
+    });
+
+    afterEach(() => {
+        if (watcher) {
+            watcher.close();
+        }
     });
 
     it("Constructor tests builds default token cache", async () => {
@@ -113,15 +128,15 @@ describe("TokenCache tests", () => {
     it("TokenCache beforeCacheAccess and afterCacheAccess", async () => {
         const beforeCacheAccess = async (context: TokenCacheContext) => {
             context.tokenCache.deserialize(
-                await fs.readFile(
+                await promises.readFile(
                     "./test/cache/cache-test-files/cache-unrecognized-entities.json",
-                    "utf-8"
+                    EncodingTypes.UTF8
                 )
             );
         };
         const cachePath = "./test/cache/cache-test-files/temp-cache.json";
         const afterCacheAccess = async (context: TokenCacheContext) => {
-            await fs.writeFile(cachePath, context.tokenCache.serialize());
+            await promises.writeFile(cachePath, context.tokenCache.serialize());
         };
 
         const cachePlugin: ICachePlugin = {
@@ -151,7 +166,7 @@ describe("TokenCache tests", () => {
 
         // try and clean up
         try {
-            await fs.unlink(cachePath);
+            await promises.unlink(cachePath);
         } catch (err) {
             const errnoException = err as NodeJS.ErrnoException;
             if (errnoException.code == "ENOENT") {
@@ -160,6 +175,52 @@ describe("TokenCache tests", () => {
                 );
             }
         }
+    });
+
+    it("getAllAccounts doesn't write to cache", async () => {
+        const cachePath =
+            "./test/cache/cache-test-files/cache-unrecognized-entities.json";
+        if (existsSync(cachePath)) {
+            watcher = watch(cachePath, (eventType: string) => {
+                if (eventType === "change") {
+                    throw new Error("test cache changed");
+                }
+            });
+        } else {
+            throw new Error("error in watching test cache");
+        }
+
+        const beforeCacheAccess = jest.fn(
+            async (context: TokenCacheContext) => {
+                if (context.hasChanged == true) {
+                    throw new Error("hasChanged should be false");
+                }
+                return promises
+                    .readFile(cachePath, EncodingTypes.UTF8)
+                    .then((data) => {
+                        context.tokenCache.deserialize(data);
+                    });
+            }
+        );
+
+        const afterCacheAccess = jest.fn(async (context: TokenCacheContext) => {
+            if (context.hasChanged == true) {
+                throw new Error("hasChanged should be false");
+            }
+            return Promise.resolve();
+        });
+
+        const cachePlugin: ICachePlugin = {
+            beforeCacheAccess,
+            afterCacheAccess,
+        };
+
+        const tokenCache = new TokenCache(storage, logger, cachePlugin);
+
+        const accounts = await tokenCache.getAllAccounts();
+        expect(accounts.length).toBe(1);
+        expect(beforeCacheAccess).toHaveBeenCalled();
+        expect(afterCacheAccess).toHaveBeenCalled();
     });
 
     it("should return an empty KV store if TokenCache is empty", () => {
@@ -187,5 +248,50 @@ describe("TokenCache tests", () => {
                 });
             }
         );
+    });
+
+    it("overwriteCache should overwrite the in-memory cache with persistent cache if exists", async () => {
+        const cachePath = "./test/cache/cache-test-files/default-cache.json";
+        const beforeCacheAccess = async (context: TokenCacheContext) => {
+            context.tokenCache.deserialize(
+                await promises.readFile(cachePath, EncodingTypes.UTF8)
+            );
+        };
+        const afterCacheAccess = async (context: TokenCacheContext) => {
+            await promises.writeFile(cachePath, context.tokenCache.serialize());
+        };
+
+        const cachePlugin: ICachePlugin = {
+            beforeCacheAccess,
+            afterCacheAccess,
+        };
+
+        const tokenCache = new TokenCache(storage, logger, cachePlugin);
+
+        const clearSpy = jest.spyOn(NodeStorage.prototype, "clear");
+        // persistent cache in CacheKVStore format
+        const deserializedCacheSpy = jest.spyOn(
+            NodeStorage.prototype,
+            "inMemoryCacheToCache"
+        );
+
+        await tokenCache.overwriteCache();
+        expect(clearSpy).toHaveBeenCalled();
+        expect(deserializedCacheSpy).toHaveBeenCalledTimes(2); // first call returns serialized cache, second call returns deserialized cache
+        expect(deserializedCacheSpy.mock.results[1].value).toBe(
+            tokenCache.getKVStore()
+        );
+    });
+
+    it("overwriteCache should not throw and simply return if persistent cache does not exist", async () => {
+        const tokenCache = new TokenCache(storage, logger);
+
+        const clearSpy = jest.spyOn(NodeStorage.prototype, "clear");
+        const setSpy = jest.spyOn(NodeStorage.prototype, "setCache");
+
+        await tokenCache.overwriteCache();
+        expect(clearSpy).not.toHaveBeenCalled();
+        expect(setSpy).not.toHaveBeenCalled();
+        expect(tokenCache.getKVStore()).toEqual({});
     });
 });

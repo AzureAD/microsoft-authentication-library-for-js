@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "@azure/msal-common";
+import { AccountInfo } from "@azure/msal-common/browser";
 
 /**
  * ClearCacheRequest

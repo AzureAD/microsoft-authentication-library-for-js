@@ -16,6 +16,8 @@ const argv = require("../cliArgs");
 const cacheLocation = argv.c || "./data/cache.json";
 const cachePlugin = require('../cachePlugin')(cacheLocation);
 
+require('dotenv').config();
+
 /**
  * The scenario string is the name of a .json file which contains the MSAL client configuration
  * For an example of what a configuration file should look like, check out the customConfig.json file in the
@@ -36,15 +38,7 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
         skipCache: true, // (optional) this skips the cache and forces MSAL to get a new token from Azure AD
     };
 
-    return cca
-        .acquireTokenByClientCredential(clientCredentialRequest)
-        .then((response) => {
-            // Uncomment to see the successful response logged
-            // console.log("Response: ", response);
-        }).catch((error) => {
-            // Uncomment to see the errors logges
-            // console.log(JSON.stringify(error));
-        });
+    return cca.acquireTokenByClientCredential(clientCredentialRequest);
 }
 
 /**
@@ -53,24 +47,28 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
  * and execute the sample client credentials application.
  */
 if(argv.$0 === "index.js") {
-    const loggerOptions = {
-        loggerCallback(loglevel, message, containsPii) {
-            console.log(message);
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
         },
-        piiLoggingEnabled: false,
-        logLevel: msal.LogLevel.Verbose,
+        piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Verbose,
     }
     
     // Build MSAL ClientApplication Configuration object
     const clientConfig = {
-        auth: config.authOptions,
+        auth: {
+            clientId: "ENTER_CLIENT_ID",
+            authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+            clientSecret: process.env.CLIENT_SECRET,
+        },
         cache: {
             cachePlugin
         },
         // Uncomment or comment the code below to enable or disable the MSAL logger respectively
         // system: {
-        //    loggerOptions,
-        // }
+        //    loggerOptions,
+        // }
     };
     
     // Create msal application object

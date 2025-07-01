@@ -281,3 +281,9 @@ tsconfig.build.tsbuildinfo
 
 # MSAL Node Cache Files
 temp-cache.json
+
+# Jest JUnit reporter
+junit.xml
+
+# ApiExtractor
+temp/

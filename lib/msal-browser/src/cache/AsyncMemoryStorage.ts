@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-common";
+import { Logger } from "@azure/msal-common/browser";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { DatabaseStorage } from "./DatabaseStorage";
-import { IAsyncStorage } from "./IAsyncMemoryStorage";
-import { MemoryStorage } from "./MemoryStorage";
+} from "../error/BrowserAuthError.js";
+import { DatabaseStorage } from "./DatabaseStorage.js";
+import { IAsyncStorage } from "./IAsyncStorage.js";
+import { MemoryStorage } from "./MemoryStorage.js";
 
 /**
  * This class allows MSAL to store artifacts asynchronously using the DatabaseStorage IndexedDB wrapper,
@@ -20,13 +20,11 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     private inMemoryCache: MemoryStorage<T>;
     private indexedDBCache: DatabaseStorage<T>;
     private logger: Logger;
-    private storeName: string;
 
-    constructor(logger: Logger, storeName: string) {
+    constructor(logger: Logger) {
         this.inMemoryCache = new MemoryStorage<T>();
         this.indexedDBCache = new DatabaseStorage<T>();
         this.logger = logger;
-        this.storeName = storeName;
     }
 
     private handleDatabaseAccessError(error: unknown): void {
@@ -132,9 +130,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     clearInMemory(): void {
         // InMemory cache is a Map instance, clear is straightforward
-        this.logger.verbose(`Deleting in-memory keystore ${this.storeName}`);
+        this.logger.verbose(`Deleting in-memory keystore`);
         this.inMemoryCache.clear();
-        this.logger.verbose(`In-memory keystore ${this.storeName} deleted`);
+        this.logger.verbose(`In-memory keystore deleted`);
     }
 
     /**

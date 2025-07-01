@@ -7,37 +7,43 @@ import {
     ICrypto,
     Logger,
     PromptValue,
-    CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     AuthError,
-    ProtocolUtils,
     IPerformanceClient,
     PerformanceEvents,
     invokeAsync,
     invoke,
-} from "@azure/msal-common";
-import { StandardInteractionClient } from "./StandardInteractionClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { INavigationClient } from "../navigation/INavigationClient";
+    ProtocolMode,
+    CommonAuthorizationUrlRequest,
+} from "@azure/msal-common/browser";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { InteractionType, ApiId } from "../utils/BrowserConstants";
+} from "../error/BrowserAuthError.js";
 import {
-    initiateAuthRequest,
+    InteractionType,
+    ApiId,
+    BrowserConstants,
+} from "../utils/BrowserConstants.js";
+import {
+    initiateCodeRequest,
+    initiateEarRequest,
     monitorIframeForHash,
-} from "../interaction_handler/SilentHandler";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { NativeInteractionClient } from "./NativeInteractionClient";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { InteractionHandler } from "../interaction_handler/InteractionHandler";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import * as ResponseHandler from "../response/ResponseHandler";
+} from "../interaction_handler/SilentHandler.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import * as ResponseHandler from "../response/ResponseHandler.js";
+import * as Authorize from "../protocol/Authorize.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
+import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -53,7 +59,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthProvider?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         super(
@@ -64,7 +70,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthProvider,
             correlationId
         );
         this.apiId = apiId;
@@ -93,51 +99,73 @@ export class SilentIframeClient extends StandardInteractionClient {
             );
         }
 
-        // Check that prompt is set to none or no_session, throw error if it is set to anything else.
-        if (
-            request.prompt &&
-            request.prompt !== PromptValue.NONE &&
-            request.prompt !== PromptValue.NO_SESSION
-        ) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.silentPromptValueError
-            );
+        // Check the prompt value
+        const inputRequest = { ...request };
+        if (inputRequest.prompt) {
+            if (
+                inputRequest.prompt !== PromptValue.NONE &&
+                inputRequest.prompt !== PromptValue.NO_SESSION
+            ) {
+                this.logger.warning(
+                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${PromptValue.NONE}`
+                );
+                inputRequest.prompt = PromptValue.NONE;
+            }
+        } else {
+            inputRequest.prompt = PromptValue.NONE;
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = await invokeAsync(
+        const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(
-            {
-                ...request,
-                prompt: request.prompt || PromptValue.NONE,
-            },
-            InteractionType.Silent
+        )(inputRequest, InteractionType.Silent);
+        silentRequest.platformBroker = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            this.platformAuthProvider,
+            silentRequest.authenticationScheme
         );
         BrowserUtils.preconnect(silentRequest.authority);
 
+        if (this.config.auth.protocolMode === ProtocolMode.EAR) {
+            return this.executeEarFlow(silentRequest);
+        } else {
+            return this.executeCodeFlow(silentRequest);
+        }
+    }
+
+    /**
+     * Executes auth code + PKCE flow
+     * @param request
+     * @returns
+     */
+    async executeCodeFlow(
+        request: CommonAuthorizationUrlRequest
+    ): Promise<AuthenticationResult> {
+        let authClient: AuthorizationCodeClient | undefined;
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             this.apiId
         );
 
         try {
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await invokeAsync(
+            authClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                silentRequest.authority,
-                silentRequest.azureCloudOptions,
-                silentRequest.account
-            );
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+            });
 
             return await invokeAsync(
                 this.silentTokenHelper.bind(this),
@@ -145,14 +173,129 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(authClient, silentRequest);
+            )(authClient, request);
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            throw e;
+
+            if (
+                !authClient ||
+                !(e instanceof AuthError) ||
+                e.errorCode !== BrowserConstants.INVALID_GRANT_ERROR
+            ) {
+                throw e;
+            }
+
+            this.performanceClient.addFields(
+                {
+                    retryError: e.errorCode,
+                },
+                this.correlationId
+            );
+
+            return await invokeAsync(
+                this.silentTokenHelper.bind(this),
+                PerformanceEvents.SilentIframeClientTokenHelper,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(authClient, request);
         }
+    }
+
+    /**
+     * Executes EAR flow
+     * @param request
+     */
+    async executeEarFlow(
+        request: CommonAuthorizationUrlRequest
+    ): Promise<AuthenticationResult> {
+        const correlationId = request.correlationId;
+        const discoveredAuthority = await invokeAsync(
+            this.getDiscoveredAuthority.bind(this),
+            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )({
+            requestAuthority: request.authority,
+            requestAzureCloudOptions: request.azureCloudOptions,
+            requestExtraQueryParameters: request.extraQueryParameters,
+            account: request.account,
+        });
+
+        const earJwk = await invokeAsync(
+            generateEarKey,
+            PerformanceEvents.GenerateEarKey,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+        const silentRequest = {
+            ...request,
+            earJwk: earJwk,
+        };
+        const msalFrame = await invokeAsync(
+            initiateEarRequest,
+            PerformanceEvents.SilentHandlerInitiateAuthRequest,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            this.config,
+            discoveredAuthority,
+            silentRequest,
+            this.logger,
+            this.performanceClient
+        );
+
+        const responseType = this.config.auth.OIDCOptions.serverResponseType;
+        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+        const responseString = await invokeAsync(
+            monitorIframeForHash,
+            PerformanceEvents.SilentHandlerMonitorIframeForHash,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            msalFrame,
+            this.config.system.iframeHashTimeout,
+            this.config.system.pollIntervalMilliseconds,
+            this.performanceClient,
+            this.logger,
+            correlationId,
+            responseType
+        );
+
+        const serverParams = invoke(
+            ResponseHandler.deserializeResponse,
+            PerformanceEvents.DeserializeResponse,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(responseString, responseType, this.logger);
+
+        return invokeAsync(
+            Authorize.handleResponseEAR,
+            PerformanceEvents.HandleResponseEar,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            silentRequest,
+            serverParams,
+            this.apiId,
+            this.config,
+            discoveredAuthority,
+            this.browserStorage,
+            this.nativeStorage,
+            this.eventHandler,
+            this.logger,
+            this.performanceClient,
+            this.platformAuthProvider
+        );
     }
 
     /**
@@ -175,52 +318,43 @@ export class SilentIframeClient extends StandardInteractionClient {
      */
     protected async silentTokenHelper(
         authClient: AuthorizationCodeClient,
-        silentRequest: AuthorizationUrlRequest
+        request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
-        const correlationId = silentRequest.correlationId;
+        const correlationId = request.correlationId;
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.SilentIframeClientTokenHelper,
             correlationId
         );
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.performanceClient, this.logger, correlationId);
 
-        // Create auth code request and generate PKCE params
-        const authCodeRequest: CommonAuthorizationCodeRequest =
-            await invokeAsync(
-                this.initializeAuthorizationCodeRequest.bind(this),
-                PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(silentRequest);
-
+        const silentRequest = {
+            ...request,
+            codeChallenge: pkceCodes.challenge,
+        };
         // Create authorize request url
         const navigateUrl = await invokeAsync(
-            authClient.getAuthCodeUrl.bind(authClient),
+            Authorize.getAuthCodeRequestUrl,
             PerformanceEvents.GetAuthCodeUrl,
             this.logger,
             this.performanceClient,
             correlationId
-        )({
-            ...silentRequest,
-            nativeBroker: NativeMessageHandler.isNativeAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                silentRequest.authenticationScheme
-            ),
-        });
-
-        // Create silent handler
-        const interactionHandler = new InteractionHandler(
-            authClient,
-            this.browserStorage,
-            authCodeRequest,
+        )(
+            this.config,
+            authClient.authority,
+            silentRequest,
             this.logger,
             this.performanceClient
         );
+
         // Get the frame handle for the silent request
         const msalFrame = await invokeAsync(
-            initiateAuthRequest,
+            initiateCodeRequest,
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
             this.performanceClient,
@@ -232,6 +366,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId,
             this.config.system.navigateFrameWait
         );
+
         const responseType = this.config.auth.OIDCOptions.serverResponseType;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
@@ -254,58 +389,28 @@ export class SilentIframeClient extends StandardInteractionClient {
             PerformanceEvents.DeserializeResponse,
             this.logger,
             this.performanceClient,
-            this.correlationId
+            correlationId
         )(responseString, responseType, this.logger);
 
-        if (serverParams.accountId) {
-            this.logger.verbose(
-                "Account id found in hash, calling WAM for token"
-            );
-            if (!this.nativeMessageHandler) {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                );
-            }
-            const nativeInteractionClient = new NativeInteractionClient(
-                this.config,
-                this.browserStorage,
-                this.browserCrypto,
-                this.logger,
-                this.eventHandler,
-                this.navigationClient,
-                this.apiId,
-                this.performanceClient,
-                this.nativeMessageHandler,
-                serverParams.accountId,
-                this.browserStorage,
-                correlationId
-            );
-            const { userRequestState } = ProtocolUtils.parseRequestState(
-                this.browserCrypto,
-                silentRequest.state
-            );
-            return invokeAsync(
-                nativeInteractionClient.acquireToken.bind(
-                    nativeInteractionClient
-                ),
-                PerformanceEvents.NativeInteractionClientAcquireToken,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )({
-                ...silentRequest,
-                state: userRequestState,
-                prompt: silentRequest.prompt || PromptValue.NONE,
-            });
-        }
-
-        // Handle response from hash string
         return invokeAsync(
-            interactionHandler.handleCodeResponse.bind(interactionHandler),
-            PerformanceEvents.HandleCodeResponse,
+            Authorize.handleResponseCode,
+            PerformanceEvents.HandleResponseCode,
             this.logger,
             this.performanceClient,
             correlationId
-        )(serverParams, silentRequest);
+        )(
+            request,
+            serverParams,
+            pkceCodes.verifier,
+            this.apiId,
+            this.config,
+            authClient,
+            this.browserStorage,
+            this.nativeStorage,
+            this.eventHandler,
+            this.logger,
+            this.performanceClient,
+            this.platformAuthProvider
+        );
     }
 }

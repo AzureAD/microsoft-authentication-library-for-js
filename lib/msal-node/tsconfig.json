@@ -9,7 +9,8 @@
   ],
   "compilerOptions": {
     "target": "es2020",
-    "module": "esnext",
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
     "declaration": true,
     "declarationMap": true,
     "lib": [
@@ -33,7 +34,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
     "jsx": "react",
     "esModuleInterop": true,
     "suppressImplicitAnyIndexErrors": true,

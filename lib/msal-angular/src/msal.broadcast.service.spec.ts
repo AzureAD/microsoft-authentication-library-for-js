@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import {
+  EventHandler,
   EventType,
   InteractionStatus,
   InteractionType,
@@ -14,13 +15,22 @@ let subscription: Subscription;
 
 const msalInstance = new PublicClientApplication({
   auth: {
-    clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
+    clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
     redirectUri: "http://localhost:4200",
   },
 });
 
+let eventHandler;
+const eventSpy = jasmine.createSpy("addEventCallback");
+msalInstance.addEventCallback = eventSpy;
+
 function initializeMsal(providers: any[] = []) {
   TestBed.resetTestingModule();
+
+  eventHandler = new EventHandler();
+  eventSpy.and.callFake((callback, types) => {
+    return eventHandler.addEventCallback(callback, types);
+  });
 
   TestBed.configureTestingModule({
     imports: [
@@ -30,6 +40,7 @@ function initializeMsal(providers: any[] = []) {
       }),
     ],
     providers: [MsalBroadcastService, ...providers],
+    teardown: { destroyAfterEach: false },
   });
   broadcastService = TestBed.inject(MsalBroadcastService);
 }
@@ -68,10 +79,7 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
   });
 
   it("broadcasts previous events if MsalBroadcastConfig set and eventsToReplay is greater than 0", (done) => {
@@ -115,10 +123,7 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
 
     subscription.unsubscribe();
 
@@ -161,14 +166,14 @@ describe("MsalBroadcastService", () => {
       }
     );
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_START,
+      InteractionType.Redirect
+    );
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_END,
+      InteractionType.Redirect
+    );
 
     newSubscription.unsubscribe();
   });
@@ -220,14 +225,11 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.INITIALIZE_START, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.INITIALIZE_START,
+      InteractionType.Redirect
+    );
+    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
 
     subscription.unsubscribe();
 
@@ -270,14 +272,14 @@ describe("MsalBroadcastService", () => {
       }
     );
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_START,
+      InteractionType.Redirect
+    );
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_END,
+      InteractionType.Redirect
+    );
 
     newSubscription.unsubscribe();
   });
@@ -314,10 +316,7 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
 
     subscription.unsubscribe();
 
@@ -354,14 +353,14 @@ describe("MsalBroadcastService", () => {
       }
     );
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_START,
+      InteractionType.Redirect
+    );
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_END,
+      InteractionType.Redirect
+    );
 
     newSubscription.unsubscribe();
   });
@@ -382,14 +381,11 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_START,
+      InteractionType.Redirect
+    );
+    eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
   });
 
   it("HANDLE_REDIRECT_END event sets inProgress to None if handleRedirect is in progress", (done) => {
@@ -409,18 +405,15 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_START,
+      InteractionType.Redirect
+    );
+    eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_END,
+      InteractionType.Redirect
+    );
   });
 
   it("HANDLE_REDIRECT_END event does not set inProgress to None if login is in progress", (done) => {
@@ -440,17 +433,39 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
-    // @ts-ignore
-    msalInstance.controller
-      .getEventHandler()
-      .emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_START,
+      InteractionType.Redirect
+    );
+    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_END,
+      InteractionType.Redirect
+    );
+  });
+
+  it("automatically sets inProgress to None when handleRedirectPromise returns without emitting an event", (done) => {
+    const expectedInProgress = [
+      InteractionStatus.Startup,
+      InteractionStatus.None,
+    ];
+    let index = 0;
+
+    subscription = broadcastService.inProgress$.subscribe((result) => {
+      expect(result).toEqual(expectedInProgress[index]);
+      if (index === expectedInProgress.length - 1) {
+        done();
+      } else if (expectedInProgress[index] === InteractionStatus.Startup) {
+        index++;
+        broadcastService.resetInProgressEvent();
+      } else {
+        index++;
+      }
+    });
+
+    eventHandler.emitEvent(
+      EventType.INITIALIZE_START,
+      InteractionType.Redirect
+    );
   });
 });

@@ -45,7 +45,9 @@ The current version supports the following ways of acquiring tokens:
 -   [On-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
 -   [Username and Password flow](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows#usernamepassword)
 
-More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows).
+Note that the username and password flow is deprecated and support will be removed in a future release.
+
+More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows). 
 
 ### Scenarios supported:
 
@@ -88,7 +90,8 @@ Any major MSAL Node release:
 
 | MSAL Node version | MSAL support status | Supported Node versions |
 | ----------------- | ------------------- | ----------------------- |
-| 2.x.x             | Active development  | 16, 18, 20              |
+| 3.x.x             | Active development  | 16, 18, 20, 22, 24      |
+| 2.x.x             | Active development  | 16, 18, 20, 22          |
 | 1.x.x             | In maintenance      | 10, 12, 14, 16, 18      |
 
 **Note:** There have been no functional changes in the MSAL Node v2 release.

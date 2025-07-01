@@ -152,8 +152,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     logMessages.push({ level: level, message: message });
                 },
                 logLevel: LogLevel.Verbose,
-            }),
-            "TEST_KEYSTORE"
+            })
         );
 
         describe("getItem", () => {
@@ -176,7 +175,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 expect(item).toBe(TEST_CACHE_ITEMS.TestItem.value);
             });
 
-            it("should get item from persistent cache when in-memory cache doesn't contain item", async () => {
+            it("should get item from persistent cache when in-memory cache does not contain item", async () => {
                 mockDatabase[TEST_DB_TABLE_NAME][
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = TEST_CACHE_ITEMS.TestItem.value;
@@ -275,16 +274,6 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 asyncMemoryStorage.clearInMemory();
                 expect(callCounter.clearInMemory).toBe(1);
                 expect(
-                    logMessages[0]["message"].indexOf(
-                        "Deleting in-memory keystore TEST_KEYSTORE"
-                    )
-                ).not.toBe(-1);
-                expect(
-                    logMessages[1]["message"].indexOf(
-                        "In-memory keystore TEST_KEYSTORE deleted"
-                    )
-                ).not.toBe(-1);
-                expect(
                     Object.keys(mockInMemoryCache[TEST_DB_TABLE_NAME]).length
                 ).toBe(0);
             });
@@ -293,16 +282,6 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 const deleted = await asyncMemoryStorage.clearPersistent();
                 expect(deleted).toBe(true);
                 expect(callCounter.clearPersistent).toBe(1);
-                expect(
-                    logMessages[0]["message"].indexOf(
-                        "Deleting persistent keystore"
-                    )
-                ).not.toBe(-1);
-                expect(
-                    logMessages[1]["message"].indexOf(
-                        "Persistent keystore deleted"
-                    )
-                ).not.toBe(-1);
                 expect(mockDatabase[TEST_DB_TABLE_NAME]).toBe(undefined);
             });
 
@@ -332,8 +311,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     logMessages.push({ level: level, message: message });
                 },
                 logLevel: LogLevel.Verbose,
-            }),
-            "TEST_KEYSTORE"
+            })
         );
 
         describe("getItem", () => {

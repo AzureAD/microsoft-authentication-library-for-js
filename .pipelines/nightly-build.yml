@@ -2,44 +2,44 @@ trigger: none # Disable push triggers
 pr: none # Disable pull request triggers
 
 variables:
-  Codeql.Enabled: true
+    Codeql.Enabled: true
 
 schedules:
-  - cron: " 0 0 * * *"
-    displayName: Nightly Build
-    branches:
-      include:
-        - dev
+    - cron: " 0 0 * * *"
+      displayName: Nightly Build
+      branches:
+          include:
+              - dev
 
 jobs:
-  - job: Build
-    displayName: "Build MSAL.js"
-    pool:
-      vmImage: "ubuntu-latest"
-    steps:
-      - task: CodeQL3000Init@0
+    - job: Build
+      displayName: "Build MSAL.js"
+      pool:
+          vmImage: "windows-latest"
+      steps:
+          - task: CodeQL3000Init@0
 
-      - task: NodeTool@0
-        displayName: "Install Node.js"
-        inputs:
-          versionSpec: "20.x"
+          - task: NodeTool@0
+            displayName: "Install Node.js"
+            inputs:
+                versionSpec: "20.x"
 
-      - task: Npm@1
-        displayName: "Install Dependencies"
-        inputs:
-          command: "ci"
+          - task: Npm@1
+            displayName: "Install Dependencies"
+            inputs:
+                command: "ci"
 
-      - task: Npm@1
-        displayName: "Build Libraries"
-        inputs:
-          command: "custom"
-          customCommand: "run build --workspace=lib/** --workspace=extensions/**"
+          - task: Npm@1
+            displayName: "Build Libraries"
+            inputs:
+                command: "custom"
+                customCommand: "run build --workspace=lib/** --workspace=extensions/msal-node-extensions"
 
-      - task: Npm@1
-        displayName: "Run tests"
-        continueOnError: true
-        inputs:
-          command: "custom"
-          customCommand: "run test --workspace=lib/** --workspace=extensions/**"
+          - task: Npm@1
+            displayName: "Run tests"
+            continueOnError: true
+            inputs:
+                command: "custom"
+                customCommand: "run test --workspace=lib/** --workspace=extensions/msal-node-extensions"
 
-      - task: CodeQL3000Finalize@0
+          - task: CodeQL3000Finalize@0

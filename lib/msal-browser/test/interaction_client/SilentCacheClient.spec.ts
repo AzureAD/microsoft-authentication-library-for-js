@@ -3,14 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { PublicClientApplication } from "../../src";
+import { PublicClientApplication } from "../../src/index.js";
 import {
     TEST_CONFIG,
     ID_TOKEN_CLAIMS,
     TEST_TOKENS,
-} from "../utils/StringConstants";
-import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
+} from "../utils/StringConstants.js";
+import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import {
     AuthToken,
     CacheManager,
@@ -34,6 +33,7 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
 const testAccount: AccountInfo = {
     ...testAccountEntity.getAccountInfo(),
     idTokenClaims: ID_TOKEN_CLAIMS,
+    idToken: TEST_TOKENS.IDTOKEN_V2,
 };
 
 const testIdToken: IdTokenEntity = buildIdToken(
@@ -102,7 +102,6 @@ describe("SilentCacheClient", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-        sinon.restore();
     });
 
     describe("acquireToken", () => {
@@ -118,24 +117,26 @@ describe("SilentCacheClient", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 fromCache: true,
                 correlationId: "testCorrelationId",
-                expiresOn: new Date(
-                    Number(testAccessTokenEntity.expiresOn) * 1000
+                expiresOn: TimeUtils.toDateFromSeconds(
+                    testAccessTokenEntity.expiresOn
                 ),
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CacheManager.prototype, "readAccountFromCache")
-                .returns(testAccountEntity);
-            sinon
-                .stub(CacheManager.prototype, "getIdToken")
-                .returns(testIdToken);
-            sinon
-                .stub(CacheManager.prototype, "getAccessToken")
-                .returns(testAccessTokenEntity);
-            sinon
-                .stub(CacheManager.prototype, "getRefreshToken")
-                .returns(testRefreshTokenEntity);
-
+            jest.spyOn(
+                CacheManager.prototype,
+                "readAccountFromCache"
+            ).mockReturnValue(testAccountEntity);
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                testIdToken
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(testAccessTokenEntity);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(testRefreshTokenEntity);
             await expect(
                 silentCacheClient.acquireToken({
                     authority: TEST_CONFIG.validAuthority,
@@ -151,9 +152,9 @@ describe("SilentCacheClient", () => {
     describe("logout", () => {
         it("logout clears browser cache", async () => {
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccountEntity);
+            await pca.browserStorage.setAccount(testAccountEntity);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(testIdToken);
+            await pca.browserStorage.setIdTokenCredential(testIdToken);
 
             pca.setActiveAccount(testAccount);
             expect(pca.getActiveAccount()).toEqual(testAccount);

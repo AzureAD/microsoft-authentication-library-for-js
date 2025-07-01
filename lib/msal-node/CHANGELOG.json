@@ -2,6 +2,1290 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 18 Jun 2025 15:21:55 GMT",
+      "version": "3.6.1",
+      "tag": "@azure/msal-node_v3.6.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "32c6a1bd1f2a8d2da6a1b0ad69a5fd9c7e4107c4",
+            "comment": "remove access tokens synchronously"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "32c6a1bd1f2a8d2da6a1b0ad69a5fd9c7e4107c4",
+            "comment": "Added support for DEFAULT_IDENTITY_CLIENT_ID environment variable in Machine Learning Managed Identity #7616"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.7.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 30 May 2025 22:36:44 GMT",
+      "version": "3.6.0",
+      "tag": "@azure/msal-node_v3.6.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "update common version"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "Added token revocation functionality to Managed Identity's App Service and Service Fabric Sources #7679"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "Overhauled the comments in Imds.ts to make the code easier to read #7787"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "Overhauled the comments in ServiceFabric.ts to make the code easier to read #7789"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "Added Constants for Encoding Types #7766"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 06 May 2025 22:47:43 GMT",
+      "version": "3.5.3",
+      "tag": "@azure/msal-node_v3.5.3",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b6098464c80f3db124ca3db145446ddb71be936d",
+            "comment": "Minor comment updates for retry policy tests #7704"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b6098464c80f3db124ca3db145446ddb71be936d",
+            "comment": "New dev dependency"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.6.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 29 Apr 2025 20:25:48 GMT",
+      "version": "3.5.2",
+      "tag": "@azure/msal-node_v3.5.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "2b6112d62495ac4e3245d8a0d9be6b541ffb206c",
+            "comment": "Fix circular type imports"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.5.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 15 Apr 2025 23:34:14 GMT",
+      "version": "3.5.1",
+      "tag": "@azure/msal-node_v3.5.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "66a6372ce1e4f80992e49d2c153628ad0415b71f",
+            "comment": "Add config option to not encode extra params"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.5.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Apr 2025 16:56:06 GMT",
+      "version": "3.5.0",
+      "tag": "@azure/msal-node_v3.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Machine Learning Managed Identity now correctly uses MSI's 2017 API instead of the 2019 API #7631"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Implemented a Retry Policy for the IMDS Managed Identity Source #7614"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.5.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 25 Mar 2025 22:29:34 GMT",
+      "version": "3.4.1",
+      "tag": "@azure/msal-node_v3.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8bbed7012616d9106c923d08b5c4e408a741577f",
+            "comment": "Move addition of extraQueryParameters during request generation"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8bbed7012616d9106c923d08b5c4e408a741577f",
+            "comment": "Minor updates to Authorize query string generation"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.4.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 20 Mar 2025 22:09:04 GMT",
+      "version": "3.4.0",
+      "tag": "@azure/msal-node_v3.4.0",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "Test changes"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "refactor RequestParameterBuilder"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "Refactor /authorize request generation"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.3.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 11 Mar 2025 18:51:25 GMT",
+      "version": "3.3.0",
+      "tag": "@azure/msal-node_v3.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "6f441e3c2deb388242c10be98186935cfe7d2a2e",
+            "comment": "Reworked Managed Identity Retry Policy to be per-request, which is based on the Managed Identity source. #7603"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.2.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Mar 2025 23:02:15 GMT",
+      "version": "3.2.3",
+      "tag": "@azure/msal-node_v3.2.3",
+      "comments": {
+        "undefined": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 18 Feb 2025 18:51:41 GMT",
+      "version": "3.2.3",
+      "tag": "@azure/msal-node_v3.2.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "db11f0bcb6bb97b5d21f24893ca3de0e4fb1f115",
+            "comment": "Deprecate ROPC flow"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.2.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 11 Feb 2025 16:09:10 GMT",
+      "version": "3.2.2",
+      "tag": "@azure/msal-node_v3.2.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a3e8c2c174d761e4398ba25315dd5999aa9f42d8",
+            "comment": "ManagedIdentityTokenResponse's expires_in can now be accepted in ISO 8601 date format #7544"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 05 Feb 2025 00:15:19 GMT",
+      "version": "3.2.1",
+      "tag": "@azure/msal-node_v3.2.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.1.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 03 Feb 2025 17:48:09 GMT",
+      "version": "3.2.0",
+      "tag": "@azure/msal-node_v3.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ce193af8b04d6db8aa7794884cf52f95d13b6ce6",
+            "comment": "Search in persistent cache for cached token"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.1.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ce193af8b04d6db8aa7794884cf52f95d13b6ce6",
+            "comment": "Fixed some test constants and imports #7545"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 22 Jan 2025 21:45:31 GMT",
+      "version": "3.1.0",
+      "tag": "@azure/msal-node_v3.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8c2c0d1e1c9d2731475667638ac3738c8d50c91a",
+            "comment": "Added Machine Learning as a Managed Identity Source #7512"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.0.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8c2c0d1e1c9d2731475667638ac3738c8d50c91a",
+            "comment": "Fixed incorrect IMDS resource ID query parameter"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "8c2c0d1e1c9d2731475667638ac3738c8d50c91a",
+            "comment": "Avoid calling class methods in their own constructors"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 15 Jan 2025 05:05:17 GMT",
+      "version": "3.0.1",
+      "tag": "@azure/msal-node_v3.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
+            "comment": "Asynchronous cache writes"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 14 Jan 2025 22:59:33 GMT",
+      "version": "2.16.2",
+      "tag": "@azure/msal-node_v2.16.2",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "3b9c4f30d0ca132e22b7f0d756ececbd9be89e63",
+            "comment": "Fixed file extentions on imports. Added MS license to all files. (#7454)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 19 Nov 2024 17:21:57 GMT",
+      "version": "2.16.2",
+      "tag": "@azure/msal-node_v2.16.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "luccarebtoledo@gmail.com",
+            "package": "@azure/msal-node",
+            "commit": "6362e79cfff838ec5c57efbfeffc3e5262dc2513",
+            "comment": "removeAccount method now clears client cache by retrieving partitionKey when accountEntities are empty (#7329)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 12 Nov 2024 15:32:46 GMT",
+      "version": "2.16.1",
+      "tag": "@azure/msal-node_v2.16.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "411d815f623a777c57444eed827b599a4f2570c4",
+            "comment": "Fixes bug where getAllAccounts always writes to the cache"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Nov 2024 18:58:45 GMT",
+      "version": "2.16.0",
+      "tag": "@azure/msal-node_v2.16.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1bd3b55dcfd3b544359cc41ff58c63208fd52116",
+            "comment": "Add first order broker parameters #7348"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1bd3b55dcfd3b544359cc41ff58c63208fd52116",
+            "comment": "Make clear synchronous"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1bd3b55dcfd3b544359cc41ff58c63208fd52116",
+            "comment": "Remove NetworkManager class"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1bd3b55dcfd3b544359cc41ff58c63208fd52116",
+            "comment": "Region auto enable on env variable #7354"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.16.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1bd3b55dcfd3b544359cc41ff58c63208fd52116",
+            "comment": "Removed warnings from msal-node-api.md #7376"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Oct 2024 16:51:05 GMT",
+      "version": "2.15.0",
+      "tag": "@azure/msal-node_v2.15.0",
+      "comments": {
+        "undefined": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 03 Oct 2024 00:40:42 GMT",
+      "version": "2.15.0",
+      "tag": "@azure/msal-node_v2.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "704a8de9cc2d622534dee1a79dc19b0a8a52fe91",
+            "comment": "Implemented functionality to skip the cache for MI when claims are provided #7207"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "704a8de9cc2d622534dee1a79dc19b0a8a52fe91",
+            "comment": "Allow POP Params for brokered requests"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 19 Sep 2024 23:48:30 GMT",
+      "version": "2.14.0",
+      "tag": "@azure/msal-node_v2.14.0",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1111b2cb77d7ae26dd0b57719953f7d1fb3c3de9",
+            "comment": "Eliminated sinon from msal-node's device code unit tests and from msal-node's package.json #7285"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1111b2cb77d7ae26dd0b57719953f7d1fb3c3de9",
+            "comment": "Fix type resolution when using moduleResolution node16"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.15.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 28 Aug 2024 23:06:01 GMT",
+      "version": "2.13.1",
+      "tag": "@azure/msal-node_v2.13.1",
+      "comments": {
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a7d6315a17daf27bb0887fc03a3039a7ba6f57eb",
+            "comment": "Format fix #7270"
+          }
+        ],
+        "patch": [
+          {
+            "author": "tyleonha@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "11e86776167826ebd789e77d873ff6ea42030b1b",
+            "comment": "Use '127.0.0.1' for the host when spinning up local loopback server"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.14.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 13 Aug 2024 23:25:05 GMT",
+      "version": "2.13.0",
+      "tag": "@azure/msal-node_v2.13.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "tyleonha@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "3c8bde64f806e183bb5dbb6be1f0c3c9f0f54829",
+            "comment": "Send the error template back when there's an error response"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4592e9ff0b3ba55fe3a5e722cc4591f884be0462",
+            "comment": "clientSecret can now (once again) be provided as undefined #7209"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "630605c310a7e9f4ab2b57011af021ea34c0e418",
+            "comment": "Added file-based detection for Azure Arc"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.14.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 23 Jul 2024 14:19:34 GMT",
+      "version": "2.12.0",
+      "tag": "@azure/msal-node_v2.12.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "99f8152a15ba356dba35ea424c670086bf8d776f",
+            "comment": "Track MSAL node SKU for broker flows #7213"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.14.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 16 Jul 2024 18:22:27 GMT",
+      "version": "2.11.1",
+      "tag": "@azure/msal-node_v2.11.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5eabb42fe253ca40be6ded4158e63da2b8a2c6ec",
+            "comment": "SHA-256 thumbprints now use PSS padding #7200"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.13.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 12 Jul 2024 19:56:47 GMT",
+      "version": "2.11.0",
+      "tag": "@azure/msal-node_v2.11.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "2ff18f23f0631507ccbf966478b152b02c9d25af",
+            "comment": "Deprecated SHA-1 thumbprint for clientCertificate #7185"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Jul 2024 19:18:29 GMT",
+      "version": "2.10.0",
+      "tag": "@azure/msal-node_v2.10.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "586aa65856854e025661086fab47c782e1e8c753",
+            "comment": "Add main field to package.json"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.13.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "586aa65856854e025661086fab47c782e1e8c753",
+            "comment": "Reformatted ManagedIdentityTokenResponse + adjusted unit tests #7167"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 10 Jun 2024 22:30:36 GMT",
+      "version": "2.9.2",
+      "tag": "@azure/msal-node_v2.9.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5685c8cff1f0334ad77268759ccf828c71db419b",
+            "comment": "Fixed msal-node unit tests for PoP token support #\u0016\u00167119"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5685c8cff1f0334ad77268759ccf828c71db419b",
+            "comment": "Implementation Based on Feature Request #7151"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.12.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Jun 2024 00:08:57 GMT",
+      "version": "2.9.1",
+      "tag": "@azure/msal-node_v2.9.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.11.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 28 May 2024 21:37:23 GMT",
+      "version": "2.9.0",
+      "tag": "@azure/msal-node_v2.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Added API for Managed Identity to detect the current environment #7093"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Add API Extractor Build Step #7097"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 13 May 2024 18:03:26 GMT",
+      "version": "2.8.1",
+      "tag": "@azure/msal-node_v2.8.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "cacfcbaeae54707565be5e9d6530b3982a7080f8",
+            "comment": "Fixed bug where dev-provided certificate was not being attached to client assertion #7088"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 May 2024 23:48:17 GMT",
+      "version": "2.8.0",
+      "tag": "@azure/msal-node_v2.8.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": " Fixed inconsistencies with cancellationToken (timeout)"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "ClientCredential and OBO acquireToken requests with claims will now skip the cache"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Managed Identity: ManagedIdentityTokenResponse's expires_in is now calculated correctly"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Removed Managed Identity Resource URI Validation"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Client Assertion Implementation now accepts a callback instead of a string argument"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.10.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 11 Apr 2024 21:46:57 GMT",
+      "version": "2.7.0",
+      "tag": "@azure/msal-node_v2.7.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Implemented Managed Identity in MSAL-Node"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.9.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Migrate ADO Pipelines to OneBranch #6992"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 27 Mar 2024 18:41:17 GMT",
+      "version": "2.6.6",
+      "tag": "@azure/msal-node_v2.6.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.8.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 22 Mar 2024 20:32:39 GMT",
+      "version": "2.6.5",
+      "tag": "@azure/msal-node_v2.6.5",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Created unit tests to validate that claims and client capabilities are correctly merged"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.8.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 17 Feb 2024 01:49:05 GMT",
+      "version": "2.6.4",
+      "tag": "@azure/msal-node_v2.6.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ee8478695b89e8dc5590d9e4832051bae2684d8a",
+            "comment": "Add ID Token secret to AccountInfo in all reponses #6903"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.7.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Feb 2024 22:00:37 GMT",
       "version": "2.6.3",
       "tag": "@azure/msal-node_v2.6.3",

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AzureRegion } from "./AzureRegion";
+import { AzureRegion } from "./AzureRegion.js";
 
 /*
  * AzureRegionConfiguration

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import {
     PkceCodes,
     NetworkRequestOptions,
@@ -22,35 +22,28 @@ import {
     AuthorityOptions,
     CcsCredential,
     CcsCredentialType,
-} from "@azure/msal-common";
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import {
     Configuration,
     buildConfiguration,
-} from "../../src/config/Configuration";
+} from "../../src/config/Configuration.js";
 import {
     TEST_CONFIG,
     TEST_URIS,
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
-    TEST_HASHES,
     TEST_POP_VALUES,
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
     TEST_CRYPTO_VALUES,
-} from "../utils/StringConstants";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError";
-import sinon from "sinon";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { TestStorageManager } from "../cache/TestStorageManager";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import {
-    TemporaryCacheKeys,
-    BrowserConstants,
-} from "../../src/utils/BrowserConstants";
+} from "../utils/StringConstants.js";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { TestStorageManager } from "../cache/TestStorageManager.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -129,6 +122,14 @@ const cryptoInterface = {
     base64Encode: (input: string): string => {
         return "testEncodedString";
     },
+    base64UrlEncode(input: string): string {
+        return Buffer.from(input, "utf-8").toString("base64url");
+    },
+    encodeKid(input: string): string {
+        return Buffer.from(JSON.stringify({ kid: input }), "utf-8").toString(
+            "base64url"
+        );
+    },
     generatePkceCodes: async (): Promise<PkceCodes> => {
         return testPkceCodes;
     },
@@ -138,8 +139,8 @@ const cryptoInterface = {
     signJwt: async (): Promise<string> => {
         return "signedJwt";
     },
-    removeTokenBindingKey: async (): Promise<boolean> => {
-        return Promise.resolve(true);
+    removeTokenBindingKey: async (): Promise<void> => {
+        return Promise.resolve();
     },
     clearKeystore: async (): Promise<boolean> => {
         return Promise.resolve(true);
@@ -195,7 +196,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             cryptoOpts,
-            logger
+            logger,
+            new StubPerformanceClient(),
+            new EventHandler()
         );
         authorityInstance = new Authority(
             configObj.auth.authority,
@@ -219,7 +222,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             storageInterface: new TestStorageManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cryptoInterface,
-                logger
+                logger,
+                new StubPerformanceClient()
             ),
             networkInterface: {
                 sendGetRequestAsync: async (
@@ -241,7 +245,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     it("Constructor", () => {
@@ -291,8 +295,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -301,25 +305,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             testAuthCodeRequest.ccsCredential = testCcsCred;
-            browserStorage.setTemporaryCache(
-                browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            browserStorage.setTemporaryCache(
-                browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                idTokenClaims.nonce
-            );
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.CCS_CREDENTIAL,
-                CcsCredentialType.UPN
-            );
-            const acquireTokenSpy = sinon
-                .stub(AuthorizationCodeClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            const acquireTokenSpy = jest
+                .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
                 browserStorage
@@ -341,13 +329,11 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 );
 
             expect(tokenResponse).toEqual(testTokenResponse);
-            expect(
-                acquireTokenSpy.calledWith(
-                    testAuthCodeRequest,
-                    testCodeResponse
-                )
-            ).toBe(true);
-            expect(acquireTokenSpy.threw()).toBe(false);
+            expect(acquireTokenSpy).toHaveBeenCalledWith(
+                testAuthCodeRequest,
+                testCodeResponse
+            );
+            expect(acquireTokenSpy).not.toThrow();
         });
     });
 
@@ -386,8 +372,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -395,41 +381,20 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 state: "testState",
                 tokenType: AuthenticationScheme.BEARER,
             };
-            browserStorage.setTemporaryCache(
-                browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            browserStorage.setTemporaryCache(
-                browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                idTokenClaims.nonce
-            );
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
-                )
-                .returns(testCodeResponse);
-            const updateAuthoritySpy = sinon.spy(
+            const updateAuthoritySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 "updateAuthority"
             );
-            const acquireTokenSpy = sinon
-                .stub(AuthorizationCodeClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            const acquireTokenSpy = jest
+                .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
                 browserStorage
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(
-                {
-                    code: "authCode",
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                },
+                testCodeResponse,
                 {
                     authority: TEST_CONFIG.validAuthority,
                     scopes: ["User.Read"],
@@ -440,20 +405,16 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 }
             );
-            expect(
-                updateAuthoritySpy.calledWith(
-                    testCodeResponse.cloud_instance_host_name,
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            ).toBe(true);
+            expect(updateAuthoritySpy).toHaveBeenCalledWith(
+                testCodeResponse.cloud_instance_host_name,
+                TEST_CONFIG.CORRELATION_ID
+            );
             expect(tokenResponse).toEqual(testTokenResponse);
-            expect(
-                acquireTokenSpy.calledWith(
-                    testAuthCodeRequest,
-                    testCodeResponse
-                )
-            ).toBe(true);
-            expect(acquireTokenSpy.threw()).toBe(false);
+            expect(acquireTokenSpy).toHaveBeenCalledWith(
+                testAuthCodeRequest,
+                testCodeResponse
+            );
+            expect(acquireTokenSpy).not.toThrow();
         });
 
         it("successfully adds login_hint as CCS credential to auth code request", async () => {
@@ -492,8 +453,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -502,41 +463,16 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             testAuthCodeRequest.ccsCredential = testCcsCred;
-            browserStorage.setTemporaryCache(
-                browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            browserStorage.setTemporaryCache(
-                browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                idTokenClaims.nonce
-            );
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.CCS_CREDENTIAL,
-                CcsCredentialType.UPN
-            );
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
-                )
-                .returns(testCodeResponse);
-            const acquireTokenSpy = sinon
-                .stub(AuthorizationCodeClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            const acquireTokenSpy = jest
+                .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
                 browserStorage
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(
-                {
-                    code: "authCode",
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                },
+                testCodeResponse,
                 {
                     authority: TEST_CONFIG.validAuthority,
                     scopes: ["User.Read"],
@@ -548,13 +484,11 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 }
             );
             expect(tokenResponse).toEqual(testTokenResponse);
-            expect(
-                acquireTokenSpy.calledWith(
-                    testAuthCodeRequest,
-                    testCodeResponse
-                )
-            ).toBe(true);
-            expect(acquireTokenSpy.threw()).toBe(false);
+            expect(acquireTokenSpy).toHaveBeenCalledWith(
+                testAuthCodeRequest,
+                testCodeResponse
+            );
+            expect(acquireTokenSpy).not.toThrow();
         });
     });
 });

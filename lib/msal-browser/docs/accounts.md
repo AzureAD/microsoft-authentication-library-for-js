@@ -68,7 +68,7 @@ async function getTokenPopup(request, homeAccountId) {
 
 As of `@azure/msal-browser@3.2.0`, all login hint values can be used to search for and filter accounts. In order to filter by login hint, MSAL will compare the `loginHint` value in the `AccountFilter` object against the following account attributes (in order of precedence) to search for matches:
 
--   `login_hint` ID token claim
+-   `login_hint` ID token claim. Ignored in favor of the account attributes listed below when `domainHint` param is set as both opaque `login_hint` and `domain_hint` can't be used together
 -   `username` account property
 -   `upn` ID token claim
 
@@ -156,6 +156,10 @@ function getAccessToken() {
 ```
 
 Note: As of version 2.16.0 the active account is stored in the cache location configured on your `PublicClientApplication` instance. If you are using a previous version the active account is stored in-memory and thus must be reset on every page load.
+
+### Nested App Authentication
+
+For NAA applications, we consider `setActiveAccount()` and `getActiveAccount()` as NO-OP APIs. Though we allow users to set and get active accounts, they are actively ignored since the NAA application is always expected to have _one_ account and the account is supplied by the host application with `accountContext`. In the future when multiple accounts are supported across the hubs, we expect this to change.
 
 ## Notes
 

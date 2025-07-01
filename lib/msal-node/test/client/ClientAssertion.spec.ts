@@ -1,10 +1,19 @@
-import { ClientAssertion } from "../../src/client/ClientAssertion";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
-import { CryptoProvider } from "../../src/crypto/CryptoProvider";
-import { EncodingUtils } from "../../src/utils/EncodingUtils";
-import { JwtConstants } from "../../src/utils/Constants";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-const jsonwebtoken = require("jsonwebtoken");
+import { ClientAssertion } from "../../src/client/ClientAssertion.js";
+import {
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    TEST_CONSTANTS,
+} from "../utils/TestConstants.js";
+import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
+import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
+import { JwtConstants } from "../../src/utils/Constants.js";
+import { getClientAssertionCallback } from "./ClientTestUtils.js";
+import { EncodingTypes, getClientAssertion } from "@azure/msal-common";
+import jwt from "jsonwebtoken";
 
 jest.mock("jsonwebtoken");
 
@@ -13,7 +22,12 @@ describe("Client assertion test", () => {
     const issuer = "client_id";
     const audience = "audience";
 
-    test("creates ClientAssertion From assertion", () => {
+    let spySign: jest.SpyInstance;
+    beforeAll(async () => {
+        spySign = jest.spyOn(jwt, "sign");
+    });
+
+    test("creates ClientAssertion from assertion string", () => {
         const assertion = ClientAssertion.fromAssertion(
             TEST_CONSTANTS.CLIENT_ASSERTION
         );
@@ -22,7 +36,24 @@ describe("Client assertion test", () => {
         );
     });
 
-    test("creates ClientAssertion from certificate", () => {
+    test("creates ClientAssertion from assertion callback (which returns a string)", async () => {
+        const clientAssertionCallback = getClientAssertionCallback(
+            TEST_CONSTANTS.CLIENT_ASSERTION
+        );
+
+        const assertionFromCallback: string = await getClientAssertion(
+            clientAssertionCallback,
+            TEST_CONSTANTS.CLIENT_ID, // value doesn't matter, will be ignored in mock callback
+            DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint // value doesn't matter, will be ignored in mock callback
+        );
+
+        const assertion = ClientAssertion.fromAssertion(assertionFromCallback);
+        expect(assertion.getJwt(cryptoProvider, issuer, audience)).toEqual(
+            TEST_CONSTANTS.CLIENT_ASSERTION
+        );
+    });
+
+    test("creates ClientAssertion from certificate with SHA-1 thumbprint", () => {
         const expectedPayload = {
             [JwtConstants.AUDIENCE]: audience,
             [JwtConstants.ISSUER]: issuer,
@@ -34,26 +65,55 @@ describe("Client assertion test", () => {
                 [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
                 [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(
                     TEST_CONSTANTS.THUMBPRINT,
-                    "hex"
+                    EncodingTypes.HEX
                 ),
             },
         };
 
-        const spySign = jest.spyOn(jsonwebtoken, "sign");
         const assertion = ClientAssertion.fromCertificate(
             TEST_CONSTANTS.THUMBPRINT,
             TEST_CONSTANTS.PRIVATE_KEY
         );
         assertion.getJwt(cryptoProvider, issuer, audience);
 
-        expect(spySign.mock.calls[0][0]).toEqual(
+        expect(spySign.mock.lastCall[0]).toEqual(
             expect.objectContaining(expectedPayload)
         );
-        expect(spySign.mock.calls[0][1]).toEqual(TEST_CONSTANTS.PRIVATE_KEY);
-        expect(spySign.mock.calls[0][2]).toEqual(expectedOptions);
+        expect(spySign.mock.lastCall[1]).toEqual(TEST_CONSTANTS.PRIVATE_KEY);
+        expect(spySign.mock.lastCall[2]).toEqual(expectedOptions);
     });
 
-    test("creates ClientAssertion from public certificate for SNI", () => {
+    test("creates ClientAssertion from certificate with SHA-256 thumbprint", () => {
+        const expectedPayload = {
+            [JwtConstants.AUDIENCE]: audience,
+            [JwtConstants.ISSUER]: issuer,
+            [JwtConstants.SUBJECT]: issuer,
+        };
+
+        const expectedOptions = {
+            header: {
+                [JwtConstants.ALGORITHM]: JwtConstants.PSS_256,
+                [JwtConstants.X5T_256]: EncodingUtils.base64EncodeUrl(
+                    TEST_CONSTANTS.THUMBPRINT256,
+                    EncodingTypes.HEX
+                ),
+            },
+        };
+
+        const assertion = ClientAssertion.fromCertificateWithSha256Thumbprint(
+            TEST_CONSTANTS.THUMBPRINT256,
+            TEST_CONSTANTS.PRIVATE_KEY
+        );
+        assertion.getJwt(cryptoProvider, issuer, audience);
+
+        expect(spySign.mock.lastCall[0]).toEqual(
+            expect.objectContaining(expectedPayload)
+        );
+        expect(spySign.mock.lastCall[1]).toEqual(TEST_CONSTANTS.PRIVATE_KEY);
+        expect(spySign.mock.lastCall[2]).toEqual(expectedOptions);
+    });
+
+    test("creates ClientAssertion from public certificate, with SHA-1 thumbprint, for SNI", () => {
         const expectedPayload = {
             [JwtConstants.AUDIENCE]: audience,
             [JwtConstants.ISSUER]: issuer,
@@ -65,12 +125,12 @@ describe("Client assertion test", () => {
                 [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
                 [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(
                     TEST_CONSTANTS.THUMBPRINT,
-                    "hex"
+                    EncodingTypes.HEX
                 ),
+                [JwtConstants.X5C]: TEST_CONSTANTS.X5C_FROM_PUBLIC_CERTIFICATE,
             },
         };
 
-        const spySign = jest.spyOn(jsonwebtoken, "sign");
         const assertion = ClientAssertion.fromCertificate(
             TEST_CONSTANTS.THUMBPRINT,
             TEST_CONSTANTS.PRIVATE_KEY,
@@ -78,11 +138,43 @@ describe("Client assertion test", () => {
         );
         assertion.getJwt(cryptoProvider, issuer, audience);
 
-        expect(spySign.mock.calls[0][0]).toEqual(
+        expect(spySign.mock.lastCall[0]).toEqual(
             expect.objectContaining(expectedPayload)
         );
-        expect(spySign.mock.calls[0][1]).toEqual(TEST_CONSTANTS.PRIVATE_KEY);
-        expect(spySign.mock.calls[0][2]).toEqual(expectedOptions);
+        expect(spySign.mock.lastCall[1]).toEqual(TEST_CONSTANTS.PRIVATE_KEY);
+        expect(spySign.mock.lastCall[2]).toEqual(expectedOptions);
+    });
+
+    test("creates ClientAssertion from public certificate, with SHA-256 thumbprint, for SNI", () => {
+        const expectedPayload = {
+            [JwtConstants.AUDIENCE]: audience,
+            [JwtConstants.ISSUER]: issuer,
+            [JwtConstants.SUBJECT]: issuer,
+        };
+
+        const expectedOptions = {
+            header: {
+                [JwtConstants.ALGORITHM]: JwtConstants.PSS_256,
+                [JwtConstants.X5T_256]: EncodingUtils.base64EncodeUrl(
+                    TEST_CONSTANTS.THUMBPRINT256,
+                    EncodingTypes.HEX
+                ),
+                [JwtConstants.X5C]: TEST_CONSTANTS.X5C_FROM_PUBLIC_CERTIFICATE,
+            },
+        };
+
+        const assertion = ClientAssertion.fromCertificateWithSha256Thumbprint(
+            TEST_CONSTANTS.THUMBPRINT256,
+            TEST_CONSTANTS.PRIVATE_KEY,
+            TEST_CONSTANTS.PUBLIC_CERTIFICATE
+        );
+        assertion.getJwt(cryptoProvider, issuer, audience);
+
+        expect(spySign.mock.lastCall[0]).toEqual(
+            expect.objectContaining(expectedPayload)
+        );
+        expect(spySign.mock.lastCall[1]).toEqual(TEST_CONSTANTS.PRIVATE_KEY);
+        expect(spySign.mock.lastCall[2]).toEqual(expectedOptions);
     });
 
     test("parseCertificate finds all valid certs in a chain", () => {

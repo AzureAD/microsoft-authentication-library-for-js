@@ -46,6 +46,7 @@ import {
 import { RegionDiscovery } from "../../src/authority/RegionDiscovery";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 let mockStorage: MockStorageClass;
 
@@ -87,7 +88,8 @@ describe("Authority.ts Class Unit Tests", () => {
         mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
-            logger
+            logger,
+            new StubPerformanceClient()
         );
     });
     afterEach(() => {
@@ -2808,6 +2810,13 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(
                 getTenantFromAuthorityString(TEST_CONFIG.consumersAuthority)
             ).toBeUndefined();
+        });
+
+        it("should not throw if authority has no path segments (certain OIDC scenarios)", () => {
+            const authorityUrl = "https://login.live.com";
+            expect(() =>
+                getTenantFromAuthorityString(authorityUrl)
+            ).not.toThrow();
         });
     });
 

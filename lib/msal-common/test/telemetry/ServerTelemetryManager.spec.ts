@@ -3,20 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import { TEST_CONFIG } from "../test_kit/StringConstants";
-import sinon from "sinon";
-import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
-import { ServerTelemetryRequest } from "../../src/telemetry/server/ServerTelemetryRequest";
-import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
-import { AuthError } from "../../src/error/AuthError";
-import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
-import { CacheOutcome } from "../../src/utils/Constants";
-import { Logger } from "../../src/logger/Logger";
+import { TEST_CONFIG } from "../test_kit/StringConstants.js";
+import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils.js";
+import { ServerTelemetryRequest } from "../../src/telemetry/server/ServerTelemetryRequest.js";
+import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager.js";
+import { AuthError } from "../../src/error/AuthError.js";
+import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity.js";
+import { CacheOutcome } from "../../src/utils/Constants.js";
+import { Logger } from "../../src/logger/Logger.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     mockCrypto,
-    new Logger({})
+    new Logger({}),
+    new StubPerformanceClient()
 );
 const testApiCode = 9999999;
 const testError = "interaction_required";
@@ -32,7 +33,7 @@ const testTelemetryPayload: ServerTelemetryRequest = {
 describe("ServerTelemetryManager.ts", () => {
     afterEach(() => {
         testCacheManager.store = {};
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("cacheFailedRequest", () => {
@@ -227,7 +228,10 @@ describe("ServerTelemetryManager.ts", () => {
         });
 
         it("Adds partial telemetry data if max size is reached and sets overflow flag to 1", () => {
-            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            jest.spyOn(
+                ServerTelemetryManager,
+                "maxErrorsToSend"
+            ).mockReturnValue(1);
             const testCacheHits = 3;
             const failures = {
                 failedRequests: [
@@ -251,11 +255,37 @@ describe("ServerTelemetryManager.ts", () => {
                 `5|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|2,1`
             );
         });
+
+        it("Adds a broker error to platform fields", () => {
+            const telemetryManager = new ServerTelemetryManager(
+                testTelemetryPayload,
+                testCacheManager
+            );
+            telemetryManager.setNativeBrokerErrorCode("native_dummy_error");
+            const currHeaderVal =
+                telemetryManager.generateCurrentRequestHeaderValue();
+            expect(currHeaderVal).toEqual(
+                `5|${testApiCode},0,,,|,,broker_error=native_dummy_error`
+            );
+        });
+
+        it("Does not add broker error code to platform fields", () => {
+            const telemetryManager = new ServerTelemetryManager(
+                testTelemetryPayload,
+                testCacheManager
+            );
+            const currHeaderVal =
+                telemetryManager.generateCurrentRequestHeaderValue();
+            expect(currHeaderVal).toEqual(`5|${testApiCode},0,,,|,`);
+        });
     });
 
     describe("clear telemetry cache tests", () => {
         it("Removes telemetry cache entry if all errors were sent to server", () => {
-            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            jest.spyOn(
+                ServerTelemetryManager,
+                "maxErrorsToSend"
+            ).mockReturnValue(1);
             const failures = {
                 failedRequests: [testApiCode, testCorrelationId],
                 errors: [testError],
@@ -277,7 +307,10 @@ describe("ServerTelemetryManager.ts", () => {
         });
 
         it("Removes partial telemetry data from cache if partial data was sent to server", () => {
-            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            jest.spyOn(
+                ServerTelemetryManager,
+                "maxErrorsToSend"
+            ).mockReturnValue(1);
             const failures = {
                 failedRequests: [
                     testApiCode,
@@ -348,7 +381,7 @@ describe("ServerTelemetryManager.ts", () => {
             ).toBeLessThan(failures.errors.length);
         });
 
-        it("maxErrorsToSend doesn't break on null and undefined values", () => {
+        it("maxErrorsToSend does not break on null and undefined values", () => {
             const failures = {
                 failedRequests: [null, undefined, undefined, null],
                 errors: [null, undefined],
@@ -378,5 +411,57 @@ describe("ServerTelemetryManager.ts", () => {
             cacheKey
         ) as ServerTelemetryEntity;
         expect(cacheValue.cacheHits).toBe(2);
+    });
+
+    describe("makeExtraSkuString", () => {
+        it("Creates empty string from scratch", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({});
+            expect(skus).toEqual("|,|,|,|");
+        });
+
+        it("Does not modify input string", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,|,|",
+            });
+            expect(skus).toEqual("test_sku|1.0.0,|,|,|");
+        });
+
+        it("Returns invalid input", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,|",
+                libraryName: "test_lib_name",
+                libraryVersion: "1.2.3",
+            });
+            expect(skus).toEqual("test_sku|1.0.0,|,|");
+        });
+
+        it("Adds library and extension info", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,test_ext_sku|2.0.0,|",
+                libraryName: "test_lib_name",
+                libraryVersion: "1.2.3",
+                extensionName: "test_ext_name",
+                extensionVersion: "5.6.7",
+            });
+            expect(skus).toEqual("test_lib_name|1.2.3,|,test_ext_name|5.6.7,|");
+        });
+
+        it("Updates input string with library info", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,test_ext_sku|2.0.0,|",
+                libraryName: "test_lib_name",
+                libraryVersion: "1.2.3",
+            });
+            expect(skus).toEqual("test_lib_name|1.2.3,|,test_ext_sku|2.0.0,|");
+        });
+
+        it("Updates input string with extension info", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,test_ext_sku|2.0.0,|",
+                extensionName: "test_ext_name",
+                extensionVersion: "5.6.7",
+            });
+            expect(skus).toEqual("test_sku|1.0.0,|,test_ext_name|5.6.7,|");
+        });
     });
 });

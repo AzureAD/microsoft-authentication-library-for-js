@@ -22,8 +22,9 @@ import {
     request as memStorageTokenRequest,
 } from "../authConfigs/memStorageAuthConfig.json";
 import fs from "fs";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/memStorage`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/browserMemStorage");
 
 async function verifyTokenStore(
     BrowserCache: BrowserCacheUtils,
@@ -83,7 +84,7 @@ describe("In Memory Storage Tests", function () {
 
     describe("login Tests", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             BrowserCache = new BrowserCacheUtils(

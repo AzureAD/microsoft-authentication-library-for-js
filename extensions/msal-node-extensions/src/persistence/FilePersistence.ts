@@ -5,12 +5,12 @@
 
 import { promises as fs } from "fs";
 import { dirname } from "path";
-import { IPersistence } from "./IPersistence";
-import { Constants, ErrorCodes } from "../utils/Constants";
-import { PersistenceError } from "../error/PersistenceError";
-import { Logger, LoggerOptions, LogLevel } from "@azure/msal-common";
-import { BasePersistence } from "./BasePersistence";
-import { isNodeError } from "../utils/TypeGuards";
+import { IPersistence } from "./IPersistence.js";
+import { Constants, ErrorCodes } from "../utils/Constants.js";
+import { PersistenceError } from "../error/PersistenceError.js";
+import { Logger, LoggerOptions, LogLevel } from "@azure/msal-common/node";
+import { BasePersistence } from "./BasePersistence.js";
+import { isNodeError } from "../utils/TypeGuards.js";
 
 /**
  * Reads and writes data to file specified by file location. File contents are not

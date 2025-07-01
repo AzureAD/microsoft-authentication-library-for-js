@@ -6,13 +6,14 @@
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
+} from "../error/BrowserAuthError.js";
 import {
     IPerformanceClient,
-    Logger,
     PerformanceEvents,
-} from "@azure/msal-common";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+} from "@azure/msal-common/browser";
+import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
+import { base64Encode, urlEncodeArr } from "../encode/Base64Encode.js";
+import { base64Decode, base64DecToArr } from "../encode/Base64Decode.js";
 
 /**
  * This file defines functions used by the browser library to perform cryptography operations such as
@@ -22,8 +23,10 @@ import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
-// RSA KeyGen Algorithm
+// Algorithms
 const PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5";
+const AES_GCM = "AES-GCM";
+const HKDF = "HKDF";
 // SHA-256 hashing algorithm
 const S256_HASH_ALG = "SHA-256";
 // MOD length for PoP tokens
@@ -35,6 +38,16 @@ const UUID_CHARS = "0123456789abcdef";
 // Array to store UINT32 random value
 const UINT32_ARR = new Uint32Array(1);
 
+// Key Format
+const RAW = "raw";
+// Key Usages
+const ENCRYPT = "encrypt";
+const DECRYPT = "decrypt";
+const DERIVE_KEY = "deriveKey";
+
+// Suberror
+const SUBTLE_SUBERROR = "crypto_subtle_undefined";
+
 const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
     hash: S256_HASH_ALG,
@@ -45,12 +58,22 @@ const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
 /**
  * Check whether browser crypto is available.
  */
-export function validateCryptoAvailable(logger: Logger): void {
-    if ("crypto" in window) {
-        logger.verbose("BrowserCrypto: modern crypto interface available");
-    } else {
-        logger.error("BrowserCrypto: crypto interface is unavailable");
+export function validateCryptoAvailable(
+    skipValidateSubtleCrypto: boolean
+): void {
+    if (!window) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.nonBrowserEnvironment
+        );
+    }
+    if (!window.crypto) {
         throw createBrowserAuthError(BrowserAuthErrorCodes.cryptoNonExistent);
+    }
+    if (!skipValidateSubtleCrypto && !window.crypto.subtle) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.cryptoNonExistent,
+            SUBTLE_SUBERROR
+        );
     }
 }
 
@@ -201,4 +224,211 @@ export async function sign(
         key,
         data
     ) as Promise<ArrayBuffer>;
+}
+
+/**
+ * Generates Base64 encoded jwk used in the Encrypted Authorize Response (EAR) flow
+ */
+export async function generateEarKey(): Promise<string> {
+    const key = await generateBaseKey();
+    const keyStr = urlEncodeArr(new Uint8Array(key));
+
+    const jwk = {
+        alg: "dir",
+        kty: "oct",
+        k: keyStr,
+    };
+
+    return base64Encode(JSON.stringify(jwk));
+}
+
+/**
+ * Parses earJwk for encryption key and returns CryptoKey object
+ * @param earJwk
+ * @returns
+ */
+export async function importEarKey(earJwk: string): Promise<CryptoKey> {
+    const b64DecodedJwk = base64Decode(earJwk);
+    const jwkJson = JSON.parse(b64DecodedJwk);
+    const rawKey = jwkJson.k;
+    const keyBuffer = base64DecToArr(rawKey);
+
+    return window.crypto.subtle.importKey(RAW, keyBuffer, AES_GCM, false, [
+        DECRYPT,
+    ]);
+}
+
+/**
+ * Decrypt ear_jwe response returned in the Encrypted Authorize Response (EAR) flow
+ * @param earJwk
+ * @param earJwe
+ * @returns
+ */
+export async function decryptEarResponse(
+    earJwk: string,
+    earJwe: string
+): Promise<string> {
+    const earJweParts = earJwe.split(".");
+    if (earJweParts.length !== 5) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "jwe_length"
+        );
+    }
+
+    const key = await importEarKey(earJwk).catch(() => {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "import_key"
+        );
+    });
+
+    try {
+        const header = new TextEncoder().encode(earJweParts[0]);
+        const iv = base64DecToArr(earJweParts[2]);
+        const ciphertext = base64DecToArr(earJweParts[3]);
+        const tag = base64DecToArr(earJweParts[4]);
+        const tagLengthBits = tag.byteLength * 8;
+
+        // Concat ciphertext and tag
+        const encryptedData = new Uint8Array(ciphertext.length + tag.length);
+        encryptedData.set(ciphertext);
+        encryptedData.set(tag, ciphertext.length);
+
+        const decryptedData = await window.crypto.subtle.decrypt(
+            {
+                name: AES_GCM,
+                iv: iv,
+                tagLength: tagLengthBits,
+                additionalData: header,
+            },
+            key,
+            encryptedData
+        );
+
+        return new TextDecoder().decode(decryptedData);
+    } catch (e) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "decrypt"
+        );
+    }
+}
+
+/**
+ * Generates symmetric base encryption key. This may be stored as all encryption/decryption keys will be derived from this one.
+ */
+export async function generateBaseKey(): Promise<ArrayBuffer> {
+    const key = await window.crypto.subtle.generateKey(
+        {
+            name: AES_GCM,
+            length: 256,
+        },
+        true,
+        [ENCRYPT, DECRYPT]
+    );
+    return window.crypto.subtle.exportKey(RAW, key);
+}
+
+/**
+ * Returns the raw key to be passed into the key derivation function
+ * @param baseKey
+ * @returns
+ */
+export async function generateHKDF(baseKey: ArrayBuffer): Promise<CryptoKey> {
+    return window.crypto.subtle.importKey(RAW, baseKey, HKDF, false, [
+        DERIVE_KEY,
+    ]);
+}
+
+/**
+ * Given a base key and a nonce generates a derived key to be used in encryption and decryption.
+ * Note: every time we encrypt a new key is derived
+ * @param baseKey
+ * @param nonce
+ * @returns
+ */
+async function deriveKey(
+    baseKey: CryptoKey,
+    nonce: ArrayBuffer,
+    context: string
+): Promise<CryptoKey> {
+    return window.crypto.subtle.deriveKey(
+        {
+            name: HKDF,
+            salt: nonce,
+            hash: S256_HASH_ALG,
+            info: new TextEncoder().encode(context),
+        },
+        baseKey,
+        { name: AES_GCM, length: 256 },
+        false,
+        [ENCRYPT, DECRYPT]
+    );
+}
+
+/**
+ * Encrypt the given data given a base key. Returns encrypted data and a nonce that must be provided during decryption
+ * @param key
+ * @param rawData
+ */
+export async function encrypt(
+    baseKey: CryptoKey,
+    rawData: string,
+    context: string
+): Promise<{ data: string; nonce: string }> {
+    const encodedData = new TextEncoder().encode(rawData);
+    // The nonce must never be reused with a given key.
+    const nonce = window.crypto.getRandomValues(new Uint8Array(16));
+    const derivedKey = await deriveKey(baseKey, nonce, context);
+    const encryptedData = await window.crypto.subtle.encrypt(
+        {
+            name: AES_GCM,
+            iv: new Uint8Array(12), // New key is derived for every encrypt so we don't need a new nonce
+        },
+        derivedKey,
+        encodedData
+    );
+
+    return {
+        data: urlEncodeArr(new Uint8Array(encryptedData)),
+        nonce: urlEncodeArr(nonce),
+    };
+}
+
+/**
+ * Decrypt data with the given key and nonce
+ * @param key
+ * @param nonce
+ * @param encryptedData
+ * @returns
+ */
+export async function decrypt(
+    baseKey: CryptoKey,
+    nonce: string,
+    context: string,
+    encryptedData: string
+): Promise<string> {
+    const encodedData = base64DecToArr(encryptedData);
+    const derivedKey = await deriveKey(baseKey, base64DecToArr(nonce), context);
+    const decryptedData = await window.crypto.subtle.decrypt(
+        {
+            name: AES_GCM,
+            iv: new Uint8Array(12), // New key is derived for every encrypt so we don't need a new nonce
+        },
+        derivedKey,
+        encodedData
+    );
+
+    return new TextDecoder().decode(decryptedData);
+}
+
+/**
+ * Returns the SHA-256 hash of an input string
+ * @param plainText
+ */
+export async function hashString(plainText: string): Promise<string> {
+    const hashBuffer: ArrayBuffer = await sha256Digest(plainText);
+    const hashBytes = new Uint8Array(hashBuffer);
+    return urlEncodeArr(hashBytes);
 }

@@ -3,8 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from "@azure/msal-common";
+import { AccountEntity } from "@azure/msal-common/node";
 
+/**
+ * Interface that defines getter methods to get keys used to identity data in the cache
+ * @public
+ */
 export interface IPartitionManager {
     /**
      * This function should return the correct key from which to read
@@ -28,7 +32,7 @@ export interface IPartitionManager {
      * this function would return the homeAccountId from
      * the provided AccountEntity
      *
-     * @param accountEntity: AccountEntity
+     * @param accountEntity - AccountEntity
      * @returns Promise<string>
      */
     extractKey(accountEntity: AccountEntity): Promise<string>;

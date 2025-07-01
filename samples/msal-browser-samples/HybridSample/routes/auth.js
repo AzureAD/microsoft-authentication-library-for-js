@@ -28,11 +28,8 @@ router.get('/login', (req, res) => {
     // Generate auth code url and redirect the user
     msalInstance.getAuthCodeUrl(authCodeUrlParameters)
         .then((response) => {
-            console.log("getAuthCodeURL RESPONSE");
-            console.log(response);
             res.redirect(response);
-        })
-        .catch((error) => console.log(JSON.stringify(error)));
+        });
 });
 
 // Route to capture auth code that will be posted by AAD
@@ -102,8 +99,7 @@ router.post('/server-redirect', (req, res) => {
         })
         .catch((error) => {
             console.timeEnd(timeLabel);
-            console.log(error);
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
 });
 

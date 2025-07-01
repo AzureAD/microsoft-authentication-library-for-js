@@ -11,7 +11,7 @@ import {
     ISerializableTokenCache,
     ICachePlugin,
     TokenCacheContext,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     InMemoryCache,
     JsonCache,
@@ -25,6 +25,8 @@ import {
 import { Deserializer } from "./serializer/Deserializer.js";
 import { Serializer } from "./serializer/Serializer.js";
 import { ITokenCache } from "./ITokenCache.js";
+import { CryptoProvider } from "../crypto/CryptoProvider.js";
+import { GuidGenerator } from "../crypto/GuidGenerator.js";
 
 const defaultSerializedCache: JsonCache = {
     Account: {},
@@ -42,7 +44,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     private storage: NodeStorage;
     private cacheHasChanged: boolean;
     private cacheSnapshot: string;
-    private readonly persistence: ICachePlugin;
+    public readonly persistence: ICachePlugin;
     private logger: Logger;
 
     constructor(
@@ -117,17 +119,29 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     }
 
     /**
+     * Gets cache snapshot in CacheKVStore format
+     */
+    getCacheSnapshot(): CacheKVStore {
+        const deserializedPersistentStorage = NodeStorage.generateInMemoryCache(
+            this.cacheSnapshot
+        );
+        return this.storage.inMemoryCacheToCache(deserializedPersistentStorage);
+    }
+
+    /**
      * API that retrieves all accounts currently in cache to the user
      */
-    async getAllAccounts(): Promise<AccountInfo[]> {
+    async getAllAccounts(
+        correlationId: string = new CryptoProvider().createNewGuid()
+    ): Promise<AccountInfo[]> {
         this.logger.trace("getAllAccounts called");
         let cacheContext;
         try {
             if (this.persistence) {
-                cacheContext = new TokenCacheContext(this, true);
+                cacheContext = new TokenCacheContext(this, false);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
-            return this.storage.getAllAccounts();
+            return this.storage.getAllAccounts({}, correlationId);
         } finally {
             if (this.persistence && cacheContext) {
                 await this.persistence.afterCacheAccess(cacheContext);
@@ -181,7 +195,10 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * API to remove a specific account and the relevant data from cache
      * @param account - AccountInfo passed by the user
      */
-    async removeAccount(account: AccountInfo): Promise<void> {
+    async removeAccount(
+        account: AccountInfo,
+        correlationId?: string
+    ): Promise<void> {
         this.logger.trace("removeAccount called");
         let cacheContext;
         try {
@@ -189,14 +206,34 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 cacheContext = new TokenCacheContext(this, true);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
-            await this.storage.removeAccount(
-                AccountEntity.generateAccountCacheKey(account)
+            this.storage.removeAccount(
+                AccountEntity.generateAccountCacheKey(account),
+                correlationId || new GuidGenerator().generateGuid()
             );
         } finally {
             if (this.persistence && cacheContext) {
                 await this.persistence.afterCacheAccess(cacheContext);
             }
         }
+    }
+
+    /**
+     * Overwrites in-memory cache with persistent cache
+     */
+    async overwriteCache(): Promise<void> {
+        if (!this.persistence) {
+            this.logger.info(
+                "No persistence layer specified, cache cannot be overwritten"
+            );
+            return;
+        }
+        this.logger.info("Overwriting in-memory cache with persistent cache");
+        this.storage.clear();
+        const cacheContext = new TokenCacheContext(this, false);
+        await this.persistence.beforeCacheAccess(cacheContext);
+        const cacheSnapshot = this.getCacheSnapshot();
+        this.storage.setCache(cacheSnapshot);
+        await this.persistence.afterCacheAccess(cacheContext);
     }
 
     /**

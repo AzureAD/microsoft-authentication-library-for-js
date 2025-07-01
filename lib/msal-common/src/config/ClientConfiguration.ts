@@ -3,26 +3,27 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule } from "../network/INetworkModule";
-import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto";
-import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger";
-import { Constants } from "../utils/Constants";
-import { version } from "../packageMetadata";
-import { Authority } from "../authority/Authority";
-import { AzureCloudInstance } from "../authority/AuthorityOptions";
-import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
-import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
-import { ICachePlugin } from "../cache/interface/ICachePlugin";
-import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
-import { ClientCredentials } from "../account/ClientCredentials";
-import { ProtocolMode } from "../authority/ProtocolMode";
+import { INetworkModule } from "../network/INetworkModule.js";
+import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto.js";
+import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger.js";
+import {
+    Constants,
+    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+} from "../utils/Constants.js";
+import { version } from "../packageMetadata.js";
+import type { Authority } from "../authority/Authority.js";
+import { AzureCloudInstance } from "../authority/AuthorityOptions.js";
+import { CacheManager, DefaultStorageClass } from "../cache/CacheManager.js";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
+import { ClientCredentials } from "../account/ClientCredentials.js";
+import { ProtocolMode } from "../authority/ProtocolMode.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-
-// Token renewal offset default in seconds
-const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
+} from "../error/ClientAuthError.js";
+import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceClient.js";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -80,15 +81,24 @@ export type CommonClientConfiguration = {
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
- * - skipAuthorityMetadataCache      - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
+ * - skipAuthorityMetadataCache  - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
+ * - instanceAware               - A flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
+ * - redirectUri                 - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
+ * - encodeExtraQueryParams      - A flag to choose whether to encode the extra query parameters or not. Defaults to false.
  * @internal
  */
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
+    redirectUri: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
+    instanceAware?: boolean;
+    /**
+     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
+     */
+    encodeExtraQueryParams?: boolean;
 };
 
 /**
@@ -122,6 +132,9 @@ export type LoggerOptions = {
  * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is false.
  */
 export type CacheOptions = {
+    /**
+     * @deprecated claimsBasedCachingEnabled is deprecated and will be removed in the next major version.
+     */
     claimsBasedCachingEnabled?: boolean;
 };
 
@@ -248,7 +261,8 @@ export function buildClientConfiguration({
             new DefaultStorageClass(
                 userAuthOptions.clientId,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
-                new Logger(loggerOptions)
+                new Logger(loggerOptions),
+                new StubPerformanceClient()
             ),
         networkInterface:
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
@@ -271,6 +285,8 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         clientCapabilities: [],
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         skipAuthorityMetadataCache: false,
+        instanceAware: false,
+        encodeExtraQueryParams: false,
         ...authOptions,
     };
 }

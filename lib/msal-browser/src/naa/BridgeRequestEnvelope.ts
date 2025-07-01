@@ -3,14 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { TokenRequest } from "./TokenRequest";
+import { TokenRequest } from "./TokenRequest.js";
 
-export type BridgeMethods =
-    | "GetToken"
-    | "GetActiveAccount"
-    | "GetAllAccounts"
-    | "GetInitContext"
-    | "GetTokenPopup";
+export type BridgeMethods = "GetToken" | "GetInitContext" | "GetTokenPopup";
 
 export type BridgeRequestEnvelope = {
     messageType: "NestedAppAuthRequest";

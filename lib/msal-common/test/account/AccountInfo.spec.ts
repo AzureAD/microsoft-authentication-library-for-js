@@ -45,7 +45,7 @@ describe("AccountInfo Unit Tests", () => {
         });
     });
 
-    describe("buildTenantProfileFromIdTokenClaims()", () => {
+    describe("buildTenantProfile()", () => {
         describe("correctly sets tenantId", () => {
             it("from the tid claim when present", () => {
                 const idTokenClaims = {
@@ -53,11 +53,12 @@ describe("AccountInfo Unit Tests", () => {
                     tfp: ID_TOKEN_EXTRA_CLAIMS.tfp,
                     acr: ID_TOKEN_EXTRA_CLAIMS.acr,
                 };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.tenantId).toEqual(idTokenClaims.tid);
                 expect(tenantProfile.tenantId).not.toEqual(idTokenClaims.tfp);
                 expect(tenantProfile.tenantId).not.toEqual(idTokenClaims.acr);
@@ -68,11 +69,12 @@ describe("AccountInfo Unit Tests", () => {
                     tfp: ID_TOKEN_EXTRA_CLAIMS.tfp,
                     acr: ID_TOKEN_EXTRA_CLAIMS.acr,
                 };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.tenantId).toEqual(idTokenClaims.tfp);
                 expect(tenantProfile.tenantId).not.toEqual(idTokenClaims.acr);
                 expect(tenantProfile.tenantId).not.toEqual("");
@@ -82,23 +84,36 @@ describe("AccountInfo Unit Tests", () => {
                 const idTokenClaims = {
                     acr: ID_TOKEN_EXTRA_CLAIMS.acr,
                 };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.tenantId).toEqual(idTokenClaims.acr);
                 expect(tenantProfile.tenantId).not.toEqual("");
             });
 
             it("falls back to empty string when tid, tfp and acr claims not present", () => {
                 const idTokenClaims = { iss: ID_TOKEN_CLAIMS.iss };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.tenantId).toEqual("");
+            });
+
+            it("falls back to provided values when idTokenClaims are not present", () => {
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId
+                );
+                expect(tenantProfile.tenantId).toEqual(
+                    TEST_ACCOUNT_INFO.tenantId
+                );
             });
         });
 
@@ -108,11 +123,12 @@ describe("AccountInfo Unit Tests", () => {
                     oid: ID_TOKEN_CLAIMS.oid,
                     sub: ID_TOKEN_CLAIMS.sub,
                 };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.localAccountId).toEqual(idTokenClaims.oid);
                 expect(tenantProfile.localAccountId).not.toEqual(
                     idTokenClaims.sub
@@ -124,11 +140,12 @@ describe("AccountInfo Unit Tests", () => {
                 const idTokenClaims = {
                     sub: ID_TOKEN_CLAIMS.sub,
                 };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.localAccountId).toEqual(idTokenClaims.sub);
                 expect(tenantProfile.localAccountId).not.toEqual("");
             });
@@ -137,12 +154,24 @@ describe("AccountInfo Unit Tests", () => {
                 const idTokenClaims = {
                     iss: ID_TOKEN_CLAIMS.iss,
                 };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.localAccountId).toEqual("");
+            });
+
+            it("falls back to provided values when idTokenClaims not provided", () => {
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId
+                );
+                expect(tenantProfile.localAccountId).toEqual(
+                    TEST_ACCOUNT_INFO.localAccountId
+                );
             });
         });
 
@@ -151,11 +180,12 @@ describe("AccountInfo Unit Tests", () => {
                 const idTokenClaims = {
                     name: ID_TOKEN_CLAIMS.name,
                 };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.name).toEqual(idTokenClaims.name);
                 expect(tenantProfile.name).not.toEqual("");
             });
@@ -164,11 +194,12 @@ describe("AccountInfo Unit Tests", () => {
                 const idTokenClaims = {
                     iss: ID_TOKEN_CLAIMS.iss,
                 };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        TEST_ACCOUNT_INFO.homeAccountId,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.name).toBeUndefined();
             });
         });
@@ -179,31 +210,34 @@ describe("AccountInfo Unit Tests", () => {
 
             it("to true when tenantId matches utid portion of homeAccountId", () => {
                 const idTokenClaims = { tid: TEST_UTID };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        HOME_ACCOUNT_ID,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    HOME_ACCOUNT_ID,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.isHomeTenant).toBe(true);
             });
 
             it("to false when tenantId does not match utid portion of homeAccountId", () => {
                 const idTokenClaims = { tid: "different-tenant-id" };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        HOME_ACCOUNT_ID,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    HOME_ACCOUNT_ID,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.isHomeTenant).toBe(false);
             });
 
             it("to false when tenantId is undefined utid portion of homeAccountId", () => {
                 const idTokenClaims = { iss: ID_TOKEN_CLAIMS.iss };
-                const tenantProfile =
-                    AccountInfo.buildTenantProfileFromIdTokenClaims(
-                        HOME_ACCOUNT_ID,
-                        idTokenClaims
-                    );
+                const tenantProfile = AccountInfo.buildTenantProfile(
+                    HOME_ACCOUNT_ID,
+                    TEST_ACCOUNT_INFO.localAccountId,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    idTokenClaims
+                );
                 expect(tenantProfile.isHomeTenant).toBe(false);
             });
         });

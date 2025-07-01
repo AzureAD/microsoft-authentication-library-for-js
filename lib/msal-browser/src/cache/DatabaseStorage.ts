@@ -6,9 +6,13 @@
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { DB_NAME, DB_TABLE_NAME, DB_VERSION } from "../utils/BrowserConstants";
-import { IAsyncStorage } from "./IAsyncMemoryStorage";
+} from "../error/BrowserAuthError.js";
+import {
+    DB_NAME,
+    DB_TABLE_NAME,
+    DB_VERSION,
+} from "../utils/BrowserConstants.js";
+import { IAsyncStorage } from "./IAsyncStorage.js";
 
 interface IDBOpenDBRequestEvent extends Event {
     target: IDBOpenDBRequest & EventTarget;
@@ -279,9 +283,19 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
 
         return new Promise<boolean>((resolve: Function, reject: Function) => {
             const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
-            deleteDbRequest.addEventListener("success", () => resolve(true));
-            deleteDbRequest.addEventListener("blocked", () => resolve(true));
-            deleteDbRequest.addEventListener("error", () => reject(false));
+            const id = setTimeout(() => reject(false), 200); // Reject if events aren't raised within 200ms
+            deleteDbRequest.addEventListener("success", () => {
+                clearTimeout(id);
+                return resolve(true);
+            });
+            deleteDbRequest.addEventListener("blocked", () => {
+                clearTimeout(id);
+                return resolve(true);
+            });
+            deleteDbRequest.addEventListener("error", () => {
+                clearTimeout(id);
+                return reject(false);
+            });
         });
     }
 }

@@ -1,0 +1,35 @@
+variables:
+    CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
+    WindowsContainerImage: "onebranch.azurecr.io/windows/ltsc2019/vse2022:latest" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+    DEBIAN_FRONTEND: noninteractive
+resources:
+    repositories:
+        - repository: templates
+          type: git
+          name: OneBranch.Pipelines/GovernedTemplates
+          ref: refs/heads/main
+        - repository: 1P
+          type: git
+          name: IDDP/msal-javascript-1p
+          ref: master
+
+extends:
+    template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
+    parameters:
+        globalSdl:
+            policheck:
+                break: true
+        stages:
+            - stage: sdl
+              displayName: "Run SDL Checks"
+              jobs:
+                  - job: SDL
+                    displayName: "SDL Job for JS"
+                    pool:
+                        type: windows
+                    variables:
+                        ob_outputDirectory: "./out"
+                        ob_git_fetchDepth: -1
+                        ob_git_persistCredentials: true
+                    steps:
+                        - template: .pipelines/templates/sdl-tasks.yml@1P

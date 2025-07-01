@@ -3,20 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule } from "../network/INetworkModule";
-import { NetworkResponse } from "../network/NetworkManager";
-import { IMDSBadResponse } from "../response/IMDSBadResponse";
+import { INetworkModule } from "../network/INetworkModule.js";
+import { NetworkResponse } from "../network/NetworkResponse.js";
+import { IMDSBadResponse } from "../response/IMDSBadResponse.js";
 import {
     Constants,
+    HttpStatus,
     RegionDiscoverySources,
-    ResponseCodes,
-} from "../utils/Constants";
-import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
-import { ImdsOptions } from "./ImdsOptions";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { invokeAsync } from "../utils/FunctionWrappers";
-import { Logger } from "../logger/Logger";
+} from "../utils/Constants.js";
+import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
+import { ImdsOptions } from "./ImdsOptions.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
+import { Logger } from "../logger/Logger.js";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
@@ -75,10 +75,7 @@ export class RegionDiscovery {
                     this.performanceClient,
                     this.correlationId
                 )(Constants.IMDS_VERSION, options);
-                if (
-                    localIMDSVersionResponse.status ===
-                    ResponseCodes.httpSuccess
-                ) {
+                if (localIMDSVersionResponse.status === HttpStatus.SUCCESS) {
                     autodetectedRegionName = localIMDSVersionResponse.body;
                     regionDiscoveryMetadata.region_source =
                         RegionDiscoverySources.IMDS;
@@ -86,8 +83,7 @@ export class RegionDiscovery {
 
                 // If the response using the local IMDS version failed, try to fetch the current version of IMDS and retry.
                 if (
-                    localIMDSVersionResponse.status ===
-                    ResponseCodes.httpBadRequest
+                    localIMDSVersionResponse.status === HttpStatus.BAD_REQUEST
                 ) {
                     const currentIMDSVersion = await invokeAsync(
                         this.getCurrentVersion.bind(this),
@@ -110,8 +106,7 @@ export class RegionDiscovery {
                         this.correlationId
                     )(currentIMDSVersion, options);
                     if (
-                        currentIMDSVersionResponse.status ===
-                        ResponseCodes.httpSuccess
+                        currentIMDSVersionResponse.status === HttpStatus.SUCCESS
                     ) {
                         autodetectedRegionName =
                             currentIMDSVersionResponse.body;
@@ -180,7 +175,7 @@ export class RegionDiscovery {
 
             // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
             if (
-                response.status === ResponseCodes.httpBadRequest &&
+                response.status === HttpStatus.BAD_REQUEST &&
                 response.body &&
                 response.body["newest-versions"] &&
                 response.body["newest-versions"].length > 0

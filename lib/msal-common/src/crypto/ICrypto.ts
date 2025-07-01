@@ -6,9 +6,9 @@
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest";
+} from "../error/ClientAuthError.js";
+import type { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import type { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest.js";
 
 /**
  * The PkceCodes type describes the structure
@@ -50,6 +50,16 @@ export interface ICrypto {
      */
     base64Decode(input: string): string;
     /**
+     * base64 URL safe encoded string
+     */
+    base64UrlEncode(input: string): string;
+    /**
+     * Stringifies and base64Url encodes input public key
+     * @param inputKid
+     * @returns Base64Url encoded public key
+     */
+    encodeKid(inputKid: string): string;
+    /**
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
@@ -60,7 +70,7 @@ export interface ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      */
-    removeTokenBindingKey(kid: string): Promise<boolean>;
+    removeTokenBindingKey(kid: string): Promise<void>;
     /**
      * Removes all cryptographic keys from IndexedDB storage
      */
@@ -92,10 +102,16 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     base64Encode: (): string => {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
+    base64UrlEncode: (): string => {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    },
+    encodeKid: (): string => {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    },
     async getPublicKeyThumbprint(): Promise<string> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
-    async removeTokenBindingKey(): Promise<boolean> {
+    async removeTokenBindingKey(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async clearKeystore(): Promise<boolean> {

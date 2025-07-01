@@ -6,7 +6,7 @@
 import {
     RegionDiscoveryOutcomes,
     RegionDiscoverySources,
-} from "../utils/Constants";
+} from "../utils/Constants.js";
 
 export type RegionDiscoveryMetadata = {
     region_used?: string;

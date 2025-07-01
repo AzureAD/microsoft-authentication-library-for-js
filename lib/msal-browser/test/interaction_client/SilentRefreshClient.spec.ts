@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { PublicClientApplication } from "../../src/app/PublicClientApplication";
+import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
@@ -12,7 +11,7 @@ import {
     TEST_TOKEN_LIFETIMES,
     RANDOM_TEST_GUID,
     TEST_TOKEN_RESPONSE,
-} from "../utils/StringConstants";
+} from "../utils/StringConstants.js";
 import {
     Constants,
     AccountInfo,
@@ -21,18 +20,18 @@ import {
     AuthenticationScheme,
     RefreshTokenClient,
     CommonSilentFlowRequest,
-    NetworkManager,
-    RefreshTokenEntity,
     AccountEntity,
     CredentialType,
 } from "@azure/msal-common";
-import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError";
-import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+} from "../../src/error/BrowserAuthError.js";
+import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const testIdTokenClaims: TokenClaims = {
     ver: "2.0",
@@ -93,7 +92,6 @@ describe("SilentRefreshClient", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-        sinon.restore();
         window.location.hash = "";
         window.sessionStorage.clear();
         window.localStorage.clear();
@@ -120,18 +118,18 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            const silentATStub = sinon
-                .stub(
+            const silentATStub = jest
+                .spyOn(
                     RefreshTokenClient.prototype,
                     <any>"acquireTokenByRefreshToken"
                 )
-                .resolves(testTokenResponse);
+                .mockResolvedValue(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: ["scope1"],
                 account: testAccount,
@@ -150,7 +148,7 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
+            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
@@ -174,8 +172,8 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -230,8 +228,8 @@ describe("SilentRefreshClient", () => {
                     "getRefreshToken"
                 ).mockReturnValue(rtEntity);
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
 

@@ -1,72 +1,25 @@
-import sinon from "sinon";
 import {
     RANDOM_TEST_GUID,
     TEST_POP_VALUES,
-    TEST_DATA_CLIENT_INFO,
     TEST_CONFIG,
     TEST_URIS,
-    TEST_CRYPTO_VALUES,
-} from "../test_kit/StringConstants";
-import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
-import { ICrypto } from "../../src/crypto/ICrypto";
-import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
-import * as TimeUtils from "../../src/utils/TimeUtils";
-import { UrlString } from "../../src/url/UrlString";
-import { AuthenticationScheme } from "../../src/utils/Constants";
-import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
-import { Logger } from "../../src/logger/Logger";
+} from "../test_kit/StringConstants.js";
+import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
+import * as TimeUtils from "../../src/utils/TimeUtils.js";
+import { UrlString } from "../../src/url/UrlString.js";
+import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest.js";
+import { Logger } from "../../src/logger/Logger.js";
+import { mockCrypto } from "../client/ClientTestUtils.js";
 
 describe("PopTokenGenerator Unit Tests", () => {
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
-    const cryptoInterface: ICrypto = {
-        createNewGuid(): string {
-            return RANDOM_TEST_GUID;
-        },
-        base64Decode(input: string): string {
-            switch (input) {
-                case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                    return TEST_POP_VALUES.DECODED_REQ_CNF;
-                case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                    return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED:
-                    return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED;
-                default:
-                    return input;
-            }
-        },
-        base64Encode(input: string): string {
-            switch (input) {
-                case "123-test-uid":
-                    return "MTIzLXRlc3QtdWlk";
-                case "456-test-uid":
-                    return "NDU2LXRlc3QtdWlk";
-                case TEST_POP_VALUES.DECODED_REQ_CNF:
-                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED:
-                    return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED;
-                default:
-                    return input;
-            }
-        },
-        async getPublicKeyThumbprint(): Promise<string> {
-            return TEST_POP_VALUES.KID;
-        },
-        async signJwt(): Promise<string> {
-            return "";
-        },
-        async removeTokenBindingKey(): Promise<boolean> {
-            return Promise.resolve(true);
-        },
-        async clearKeystore(): Promise<boolean> {
-            return Promise.resolve(true);
-        },
-        async hashString(): Promise<string> {
-            return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-        },
-    };
+    const cryptoInterface: ICrypto = mockCrypto;
 
     describe("generateCnf", () => {
         const testRequest = {
@@ -86,9 +39,6 @@ describe("PopTokenGenerator Unit Tests", () => {
                 TEST_POP_VALUES.ENCODED_REQ_CNF
             );
             expect(reqCnfData.kid).toBe(TEST_POP_VALUES.KID);
-            expect(reqCnfData.reqCnfHash).toBe(
-                TEST_CRYPTO_VALUES.TEST_SHA256_HASH
-            );
         });
     });
 
@@ -103,7 +53,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             };
-            sinon.stub(TimeUtils, "nowSeconds").returns(currTime);
+            jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
         });
 
         it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {

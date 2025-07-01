@@ -10,19 +10,25 @@ import {
     invokeAsync,
     invoke,
     ServerResponseType,
-} from "@azure/msal-common";
+    Authority,
+    CommonAuthorizationUrlRequest,
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
+} from "../error/BrowserAuthError.js";
+import {
+    BrowserConfiguration,
+    DEFAULT_IFRAME_TIMEOUT_MS,
+} from "../config/Configuration.js";
+import { getEARForm } from "../protocol/Authorize.js";
 
 /**
  * Creates a hidden iframe to given URL using user-requested scopes as an id.
  * @param urlNavigate
  * @param userRequestScopes
  */
-export async function initiateAuthRequest(
+export async function initiateCodeRequest(
     requestUrl: string,
     performanceClient: IPerformanceClient,
     logger: Logger,
@@ -55,6 +61,29 @@ export async function initiateAuthRequest(
         performanceClient,
         correlationId
     )(requestUrl);
+}
+
+export async function initiateEarRequest(
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLIFrameElement> {
+    const frame = createHiddenIframe();
+    if (!frame.contentDocument) {
+        throw "No document associated with iframe!";
+    }
+    const form = await getEARForm(
+        frame.contentDocument,
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    form.submit();
+    return frame;
 }
 
 /**
@@ -195,6 +224,7 @@ function loadFrameSync(urlNavigate: string): HTMLIFrameElement {
 function createHiddenIframe(): HTMLIFrameElement {
     const authFrame = document.createElement("iframe");
 
+    authFrame.className = "msalSilentIframe";
     authFrame.style.visibility = "hidden";
     authFrame.style.position = "absolute";
     authFrame.style.width = authFrame.style.height = "0";

@@ -6,6 +6,7 @@ const popCardDiv = document.getElementById("pop-card-div");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
 const popTokenAcquired = document.getElementById("PopTokenAcquired");
+const popTokenWithCnfAcquired = document.getElementById("PopTokenWithCnfAcquired");
 const jwtBodyView = document.getElementById("jwtBodyView");
 const jwtHeaderView = document.getElementById("jwtHeaderView");
 
@@ -25,6 +26,22 @@ function showPopTokenAcquired(encodedJwt) {
     popTokenAcquired.setAttribute("id", "PopTokenAcquired");
     popTokenAcquired.innerHTML = "Successfully acquired PoP Token";
     profileDiv.appendChild(popTokenAcquired);
+
+    const jwtWindow = document.getElementById("jwtWindow");
+    const splitJwt = encodedJwt.split(".");
+    const jwtHeader = JSON.stringify(JSON.parse(atob(splitJwt[0])), null, 4);
+    const jwtBody = JSON.stringify(JSON.parse(atob(splitJwt[1])), null, 4);
+    jwtBodyView.style = "white-space: pre-wrap";
+    jwtHeaderView.textContent = jwtHeader;
+    jwtBodyView.textContent = jwtBody;
+}
+
+function showPopTokenWithKidAcquired(encodedJwt) {
+    popCardDiv.style.display = 'initial'
+    const popTokenWithCnfAcquired = document.createElement('p');
+    popTokenWithCnfAcquired.setAttribute("id", "PopTokenWithKidAcquired");
+    popTokenWithCnfAcquired.innerHTML = "Successfully acquired PoP Token with kid";
+    profileDiv.appendChild(popTokenWithCnfAcquired);
 
     const jwtWindow = document.getElementById("jwtWindow");
     const splitJwt = encodedJwt.split(".");

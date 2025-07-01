@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Logger } from "@azure/msal-common";
+import {
+    AccountInfo,
+    AuthenticationResult,
+    Logger,
+} from "@azure/msal-common/node";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest.js";
@@ -47,7 +51,10 @@ export interface IPublicClientApplication {
         request: DeviceCodeRequest
     ): Promise<AuthenticationResult | null>;
 
-    /** Acquires tokens with password grant by exchanging client applications username and password for credentials */
+    /**
+     * Acquires tokens with password grant by exchanging client applications username and password for credentials
+     * @deprecated - Use a more secure flow instead
+     */
     acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest
     ): Promise<AuthenticationResult | null>;

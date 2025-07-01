@@ -3,14 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { CryptoOps } from "./CryptoOps";
+import { CryptoOps } from "./CryptoOps.js";
 import {
+    ClientAuthError,
+    ClientAuthErrorCodes,
     Logger,
     LoggerOptions,
     PopTokenGenerator,
     SignedHttpRequestParameters,
-} from "@azure/msal-common";
-import { version, name } from "../packageMetadata";
+} from "@azure/msal-common/browser";
+import { version, name } from "../packageMetadata.js";
 
 export type SignedHttpRequestOptions = {
     loggerOptions: LoggerOptions;
@@ -71,6 +73,22 @@ export class SignedHttpRequest {
      * @returns If keys are properly deleted
      */
     async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
-        return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
+        return this.cryptoOps
+            .removeTokenBindingKey(publicKeyThumbprint)
+            .then(() => true)
+            .catch((error) => {
+                /*
+                 * @deprecated - To maintain public API signature, we return false if the error is due to the key still being present in indexedDB.
+                 */
+                if (
+                    error instanceof ClientAuthError &&
+                    error.errorCode ===
+                        ClientAuthErrorCodes.bindingKeyNotRemoved
+                ) {
+                    return false;
+                }
+
+                throw error;
+            });
     }
 }

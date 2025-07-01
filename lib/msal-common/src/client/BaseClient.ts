@@ -7,25 +7,37 @@ import {
     ClientConfiguration,
     buildClientConfiguration,
     CommonClientConfiguration,
-} from "../config/ClientConfiguration";
-import { INetworkModule } from "../network/INetworkModule";
-import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
-import { ICrypto } from "../crypto/ICrypto";
-import { Authority } from "../authority/Authority";
-import { Logger } from "../logger/Logger";
-import { Constants, HeaderNames } from "../utils/Constants";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { CacheManager } from "../cache/CacheManager";
-import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { version, name } from "../packageMetadata";
-import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
-import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { createDiscoveredInstance } from "../authority/AuthorityFactory";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+} from "../config/ClientConfiguration.js";
+import {
+    INetworkModule,
+    NetworkRequestOptions,
+} from "../network/INetworkModule.js";
+import { NetworkResponse } from "../network/NetworkResponse.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { Authority } from "../authority/Authority.js";
+import { Logger } from "../logger/Logger.js";
+import { Constants, HeaderNames } from "../utils/Constants.js";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { RequestThumbprint } from "../network/RequestThumbprint.js";
+import { version, name } from "../packageMetadata.js";
+import { CcsCredential, CcsCredentialType } from "../account/CcsCredential.js";
+import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
+import * as UrlUtils from "../utils/UrlUtils.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { ThrottlingUtils } from "../network/ThrottlingUtils.js";
+import { AuthError } from "../error/AuthError.js";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError.js";
+import { NetworkError } from "../error/NetworkError.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -49,9 +61,6 @@ export abstract class BaseClient {
 
     // Server Telemetry Manager
     protected serverTelemetryManager: ServerTelemetryManager | null;
-
-    // Network Manager
-    protected networkManager: NetworkManager;
 
     // Default authority object
     public authority: Authority;
@@ -77,12 +86,6 @@ export abstract class BaseClient {
 
         // Set the network interface
         this.networkClient = this.config.networkInterface;
-
-        // Set the NetworkManager
-        this.networkManager = new NetworkManager(
-            this.networkClient,
-            this.cacheManager
-        );
 
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
@@ -152,19 +155,12 @@ export abstract class BaseClient {
         }
 
         const response =
-            await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
+            await this.sendPostRequest<ServerAuthorizationTokenResponse>(
                 thumbprint,
                 tokenEndpoint,
-                { body: queryString, headers: headers }
+                { body: queryString, headers: headers },
+                correlationId
             );
-        this.performanceClient?.addFields(
-            {
-                refreshTokenSize: response.body.refresh_token?.length || 0,
-                httpVerToken:
-                    response.headers?.[HeaderNames.X_MS_HTTP_VERSION] || "",
-            },
-            correlationId
-        );
 
         if (
             this.config.serverTelemetryManager &&
@@ -174,6 +170,90 @@ export abstract class BaseClient {
             // Telemetry data successfully logged by server, clear Telemetry cache
             this.config.serverTelemetryManager.clearTelemetryCache();
         }
+
+        return response;
+    }
+
+    /**
+     * Wraps sendPostRequestAsync with necessary preflight and postflight logic
+     * @param thumbprint - Request thumbprint for throttling
+     * @param tokenEndpoint - Endpoint to make the POST to
+     * @param options - Body and Headers to include on the POST request
+     * @param correlationId - CorrelationId for telemetry
+     */
+    async sendPostRequest<T extends ServerAuthorizationTokenResponse>(
+        thumbprint: RequestThumbprint,
+        tokenEndpoint: string,
+        options: NetworkRequestOptions,
+        correlationId: string
+    ): Promise<NetworkResponse<T>> {
+        ThrottlingUtils.preProcess(
+            this.cacheManager,
+            thumbprint,
+            correlationId
+        );
+
+        let response;
+        try {
+            response = await invokeAsync(
+                this.networkClient.sendPostRequestAsync.bind(
+                    this.networkClient
+                )<T>,
+                PerformanceEvents.NetworkClientSendPostRequestAsync,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(tokenEndpoint, options);
+            const responseHeaders = response.headers || {};
+            this.performanceClient?.addFields(
+                {
+                    refreshTokenSize: response.body.refresh_token?.length || 0,
+                    httpVerToken:
+                        responseHeaders[HeaderNames.X_MS_HTTP_VERSION] || "",
+                    requestId:
+                        responseHeaders[HeaderNames.X_MS_REQUEST_ID] || "",
+                },
+                correlationId
+            );
+        } catch (e) {
+            if (e instanceof NetworkError) {
+                const responseHeaders = e.responseHeaders;
+                if (responseHeaders) {
+                    this.performanceClient?.addFields(
+                        {
+                            httpVerToken:
+                                responseHeaders[
+                                    HeaderNames.X_MS_HTTP_VERSION
+                                ] || "",
+                            requestId:
+                                responseHeaders[HeaderNames.X_MS_REQUEST_ID] ||
+                                "",
+                            contentTypeHeader:
+                                responseHeaders[HeaderNames.CONTENT_TYPE] ||
+                                undefined,
+                            contentLengthHeader:
+                                responseHeaders[HeaderNames.CONTENT_LENGTH] ||
+                                undefined,
+                            httpStatus: e.httpStatus,
+                        },
+                        correlationId
+                    );
+                }
+                throw e.error;
+            }
+            if (e instanceof AuthError) {
+                throw e;
+            } else {
+                throw createClientAuthError(ClientAuthErrorCodes.networkError);
+            }
+        }
+
+        ThrottlingUtils.postProcess(
+            this.cacheManager,
+            thumbprint,
+            response,
+            correlationId
+        );
 
         return response;
     }
@@ -208,14 +288,33 @@ export abstract class BaseClient {
      * @param request
      */
     createTokenQueryParameters(request: BaseAuthRequest): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
+
+        if (request.embeddedClientId) {
+            RequestParameterBuilder.addBrokerParameters(
+                parameters,
+                this.config.authOptions.clientId,
+                this.config.authOptions.redirectUri
+            );
+        }
 
         if (request.tokenQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.tokenQueryParameters
             );
         }
 
-        return parameterBuilder.createQueryString();
+        RequestParameterBuilder.addCorrelationId(
+            parameters,
+            request.correlationId
+        );
+
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
+            this.performanceClient
+        );
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

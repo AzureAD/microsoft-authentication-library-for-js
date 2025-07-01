@@ -3,15 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { IPersistence } from "./IPersistence";
-import { FilePersistence } from "./FilePersistence";
-import { PersistenceError } from "../error/PersistenceError";
-import { Dpapi } from "../Dpapi";
-import { DataProtectionScope } from "./DataProtectionScope";
-import { Logger, LoggerOptions } from "@azure/msal-common";
+import { IPersistence } from "./IPersistence.js";
+import { FilePersistence } from "./FilePersistence.js";
+import { PersistenceError } from "../error/PersistenceError.js";
+import { Dpapi } from "../Dpapi.js";
+import { DataProtectionScope } from "./DataProtectionScope.js";
+import { Logger, LoggerOptions } from "@azure/msal-common/node";
 import { dirname } from "path";
-import { BasePersistence } from "./BasePersistence";
-import { isNodeError } from "../utils/TypeGuards";
+import { BasePersistence } from "./BasePersistence.js";
+import { isNodeError } from "../utils/TypeGuards.js";
 
 /**
  * Uses CryptProtectData and CryptUnprotectData on Windows to encrypt and decrypt file contents.

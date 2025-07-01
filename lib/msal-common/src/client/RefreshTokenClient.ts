@@ -6,48 +6,51 @@
 import {
     ClientConfiguration,
     isOidcProtocolMode,
-} from "../config/ClientConfiguration";
-import { BaseClient } from "./BaseClient";
-import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
-import { Authority } from "../authority/Authority";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
+} from "../config/ClientConfiguration.js";
+import { BaseClient } from "./BaseClient.js";
+import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest.js";
+import { Authority } from "../authority/Authority.js";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
+import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
+import * as UrlUtils from "../utils/UrlUtils.js";
 import {
     GrantType,
     AuthenticationScheme,
     Errors,
     HeaderNames,
-} from "../utils/Constants";
-import * as AADServerParamKeys from "../constants/AADServerParamKeys";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
-import { StringUtils } from "../utils/StringUtils";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { NetworkResponse } from "../network/NetworkManager";
-import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
+} from "../utils/Constants.js";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
+import { ResponseHandler } from "../response/ResponseHandler.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { StringUtils } from "../utils/StringUtils.js";
+import { NetworkResponse } from "../network/NetworkResponse.js";
+import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
+} from "../error/ClientConfigurationError.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../error/ClientAuthError";
-import { ServerError } from "../error/ServerError";
-import * as TimeUtils from "../utils/TimeUtils";
-import { UrlString } from "../url/UrlString";
-import { CcsCredentialType } from "../account/CcsCredential";
-import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+} from "../error/ClientAuthError.js";
+import { ServerError } from "../error/ServerError.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
+import { UrlString } from "../url/UrlString.js";
+import { CcsCredentialType } from "../account/CcsCredential.js";
+import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
 import {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     createInteractionRequiredAuthError,
-} from "../error/InteractionRequiredAuthError";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { invoke, invokeAsync } from "../utils/FunctionWrappers";
-import { generateCredentialKey } from "../cache/utils/CacheHelpers";
+} from "../error/InteractionRequiredAuthError.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
+import { generateCredentialKey } from "../cache/utils/CacheHelpers.js";
+import { ClientAssertion } from "../account/ClientCredentials.js";
+import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
+import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 
@@ -209,9 +212,9 @@ export class RefreshTokenClient extends BaseClient {
         )(
             request.account,
             foci,
+            request.correlationId,
             undefined,
-            this.performanceClient,
-            request.correlationId
+            this.performanceClient
         );
 
         if (!refreshToken) {
@@ -228,6 +231,10 @@ export class RefreshTokenClient extends BaseClient {
                     DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
             )
         ) {
+            this.performanceClient?.addFields(
+                { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                request.correlationId
+            );
             throw createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.refreshTokenExpired
             );
@@ -254,16 +261,24 @@ export class RefreshTokenClient extends BaseClient {
                 request.correlationId
             )(refreshTokenRequest);
         } catch (e) {
-            if (
-                e instanceof InteractionRequiredAuthError &&
-                e.subError === InteractionRequiredAuthErrorCodes.badToken
-            ) {
-                // Remove bad refresh token from cache
-                this.logger.verbose(
-                    "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+            if (e instanceof InteractionRequiredAuthError) {
+                this.performanceClient?.addFields(
+                    { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                    request.correlationId
                 );
-                const badRefreshTokenKey = generateCredentialKey(refreshToken);
-                this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+
+                if (e.subError === InteractionRequiredAuthErrorCodes.badToken) {
+                    // Remove bad refresh token from cache
+                    this.logger.verbose(
+                        "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+                    );
+                    const badRefreshTokenKey =
+                        generateCredentialKey(refreshToken);
+                    this.cacheManager.removeRefreshToken(
+                        badRefreshTokenKey,
+                        request.correlationId
+                    );
+                }
             }
 
             throw e;
@@ -300,19 +315,11 @@ export class RefreshTokenClient extends BaseClient {
         const headers: Record<string, string> = this.createTokenRequestHeaders(
             request.ccsCredential
         );
-        const thumbprint: RequestThumbprint = {
-            clientId:
-                request.tokenBodyParameters?.clientId ||
-                this.config.authOptions.clientId,
-            authority: authority.canonicalAuthority,
-            scopes: request.scopes,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-        };
+
+        const thumbprint = getRequestThumbprint(
+            this.config.authOptions.clientId,
+            request
+        );
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),
@@ -342,53 +349,79 @@ export class RefreshTokenClient extends BaseClient {
             request.correlationId
         );
 
-        const correlationId = request.correlationId;
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
-        parameterBuilder.addClientId(
-            request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+        RequestParameterBuilder.addClientId(
+            parameters,
+            request.embeddedClientId ||
+                request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
 
         if (request.redirectUri) {
-            parameterBuilder.addRedirectUri(request.redirectUri);
+            RequestParameterBuilder.addRedirectUri(
+                parameters,
+                request.redirectUri
+            );
         }
 
-        parameterBuilder.addScopes(
+        RequestParameterBuilder.addScopes(
+            parameters,
             request.scopes,
             true,
             this.config.authOptions.authority.options.OIDCOptions?.defaultScopes
         );
 
-        parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            GrantType.REFRESH_TOKEN_GRANT
+        );
 
-        parameterBuilder.addClientInfo();
+        RequestParameterBuilder.addClientInfo(parameters);
 
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(
+        RequestParameterBuilder.addLibraryInfo(
+            parameters,
+            this.config.libraryInfo
+        );
+        RequestParameterBuilder.addApplicationTelemetry(
+            parameters,
             this.config.telemetry.application
         );
-        parameterBuilder.addThrottling();
+        RequestParameterBuilder.addThrottling(parameters);
 
         if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
         }
 
-        parameterBuilder.addCorrelationId(correlationId);
-
-        parameterBuilder.addRefreshToken(request.refreshToken);
+        RequestParameterBuilder.addRefreshToken(
+            parameters,
+            request.refreshToken
+        );
 
         if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(
+            RequestParameterBuilder.addClientSecret(
+                parameters,
                 this.config.clientCredentials.clientSecret
             );
         }
 
         if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion =
+            const clientAssertion: ClientAssertion =
                 this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion);
-            parameterBuilder.addClientAssertionType(
+
+            RequestParameterBuilder.addClientAssertion(
+                parameters,
+                await getClientAssertion(
+                    clientAssertion.assertion,
+                    this.config.authOptions.clientId,
+                    request.resourceRequestUri
+                )
+            );
+            RequestParameterBuilder.addClientAssertionType(
+                parameters,
                 clientAssertion.assertionType
             );
         }
@@ -398,18 +431,27 @@ export class RefreshTokenClient extends BaseClient {
                 this.cryptoUtils,
                 this.performanceClient
             );
-            const reqCnfData = await invokeAsync(
-                popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                PerformanceEvents.PopTokenGenerateCnf,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(request, this.logger);
+
+            let reqCnfData;
+            if (!request.popKid) {
+                const generatedReqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(request, this.logger);
+
+                reqCnfData = generatedReqCnfData.reqCnfString;
+            } else {
+                reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
+            }
+
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
-            parameterBuilder.addPopToken(reqCnfData.reqCnfString);
+            RequestParameterBuilder.addPopToken(parameters, reqCnfData);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if (request.sshJwk) {
-                parameterBuilder.addSshJwk(request.sshJwk);
+                RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
                 throw createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
@@ -422,7 +464,8 @@ export class RefreshTokenClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            parameterBuilder.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
@@ -438,7 +481,10 @@ export class RefreshTokenClient extends BaseClient {
                         const clientInfo = buildClientInfoFromHomeAccountId(
                             request.ccsCredential.credential
                         );
-                        parameterBuilder.addCcsOid(clientInfo);
+                        RequestParameterBuilder.addCcsOid(
+                            parameters,
+                            clientInfo
+                        );
                     } catch (e) {
                         this.logger.verbose(
                             "Could not parse home account ID for CCS Header: " +
@@ -447,19 +493,34 @@ export class RefreshTokenClient extends BaseClient {
                     }
                     break;
                 case CcsCredentialType.UPN:
-                    parameterBuilder.addCcsUpn(
+                    RequestParameterBuilder.addCcsUpn(
+                        parameters,
                         request.ccsCredential.credential
                     );
                     break;
             }
         }
 
+        if (request.embeddedClientId) {
+            RequestParameterBuilder.addBrokerParameters(
+                parameters,
+                this.config.authOptions.clientId,
+                this.config.authOptions.redirectUri
+            );
+        }
+
         if (request.tokenBodyParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.tokenBodyParameters
             );
         }
 
-        return parameterBuilder.createQueryString();
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
+            this.performanceClient
+        );
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

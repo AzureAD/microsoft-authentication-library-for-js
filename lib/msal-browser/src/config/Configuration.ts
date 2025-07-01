@@ -22,14 +22,15 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     Logger,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     BrowserCacheLocation,
     BrowserConstants,
-} from "../utils/BrowserConstants";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { NavigationClient } from "../navigation/NavigationClient";
-import { FetchClient } from "../network/FetchClient";
+} from "../utils/BrowserConstants.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { NavigationClient } from "../navigation/NavigationClient.js";
+import { FetchClient } from "../network/FetchClient.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -94,14 +95,33 @@ export type BrowserAuthOptions = {
      */
     skipAuthorityMetadataCache?: boolean;
     /**
-     * App supports nested app auth or not; defaults to false
+     * App supports nested app auth or not; defaults to
+     *
+     * @deprecated This flag is deprecated and will be removed in the next major version. createNestablePublicClientApplication should be used instead.
      */
     supportsNestedAppAuth?: boolean;
+    /**
+     * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
+     */
+    onRedirectNavigate?: (url: string) => boolean | void;
+    /**
+     * Flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
+     */
+    instanceAware?: boolean;
+    /**
+     * Flag of whether to encode query parameters
+     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
+     */
+    encodeExtraQueryParams?: boolean;
 };
 
 /** @internal */
-export type InternalAuthOptions = Required<BrowserAuthOptions> & {
+export type InternalAuthOptions = Omit<
+    Required<BrowserAuthOptions>,
+    "onRedirectNavigate"
+> & {
     OIDCOptions: Required<OIDCOptions>;
+    onRedirectNavigate?: (url: string) => boolean | void;
 };
 
 /**
@@ -114,22 +134,27 @@ export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     /**
      * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
     /**
      * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     storeAuthStateInCookie?: boolean;
     /**
-     * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
+     * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to true.
+     * @deprecated This option will be removed in the next major version and all cookies set will include the Secure attribute.
      */
     secureCookies?: boolean;
     /**
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     cacheMigrationEnabled?: boolean;
     /**
      * Flag that determines whether access tokens are stored based on requested claims
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     claimsBasedCachingEnabled?: boolean;
 };
@@ -177,9 +202,9 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     allowRedirectInIframe?: boolean;
     /**
-     * Flag to enable native broker support (e.g. acquiring tokens from WAM on Windows)
+     * Flag to enable native broker support (e.g. acquiring tokens from WAM on Windows, MacBroker on Mac)
      */
-    allowNativeBroker?: boolean;
+    allowPlatformBroker?: boolean;
     /**
      * Sets the timeout for waiting for the native broker handshake to resolve
      */
@@ -259,7 +284,8 @@ export function buildConfiguration(
         knownAuthorities: [],
         cloudDiscoveryMetadata: Constants.EMPTY_STRING,
         authorityMetadata: Constants.EMPTY_STRING,
-        redirectUri: Constants.EMPTY_STRING,
+        redirectUri:
+            typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
         postLogoutRedirectUri: Constants.EMPTY_STRING,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
@@ -278,6 +304,8 @@ export function buildConfiguration(
         },
         skipAuthorityMetadataCache: false,
         supportsNestedAppAuth: false,
+        instanceAware: false,
+        encodeExtraQueryParams: false,
     };
 
     // Default cache options for browser
@@ -323,7 +351,7 @@ export function buildConfiguration(
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
-        allowNativeBroker: false,
+        allowPlatformBroker: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
@@ -359,14 +387,14 @@ export function buildConfiguration(
         );
     }
 
-    // Throw an error if user has set allowNativeBroker to true without being in AAD protocol mode
+    // Throw an error if user has set allowPlatformBroker to true with OIDC protocol mode
     if (
         userInputAuth?.protocolMode &&
-        userInputAuth.protocolMode !== ProtocolMode.AAD &&
-        providedSystemOptions?.allowNativeBroker
+        userInputAuth.protocolMode === ProtocolMode.OIDC &&
+        providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.cannotAllowNativeBroker
+            ClientConfigurationErrorCodes.cannotAllowPlatformBroker
         );
     }
 

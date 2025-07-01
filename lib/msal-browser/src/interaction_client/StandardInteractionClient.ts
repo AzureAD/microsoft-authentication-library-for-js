@@ -5,7 +5,6 @@
 
 import {
     ServerTelemetryManager,
-    CommonAuthorizationCodeRequest,
     Constants,
     AuthorizationCodeClient,
     ClientConfiguration,
@@ -19,56 +18,28 @@ import {
     PerformanceEvents,
     invokeAsync,
     BaseAuthRequest,
-} from "@azure/msal-common";
-import { BaseInteractionClient } from "./BaseInteractionClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
-import { version } from "../packageMetadata";
-import { BrowserStateObject } from "../utils/BrowserProtocolUtils";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { generatePkceCodes } from "../crypto/PkceGenerator";
-import { createNewGuid } from "../crypto/BrowserCrypto";
+    StringDict,
+    CommonAuthorizationUrlRequest,
+} from "@azure/msal-common/browser";
+import { BaseInteractionClient } from "./BaseInteractionClient.js";
+import {
+    BrowserConstants,
+    InteractionType,
+} from "../utils/BrowserConstants.js";
+import { version } from "../packageMetadata.js";
+import { BrowserStateObject } from "../utils/BrowserProtocolUtils.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { initializeBaseRequest } from "../request/RequestHelpers.js";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
  */
 export abstract class StandardInteractionClient extends BaseInteractionClient {
-    /**
-     * Generates an auth code request tied to the url request.
-     * @param request
-     */
-    protected async initializeAuthorizationCodeRequest(
-        request: AuthorizationUrlRequest
-    ): Promise<CommonAuthorizationCodeRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            this.correlationId
-        );
-        const generatedPkceParams = await invokeAsync(
-            generatePkceCodes,
-            PerformanceEvents.GeneratePkceCodes,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(this.performanceClient, this.logger, this.correlationId);
-
-        const authCodeRequest: CommonAuthorizationCodeRequest = {
-            ...request,
-            redirectUri: request.redirectUri,
-            code: Constants.EMPTY_STRING,
-            codeVerifier: generatedPkceParams.verifier,
-        };
-
-        request.codeChallenge = generatedPkceParams.challenge;
-        request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
-
-        return authCodeRequest;
-    }
-
     /**
      * Initializer for the logout request.
      * @param logoutRequest
@@ -198,15 +169,21 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
     /**
      * Creates an Authorization Code Client with the given authority, or the default authority.
-     * @param serverTelemetryManager
-     * @param authorityUrl
+     * @param params {
+     *         serverTelemetryManager: ServerTelemetryManager;
+     *         authorityUrl?: string;
+     *         requestAzureCloudOptions?: AzureCloudOptions;
+     *         requestExtraQueryParameters?: StringDict;
+     *         account?: AccountInfo;
+     *        }
      */
-    protected async createAuthCodeClient(
-        serverTelemetryManager: ServerTelemetryManager,
-        authorityUrl?: string,
-        requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(params: {
+        serverTelemetryManager: ServerTelemetryManager;
+        requestAuthority?: string;
+        requestAzureCloudOptions?: AzureCloudOptions;
+        requestExtraQueryParameters?: StringDict;
+        account?: AccountInfo;
+    }): Promise<AuthorizationCodeClient> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
             this.correlationId
@@ -218,12 +195,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(
-            serverTelemetryManager,
-            authorityUrl,
-            requestAzureCloudOptions,
-            account
-        );
+        )(params);
+
         return new AuthorizationCodeClient(
             clientConfig,
             this.performanceClient
@@ -232,16 +205,29 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
     /**
      * Creates a Client Configuration object with the given request authority, or the default authority.
-     * @param serverTelemetryManager
-     * @param requestAuthority
-     * @param requestCorrelationId
+     * @param params {
+     *         serverTelemetryManager: ServerTelemetryManager;
+     *         requestAuthority?: string;
+     *         requestAzureCloudOptions?: AzureCloudOptions;
+     *         requestExtraQueryParameters?: boolean;
+     *         account?: AccountInfo;
+     *        }
      */
-    protected async getClientConfiguration(
-        serverTelemetryManager: ServerTelemetryManager,
-        requestAuthority?: string,
-        requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<ClientConfiguration> {
+    protected async getClientConfiguration(params: {
+        serverTelemetryManager: ServerTelemetryManager;
+        requestAuthority?: string;
+        requestAzureCloudOptions?: AzureCloudOptions;
+        requestExtraQueryParameters?: StringDict;
+        account?: AccountInfo;
+    }): Promise<ClientConfiguration> {
+        const {
+            serverTelemetryManager,
+            requestAuthority,
+            requestAzureCloudOptions,
+            requestExtraQueryParameters,
+            account,
+        } = params;
+
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.correlationId
@@ -252,7 +238,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(requestAuthority, requestAzureCloudOptions, account);
+        )({
+            requestAuthority,
+            requestAzureCloudOptions,
+            requestExtraQueryParameters,
+            account,
+        });
         const logger = this.config.system.loggerOptions;
 
         return {
@@ -260,6 +251,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
+                redirectUri: this.config.auth.redirectUri,
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds:
@@ -298,7 +290,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async initializeAuthorizationRequest(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         interactionType: InteractionType
-    ): Promise<AuthorizationUrlRequest> {
+    ): Promise<CommonAuthorizationUrlRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.correlationId
@@ -315,14 +307,19 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         );
 
         const baseRequest: BaseAuthRequest = await invokeAsync(
-            this.initializeBaseRequest.bind(this),
+            initializeBaseRequest,
             PerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request);
+        )(
+            { ...request, correlationId: this.correlationId },
+            this.config,
+            this.performanceClient,
+            this.logger
+        );
 
-        const validatedRequest: AuthorizationUrlRequest = {
+        const validatedRequest: CommonAuthorizationUrlRequest = {
             ...baseRequest,
             redirectUri: redirectUri,
             state: state,
@@ -331,8 +328,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 .serverResponseType as ResponseMode,
         };
 
+        // Skip active account lookup if either login hint or session id is set
+        if (request.loginHint || request.sid) {
+            return validatedRequest;
+        }
+
         const account =
-            request.account || this.browserStorage.getActiveAccount();
+            request.account ||
+            this.browserStorage.getActiveAccount(this.correlationId);
         if (account) {
             this.logger.verbose(
                 "Setting validated request account",
@@ -343,14 +346,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             validatedRequest.account = account;
-        }
-
-        // Check for ADAL/MSAL v1 SSO
-        if (!validatedRequest.loginHint && !account) {
-            const legacyLoginHint = this.browserStorage.getLegacyLoginHint();
-            if (legacyLoginHint) {
-                validatedRequest.loginHint = legacyLoginHint;
-            }
         }
 
         return validatedRequest;

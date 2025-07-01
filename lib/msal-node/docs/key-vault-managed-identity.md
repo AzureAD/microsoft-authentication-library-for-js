@@ -14,12 +14,12 @@ First, create a key vault. To do so, follow the guide: [Quickstart: Create a key
 
 Now you can import your certificate to Key Vault. **Azure Key Vault** expects certificates in either:
 
-* *.pem* file format contains one or more X509 certificate files.
-* *.pfx* file format is an archive file format for storing several cryptographic objects in a single file i.e. server certificate (issued for your domain), a matching private key, and may optionally include an intermediate CA.
+-   _.pem_ file format contains one or more X509 certificate files.
+-   _.pfx_ file format is an archive file format for storing several cryptographic objects in a single file i.e. server certificate (issued for your domain), a matching private key, and may optionally include an intermediate CA.
 
 > :bulb: If you don't have any certificates at hand, you can use Azure Key Vault to generate one for you. It will have the additional benefits of assigning a partner Certificate Authority and automating certificate rotation. For more information, see [Quickstart: Generate a certificate with Azure Key Vault using the Azure portal](https://docs.microsoft.com/azure/key-vault/certificates/quick-create-portal)
 
-We will combine our public and private key into a single *.pem* file, and upload this file to Key Vault. For conversion, we will use **OpenSSL**. Type the following in a terminal:
+We will combine our public and private key into a single _.pem_ file, and upload this file to Key Vault. For conversion, we will use **OpenSSL**. Type the following in a terminal:
 
 ```bash
 cat example.crt example.key > example.pem
@@ -27,9 +27,9 @@ cat example.crt example.key > example.pem
 
 > Powershell users can use **cat** equivalent below:
 >
->```powershell
+> ```powershell
 >    Get-Content example.crt, exampleDecrypted.key | Set-Content example.pem
->```
+> ```
 
 This should give you `example.pem`. Next, **upload** this to Key Vault.
 
@@ -37,10 +37,10 @@ This should give you `example.pem`. Next, **upload** this to Key Vault.
 1. On the Key Vault properties pages, select **Certificates**.
 1. Click on **Generate/Import**.
 1. On the **Create a certificate** screen choose the following values:
-   * **Method of Certificate Creation**: Import.
-   * **Certificate Name**: ExampleCertificate.
-   * **Upload Certificate File**: select the certificate file from disk
-   * **Password** : If you are uploading a password protected (i.e. *pass phrase*) certificate file, provide that password here. Otherwise, leave it blank. Once the certificate file is successfully imported, key vault will remove that password.
+    - **Method of Certificate Creation**: Import.
+    - **Certificate Name**: ExampleCertificate.
+    - **Upload Certificate File**: select the certificate file from disk
+    - **Password** : If you are uploading a password protected (i.e. _pass phrase_) certificate file, provide that password here. Otherwise, leave it blank. Once the certificate file is successfully imported, key vault will remove that password.
 1. Click **Create**.
 
 For alternative ways of importing, see: [Tutorial: Import a certificate in Azure Key Vault](https://docs.microsoft.com/azure/key-vault/certificates/tutorial-import-certificate).
@@ -157,7 +157,7 @@ Wait for a few minutes for your changes on **App Service** to take effect. You s
 
 ## More Information
 
-* [Azure Key Vault Developer's Guide](https://docs.microsoft.com/azure/key-vault/general/developers-guide)
-* [What are managed identities for Azure resources?](https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview)
-* [Microsoft identity platform application authentication certificate credentials](https://docs.microsoft.com/azure/active-directory/develop/active-directory-certificate-credentials)
-* [Various SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions)
+-   [Azure Key Vault Developer's Guide](https://docs.microsoft.com/azure/key-vault/general/developers-guide)
+-   [What are managed identities for Azure resources?](https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview)
+-   [Microsoft identity platform application authentication certificate credentials](https://docs.microsoft.com/azure/active-directory/develop/active-directory-certificate-credentials)
+-   [Various SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions)

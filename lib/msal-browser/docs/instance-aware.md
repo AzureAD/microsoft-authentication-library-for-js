@@ -1,6 +1,11 @@
 # Instance Aware flow
 
-When passing `instance_aware=true` on the `/authorize` call to retrieve the code, the STS will send back additional parameters to specify where the tokens should be retrieved from. 
+There are two options to enable instance aware flow:
+
+1. Set `instanceAware` to `true` in [auth config options](./configuration.md#auth-config-options).
+1. Set `instance_aware` to `"true"` in request `extraQueryParameters`. This takes precedence over configuration option above to allow fine-grained instance aware flow control.
+
+When enabling instance aware flow, the STS will send back additional parameters in the `/authorize` response to specify where the tokens should be retrieved from.
 
 - Sample Request using instance_aware
 

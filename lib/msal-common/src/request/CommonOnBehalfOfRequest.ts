@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "./BaseAuthRequest";
+import { BaseAuthRequest } from "./BaseAuthRequest.js";
 
 /**
  * - scopes                  - Array of scopes the application is requesting access to.

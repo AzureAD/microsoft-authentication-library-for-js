@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "../logger/Logger";
-import { UrlString } from "../url/UrlString";
-import { AuthorityMetadataSource } from "../utils/Constants";
-import { StaticAuthorityOptions } from "./AuthorityOptions";
-import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
-import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
-import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
+import { Logger } from "../logger/Logger.js";
+import { UrlString } from "../url/UrlString.js";
+import { AuthorityMetadataSource } from "../utils/Constants.js";
+import { StaticAuthorityOptions } from "./AuthorityOptions.js";
+import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
+import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse.js";
+import { OpenIdConfigResponse } from "./OpenIdConfigResponse.js";
 
 type RawMetadata = {
     endpointMetadata: { [key: string]: OpenIdConfigResponse };

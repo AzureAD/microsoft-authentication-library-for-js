@@ -3,13 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { PerformanceEvent } from "./PerformanceEvent";
-import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
+import { PerformanceEvent } from "./PerformanceEvent.js";
+import { IPerformanceMeasurement } from "./IPerformanceMeasurement.js";
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type InProgressPerformanceEvent = {
-    end: (event?: Partial<PerformanceEvent>) => PerformanceEvent | null;
+    end: (
+        event?: Partial<PerformanceEvent>,
+        error?: unknown
+    ) => PerformanceEvent | null;
     discard: () => void;
     add: (fields: { [key: string]: {} | undefined }) => void;
     increment: (fields: { [key: string]: number | undefined }) => void;

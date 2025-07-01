@@ -3,43 +3,53 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
 import {
-    AADServerParamKeys,
     AuthenticationResult,
-    Authority,
     BaseClient,
     ClientConfiguration,
     CommonUsernamePasswordRequest,
     Constants,
     GrantType,
-    PasswordGrantConstants,
-    ThrottlingConstants,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
+    MOCK_PASSWORD,
+    MOCK_USERNAME,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
-} from "../test_kit/StringConstants";
-import { UsernamePasswordClient } from "../../src";
-import { ClientTestUtils } from "./ClientTestUtils";
+} from "../test_kit/StringConstants.js";
+import { UsernamePasswordClient } from "../../src/index.js";
+import {
+    ClientTestUtils,
+    checkMockedNetworkRequest,
+    getClientAssertionCallback,
+} from "./ClientTestUtils.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 
 describe("Username Password unit tests", () => {
+    let createTokenRequestBodySpy: jest.SpyInstance;
     let config: ClientConfiguration;
-
     beforeEach(async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        config = await ClientTestUtils.createTestClientConfiguration();
+        createTokenRequestBodySpy = jest.spyOn(
+            UsernamePasswordClient.prototype,
+            <any>"createTokenRequestBody"
+        );
+
+        config = await ClientTestUtils.createTestClientConfiguration(
+            undefined,
+            mockNetworkClient(
+                DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                AUTHENTICATION_RESULT_DEFAULT_SCOPES
+            )
+        );
         if (config.systemOptions) {
             config.systemOptions.preventCorsPreflight = true;
         }
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("Constructor", () => {
@@ -52,24 +62,13 @@ describe("Username Password unit tests", () => {
     });
 
     it("acquires a token", async () => {
-        sinon
-            .stub(
-                UsernamePasswordClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            UsernamePasswordClient.prototype,
-            <any>"createTokenRequestBody"
-        );
-
         const client = new UsernamePasswordClient(config);
+
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            username: "mock_name",
-            password: "mock_password",
+            username: MOCK_USERNAME,
+            password: MOCK_PASSWORD,
             claims: TEST_CONFIG.CLAIMS,
             correlationId: RANDOM_TEST_GUID,
         };
@@ -92,107 +91,50 @@ describe("Username Password unit tests", () => {
         );
         expect(authResult.state).toHaveLength(0);
 
-        expect(
-            createTokenRequestBodySpy.calledWith(usernamePasswordRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            usernamePasswordRequest
+        );
 
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(
-                    TEST_CONFIG.MSAL_CLIENT_ID
-                )}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(
-                    GrantType.RESOURCE_OWNER_PASSWORD_GRANT
-                )}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${PasswordGrantConstants.username}=mock_name`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${PasswordGrantConstants.password}=mock_password`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
-            )
-        ).toBe(true);
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+            claims: true,
+            responseType: true,
+            username: MOCK_USERNAME,
+            password: MOCK_PASSWORD,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Adds tokenQueryParameters to the /token request", (done) => {
-        sinon
-            .stub(
-                UsernamePasswordClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .callsFake((url: string) => {
-                try {
-                    expect(
-                        url.includes(
-                            "/token?testParam1=testValue1&testParam3=testValue3"
-                        )
-                    ).toBeTruthy();
-                    expect(!url.includes("/token?testParam2=")).toBeTruthy();
-                    done();
-                } catch (error) {
-                    done(error);
-                }
-            });
+    it("Adds tokenQueryParameters to the /token request", async () => {
+        const badExecutePostToTokenEndpointMock = jest.spyOn(
+            UsernamePasswordClient.prototype,
+            <any>"executePostToTokenEndpoint"
+        );
+        // no implementation has been mocked, the acquireToken call will fail
 
-        const client = new UsernamePasswordClient(config);
+        const fakeConfig: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration();
+        const client: UsernamePasswordClient = new UsernamePasswordClient(
+            fakeConfig
+        );
+
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            username: "mock_name",
-            password: "mock_password",
+            username: MOCK_USERNAME,
+            password: MOCK_PASSWORD,
             claims: TEST_CONFIG.CLAIMS,
             correlationId: RANDOM_TEST_GUID,
             tokenQueryParameters: {
@@ -202,30 +144,29 @@ describe("Username Password unit tests", () => {
             },
         };
 
-        client.acquireToken(usernamePasswordRequest).catch(() => {
-            // Catch errors thrown after the function call this test is testing
-        });
+        await expect(
+            client.acquireToken(usernamePasswordRequest)
+        ).rejects.toThrow();
+
+        if (!badExecutePostToTokenEndpointMock.mock.lastCall) {
+            fail("executePostToTokenEndpointMock was not called");
+        }
+        const url: string = badExecutePostToTokenEndpointMock.mock
+            .lastCall[0] as string;
+        expect(
+            url.includes("/token?testParam1=testValue1&testParam3=testValue3")
+        ).toBeTruthy();
+        expect(!url.includes("/token?testParam2=")).toBeTruthy();
     });
 
     it("properly encodes special characters in emails (usernames)", async () => {
-        sinon
-            .stub(
-                UsernamePasswordClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            UsernamePasswordClient.prototype,
-            <any>"createTokenRequestBody"
-        );
-
         const client = new UsernamePasswordClient(config);
+
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            username: "mock+name",
-            password: "mock_password",
+            username: `${MOCK_USERNAME}&+`,
+            password: MOCK_PASSWORD,
             claims: TEST_CONFIG.CLAIMS,
             correlationId: RANDOM_TEST_GUID,
         };
@@ -248,36 +189,40 @@ describe("Username Password unit tests", () => {
         );
         expect(authResult.state).toHaveLength(0);
 
-        expect(
-            createTokenRequestBodySpy.calledWith(usernamePasswordRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            usernamePasswordRequest
+        );
 
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${PasswordGrantConstants.username}=mock%2Bname`
-            )
-        ).toBe(true);
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+            claims: true,
+            responseType: true,
+            username: `${MOCK_USERNAME}%26%2B`,
+            password: MOCK_PASSWORD,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("properly encodes special characters in passwords", async () => {
-        sinon
-            .stub(
-                UsernamePasswordClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            UsernamePasswordClient.prototype,
-            <any>"createTokenRequestBody"
-        );
-
         const client = new UsernamePasswordClient(config);
+
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            username: "mock_name",
-            password: "mock_password&+",
+            username: MOCK_USERNAME,
+            password: `${MOCK_PASSWORD}&+`,
             claims: TEST_CONFIG.CLAIMS,
             correlationId: RANDOM_TEST_GUID,
         };
@@ -300,36 +245,40 @@ describe("Username Password unit tests", () => {
         );
         expect(authResult.state).toHaveLength(0);
 
-        expect(
-            createTokenRequestBodySpy.calledWith(usernamePasswordRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            usernamePasswordRequest
+        );
 
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${PasswordGrantConstants.password}=mock_password%26%2B`
-            )
-        ).toBe(true);
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+            claims: true,
+            responseType: true,
+            username: MOCK_USERNAME,
+            password: `${MOCK_PASSWORD}%26%2B`,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
 
     it("Does not include claims if empty object is passed", async () => {
-        sinon
-            .stub(
-                UsernamePasswordClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
-            .resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
-
-        const createTokenRequestBodySpy = sinon.spy(
-            UsernamePasswordClient.prototype,
-            <any>"createTokenRequestBody"
-        );
-
         const client = new UsernamePasswordClient(config);
+
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            username: "mock_name",
-            password: "mock_password",
+            username: MOCK_USERNAME,
+            password: MOCK_PASSWORD,
             correlationId: RANDOM_TEST_GUID,
             claims: "{}",
         };
@@ -352,80 +301,100 @@ describe("Username Password unit tests", () => {
         );
         expect(authResult.state).toBe("");
 
-        expect(
-            createTokenRequestBodySpy.calledWith(usernamePasswordRequest)
-        ).toBe(true);
+        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+            usernamePasswordRequest
+        );
 
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(
-                    TEST_CONFIG.MSAL_CLIENT_ID
-                )}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(
-                    GrantType.RESOURCE_OWNER_PASSWORD_GRANT
-                )}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${PasswordGrantConstants.username}=mock_name`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${PasswordGrantConstants.password}=mock_password`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                    TEST_CONFIG.CLAIMS
-                )}`
-            )
-        ).toBe(false);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`
-            )
-        ).toBe(true);
-        expect(
-            createTokenRequestBodySpy.returnValues[0].includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-            )
-        ).toBe(true);
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
+        const checks = {
+            graphScope: true,
+            clientId: true,
+            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            clientSecret: true,
+            clientSku: true,
+            clientVersion: true,
+            clientOs: true,
+            clientCpu: true,
+            appName: true,
+            appVersion: true,
+            msLibraryCapability: true,
+            claims: false,
+            responseType: true,
+            username: MOCK_USERNAME,
+            password: MOCK_PASSWORD,
+        };
+        checkMockedNetworkRequest(returnVal, checks);
     });
+
+    it.each([
+        TEST_CONFIG.TEST_CONFIG_ASSERTION,
+        getClientAssertionCallback(TEST_CONFIG.TEST_CONFIG_ASSERTION),
+    ])(
+        "Uses clientAssertion from ClientConfiguration when no client assertion is added to request",
+        async (clientAssertion) => {
+            config.clientCredentials = {
+                ...config.clientCredentials,
+                clientAssertion: {
+                    assertion: clientAssertion,
+                    assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
+                },
+            };
+            const client: UsernamePasswordClient = new UsernamePasswordClient(
+                config
+            );
+
+            const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                username: MOCK_USERNAME,
+                password: MOCK_PASSWORD,
+                correlationId: RANDOM_TEST_GUID,
+            };
+
+            const authResult = (await client.acquireToken(
+                usernamePasswordRequest
+            )) as AuthenticationResult;
+            const expectedScopes = [
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                Constants.OFFLINE_ACCESS_SCOPE,
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
+            ];
+            expect(authResult.scopes).toEqual(expectedScopes);
+            expect(authResult.idToken).toEqual(
+                AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token
+            );
+            expect(authResult.accessToken).toEqual(
+                AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token
+            );
+            expect(authResult.state).toBe("");
+
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                usernamePasswordRequest
+            );
+
+            const returnVal: string = await createTokenRequestBodySpy.mock
+                .results[0].value;
+            const checks = {
+                graphScope: true,
+                clientId: true,
+                grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+                clientSecret: true,
+                clientSku: true,
+                clientVersion: true,
+                clientOs: true,
+                clientCpu: true,
+                appName: true,
+                appVersion: true,
+                msLibraryCapability: true,
+                responseType: true,
+                username: MOCK_USERNAME,
+                password: MOCK_PASSWORD,
+                testConfigAssertion: true,
+                testAssertionType: true,
+            };
+            checkMockedNetworkRequest(returnVal, checks);
+        }
+    );
 });

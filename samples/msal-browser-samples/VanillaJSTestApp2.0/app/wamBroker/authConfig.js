@@ -1,8 +1,16 @@
+// demo usage of isPlatformBrokerAvailable API
+const isPlatformBrokerAvailable = msal.isPlatformBrokerAvailable().then((isAvailable) => {
+    console.log(`isNativeAvailable: ${isAvailable}`);
+    return isAvailable;
+}).catch((error) => {
+    console.error("Error checking if platform broker is available:", error);
+});
+
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
-        authority: "https://login.microsoftonline.com/common"
+        clientId: "591ddbcc-105b-42c5-89e6-c7638c4124d4",
+        authority: "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -34,7 +42,7 @@ const msalConfig = {
             },
             logLevel: msal.LogLevel.Trace
         },
-        allowNativeBroker: true // For demonstration purposes, allowNativeBroker is true by default as of MSAL Browser v3
+        allowPlatformBroker: true // For demonstration purposes, allowPlatformBroker is true by default as of MSAL Browser v3
     }
 };
 

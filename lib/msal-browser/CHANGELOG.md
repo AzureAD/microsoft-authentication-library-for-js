@@ -1,8 +1,616 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 07 Feb 2024 22:00:37 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 18 Jun 2025 15:21:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.13.2
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- added UX_NOT_ALLOWED suberror to InteractionRequired error type #7834 (lalimasharda@microsoft.com)
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.13.1
+
+Tue, 10 Jun 2025 20:38:38 GMT
+
+### Patches
+
+- Suppress false-positive CodeQL finding in NavigationClient #7814 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.13.0
+
+Fri, 30 May 2025 22:36:44 GMT
+
+### Minor changes
+
+- Add support for new platform broker flow via DOM API #7632 (lalimasharda@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- update common version (shylasummers@microsoft.com)
+- Add BrokerConnectionEvent to exports (thomas.norling@microsoft.com)
+- Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
+- updated naming for PlatformAuth request and response objects and added new type for DOM extraParameters #7759 (lalimasharda@microsoft.com)
+
+## 4.12.0
+
+Tue, 06 May 2025 22:47:42 GMT
+
+### Minor changes
+
+- Multi-instance detection (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v15.6.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Gracefully handle old interaction format #7731 (kshabelko@microsoft.com)
+
+## 4.11.1
+
+Tue, 29 Apr 2025 20:25:47 GMT
+
+### Patches
+
+- Fix throw when attempting to getAccount before initialization #7720 (thomas.norling@microsoft.com)
+- Add error messaging and change type for get/post failures #7721 (sameera.gajjarapu@microsoft.com)
+- Fix circular type imports (thomas.norling@microsoft.com)
+- Deprecate cache options #7707 (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v15.5.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.11.0
+
+Tue, 15 Apr 2025 23:34:14 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v15.5.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add config option to not encode extra params (shylasummers@microsoft.com)
+
+## 4.10.0
+
+Tue, 08 Apr 2025 16:56:05 GMT
+
+### Minor changes
+
+- Fix a bug in handleRedirectPromise when invoked after logoutRedirect #7680 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Export additional function internally for use in tests (thomas.norling@microsoft.com)
+- update cache miss to warning from error (sameera.gajjarapu@microsoft.com)
+
+## 4.9.1
+
+Wed, 26 Mar 2025 17:56:52 GMT
+
+### Patches
+
+- remove EAR override (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.9.0
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Minor changes
+
+- EAR Protocol response handling (thomas.norling@microsoft.com)
+- EAR protocol request support (thomas.norling@microsoft.com)
+- refactor redirect request caching (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.8.0
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Minor changes
+
+- Refactor /authorize request generation (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.3.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix expires_in format & double brokering errors #7646 (sameera.gajjarapu@microsoft.com)
+- refactor RequestParameterBuilder (thomas.norling@microsoft.com)
+
+## 4.7.0
+
+Tue, 11 Mar 2025 18:51:24 GMT
+
+### Minor changes
+
+- Bump msal-browser to 4.6.0 #7628 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.2.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix exception when BroadcastChannel is not available in JS Runtime (#7569) (dasau@microsoft.com)
+- Use TimeUtils for time/date conversions #7613 (joarroyo@microsoft.com)
+- Fix acquireTokenSilent deduplication for pairwise broker requests (thomas.norling@microsoft.com)
+
+## 4.5.1
+
+Tue, 04 Mar 2025 23:02:15 GMT
+
+### Patches
+
+- Fix double brokering bug: Native flow should not be triggered for cache only look up (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.5.0
+
+Wed, 26 Feb 2025 01:12:33 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser (lalimasharda@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.4.0
+
+Wed, 19 Feb 2025 23:57:02 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to 4.4.0 (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.3.0
+
+Tue, 18 Feb 2025 18:51:40 GMT
+
+### Minor changes
+
+- Pre-generate PKCE for async popup flow to blocked async popups in Safari #7568 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.2.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.2.1
+
+Tue, 11 Feb 2025 16:09:10 GMT
+
+### Patches
+
+- Rethrow MSAL AuthErrors in NAA flow (chris@paslawski.me)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.2.0
+
+Wed, 05 Feb 2025 00:15:18 GMT
+
+### Minor changes
+
+- Notify open tabs of localStorage updates #7550 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.1.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Set SameSite=None on localStorage encryption cookie #7549 (thomas.norling@microsoft.com)
+
+## 4.1.0
+
+Mon, 03 Feb 2025 17:48:08 GMT
+
+### Minor changes
+
+- Instrument additional data points #7543 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.1.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.0.2
+
+Wed, 22 Jan 2025 21:45:31 GMT
+
+### Patches
+
+- Add support for forceRefresh and set default cache policy in NAA flows (sameera.gajjarapu@microsoft.com)
+- Update current account and active account behavior in NAA apps (sameera.gajjarapu@microsoft.com)
+- Fix 'Cannot read properties of undefined (reading 'incrementFields')' error (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.0.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Breaking Changes
+
+- Rename `native` to `platformBroker` in public API and docs (sameera.gajjarapu@microsoft.com)
+- Encrypt localStorage to reduce persistence to browser session lifetime (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.0.1 (beachball)
+
+Please see the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for more details.
+
+## 3.28.1
+
+Tue, 14 Jan 2025 22:59:33 GMT
+
+### Patches
+
+- Fix unhandled exception in NAA JS Runtime scenario (#7475) (dasau@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 3.28.0
+
+Thu, 12 Dec 2024 19:24:54 GMT
+
+### Minor changes
+
+- Refactor storage implementations #7446 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Prioritize loginHint and session id over active account for authorization request #7449 (kshabelko@microsoft.com)
+
+## 3.27.0
+
+Tue, 05 Nov 2024 18:58:45 GMT
+
+### Minor changes
+
+- Capture runtime errors in telemetry for submeasures (thomas.norling@microsoft.com)
+- Additional network failure telemetry (thomas.norling@microsoft.com)
+- Add first order broker parameters #7348 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.16.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Move requestId telemetry collection (thomas.norling@microsoft.com)
+
+## 3.26.1
+
+Tue, 08 Oct 2024 20:45:26 GMT
+
+### Patches
+
+- Respect cache policy and claims set in the request #7363 (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 3.26.0
+
+Tue, 08 Oct 2024 16:51:05 GMT
+
+### Minor changes
+
+- Add optional event type filter to addEventCallback #7351 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Bug fixes for windowless PCA (shylasummers@microsoft.com)
+
+## 3.25.0
+
+Thu, 03 Oct 2024 00:40:42 GMT
+
+### Minor changes
+
+- Mute no_server_response error when back navigation is detected #7342 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 3.24.0
+
+Thu, 19 Sep 2024 23:48:30 GMT
+
+### Minor changes
+
+- Fix type resolution when using moduleResolution node16 (thomas.norling@microsoft.com)
+- Allow passing popup parent for multi-window flows (chrp@microsoft.com)
+- Add 'instance_aware' auth config param #7259 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.15.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add clientLibrary and clientLibraryVersion parameters to NAA Request (#7297) (dasau@microsoft.com)
+- Add __initializeNestedAppAuth function for Nested App Auth (#7289) (dasau@microsoft.com)
+
+## 3.23.0
+
+Tue, 03 Sep 2024 21:57:24 GMT
+
+### Minor changes
+
+- Bump version (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.22.1
+
+Tue, 03 Sep 2024 21:30:55 GMT
+
+### Patches
+
+- Bump version (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.22.0
+
+Wed, 28 Aug 2024 23:06:01 GMT
+
+### Minor changes
+
+- Remove retry for popup and redirect #7270 (joarroyo@microsoft.com)
+- Revert 'Use high precision TS for NAA message time (#7243)' (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.14.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.21.0
+
+Tue, 13 Aug 2024 23:25:07 GMT
+
+### Minor changes
+
+- Retry in RedirectClient for invalid_grant errors #7231 (joarroyo@microsoft.com)
+- Retry in SilentIframeClient for invalid_grant errors #7218 (joarroyo@microsoft.com)
+- Retry in PopupClient for invalid_grant errors #7216 (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v14.14.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Update request retry for invalid_grant #7249 (joarroyo@microsoft.com)
+- onRedirectNavigate deprecation fix #7251 (joarroyo@microsoft.com)
+- Use high precision TS for NAA message time #7243 (kshabelko@microsoft.com)
+
+## 3.20.0
+
+Tue, 23 Jul 2024 14:19:34 GMT
+
+### Minor changes
+
+- Track MSAL node SKU for broker flows #7213 (kshabelko@microsoft.com)
+- Track MSAL SKU for broker flows #7182 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.14.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.19.1
+
+Tue, 16 Jul 2024 18:22:27 GMT
+
+### Patches
+
+- Generate tenantProfile even without idTokenClaims (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.13.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.19.0
+
+Fri, 12 Jul 2024 19:56:47 GMT
+
+### Minor changes
+
+- Add missing param to PCA.initialize #7194 (kshabelko@microsoft.com)
+- Add correlation id param to initialize and clearTokensAndKeysWithClaims APIs to streamline telemetry data analysis #7190 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Remove onRedirectNative call back function in native ATRedirect calls #7193 (lalimasharda@microsoft.com)
+
+## 3.18.0
+
+Mon, 01 Jul 2024 19:18:29 GMT
+
+### Minor changes
+
+- Add main field to package.json (thomas.norling@microsoft.com)
+- Relax loadExternalTokens requirements to allow loading access or refresh tokens without id_token (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- fix : msal-browser acquireTokenSilentAsync memory leak (127046736+shaouari-Dev@users.noreply.github.com)
+- Update error message typo in NAA errors (sameera.gajjarapu@microsoft.com)
+
+## 3.17.0
+
+Mon, 10 Jun 2024 22:30:36 GMT
+
+### Minor changes
+
+- Add support for apps to set their own `reqCnf` and correct native flows cnf format #6357 (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v14.12.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.16.0
+
+Tue, 04 Jun 2024 00:08:57 GMT
+
+### Minor changes
+
+- Instrument pre-redirect flow #7134 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.11.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.15.0
+
+Tue, 28 May 2024 21:37:23 GMT
+
+### Minor changes
+
+- Add createNestablePublicClientApplication() (sameera.gajjarapu@microsoft.com)
+- Instrument preflight check errors #7113 (kshabelko@microsoft.com)
+- Support cache in NAA apps #7072 (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Fix miscalculation of expiresIn in hydrateCache() API (sameera.gajjarapu@microsoft.com)
+
+## 3.14.0
+
+Mon, 06 May 2024 23:48:17 GMT
+
+### Minor changes
+
+- Instrument scenario id for tracking custom user prompts #7043 (kshabelko@microsoft.com)
+- Discard empty redirect telemetry events with no error codes #7058 (kshabelko@microsoft.com)
+- Export invoke and invokeAsync functions #7065 (kshabelko@microsoft.com)
+- Instrument account type #7049 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.10.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Add getAccount API to IPublicClientApplication (#7019) (dasau@microsoft.com)
+- Fix uncaught exceptions in acquireTokenSilent #7073 (thomas.norling@microsoft.com)
+- Add additional logging for Nested App Auth initialization errors (#7064) (dasau@microsoft.com)
+
+## 3.13.0
+
+Thu, 11 Apr 2024 21:46:57 GMT
+
+### Minor changes
+
+- Capture and instrument cache errors #7021 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Nested App Auth: allow empty parameters for loginPopup (#6941) (dasau@microsoft.com)
+- Improve perf and reliability of parallel acquireTokenSilent calls that must fallback to iframes #6962 (thomas.norling@microsoft.com)
+- fix handleRedirectPromise memoization #6998 (thomas.norling@microsoft.com)
+- Add classname to silent token renewal iframe HTML element #6985 (lalimasharda@microsoft.com)
+
+## 3.11.1
+
+Wed, 27 Mar 2024 18:41:17 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.8.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.11.0
+
+Fri, 22 Mar 2024 20:32:39 GMT
+
+### Minor changes
+
+- Instrument non-auth error name and stack #6937 (kshabelko@microsoft.com)
+- Capture telemetry event tree #6948 (kshabelko@microsoft.com)
+- Move preflightBrowserEnvironmentCheck to BrowserUtils (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.8.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Fix AcquireTokenSilentAsync sub-measurement instrumentation #6947 (kshabelko@microsoft.com)
+- Export IPerformanceClient and StubPerformanceClient (thomas.norling@microsoft.com)
+- move build request functions (thomas.norling@microsoft.com)
+- Internal refactor of async storage (thomas.norling@microsoft.com)
+- Fix compatibility issue with Nested App Auth and msal-react (#6892) (dasau@microsoft.com)
+- Minor cache cleanup (thomas.norling@microsoft.com)
+
+## 3.10.0
+
+Sat, 17 Feb 2024 01:49:05 GMT
+
+### Minor changes
+
+- Export createGuid function #6868 (kshabelko@microsoft.com)
+- Use UUIDv7 in PerformanceClient #6866 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Add ID Token secret to AccountInfo in all reponses #6903 (hemoral@microsoft.com)
+- Bug fix for user switch error and broker app's native account id being stored in embedded app cache #6846 (lalimasharda@microsoft.com)
+- Remove invalid prompt for silent request instead of throwing an error #6895 (kshabelko@microsoft.com)
 
 ## 3.9.0
 

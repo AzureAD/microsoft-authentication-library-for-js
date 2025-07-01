@@ -1,8 +1,311 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Wed, 07 Feb 2024 22:00:37 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 18 Jun 2025 15:21:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.5.15
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.14
+
+Fri, 30 May 2025 22:36:45 GMT
+
+### Patches
+
+- update common version (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.13
+
+Tue, 06 May 2025 22:47:43 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.6.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.12
+
+Tue, 29 Apr 2025 20:25:48 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.5.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.11
+
+Tue, 15 Apr 2025 23:34:14 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.5.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.10
+
+Tue, 08 Apr 2025 16:56:06 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.9
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Patches
+
+- Update @azure/msal-node-runtime dependency to ^0.18.1 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.8
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.3.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.7
+
+Tue, 11 Mar 2025 18:51:25 GMT
+
+### Patches
+
+- Use TimeUtils for time/date conversion #7613 (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v15.2.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.6
+
+Tue, 04 Mar 2025 23:02:15 GMT
+
+### Patches
+
+- Fix NativeBrokerPlugin expiresOn bug #7602 (joarroyo@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.5
+
+Tue, 18 Feb 2025 18:51:41 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.2.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.4
+
+Wed, 05 Feb 2025 00:15:19 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.1.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.3
+
+Mon, 03 Feb 2025 17:48:09 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.1.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.2
+
+Wed, 22 Jan 2025 21:45:31 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.0.2
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Patches
+
+- Update msal-common dependency (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.0.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.0
+
+Tue, 19 Nov 2024 17:21:57 GMT
+
+### Minor changes
+
+- Allow requiring msal-node-extensions without Dpapi dependency (tyleonha@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.4.0
+
+Tue, 05 Nov 2024 18:58:46 GMT
+
+### Minor changes
+
+- Bump @azure/msal-common to v14.16.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.3.0
+
+Tue, 08 Oct 2024 16:51:05 GMT
+
+### Minor changes
+
+- Fix POP token acquisition via MsalRuntime (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.2.0
+
+Thu, 19 Sep 2024 23:48:30 GMT
+
+### Minor changes
+
+- Fix type resolution when using moduleResolution node16 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.15.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.1.0
+
+Tue, 23 Jul 2024 14:19:34 GMT
+
+### Minor changes
+
+- Track MSAL node SKU for broker flows #7213 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.14.0
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.21
+
+Tue, 16 Jul 2024 18:22:27 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.13.1
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.20
+
+Mon, 01 Jul 2024 19:18:29 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.13.0
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.19
+
+Mon, 10 Jun 2024 22:30:36 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.12.0
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.18
+
+Tue, 04 Jun 2024 00:08:57 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.11.0
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.17
+
+Tue, 28 May 2024 21:37:23 GMT
+
+### Patches
+
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.16
+
+Mon, 06 May 2024 23:48:17 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.10.0
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.15
+
+Thu, 11 Apr 2024 21:46:57 GMT
+
+### Patches
+
+- Add install script to workaround regression in npm version 10.4.0 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.9.0
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.14
+
+Wed, 27 Mar 2024 18:41:17 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.8.1
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.13
+
+Fri, 22 Mar 2024 20:32:39 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.8.0
+- Bump eslint-config-msal to v0.0.0
+
+## 1.0.12
+
+Sat, 17 Feb 2024 01:49:06 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.7.1
+- Bump eslint-config-msal to v0.0.0
 
 ## 1.0.11
 

@@ -14,7 +14,7 @@ let broadcastService: MsalBroadcastService;
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
+      clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
       redirectUri: "http://localhost:4200",
     },
   });
@@ -27,6 +27,7 @@ function initializeMsal() {
     declarations: [MsalRedirectComponent],
     imports: [MsalModule.forRoot(MSALInstanceFactory(), null, null)],
     providers: [],
+    teardown: { destroyAfterEach: false },
   });
 
   authService = TestBed.inject(MsalService);
@@ -34,7 +35,7 @@ function initializeMsal() {
 }
 
 describe("MsalRedirectComponent", () => {
-  beforeAll(initializeMsal);
+  beforeEach(initializeMsal);
 
   it("calls handleRedirectObservable on ngInit", (done) => {
     const sampleAccessToken = {

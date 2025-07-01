@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "@azure/msal-common";
+import { AccountInfo } from "@azure/msal-common/node";
 
 /**
  * Token cache interface for the client, giving access to cache APIs

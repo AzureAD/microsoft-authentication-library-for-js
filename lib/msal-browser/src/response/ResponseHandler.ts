@@ -6,21 +6,21 @@
 import {
     ICrypto,
     Logger,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
     UrlUtils,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
-} from "../error/BrowserAuthError";
-import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils";
-import { InteractionType } from "../utils/BrowserConstants";
+} from "../error/BrowserAuthError.js";
+import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils.js";
+import { InteractionType } from "../utils/BrowserConstants.js";
 
 export function deserializeResponse(
     responseString: string,
     responseLocation: string,
     logger: Logger
-): ServerAuthorizationCodeResponse {
+): AuthorizeResponse {
     // Deserialize hash fragment response parameters.
     const serverParams = UrlUtils.getDeserializedResponse(responseString);
     if (!serverParams) {
@@ -49,7 +49,7 @@ export function deserializeResponse(
  * Returns the interaction type that the response object belongs to
  */
 export function validateInteractionType(
-    response: ServerAuthorizationCodeResponse,
+    response: AuthorizeResponse,
     browserCrypto: ICrypto,
     interactionType: InteractionType
 ): void {

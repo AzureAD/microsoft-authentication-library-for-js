@@ -3,9 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../account/AccountInfo";
-import { StringDict } from "../utils/MsalTypes";
-import { BaseAuthRequest } from "./BaseAuthRequest";
+import { AccountInfo } from "../account/AccountInfo.js";
+import { BaseAuthRequest } from "./BaseAuthRequest.js";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -26,8 +25,6 @@ export type CommonSilentFlowRequest = BaseAuthRequest & {
     forceRefresh: boolean;
     /** RedirectUri registered on the app registration - only required in brokering scenarios */
     redirectUri?: string;
-    /** Key value pairs to include on the POST body to the /token endpoint */
-    tokenBodyParameters?: StringDict;
     /** If refresh token will expire within the configured value, consider it already expired. Used to pre-emptively invoke interaction when cached refresh token is close to expiry. */
     refreshTokenExpirationOffsetSeconds?: number;
 };

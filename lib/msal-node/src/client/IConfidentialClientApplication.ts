@@ -7,7 +7,7 @@ import {
     AuthenticationResult,
     IAppTokenProvider,
     Logger,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
@@ -50,7 +50,10 @@ export interface IConfidentialClientApplication {
         request: OnBehalfOfRequest
     ): Promise<AuthenticationResult | null>;
 
-    /** Acquires tokens with password grant by exchanging client applications username and password for credentials */
+    /**
+     * Acquires tokens with password grant by exchanging client applications username and password for credentials
+     * @deprecated - Use a more secure flow instead
+     */
     acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest
     ): Promise<AuthenticationResult | null>;

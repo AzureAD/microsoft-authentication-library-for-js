@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
+import { CredentialType, AuthenticationScheme } from "../../utils/Constants.js";
 
 /**
  * Credential Cache Type
@@ -33,4 +33,6 @@ export type CredentialEntity = {
     keyId?: string;
     /** Matches the SHA 256 hash of the claims object included in the token request */
     requestedClaimsHash?: string;
+    /** Timestamp when the entry was last updated */
+    lastUpdatedAt?: string;
 };

@@ -14,13 +14,14 @@ import {
     LabClient,
 } from "e2e-test-utils";
 import { JWK, JWT } from "jose";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/pop");
 let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
 
-describe("Browser tests", function () {
+describe("Browser PoP tests", function () {
     let browser: puppeteer.Browser;
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
@@ -46,7 +47,7 @@ describe("Browser tests", function () {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(sampleHomeUrl);
@@ -88,9 +89,7 @@ describe("Browser tests", function () {
         // One Bearer Token and one PoP token
         expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        const cachedAccount = await BrowserCache.getAccountFromCache(
-            tokenStore.idTokens[0]
-        );
+        const cachedAccount = await BrowserCache.getAccountFromCache();
         const defaultCachedToken =
             await BrowserCache.popAccessTokenForScopesExists(
                 tokenStore.accessTokens,
@@ -106,9 +105,42 @@ describe("Browser tests", function () {
         const pubKey = decodedToken.cnf.jwk;
         const pubKeyJwk = JWK.asKey(pubKey);
         expect(JWT.verify(token, pubKeyJwk)).toEqual(decodedToken);
+    });
 
-        // Expected 5 since the pop request will fail
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
+    it("Performs loginRedirect, acquires and verifies a PoP token is unsigned if PoP kid is provided in request", async () => {
+        const testName = "redirectBaseCaseWithCnf";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+        // Home Page
+        await page.waitForSelector("#SignIn");
+        await screenshot.takeScreenshot(page, "samplePageInit");
+        // Click Sign In
+        await page.click("#SignIn");
+        await page.waitForSelector("#loginRedirect");
+        await screenshot.takeScreenshot(page, "signInClicked");
+        // Click Sign In With Redirect
+        await page.click("#loginRedirect");
+        // Enter credentials
+        await enterCredentials(page, screenshot, username, accountPwd);
+        await page.waitForSelector("#popCnfToken", { visible: true });
+        await screenshot.takeScreenshot(page, "samplePageLoggedIn");
+        await page.click("#popCnfToken");
+        await page.waitForSelector("#PopTokenWithKidAcquired");
+        await screenshot.takeScreenshot(page, "popTokenWithCnfClicked");
+        console.log("Waiting for pop token to be generated");
+        const tokenStore = await BrowserCache.getTokens();
+        expect(tokenStore.idTokens).toHaveLength(1);
+        // One Bearer Token and one PoP token
+        expect(tokenStore.accessTokens).toHaveLength(2);
+        expect(tokenStore.refreshTokens).toHaveLength(1);
+        const cachedAccount = await BrowserCache.getAccountFromCache();
+        const defaultCachedToken =
+            await BrowserCache.accessTokenForScopesExists(
+                tokenStore.accessTokens,
+                ["openid", "profile", "user.read"]
+            );
+        expect(cachedAccount).toBeDefined();
+        expect(defaultCachedToken).toBeTruthy();
     });
 });

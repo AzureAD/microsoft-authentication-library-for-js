@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants";
-import { AuthError } from "./AuthError";
-import * as InteractionRequiredAuthErrorCodes from "./InteractionRequiredAuthErrorCodes";
+import { Constants } from "../utils/Constants.js";
+import { AuthError } from "./AuthError.js";
+import * as InteractionRequiredAuthErrorCodes from "./InteractionRequiredAuthErrorCodes.js";
 export { InteractionRequiredAuthErrorCodes };
 
 /**
@@ -16,6 +16,7 @@ export const InteractionRequiredServerErrorMessage = [
     InteractionRequiredAuthErrorCodes.consentRequired,
     InteractionRequiredAuthErrorCodes.loginRequired,
     InteractionRequiredAuthErrorCodes.badToken,
+    InteractionRequiredAuthErrorCodes.uxNotAllowed,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -36,6 +37,8 @@ const InteractionRequiredAuthErrorMessages = {
         "Refresh token has expired.",
     [InteractionRequiredAuthErrorCodes.badToken]:
         "Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.",
+    [InteractionRequiredAuthErrorCodes.uxNotAllowed]:
+        "`canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.",
 };
 
 /**
@@ -88,6 +91,11 @@ export class InteractionRequiredAuthError extends AuthError {
      */
     claims: string;
 
+    /**
+     * Server error number;
+     */
+    readonly errorNo?: string;
+
     constructor(
         errorCode?: string,
         errorMessage?: string,
@@ -95,7 +103,8 @@ export class InteractionRequiredAuthError extends AuthError {
         timestamp?: string,
         traceId?: string,
         correlationId?: string,
-        claims?: string
+        claims?: string,
+        errorNo?: string
     ) {
         super(errorCode, errorMessage, subError);
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
@@ -105,6 +114,7 @@ export class InteractionRequiredAuthError extends AuthError {
         this.correlationId = correlationId || Constants.EMPTY_STRING;
         this.claims = claims || Constants.EMPTY_STRING;
         this.name = "InteractionRequiredAuthError";
+        this.errorNo = errorNo;
     }
 }
 

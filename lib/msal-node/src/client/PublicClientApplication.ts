@@ -21,8 +21,10 @@ import {
     NativeSignOutRequest,
     AccountInfo,
     INativeBrokerPlugin,
-    ServerAuthorizationCodeResponse,
-} from "@azure/msal-common";
+    AuthorizeResponse,
+    AADServerParamKeys,
+    ServerTelemetryManager,
+} from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
@@ -36,6 +38,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { SignOutRequest } from "../request/SignOutRequest.js";
 import { ILoopbackClient } from "../network/ILoopbackClient.js";
 import { DeviceCodeClient } from "./DeviceCodeClient.js";
+import { version } from "../packageMetadata.js";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -47,6 +50,7 @@ export class PublicClientApplication
     implements IPublicClientApplication
 {
     private nativeBrokerPlugin?: INativeBrokerPlugin;
+    private readonly skus: string;
     /**
      * Important attributes in the Configuration object for auth are:
      * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal.
@@ -78,6 +82,10 @@ export class PublicClientApplication
                 );
             }
         }
+        this.skus = ServerTelemetryManager.makeExtraSkuString({
+            libraryName: Constants.MSAL_SKU,
+            libraryVersion: version,
+        });
     }
 
     /**
@@ -105,12 +113,17 @@ export class PublicClientApplication
             validRequest.correlationId
         );
         try {
-            const deviceCodeConfig = await this.buildOauthClientConfiguration(
+            const discoveredAuthority = await this.createAuthority(
                 validRequest.authority,
                 validRequest.correlationId,
-                serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
+            );
+            const deviceCodeConfig = await this.buildOauthClientConfiguration(
+                discoveredAuthority,
+                validRequest.correlationId,
+                "",
+                serverTelemetryManager
             );
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
             this.logger.verbose(
@@ -156,6 +169,7 @@ export class PublicClientApplication
                 extraParameters: {
                     ...remainingProperties.extraQueryParameters,
                     ...remainingProperties.tokenQueryParameters,
+                    [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: remainingProperties.account?.nativeAccountId,
             };
@@ -171,7 +185,7 @@ export class PublicClientApplication
         const loopbackClient: ILoopbackClient =
             customLoopbackClient || new LoopbackClient();
 
-        let authCodeResponse: ServerAuthorizationCodeResponse = {};
+        let authCodeResponse: AuthorizeResponse = {};
         let authCodeListenerError: AuthError | null = null;
         try {
             const authCodeListener = loopbackClient
@@ -229,7 +243,7 @@ export class PublicClientApplication
 
     /**
      * Returns a token retrieved either from the cache or by exchanging the refresh token for a fresh access token. If brokering is enabled the token request will be serviced by the broker.
-     * @param request
+     * @param request - developer provided SilentFlowRequest
      * @returns
      */
     async acquireTokenSilent(
@@ -247,7 +261,10 @@ export class PublicClientApplication
                 redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
-                extraParameters: request.tokenQueryParameters,
+                extraParameters: {
+                    ...request.tokenQueryParameters,
+                    [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
+                },
                 accountId: request.account.nativeAccountId,
                 forceRefresh: request.forceRefresh || false,
             };
@@ -259,7 +276,7 @@ export class PublicClientApplication
 
     /**
      * Removes cache artifacts associated with the given account
-     * @param request
+     * @param request - developer provided SignOutRequest
      * @returns
      */
     async signOut(request: SignOutRequest): Promise<void> {
@@ -274,7 +291,10 @@ export class PublicClientApplication
             await this.nativeBrokerPlugin.signOut(signoutRequest);
         }
 
-        await this.getTokenCache().removeAccount(request.account);
+        await this.getTokenCache().removeAccount(
+            request.account,
+            request.correlationId
+        );
     }
 
     /**
@@ -295,7 +315,7 @@ export class PublicClientApplication
 
     /**
      * Attempts to retrieve the redirectUri from the loopback server. If the loopback server does not start listening for requests within the timeout this will throw.
-     * @param loopbackClient
+     * @param loopbackClient - developer provided custom loopback server implementation
      * @returns
      */
     private async waitForRedirectUri(

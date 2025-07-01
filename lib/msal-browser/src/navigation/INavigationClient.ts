@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NavigationOptions } from "./NavigationOptions";
+import { NavigationOptions } from "./NavigationOptions.js";
 
 export interface INavigationClient {
     /**

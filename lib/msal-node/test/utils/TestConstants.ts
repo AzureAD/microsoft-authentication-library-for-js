@@ -38,6 +38,8 @@ export const TEST_CONSTANTS = {
     CACHE_LOCATION: "Test",
     CLIENT_ASSERTION: "MOCK_CLIENT_ASSERTION",
     THUMBPRINT: "6182de7d4b84517655fe0bfa97076890d66bf37a",
+    THUMBPRINT256:
+        "014811efe8ed5ff69a576d84acd47fdeab37a47aad27c039746e220e58bf93b1",
     PRIVATE_KEY: "PRIVATE_KEY",
     PUBLIC_CERTIFICATE: `-----BEGIN CERTIFICATE-----
 line1
@@ -49,6 +51,7 @@ line3
 line4
 -----END CERTIFICATE-----
     `,
+    X5C_FROM_PUBLIC_CERTIFICATE: ["line1line2", "line3line4"],
     CLAIMS: `{ "access_token": { "xms_cc":{"values":["cp1"] } }}`,
     SNI_CERTIFICATE: `-----BEGIN PRIVATE KEY-----\r
 line1\r
@@ -108,7 +111,7 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
-    async removeTokenBindingKey(): Promise<boolean> {
+    async removeTokenBindingKey(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async clearKeystore(): Promise<boolean> {
@@ -118,6 +121,12 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async hashString(): Promise<string> {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    },
+    base64UrlEncode: function (): string {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    },
+    encodeKid: function (): string {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
 };
@@ -231,6 +240,7 @@ export const mockAccountInfo: AccountInfo = {
     tenantId: ID_TOKEN_CLAIMS.tid,
     username: ID_TOKEN_CLAIMS.preferred_username,
     idTokenClaims: ID_TOKEN_CLAIMS,
+    idToken: TEST_CONSTANTS.ID_TOKEN,
     name: ID_TOKEN_CLAIMS.name,
     nativeAccountId: undefined,
     tenantProfiles: new Map<string, TenantProfile>([

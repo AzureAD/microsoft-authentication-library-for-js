@@ -3,31 +3,31 @@
  * Licensed under the MIT License.
  */
 
-import { AccountFilter } from "../utils/CacheTypes";
-import { CacheRecord } from "../entities/CacheRecord";
-import { AccountEntity } from "../entities/AccountEntity";
-import { AccountInfo } from "../../account/AccountInfo";
-import { AppMetadataEntity } from "../entities/AppMetadataEntity";
-import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
-import { ThrottlingEntity } from "../entities/ThrottlingEntity";
-import { IdTokenEntity } from "../entities/IdTokenEntity";
-import { AccessTokenEntity } from "../entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
-import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
-import { StoreInCache } from "../../request/StoreInCache";
+import { AccountFilter } from "../utils/CacheTypes.js";
+import { CacheRecord } from "../entities/CacheRecord.js";
+import { AccountEntity } from "../entities/AccountEntity.js";
+import { AccountInfo } from "../../account/AccountInfo.js";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity.js";
+import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity.js";
+import { ThrottlingEntity } from "../entities/ThrottlingEntity.js";
+import { IdTokenEntity } from "../entities/IdTokenEntity.js";
+import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../entities/RefreshTokenEntity.js";
+import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity.js";
+import { StoreInCache } from "../../request/StoreInCache.js";
 
 export interface ICacheManager {
     /**
      * fetch the account entity from the platform cache
      * @param accountKey
      */
-    getAccount(accountKey: string): AccountEntity | null;
+    getAccount(accountKey: string, correlationId: string): AccountEntity | null;
 
     /**
      * set account entity in the platform cache
      * @param account
      */
-    setAccount(account: AccountEntity): void;
+    setAccount(account: AccountEntity, correlationId: string): Promise<void>;
 
     /**
      * Returns true if the given key matches our account key schema. Also matches homeAccountId and/or tenantId if provided
@@ -46,39 +46,55 @@ export interface ICacheManager {
      * fetch the idToken entity from the platform cache
      * @param idTokenKey
      */
-    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
+    getIdTokenCredential(
+        idTokenKey: string,
+        correlationId: string
+    ): IdTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
      * @param idToken
      */
-    setIdTokenCredential(idToken: IdTokenEntity): void;
+    setIdTokenCredential(
+        idToken: IdTokenEntity,
+        correlationId: string
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
      * @param accessTokenKey
      */
-    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
+    getAccessTokenCredential(
+        accessTokenKey: string,
+        correlationId: string
+    ): AccessTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
      * @param accessToken
      */
-    setAccessTokenCredential(accessToken: AccessTokenEntity): void;
+    setAccessTokenCredential(
+        accessToken: AccessTokenEntity,
+        correlationId: string
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(
-        refreshTokenKey: string
+        refreshTokenKey: string,
+        correlationId: string
     ): RefreshTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
      * @param refreshToken
      */
-    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void;
+    setRefreshTokenCredential(
+        refreshToken: RefreshTokenEntity,
+        correlationId: string
+    ): Promise<void>;
 
     /**
      * fetch appMetadata entity from the platform cache
@@ -90,7 +106,7 @@ export interface ICacheManager {
      * set appMetadata entity to the platform cache
      * @param appMetadata
      */
-    setAppMetadata(appMetadata: AppMetadataEntity): void;
+    setAppMetadata(appMetadata: AppMetadataEntity, correlationId: string): void;
 
     /**
      * fetch server telemetry entity from the platform cache
@@ -107,7 +123,8 @@ export interface ICacheManager {
      */
     setServerTelemetry(
         serverTelemetryKey: string,
-        serverTelemetry: ServerTelemetryEntity
+        serverTelemetry: ServerTelemetryEntity,
+        correlationId: string
     ): void;
 
     /**
@@ -153,13 +170,17 @@ export interface ICacheManager {
      */
     setThrottlingCache(
         throttlingCacheKey: string,
-        throttlingCache: ThrottlingEntity
+        throttlingCache: ThrottlingEntity,
+        correlationId: string
     ): void;
 
     /**
      * Returns all accounts in cache
      */
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(
+        accountFilter: AccountFilter,
+        correlationId: string
+    ): AccountInfo[];
 
     /**
      * saves a cache record
@@ -167,6 +188,7 @@ export interface ICacheManager {
      */
     saveCacheRecord(
         cacheRecord: CacheRecord,
+        correlationId: string,
         storeInCache?: StoreInCache
     ): Promise<void>;
 
@@ -176,43 +198,49 @@ export interface ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredBy(filter: AccountFilter): AccountEntity[];
+    getAccountsFilteredBy(
+        filter: AccountFilter,
+        correlationId: string
+    ): AccountEntity[];
 
     /**
      * Get AccountInfo object based on provided filters
      * @param filter
      */
-    getAccountInfoFilteredBy(filter: AccountFilter): AccountInfo | null;
+    getAccountInfoFilteredBy(
+        filter: AccountFilter,
+        correlationId: string
+    ): AccountInfo | null;
 
     /**
      * Removes all accounts and related tokens from cache.
      */
-    removeAllAccounts(): Promise<void>;
+    removeAllAccounts(correlationId: string): void;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(accountKey: string): Promise<void>;
+    removeAccount(accountKey: string, correlationId: string): void;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccountContext(account: AccountEntity): Promise<void>;
+    removeAccountContext(account: AccountEntity, correlationId: string): void;
 
     /**
      * @param key
      */
-    removeIdToken(key: string): void;
+    removeIdToken(key: string, correlationId: string): void;
 
     /**
      * @param key
      */
-    removeAccessToken(key: string): Promise<void>;
+    removeAccessToken(key: string, correlationId: string): void;
 
     /**
      * @param key
      */
-    removeRefreshToken(key: string): void;
+    removeRefreshToken(key: string, correlationId: string): void;
 }

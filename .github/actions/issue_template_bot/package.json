@@ -5,7 +5,7 @@
   "description": "Github Actions used by MSAL.js Repo",
   "dependencies": {
     "@actions/core": "^1.9.1",
-    "@actions/github": "^4.0.0"
+    "@actions/github": "^6.0.0"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.0",

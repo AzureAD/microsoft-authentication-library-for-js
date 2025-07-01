@@ -4,10 +4,10 @@
  */
 
 import React, { PropsWithChildren, useMemo } from "react";
-import { useMsal } from "../hooks/useMsal";
-import { useIsAuthenticated } from "../hooks/useIsAuthenticated";
-import { getChildrenOrFunction } from "../utils/utilities";
-import { AccountIdentifiers } from "../types/AccountIdentifiers";
+import { useMsal } from "../hooks/useMsal.js";
+import { useIsAuthenticated } from "../hooks/useIsAuthenticated.js";
+import { getChildrenOrFunction } from "../utils/utilities.js";
+import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
 import { InteractionStatus } from "@azure/msal-browser";
 
 export type UnauthenticatedTemplateProps =

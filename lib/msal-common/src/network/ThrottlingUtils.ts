@@ -3,18 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import { NetworkResponse } from "./NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { NetworkResponse } from "./NetworkResponse.js";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 import {
     HeaderNames,
     ThrottlingConstants,
     Constants,
-} from "../utils/Constants";
-import { CacheManager } from "../cache/CacheManager";
-import { ServerError } from "../error/ServerError";
-import { RequestThumbprint } from "./RequestThumbprint";
-import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
+} from "../utils/Constants.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { ServerError } from "../error/ServerError.js";
+import {
+    getRequestThumbprint,
+    RequestThumbprint,
+} from "./RequestThumbprint.js";
+import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 
 /** @internal */
 export class ThrottlingUtils {
@@ -35,14 +38,15 @@ export class ThrottlingUtils {
      */
     static preProcess(
         cacheManager: CacheManager,
-        thumbprint: RequestThumbprint
+        thumbprint: RequestThumbprint,
+        correlationId: string
     ): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
         const value = cacheManager.getThrottlingCache(key);
 
         if (value) {
             if (value.throttleTime < Date.now()) {
-                cacheManager.removeItem(key);
+                cacheManager.removeItem(key, correlationId);
                 return;
             }
             throw new ServerError(
@@ -62,7 +66,8 @@ export class ThrottlingUtils {
     static postProcess(
         cacheManager: CacheManager,
         thumbprint: RequestThumbprint,
-        response: NetworkResponse<ServerAuthorizationTokenResponse>
+        response: NetworkResponse<ServerAuthorizationTokenResponse>,
+        correlationId: string
     ): void {
         if (
             ThrottlingUtils.checkResponseStatus(response) ||
@@ -79,7 +84,8 @@ export class ThrottlingUtils {
             };
             cacheManager.setThrottlingCache(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-                thumbprintValue
+                thumbprintValue,
+                correlationId
             );
         }
     }
@@ -137,20 +143,12 @@ export class ThrottlingUtils {
         request: BaseAuthRequest,
         homeAccountIdentifier?: string
     ): void {
-        const thumbprint: RequestThumbprint = {
-            clientId: clientId,
-            authority: request.authority,
-            scopes: request.scopes,
-            homeAccountIdentifier: homeAccountIdentifier,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-        };
-
+        const thumbprint = getRequestThumbprint(
+            clientId,
+            request,
+            homeAccountIdentifier
+        );
         const key = this.generateThrottlingStorageKey(thumbprint);
-        cacheManager.removeItem(key);
+        cacheManager.removeItem(key, request.correlationId);
     }
 }

@@ -3,9 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "./BaseAuthRequest";
-import { CcsCredential } from "../account/CcsCredential";
-import { StringDict } from "../utils/MsalTypes";
+import { BaseAuthRequest } from "./BaseAuthRequest.js";
+import { CcsCredential } from "../account/CcsCredential.js";
 
 /**
  * CommonRefreshTokenRequest
@@ -23,6 +22,5 @@ export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
     ccsCredential?: CcsCredential;
     forceCache?: boolean;
-    tokenBodyParameters?: StringDict;
     redirectUri?: string;
 };

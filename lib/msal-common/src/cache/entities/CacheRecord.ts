@@ -3,31 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { IdTokenEntity } from "./IdTokenEntity";
-import { AccessTokenEntity } from "./AccessTokenEntity";
-import { RefreshTokenEntity } from "./RefreshTokenEntity";
-import { AccountEntity } from "./AccountEntity";
-import { AppMetadataEntity } from "./AppMetadataEntity";
+import { IdTokenEntity } from "./IdTokenEntity.js";
+import { AccessTokenEntity } from "./AccessTokenEntity.js";
+import { RefreshTokenEntity } from "./RefreshTokenEntity.js";
+import { AccountEntity } from "./AccountEntity.js";
+import { AppMetadataEntity } from "./AppMetadataEntity.js";
 
 /** @internal */
-export class CacheRecord {
-    account: AccountEntity | null;
-    idToken: IdTokenEntity | null;
-    accessToken: AccessTokenEntity | null;
-    refreshToken: RefreshTokenEntity | null;
-    appMetadata: AppMetadataEntity | null;
-
-    constructor(
-        accountEntity?: AccountEntity | null,
-        idTokenEntity?: IdTokenEntity | null,
-        accessTokenEntity?: AccessTokenEntity | null,
-        refreshTokenEntity?: RefreshTokenEntity | null,
-        appMetadataEntity?: AppMetadataEntity | null
-    ) {
-        this.account = accountEntity || null;
-        this.idToken = idTokenEntity || null;
-        this.accessToken = accessTokenEntity || null;
-        this.refreshToken = refreshTokenEntity || null;
-        this.appMetadata = appMetadataEntity || null;
-    }
-}
+export type CacheRecord = {
+    account?: AccountEntity | null;
+    idToken?: IdTokenEntity | null;
+    accessToken?: AccessTokenEntity | null;
+    refreshToken?: RefreshTokenEntity | null;
+    appMetadata?: AppMetadataEntity | null;
+};

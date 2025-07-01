@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { PublicClientApplication } from "../../src/app/PublicClientApplication";
+import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
     TEST_CONFIG,
     TEST_URIS,
@@ -14,27 +13,29 @@ import {
     RANDOM_TEST_GUID,
     testNavUrl,
     TEST_TOKEN_RESPONSE,
-} from "../utils/StringConstants";
+} from "../utils/StringConstants.js";
 import {
     AccountInfo,
     TokenClaims,
     AuthorizationCodeClient,
     AuthenticationScheme,
-    NetworkManager,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+} from "../../src/error/BrowserAuthError.js";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import {
     ApiId,
     AuthorizationCodeRequest,
     AuthenticationResult,
-} from "../../src";
-import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+} from "../../src/index.js";
+import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
@@ -74,7 +75,7 @@ describe("SilentAuthCodeClient", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
         window.location.hash = "";
         window.sessionStorage.clear();
         window.localStorage.clear();
@@ -130,25 +131,26 @@ describe("SilentAuthCodeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            const handleCodeSpy = sinon
-                .stub(
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            const handleCodeSpy = jest
+                .spyOn(
                     InteractionHandler.prototype,
                     "handleCodeResponseFromServer"
                 )
-                .resolves(testTokenResponse);
+                .mockResolvedValue(testTokenResponse);
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(CryptoOps.prototype, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
 
             const request: AuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -156,22 +158,24 @@ describe("SilentAuthCodeClient", () => {
             };
             const tokenResp = await silentAuthCodeClient.acquireToken(request);
 
-            expect(
-                handleCodeSpy.calledWith({
+            expect(handleCodeSpy).toHaveBeenCalledWith(
+                {
                     code: "test-code",
                     msgraph_host: request.msGraphHost,
                     cloud_graph_host_name: request.cloudGraphHostName,
                     cloud_instance_host_name: request.cloudInstanceHostName,
-                })
-            ).toBe(true);
+                },
+                expect.anything(),
+                expect.anything()
+            );
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
 

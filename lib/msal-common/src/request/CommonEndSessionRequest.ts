@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../account/AccountInfo";
-import { StringDict } from "../utils/MsalTypes";
+import { AccountInfo } from "../account/AccountInfo.js";
+import { StringDict } from "../utils/MsalTypes.js";
 
 /**
  * CommonEndSessionRequest

@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { PublicClientApplication } from "../../src/app/PublicClientApplication";
+import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
     TEST_CONFIG,
     TEST_URIS,
@@ -17,37 +16,48 @@ import {
     TEST_STATE_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
-} from "../utils/StringConstants";
+    validEarJWK,
+    getTestAuthenticationResult,
+    validEarJWE,
+} from "../utils/StringConstants.js";
 import {
     AccountInfo,
     TokenClaims,
     PromptValue,
-    CommonAuthorizationUrlRequest,
-    AuthorizationCodeClient,
-    ResponseMode,
     AuthenticationScheme,
     ServerTelemetryManager,
     ProtocolUtils,
-    NetworkManager,
-} from "@azure/msal-common";
+    TenantProfile,
+    Authority,
+    ProtocolMode,
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorMessage,
     BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError";
-import * as SilentHandler from "../../src/interaction_handler/SilentHandler";
-import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
-import * as PkceGenerator from "../../src/crypto/PkceGenerator";
-import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { ApiId, AuthenticationResult } from "../../src";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
-import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
-import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+} from "../../src/error/BrowserAuthError.js";
+import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
+import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
+import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
+import {
+    ApiId,
+    BrowserConstants,
+    InteractionType,
+} from "../../src/utils/BrowserConstants.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import { SilentRequest } from "../../src/request/SilentRequest.js";
+import { SsoSilentRequest } from "../../src/index.js";
 
 describe("SilentIframeClient", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let silentIframeClient: SilentIframeClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
@@ -83,12 +93,13 @@ describe("SilentIframeClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage
+            pca.nativeInternalStorage,
+            undefined,
+            TEST_CONFIG.CORRELATION_ID
         );
     });
 
     afterEach(() => {
-        sinon.restore();
         jest.restoreAllMocks();
         window.location.hash = "";
         window.sessionStorage.clear();
@@ -96,41 +107,60 @@ describe("SilentIframeClient", () => {
     });
 
     describe("acquireToken", () => {
-        it("throws error if prompt is not set to 'none' or 'no_session'", async () => {
-            const req: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-                prompt: PromptValue.SELECT_ACCOUNT,
-                loginHint: "testLoginHint",
-                state: "",
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+        it("sets invalid prompt to none and acquires a token", async () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
             };
-
-            await expect(
-                silentIframeClient.acquireToken(req)
-            ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.silentPromptValueError
-                )
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
-        });
-
-        it("Errors thrown during token acquisition are cached for telemetry and browserStorage is cleaned", (done) => {
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(SilentHandler, "monitorIframeForHash")
-                .rejects(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.monitorWindowTimeout
-                    )
-                );
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponse"
+            ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -138,9 +168,48 @@ describe("SilentIframeClient", () => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
             );
-            const telemetryStub = sinon
-                .stub(ServerTelemetryManager.prototype, "cacheFailedRequest")
-                .callsFake((e) => {
+
+            const initializeAuthorizationRequestSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                // @ts-ignore
+                "initializeAuthorizationRequest"
+            );
+            const tokenResp = await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+                prompt: PromptValue.SELECT_ACCOUNT,
+            });
+            expect(tokenResp).toEqual(testTokenResponse);
+            expect(initializeAuthorizationRequestSpy).toBeCalledWith(
+                {
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    prompt: PromptValue.NONE,
+                },
+                InteractionType.Silent
+            );
+        });
+
+        it("Errors thrown during token acquisition are cached for telemetry and browserStorage is cleaned", (done) => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.monitorWindowTimeout
+                )
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            const telemetryStub = jest
+                .spyOn(ServerTelemetryManager.prototype, "cacheFailedRequest")
+                .mockImplementation((e) => {
                     expect(e).toMatchObject(
                         createBrowserAuthError(
                             BrowserAuthErrorCodes.monitorWindowTimeout
@@ -154,22 +223,23 @@ describe("SilentIframeClient", () => {
                     loginHint: "testLoginHint",
                 })
                 .catch(() => {
-                    expect(telemetryStub.calledOnce).toBe(true);
+                    expect(telemetryStub).toHaveBeenCalledTimes(1);
                     done();
                 });
         });
 
         it("Unexpected non-msal errors do not add correlationId and browserStorage is cleaned", (done) => {
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
             const testError = {
                 errorCode: "Unexpected error",
                 errorDesc: "Unexpected error",
             };
-            sinon
-                .stub(SilentHandler, "monitorIframeForHash")
-                .rejects(testError);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockRejectedValue(
+                testError
+            );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -227,21 +297,23 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(SilentHandler, "monitorIframeForHash")
-                .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
-            sinon
-                .stub(InteractionHandler.prototype, "handleCodeResponse")
-                .resolves(testTokenResponse);
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponse"
+            ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -294,21 +366,23 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(SilentHandler, "monitorIframeForHash")
-                .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
-            sinon
-                .stub(InteractionHandler.prototype, "handleCodeResponse")
-                .resolves(testTokenResponse);
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponse"
+            ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -331,7 +405,7 @@ describe("SilentIframeClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -339,7 +413,7 @@ describe("SilentIframeClient", () => {
             pca = (pca as any).controller;
 
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -403,21 +477,23 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(SilentHandler, "monitorIframeForHash")
-                .resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT);
-            sinon
-                .stub(NativeInteractionClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
+            );
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -439,7 +515,7 @@ describe("SilentIframeClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -503,21 +579,23 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(SilentHandler, "monitorIframeForHash")
-                .resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT);
-            sinon
-                .stub(NativeInteractionClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
+            );
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -578,6 +656,495 @@ describe("SilentIframeClient", () => {
                 });
         });
 
+        it("retries on invalid_grant error and returns successful response", async () => {
+            const testServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testServerResponse = {
+                headers: {},
+                body: testServerTokenResponse,
+                status: 200,
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: ID_TOKEN_CLAIMS.sub,
+                environment: "login.windows.net",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                name: ID_TOKEN_CLAIMS.name,
+                nativeAccountId: undefined,
+                authorityType: "MSSTS",
+                tenantProfiles: new Map<string, TenantProfile>([
+                    [
+                        ID_TOKEN_CLAIMS.tid,
+                        {
+                            isHomeTenant: false,
+                            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                            name: ID_TOKEN_CLAIMS.name,
+                            tenantId: ID_TOKEN_CLAIMS.tid,
+                        },
+                    ],
+                ]),
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                fromNativeBroker: false,
+                code: undefined,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                expiresOn: TestTimeUtils.calculateExpiresDate(
+                    testServerTokenResponse.expires_in
+                ),
+                extExpiresOn: TestTimeUtils.calculateExpiresDate(
+                    testServerTokenResponse.expires_in +
+                        testServerTokenResponse.ext_expires_in
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+                refreshOn: undefined,
+                requestId: "",
+                familyId: "",
+                state: TEST_STATE_VALUES.USER_STATE,
+                msGraphHost: "",
+                cloudGraphHostName: "",
+            };
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            const sendPostRequestSpy = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(testServerErrorResponse)
+                .mockResolvedValueOnce(testServerResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            const tokenResp = await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+                prompt: PromptValue.NO_SESSION,
+                nonce: "123523",
+                state: TEST_STATE_VALUES.USER_STATE,
+            });
+            expect(tokenResp).toEqual(testTokenResponse);
+            expect(sendPostRequestSpy.mock.results[0].value).resolves.toEqual(
+                testServerErrorResponse
+            );
+        });
+
+        it("retries on invalid_grant error once and throws if still error", async () => {
+            const testFirstServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
+            const testSecondServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "second_server_error",
+                },
+                status: 200,
+            };
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            const sendPostRequestSpy = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(testFirstServerErrorResponse)
+                .mockResolvedValueOnce(testSecondServerErrorResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            await silentIframeClient
+                .acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    prompt: PromptValue.NO_SESSION,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toEqual(
+                        BrowserConstants.INVALID_GRANT_ERROR
+                    );
+                    expect(e.subError).toEqual("second_server_error");
+                    expect(sendPostRequestSpy).toHaveBeenCalledTimes(2);
+                    expect(
+                        sendPostRequestSpy.mock.results[0].value
+                    ).resolves.toEqual(testFirstServerErrorResponse);
+                });
+        });
+
+        it("updates authority hostname param if set to true in the config", async () => {
+            //@ts-ignore
+            const config = { ...pca.config };
+            config.auth.instanceAware = true;
+
+            // @ts-ignore
+            const testClient = new SilentIframeClient(
+                config,
+                //@ts-ignore
+                pca.browserStorage,
+                //@ts-ignore
+                pca.browserCrypto,
+                //@ts-ignore
+                pca.logger,
+                //@ts-ignore
+                pca.eventHandler,
+                //@ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenSilent_authCode,
+                //@ts-ignore
+                pca.performanceClient,
+                //@ts-ignore
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            const handleCodeResponseSpy = jest
+                .spyOn(InteractionHandler.prototype, "handleCodeResponse")
+                .mockResolvedValue(testTokenResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            const generateAuthoritySpy = jest.spyOn(
+                Authority,
+                "generateAuthority"
+            );
+
+            const initializeAuthorizationRequestSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                // @ts-ignore
+                "initializeAuthorizationRequest"
+            );
+            const tokenResp = await testClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+                prompt: PromptValue.SELECT_ACCOUNT,
+                account: testAccount,
+            });
+            expect(generateAuthoritySpy.mock.calls[0][0]).toEqual(
+                "https://login.windows.net/common/"
+            );
+        });
+
+        it("does not set instance_aware extra query param if set to false in the config", async () => {
+            //@ts-ignore
+            const config = { ...pca.config };
+            config.auth.instanceAware = false;
+
+            // @ts-ignore
+            const testClient = new SilentIframeClient(
+                config,
+                //@ts-ignore
+                pca.browserStorage,
+                //@ts-ignore
+                pca.browserCrypto,
+                //@ts-ignore
+                pca.logger,
+                //@ts-ignore
+                pca.eventHandler,
+                //@ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenSilent_authCode,
+                //@ts-ignore
+                pca.performanceClient,
+                //@ts-ignore
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            const handleCodeResponseSpy = jest
+                .spyOn(InteractionHandler.prototype, "handleCodeResponse")
+                .mockResolvedValue(testTokenResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            const generateAuthoritySpy = jest.spyOn(
+                Authority,
+                "generateAuthority"
+            );
+
+            const initializeAuthorizationRequestSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                // @ts-ignore
+                "initializeAuthorizationRequest"
+            );
+            const tokenResp = await testClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+                prompt: PromptValue.SELECT_ACCOUNT,
+                account: testAccount,
+            });
+            expect(
+                handleCodeResponseSpy.mock.calls[0][1].extraQueryParameters
+            ).toBeUndefined();
+            expect(generateAuthoritySpy.mock.calls[0][0]).toEqual(
+                "https://login.microsoftonline.com/common/"
+            );
+        });
+
+        it("does not override instance_aware extra query param if set to true in the config and false in the request", async () => {
+            //@ts-ignore
+            const config = { ...pca.config };
+            config.auth.instanceAware = true;
+
+            // @ts-ignore
+            const testClient = new SilentIframeClient(
+                config,
+                //@ts-ignore
+                pca.browserStorage,
+                //@ts-ignore
+                pca.browserCrypto,
+                //@ts-ignore
+                pca.logger,
+                //@ts-ignore
+                pca.eventHandler,
+                //@ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenSilent_authCode,
+                //@ts-ignore
+                pca.performanceClient,
+                //@ts-ignore
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+            );
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponse"
+            ).mockResolvedValue(testTokenResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            const generateAuthoritySpy = jest.spyOn(
+                Authority,
+                "generateAuthority"
+            );
+
+            const initializeAuthorizationRequestSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                // @ts-ignore
+                "initializeAuthorizationRequest"
+            );
+            const tokenResp = await testClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+                prompt: PromptValue.SELECT_ACCOUNT,
+                account: testAccount,
+                extraQueryParameters: {
+                    instance_aware: "false",
+                },
+            });
+            expect(generateAuthoritySpy.mock.calls[0][0]).toEqual(
+                "https://login.microsoftonline.com/common/"
+            );
+        });
+
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
@@ -588,8 +1155,8 @@ describe("SilentIframeClient", () => {
                     "monitorIframeForHash"
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,
@@ -673,6 +1240,57 @@ describe("SilentIframeClient", () => {
                 expect(tokenKeys.idToken).toHaveLength(1);
                 expect(tokenKeys.accessToken).toHaveLength(1);
                 expect(tokenKeys.refreshToken).toHaveLength(0);
+            });
+        });
+
+        describe("EAR Flow Tests", () => {
+            beforeAll(() => {
+                jest.useFakeTimers();
+            });
+
+            afterAll(() => {
+                jest.useRealTimers();
+            });
+
+            beforeEach(async () => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        protocolMode: ProtocolMode.EAR,
+                    },
+                });
+                await pca.initialize();
+
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
+            });
+
+            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+                const validRequest: SsoSilentRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                const earFormSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockResolvedValue(document.createElement("iframe"));
+                jest.spyOn(
+                    SilentHandler,
+                    "monitorIframeForHash"
+                ).mockResolvedValue(
+                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                );
+
+                const result = await pca.ssoSilent(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
             });
         });
     });

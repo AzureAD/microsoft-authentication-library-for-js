@@ -3,31 +3,38 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { WrapperSKU } from "../utils/BrowserConstants";
-import { IPublicClientApplication } from "./IPublicClientApplication";
-import { IController } from "../controllers/IController";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { WrapperSKU } from "../utils/BrowserConstants.js";
+import { IPublicClientApplication } from "./IPublicClientApplication.js";
+import { IController } from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
     AccountFilter,
     Logger,
-} from "@azure/msal-common";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import * as ControllerFactory from "../controllers/ControllerFactory";
-import { StandardController } from "../controllers/StandardController";
-import { BrowserConfiguration, Configuration } from "../config/Configuration";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { EventCallbackFunction } from "../event/EventMessage";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
+} from "@azure/msal-common/browser";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import * as ControllerFactory from "../controllers/ControllerFactory.js";
+import { StandardController } from "../controllers/StandardController.js";
+import {
+    BrowserConfiguration,
+    Configuration,
+} from "../config/Configuration.js";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { EventCallbackFunction } from "../event/EventMessage.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { NestedAppAuthController } from "../controllers/NestedAppAuthController.js";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { EventType } from "../event/EventType.js";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -35,7 +42,13 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
  */
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
+    protected isBroker: boolean = false;
 
+    /**
+     * Creates StandardController and passes it to the PublicClientApplication
+     *
+     * @param configuration {Configuration}
+     */
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
@@ -70,21 +83,17 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
     public constructor(configuration: Configuration, controller?: IController) {
-        if (controller) {
-            this.controller = controller;
-        } else {
-            const standardOperatingContext = new StandardOperatingContext(
-                configuration
-            );
-            this.controller = new StandardController(standardOperatingContext);
-        }
+        this.controller =
+            controller ||
+            new StandardController(new StandardOperatingContext(configuration));
     }
 
     /**
      * Initializer function to perform async startup tasks such as connecting to WAM extension
+     * @param request {?InitializeApplicationRequest}
      */
-    async initialize(): Promise<void> {
-        return this.controller.initialize();
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+        return this.controller.initialize(request, this.isBroker);
     }
 
     /**
@@ -144,9 +153,13 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Adds event callbacks to array
      * @param callback
+     * @param eventTypes
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.controller.addEventCallback(callback);
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return this.controller.addEventCallback(callback, eventTypes);
     }
 
     /**
@@ -416,4 +429,46 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         return this.controller.clearCache(logoutRequest);
     }
+}
+
+/**
+ * creates NestedAppAuthController and passes it to the PublicClientApplication,
+ * falls back to StandardController if NestedAppAuthController is not available
+ *
+ * @param configuration
+ * @returns IPublicClientApplication
+ *
+ */
+export async function createNestablePublicClientApplication(
+    configuration: Configuration
+): Promise<IPublicClientApplication> {
+    const nestedAppAuth = new NestedAppOperatingContext(configuration);
+    await nestedAppAuth.initialize();
+
+    if (nestedAppAuth.isAvailable()) {
+        const controller = new NestedAppAuthController(nestedAppAuth);
+        const nestablePCA = new PublicClientApplication(
+            configuration,
+            controller
+        );
+        await nestablePCA.initialize();
+        return nestablePCA;
+    }
+
+    return createStandardPublicClientApplication(configuration);
+}
+
+/**
+ * creates PublicClientApplication using StandardController
+ *
+ * @param configuration
+ * @returns IPublicClientApplication
+ *
+ */
+export async function createStandardPublicClientApplication(
+    configuration: Configuration
+): Promise<IPublicClientApplication> {
+    const pca = new PublicClientApplication(configuration);
+    await pca.initialize();
+    return pca;
 }

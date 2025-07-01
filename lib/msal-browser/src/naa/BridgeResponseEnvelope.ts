@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { BridgeError } from "./BridgeError";
-import { TokenResponse } from "./TokenResponse";
-import { AccountInfo } from "./AccountInfo";
-import { InitContext } from "./InitContext";
+import { BridgeError } from "./BridgeError.js";
+import { TokenResponse } from "./TokenResponse.js";
+import { AccountInfo } from "./AccountInfo.js";
+import { InitContext } from "./InitContext.js";
 
 export type BridgeResponseEnvelope = {
     messageType: "NestedAppAuthResponse";

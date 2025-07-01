@@ -55,7 +55,7 @@ async function runMultipleProcesses(
     let count = 0;
     for (let i = 0; i < numProcesses; i++) {
         const proc = fork(
-            "./test/performance-test/LockAndWriteToStorageScript.js",
+            "./test/performance-test/LockAndWriteToStorageScript.cjs",
             options
         );
         proc.on("exit", (code) => {

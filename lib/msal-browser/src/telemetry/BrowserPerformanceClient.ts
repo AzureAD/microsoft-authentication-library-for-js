@@ -13,13 +13,14 @@ import {
     PerformanceEvents,
     PreQueueEvent,
     SubMeasurement,
-} from "@azure/msal-common";
-import { Configuration } from "../config/Configuration";
-import { name, version } from "../packageMetadata";
+} from "@azure/msal-common/browser";
+import { Configuration } from "../config/Configuration.js";
+import { name, version } from "../packageMetadata.js";
 import {
     BROWSER_PERF_ENABLED_KEY,
     BrowserCacheLocation,
-} from "../utils/BrowserConstants";
+} from "../utils/BrowserConstants.js";
+import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 
 /**
  * Returns browser performance measurement module if session flag is enabled. Returns undefined otherwise.
@@ -30,7 +31,7 @@ function getPerfMeasurementModule() {
         sessionStorage = window[BrowserCacheLocation.SessionStorage];
         const perfEnabled = sessionStorage?.getItem(BROWSER_PERF_ENABLED_KEY);
         if (Number(perfEnabled) === 1) {
-            return import("./BrowserPerformanceMeasurement");
+            return import("./BrowserPerformanceMeasurement.js");
         }
         // Mute errors if it's a non-browser environment or cookies are blocked.
     } catch (e) {}
@@ -68,7 +69,11 @@ export class BrowserPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
-    constructor(configuration: Configuration, intFields?: Set<string>) {
+    constructor(
+        configuration: Configuration,
+        intFields?: Set<string>,
+        abbreviations?: Map<string, string>
+    ) {
         super(
             configuration.auth.clientId,
             configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
@@ -83,12 +88,13 @@ export class BrowserPerformanceClient
                 appName: "",
                 appVersion: "",
             },
-            intFields
+            intFields,
+            abbreviations
         );
     }
 
     generateId(): string {
-        return window.crypto.randomUUID();
+        return BrowserCrypto.createNewGuid();
     }
 
     private getPageVisibility(): string | null {
@@ -158,14 +164,18 @@ export class BrowserPerformanceClient
         return {
             ...inProgressEvent,
             end: (
-                event?: Partial<PerformanceEvent>
+                event?: Partial<PerformanceEvent>,
+                error?: unknown
             ): PerformanceEvent | null => {
-                const res = inProgressEvent.end({
-                    ...event,
-                    startPageVisibility,
-                    endPageVisibility: this.getPageVisibility(),
-                    durationMs: getPerfDurationMs(startTime),
-                });
+                const res = inProgressEvent.end(
+                    {
+                        ...event,
+                        startPageVisibility,
+                        endPageVisibility: this.getPageVisibility(),
+                        durationMs: getPerfDurationMs(startTime),
+                    },
+                    error
+                );
                 void browserMeasurement?.then((measurement) =>
                     measurement.endMeasurement()
                 );

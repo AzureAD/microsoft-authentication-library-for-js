@@ -121,8 +121,7 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
         clientApplication.getAuthCodeUrl(requestConfig.authCodeUrlParameters)
             .then((response) => {
                 res.redirect(response);
-            })
-            .catch((error) => console.log(JSON.stringify(error)));
+            });
     });
 
     /**
@@ -159,7 +158,6 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
                     res.render("authenticated", templateParams);
                 })
                 .catch((error) => {
-                    console.log(error);
                     templateParams.couldNotAcquireToken = true;
                     res.render("authenticated", templateParams)
                 });
@@ -177,7 +175,6 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
             const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
             res.render("authenticated", templateParams);
         }).catch((error) => {
-            console.log(error);
             res.status(500).send(error);
         });
     });

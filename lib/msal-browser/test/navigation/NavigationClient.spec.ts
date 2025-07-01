@@ -3,19 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { NavigationClient } from "../../src/navigation/NavigationClient";
-import { TEST_URIS } from "../utils/StringConstants";
+import { create } from "domain";
+import { NavigationClient } from "../../src/navigation/NavigationClient.js";
+import { TEST_URIS } from "../utils/StringConstants.js";
+import { BrowserAuthError, BrowserAuthErrorCodes } from "../../src/index.js";
+import { createBrowserAuthError } from "../../src/error/BrowserAuthError.js";
 
 describe("NavigationClient.ts Unit Tests", () => {
     const navigationClient = new NavigationClient();
     const oldWindow: Window & typeof globalThis = window;
 
     let oldWindowLocation: Location;
-    let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
-        clock = sinon.useFakeTimers();
+        jest.useFakeTimers();
         oldWindowLocation = window.location;
         // @ts-ignore
         delete window.location;
@@ -23,7 +24,8 @@ describe("NavigationClient.ts Unit Tests", () => {
 
     afterEach(() => {
         window = oldWindow;
-        sinon.restore();
+        jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     describe("navigateInternal tests", () => {
@@ -35,14 +37,14 @@ describe("NavigationClient.ts Unit Tests", () => {
                     done();
                 },
             };
-            const windowAssignSpy = sinon.spy(window.location, "assign");
+            const windowAssignSpy = jest.spyOn(window.location, "assign");
             navigationClient.navigateInternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: false,
                 //@ts-ignore
                 apiId: 0,
             });
-            expect(windowAssignSpy.calledOnce).toBe(true);
+            expect(windowAssignSpy).toHaveBeenCalledTimes(1);
         });
 
         it("navigateInternal() with noHistory true will call location.replace", (done) => {
@@ -53,14 +55,14 @@ describe("NavigationClient.ts Unit Tests", () => {
                     done();
                 },
             };
-            const windowReplaceSpy = sinon.spy(window.location, "replace");
+            const windowReplaceSpy = jest.spyOn(window.location, "replace");
             navigationClient.navigateInternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: true,
                 //@ts-ignore
                 apiId: 0,
             });
-            expect(windowReplaceSpy.calledOnce).toBe(true);
+            expect(windowReplaceSpy).toHaveBeenCalledTimes(1);
         });
 
         it("navigateInternal() logs if navigation does not take place within 30 seconds", (done) => {
@@ -72,15 +74,14 @@ describe("NavigationClient.ts Unit Tests", () => {
                 },
             };
 
-            const windowReplaceSpy = sinon.spy(window.location, "replace");
+            const windowReplaceSpy = jest.spyOn(window.location, "replace");
             navigationClient.navigateInternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: true,
                 //@ts-ignore
                 apiId: 0,
             });
-            expect(windowReplaceSpy.calledOnce).toBe(true);
-            clock.next();
+            expect(windowReplaceSpy).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -93,14 +94,14 @@ describe("NavigationClient.ts Unit Tests", () => {
                     done();
                 },
             };
-            const windowAssignSpy = sinon.spy(window.location, "assign");
+            const windowAssignSpy = jest.spyOn(window.location, "assign");
             navigationClient.navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: false,
                 //@ts-ignore
                 apiId: 0,
             });
-            expect(windowAssignSpy.calledOnce).toBe(true);
+            expect(windowAssignSpy).toHaveBeenCalledTimes(1);
         });
 
         it("navigateExternal() with noHistory true will call location.replace", (done) => {
@@ -111,34 +112,43 @@ describe("NavigationClient.ts Unit Tests", () => {
                     done();
                 },
             };
-            const windowReplaceSpy = sinon.spy(window.location, "replace");
+            const windowReplaceSpy = jest.spyOn(window.location, "replace");
             navigationClient.navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: true,
                 //@ts-ignore
                 apiId: 0,
             });
-            expect(windowReplaceSpy.calledOnce).toBe(true);
+            expect(windowReplaceSpy).toHaveBeenCalledTimes(1);
         });
 
-        it("navigateExternal() logs if navigation does not take place within 30 seconds", (done) => {
+        it("navigateExternal() throws if navigation does not take place within specified timeout", (done) => {
+            jest.useRealTimers();
             window.location = {
                 ...oldWindowLocation,
                 replace: function (url: string) {
-                    expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
-                    done();
+                    // Do nothing
                 },
             };
 
-            const windowReplaceSpy = sinon.spy(window.location, "replace");
-            navigationClient.navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
-                timeout: 30000,
-                noHistory: true,
-                //@ts-ignore
-                apiId: 0,
-            });
-            expect(windowReplaceSpy.calledOnce).toBe(true);
-            clock.next();
+            const windowReplaceSpy = jest.spyOn(window.location, "replace");
+            navigationClient
+                .navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
+                    timeout: 100,
+                    noHistory: true,
+                    //@ts-ignore
+                    apiId: 0,
+                })
+                .catch((error) => {
+                    expect(error).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.timedOut,
+                            "failed_to_redirect"
+                        )
+                    );
+                    done();
+                });
+            expect(windowReplaceSpy).toHaveBeenCalledTimes(1);
         });
     });
 });

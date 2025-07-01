@@ -3,10 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { BridgeCapabilities } from "./BridgeCapabilities";
+import { BridgeCapabilities } from "./BridgeCapabilities.js";
+import { AccountContext } from "./BridgeAccountContext.js";
 
 export interface InitContext {
     capabilities?: BridgeCapabilities;
     sdkName: string;
     sdkVersion: string;
+    accountContext?: AccountContext;
 }

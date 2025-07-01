@@ -3,26 +3,26 @@
  * Licensed under the MIT License.
  */
 
-import { CacheAccountType, Separators } from "../../utils/Constants";
-import { Authority } from "../../authority/Authority";
-import { ICrypto } from "../../crypto/ICrypto";
-import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
+import { CacheAccountType, Separators } from "../../utils/Constants.js";
+import type { Authority } from "../../authority/Authority.js";
+import { ICrypto } from "../../crypto/ICrypto.js";
+import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
 import {
     AccountInfo,
     TenantProfile,
-    buildTenantProfileFromIdTokenClaims,
-} from "../../account/AccountInfo";
+    buildTenantProfile,
+} from "../../account/AccountInfo.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../../error/ClientAuthError";
-import { AuthorityType } from "../../authority/AuthorityType";
-import { Logger } from "../../logger/Logger";
+} from "../../error/ClientAuthError.js";
+import { AuthorityType } from "../../authority/AuthorityType.js";
+import { Logger } from "../../logger/Logger.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
-} from "../../account/TokenClaims";
-import { ProtocolMode } from "../../authority/ProtocolMode";
+} from "../../account/TokenClaims.js";
+import { ProtocolMode } from "../../authority/ProtocolMode.js";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -62,6 +62,7 @@ export class AccountEntity {
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
+    lastUpdatedAt?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -135,7 +136,7 @@ export class AccountEntity {
     static createAccount(
         accountDetails: {
             homeAccountId: string;
-            idTokenClaims: TokenClaims;
+            idTokenClaims?: TokenClaims;
             clientInfo?: string;
             cloudGraphHostName?: string;
             msGraphHost?: string;
@@ -150,10 +151,10 @@ export class AccountEntity {
 
         if (authority.authorityType === AuthorityType.Adfs) {
             account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
-        } else if (authority.protocolMode === ProtocolMode.AAD) {
-            account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
-        } else {
+        } else if (authority.protocolMode === ProtocolMode.OIDC) {
             account.authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        } else {
+            account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         }
 
         let clientInfo: ClientInfo | undefined;
@@ -189,8 +190,8 @@ export class AccountEntity {
         // How do you account for MSA CID here?
         account.localAccountId =
             clientInfo?.uid ||
-            accountDetails.idTokenClaims.oid ||
-            accountDetails.idTokenClaims.sub ||
+            accountDetails.idTokenClaims?.oid ||
+            accountDetails.idTokenClaims?.sub ||
             "";
 
         /*
@@ -199,14 +200,14 @@ export class AccountEntity {
          * policy is configured to return more than 1 email.
          */
         const preferredUsername =
-            accountDetails.idTokenClaims.preferred_username ||
-            accountDetails.idTokenClaims.upn;
-        const email = accountDetails.idTokenClaims.emails
+            accountDetails.idTokenClaims?.preferred_username ||
+            accountDetails.idTokenClaims?.upn;
+        const email = accountDetails.idTokenClaims?.emails
             ? accountDetails.idTokenClaims.emails[0]
             : null;
 
         account.username = preferredUsername || email || "";
-        account.name = accountDetails.idTokenClaims.name;
+        account.name = accountDetails.idTokenClaims?.name || "";
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
         account.msGraphHost = accountDetails.msGraphHost;
@@ -214,15 +215,13 @@ export class AccountEntity {
         if (accountDetails.tenantProfiles) {
             account.tenantProfiles = accountDetails.tenantProfiles;
         } else {
-            const tenantProfiles = [];
-            if (accountDetails.idTokenClaims) {
-                const tenantProfile = buildTenantProfileFromIdTokenClaims(
-                    accountDetails.homeAccountId,
-                    accountDetails.idTokenClaims
-                );
-                tenantProfiles.push(tenantProfile);
-            }
-            account.tenantProfiles = tenantProfiles;
+            const tenantProfile = buildTenantProfile(
+                accountDetails.homeAccountId,
+                account.localAccountId,
+                account.realm,
+                accountDetails.idTokenClaims
+            );
+            account.tenantProfiles = [tenantProfile];
         }
 
         return account;

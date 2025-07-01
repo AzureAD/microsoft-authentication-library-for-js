@@ -4,6 +4,8 @@
  */
 
 import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
     ICrypto,
     IPerformanceClient,
     JoseHeader,
@@ -12,15 +14,19 @@ import {
     ShrOptions,
     SignedHttpRequest,
     SignedHttpRequestParameters,
-} from "@azure/msal-common";
-import { base64Encode, urlEncode, urlEncodeArr } from "../encode/Base64Encode";
-import { base64Decode } from "../encode/Base64Decode";
-import * as BrowserCrypto from "./BrowserCrypto";
+} from "@azure/msal-common/browser";
+import {
+    base64Encode,
+    urlEncode,
+    urlEncodeArr,
+} from "../encode/Base64Encode.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import * as BrowserCrypto from "./BrowserCrypto.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { CryptoKeyStore } from "../cache/CryptoKeyStore";
+} from "../error/BrowserAuthError.js";
+import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage.js";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey;
@@ -44,13 +50,19 @@ export class CryptoOps implements ICrypto {
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
-    private cache: CryptoKeyStore;
+    private cache: AsyncMemoryStorage<CachedKeyPair>;
 
-    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
+    constructor(
+        logger: Logger,
+        performanceClient?: IPerformanceClient,
+        skipValidateSubtleCrypto?: boolean
+    ) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        BrowserCrypto.validateCryptoAvailable(logger);
-        this.cache = new CryptoKeyStore(this.logger);
+        BrowserCrypto.validateCryptoAvailable(
+            skipValidateSubtleCrypto ?? false
+        );
+        this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
         this.performanceClient = performanceClient;
     }
 
@@ -76,6 +88,23 @@ export class CryptoOps implements ICrypto {
      */
     base64Decode(input: string): string {
         return base64Decode(input);
+    }
+
+    /**
+     * Encodes input string to base64 URL safe string.
+     * @param input
+     */
+    base64UrlEncode(input: string): string {
+        return urlEncode(input);
+    }
+
+    /**
+     * Stringifies and base64Url encodes input public key
+     * @param inputKid
+     * @returns Base64Url encoded public key
+     */
+    encodeKid(inputKid: string): string {
+        return this.base64UrlEncode(JSON.stringify({ kid: inputKid }));
     }
 
     /**
@@ -121,7 +150,7 @@ export class CryptoOps implements ICrypto {
             await BrowserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
-        await this.cache.asymmetricKeys.setItem(publicJwkHash, {
+        await this.cache.setItem(publicJwkHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: request.resourceRequestMethod,
@@ -141,17 +170,43 @@ export class CryptoOps implements ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      */
-    async removeTokenBindingKey(kid: string): Promise<boolean> {
-        await this.cache.asymmetricKeys.removeItem(kid);
-        const keyFound = await this.cache.asymmetricKeys.containsKey(kid);
-        return !keyFound;
+    async removeTokenBindingKey(kid: string): Promise<void> {
+        await this.cache.removeItem(kid);
+        const keyFound = await this.cache.containsKey(kid);
+        if (keyFound) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.bindingKeyNotRemoved
+            );
+        }
     }
 
     /**
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        return this.cache.clear();
+        // Delete in-memory keystores
+        this.cache.clearInMemory();
+
+        /**
+         * There is only one database, so calling clearPersistent on asymmetric keystore takes care of
+         * every persistent keystore
+         */
+        try {
+            await this.cache.clearPersistent();
+            return true;
+        } catch (e) {
+            if (e instanceof Error) {
+                this.logger.error(
+                    `Clearing keystore failed with error: ${e.message}`
+                );
+            } else {
+                this.logger.error(
+                    "Clearing keystore failed with unknown error"
+                );
+            }
+
+            return false;
+        }
     }
 
     /**
@@ -169,7 +224,7 @@ export class CryptoOps implements ICrypto {
             PerformanceEvents.CryptoOptsSignJwt,
             correlationId
         );
-        const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
+        const cachedKeyPair = await this.cache.getItem(kid);
 
         if (!cachedKeyPair) {
             throw createBrowserAuthError(
@@ -227,11 +282,7 @@ export class CryptoOps implements ICrypto {
      * @param plainText
      */
     async hashString(plainText: string): Promise<string> {
-        const hashBuffer: ArrayBuffer = await BrowserCrypto.sha256Digest(
-            plainText
-        );
-        const hashBytes = new Uint8Array(hashBuffer);
-        return urlEncodeArr(hashBytes);
+        return BrowserCrypto.hashString(plainText);
     }
 }
 

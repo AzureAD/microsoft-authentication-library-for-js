@@ -4,14 +4,14 @@
  */
 
 import React, { PropsWithChildren, useMemo } from "react";
-import { AccountIdentifiers } from "../types/AccountIdentifiers";
-import { getChildrenOrFunction } from "../utils/utilities";
-import { useMsal } from "../hooks/useMsal";
+import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
+import { getChildrenOrFunction } from "../utils/utilities.js";
+import { useMsal } from "../hooks/useMsal.js";
 import {
     MsalAuthenticationResult,
     useMsalAuthentication,
-} from "../hooks/useMsalAuthentication";
-import { useIsAuthenticated } from "../hooks/useIsAuthenticated";
+} from "../hooks/useMsalAuthentication.js";
+import { useIsAuthenticated } from "../hooks/useIsAuthenticated.js";
 import {
     InteractionType,
     PopupRequest,
@@ -19,7 +19,7 @@ import {
     SsoSilentRequest,
     InteractionStatus,
 } from "@azure/msal-browser";
-import { IMsalContext } from "../MsalContext";
+import { IMsalContext } from "../MsalContext.js";
 
 export type MsalAuthenticationProps = PropsWithChildren<
     AccountIdentifiers & {

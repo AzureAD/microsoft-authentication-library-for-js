@@ -1,4 +1,4 @@
-import { ClientSecretCredential, AccessToken } from "@azure/identity";
+import { AccessToken, ClientCertificateCredential } from "@azure/identity";
 import axios from "axios";
 import {
     ENV_VARIABLES,
@@ -9,23 +9,31 @@ import {
 import { LabApiQueryParams } from "./LabApiQueryParams";
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + `/../../../.env` });
+// Try 1p repo config first
+dotenv.config({ path: __dirname + `/../../../../.env` });
+// If CLIENT_ID is not set, try the 3p repo for test env config
+if (!process.env[ENV_VARIABLES.CLIENT_ID]) {
+    dotenv.config({ path: __dirname + `/../../../.env` });
+}
 
 export class LabClient {
-    private credentials: ClientSecretCredential;
+    private credentials: ClientCertificateCredential;
     private currentToken: AccessToken | null;
     constructor() {
         const tenant = process.env[ENV_VARIABLES.TENANT];
         const clientId = process.env[ENV_VARIABLES.CLIENT_ID];
-        const client_secret = process.env[ENV_VARIABLES.SECRET];
+        const client_cert_path = process.env[ENV_VARIABLES.CERTIFICATE_PATH];
         this.currentToken = null;
-        if (!tenant || !clientId || !client_secret) {
+        if (!tenant || !clientId || !client_cert_path) {
             throw "Environment variables not set!";
         }
-        this.credentials = new ClientSecretCredential(
+        this.credentials = new ClientCertificateCredential(
             tenant,
             clientId,
-            client_secret
+            client_cert_path,
+            {
+                sendCertificateChain: true,
+            }
         );
     }
 

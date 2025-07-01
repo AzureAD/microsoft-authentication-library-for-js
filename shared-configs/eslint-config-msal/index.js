@@ -11,7 +11,8 @@ module.exports = {
         "security",
         "import",
         "header",
-        "react"
+        "react",
+        "custom-msal"
     ],
     "extends": [
         "plugin:@angular-eslint/base",
@@ -64,6 +65,7 @@ module.exports = {
         "@typescript-eslint/prefer-interface": 0,
         "@typescript-eslint/no-floating-promises": 2,
         "@typescript-eslint/return-await": 2,
+        "custom-msal/no-class-methods-in-constructor": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [
@@ -79,6 +81,7 @@ module.exports = {
         ],
         "import/first": 2,
         "import/no-commonjs": 2,
+        "import/no-cycle": 2,
         "import/no-duplicates": 2,
         "import/no-extraneous-dependencies": 2,
         "import/no-unresolved": 2,
@@ -155,6 +158,9 @@ module.exports = {
             "version": "17.0.0"
         },
         "import/resolver": {
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            },
             "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
         }
     }

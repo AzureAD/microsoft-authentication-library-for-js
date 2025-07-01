@@ -1,10 +1,17 @@
-import { HttpClient } from "../../src/network/HttpClient";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { HttpClient } from "../../src/network/HttpClient.js";
 import {
     NetworkResponse,
     NetworkRequestOptions,
-    UrlToHttpRequestOptions,
+    HttpStatus,
 } from "@azure/msal-common";
-import { MockedMetadataResponse } from "../utils/TestConstants";
+import { MockedMetadataResponse } from "../utils/TestConstants.js";
+import { ProxyStatus } from "../../src/utils/Constants.js";
+import { UrlToHttpRequestOptions } from "../../src/utils/NetworkUtils.js";
 
 import http from "http";
 jest.mock("http", () => ({
@@ -18,20 +25,18 @@ jest.mock("https", () => ({
     request: jest.fn(),
 }));
 
-const httpsStatusCode200 = 200;
-const httpsStatusCode400 = 400;
-const httpsStatusCode500 = 500;
-const httpsStatusCode600 = 600;
-const httpsStatusMessage200 = "OK";
-const httpsStatusMessage400 = "Bad Request";
-const httpsStatusMessage500 = "Internal Server Error";
-const httpsStatusMessage600 = "Unknown Error";
-const proxyStatusCode200 = 200;
-const proxyStatusCode500 = 500;
-const socketStatusCode200 = 200;
-const socketStatusCode400 = 400;
-const socketStatusCode500 = 500;
-const socketStatusCode600 = 600;
+const httpsStatusSuccessMessage = "OK";
+const httpsStatusClientErrorMessage = "Bad Request";
+const httpsStatusServerErrorMessage = "Internal Server Error";
+const httpsStatusMultiSidedErrorMessage = "Unknown Error";
+
+const SocketStatus = {
+    SUCCESS: HttpStatus.SUCCESS,
+    CLIENT_ERROR: HttpStatus.CLIENT_ERROR,
+    SERVER_ERROR: HttpStatus.SERVER_ERROR,
+    MULTI_SIDED_ERROR: HttpStatus.MULTI_SIDED_ERROR,
+} as const;
+type SocketStatus = (typeof SocketStatus)[keyof typeof SocketStatus];
 
 const url: string = "https://www.url.com";
 
@@ -94,15 +99,15 @@ const mockPostResponseBodyBuffer: Buffer = Buffer.from(
     JSON.stringify(mockPostResponseBody)
 );
 
-const mockServer400ErrorResponseBody = httpsStatusMessage400;
+const mockServer400ErrorResponseBody = httpsStatusClientErrorMessage;
 const mockServer400ErrorResponseBodyBuffer: Buffer = Buffer.from(
     mockServer400ErrorResponseBody
 );
-const mockServer500ErrorResponseBody = httpsStatusMessage500;
+const mockServer500ErrorResponseBody = httpsStatusServerErrorMessage;
 const mockServer500ErrorResponseBodyBuffer: Buffer = Buffer.from(
     mockServer500ErrorResponseBody
 );
-const mockServer600ErrorResponseBody = httpsStatusMessage600;
+const mockServer600ErrorResponseBody = httpsStatusMultiSidedErrorMessage;
 const mockServer600ErrorResponseBodyBuffer: Buffer = Buffer.from(
     mockServer600ErrorResponseBody
 );
@@ -119,15 +124,15 @@ const getMockServerErrorResponse = (
     if (statusCode >= 400 && statusCode <= 499) {
         errorType = "client_error";
         errorDescriptionHelper = "A client";
-        statusMessage = httpsStatusMessage400;
+        statusMessage = httpsStatusClientErrorMessage;
     } else if (statusCode >= 500 && statusCode <= 599) {
         errorType = "server_error";
         errorDescriptionHelper = "A server";
-        statusMessage = httpsStatusMessage500;
+        statusMessage = httpsStatusServerErrorMessage;
     } else {
         errorType = "unknown_error";
         errorDescriptionHelper = "An unknown";
-        statusMessage = httpsStatusMessage600;
+        statusMessage = httpsStatusMultiSidedErrorMessage;
     }
 
     return {
@@ -218,19 +223,19 @@ const mockHttpRequest = (
     socketRequestStatusCode: number
 ) => {
     const bodyString =
-        socketRequestStatusCode !== socketStatusCode200
+        socketRequestStatusCode !== SocketStatus.SUCCESS
             ? body
             : JSON.stringify(body);
 
     let statusMessage;
-    if (socketRequestStatusCode === socketStatusCode200) {
-        statusMessage = httpsStatusMessage200;
-    } else if (socketRequestStatusCode === socketStatusCode400) {
-        statusMessage = httpsStatusMessage400;
-    } else if (socketRequestStatusCode === socketStatusCode500) {
-        statusMessage = httpsStatusMessage500;
+    if (socketRequestStatusCode === SocketStatus.SUCCESS) {
+        statusMessage = httpsStatusSuccessMessage;
+    } else if (socketRequestStatusCode === SocketStatus.CLIENT_ERROR) {
+        statusMessage = httpsStatusClientErrorMessage;
+    } else if (socketRequestStatusCode === SocketStatus.SERVER_ERROR) {
+        statusMessage = httpsStatusServerErrorMessage;
     } else {
-        statusMessage = httpsStatusMessage600;
+        statusMessage = httpsStatusMultiSidedErrorMessage;
     }
 
     const mockSocketResponse = `HTTP/1.1 ${socketRequestStatusCode} ${statusMessage}${headersString}${bodyString}`;
@@ -238,13 +243,11 @@ const mockHttpRequest = (
 
     // sample socket object
     const mockSocket: {
-        setTimeout: jest.Mock;
         on: jest.Mock;
         destroy: jest.Mock;
         write: jest.Mock;
         error: jest.Mock;
     } = {
-        setTimeout: jest.fn(),
         on: jest.fn((_socketEvent: string, cb: any) =>
             cb(mockSocketResponseBuffer)
         ),
@@ -301,13 +304,13 @@ describe("HttpClient", () => {
         test("Via Https", async () => {
             const httpsNetworkResponse: NetworkResponse<T> = getNetworkResponse(
                 mockGetResponseBody,
-                httpsStatusCode200
+                HttpStatus.SUCCESS
             );
             (https.request as jest.Mock).mockImplementationOnce(
                 mockHttpsRequest(
                     mockGetResponseBodyBuffer,
-                    httpsStatusCode200,
-                    httpsStatusMessage200
+                    HttpStatus.SUCCESS,
+                    httpsStatusSuccessMessage
                 )
             );
             await expect(
@@ -317,12 +320,12 @@ describe("HttpClient", () => {
 
         test("Via Proxy", async () => {
             const proxyThenSocketNetworkResponse: NetworkResponse<T> =
-                getNetworkResponse(mockGetResponseBody, httpsStatusCode200);
+                getNetworkResponse(mockGetResponseBody, HttpStatus.SUCCESS);
             (http.request as jest.Mock).mockImplementationOnce(
                 mockHttpRequest(
                     mockGetResponseBody,
-                    proxyStatusCode200,
-                    socketStatusCode200
+                    ProxyStatus.SUCCESS,
+                    SocketStatus.SUCCESS
                 )
             );
             await expect(
@@ -335,13 +338,13 @@ describe("HttpClient", () => {
         test("Via Https", async () => {
             const httpsNetworkResponse: NetworkResponse<T> = getNetworkResponse(
                 mockPostResponseBody,
-                httpsStatusCode200
+                HttpStatus.SUCCESS
             );
             (https.request as jest.Mock).mockImplementationOnce(
                 mockHttpsRequest(
                     mockPostResponseBodyBuffer,
-                    httpsStatusCode200,
-                    httpsStatusMessage200
+                    HttpStatus.SUCCESS,
+                    httpsStatusSuccessMessage
                 )
             );
             await expect(
@@ -354,12 +357,12 @@ describe("HttpClient", () => {
 
         test("Via Proxy", async () => {
             const proxyThenSocketNetworkResponse: NetworkResponse<T> =
-                getNetworkResponse(mockPostResponseBody, httpsStatusCode200);
+                getNetworkResponse(mockPostResponseBody, HttpStatus.SUCCESS);
             (http.request as jest.Mock).mockImplementationOnce(
                 mockHttpRequest(
                     mockPostResponseBody,
-                    proxyStatusCode200,
-                    socketStatusCode200
+                    ProxyStatus.SUCCESS,
+                    SocketStatus.SUCCESS
                 )
             );
             await expect(
@@ -378,38 +381,15 @@ describe("HttpClient", () => {
         test("Via Https", async () => {
             (https.request as jest.Mock).mockImplementationOnce(
                 mockHttpsRequest(
-                    mockPostResponseBodyBuffer,
-                    httpsStatusCode200,
-                    httpsStatusMessage200
+                    mockGetResponseBodyBuffer,
+                    HttpStatus.SUCCESS,
+                    httpsStatusSuccessMessage
                 )
             );
             await expect(
-                httpClientWithoutProxyUrl.sendPostRequestAsync(
+                httpClientWithoutProxyUrl.sendGetRequestAsync(
                     url,
-                    postNetworkRequestOptions,
-                    timeoutInMilliseconds
-                )
-            ).rejects.toEqual(error);
-        });
-
-        /**
-         * can only test http timeout, not socket timeout inside of the socket
-         *
-         * future work: add another timeout parameter to sendPostRequestAsync so it accepts two different timeouts:
-         * one for http timeout and one for the socket timeout inside of the socket
-         */
-        test("Via Proxy", async () => {
-            (http.request as jest.Mock).mockImplementationOnce(
-                mockHttpRequest(
-                    mockPostResponseBody,
-                    proxyStatusCode200,
-                    socketStatusCode200
-                )
-            );
-            await expect(
-                httpClientWithProxyUrl.sendPostRequestAsync(
-                    url,
-                    postNetworkRequestOptions,
+                    undefined,
                     timeoutInMilliseconds
                 )
             ).rejects.toEqual(error);
@@ -426,14 +406,14 @@ describe("HttpClient", () => {
                 test("Client Error 400", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(httpsStatusCode400),
-                            httpsStatusCode400
+                            getMockServerErrorResponse(HttpStatus.CLIENT_ERROR),
+                            HttpStatus.CLIENT_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer400ErrorResponseBodyBuffer,
-                            httpsStatusCode400,
-                            httpsStatusMessage400
+                            HttpStatus.CLIENT_ERROR,
+                            httpsStatusClientErrorMessage
                         )
                     );
                     await expect(
@@ -444,14 +424,14 @@ describe("HttpClient", () => {
                 test("Server Error 500", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(httpsStatusCode500),
-                            httpsStatusCode500
+                            getMockServerErrorResponse(HttpStatus.SERVER_ERROR),
+                            HttpStatus.SERVER_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer500ErrorResponseBodyBuffer,
-                            httpsStatusCode500,
-                            httpsStatusMessage500
+                            HttpStatus.SERVER_ERROR,
+                            httpsStatusServerErrorMessage
                         )
                     );
                     await expect(
@@ -462,14 +442,16 @@ describe("HttpClient", () => {
                 test("Unknown Error 600", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(httpsStatusCode600),
-                            httpsStatusCode600
+                            getMockServerErrorResponse(
+                                HttpStatus.MULTI_SIDED_ERROR
+                            ),
+                            HttpStatus.MULTI_SIDED_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer600ErrorResponseBodyBuffer,
-                            httpsStatusCode600,
-                            httpsStatusMessage600
+                            HttpStatus.MULTI_SIDED_ERROR,
+                            httpsStatusMultiSidedErrorMessage
                         )
                     );
                     await expect(
@@ -483,8 +465,8 @@ describe("HttpClient", () => {
                     (http.request as jest.Mock).mockImplementationOnce(
                         mockHttpRequest(
                             mockGetResponseBody,
-                            proxyStatusCode500,
-                            httpsStatusCode500
+                            ProxyStatus.SERVER_ERROR,
+                            HttpStatus.SERVER_ERROR
                         )
                     );
                     await expect(
@@ -496,14 +478,16 @@ describe("HttpClient", () => {
                     test("Client Error 400", async () => {
                         const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                             getNetworkResponse<MockedMetadataResponse>(
-                                getMockServerErrorResponse(socketStatusCode400),
-                                socketStatusCode400
+                                getMockServerErrorResponse(
+                                    SocketStatus.CLIENT_ERROR
+                                ),
+                                SocketStatus.CLIENT_ERROR
                             );
                         (http.request as jest.Mock).mockImplementationOnce(
                             mockHttpRequest(
                                 mockServer400ErrorResponseBody,
-                                proxyStatusCode200,
-                                socketStatusCode400
+                                ProxyStatus.SUCCESS,
+                                SocketStatus.CLIENT_ERROR
                             )
                         );
                         await expect(
@@ -514,14 +498,16 @@ describe("HttpClient", () => {
                     test("Server Error 500", async () => {
                         const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                             getNetworkResponse<MockedMetadataResponse>(
-                                getMockServerErrorResponse(socketStatusCode500),
-                                socketStatusCode500
+                                getMockServerErrorResponse(
+                                    SocketStatus.SERVER_ERROR
+                                ),
+                                SocketStatus.SERVER_ERROR
                             );
                         (http.request as jest.Mock).mockImplementationOnce(
                             mockHttpRequest(
                                 mockServer500ErrorResponseBody,
-                                proxyStatusCode200,
-                                socketStatusCode500
+                                ProxyStatus.SUCCESS,
+                                SocketStatus.SERVER_ERROR
                             )
                         );
                         await expect(
@@ -532,14 +518,16 @@ describe("HttpClient", () => {
                     test("Unknown Error 600", async () => {
                         const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                             getNetworkResponse<MockedMetadataResponse>(
-                                getMockServerErrorResponse(socketStatusCode600),
-                                socketStatusCode600
+                                getMockServerErrorResponse(
+                                    SocketStatus.MULTI_SIDED_ERROR
+                                ),
+                                SocketStatus.MULTI_SIDED_ERROR
                             );
                         (http.request as jest.Mock).mockImplementationOnce(
                             mockHttpRequest(
                                 mockServer600ErrorResponseBody,
-                                proxyStatusCode200,
-                                socketStatusCode600
+                                ProxyStatus.SUCCESS,
+                                SocketStatus.MULTI_SIDED_ERROR
                             )
                         );
                         await expect(
@@ -555,14 +543,14 @@ describe("HttpClient", () => {
                 test("Client Error 400", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(httpsStatusCode400),
-                            httpsStatusCode400
+                            getMockServerErrorResponse(HttpStatus.CLIENT_ERROR),
+                            HttpStatus.CLIENT_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer400ErrorResponseBodyBuffer,
-                            httpsStatusCode400,
-                            httpsStatusMessage400
+                            HttpStatus.CLIENT_ERROR,
+                            httpsStatusClientErrorMessage
                         )
                     );
                     await expect(
@@ -576,14 +564,14 @@ describe("HttpClient", () => {
                 test("Server Error 500", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(httpsStatusCode500),
-                            httpsStatusCode500
+                            getMockServerErrorResponse(HttpStatus.SERVER_ERROR),
+                            HttpStatus.SERVER_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer500ErrorResponseBodyBuffer,
-                            httpsStatusCode500,
-                            httpsStatusMessage500
+                            HttpStatus.SERVER_ERROR,
+                            httpsStatusServerErrorMessage
                         )
                     );
                     await expect(
@@ -597,14 +585,16 @@ describe("HttpClient", () => {
                 test("Unknown Error 600", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(httpsStatusCode600),
-                            httpsStatusCode600
+                            getMockServerErrorResponse(
+                                HttpStatus.MULTI_SIDED_ERROR
+                            ),
+                            HttpStatus.MULTI_SIDED_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer600ErrorResponseBodyBuffer,
-                            httpsStatusCode600,
-                            httpsStatusMessage600
+                            HttpStatus.MULTI_SIDED_ERROR,
+                            httpsStatusMultiSidedErrorMessage
                         )
                     );
                     await expect(
@@ -621,8 +611,8 @@ describe("HttpClient", () => {
                     (http.request as jest.Mock).mockImplementationOnce(
                         mockHttpRequest(
                             mockPostResponseBody,
-                            proxyStatusCode500,
-                            httpsStatusCode500
+                            ProxyStatus.SERVER_ERROR,
+                            HttpStatus.SERVER_ERROR
                         )
                     );
                     await expect(
@@ -637,14 +627,16 @@ describe("HttpClient", () => {
                     test("Client Error 400", async () => {
                         const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                             getNetworkResponse<MockedMetadataResponse>(
-                                getMockServerErrorResponse(socketStatusCode400),
-                                socketStatusCode400
+                                getMockServerErrorResponse(
+                                    SocketStatus.CLIENT_ERROR
+                                ),
+                                SocketStatus.CLIENT_ERROR
                             );
                         (http.request as jest.Mock).mockImplementationOnce(
                             mockHttpRequest(
                                 mockServer400ErrorResponseBody,
-                                proxyStatusCode200,
-                                socketStatusCode400
+                                ProxyStatus.SUCCESS,
+                                SocketStatus.CLIENT_ERROR
                             )
                         );
                         await expect(
@@ -658,14 +650,16 @@ describe("HttpClient", () => {
                     test("Server Error 500", async () => {
                         const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                             getNetworkResponse<MockedMetadataResponse>(
-                                getMockServerErrorResponse(socketStatusCode500),
-                                socketStatusCode500
+                                getMockServerErrorResponse(
+                                    SocketStatus.SERVER_ERROR
+                                ),
+                                SocketStatus.SERVER_ERROR
                             );
                         (http.request as jest.Mock).mockImplementationOnce(
                             mockHttpRequest(
                                 mockServer500ErrorResponseBody,
-                                proxyStatusCode200,
-                                socketStatusCode500
+                                ProxyStatus.SUCCESS,
+                                SocketStatus.SERVER_ERROR
                             )
                         );
                         await expect(
@@ -679,14 +673,16 @@ describe("HttpClient", () => {
                     test("Unknown Error 600", async () => {
                         const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                             getNetworkResponse<MockedMetadataResponse>(
-                                getMockServerErrorResponse(socketStatusCode600),
-                                socketStatusCode600
+                                getMockServerErrorResponse(
+                                    SocketStatus.MULTI_SIDED_ERROR
+                                ),
+                                SocketStatus.MULTI_SIDED_ERROR
                             );
                         (http.request as jest.Mock).mockImplementationOnce(
                             mockHttpRequest(
                                 mockServer600ErrorResponseBody,
-                                proxyStatusCode200,
-                                socketStatusCode600
+                                ProxyStatus.SUCCESS,
+                                SocketStatus.MULTI_SIDED_ERROR
                             )
                         );
                         await expect(

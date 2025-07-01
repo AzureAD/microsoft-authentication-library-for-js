@@ -3,12 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString } from "@azure/msal-common";
+import { UrlString, invoke, invokeAsync } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { InteractionType, BrowserConstants } from "./BrowserConstants";
+} from "../error/BrowserAuthError.js";
+import { BrowserConstants, BrowserCacheLocation } from "./BrowserConstants.js";
+import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
+import {
+    BrowserConfigurationAuthErrorCodes,
+    createBrowserConfigurationAuthError,
+} from "../error/BrowserConfigurationAuthError.js";
+import type { BrowserConfiguration } from "../config/Configuration.js";
 
 /**
  * Clears hash from window url.
@@ -61,7 +67,9 @@ export function isInPopup(): boolean {
  * Returns current window URL as redirect uri
  */
 export function getCurrentUri(): string {
-    return window.location.href.split("?")[0].split("#")[0];
+    return typeof window !== "undefined" && window.location
+        ? window.location.href.split("?")[0].split("#")[0]
+        : "";
 }
 
 /**
@@ -92,16 +100,8 @@ export function blockReloadInHiddenIframes(): void {
  * @param interactionType Interaction type for the request
  * @param allowRedirectInIframe Config value to allow redirects when app is inside an iframe
  */
-export function blockRedirectInIframe(
-    interactionType: InteractionType,
-    allowRedirectInIframe: boolean
-): void {
-    const isIframedApp = isInIframe();
-    if (
-        interactionType === InteractionType.Redirect &&
-        isIframedApp &&
-        !allowRedirectInIframe
-    ) {
+export function blockRedirectInIframe(allowRedirectInIframe: boolean): void {
+    if (isInIframe() && !allowRedirectInIframe) {
         // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
         throw createBrowserAuthError(BrowserAuthErrorCodes.redirectInIframe);
     }
@@ -121,10 +121,8 @@ export function blockAcquireTokenInPopups(): void {
  * Throws error if token requests are made in non-browser environment
  * @param isBrowserEnvironment Flag indicating if environment is a browser.
  */
-export function blockNonBrowserEnvironment(
-    isBrowserEnvironment: boolean
-): void {
-    if (!isBrowserEnvironment) {
+export function blockNonBrowserEnvironment(): void {
+    if (typeof window === "undefined") {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.nonBrowserEnvironment
         );
@@ -139,6 +137,46 @@ export function blockAPICallsBeforeInitialize(initialized: boolean): void {
     if (!initialized) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.uninitializedPublicClientApplication
+        );
+    }
+}
+
+/**
+ * Helper to validate app environment before making an auth request
+ * @param initialized
+ */
+export function preflightCheck(initialized: boolean): void {
+    // Block request if not in browser environment
+    blockNonBrowserEnvironment();
+
+    // Block auth requests inside a hidden iframe
+    blockReloadInHiddenIframes();
+
+    // Block redirectUri opened in a popup from calling MSAL APIs
+    blockAcquireTokenInPopups();
+
+    // Block token acquisition before initialize has been called
+    blockAPICallsBeforeInitialize(initialized);
+}
+
+/**
+ * Helper to validate app enviornment before making redirect request
+ * @param initialized
+ * @param config
+ */
+export function redirectPreflightCheck(
+    initialized: boolean,
+    config: BrowserConfiguration
+): void {
+    preflightCheck(initialized);
+    blockRedirectInIframe(config.system.allowRedirectInIframe);
+    // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
+    if (
+        config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
+        !config.cache.storeAuthStateInCookie
+    ) {
+        throw createBrowserConfigurationAuthError(
+            BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
         );
     }
 }
@@ -162,3 +200,14 @@ export function preconnect(authority: string): void {
         } catch {}
     }, 10000); // 10s Timeout
 }
+
+/**
+ * Wrapper function that creates a UUID v7 from the current timestamp.
+ * @returns {string}
+ */
+export function createGuid(): string {
+    return BrowserCrypto.createNewGuid();
+}
+
+export { invoke };
+export { invokeAsync };

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ApiId } from "../utils/BrowserConstants";
+import { ApiId } from "../utils/BrowserConstants.js";
 
 /**
  * Additional information passed to the navigateInternal and navigateExternal functions

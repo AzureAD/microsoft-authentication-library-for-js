@@ -2,19 +2,21 @@ import { TestBed } from "@angular/core/testing";
 import {
   AuthenticationResult,
   AuthError,
+  InteractionStatus,
   InteractionType,
   Logger,
   PublicClientApplication,
   SilentRequest,
 } from "@azure/msal-browser";
 import { MsalModule, MsalBroadcastService, MsalService } from "./public-api";
+import { takeLast } from "rxjs/operators";
 
 let authService: MsalService;
 let broadcastService: MsalBroadcastService;
 
 const msalInstance = new PublicClientApplication({
   auth: {
-    clientId: "6226576d-37e9-49eb-b201-ec1eeb0029b6",
+    clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
     redirectUri: "http://localhost:4200",
   },
 });
@@ -30,6 +32,7 @@ function initializeMsal() {
       }),
     ],
     providers: [MsalService, MsalBroadcastService],
+    teardown: { destroyAfterEach: false },
   });
 
   authService = TestBed.inject(MsalService);
@@ -37,7 +40,7 @@ function initializeMsal() {
 }
 
 describe("MsalService", () => {
-  beforeAll(initializeMsal);
+  beforeEach(initializeMsal);
 
   describe("loginPopup", () => {
     it("success", (done) => {
@@ -198,7 +201,7 @@ describe("MsalService", () => {
 
       authService.ssoSilent(request).subscribe({
         error: (error: AuthError) => {
-          expect(error.message).toBe(sampleError.message);
+          expect(error.errorMessage).toBe(sampleError.errorMessage);
           expect(
             PublicClientApplication.prototype.ssoSilent
           ).toHaveBeenCalledWith(request);
@@ -259,7 +262,7 @@ describe("MsalService", () => {
 
       authService.acquireTokenSilent(request).subscribe({
         error: (error: AuthError) => {
-          expect(error.message).toBe(sampleError.message);
+          expect(error.errorMessage).toBe(sampleError.errorMessage);
           expect(
             PublicClientApplication.prototype.acquireTokenSilent
           ).toHaveBeenCalledWith(request);
@@ -339,7 +342,7 @@ describe("MsalService", () => {
 
       authService.acquireTokenPopup(request).subscribe({
         error: (error: AuthError) => {
-          expect(error.message).toBe(sampleError.message);
+          expect(error.errorMessage).toBe(sampleError.errorMessage);
           expect(
             PublicClientApplication.prototype.acquireTokenPopup
           ).toHaveBeenCalledWith(request);
@@ -350,10 +353,13 @@ describe("MsalService", () => {
   });
 
   describe("handleRedirectObservable", () => {
-    it("success", (done) => {
+    it("success and resets inProgress event to none", (done) => {
       const sampleAccessToken = {
         accessToken: "123abc",
       };
+
+      //@ts-ignore
+      broadcastService._inProgress.next(InteractionStatus.Startup);
 
       spyOn(PublicClientApplication.prototype, "initialize").and.returnValue(
         Promise.resolve()
@@ -379,12 +385,18 @@ describe("MsalService", () => {
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
           ).toHaveBeenCalled();
+          broadcastService.inProgress$.subscribe((result) => {
+            expect(result).toBe(InteractionStatus.None);
+          });
           done();
         });
     });
 
-    it("failure", (done) => {
+    it("failure and also resets inProgress event to none", (done) => {
       const sampleError = new AuthError("123", "message");
+
+      //@ts-ignore
+      broadcastService._inProgress.next(InteractionStatus.Startup);
 
       spyOn(PublicClientApplication.prototype, "initialize").and.returnValue(
         Promise.resolve()
@@ -408,6 +420,10 @@ describe("MsalService", () => {
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
           ).toHaveBeenCalled();
+          broadcastService.inProgress$.pipe(takeLast(1)).subscribe((result) => {
+            console.log("failure result", result);
+            expect(result).toBe(InteractionStatus.None);
+          });
           done();
         },
       });

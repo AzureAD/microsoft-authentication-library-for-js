@@ -7,9 +7,9 @@
     "node_modules"
   ],
   "compilerOptions": {
-    "module": "esnext",
+    "module": "nodenext",
     "target": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "lib": [
       "dom",
       "esnext"

@@ -3,21 +3,22 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@azure/msal-browser": "^3.1.0",
-        "@azure/msal-react": "^2.0.3",
+        "@azure/msal-browser": "^4.0.0",
+        "@azure/msal-react": "^3.0.0",
         "@emotion/react": "^11.9.3",
         "@emotion/styled": "^11.9.3",
         "@mui/icons-material": "^5.8.4",
         "@mui/material": "^5.9.0",
-        "react": "^18.0.0",
-        "react-dom": "^18.0.0",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
         "react-router-dom": "^6.7.0"
     },
     "devDependencies": {
         "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
         "@types/jest": "^29.5.0",
-        "e2e-test-utils": "^0.0.1",
+        "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0",
+        "jest-junit": "^16.0.0",
         "react-scripts": "5.0.1",
         "ts-jest": "^29.1.0"
     },
@@ -25,7 +26,7 @@
         "start": "react-scripts start",
         "build": "react-scripts build",
         "eject": "react-scripts eject",
-        "test": "jest",
+        "test:e2e": "jest",
         "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react"
     },
     "browserslist": {
@@ -39,5 +40,10 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
+    },
+    "jest-junit": {
+        "suiteNameTemplate": "B2C Sample Tests",
+        "outputDirectory": ".",
+        "outputName": "test-results.xml"
     }
 }

@@ -9,25 +9,30 @@ import {
     PerformanceCallbackFunction,
     IPerformanceClient,
     AccountFilter,
-} from "@azure/msal-common";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { ApiId, InteractionType, WrapperSKU } from "../utils/BrowserConstants";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
-import { ITokenCache } from "../cache/ITokenCache";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { BrowserConfiguration } from "../config/Configuration";
-import { EventHandler } from "../event/EventHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { EventCallbackFunction } from "../event/EventMessage";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
+} from "@azure/msal-common/browser";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { EventCallbackFunction } from "../event/EventMessage.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { EventType } from "../event/EventType.js";
 
 export interface IController {
-    initialize(): Promise<void>;
+    // TODO: Make request mandatory in the next major version?
+    initialize(
+        request?: InitializeApplicationRequest,
+        isBroker?: boolean
+    ): Promise<void>;
 
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
 
@@ -47,7 +52,10 @@ export interface IController {
         accountId?: string
     ): Promise<AuthenticationResult>;
 
-    addEventCallback(callback: EventCallbackFunction): string | null;
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null;
 
     removeEventCallback(callbackId: string): void;
 
@@ -116,13 +124,4 @@ export interface IController {
 
     /** @internal */
     getPerformanceClient(): IPerformanceClient;
-
-    /** @internal */
-    getEventHandler(): EventHandler;
-
-    /** @internal */
-    preflightBrowserEnvironmentCheck(
-        interactionType: InteractionType,
-        isAppEmbedded?: boolean
-    ): void;
 }

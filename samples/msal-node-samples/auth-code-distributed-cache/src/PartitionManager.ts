@@ -14,7 +14,7 @@ const EMPTY_STRING = "";
 interface SessionCacheData {
     account: AccountInfo;
     [key: string]: any;
-};
+}
 
 class PartitionManager implements IPartitionManager {
     sessionId: string;
@@ -31,11 +31,13 @@ class PartitionManager implements IPartitionManager {
              * express-session keys are prefixed with "sess:"" by default.
              * You can configure this via the session middleware configurations.
              */
-            const sessionData = await this.redisClient.get(`${SESSION_KEY_PREFIX}${this.sessionId}`);
-            const session = JSON.parse(sessionData) as SessionCacheData ;
+            const sessionData = await this.redisClient.get(
+                `${SESSION_KEY_PREFIX}${this.sessionId}`
+            );
+            const session = JSON.parse(sessionData) as SessionCacheData;
             return session.account?.homeAccountId || EMPTY_STRING;
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
         return EMPTY_STRING;

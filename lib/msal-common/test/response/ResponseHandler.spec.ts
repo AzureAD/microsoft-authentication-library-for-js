@@ -1,46 +1,50 @@
-import sinon from "sinon";
-import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
-import { ResponseHandler } from "../../src/response/ResponseHandler";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
+import { ResponseHandler } from "../../src/response/ResponseHandler.js";
 import {
     AUTHENTICATION_RESULT,
-    RANDOM_TEST_GUID,
-    TEST_CONFIG,
     ID_TOKEN_CLAIMS,
-    TEST_DATA_CLIENT_INFO,
-    TEST_STATE_VALUES,
-    TEST_POP_VALUES,
     POP_AUTHENTICATION_RESULT,
-    TEST_URIS,
+    TEST_CONFIG,
+    TEST_DATA_CLIENT_INFO,
+    TEST_POP_VALUES,
     TEST_TOKEN_LIFETIMES,
     TEST_TOKENS,
-    TEST_CRYPTO_VALUES,
-} from "../test_kit/StringConstants";
-import { Authority } from "../../src/authority/Authority";
+    TEST_URIS,
+} from "../test_kit/StringConstants.js";
+import { Authority } from "../../src/authority/Authority.js";
 import {
     INetworkModule,
     NetworkRequestOptions,
-} from "../../src/network/INetworkModule";
-import { ICrypto } from "../../src/crypto/ICrypto";
-import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
-import { MockStorageClass } from "../client/ClientTestUtils";
-import { TokenClaims } from "../../src/account/TokenClaims";
-import { AccountInfo } from "../../src/account/AccountInfo";
-import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { AuthenticationScheme } from "../../src/utils/Constants";
-import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
-import { ProtocolMode } from "../../src/authority/ProtocolMode";
-import { LogLevel, Logger } from "../../src/logger/Logger";
-import * as AuthToken from "../../src/account/AuthToken";
-import { AccountEntity } from "../../src/cache/entities/AccountEntity";
-import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
-import * as TimeUtils from "../../src/utils/TimeUtils";
-import { AuthError } from "../../src/error/AuthError";
+} from "../../src/network/INetworkModule.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
+import { TokenClaims } from "../../src/account/TokenClaims.js";
+import { AccountInfo } from "../../src/account/AccountInfo.js";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
+import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
+import { Logger, LogLevel } from "../../src/logger/Logger.js";
+import * as AuthToken from "../../src/account/AuthToken.js";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
+import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
+import * as TimeUtils from "../../src/utils/TimeUtils.js";
+import { AuthError } from "../../src/error/AuthError.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
-} from "../../src/error/ClientAuthError";
-import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
-import { ServerError } from "../../src/error/ServerError";
+} from "../../src/error/ClientAuthError.js";
+import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError.js";
+import { ServerError } from "../../src/error/ServerError.js";
+import {
+    CacheError,
+    CacheErrorCodes,
+    CacheErrorMessages,
+} from "../../src/error/CacheError.js";
+import { CacheManager } from "../../src/cache/CacheManager.js";
+import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
+import { TestTimeUtils } from "msal-test-utils";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -50,51 +54,7 @@ const networkInterface: INetworkModule = {
         return {} as T;
     },
 };
-const signedJwt = "SignedJwt";
-const cryptoInterface: ICrypto = {
-    createNewGuid(): string {
-        return RANDOM_TEST_GUID;
-    },
-    base64Decode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                return TEST_POP_VALUES.DECODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED:
-                return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED;
-            default:
-                return input;
-        }
-    },
-    base64Encode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.DECODED_REQ_CNF:
-                return TEST_POP_VALUES.ENCODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
-            case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED:
-                return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED;
-            default:
-                return input;
-        }
-    },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
-    async signJwt(): Promise<string> {
-        return signedJwt;
-    },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async clearKeystore(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async hashString(): Promise<string> {
-        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-    },
-};
+const cryptoInterface: ICrypto = mockCrypto;
 
 const testServerTokenResponse = {
     headers: null,
@@ -152,7 +112,8 @@ const logger = new Logger(loggerOptions);
 const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     cryptoInterface,
-    logger
+    logger,
+    new StubPerformanceClient()
 );
 
 const testAuthority = new Authority(
@@ -165,18 +126,18 @@ const testAuthority = new Authority(
 );
 
 describe("ResponseHandler.ts", () => {
-    let preferredCacheStub: sinon.SinonStub;
-    let claimsStub: sinon.SinonStub;
+    let preferredCacheStub: jest.SpyInstance;
+    let claimsStub: jest.SpyInstance;
     beforeEach(() => {
-        preferredCacheStub = sinon
-            .stub(Authority.prototype, "getPreferredCache")
-            .returns("login.microsoftonline.com");
-        claimsStub = sinon
-            .stub(AuthToken, "extractTokenClaims")
-            .callsFake((encodedIdToken, crypto) => {
+        preferredCacheStub = jest
+            .spyOn(Authority.prototype, "getPreferredCache")
+            .mockReturnValue("login.microsoftonline.com");
+        claimsStub = jest
+            .spyOn(AuthToken, "extractTokenClaims")
+            .mockImplementation((encodedIdToken, crypto) => {
                 return ID_TOKEN_CLAIMS as TokenClaims;
             });
-        sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
+        jest.spyOn(AccountEntity.prototype, "getAccountInfo").mockReturnValue({
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
             environment: "login.windows.net",
@@ -186,12 +147,12 @@ describe("ResponseHandler.ts", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("generateCacheRecord", () => {
         it("throws invalid cache environment error", async () => {
-            preferredCacheStub.returns("");
+            preferredCacheStub.mockReturnValue("");
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
@@ -230,7 +191,7 @@ describe("ResponseHandler.ts", () => {
             }
         });
 
-        it("doesn't create AccessTokenEntity if access_token not in response", (done) => {
+        it("does not create AccessTokenEntity if access_token not in response", (done) => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
@@ -251,8 +212,8 @@ describe("ResponseHandler.ts", () => {
                 accessToken: "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -267,26 +228,27 @@ describe("ResponseHandler.ts", () => {
                 null
             );
 
-            sinon
-                .stub(ResponseHandler, "generateAuthenticationResult")
-                .callsFake(
-                    async (
-                        cryptoObj,
-                        authority,
-                        cacheRecord,
-                        request,
-                        idTokenObj,
-                        fromTokenCache,
-                        stateString
-                    ) => {
-                        expect(authority).toBe(testAuthority);
-                        expect(cacheRecord.idToken).not.toBeNull();
-                        expect(cacheRecord.accessToken).toBeNull();
-                        expect(cacheRecord.refreshToken).not.toBeNull();
-                        done();
-                        return testTokenResponse;
-                    }
-                );
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    cryptoObj,
+                    authority,
+                    cacheRecord,
+                    request,
+                    idTokenObj,
+                    fromTokenCache,
+                    stateString
+                ) => {
+                    expect(authority).toBe(testAuthority);
+                    expect(cacheRecord.idToken).not.toBeNull();
+                    expect(cacheRecord.accessToken).toBeNull();
+                    expect(cacheRecord.refreshToken).not.toBeNull();
+                    done();
+                    return testTokenResponse;
+                }
+            );
             const timestamp = TimeUtils.nowSeconds();
             responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -296,7 +258,7 @@ describe("ResponseHandler.ts", () => {
             );
         });
 
-        it("doesn't create RefreshTokenEntity if refresh_token not in response", (done) => {
+        it("does not create RefreshTokenEntity if refresh_token not in response", (done) => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
@@ -317,8 +279,8 @@ describe("ResponseHandler.ts", () => {
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -333,26 +295,27 @@ describe("ResponseHandler.ts", () => {
                 null
             );
 
-            sinon
-                .stub(ResponseHandler, "generateAuthenticationResult")
-                .callsFake(
-                    async (
-                        cryptoObj,
-                        authority,
-                        cacheRecord,
-                        request,
-                        idTokenObj,
-                        fromTokenCache,
-                        stateString
-                    ) => {
-                        expect(authority).toBe(testAuthority);
-                        expect(cacheRecord.idToken).not.toBeNull();
-                        expect(cacheRecord.accessToken).not.toBeNull();
-                        expect(cacheRecord.refreshToken).toBeNull();
-                        done();
-                        return testTokenResponse;
-                    }
-                );
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    cryptoObj,
+                    authority,
+                    cacheRecord,
+                    request,
+                    idTokenObj,
+                    fromTokenCache,
+                    stateString
+                ) => {
+                    expect(authority).toBe(testAuthority);
+                    expect(cacheRecord.idToken).not.toBeNull();
+                    expect(cacheRecord.accessToken).not.toBeNull();
+                    expect(cacheRecord.refreshToken).toBeNull();
+                    done();
+                    return testTokenResponse;
+                }
+            );
 
             const timestamp = TimeUtils.nowSeconds();
             responseHandler.handleServerTokenResponse(
@@ -382,8 +345,8 @@ describe("ResponseHandler.ts", () => {
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -398,26 +361,27 @@ describe("ResponseHandler.ts", () => {
                 null
             );
 
-            sinon
-                .stub(ResponseHandler, "generateAuthenticationResult")
-                .callsFake(
-                    async (
-                        cryptoObj,
-                        authority,
-                        cacheRecord,
-                        request,
-                        idTokenObj,
-                        fromTokenCache,
-                        stateString
-                    ) => {
-                        expect(authority).toBe(testAuthority);
-                        expect(cacheRecord.idToken).not.toBeNull();
-                        expect(cacheRecord.accessToken).not.toBeNull();
-                        expect(cacheRecord.refreshToken).not.toBeNull();
-                        done();
-                        return testTokenResponse;
-                    }
-                );
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    cryptoObj,
+                    authority,
+                    cacheRecord,
+                    request,
+                    idTokenObj,
+                    fromTokenCache,
+                    stateString
+                ) => {
+                    expect(authority).toBe(testAuthority);
+                    expect(cacheRecord.idToken).not.toBeNull();
+                    expect(cacheRecord.accessToken).not.toBeNull();
+                    expect(cacheRecord.refreshToken).not.toBeNull();
+                    done();
+                    return testTokenResponse;
+                }
+            );
 
             const timestamp = TimeUtils.nowSeconds();
             responseHandler.handleServerTokenResponse(
@@ -463,13 +427,9 @@ describe("ResponseHandler.ts", () => {
         it("should ensure realm property in cached access token if no tenant id is available via claim or authority (OIDC scenario)", (done) => {
             const { tid, ...tokenClaims } = ID_TOKEN_CLAIMS;
 
-            claimsStub.restore();
-
-            claimsStub = sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .callsFake((_encodedIdToken, _crypto) => {
-                    return tokenClaims as TokenClaims;
-                });
+            claimsStub = jest
+                .spyOn(AuthToken, "extractTokenClaims")
+                .mockReturnValue(tokenClaims);
 
             const testResponse: ServerAuthorizationTokenResponse = {
                 token_type: AuthenticationScheme.BEARER,
@@ -513,27 +473,28 @@ describe("ResponseHandler.ts", () => {
                 null
             );
 
-            sinon
-                .stub(ResponseHandler, "generateAuthenticationResult")
-                .callsFake(
-                    async (
-                        _cryptoObj,
-                        _authority,
-                        cacheRecord,
-                        _fromTokenCache,
-                        _request,
-                        _idTokenClaims,
-                        _requestState,
-                        _serverTokenResponse,
-                        _requestId
-                    ) => {
-                        expect(cacheRecord.accessToken?.realm).toBeDefined();
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    _cryptoObj,
+                    _authority,
+                    cacheRecord,
+                    _fromTokenCache,
+                    _request,
+                    _idTokenClaims,
+                    _requestState,
+                    _serverTokenResponse,
+                    _requestId
+                ) => {
+                    expect(cacheRecord.accessToken?.realm).toBeDefined();
 
-                        done();
+                    done();
 
-                        return {} as AuthenticationResult;
-                    }
-                );
+                    return {} as AuthenticationResult;
+                }
+            );
 
             responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -586,7 +547,7 @@ describe("ResponseHandler.ts", () => {
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...POP_AUTHENTICATION_RESULT.body,
             };
-            claimsStub.callsFake(
+            claimsStub.mockImplementation(
                 (encodedToken: string, crypto: ICrypto): TokenClaims | null => {
                     switch (encodedToken) {
                         case testResponse.id_token:
@@ -620,7 +581,54 @@ describe("ResponseHandler.ts", () => {
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
-            expect(result.accessToken).toBe(signedJwt);
+            expect(result.accessToken).toBe(TEST_TOKENS.POP_TOKEN);
+        });
+
+        it("Does not sign access token when PoP kid is set and PoP scheme enabled", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                popKid: TEST_POP_VALUES.POPKID,
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...POP_AUTHENTICATION_RESULT.body,
+            };
+            claimsStub.mockImplementation(
+                (encodedToken: string, crypto: ICrypto): TokenClaims | null => {
+                    switch (encodedToken) {
+                        case testResponse.id_token:
+                            return ID_TOKEN_CLAIMS as TokenClaims;
+                        case testResponse.access_token:
+                            return {
+                                cnf: {
+                                    kid: TEST_POP_VALUES.KID,
+                                },
+                            };
+                        default:
+                            return null;
+                    }
+                }
+            );
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.POP);
+            expect(result.accessToken).toBe(testResponse.access_token);
         });
 
         it("sets default value if requestId not provided", async () => {
@@ -654,16 +662,12 @@ describe("ResponseHandler.ts", () => {
         });
     });
 
-    describe("validateServerAuthorizationCodeResponse", () => {
-        afterEach(() => {
-            sinon.restore();
-        });
-
-        it("throws state mismatch error", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+    describe("validateTokenResponse", () => {
+        it("captures server error no", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
+                error: "test error",
+                error_description: "test error description",
+                error_codes: ["50011"],
             };
 
             const responseHandler = new ResponseHandler(
@@ -676,68 +680,26 @@ describe("ResponseHandler.ts", () => {
             );
 
             try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    "differentState"
-                );
+                responseHandler.validateTokenResponse(testTokenResponse);
             } catch (e) {
-                expect(e).toBeInstanceOf(ClientAuthError);
-                // @ts-ignore
-                expect(e.errorCode).toBe(ClientAuthErrorCodes.stateMismatch);
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
+                );
+                expect(serverError.errorNo).toEqual(
+                    testTokenResponse.error_codes![0]
+                );
                 done();
             }
         });
 
-        it("Does not throw state mismatch error when states match", () => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            responseHandler.validateServerAuthorizationCodeResponse(
-                testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-            );
-        });
-
-        it("Does not throw state mismatch error when Uri encoded characters have different casing", () => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-
-            const testAltState =
-                "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3d%3d";
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            responseHandler.validateServerAuthorizationCodeResponse(
-                testServerCodeResponse,
-                testAltState
-            );
-        });
-
-        it("throws interactionRequiredError", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+        it("captures InteractionRequiredAuthError error no", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
                 error: "interaction_required",
+                error_description: "test error description",
+                error_codes: ["50011"],
             };
 
             const responseHandler = new ResponseHandler(
@@ -748,23 +710,28 @@ describe("ResponseHandler.ts", () => {
                 null,
                 null
             );
+
             try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
+                responseHandler.validateTokenResponse(testTokenResponse);
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                const serverError = e as InteractionRequiredAuthError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
+                );
+                expect(serverError.errorNo).toEqual(
+                    testTokenResponse.error_codes![0]
+                );
                 done();
             }
         });
 
-        it("thows ServerError if error in response", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error: "test_error",
+        it("captures first server error no when multiple provided", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
+                error: "test error",
+                error_description: "test error description",
+                error_codes: ["50011", "12345"],
             };
 
             const responseHandler = new ResponseHandler(
@@ -775,23 +742,28 @@ describe("ResponseHandler.ts", () => {
                 null,
                 null
             );
+
             try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
+                responseHandler.validateTokenResponse(testTokenResponse);
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
+                );
+                expect(serverError.errorNo).toEqual(
+                    testTokenResponse.error_codes![0]
+                );
                 done();
             }
         });
 
-        it("throws ServerError if error_description in response", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error_description: "test_error",
+        it("skips error no when no error codes are provided", (done) => {
+            const testTokenResponse: ServerAuthorizationTokenResponse = {
+                error: "test error",
+                error_description: "test error description",
+                error_codes: [],
             };
 
             const responseHandler = new ResponseHandler(
@@ -802,76 +774,40 @@ describe("ResponseHandler.ts", () => {
                 null,
                 null
             );
+
             try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
+                responseHandler.validateTokenResponse(testTokenResponse);
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
-                done();
-            }
-        });
-
-        it("throws ServerError if suberror in response", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                suberror: "test_error",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                const serverError = e as ServerError;
+                expect(serverError.errorCode).toEqual(testTokenResponse.error);
+                expect(serverError.errorMessage).toContain(
+                    testTokenResponse.error_description
                 );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ServerError);
+                expect(serverError.errorNo).toBeUndefined();
                 done();
             }
         });
+    });
 
-        it("does not call buildClientInfo if clientInfo not in response", () => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+    describe("captures cache error", () => {
+        it("captures cache quota error by checking error code", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
             };
-            // Can't spy on buildClientInfo, spy on one of its function calls instead
-            const buildClientInfoSpy = sinon.spy(
-                cryptoInterface,
-                "base64Decode"
-            );
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            responseHandler.validateServerAuthorizationCodeResponse(
-                testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-            );
-            expect(buildClientInfoSpy.notCalled).toBe(true);
-        });
-
-        it("throws invalid state error", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
             };
+            const errorMessage = "storage error message";
+            const quotaExceededError = new Error(errorMessage);
+            quotaExceededError.name = "QuotaExceededError";
+
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"saveAccessToken"
+            ).mockRejectedValue(quotaExceededError);
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -883,15 +819,158 @@ describe("ResponseHandler.ts", () => {
             );
 
             try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    "dummy-state-%20%%%30%%%%%40"
+                const timestamp = TimeUtils.nowSeconds();
+                await responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest
                 );
+                throw Error("should throw cache error");
             } catch (e) {
-                expect(e).toBeInstanceOf(ClientAuthError);
-                const err = e as ClientAuthError;
-                expect(err.errorCode).toBe(ClientAuthErrorCodes.invalidState);
-                done();
+                expect(e).toBeInstanceOf(CacheError);
+                const cacheError: CacheError = e as CacheError;
+                expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
+                expect(cacheError.errorMessage).toEqual(
+                    CacheErrorMessages[cacheQuotaExceeded]
+                );
+            }
+        });
+
+        it("captures cache quota error by checking error message", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            const errorMessage =
+                "Failed to run localstorage.setItem(). Local storage exceeded the quota.";
+            const quotaExceededError = new Error(errorMessage);
+
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"saveAccessToken"
+            ).mockRejectedValue(quotaExceededError);
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                const timestamp = TimeUtils.nowSeconds();
+                await responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest
+                );
+                throw Error("should throw cache error");
+            } catch (e) {
+                expect(e).toBeInstanceOf(CacheError);
+                const cacheError: CacheError = e as CacheError;
+                expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
+                expect(cacheError.errorMessage).toEqual(
+                    CacheErrorMessages[cacheQuotaExceeded]
+                );
+            }
+        });
+
+        it("captures dummy cache error", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            const errorMessage = "Dummy cache error";
+            const error = new Error(errorMessage);
+            error.name = "DummyError";
+
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"saveAccessToken"
+            ).mockRejectedValue(error);
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                const timestamp = TimeUtils.nowSeconds();
+                await responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest
+                );
+                throw Error("should throw cache error");
+            } catch (e) {
+                expect(e).toBeInstanceOf(CacheError);
+                const cacheError: CacheError = e as CacheError;
+                expect(cacheError.errorCode).toEqual("DummyError");
+                expect(cacheError.errorMessage).toEqual(errorMessage);
+            }
+        });
+
+        it("captures unknown cache error", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            const errorMessage = "Dummy cache error";
+            const error = new DOMException(errorMessage);
+
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"saveAccessToken"
+            ).mockRejectedValue(error);
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            try {
+                const timestamp = TimeUtils.nowSeconds();
+                await responseHandler.handleServerTokenResponse(
+                    testResponse,
+                    testAuthority,
+                    timestamp,
+                    testRequest
+                );
+                throw Error("should throw cache error");
+            } catch (e) {
+                expect(e).toBeInstanceOf(CacheError);
+                const cacheError: CacheError = e as CacheError;
+                expect(cacheError.errorCode).toEqual(
+                    CacheErrorCodes.cacheErrorUnknown
+                );
+                expect(cacheError.errorMessage).toEqual(
+                    CacheErrorMessages[CacheErrorCodes.cacheErrorUnknown]
+                );
             }
         });
     });

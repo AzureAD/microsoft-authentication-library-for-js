@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "./Constants";
-import { ICrypto } from "../crypto/ICrypto";
+import { Constants } from "./Constants.js";
+import { ICrypto } from "../crypto/ICrypto.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
+} from "../error/ClientAuthError.js";
 
 /**
  * Type which defines the object that is stringified, encoded and sent in the state value.

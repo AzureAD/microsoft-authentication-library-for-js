@@ -12,7 +12,6 @@ import {
     ONE_SECOND_IN_MS,
     RETRY_TIMES,
     clickSignIn,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
@@ -22,7 +21,7 @@ import {
     AppTypes,
     AzureEnvironments,
 } from "e2e-test-utils";
-
+import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
 // Set test cache name/location
@@ -37,7 +36,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-AAD.json");
 
-describe("Silent Flow B2C Tests (aad account)", () => {
+describe.skip("Silent Flow B2C Tests (aad account)", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS * 45);
     let browser: puppeteer.Browser;
@@ -53,7 +52,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/b2c/aad-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/b2c-aad");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -64,7 +63,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
         port = 3006;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
@@ -104,7 +103,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
 
     describe("AcquireToken", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -214,7 +213,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -264,7 +263,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });

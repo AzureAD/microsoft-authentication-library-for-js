@@ -18,7 +18,6 @@ import {
   InteractionStatus,
   InteractionType,
   StringUtils,
-  UrlString,
 } from "@azure/msal-browser";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError, take, filter } from "rxjs/operators";
@@ -27,7 +26,6 @@ import {
   MsalInterceptorAuthRequest,
   MsalInterceptorConfiguration,
   ProtectedResourceScopes,
-  MatchingResources,
 } from "./msal.interceptor.config";
 import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
@@ -239,17 +237,10 @@ export class MsalInterceptor implements HttpInterceptor {
       normalizedEndpoint
     );
 
-    // Check absolute urls of resources first before checking relative to prevent incorrect matching where multiple resources have similar relative urls
-    if (matchingProtectedResources.absoluteResources.length > 0) {
+    if (matchingProtectedResources.length > 0) {
       return this.matchScopesToEndpoint(
         this.msalInterceptorConfig.protectedResourceMap,
-        matchingProtectedResources.absoluteResources,
-        httpMethod
-      );
-    } else if (matchingProtectedResources.relativeResources.length > 0) {
-      return this.matchScopesToEndpoint(
-        this.msalInterceptorConfig.protectedResourceMap,
-        matchingProtectedResources.relativeResources,
+        matchingProtectedResources,
         httpMethod
       );
     }
@@ -266,44 +257,51 @@ export class MsalInterceptor implements HttpInterceptor {
   private matchResourcesToEndpoint(
     protectedResourcesEndpoints: string[],
     endpoint: string
-  ): MatchingResources {
-    const matchingResources: MatchingResources = {
-      absoluteResources: [],
-      relativeResources: [],
-    };
+  ): Array<string> {
+    const matchingResources: Array<string> = [];
 
     protectedResourcesEndpoints.forEach((key) => {
-      // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
       const normalizedKey = this.location.normalize(key);
-      if (StringUtils.matchPattern(normalizedKey, endpoint)) {
-        matchingResources.absoluteResources.push(key);
-      }
 
-      // Get url components for relative urls
-      const absoluteKey = this.getAbsoluteUrl(key);
-      const keyComponents = new UrlString(absoluteKey).getUrlComponents();
+      // Get url components
+      const absoluteKey = this.getAbsoluteUrl(normalizedKey);
+      const keyComponents = new URL(absoluteKey);
       const absoluteEndpoint = this.getAbsoluteUrl(endpoint);
-      const endpointComponents = new UrlString(
-        absoluteEndpoint
-      ).getUrlComponents();
+      const endpointComponents = new URL(absoluteEndpoint);
 
-      // Normalized key should include query strings if applicable
-      const relativeNormalizedKey = keyComponents.QueryString
-        ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}`
-        : this.location.normalize(keyComponents.AbsolutePath);
-
-      // Add resource to matchingResources.relativeResources if same origin, relativeKey matches endpoint, and is not empty
-      if (
-        keyComponents.HostNameAndPort === endpointComponents.HostNameAndPort &&
-        StringUtils.matchPattern(relativeNormalizedKey, absoluteEndpoint) &&
-        relativeNormalizedKey !== "" &&
-        relativeNormalizedKey !== "/*"
-      ) {
-        matchingResources.relativeResources.push(key);
+      if (this.checkUrlComponents(keyComponents, endpointComponents)) {
+        matchingResources.push(key);
       }
     });
 
     return matchingResources;
+  }
+
+  /**
+   * Compares URL segments between key and endpoint
+   * @param key
+   * @param endpoint
+   * @returns
+   */
+  private checkUrlComponents(
+    keyComponents: URL,
+    endpointComponents: URL
+  ): boolean {
+    // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
+    const urlProperties = ["protocol", "host", "pathname", "search", "hash"];
+
+    for (const property of urlProperties) {
+      if (keyComponents[property]) {
+        const decodedInput = decodeURIComponent(keyComponents[property]);
+        if (
+          !StringUtils.matchPattern(decodedInput, endpointComponents[property])
+        ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   /**

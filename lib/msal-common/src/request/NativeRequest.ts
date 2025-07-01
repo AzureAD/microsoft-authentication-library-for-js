@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "../utils/MsalTypes";
+import { StringDict } from "../utils/MsalTypes.js";
 
 export type NativeRequest = {
     clientId: string;

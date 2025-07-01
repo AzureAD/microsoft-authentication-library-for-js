@@ -18,9 +18,9 @@ import {
     WrapperSKU,
     AccountInfo,
 } from "@azure/msal-browser";
-import { MsalContext, IMsalContext } from "./MsalContext";
-import { accountArraysAreEqual } from "./utils/utilities";
-import { name as SKU, version } from "./packageMetadata";
+import { MsalContext, IMsalContext } from "./MsalContext.js";
+import { accountArraysAreEqual } from "./utils/utilities.js";
+import { name as SKU, version } from "./packageMetadata.js";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
@@ -85,6 +85,11 @@ const reducer = (
             throw new Error(`Unknown action type: ${type}`);
     }
 
+    if (newInProgress === InteractionStatus.Startup) {
+        // Can't start checking accounts until initialization is complete
+        return previousState;
+    }
+
     const currentAccounts = payload.instance.getAllAccounts();
     if (
         newInProgress !== previousState.inProgress &&
@@ -135,7 +140,7 @@ export function MsalProvider({
         // Lazy initialization of the initial state
         return {
             inProgress: InteractionStatus.Startup,
-            accounts: instance.getAllAccounts(),
+            accounts: [],
         };
     });
 

@@ -12,7 +12,6 @@
  * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable. We strongly discourage using them directly, you do so at your own risk.
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
-
 import * as internals from "./internals.js";
 export { internals };
 
@@ -31,11 +30,13 @@ export { ClientApplication } from "./client/ClientApplication.js";
 export { ClientCredentialClient } from "./client/ClientCredentialClient.js";
 export { DeviceCodeClient } from "./client/DeviceCodeClient.js";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient.js";
+export { ManagedIdentityApplication } from "./client/ManagedIdentityApplication.js";
 export { UsernamePasswordClient } from "./client/UsernamePasswordClient.js";
 
 export {
     Configuration,
-    buildAppConfiguration,
+    ManagedIdentityConfiguration,
+    ManagedIdentityIdParams,
     NodeAuthOptions,
     NodeSystemOptions,
     BrokerOptions,
@@ -46,7 +47,6 @@ export { ClientAssertion } from "./client/ClientAssertion.js";
 
 // Cache and Storage
 export { TokenCache } from "./cache/TokenCache.js";
-export { NodeStorage } from "./cache/NodeStorage.js";
 export {
     CacheKVStore,
     JsonCache,
@@ -58,6 +58,9 @@ export {
     SerializedRefreshTokenEntity,
 } from "./cache/serializer/SerializerTypes.js";
 export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin.js";
+
+// Constants
+export { ManagedIdentitySourceNames } from "./utils/Constants.js";
 
 // Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider.js";
@@ -73,6 +76,7 @@ export type { RefreshTokenRequest } from "./request/RefreshTokenRequest.js";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest.js";
 export type { InteractiveRequest } from "./request/InteractiveRequest.js";
 export type { SignOutRequest } from "./request/SignOutRequest.js";
+export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequestParams.js";
 
 // Common Object Formats
 export {
@@ -82,7 +86,11 @@ export {
     AuthorizationCodePayload,
     // Response
     AuthenticationResult,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
+    /**
+     * @deprecated Use AuthorizeResponse instead
+     */
+    AuthorizeResponse as ServerAuthorizationCodeResponse,
     IdTokenClaims,
     // Cache
     AccountInfo,
@@ -121,6 +129,7 @@ export {
     AppTokenProviderParameters,
     AppTokenProviderResult,
     INativeBrokerPlugin,
-} from "@azure/msal-common";
+    ClientAssertionCallback,
+} from "@azure/msal-common/node";
 
 export { version } from "./packageMetadata.js";

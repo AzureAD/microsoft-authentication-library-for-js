@@ -1,35 +1,36 @@
-* @tnorling @sameerag @jo-arroyo @hectormmg @lalimasharda @peterzenz @bgavrilMS @robbie-microsoft @konstantin-msft
+* @tnorling @sameerag @jo-arroyo @hectormmg @lalimasharda @peterzenz @bgavrilMS @robbie-microsoft @konstantin-msft @shylasummers
 
 # MSAL Angular
-/lib/msal-angular/ @jo-arroyo @tnorling @peterzenz
-/samples/msal-angular-v3-samples/ @jo-arroyo @tnorling @peterzenz
+/lib/msal-angular/ @jo-arroyo @tnorling @peterzenz @shylasummers @sameerag @konstantin-msft
+/samples/msal-angular-samples/ @jo-arroyo @tnorling @peterzenz @shylasummers @sameerag @konstantin-msft
 
 # MSAL Browser
-/lib/msal-browser/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
-/samples/msal-browser-samples/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
+/lib/msal-browser/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft @lalimasharda @shylasummers
+/lib/msal-browser/custom-auth @shenj @yongdiw
+/samples/msal-browser-samples/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft @lalimasharda @shylasummers
 
 # MSAL Common
-/lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft
+/lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft @lalimasharda @shylasummers
 
 # MSAL Node
-/lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
-/samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
+/lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @AzureAD/id4s-msal-team
+/samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @AzureAD/id4s-msal-team
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
 # MSAL React
-/lib/msal-react/ @tnorling @jo-arroyo @peterzenz
-/samples/msal-react-samples/ @tnorling @jo-arroyo @peterzenz
+/lib/msal-react/ @tnorling @jo-arroyo @peterzenz @sameerag @konstantin-msft
+/samples/msal-react-samples/ @tnorling @jo-arroyo @peterzenz @sameerag @konstantin-msft
 
 # Build
 /build/ @sameerag @tnorling @hectormmg @peterzenz
-/release-scripts/ @sameerag @tnorling @hectormmg @peterzenz
+/release-scripts/ @sameerag @tnorling @hectormmg @peterzenz @shylasummers
 /.github/ @sameerag @tnorling @hectormmg @peterzenz
-/.pipelines/ @hectormmg @tnorling @peterzenz
+/.pipelines/ @hectormmg @tnorling @peterzenz @sameerag @konstantin-msft @shylasummers
 
 # MSAL Node Confidential Client Regression Tests
-.github/workflows/client-credential-benchmark.yml @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
-.github/workflows/msal-node-confidential-client-benchmarks.yml @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
-/regression-tests/msal-node/ @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn
+.github/workflows/client-credential-benchmark.yml @AzureAD/id4s-msal-team
+.github/workflows/msal-node-confidential-client-benchmarks.yml @AzureAD/id4s-msal-team
+/regression-tests/msal-node/ @AzureAD/id4s-msal-team
 
 # Filepaths to ignore
 /change/

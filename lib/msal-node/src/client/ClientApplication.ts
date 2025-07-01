@@ -33,7 +33,12 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     buildStaticAuthorityOptions,
-} from "@azure/msal-common";
+    ClientAssertion as ClientAssertionType,
+    getClientAssertion,
+    ClientAssertionCallback,
+    CacheOutcome,
+    ClientAuthError,
+} from "@azure/msal-common/node";
 import {
     Configuration,
     buildAppConfiguration,
@@ -52,6 +57,7 @@ import { version, name } from "../packageMetadata.js";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
+import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -77,6 +83,9 @@ export abstract class ClientApplication {
      * Client assertion passed by the user for confidential client flows
      */
     protected clientAssertion: ClientAssertion;
+    protected developerProvidedClientAssertion:
+        | string
+        | ClientAssertionCallback;
     /**
      * Client secret passed by the user for confidential client flows
      */
@@ -122,23 +131,22 @@ export abstract class ClientApplication {
             ...(await this.initializeBaseRequest(request)),
             responseMode: request.responseMode || ResponseMode.QUERY,
             authenticationScheme: AuthenticationScheme.BEARER,
+            state: request.state || "",
+            nonce: request.nonce || "",
         };
 
-        const authClientConfig = await this.buildOauthClientConfiguration(
+        const discoveredAuthority = await this.createAuthority(
             validRequest.authority,
             validRequest.correlationId,
             undefined,
-            undefined,
             request.azureCloudOptions
         );
-        const authorizationCodeClient = new AuthorizationCodeClient(
-            authClientConfig
+        return getAuthCodeRequestUrl(
+            this.config,
+            discoveredAuthority,
+            validRequest,
+            this.logger
         );
-        this.logger.verbose(
-            "Auth code client created",
-            validRequest.correlationId
-        );
-        return authorizationCodeClient.getAuthCodeUrl(validRequest);
     }
 
     /**
@@ -171,12 +179,17 @@ export abstract class ClientApplication {
             validRequest.correlationId
         );
         try {
-            const authClientConfig = await this.buildOauthClientConfiguration(
+            const discoveredAuthority = await this.createAuthority(
                 validRequest.authority,
                 validRequest.correlationId,
-                serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
+            );
+            const authClientConfig = await this.buildOauthClientConfiguration(
+                discoveredAuthority,
+                validRequest.correlationId,
+                validRequest.redirectUri,
+                serverTelemetryManager
             );
             const authorizationCodeClient = new AuthorizationCodeClient(
                 authClientConfig
@@ -223,13 +236,18 @@ export abstract class ClientApplication {
             validRequest.correlationId
         );
         try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                undefined,
+                request.azureCloudOptions
+            );
             const refreshTokenClientConfig =
                 await this.buildOauthClientConfiguration(
-                    validRequest.authority,
+                    discoveredAuthority,
                     validRequest.correlationId,
-                    serverTelemetryManager,
-                    undefined,
-                    request.azureCloudOptions
+                    validRequest.redirectUri || "",
+                    serverTelemetryManager
                 );
             const refreshTokenClient = new RefreshTokenClient(
                 refreshTokenClientConfig
@@ -270,30 +288,91 @@ export abstract class ClientApplication {
             validRequest.correlationId,
             validRequest.forceRefresh
         );
+
         try {
-            const silentFlowClientConfig =
-                await this.buildOauthClientConfiguration(
-                    validRequest.authority,
-                    validRequest.correlationId,
-                    serverTelemetryManager,
-                    undefined,
-                    request.azureCloudOptions
-                );
-            const silentFlowClient = new SilentFlowClient(
-                silentFlowClientConfig
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                undefined,
+                request.azureCloudOptions
             );
+            const clientConfiguration =
+                await this.buildOauthClientConfiguration(
+                    discoveredAuthority,
+                    validRequest.correlationId,
+                    validRequest.redirectUri || "",
+                    serverTelemetryManager
+                );
+            const silentFlowClient = new SilentFlowClient(clientConfiguration);
             this.logger.verbose(
                 "Silent flow client created",
                 validRequest.correlationId
             );
-            return await silentFlowClient.acquireToken(validRequest);
-        } catch (e) {
-            if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+            try {
+                // always overwrite the in-memory cache with the persistence cache (if it exists) before a cache lookup
+                await this.tokenCache.overwriteCache();
+                return await this.acquireCachedTokenSilent(
+                    validRequest,
+                    silentFlowClient,
+                    clientConfiguration
+                );
+            } catch (error) {
+                if (
+                    error instanceof ClientAuthError &&
+                    error.errorCode ===
+                        ClientAuthErrorCodes.tokenRefreshRequired
+                ) {
+                    const refreshTokenClient = new RefreshTokenClient(
+                        clientConfiguration
+                    );
+                    return refreshTokenClient.acquireTokenByRefreshToken(
+                        validRequest
+                    );
+                }
+                throw error;
             }
-            serverTelemetryManager.cacheFailedRequest(e as AuthError);
-            throw e;
+        } catch (error) {
+            if (error instanceof AuthError) {
+                error.setCorrelationId(validRequest.correlationId);
+            }
+            serverTelemetryManager.cacheFailedRequest(error);
+            throw error;
         }
+    }
+
+    private async acquireCachedTokenSilent(
+        validRequest: CommonSilentFlowRequest,
+        silentFlowClient: SilentFlowClient,
+        clientConfiguration: ClientConfiguration
+    ): Promise<AuthenticationResult> {
+        const [authResponse, cacheOutcome] =
+            await silentFlowClient.acquireCachedToken({
+                ...validRequest,
+                scopes: validRequest.scopes?.length
+                    ? validRequest.scopes
+                    : [...OIDC_DEFAULT_SCOPES],
+            });
+
+        if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+            this.logger.info(
+                "ClientApplication:acquireCachedTokenSilent - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+            );
+            // refresh the access token in the background
+            const refreshTokenClient = new RefreshTokenClient(
+                clientConfiguration
+            );
+
+            try {
+                await refreshTokenClient.acquireTokenByRefreshToken(
+                    validRequest
+                );
+            } catch {
+                // do nothing, this is running in the background and no action is to be taken upon success or failure
+            }
+        }
+
+        // return the cached token
+        return authResponse;
     }
 
     /**
@@ -305,6 +384,7 @@ export abstract class ClientApplication {
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
      *
      * @param request - UsenamePasswordRequest
+     * @deprecated - Use a more secure flow instead
      */
     async acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest
@@ -322,13 +402,18 @@ export abstract class ClientApplication {
             validRequest.correlationId
         );
         try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                undefined,
+                request.azureCloudOptions
+            );
             const usernamePasswordClientConfig =
                 await this.buildOauthClientConfiguration(
-                    validRequest.authority,
+                    discoveredAuthority,
                     validRequest.correlationId,
-                    serverTelemetryManager,
-                    undefined,
-                    request.azureCloudOptions
+                    "",
+                    serverTelemetryManager
                 );
             const usernamePasswordClient = new UsernamePasswordClient(
                 usernamePasswordClientConfig
@@ -361,8 +446,8 @@ export abstract class ClientApplication {
      * This API is provided for scenarios where you would use OAuth2.0 state parameter to mitigate against
      * CSRF attacks.
      * For more information about state, visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6.
-     * @param state
-     * @param cachedState
+     * @param state - Unique GUID generated by the user that is cached by the user and sent to the server during the first leg of the flow
+     * @param cachedState - This string is sent back by the server with the authorization code
      */
     protected validateState(state: string, cachedState: string): void {
         if (!state) {
@@ -395,28 +480,14 @@ export abstract class ClientApplication {
      * @param serverTelemetryManager - initializes servertelemetry if passed
      */
     protected async buildOauthClientConfiguration(
-        authority: string,
+        discoveredAuthority: Authority,
         requestCorrelationId: string,
-        serverTelemetryManager?: ServerTelemetryManager,
-        azureRegionConfiguration?: AzureRegionConfiguration,
-        azureCloudOptions?: AzureCloudOptions
+        redirectUri: string,
+        serverTelemetryManager?: ServerTelemetryManager
     ): Promise<ClientConfiguration> {
         this.logger.verbose(
             "buildOauthClientConfiguration called",
             requestCorrelationId
-        );
-
-        // precedence - azureCloudInstance + tenant >> authority and request  >> config
-        const userAzureCloudOptions = azureCloudOptions
-            ? azureCloudOptions
-            : this.config.auth.azureCloudOptions;
-
-        // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
-        const discoveredAuthority = await this.createAuthority(
-            authority,
-            requestCorrelationId,
-            azureRegionConfiguration,
-            userAzureCloudOptions
         );
 
         this.logger.info(
@@ -433,6 +504,7 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
+                redirectUri,
             },
             loggerOptions: {
                 logLevel: this.config.system.loggerOptions.logLevel,
@@ -451,9 +523,9 @@ export abstract class ClientApplication {
             serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
                 clientSecret: this.clientSecret,
-                clientAssertion: this.clientAssertion
-                    ? this.getClientAssertion(discoveredAuthority)
-                    : undefined,
+                clientAssertion: await this.getClientAssertion(
+                    discoveredAuthority
+                ),
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
@@ -469,18 +541,29 @@ export abstract class ClientApplication {
         return clientConfiguration;
     }
 
-    private getClientAssertion(authority: Authority): {
-        assertion: string;
-        assertionType: string;
-    } {
-        return {
-            assertion: this.clientAssertion.getJwt(
-                this.cryptoProvider,
-                this.config.auth.clientId,
-                authority.tokenEndpoint
-            ),
-            assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
-        };
+    private async getClientAssertion(
+        authority: Authority
+    ): Promise<ClientAssertionType> {
+        if (this.developerProvidedClientAssertion) {
+            this.clientAssertion = ClientAssertion.fromAssertion(
+                await getClientAssertion(
+                    this.developerProvidedClientAssertion,
+                    this.config.auth.clientId,
+                    authority.tokenEndpoint
+                )
+            );
+        }
+
+        return (
+            this.clientAssertion && {
+                assertion: this.clientAssertion.getJwt(
+                    this.cryptoProvider,
+                    this.config.auth.clientId,
+                    authority.tokenEndpoint
+                ),
+                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
+            }
+        );
     }
 
     /**
@@ -557,7 +640,7 @@ export abstract class ClientApplication {
      * object. If no authority set in application object, then default to common authority.
      * @param authorityString - authority from user configuration
      */
-    private async createAuthority(
+    protected async createAuthority(
         authorityString: string,
         requestCorrelationId: string,
         azureRegionConfiguration?: AzureRegionConfiguration,
@@ -568,7 +651,7 @@ export abstract class ClientApplication {
         // build authority string based on auth params - azureCloudInstance is prioritized if provided
         const authorityUrl = Authority.generateAuthority(
             authorityString,
-            azureCloudOptions
+            azureCloudOptions || this.config.auth.azureCloudOptions
         );
 
         const authorityOptions: AuthorityOptions = {
@@ -595,6 +678,6 @@ export abstract class ClientApplication {
      * Clear the cache
      */
     clearCache(): void {
-        void this.storage.clear();
+        this.storage.clear();
     }
 }

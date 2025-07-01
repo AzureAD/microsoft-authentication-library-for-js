@@ -6,11 +6,11 @@
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
-import { StringUtils } from "../utils/StringUtils";
-import { IUri } from "./IUri";
-import { AADAuthorityConstants, Constants } from "../utils/Constants";
-import * as UrlUtils from "../utils/UrlUtils";
+} from "../error/ClientConfigurationError.js";
+import { StringUtils } from "../utils/StringUtils.js";
+import { IUri } from "./IUri.js";
+import { AADAuthorityConstants, Constants } from "../utils/Constants.js";
+import * as UrlUtils from "../utils/UrlUtils.js";
 
 /**
  * Url object class which can perform various transformations on url strings.

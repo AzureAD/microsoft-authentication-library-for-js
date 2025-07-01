@@ -18,11 +18,11 @@ import {
     InteractionRequiredAuthError,
     OIDC_DEFAULT_SCOPES,
 } from "@azure/msal-browser";
-import { useIsAuthenticated } from "./useIsAuthenticated";
-import { AccountIdentifiers } from "../types/AccountIdentifiers";
-import { useMsal } from "./useMsal";
-import { useAccount } from "./useAccount";
-import { ReactAuthError } from "../error/ReactAuthError";
+import { useIsAuthenticated } from "./useIsAuthenticated.js";
+import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
+import { useMsal } from "./useMsal.js";
+import { useAccount } from "./useAccount.js";
+import { ReactAuthError } from "../error/ReactAuthError.js";
 
 export type MsalAuthenticationResult = {
     login: (
@@ -253,8 +253,8 @@ export function useMsalAuthentication(
             shouldAcquireToken.current &&
             inProgress === InteractionStatus.None
         ) {
-            shouldAcquireToken.current = false;
             if (!isAuthenticated) {
+                shouldAcquireToken.current = false;
                 logger.info(
                     "useMsalAuthentication - No user is authenticated, attempting to login"
                 );
@@ -263,6 +263,7 @@ export function useMsalAuthentication(
                     return;
                 });
             } else if (account) {
+                shouldAcquireToken.current = false;
                 logger.info(
                     "useMsalAuthentication - User is authenticated, attempting to acquire token"
                 );
