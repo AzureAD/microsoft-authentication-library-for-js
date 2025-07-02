@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 02 Jul 2025 21:05:56 GMT",
+      "version": "4.15.0",
+      "tag": "@azure/msal-browser_v4.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e795cba7b2e586f6ee42da35c8841cde014938f1",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "4744aa2fc67f8aa2dd174d39f8c42ef5fa23f8a7",
+            "comment": "Improve the custom auth unit tests"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 01 Jul 2025 14:23:25 GMT",
       "version": "4.14.0",
       "tag": "@azure/msal-browser_v4.14.0",
