@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 01 Jul 2025 14:23:25 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 02 Jul 2025 02:30:49 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.15.0
+
+Wed, 02 Jul 2025 02:30:49 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.14.0
 
