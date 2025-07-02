@@ -1380,6 +1380,7 @@ export class StandardController implements IController {
             this.logger,
             this.browserStorage,
             this.isBrowserEnvironment,
+            this.getRequestCorrelationId(),
             accountFilter
         );
     }
@@ -1393,7 +1394,8 @@ export class StandardController implements IController {
         return AccountManager.getAccount(
             accountFilter,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1409,7 +1411,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByUsername(
             username,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1424,7 +1427,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByHomeId(
             homeAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1439,7 +1443,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByLocalId(
             localAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1448,14 +1453,21 @@ export class StandardController implements IController {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        AccountManager.setActiveAccount(account, this.browserStorage);
+        AccountManager.setActiveAccount(
+            account,
+            this.browserStorage,
+            this.getRequestCorrelationId()
+        );
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return AccountManager.getActiveAccount(this.browserStorage);
+        return AccountManager.getActiveAccount(
+            this.browserStorage,
+            this.getRequestCorrelationId()
+        );
     }
 
     // #endregion

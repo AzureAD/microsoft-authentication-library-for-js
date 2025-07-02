@@ -189,13 +189,7 @@ export class RefreshTokenClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(
-            request.account,
-            foci,
-            undefined,
-            this.performanceClient,
-            request.correlationId
-        );
+        )(request.account, foci, request.correlationId, undefined);
 
         if (!refreshToken) {
             throw createInteractionRequiredAuthError(
@@ -255,7 +249,10 @@ export class RefreshTokenClient extends BaseClient {
                     );
                     const badRefreshTokenKey =
                         generateCredentialKey(refreshToken);
-                    this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+                    this.cacheManager.removeRefreshToken(
+                        badRefreshTokenKey,
+                        request.correlationId
+                    );
                 }
             }
 

@@ -208,6 +208,7 @@ async function loadAccount(
         authority,
         homeAccountId,
         base64Decode,
+        correlationId,
         idTokenClaims,
         clientInfo,
         authority.hostnameAndPort,

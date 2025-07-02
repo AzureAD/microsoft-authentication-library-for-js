@@ -728,6 +728,13 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `failed_to_decrypt_ear_response`
 - Failed to decrypt ear response.
 
+### `timed_out`
+- The request failed to complete within the configured timeout. Review logs and network traces to identify potential causes. Retrying the request once or increasing the configured timeout may sometimes resolve timeouts caused by general runtime or network latency.
+
+#### acquireTokenRedirect timed out
+
+If this error is thrown from `acquireTokenRedirect` it means your application failed to redirect to your identity provider's /authorize endpoint in time. Review the network trace to identify potential causes.
+
 ## Browser configuration errors
 
 ### `storage_not_supported`

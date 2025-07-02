@@ -276,6 +276,16 @@ export class RedirectClient extends StandardInteractionClient {
             this.performanceClient
         );
         form.submit();
+        return new Promise<void>((resolve, reject) => {
+            setTimeout(() => {
+                reject(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.timedOut,
+                        "failed_to_redirect"
+                    )
+                );
+            }, this.config.system.redirectNavigationTimeout);
+        });
     }
 
     /**
