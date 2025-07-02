@@ -13,7 +13,6 @@ import {
     InteractionRequiredAuthErrorCodes,
     Logger,
     RefreshTokenEntity,
-    StubPerformanceClient,
     TimeUtils,
 } from "@azure/msal-common/browser";
 import {
@@ -22,23 +21,18 @@ import {
     TestServerTokenResponse,
     TestHomeAccountId,
     TestTenantId,
-    TestIdTokenClaims,
     RenewedTokens,
 } from "../../test_resources/TestConstants.js";
 import { DefaultScopes } from "../../../../src/custom_auth/CustomAuthConstants.js";
 import { BrowserCacheManager } from "../../../../src/cache/BrowserCacheManager.js";
 import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
 import { INavigationClient } from "../../../../src/navigation/INavigationClient.js";
-import { EventHandler } from "../../../../src/event/EventHandler.js";
 import { RANDOM_TEST_GUID } from "../../../utils/StringConstants.js";
-
-jest.mock("@azure/msal-browser", () => {
-    const actualModule = jest.requireActual("@azure/msal-browser");
-    return {
-        ...actualModule,
-        ServerTelemetryManager: jest.fn(),
-    };
-});
+import {
+    getDefaultCrypto,
+    getDefaultEventHandler,
+    getDefaultPerformanceClient,
+} from "../../test_resources/TestModules.js";
 
 describe("CustomAuthSilentCacheClient", () => {
     let client: CustomAuthSilentCacheClient;
@@ -93,16 +87,6 @@ describe("CustomAuthSilentCacheClient", () => {
             telemetry: {},
         } as unknown as jest.Mocked<BrowserConfiguration>;
 
-        const decodedStr = JSON.stringify(TestIdTokenClaims);
-        mockCrypto = {
-            createNewGuid: jest.fn(),
-            base64Decode: jest.fn().mockReturnValue(decodedStr),
-        } as unknown as jest.Mocked<ICrypto>;
-
-        const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
-        const mockPerformanceClient = new StubPerformanceClient();
-        const mockedApiClient = {} as unknown as jest.Mocked<any>;
-
         const mockLogger = {
             clone: jest.fn(),
             info: jest.fn(),
@@ -117,6 +101,15 @@ describe("CustomAuthSilentCacheClient", () => {
         } as unknown as jest.Mocked<Logger>;
 
         mockLogger.clone.mockReturnValue(mockLogger);
+
+        const mockEventHandler = getDefaultEventHandler();
+        const mockPerformanceClient = getDefaultPerformanceClient();
+        const mockedApiClient = {} as unknown as jest.Mocked<any>;
+        mockCrypto = getDefaultCrypto(
+            customAuthConfig.auth.clientId,
+            mockLogger,
+            mockPerformanceClient
+        );
 
         mockCacheManager = new BrowserCacheManager(
             customAuthConfig.auth.clientId,
