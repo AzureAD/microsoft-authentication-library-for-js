@@ -4,16 +4,15 @@ import { CustomAuthAuthority } from "../../../../src/custom_auth/core/CustomAuth
 import {
     AccessTokenEntity,
     AccountEntity,
+    AccountEntityUtils,
     CacheHelpers,
     CommonSilentFlowRequest,
-    Constants,
     createInteractionRequiredAuthError,
     ICrypto,
     INetworkModule,
     InteractionRequiredAuthErrorCodes,
     Logger,
     RefreshTokenEntity,
-    StubPerformanceClient,
     TimeUtils,
 } from "@azure/msal-common/browser";
 import {
@@ -22,23 +21,19 @@ import {
     TestServerTokenResponse,
     TestHomeAccountId,
     TestTenantId,
-    TestIdTokenClaims,
     RenewedTokens,
 } from "../../test_resources/TestConstants.js";
 import { DefaultScopes } from "../../../../src/custom_auth/CustomAuthConstants.js";
 import { BrowserCacheManager } from "../../../../src/cache/BrowserCacheManager.js";
 import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
 import { INavigationClient } from "../../../../src/navigation/INavigationClient.js";
-import { EventHandler } from "../../../../src/event/EventHandler.js";
-import { CryptoOps } from "../../../../src/crypto/CryptoOps.js";
-
-jest.mock("@azure/msal-browser", () => {
-    const actualModule = jest.requireActual("@azure/msal-browser");
-    return {
-        ...actualModule,
-        ServerTelemetryManager: jest.fn(),
-    };
-});
+import { RANDOM_TEST_GUID } from "../../../utils/StringConstants.js";
+import {
+    getDefaultCrypto,
+    getDefaultEventHandler,
+    getDefaultPerformanceClient,
+} from "../../test_resources/TestModules.js";
+import { AuthenticationScheme } from "../../../../../msal-common/lib/types/utils/Constants.js";
 
 describe("CustomAuthSilentCacheClient", () => {
     let client: CustomAuthSilentCacheClient;
@@ -93,10 +88,6 @@ describe("CustomAuthSilentCacheClient", () => {
             telemetry: {},
         } as unknown as jest.Mocked<BrowserConfiguration>;
 
-        const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
-        const mockPerformanceClient = new StubPerformanceClient();
-        const mockedApiClient = {} as unknown as jest.Mocked<any>;
-
         const mockLogger = {
             clone: jest.fn(),
             info: jest.fn(),
@@ -111,7 +102,15 @@ describe("CustomAuthSilentCacheClient", () => {
         } as unknown as jest.Mocked<Logger>;
 
         mockLogger.clone.mockReturnValue(mockLogger);
-        mockCrypto = new CryptoOps(mockLogger);
+
+        const mockEventHandler = getDefaultEventHandler();
+        const mockPerformanceClient = getDefaultPerformanceClient();
+        const mockedApiClient = {} as unknown as jest.Mocked<any>;
+        mockCrypto = getDefaultCrypto(
+            customAuthConfig.auth.clientId,
+            mockLogger,
+            mockPerformanceClient
+        );
 
         mockCacheManager = new BrowserCacheManager(
             customAuthConfig.auth.clientId,
@@ -168,7 +167,10 @@ describe("CustomAuthSilentCacheClient", () => {
         } as CommonSilentFlowRequest;
 
         beforeEach(() => {
-            accountEntityToCache = createAccountEntityFromAccountInfo();
+            accountEntityToCache =
+                AccountEntityUtils.createAccountEntityFromAccountInfo(
+                    TestAccountDetails
+                );
             accessTokenEntityToCache = createAccessTokenEntity(mockCrypto);
             refreshTokenEntityToCache = createRefreshTokenEntity();
         });
@@ -219,7 +221,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 )[0];
             const refreshToken = mockCacheManager.getRefreshTokenCredential(
                 refreshTokenKey,
-                "test-correlation-id"
+                RANDOM_TEST_GUID
             );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
@@ -249,7 +251,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 )[0];
             const refreshToken = mockCacheManager.getRefreshTokenCredential(
                 refreshTokenKey,
-                "test-correlation-id"
+                RANDOM_TEST_GUID
             );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
@@ -277,7 +279,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 )[0];
             const refreshToken = mockCacheManager.getRefreshTokenCredential(
                 refreshTokenKey,
-                "test-correlation-id"
+                RANDOM_TEST_GUID
             );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
@@ -431,7 +433,7 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
         expiresOn + 0,
         browserCrypto.base64Decode,
         undefined,
-        TestServerTokenResponse.token_type as Constants.AuthenticationScheme
+        TestServerTokenResponse.token_type as AuthenticationScheme
     );
 }
 
@@ -442,20 +444,4 @@ function createRefreshTokenEntity(): RefreshTokenEntity {
         TestServerTokenResponse.refresh_token,
         customAuthConfig.auth.clientId
     );
-}
-
-function createAccountEntityFromAccountInfo(): AccountEntity {
-    console.log(
-        "🎯 DEBUG: Local createAccountEntityFromAccountInfo called in test!"
-    );
-
-    return {
-        authorityType: Constants.CACHE_ACCOUNT_TYPE_GENERIC,
-        homeAccountId: TestAccountDetails.homeAccountId,
-        localAccountId: TestAccountDetails.localAccountId,
-        realm: TestAccountDetails.tenantId,
-        environment: TestAccountDetails.environment,
-        username: TestAccountDetails.username,
-        name: TestAccountDetails.name,
-    } as AccountEntity;
 }
