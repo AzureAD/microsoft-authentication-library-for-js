@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add lastUpdatedAt to cache entities",
+  "comment": "Remove RequestValidator class",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
