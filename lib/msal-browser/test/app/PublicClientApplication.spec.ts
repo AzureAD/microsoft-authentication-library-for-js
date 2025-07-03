@@ -6089,12 +6089,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .mockRejectedValue(new Error("Expired"));
                 const silentRefreshSpy: jest.SpyInstance = jest
                     .spyOn(SilentRefreshClient.prototype, "acquireToken")
-                    .mockRejectedValue(
-                        new ServerError(
-                            BrowserConstants.INVALID_GRANT_ERROR,
-                            "Refresh Token expired"
-                        )
-                    );
+                    .mockResolvedValue(testTokenResponse);
                 const silentIframeSpy: jest.SpyInstance = jest
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
                     .mockResolvedValue(testTokenResponse);
