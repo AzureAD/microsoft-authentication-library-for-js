@@ -134,7 +134,7 @@ npm run test:coverage
 
 ## Implicit Flow vs Authorization Code Flow with PKCE
 
-MSAL.js 2.x implements the [OAuth 2.0 Authorization Code Flow with PKCE](https://tools.ietf.org/html/rfc7636) for browser-based applications. This is a significant improvement over the Implicit Flow that was used in MSAL.js 1.x.
+`@azure/msal-browser` implements the [OAuth 2.0 Authorization Code Flow with PKCE](https://tools.ietf.org/html/rfc7636) for browser-based applications. This is a significant improvement over the Implicit Flow that was used in `@azure/msal`, `msal` or `adal-angular`.
 
 ### Authorization Code Flow with PKCE
 
@@ -155,8 +155,8 @@ The Implicit Flow was the previous standard for SPAs but has been deprecated due
 
 ### Migration Considerations
 
-- **MSAL.js 2.x only supports Authorization Code Flow with PKCE** - Implicit Flow is not supported
-- If you're migrating from MSAL.js 1.x, see our [migration guide](./docs/v1-migration.md)
+- **`@azure/msal-browser` only supports Authorization Code Flow with PKCE** - Implicit Flow is not supported
+- If you're migrating from `@azure/msal`, `msal` or `adal-angular`, see our [migration guide](./docs/v1-migration.md)
 - Your Azure AD app registration needs to be configured for the Authorization Code Flow
 - Existing applications using Implicit Flow should migrate to Authorization Code Flow for improved security
 
