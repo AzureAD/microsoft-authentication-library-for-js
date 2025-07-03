@@ -926,9 +926,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Calls NativeInteractionClient.handleRedirectPromise and emits telemetry event", (done) => {
             const config = {
-                // cache: {
-                //     cacheLocation: BrowserCacheLocation.LocalStorage,
-                // },
+                cache: {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
@@ -943,11 +943,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 },
             };
-            pca = new PublicClientApplication(config);
+            const testPca = new PublicClientApplication(config);
             stubExtensionProvider(config);
 
-            pca.initialize().then(() => {
-                const callbackId = pca.addPerformanceCallback((events) => {
+            testPca.initialize().then(() => {
+                const callbackId = testPca.addPerformanceCallback((events) => {
                     expect(events.length).toEqual(1);
                     const event = events[0];
                     expect(event.name).toBe(
@@ -963,13 +963,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ).toEqual(1);
                     expect(event.success).toBeTruthy();
                     expect(event.accountType).toEqual("MSA");
-                    //expect(event.cacheLocation).toEqual("localStorage");
-                    pca.removePerformanceCallback(callbackId);
+                    expect(event.cacheLocation).toEqual("localStorage");
+                    testPca.removePerformanceCallback(callbackId);
                     done();
                 });
                 // Implementation of PCA was moved to controller.
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                pca = (pca as any).controller;
+                const testController = (testPca as any).controller;
 
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1016,12 +1016,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     windowTitleSubstring: "test window",
                 };
                 // @ts-ignore
-                pca.browserStorage.setTemporaryCache(
+                testController.browserStorage.setTemporaryCache(
                     TemporaryCacheKeys.NATIVE_REQUEST,
                     JSON.stringify(nativeRequest),
                     true
                 );
-                jest.spyOn(pca, "getAllAccounts").mockReturnValue([
+                jest.spyOn(testController, "getAllAccounts").mockReturnValue([
                     testAccount,
                 ]);
                 jest.spyOn(
@@ -1029,7 +1029,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "handleRedirectPromise"
                 ).mockResolvedValue(testTokenResponse);
 
-                pca.handleRedirectPromise();
+                testController.handleRedirectPromise();
             });
         });
 
@@ -3640,7 +3640,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBeUndefined();
-                //expect(events[0].cacheLocation).toEqual("sessionStorage");
+                expect(events[0].cacheLocation).toEqual("sessionStorage");
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -6028,7 +6028,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBe("AAD");
-                //expect(events[0].cacheLocation).toBe("sessionStorage");
+                expect(events[0].cacheLocation).toBe("sessionStorage");
 
                 pca.removePerformanceCallback(callbackId);
                 done();
