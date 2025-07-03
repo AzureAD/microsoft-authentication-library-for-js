@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751571080368,
+  "lastUpdate": 1751579081201,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15906,6 +15906,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.79%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aab16ab730aa302042f8d68422391497816ec4b7",
+          "message": "Bump next from 15.3.1 to 15.3.3 (#7905)\n\nBumps [next](https://github.com/vercel/next.js) from 15.3.1 to 15.3.3.\n<details>\n<summary>Release notes</summary>\n<p><em>Sourced from <a\nhref=\"https://github.com/vercel/next.js/releases\">next's\nreleases</a>.</em></p>\n<blockquote>\n<h2>v15.3.3</h2>\n<blockquote>\n<p>[!NOTE]<br />\nThis release is backporting bug fixes. It does <strong>not</strong>\ninclude all pending features/changes on canary.</p>\n</blockquote>\n<h3>Core Changes</h3>\n<ul>\n<li>Reinstate <code>vary</code> (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79939\">#79939</a>)</li>\n<li>fix(next-swc): Fix interestingness detection for React Compiler (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79558\">#79558</a>)</li>\n<li>fix(next-swc): Fix react compiler usefulness detector (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79480\">#79480</a>)</li>\n<li>fix(dev-overlay): Better handle edge-case file paths in launchEditor\n(<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79526\">#79526</a>)</li>\n<li>Client router should discard stale prefetch entries for static pages\n(<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79362\">#79362</a>)</li>\n</ul>\n<h3>Credits</h3>\n<p>Huge thanks to <a\nhref=\"https://github.com/gaojude\"><code>@​gaojude</code></a>, <a\nhref=\"https://github.com/kdy1\"><code>@​kdy1</code></a>, <a\nhref=\"https://github.com/bgw\"><code>@​bgw</code></a>, and <a\nhref=\"https://github.com/unstubbable\"><code>@​unstubbable</code></a> for\nhelping!</p>\n<h2>v15.3.2</h2>\n<blockquote>\n<p>[!NOTE]<br />\nThis release is backporting bug fixes. It does <strong>not</strong>\ninclude all pending features/changes on canary.</p>\n</blockquote>\n<h3>Core Changes</h3>\n<ul>\n<li>backport: fix(turbopack): Store persistence of wrapped task on\nRawVc::LocalOutput (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/78488\">#78488</a>)\n(<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/78883\">#78883</a>)</li>\n<li><code>@​next/mdx</code>: Use stable turbopack config options (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/78880\">#78880</a>)</li>\n<li>Fix react-compiler: Fix detection of interest (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/78879\">#78879</a>)</li>\n<li>Fix turbopack: Backport sourcemap bugfix (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/78881\">#78881</a>)</li>\n<li>[next-server] preserve rsc query for rsc redirects (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/78876\">#78876</a>)</li>\n<li>Update middleware public/static matching (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/78875\">#78875</a>)</li>\n</ul>\n<h3>Credits</h3>\n<p>Huge thanks to <a\nhref=\"https://github.com/ijjk\"><code>@​ijjk</code></a>, <a\nhref=\"https://github.com/huozhi\"><code>@​huozhi</code></a>, <a\nhref=\"https://github.com/kdy1\"><code>@​kdy1</code></a>, <a\nhref=\"https://github.com/wbinnssmith\"><code>@​wbinnssmith</code></a>,\nand <a href=\"https://github.com/bgw\"><code>@​bgw</code></a> for\nhelping!</p>\n</blockquote>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/3ab8db7383ae904af872e14c26a9bd8a43879819\"><code>3ab8db7</code></a>\nv15.3.3</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/18c8113ebd90cfb54902c429a7c1138ed7d9f97d\"><code>18c8113</code></a>\n[backport] Reinstate <code>vary</code> (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79939\">#79939</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/e18212f54668eba21ef8ac33f5db5a94f2ba3499\"><code>e18212f</code></a>\nre-enable vary header deploy test (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79753\">#79753</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/ec202eccf05820b60c6126d6411fe16766ecc066\"><code>ec202ec</code></a>\nRevert &quot;[next-server] skip setting vary header for basic\nroutes&quot; (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79426\">#79426</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/e2f264fdce0472001675418f7524ed355fa184a0\"><code>e2f264f</code></a>\nfix(next-swc): Fix interestingness detection for React Compiler (15.3)\n(<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79558\">#79558</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/562fac78dab5656c6b8cbf6248a44a8f18da3075\"><code>562fac7</code></a>\nfix(next-swc): Fix react compiler usefulness detector (15.3) (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79480\">#79480</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/06097fd7bb74f437fdb52d42a82280bce206f9d3\"><code>06097fd</code></a>\nfix(dev-overlay): Better handle edge-case file paths in launchEditor (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79526\">#79526</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/bda731fa96326da06ecb4128a3074f417b90903e\"><code>bda731f</code></a>\nClient router should discard stale prefetch entries for static pages (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/79362\">#79362</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/d9ec4a4b573994c492a25497fdca4364e5fd5ee8\"><code>d9ec4a4</code></a>\nv15.3.2</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/3def5ff92b2d2b1d428c0a6ca7d390fa6c00f9d3\"><code>3def5ff</code></a>\nbackport: fix(turbopack): Store persistence of wrapped task on\nRawVc::LocalOu...</li>\n<li>Additional commits viewable in <a\nhref=\"https://github.com/vercel/next.js/compare/v15.3.1...v15.3.3\">compare\nview</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=next&package-manager=npm_and_yarn&previous-version=15.3.1&new-version=15.3.3)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't\nalter it yourself. You can also trigger a rebase manually by commenting\n`@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits\nthat have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after\nyour CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge\nand block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating\nit. You can achieve the same result by closing it manually\n- `@dependabot show <dependency name> ignore conditions` will show all\nof the ignore conditions of the specified dependency\n- `@dependabot ignore this major version` will close this PR and stop\nDependabot creating any more for this major version (unless you reopen\nthe PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop\nDependabot creating any more for this minor version (unless you reopen\nthe PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop\nDependabot creating any more for this dependency (unless you reopen the\nPR or upgrade to it yourself)\nYou can disable automated security fix PRs for this repo from the\n[Security Alerts\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\n\n</details>\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2025-07-03T14:38:28-07:00",
+          "tree_id": "411837910449658fce281e056953b0d49d78691a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/aab16ab730aa302042f8d68422391497816ec4b7"
+        },
+        "date": 1751579079799,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 253367,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 248736,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
