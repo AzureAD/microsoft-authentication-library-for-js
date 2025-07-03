@@ -9,7 +9,6 @@ export const authorityUriInsecure = "authority_uri_insecure";
 export const urlParseError = "url_parse_error";
 export const urlEmptyError = "empty_url_error";
 export const emptyInputScopesError = "empty_input_scopes_error";
-export const invalidPromptValue = "invalid_prompt_value";
 export const invalidClaims = "invalid_claims";
 export const tokenRequestEmpty = "token_request_empty";
 export const logoutRequestEmpty = "logout_request_empty";
