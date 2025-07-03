@@ -6041,7 +6041,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("instruments local storage cache location", (done) => {
-            pca = new PublicClientApplication({
+            const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
@@ -6059,7 +6059,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                 },
             });
-            pca.initialize().then(() => {
+            testPca.initialize().then(() => {
                 const testAccount: AccountInfo = {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -6090,17 +6090,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const silentRefreshSpy: jest.SpyInstance = jest
                     .spyOn(SilentRefreshClient.prototype, "acquireToken")
                     .mockResolvedValue(testTokenResponse);
-                const silentIframeSpy: jest.SpyInstance = jest
-                    .spyOn(SilentIframeClient.prototype, "acquireToken")
-                    .mockResolvedValue(testTokenResponse);
 
-                const callbackId = pca.addPerformanceCallback((events) => {
+                const callbackId = testPca.addPerformanceCallback((events) => {
                     expect(events[0].cacheLocation).toBe("localStorage");
 
-                    pca.removePerformanceCallback(callbackId);
+                    testPca.removePerformanceCallback(callbackId);
                     done();
                 });
-                pca.acquireTokenSilent({
+                testPca.acquireTokenSilent({
                     scopes: ["openid"],
                     account: testAccount,
                     correlationId: RANDOM_TEST_GUID,
