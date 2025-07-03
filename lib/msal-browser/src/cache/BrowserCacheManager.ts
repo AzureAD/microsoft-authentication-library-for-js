@@ -132,6 +132,36 @@ export class BrowserCacheManager extends CacheManager {
     async initialize(correlationId: string): Promise<void> {
         await this.browserStorage.initialize(correlationId);
         this.trackVersionChanges(correlationId);
+        await this.migrateExistingCache(correlationId);
+    }
+
+    /**
+     * Migrates any existing cache data from previous versions of MSAL.js into the current cache structure.
+     */
+    async migrateExistingCache(correlationId: string): Promise<void> {
+        const accountKeys = this.getAccountKeys();
+        const tokenKeys = this.getTokenKeys();
+        const currentTimestamp = Date.now().toString();
+
+        // Copy cache into new key with schema version
+        // If no schema version add lastUpdatedTimestamp and write it back
+        for (const key of accountKeys) {
+            if (key.startsWith(CACHE_KEY_PREFIX)) {
+                // Already using new schema
+                continue;
+            }
+
+            const value = this.browserStorage.getItem(key);
+            if (!value) {
+                this.removeAccountKeyFromMap(key, correlationId);
+                return;
+            }
+            const parsedVal = this.validateAndParseJson(value);
+            if (!parsedVal?.lastUpdatedAt) {
+                parsedVal.lastUpdatedAt = currentTimestamp;
+                this.browserStorage.setItem(key, JSON.stringify(parsedVal));
+            }
+        }
     }
 
     /**
