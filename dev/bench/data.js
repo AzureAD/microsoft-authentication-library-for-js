@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751567475220,
+  "lastUpdate": 1751571080368,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15868,6 +15868,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.59%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b77fac5635a51b475833c7464cad467c8a15eff8",
+          "message": "Remove unused RequestValidator class (#7892)\n\nRemoves unused `RequestValidator` class",
+          "timestamp": "2025-07-03T12:24:54-07:00",
+          "tree_id": "ffc91baedc4f6ee9a9187d13fd54124a1281a579",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b77fac5635a51b475833c7464cad467c8a15eff8"
+        },
+        "date": 1751571078700,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 239762,
+            "range": "±0.97%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 243968,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
