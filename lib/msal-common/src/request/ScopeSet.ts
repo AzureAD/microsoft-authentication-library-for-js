@@ -12,7 +12,11 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
-import { Constants, OIDC_SCOPES, OIDC_DEFAULT_SCOPES } from "../utils/Constants.js";
+import {
+    Constants,
+    OIDC_SCOPES,
+    OIDC_DEFAULT_SCOPES,
+} from "../utils/Constants.js";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
