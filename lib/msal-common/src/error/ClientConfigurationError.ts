@@ -19,8 +19,6 @@ export const ClientConfigurationErrorMessages = {
     [ClientConfigurationErrorCodes.urlEmptyError]: "URL was empty or null.",
     [ClientConfigurationErrorCodes.emptyInputScopesError]:
         "Scopes cannot be passed as null, undefined or empty array because they are required to obtain an access token.",
-    [ClientConfigurationErrorCodes.invalidPromptValue]:
-        "Please see here for valid configuration options: https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#commonauthorizationurlrequest",
     [ClientConfigurationErrorCodes.invalidClaims]:
         "Given claims parameter must be a stringified JSON object.",
     [ClientConfigurationErrorCodes.tokenRequestEmpty]:
@@ -92,12 +90,6 @@ export const ClientConfigurationErrorMessage = {
         code: ClientConfigurationErrorCodes.emptyInputScopesError,
         desc: ClientConfigurationErrorMessages[
             ClientConfigurationErrorCodes.emptyInputScopesError
-        ],
-    },
-    invalidPrompt: {
-        code: ClientConfigurationErrorCodes.invalidPromptValue,
-        desc: ClientConfigurationErrorMessages[
-            ClientConfigurationErrorCodes.invalidPromptValue
         ],
     },
     invalidClaimsRequest: {

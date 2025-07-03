@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove RequestValidator class",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
