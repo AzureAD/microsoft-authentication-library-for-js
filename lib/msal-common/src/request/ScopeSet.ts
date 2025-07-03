@@ -71,9 +71,10 @@ export class ScopeSet {
 
         // For cache lookup, if no scopes are provided, use default OIDC scopes
         // This allows cache hits for tokens acquired with default scopes
-        const searchScopes = filteredInput && filteredInput.length > 0 
-            ? filteredInput 
-            : [...OIDC_DEFAULT_SCOPES];
+        const searchScopes =
+            filteredInput && filteredInput.length > 0
+                ? filteredInput
+                : [...OIDC_DEFAULT_SCOPES];
 
         const scopeSet = new ScopeSet(searchScopes);
         if (!scopeSet.containsOnlyOIDCScopes()) {
