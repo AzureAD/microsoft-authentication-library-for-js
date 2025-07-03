@@ -6040,7 +6040,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        xit("instruments local storage cache location", (done) => {
+        it("instruments local storage cache location", (done) => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
