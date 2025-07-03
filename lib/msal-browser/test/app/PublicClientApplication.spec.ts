@@ -3640,7 +3640,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBeUndefined();
-                //expect(events[0].cacheLocation).toEqual("sessionStorage");
+                expect(events[0].cacheLocation).toEqual("sessionStorage");
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -6028,7 +6028,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBe("AAD");
-                //expect(events[0].cacheLocation).toBe("sessionStorage");
+                expect(events[0].cacheLocation).toBe("sessionStorage");
 
                 pca.removePerformanceCallback(callbackId);
                 done();
