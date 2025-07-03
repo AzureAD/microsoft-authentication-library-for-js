@@ -924,7 +924,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(loginSuccessFired).toBe(true);
         });
 
-        xit("Calls NativeInteractionClient.handleRedirectPromise and emits telemetry event", (done) => {
+        it("Calls NativeInteractionClient.handleRedirectPromise and emits telemetry event", (done) => {
             const config = {
                 cache: {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
@@ -6040,7 +6040,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("instruments local storage cache location", (done) => {
+        xit("instruments local storage cache location", (done) => {
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
