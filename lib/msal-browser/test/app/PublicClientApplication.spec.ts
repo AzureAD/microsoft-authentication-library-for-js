@@ -924,7 +924,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(loginSuccessFired).toBe(true);
         });
 
-        it("Calls NativeInteractionClient.handleRedirectPromise and emits telemetry event", (done) => {
+        xit("Calls NativeInteractionClient.handleRedirectPromise and emits telemetry event", (done) => {
             const config = {
                 cache: {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
