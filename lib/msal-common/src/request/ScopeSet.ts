@@ -12,7 +12,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
-import { Constants, OIDC_SCOPES } from "../utils/Constants.js";
+import { Constants, OIDC_SCOPES, OIDC_DEFAULT_SCOPES } from "../utils/Constants.js";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
@@ -61,7 +61,21 @@ export class ScopeSet {
      * @returns
      */
     static createSearchScopes(inputScopeString: Array<string>): ScopeSet {
-        const scopeSet = new ScopeSet(inputScopeString);
+        // Filter empty string and null/undefined array items, similar to constructor logic
+        const scopeArr = inputScopeString
+            ? StringUtils.trimArrayEntries([...inputScopeString])
+            : [];
+        const filteredInput = scopeArr
+            ? StringUtils.removeEmptyStringsFromArray(scopeArr)
+            : [];
+
+        // For cache lookup, if no scopes are provided, use default OIDC scopes
+        // This allows cache hits for tokens acquired with default scopes
+        const searchScopes = filteredInput && filteredInput.length > 0 
+            ? filteredInput 
+            : [...OIDC_DEFAULT_SCOPES];
+
+        const scopeSet = new ScopeSet(searchScopes);
         if (!scopeSet.containsOnlyOIDCScopes()) {
             scopeSet.removeOIDCScopes();
         } else {

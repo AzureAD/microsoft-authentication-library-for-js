@@ -420,6 +420,73 @@ describe("ScopeSet.ts", () => {
         });
     });
 
+    describe("createSearchScopes method", () => {
+        it("should handle empty scopes by using default OIDC scopes", () => {
+            const searchScopes = ScopeSet.createSearchScopes([]);
+            
+            // Should contain openid and profile (offline_access gets removed in createSearchScopes)
+            expect(searchScopes.containsScope(Constants.OPENID_SCOPE)).toBe(true);
+            expect(searchScopes.containsScope(Constants.PROFILE_SCOPE)).toBe(true);
+            expect(searchScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE)).toBe(false);
+        });
+
+        it("should handle null/undefined scopes by using default OIDC scopes", () => {
+            // @ts-ignore
+            const searchScopes1 = ScopeSet.createSearchScopes(null);
+            // @ts-ignore
+            const searchScopes2 = ScopeSet.createSearchScopes(undefined);
+            
+            [searchScopes1, searchScopes2].forEach(searchScopes => {
+                expect(searchScopes.containsScope(Constants.OPENID_SCOPE)).toBe(true);
+                expect(searchScopes.containsScope(Constants.PROFILE_SCOPE)).toBe(true);
+                expect(searchScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE)).toBe(false);
+            });
+        });
+
+        it("should handle empty strings in scope array", () => {
+            const searchScopes = ScopeSet.createSearchScopes(["", "  ", ""]);
+            
+            // Should fallback to default OIDC scopes when all entries are empty
+            expect(searchScopes.containsScope(Constants.OPENID_SCOPE)).toBe(true);
+            expect(searchScopes.containsScope(Constants.PROFILE_SCOPE)).toBe(true);
+            expect(searchScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE)).toBe(false);
+        });
+
+        it("should work normally with non-empty scopes", () => {
+            const testScope = "https://graph.microsoft.com/User.Read";
+            const searchScopes = ScopeSet.createSearchScopes([testScope]);
+            
+            // Should contain the test scope but not OIDC scopes (they get removed for non-OIDC-only scopes)
+            expect(searchScopes.containsScope(testScope)).toBe(true);
+            expect(searchScopes.containsScope(Constants.OPENID_SCOPE)).toBe(false);
+            expect(searchScopes.containsScope(Constants.PROFILE_SCOPE)).toBe(false);
+            expect(searchScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE)).toBe(false);
+        });
+
+        it("should handle mixed empty and non-empty scopes", () => {
+            const testScope = "https://graph.microsoft.com/User.Read";
+            const searchScopes = ScopeSet.createSearchScopes(["", testScope, "  "]);
+            
+            // Should contain the test scope but not OIDC scopes
+            expect(searchScopes.containsScope(testScope)).toBe(true);
+            expect(searchScopes.containsScope(Constants.OPENID_SCOPE)).toBe(false);
+            expect(searchScopes.containsScope(Constants.PROFILE_SCOPE)).toBe(false);
+        });
+
+        it("should handle OIDC-only scopes correctly", () => {
+            const searchScopes = ScopeSet.createSearchScopes([
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                Constants.OFFLINE_ACCESS_SCOPE
+            ]);
+            
+            // For OIDC-only scopes, offline_access should be removed but others kept
+            expect(searchScopes.containsScope(Constants.OPENID_SCOPE)).toBe(true);
+            expect(searchScopes.containsScope(Constants.PROFILE_SCOPE)).toBe(true);
+            expect(searchScopes.containsScope(Constants.OFFLINE_ACCESS_SCOPE)).toBe(false);
+        });
+    });
+
     describe("Getters and Setters", () => {
         let requiredScopeSet: ScopeSet;
         let nonRequiredScopeSet: ScopeSet;
