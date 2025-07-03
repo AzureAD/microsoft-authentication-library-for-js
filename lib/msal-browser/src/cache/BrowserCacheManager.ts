@@ -151,16 +151,32 @@ export class BrowserCacheManager extends CacheManager {
                 continue;
             }
 
-            const value = this.browserStorage.getItem(key);
-            if (!value) {
-                this.removeAccountKeyFromMap(key, correlationId);
-                return;
+            // Check if we understand how to consume the entry
+            const account = this.getAccount(key, correlationId);
+            if (!account) {
+                const value = this.browserStorage.getItem(key);
+                const parsedVal = this.validateAndParseJson(value || "") as { lastUpdatedAt?: string } | null;
+                if (!parsedVal) {
+                    this.removeAccountKeyFromMap(key, correlationId);
+                    continue;
+                }
+                if (!parsedVal.lastUpdatedAt) {
+                    parsedVal.lastUpdatedAt = currentTimestamp;
+                    // Update existing value with lastUpdatedAt so we know when to remove it
+                    this.browserStorage.setItem(key, JSON.stringify(parsedVal));
+                } else {
+                    // Check expiration against cacheRetentionDays configuration
+                }
+                continue;
             }
-            const parsedVal = this.validateAndParseJson(value);
-            if (!parsedVal?.lastUpdatedAt) {
-                parsedVal.lastUpdatedAt = currentTimestamp;
-                this.browserStorage.setItem(key, JSON.stringify(parsedVal));
+
+            if (!account.lastUpdatedAt) {
+                account.lastUpdatedAt = currentTimestamp;
+                await this.browserStorage.setUserData(key, JSON.stringify(account), correlationId, currentTimestamp);
             }
+
+            const newKey = this.generateAccountKey(account.getAccountInfo());
+            await this.browserStorage.setUserData(newKey, JSON.stringify(account), correlationId, currentTimestamp);
         }
     }
 
@@ -191,6 +207,9 @@ export class BrowserCacheManager extends CacheManager {
      * @param input
      */
     protected validateAndParseJson(jsonValue: string): object | null {
+        if (!jsonValue) {
+            return null;
+        }
         try {
             const parsedJson = JSON.parse(jsonValue);
             /**
