@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751561808122,
+  "lastUpdate": 1751567475220,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15830,6 +15830,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.73%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "648a76f02253d7d7960bec2651fa57454c279ea6",
+          "message": "Add copilot instructions file (#7879)\n\nAdds instructions file for Copilot as documented here:\nhttps://docs.github.com/en/enterprise-cloud@latest/copilot/how-tos/agents/copilot-coding-agent/best-practices-for-using-copilot-to-work-on-tasks",
+          "timestamp": "2025-07-03T11:24:39-07:00",
+          "tree_id": "0d87e3ebe1827ff20f6b8e87cdf757e17c4ac5ef",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/648a76f02253d7d7960bec2651fa57454c279ea6"
+        },
+        "date": 1751567472948,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252561,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 252842,
+            "range": "±0.59%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
