@@ -4,10 +4,10 @@ import { SignUpSubmitAttributesResult } from "../../../../../src/custom_auth/sig
 import { SignUpAttributesRequiredState } from "../../../../../src/custom_auth/sign_up/auth_flow/state/SignUpAttributesRequiredState.js";
 import { createSignUpCompletedResult } from "../../../../../src/custom_auth/sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpClient } from "../../../../../src/custom_auth/sign_up/interaction_client/SignUpClient.js";
-import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { UserAccountAttributes } from "../../../../../src/custom_auth/UserAccountAttributes.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("SignUpAttributesRequiredState", () => {
     const mockConfig = {
@@ -20,13 +20,6 @@ describe("SignUpAttributesRequiredState", () => {
     } as unknown as jest.Mocked<SignUpClient>;
 
     const mockSignInClient = {} as unknown as jest.Mocked<SignInClient>;
-
-    const mockLogger = {
-        info: jest.fn(),
-        verbose: jest.fn(),
-        error: jest.fn(),
-        errorPii: jest.fn(),
-    } as unknown as jest.Mocked<Logger>;
 
     const username = "testuser";
     const correlationId = "test-correlation-id";
@@ -45,7 +38,7 @@ describe("SignUpAttributesRequiredState", () => {
             cacheClient:
                 {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>,
             correlationId: correlationId,
-            logger: mockLogger,
+            logger: getDefaultLogger(),
             continuationToken: continuationToken,
             config: mockConfig,
             requiredAttributes: [
