@@ -3,5 +3,5 @@
  * Licensed under the MIT License.
  */
 
-export const cacheQuotaExceededErrorCode = "cache_quota_exceeded";
-export const cacheUnknownErrorCode = "cache_error_unknown";
+export const cacheQuotaExceeded = "cache_quota_exceeded";
+export const cacheErrorUnknown = "cache_error_unknown";

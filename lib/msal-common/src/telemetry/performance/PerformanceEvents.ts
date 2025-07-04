@@ -94,3 +94,4 @@ export const RegionDiscoveryGetCurrentVersion =
  * Cache operations
  */
 export const CacheManagerGetRefreshToken = "cacheManagerGetRefreshToken";
+export const SetUserData = "setUserData";

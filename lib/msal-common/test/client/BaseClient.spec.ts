@@ -223,7 +223,8 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 ThrottlingUtils.preProcess(
                     // @ts-ignore
                     client.cacheManager,
-                    thumbprint
+                    thumbprint,
+                    RANDOM_TEST_GUID
                 )
             ).toThrowError(ServerError);
         });
