@@ -217,8 +217,10 @@ describe("CustomAuthSilentCacheClient", () => {
                 .refreshToken.filter((key) =>
                     key.includes(TestHomeAccountId)
                 )[0];
-            const refreshToken =
-                mockCacheManager.getRefreshTokenCredential(refreshTokenKey);
+            const refreshToken = mockCacheManager.getRefreshTokenCredential(
+                refreshTokenKey,
+                "test-correlation-id"
+            );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
 
@@ -245,8 +247,10 @@ describe("CustomAuthSilentCacheClient", () => {
                 .refreshToken.filter((key) =>
                     key.includes(TestHomeAccountId)
                 )[0];
-            const refreshToken =
-                mockCacheManager.getRefreshTokenCredential(refreshTokenKey);
+            const refreshToken = mockCacheManager.getRefreshTokenCredential(
+                refreshTokenKey,
+                "test-correlation-id"
+            );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
 
@@ -271,8 +275,10 @@ describe("CustomAuthSilentCacheClient", () => {
                 .refreshToken.filter((key) =>
                     key.includes(TestHomeAccountId)
                 )[0];
-            const refreshToken =
-                mockCacheManager.getRefreshTokenCredential(refreshTokenKey);
+            const refreshToken = mockCacheManager.getRefreshTokenCredential(
+                refreshTokenKey,
+                "test-correlation-id"
+            );
             expect(refreshToken?.secret).toEqual("renewed-refresh-token");
         });
 

@@ -143,7 +143,10 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
             correlationId
         );
 
-        const allAccounts = this.browserStorage.getAllAccounts();
+        const allAccounts = this.browserStorage.getAllAccounts(
+            {},
+            correlationId
+        );
 
         if (allAccounts.length > 0) {
             if (allAccounts.length !== 1) {
