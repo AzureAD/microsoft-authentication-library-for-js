@@ -12,292 +12,480 @@ import {
     BrowserCacheUtils,
     ONE_SECOND_IN_MS,
     LabClient,
-    getHomeUrl
+    getHomeUrl,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "./screenshots/signup");
-const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45; // Standard timeout for operations
-const AUTH_TIMEOUT = ONE_SECOND_IN_MS * 60; // Extended timeout for auth operations
-const TEST_TIMEOUT = ONE_SECOND_IN_MS * 120; // Test suite timeout
-let sampleHomeUrl = "";
+const AUTH_STATUS = {
+    SIGNED_IN: "Signed in",
+    REGISTERED: "Registration successful"
+} as const;
+
+// Test timeouts
+const TEST_TIMEOUT = ONE_SECOND_IN_MS * 120;  // 2 minutes for full test timeout
+const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45;  // 45 seconds for standard operations
+const AUTH_TIMEOUT = ONE_SECOND_IN_MS * 60;      // 60 seconds for auth operations
+
+const SCREENSHOT_NAMES = {
+    CLICK_SIGNUP: "click-signup",
+    INITIAL_STATE: "initial-state",
+    EMAIL_ENTERED: "email-entered",
+    PASSWORD_ENTERED: "password-entered",
+    ATTRIBUTES_ENTERED: "attributes-entered",
+    SIGNUP_COMPLETE: "signup-complete",
+    AUTO_SIGNIN_COMPLETE: "auto-signin-complete",
+    OTP_INPUT_DISPLAYED: "otp-input-displayed",
+    INVALID_OTP_ENTERED: "invalid-otp-entered",
+    INVALID_OTP_ERROR: "invalid-otp-error",
+    TOKEN_CACHE_AFTER_SIGNUP: "token-cache-after-signup",
+    DUPLICATE_ACCOUNT_ERROR: "duplicate-account-error",
+    ERROR_STATE: "error-state"
+} as const;
+
+const ERROR_MESSAGES = {
+    SIGNUP_ERROR: "Sign-up Error",
+    EMAIL_REQUIRED: "Email is required",
+    PASSWORD_REQUIRED: "Password is required",
+    INVALID_EMAIL: "Invalid email format",
+    DUPLICATE_ACCOUNT: "Account already exists",
+    INVALID_PASSWORD: "Password does not meet requirements",
+    INVALID_CODE: "Unable to validate the otp"
+} as const;
+
+const TEST_CREDENTIALS = {
+    EMAIL: "test" + Date.now() + "@contoso.com", // Generate unique email
+    PASSWORD: "Test123!@#",
+    INVALID_EMAIL: "notanemail",
+    INVALID_PASSWORD: "weak",
+    EXISTING_EMAIL: "existing@contoso.com",
+    INVALID_OTP: "000000"
+} as const;
+
+const TEST_NAMES = {
+    PASSWORD_SIGNUP: "password-signup",
+    OTP_SIGNUP: "otp-signup",
+    INVALID_CREDS: "invalid-credentials",
+    DUPLICATE_ACCOUNT: "duplicate-account",
+    INVALID_OTP: "invalid-otp",
+    TOKEN_CACHE: "token-cache"
+} as const;
+
+const SELECTORS = {
+    signUpBtn: "#showSignUpBtn",          // Nav button
+    signUpForm: "#signUpForm",            // Main form
+    emailInput: "#signUpEmail",           // Email field
+    passwordInput: "#signUpPassword",     // Password field
+    submitBtn: "#signUpSubmitButton",     // Submit button
+    displayNameInput: "#displayName",     // Display name field
+    otpInput: "#verificationCode",        // OTP input
+    submitOtpBtn: "#submitCodeBtn",       // Submit OTP button
+    resendOtpBtn: "#resendCodeBtn",       // Resend OTP button
+    errorMessage: "#errorMessage",         // Error message
+    errorBanner: "#errorBanner",          // Error banner
+    authStatus: "#authStatusBanner",      // Auth status
+    welcomeMessage: "#welcomeMessage"      // Welcome message
+} as const;
 
 describe("Native Auth Sample - Sign Up Tests", () => {
+    let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
-    let BrowserCache: BrowserCacheUtils;
-    let browser: puppeteer.Browser;
-    let signUpEmailWithPwd: string = "";
-    let accountPwd: string = "";
-    let signUpEmailWithOtp: string = "";
-    let testFirstName: string = "";
-    let testLastName: string = "";
-    let existingPwdEmail: string = "";
+    let browserCache: BrowserCacheUtils;
     let corsProcess: ChildProcess;
+    let sampleHomeUrl: string;
 
     beforeAll(async () => {
-        // Start the CORS proxy server using the utility function
         corsProcess = await startCorsProxy(
-            "MSIDLABCIAM6", 
-            "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
+            "ciamtestlocal",
+            "cd97f2df-f1e9-4ee6-8dc0-d036accad626",
             30001
         );
 
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
-
-        let labClient = new LabClient();
-
-        // this will be replaced with the actual email and password used for testing
-        signUpEmailWithPwd = "test-pwd@test.com"
-        signUpEmailWithOtp = "test-otp@test.com"
-        existingPwdEmail = 'nativeauthuser1@1secmail.org';
-
-        testFirstName = "TestFirstName";
-        testLastName = "TestLastName";
-        accountPwd = "Password123!";
+        context = await browser.createBrowserContext();
     });
 
     afterAll(async () => {
         await context?.close();
         await browser?.close();
-        // Stop the CORS proxy server using the utility function
         stopCorsProxy(corsProcess);
     });
 
-
     beforeEach(async () => {
-        context = await browser.createBrowserContext();
         page = await context.newPage();
-
-        BrowserCache = new BrowserCacheUtils(
-            page,
-            "sessionStorage" // Based on Native Auth Sample configuration
-        );            // Navigate to the Native Auth Sample home page and wait for network idle to ensure full page load
+        browserCache = new BrowserCacheUtils(page, "sessionStorage");
     });
 
     afterEach(async () => {
-        // Clear storage after each test
-        await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
-        });
-        await page.close();
+        if (page) {
+            await page.close();
+        }
     });
 
-    describe("Sign Up Flow - Email + Password", () => {
+    describe("Password-based Sign Up", () => {
         beforeEach(async () => {
-            await page.goto(sampleHomeUrl + `?usePwdConfig=true`);
-
-            // Wait for the application to initialize
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            // Verify sign-up button is visible on the navigation bar
-            const showSignUpBtn = await page.$("#showSignUpBtn");
-            expect(showSignUpBtn).toBeTruthy();
-
-            // Click sign-up button on the navigation bar
-            await page.click("#showSignUpBtn");
-
-            // Verify sign-up card is visible
-            const signUpCard = await page.$("#signUpCard");
-            expect(signUpCard).toBeTruthy();
-
-            // Verify sign-up form elements are present
-            const usernameInput = await page.$("#signUpUsername");
-            const signUpButton = await page.$("#signUpBtn");
-            expect(usernameInput).toBeTruthy();
-            expect(signUpButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isSignUpCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("signUpCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isSignUpCardVisible).toBe(true);
+            await page.goto(sampleHomeUrl + "?usePwdConfig=true");
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
         });
 
-        it("User enters username, attributes to start sign-up flow, and enter the incorrect otp", async () => {
-            const testName = "signUpFormDisplay";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+        it("completes successful signup", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.PASSWORD_SIGNUP}`);
 
-            // Enter username in the sign-up form and click sign-up button
-            await page.waitForSelector("#signUpFirstName", { visible: true });
-            await page.waitForSelector("#signUpLastName", { visible: true });
-            await page.waitForSelector("#signUpUsername", { visible: true });
+            // Start signup flow
+            await clickSignUpNav(page, screenshot);
 
-            await page.type("#signUpFirstName", testFirstName);
-            await page.type("#signUpLastName", testLastName);
-            await page.type("#signUpUsername", signUpEmailWithPwd);
+            // Fill and submit registration form
+            await submitRegistrationForm(page, {
+                email: TEST_CREDENTIALS.EMAIL,
+                password: TEST_CREDENTIALS.PASSWORD,
+                displayName: "Test User"
+            }, screenshot);
 
-            // Make sure sign-up button is visible and clickable
-            await page.waitForSelector("#signUpBtn", { visible: true });
+            // Validate successful registration and auto sign-in
+            await validateSignUpSuccess(page, browserCache, screenshot);
+        });
 
-            // Use evaluate to click to avoid potential click issues
-            await page.evaluate(() => {
-                const signUpButton = document.getElementById("signUpBtn");
-                if (signUpButton) {
-                    signUpButton.click();
-                } else {
-                    throw new Error("Sign up button not found in the DOM");
-                }
-            });
-            await screenshot.takeScreenshot(page, "signUpButtonClicked");
+        it("validates email format", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.INVALID_CREDS}`);
+            
+            await clickSignUpNav(page, screenshot);
+            await submitRegistrationForm(page, {
+                email: TEST_CREDENTIALS.INVALID_EMAIL,
+                password: TEST_CREDENTIALS.PASSWORD,
+                displayName: "Test User"
+            }, screenshot);
 
-            // Wait for code input card to appear
-            await page.waitForSelector("#codeVerificationCard");
-            await screenshot.takeScreenshot(page, "codeVerificationCardDisplayed");
+            await validateErrorState(page, ERROR_MESSAGES.INVALID_EMAIL, screenshot);
+        });
 
-            // Enter code and submit - ensure code field is fully visible first
-            await page.waitForSelector("#verificationCode", { visible: true });
-            await page.type("#verificationCode", "12345678"); // Enter incorrect code
-            await screenshot.takeScreenshot(page, "verificationCodeEntered");
-            await page.click("#submitCodeBtn");
-            await screenshot.takeScreenshot(page, "submitCodeButtonClicked");
-            // Wait for error message to appear
-            // Wait for the error banner to appear with increased timeout
-            await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
+        it("validates password requirements", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.INVALID_CREDS}`);
+            
+            await clickSignUpNav(page, screenshot);
+            await submitRegistrationForm(page, {
+                email: TEST_CREDENTIALS.EMAIL,
+                password: TEST_CREDENTIALS.INVALID_PASSWORD,
+                displayName: "Test User"
+            }, screenshot);
 
-            // Verify error banner content
-            const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("Sign-up Error: Error: invalid_grant: AADSTS50181: Unable to validate the otp");
-        }, AUTH_TIMEOUT);
+            await validateErrorState(page, ERROR_MESSAGES.INVALID_PASSWORD, screenshot);
+        });
 
-        it("User sign up with existing username", async () => {
-            const testName = "signUpWithExistingUsername";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+        it("prevents duplicate account creation", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.DUPLICATE_ACCOUNT}`);
+            
+            await clickSignUpNav(page, screenshot);
+            await submitRegistrationForm(page, {
+                email: TEST_CREDENTIALS.EXISTING_EMAIL,
+                password: TEST_CREDENTIALS.PASSWORD,
+                displayName: "Test User"
+            }, screenshot);
 
-            // Enter username in the sign-up form and click sign-up button
-            await page.waitForSelector("#signUpFirstName", { visible: true });
-            await page.waitForSelector("#signUpLastName", { visible: true });
-            await page.waitForSelector("#signUpUsername", { visible: true });
-
-            await page.type("#signUpFirstName", testFirstName);
-            await page.type("#signUpLastName", testLastName);
-            await page.type("#signUpUsername", existingPwdEmail);
-
-            // Make sure sign-up button is visible and clickable
-            await page.waitForSelector("#signUpBtn", { visible: true });
-
-            // Use evaluate to click to avoid potential click issues
-            await page.evaluate(() => {
-                const signUpButton = document.getElementById("signUpBtn");
-                if (signUpButton) {
-                    signUpButton.click();
-                } else {
-                    throw new Error("Sign up button not found in the DOM");
-                }
-            });
-            await screenshot.takeScreenshot(page, "signUpButtonClicked");
-
-            // Wait for code input card to appear
-            await page.waitForSelector("#codeVerificationCard");
-            await screenshot.takeScreenshot(page, "codeVerificationCardDisplayed");
-
-            // Wait for error message to appear
-            // Wait for the error banner to appear with increased timeout
-            await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
-
-            // Verify error banner content
-            const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain(" Error: user_already_exists: AADSTS1003037");
-        }, AUTH_TIMEOUT);
+            await validateErrorState(page, ERROR_MESSAGES.DUPLICATE_ACCOUNT, screenshot);
+        });
     });
 
-    describe("Sign Up Flow - Redirect", () => {
+    describe("OTP-based Sign Up", () => {
         beforeEach(async () => {
-            // Use useRedirectConfig=true to ensure the app initializes with redirect-only challenge types
-            await page.goto(sampleHomeUrl + `?useOtpConfig=true&useRedirectConfig=true`);
-            console.log("Navigated to URL with redirect config");
-
-            // Wait for the application to initialize with a longer timeout
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            console.log("Application initialized");
-
-            // Verify that no user signed in initially
-            const authStatusBanner = await page.$eval("#authStatusBanner", (el) => el.textContent);
-            expect(authStatusBanner).toContain("No user signed in");
-            
-            // Take a screenshot of the initialized state
-            const setupScreenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/setup`
-            );
-            await setupScreenshot.takeScreenshot(page, "appInitialized");
-            
-            // Verify sign-up button is visible on the navigation bar
-            const showSignUpBtn = await page.$("#showSignUpBtn");
-            expect(showSignUpBtn).toBeTruthy();
-            console.log("Sign-up button found");
-
-            // Click sign-up button on the navigation bar
-            await page.click("#showSignUpBtn");
-            console.log("Clicked sign-up button");
-
-            // Verify sign-up card is visible
-            const signUpCard = await page.$("#signUpCard");
-            expect(signUpCard).toBeTruthy();
-            console.log("Sign-up card is visible");
-
-            // Verify sign-up form elements are present
-            const usernameInput = await page.$("#signUpUsername");
-            const signUpButton = await page.$("#signUpBtn");
-            expect(usernameInput).toBeTruthy();
-            expect(signUpButton).toBeTruthy();
-            console.log("Sign-up form elements are present");
-            
-            // Log the challenge types currently configured
-            await page.evaluate(() => {
-                // Use type casting for TypeScript
-                const customWindow = window as any;
-                if (customWindow.msalConfig && customWindow.msalConfig.customAuth) {
-                    console.log("Current challenge types:", 
-                        JSON.stringify(customWindow.msalConfig.customAuth.challengeTypes));
-                }
-            });
+            await page.goto(sampleHomeUrl + "?useOtpConfig=true");
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
         });
 
-        it("User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)", async () => {
-            const testName = "emailOtpSignUpRedirect";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+        it("handles invalid OTP", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.INVALID_OTP}`);
+            
+            // Start signup and enter initial info
+            await clickSignUpNav(page, screenshot);
+            await submitRegistrationForm(page, {
+                email: TEST_CREDENTIALS.EMAIL,
+                displayName: "Test User"
+            }, screenshot);
 
-            // Enter email in the sign-up form and click sign-up button
-            await page.waitForSelector("#signUpUsername", { visible: true });
-            await page.type("#signUpUsername", signUpEmailWithOtp);
+            // Enter and submit invalid OTP
+            await submitOtpCode(page, TEST_CREDENTIALS.INVALID_OTP, screenshot);
+            await validateErrorState(page, ERROR_MESSAGES.INVALID_CODE, screenshot);
+        });
 
-            // Make sure sign-up button is visible and clickable
-            await page.waitForSelector("#signUpBtn", { visible: true });
+        it("handles OTP resend", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.OTP_SIGNUP}`);
+            
+            // Start signup and enter initial info
+            await clickSignUpNav(page, screenshot);
+            await submitRegistrationForm(page, {
+                email: TEST_CREDENTIALS.EMAIL,
+                displayName: "Test User"
+            }, screenshot);
 
-            // Use evaluate to click to avoid potential click issues
-            await page.evaluate(() => {
-                const signUpButton = document.getElementById("signUpBtn");
-                if (signUpButton) {
-                    signUpButton.click();
-                } else {
-                    throw new Error("Sign up button not found in the DOM");
-                }
-            });
-            await screenshot.takeScreenshot(page, "signUpButtonClicked");
+            // Test resend functionality
+            await resendOtpCode(page, screenshot);
+            await validateOtpInputState(page, screenshot);
+        });
+    });
 
-            // Wait for the error banner to appear with increased timeout
-            await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
+    describe("Token Cache Management", () => {
+        beforeEach(async () => {
+            await page.goto(sampleHomeUrl + "?usePwdConfig=true");
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
+        });
 
-            // Verify error banner content
-            const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("redirect: No required authentication");
-                
-        }, AUTH_TIMEOUT);
+        it("validates token cache after auto sign-in", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.TOKEN_CACHE}`);
+            
+            // Complete signup flow
+            await clickSignUpNav(page, screenshot);
+            await submitRegistrationForm(page, {
+                email: TEST_CREDENTIALS.EMAIL,
+                password: TEST_CREDENTIALS.PASSWORD,
+                displayName: "Test User"
+            }, screenshot);
+
+            // Validate auto sign-in cache state
+            await validateSignUpSuccess(page, browserCache, screenshot);
+            await validateTokenCache(browserCache, screenshot, page);
+        });
     });
 });
+
+// Helper Functions
+
+/**
+ * Clicks the sign-up navigation button and waits for the form
+ */
+async function clickSignUpNav(page: puppeteer.Page, screenshot?: Screenshot): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.signUpBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.signUpBtn);
+        
+        await page.waitForSelector(SELECTORS.signUpForm, { visible: true, timeout: STANDARD_TIMEOUT });
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.INITIAL_STATE);
+    } catch (error) {
+        console.error("Failed to navigate to sign-up form:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+interface RegistrationData {
+    email: string;
+    password?: string;
+    displayName: string;
+}
+
+/**
+ * Submits the registration form with provided data
+ */
+async function submitRegistrationForm(
+    page: puppeteer.Page,
+    data: RegistrationData,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        // Enter email
+        await page.waitForSelector(SELECTORS.emailInput, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.type(SELECTORS.emailInput, data.email);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.EMAIL_ENTERED);
+
+        // Enter password if provided (password-based flow)
+        if (data.password) {
+            await page.waitForSelector(SELECTORS.passwordInput, { visible: true, timeout: STANDARD_TIMEOUT });
+            await page.type(SELECTORS.passwordInput, data.password);
+            if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.PASSWORD_ENTERED);
+        }
+
+        // Enter display name
+        await page.waitForSelector(SELECTORS.displayNameInput, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.type(SELECTORS.displayNameInput, data.displayName);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ATTRIBUTES_ENTERED);
+
+        // Submit form
+        await page.waitForSelector(SELECTORS.submitBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.submitBtn);
+    } catch (error) {
+        console.error("Registration form submission failed:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+/**
+ * Submits an OTP code in the verification form
+ */
+async function submitOtpCode(
+    page: puppeteer.Page,
+    otpCode: string,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.otpInput, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.type(SELECTORS.otpInput, otpCode);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.INVALID_OTP_ENTERED);
+
+        await page.waitForSelector(SELECTORS.submitOtpBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.submitOtpBtn);
+    } catch (error) {
+        console.error("OTP submission failed:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+/**
+ * Triggers OTP code resend
+ */
+async function resendOtpCode(page: puppeteer.Page, screenshot?: Screenshot): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.resendOtpBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.resendOtpBtn);
+    } catch (error) {
+        console.error("OTP resend failed:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+/**
+ * Validates that OTP input elements are properly displayed
+ */
+async function validateOtpInputState(
+    page: puppeteer.Page, 
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        await Promise.all([
+            page.waitForSelector(SELECTORS.otpInput, { visible: true, timeout: STANDARD_TIMEOUT }),
+            page.waitForSelector(SELECTORS.submitOtpBtn, { visible: true, timeout: STANDARD_TIMEOUT }),
+            page.waitForSelector(SELECTORS.resendOtpBtn, { visible: true, timeout: STANDARD_TIMEOUT })
+        ]);
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.OTP_INPUT_DISPLAYED);
+        }
+    } catch (error) {
+        console.error("OTP input validation failed:", error);
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Validates error state and message display
+ */
+async function validateErrorState(
+    page: puppeteer.Page, 
+    expectedError: string,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.errorBanner, { visible: true, timeout: AUTH_TIMEOUT });
+        
+        await page.waitForFunction(
+            (selector, expectedContent) => {
+                const element = document.querySelector(selector);
+                return element && element.textContent && element.textContent.includes(expectedContent);
+            },
+            { timeout: AUTH_TIMEOUT },
+            SELECTORS.errorMessage,
+            expectedError
+        );
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+    } catch (error) {
+        console.error(`Error state validation failed for "${expectedError}":`, error);
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Validates successful registration and auto sign-in state
+ */
+async function validateSignUpSuccess(
+    page: puppeteer.Page,
+    browserCache: BrowserCacheUtils,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        // Wait for registration success message
+        await page.waitForFunction(
+            (selector, expectedStatus) => {
+                const element = document.querySelector(selector);
+                return element && element.textContent && 
+                       element.textContent.includes(expectedStatus);
+            },
+            { timeout: AUTH_TIMEOUT },
+            SELECTORS.authStatus,
+            AUTH_STATUS.REGISTERED
+        );
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.SIGNUP_COMPLETE);
+        }
+
+        // Wait for auto sign-in completion
+        await page.waitForFunction(
+            (selector, expectedStatus) => {
+                const element = document.querySelector(selector);
+                return element && element.textContent && 
+                       element.textContent.includes(expectedStatus);
+            },
+            { timeout: AUTH_TIMEOUT },
+            SELECTORS.authStatus,
+            AUTH_STATUS.SIGNED_IN
+        );
+
+        // Verify welcome message
+        await page.waitForSelector(SELECTORS.welcomeMessage, { visible: true, timeout: STANDARD_TIMEOUT });
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.AUTO_SIGNIN_COMPLETE);
+        }
+
+        // Verify token cache state
+        await validateTokenCache(browserCache, screenshot, page);
+    } catch (error) {
+        console.error("Sign-up success validation failed:", error);
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Validates the token cache state
+ */
+async function validateTokenCache(
+    browserCache: BrowserCacheUtils,
+    screenshot?: Screenshot,
+    page?: puppeteer.Page
+): Promise<void> {
+    try {
+        const tokenStore = await browserCache.getTokens();
+        
+        // Verify token presence
+        expect(tokenStore.accessTokens.length).toBe(1);
+        expect(tokenStore.idTokens.length).toBe(1);
+        expect(tokenStore.refreshTokens.length).toBe(1);
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.TOKEN_CACHE_AFTER_SIGNUP);
+        }
+    } catch (error) {
+        console.error("Token cache validation failed:", error);
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+        throw error;
+    }
+}

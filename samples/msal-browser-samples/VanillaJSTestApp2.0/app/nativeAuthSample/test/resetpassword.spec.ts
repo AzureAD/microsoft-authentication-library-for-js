@@ -12,287 +12,466 @@ import {
     BrowserCacheUtils,
     ONE_SECOND_IN_MS,
     LabClient,
-    getHomeUrl
+    getHomeUrl,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "./screenshots/reserpassword");
-const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45; // Standard timeout for operations
-const AUTH_TIMEOUT = ONE_SECOND_IN_MS * 60; // Extended timeout for auth operations
-const TEST_TIMEOUT = ONE_SECOND_IN_MS * 120; // Test suite timeout
-let sampleHomeUrl = "";
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "./screenshots/resetpassword");
+const AUTH_STATUS = {
+    SIGNED_IN: "Signed in",
+    PASSWORD_RESET: "Password reset successful"
+} as const;
 
-describe("Native Auth Sample - Reser Password Tests", () => {
+// Test timeouts
+const TEST_TIMEOUT = ONE_SECOND_IN_MS * 120;  // 2 minutes for full test timeout
+const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45;  // 45 seconds for standard operations
+const AUTH_TIMEOUT = ONE_SECOND_IN_MS * 60;      // 60 seconds for auth operations
+
+const SCREENSHOT_NAMES = {
+    CLICK_RESET: "click-reset",
+    INITIAL_STATE: "initial-state",
+    EMAIL_ENTERED: "email-entered",
+    OTP_INPUT_DISPLAYED: "otp-input-displayed",
+    INVALID_OTP_ENTERED: "invalid-otp-entered",
+    INVALID_OTP_ERROR: "invalid-otp-error",
+    NEW_PASSWORD_DISPLAYED: "new-password-displayed",
+    NEW_PASSWORD_ENTERED: "new-password-entered",
+    PASSWORD_RESET_COMPLETE: "password-reset-complete",
+    AUTO_SIGNIN_COMPLETE: "auto-signin-complete",
+    TOKEN_CACHE_AFTER_RESET: "token-cache-after-reset",
+    ERROR_STATE: "error-state"
+} as const;
+
+const ERROR_MESSAGES = {
+    RESET_ERROR: "Password Reset Error",
+    EMAIL_REQUIRED: "Email is required",
+    INVALID_EMAIL: "Invalid email format",
+    INVALID_CODE: "Unable to validate the otp",
+    INVALID_PASSWORD: "Password does not meet requirements",
+    ACCOUNT_NOT_FOUND: "Account not found"
+} as const;
+
+const TEST_CREDENTIALS = {
+    EMAIL: "test@contoso.com",
+    NEW_PASSWORD: "NewTest123!@#",
+    INVALID_EMAIL: "notanemail",
+    INVALID_PASSWORD: "weak",
+    NONEXISTENT_EMAIL: "nonexistent@contoso.com",
+    INVALID_OTP: "000000"
+} as const;
+
+const TEST_NAMES = {
+    PASSWORD_RESET: "password-reset",
+    INVALID_EMAIL: "invalid-email",
+    NONEXISTENT_ACCOUNT: "nonexistent-account",
+    INVALID_OTP: "invalid-otp",
+    INVALID_PASSWORD: "invalid-password",
+    TOKEN_CACHE: "token-cache"
+} as const;
+
+const SELECTORS = {
+    resetBtn: "#showResetPasswordBtn",    // Reset nav button
+    resetForm: "#resetPasswordForm",      // Main form
+    emailInput: "#resetPasswordEmail",    // Email field
+    submitEmailBtn: "#submitEmailBtn",    // Submit email button
+    otpInput: "#verificationCode",        // OTP input
+    submitOtpBtn: "#submitCodeBtn",       // Submit OTP button
+    resendOtpBtn: "#resendCodeBtn",       // Resend OTP button
+    newPasswordInput: "#newPassword",     // New password input
+    confirmPasswordInput: "#confirmPassword", // Confirm password input
+    submitPasswordBtn: "#submitPasswordBtn", // Submit password button
+    errorMessage: "#errorMessage",         // Error message
+    errorBanner: "#errorBanner",          // Error banner
+    authStatus: "#authStatusBanner",      // Auth status
+    welcomeMessage: "#welcomeMessage"      // Welcome message
+} as const;
+
+describe("Native Auth Sample - Password Reset Tests", () => {
+    let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
-    let BrowserCache: BrowserCacheUtils;
-    let browser: puppeteer.Browser;
-    let resetPasswordEmailWithPwd: string = "";
-    let resetPasswordEmailWithOtp: string = "";
+    let browserCache: BrowserCacheUtils;
     let corsProcess: ChildProcess;
-    
+    let sampleHomeUrl: string;
 
     beforeAll(async () => {
-        // Start the CORS proxy server using the utility function
         corsProcess = await startCorsProxy(
-            "MSIDLABCIAM6", 
-            "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
+            "ciamtestlocal",
+            "cd97f2df-f1e9-4ee6-8dc0-d036accad626",
             30001
         );
 
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
-
-        let labClient = new LabClient();
-
-        // this will be replaced with the actual email and password used for testing
-        resetPasswordEmailWithPwd = 'nativeauthuser1@1secmail.org';
-        resetPasswordEmailWithOtp = 'nativeauthuser5@chefalicious.com';
+        context = await browser.createBrowserContext();
     });
 
     afterAll(async () => {
         await context?.close();
         await browser?.close();
-        // Stop the CORS proxy server using the utility function
         stopCorsProxy(corsProcess);
     });
 
-
     beforeEach(async () => {
-        context = await browser.createBrowserContext();
         page = await context.newPage();
-
-        BrowserCache = new BrowserCacheUtils(
-            page,
-            "sessionStorage" // Based on Native Auth Sample configuration
-        );            // Navigate to the Native Auth Sample home page and wait for network idle to ensure full page load
+        browserCache = new BrowserCacheUtils(page, "sessionStorage");
     });
 
     afterEach(async () => {
-        // Clear storage after each test
-        await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
-        });
-        await page.close();
+        if (page) {
+            await page.close();
+        }
     });
 
-    describe("Reset Password Flow", () => {
+    describe("Password Reset Flow", () => {
         beforeEach(async () => {
-            await page.goto(sampleHomeUrl + `?usePwdConfig=true`);
-
-            // Wait for the application to initialize
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            // Verify reset password button is visible on the navigation bar
-            const showResetPasswordButton = await page.$("#showResetPasswordBtn");
-            expect(showResetPasswordButton).toBeTruthy();
-
-            // Click reset password button on the navigation bar
-            await page.click("#showResetPasswordBtn");
-
-            // Verify reset password card is visible
-            const resetPasswordCard = await page.$("#resetPasswordCard");
-            expect(resetPasswordCard).toBeTruthy();
-
-            // Verify reset password form elements are present
-            const resetPasswordEmailInput = await page.$("#resetPasswordEmail");
-            const resetPasswordButton = await page.$("#resetPasswordBtn");
-            expect(resetPasswordEmailInput).toBeTruthy();
-            expect(resetPasswordButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isResetPasswordCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("resetPasswordCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isResetPasswordCardVisible).toBe(true);
+            await page.goto(sampleHomeUrl + "?usePwdConfig=true");
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
         });
 
-        it("User reset password with incorrect otp", async () => {
-            const testName = "resetPasswordFormDisplay";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+        it("completes successful password reset", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.PASSWORD_RESET}`);
+            
+            // Start reset flow
+            await clickResetPasswordNav(page, screenshot);
+            
+            // Submit email for reset
+            await submitResetEmail(page, TEST_CREDENTIALS.EMAIL, screenshot);
+            
+            // Enter OTP code (mock)
+            await submitOtpCode(page, "123456", screenshot);
+            
+            // Set new password
+            await submitNewPassword(page, TEST_CREDENTIALS.NEW_PASSWORD, screenshot);
+            
+            // Validate reset completion and auto sign-in
+            await validateResetSuccess(page, browserCache, screenshot);
+        });
 
-            // Enter username in the reset password form and click reset password button
-            await page.waitForSelector("#resetPasswordEmail", { visible: true });
-            await page.type("#resetPasswordEmail", resetPasswordEmailWithPwd);
-            // Make sure reset password button is visible and clickable
-            await page.waitForSelector("#resetPasswordBtn", { visible: true });
+        it("validates email format", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.INVALID_EMAIL}`);
+            
+            await clickResetPasswordNav(page, screenshot);
+            await submitResetEmail(page, TEST_CREDENTIALS.INVALID_EMAIL, screenshot);
+            
+            await validateErrorState(page, ERROR_MESSAGES.INVALID_EMAIL, screenshot);
+        });
 
-            // Use evaluate to click to avoid potential click issues
-            await page.evaluate(() => {
-                const resetPasswordButton = document.getElementById("resetPasswordBtn");
-                if (resetPasswordButton) {
-                    resetPasswordButton.click();
-                } else {
-                    throw new Error("Sign in button not found in the DOM");
-                }
-            });
-            await screenshot.takeScreenshot(page, "resetPasswordButtonClicked");
+        it("handles nonexistent account", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.NONEXISTENT_ACCOUNT}`);
+            
+            await clickResetPasswordNav(page, screenshot);
+            await submitResetEmail(page, TEST_CREDENTIALS.NONEXISTENT_EMAIL, screenshot);
+            
+            await validateErrorState(page, ERROR_MESSAGES.ACCOUNT_NOT_FOUND, screenshot);
+        });
 
-            // Wait for code input card to appear
-            await page.waitForSelector("#resetPasswordCodeCard", { visible: true, timeout: 45000 });
-            await screenshot.takeScreenshot(page, "resetPasswordCodeCard");
-
-            // Enter code and submit - ensure code field is fully visible first
-            await page.waitForSelector("#resetPasswordCode", { visible: true });
-            await page.type("#resetPasswordCode", "12345678"); // Enter incorrect code
-            await screenshot.takeScreenshot(page, "verificationCodeEntered");
-            await page.click("#submitResetPasswordCodeBtn");
-            await screenshot.takeScreenshot(page, "submitCodeButtonClicked");
-
-            // Wait for error message to appear
-            // Wait for the error banner to appear with increased timeout
-            await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
-
-            // Verify error banner content
-            const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("Error: invalid_grant: AADSTS50181: Unable to validate the otp");
-        }, AUTH_TIMEOUT);
-
-        it("Email is not found in records", async () => {
-            const testName = "resetPasswordWithNonExistingUsername";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
-
-            // Enter username in the reset password form and click reset password button
-            await page.waitForSelector("#resetPasswordEmail", { visible: true });
-            await page.type("#resetPasswordEmail", "non-existemail@test.com");
-
-            // Make sure reset password button is visible and clickable
-            await page.waitForSelector("#resetPasswordBtn", { visible: true });
-
-            // Use evaluate to click to avoid potential click issues
-            await page.evaluate(() => {
-                const resetPasswordButton = document.getElementById("resetPasswordBtn");
-                if (resetPasswordButton) {
-                    resetPasswordButton.click();
-                } else {
-                    throw new Error("Reset Password button not found in the DOM");
-                }
-            });
-            await screenshot.takeScreenshot(page, "resetPasswordButtonClicked");
-
-            // Wait for error message to appear
-            // Wait for the error banner to appear with increased timeout
-            await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
-
-            // Verify error banner content
-            const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("");
-        }, AUTH_TIMEOUT);
-
-        it("Email exists but not linked to any password (registered using otp flow)", async () => {
-            const testName = "resetPasswordWithOtpUsername";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
-
-            // Enter username in the reset password form and click reset password button
-            await page.waitForSelector("#resetPasswordEmail", { visible: true });
-            await page.type("#resetPasswordEmail", resetPasswordEmailWithOtp);
-
-            // Make sure reset password button is visible and clickable
-            await page.waitForSelector("#resetPasswordBtn", { visible: true });
-
-            // Use evaluate to click to avoid potential click issues
-            await page.evaluate(() => {
-                const resetPasswordButton = document.getElementById("resetPasswordBtn");
-                if (resetPasswordButton) {
-                    resetPasswordButton.click();
-                } else {
-                    throw new Error("Reset Password button not found in the DOM");
-                }
-            });
-            await screenshot.takeScreenshot(page, "resetPasswordButtonClicked");
-
-            // Wait for error message to appear
-            // Wait for the error banner to appear with increased timeout
-            await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
-
-            // Verify error banner content
-            const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("");
-        }, AUTH_TIMEOUT);
+        it("validates password requirements", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.INVALID_PASSWORD}`);
+            
+            await clickResetPasswordNav(page, screenshot);
+            await submitResetEmail(page, TEST_CREDENTIALS.EMAIL, screenshot);
+            await submitOtpCode(page, "123456", screenshot);
+            await submitNewPassword(page, TEST_CREDENTIALS.INVALID_PASSWORD, screenshot);
+            
+            await validateErrorState(page, ERROR_MESSAGES.INVALID_PASSWORD, screenshot);
+        });
     });
 
-    describe("Reset Password Flow - Redirect", () => {
+    describe("OTP Verification", () => {
         beforeEach(async () => {
-            // Use useRedirectConfig=true to ensure the app initializes with redirect-only challenge types
-            await page.goto(sampleHomeUrl + `?usePwdConfig=true&useRedirectConfig=true`);
-            console.log("Navigated to URL with redirect config");
-
-            // Wait for the application to initialize with a longer timeout
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            console.log("Application initialized");
-
-            // Verify reset password button is visible on the navigation bar
-            const showResetPasswordButton = await page.$("#showResetPasswordBtn");
-            expect(showResetPasswordButton).toBeTruthy();
-
-            // Click reset password button on the navigation bar
-            await page.click("#showResetPasswordBtn");
-
-            // Verify reset password card is visible
-            const resetPasswordCard = await page.$("#resetPasswordCard");
-            expect(resetPasswordCard).toBeTruthy();
-
-            // Verify reset password form elements are present
-            const resetPasswordEmailInput = await page.$("#resetPasswordEmail");
-            const resetPasswordButton = await page.$("#resetPasswordBtn");
-            expect(resetPasswordEmailInput).toBeTruthy();
-            expect(resetPasswordButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isResetPasswordCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("resetPasswordCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isResetPasswordCardVisible).toBe(true);
+            await page.goto(sampleHomeUrl + "?useOtpConfig=true");
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
         });
 
-        it("User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)", async () => {
-            const testName = "emailResetPasswordRedirect";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+        it("handles invalid OTP", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.INVALID_OTP}`);
+            
+            await clickResetPasswordNav(page, screenshot);
+            await submitResetEmail(page, TEST_CREDENTIALS.EMAIL, screenshot);
+            await submitOtpCode(page, TEST_CREDENTIALS.INVALID_OTP, screenshot);
+            
+            await validateErrorState(page, ERROR_MESSAGES.INVALID_CODE, screenshot);
+        });
 
-            // Enter username in the reset password form and click reset password button
-            await page.waitForSelector("#resetPasswordEmail", { visible: true });
-            await page.type("#resetPasswordEmail", resetPasswordEmailWithOtp);
+        it("handles OTP resend", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.INVALID_OTP}`);
+            
+            await clickResetPasswordNav(page, screenshot);
+            await submitResetEmail(page, TEST_CREDENTIALS.EMAIL, screenshot);
+            await resendOtpCode(page, screenshot);
+            await validateOtpInputState(page, screenshot);
+        });
+    });
 
-            // Make sure reset password button is visible and clickable
-            await page.waitForSelector("#resetPasswordBtn", { visible: true });
+    describe("Token Cache Management", () => {
+        beforeEach(async () => {
+            await page.goto(sampleHomeUrl + "?usePwdConfig=true");
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
+        });
 
-            // Use evaluate to click to avoid potential click issues
-            await page.evaluate(() => {
-                const resetPasswordButton = document.getElementById("resetPasswordBtn");
-                if (resetPasswordButton) {
-                    resetPasswordButton.click();
-                } else {
-                    throw new Error("Reset Password button not found in the DOM");
-                }
-            });
-            await screenshot.takeScreenshot(page, "resetPasswordButtonClicked");
-
-            // Wait for the error banner to appear with increased timeout
-            await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
-
-            // Verify error banner content
-            const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("Password Reset Error: Error: invalid_request: AADSTS500222:");
-                
-        }, AUTH_TIMEOUT);
+        it("validates token cache after auto sign-in", async () => {
+            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${TEST_NAMES.TOKEN_CACHE}`);
+            
+            // Complete reset flow
+            await clickResetPasswordNav(page, screenshot);
+            await submitResetEmail(page, TEST_CREDENTIALS.EMAIL, screenshot);
+            await submitOtpCode(page, "123456", screenshot);
+            await submitNewPassword(page, TEST_CREDENTIALS.NEW_PASSWORD, screenshot);
+            
+            // Validate auto sign-in cache state
+            await validateResetSuccess(page, browserCache, screenshot);
+            await validateTokenCache(browserCache, screenshot, page);
+        });
     });
 });
+
+// Helper Functions
+
+/**
+ * Clicks the reset password navigation button and waits for the form
+ */
+async function clickResetPasswordNav(page: puppeteer.Page, screenshot?: Screenshot): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.resetBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.resetBtn);
+        
+        await page.waitForSelector(SELECTORS.resetForm, { visible: true, timeout: STANDARD_TIMEOUT });
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.INITIAL_STATE);
+    } catch (error) {
+        console.error("Failed to navigate to reset password form:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+/**
+ * Submits email for password reset
+ */
+async function submitResetEmail(
+    page: puppeteer.Page,
+    email: string,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.emailInput, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.type(SELECTORS.emailInput, email);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.EMAIL_ENTERED);
+
+        await page.waitForSelector(SELECTORS.submitEmailBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.submitEmailBtn);
+    } catch (error) {
+        console.error("Email submission failed:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+/**
+ * Submits an OTP code in the verification form
+ */
+async function submitOtpCode(
+    page: puppeteer.Page,
+    otpCode: string,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.otpInput, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.type(SELECTORS.otpInput, otpCode);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.INVALID_OTP_ENTERED);
+
+        await page.waitForSelector(SELECTORS.submitOtpBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.submitOtpBtn);
+    } catch (error) {
+        console.error("OTP submission failed:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+/**
+ * Triggers OTP code resend
+ */
+async function resendOtpCode(page: puppeteer.Page, screenshot?: Screenshot): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.resendOtpBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.resendOtpBtn);
+    } catch (error) {
+        console.error("OTP resend failed:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+/**
+ * Submits new password
+ */
+async function submitNewPassword(
+    page: puppeteer.Page,
+    password: string,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        // Wait for new password form
+        await page.waitForSelector(SELECTORS.newPasswordInput, { visible: true, timeout: STANDARD_TIMEOUT });
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.NEW_PASSWORD_DISPLAYED);
+
+        // Enter new password
+        await page.type(SELECTORS.newPasswordInput, password);
+        await page.type(SELECTORS.confirmPasswordInput, password);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.NEW_PASSWORD_ENTERED);
+
+        // Submit new password
+        await page.waitForSelector(SELECTORS.submitPasswordBtn, { visible: true, timeout: STANDARD_TIMEOUT });
+        await page.click(SELECTORS.submitPasswordBtn);
+    } catch (error) {
+        console.error("New password submission failed:", error);
+        if (screenshot) await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        throw error;
+    }
+}
+
+/**
+ * Validates that OTP input elements are properly displayed
+ */
+async function validateOtpInputState(
+    page: puppeteer.Page, 
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        await Promise.all([
+            page.waitForSelector(SELECTORS.otpInput, { visible: true, timeout: STANDARD_TIMEOUT }),
+            page.waitForSelector(SELECTORS.submitOtpBtn, { visible: true, timeout: STANDARD_TIMEOUT }),
+            page.waitForSelector(SELECTORS.resendOtpBtn, { visible: true, timeout: STANDARD_TIMEOUT })
+        ]);
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.OTP_INPUT_DISPLAYED);
+        }
+    } catch (error) {
+        console.error("OTP input validation failed:", error);
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Validates error state and message display
+ */
+async function validateErrorState(
+    page: puppeteer.Page, 
+    expectedError: string,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        await page.waitForSelector(SELECTORS.errorBanner, { visible: true, timeout: AUTH_TIMEOUT });
+        
+        await page.waitForFunction(
+            (selector, expectedContent) => {
+                const element = document.querySelector(selector);
+                return element && element.textContent && element.textContent.includes(expectedContent);
+            },
+            { timeout: AUTH_TIMEOUT },
+            SELECTORS.errorMessage,
+            expectedError
+        );
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+    } catch (error) {
+        console.error(`Error state validation failed for "${expectedError}":`, error);
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Validates successful password reset and auto sign-in state
+ */
+async function validateResetSuccess(
+    page: puppeteer.Page,
+    browserCache: BrowserCacheUtils,
+    screenshot?: Screenshot
+): Promise<void> {
+    try {
+        // Wait for reset success message
+        await page.waitForFunction(
+            (selector, expectedStatus) => {
+                const element = document.querySelector(selector);
+                return element && element.textContent && 
+                       element.textContent.includes(expectedStatus);
+            },
+            { timeout: AUTH_TIMEOUT },
+            SELECTORS.authStatus,
+            AUTH_STATUS.PASSWORD_RESET
+        );
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.PASSWORD_RESET_COMPLETE);
+        }
+
+        // Wait for auto sign-in completion
+        await page.waitForFunction(
+            (selector, expectedStatus) => {
+                const element = document.querySelector(selector);
+                return element && element.textContent && 
+                       element.textContent.includes(expectedStatus);
+            },
+            { timeout: AUTH_TIMEOUT },
+            SELECTORS.authStatus,
+            AUTH_STATUS.SIGNED_IN
+        );
+
+        // Verify welcome message
+        await page.waitForSelector(SELECTORS.welcomeMessage, { visible: true, timeout: STANDARD_TIMEOUT });
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.AUTO_SIGNIN_COMPLETE);
+        }
+
+        // Verify token cache state
+        await validateTokenCache(browserCache, screenshot, page);
+    } catch (error) {
+        console.error("Reset success validation failed:", error);
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Validates the token cache state
+ */
+async function validateTokenCache(
+    browserCache: BrowserCacheUtils,
+    screenshot?: Screenshot,
+    page?: puppeteer.Page
+): Promise<void> {
+    try {
+        const tokenStore = await browserCache.getTokens();
+        
+        // Verify token presence
+        expect(tokenStore.accessTokens.length).toBe(1);
+        expect(tokenStore.idTokens.length).toBe(1);
+        expect(tokenStore.refreshTokens.length).toBe(1);
+
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.TOKEN_CACHE_AFTER_RESET);
+        }
+    } catch (error) {
+        console.error("Token cache validation failed:", error);
+        if (screenshot) {
+            await screenshot.takeScreenshot(page, SCREENSHOT_NAMES.ERROR_STATE);
+        }
+        throw error;
+    }
+}
