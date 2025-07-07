@@ -195,10 +195,10 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -216,10 +216,10 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "#code=ThisIsAnAuthCode",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "#code=ThisIsAnAuthCode" }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -237,10 +237,10 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -260,10 +260,10 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(true);
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -285,10 +285,10 @@ describe("RedirectClient", () => {
             ).mockRejectedValue("Error in handleResponse");
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -315,10 +315,10 @@ describe("RedirectClient", () => {
             ).mockRejectedValue("Error in handleResponse");
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -346,7 +346,6 @@ describe("RedirectClient", () => {
                         auth: {
                             // @ts-ignore
                             ...pca.config.auth,
-                            navigateToLoginRequestUrl: false,
                         },
                     },
                     browserStorage,
@@ -365,10 +364,13 @@ describe("RedirectClient", () => {
                 );
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    {
+                        hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                        navigateToLoginRequestUrl: false,
+                    }
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -455,10 +457,10 @@ describe("RedirectClient", () => {
             ).mockResolvedValue(testServerTokenResponse);
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -607,10 +609,10 @@ describe("RedirectClient", () => {
             ).mockResolvedValue(testTokenResponse);
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -698,10 +700,10 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
@@ -753,10 +755,10 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .catch((err) => {
                     expect(err instanceof ServerError).toBeTruthy();
@@ -850,7 +852,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -880,10 +881,13 @@ describe("RedirectClient", () => {
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    hash: "",
+                    navigateToLoginRequestUrl: false,
+                }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -1034,10 +1038,10 @@ describe("RedirectClient", () => {
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             if (!tokenResponse) {
                 expect(tokenResponse).not.toBe(null);
@@ -1147,7 +1151,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -1177,10 +1180,13 @@ describe("RedirectClient", () => {
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    hash: "",
+                    navigateToLoginRequestUrl: false,
+                }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -1210,10 +1216,10 @@ describe("RedirectClient", () => {
             );
             expect(
                 await redirectClient.handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
             ).toBe(null);
         });
@@ -1246,10 +1252,10 @@ describe("RedirectClient", () => {
             );
             expect(
                 await redirectClient.handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
             ).toBe(null);
         });
@@ -1278,10 +1284,10 @@ describe("RedirectClient", () => {
                 }
             );
             await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
@@ -1353,10 +1359,10 @@ describe("RedirectClient", () => {
                 }
             );
             await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
@@ -1389,10 +1395,10 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
@@ -1429,10 +1435,10 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
@@ -1465,10 +1471,10 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
@@ -1502,10 +1508,10 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
@@ -1534,10 +1540,10 @@ describe("RedirectClient", () => {
             });
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then(() => {
                     expect(window.location.href).toEqual(loginRequestUrl);
@@ -1563,10 +1569,10 @@ describe("RedirectClient", () => {
             });
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 )
                 .then(() => {
                     expect(window.location.href).toEqual(loginRequestUrl);
@@ -1600,10 +1606,10 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then(() => {
                     expect(clearHashSpy).not.toHaveBeenCalled();
@@ -1633,10 +1639,10 @@ describe("RedirectClient", () => {
                 done();
             });
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
         });
 
@@ -1652,10 +1658,10 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -1667,7 +1673,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -1714,10 +1719,13 @@ describe("RedirectClient", () => {
                 done();
             });
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    hash: "",
+                    navigateToLoginRequestUrl: false,
+                }
             );
         });
 
@@ -1735,10 +1743,10 @@ describe("RedirectClient", () => {
                 loginRequestUrl
             );
             const res = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(res).toBeNull();
             expect(rootMeasurement.event.errorCode).toBeUndefined();
@@ -1758,10 +1766,10 @@ describe("RedirectClient", () => {
                 loginRequestUrl
             );
             const res = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(res).toBeNull();
             expect(rootMeasurement.event.errorCode).toEqual(
@@ -2090,10 +2098,10 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     request,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -2131,10 +2139,10 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     request,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -2172,10 +2180,10 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     request,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -3007,14 +3015,6 @@ describe("RedirectClient", () => {
     });
 
     describe("EAR Flow Tests", () => {
-        beforeAll(() => {
-            jest.useFakeTimers();
-        });
-
-        afterAll(() => {
-            jest.useRealTimers();
-        });
-
         beforeEach(async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -3022,6 +3022,7 @@ describe("RedirectClient", () => {
                 },
                 system: {
                     protocolMode: ProtocolMode.EAR,
+                    redirectNavigationTimeout: 1000,
                 },
             });
             await pca.initialize();
@@ -3031,7 +3032,7 @@ describe("RedirectClient", () => {
             );
         });
 
-        it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+        it("Invokes EAR flow when protocolMode is set to EAR", (done) => {
             const validRequest: RedirectRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["openid", "profile", "offline_access"],
@@ -3043,18 +3044,40 @@ describe("RedirectClient", () => {
             jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
+            jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
+                () => {
+                    // Supress navigation
+                    pca.handleRedirectPromise({
+                        hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+                    }).then((result) => {
+                        expect(result).toEqual(getTestAuthenticationResult());
+                        done();
+                    });
+                }
+            );
+
+            pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
+        it("Throws a timeout error if the form post failed to redirect within the alloted time", async () => {
+            const validRequest: RedirectRequest = {
+                scopes: ["openid", "profile", "offline_access"],
+            };
             const earFormSpy = jest
                 .spyOn(HTMLFormElement.prototype, "submit")
                 .mockImplementation(() => {
                     // Supress navigation
                 });
 
-            await pca.acquireTokenRedirect(validRequest);
-            expect(earFormSpy).toHaveBeenCalled();
-            const result = await pca.handleRedirectPromise(
-                `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+            await expect(
+                pca.acquireTokenRedirect(validRequest)
+            ).rejects.toEqual(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "failed_to_redirect"
+                )
             );
-            expect(result).toEqual(getTestAuthenticationResult());
+            expect(earFormSpy).toHaveBeenCalled();
         });
     });
 });

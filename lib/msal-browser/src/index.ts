@@ -18,7 +18,10 @@ export {
     createStandardPublicClientApplication,
 } from "./app/PublicClientApplication.js";
 export { PublicClientNext } from "./app/PublicClientNext.js";
-export { IController } from "./controllers/IController.js";
+export {
+    IController,
+    HandleRedirectPromiseOptions,
+} from "./controllers/IController.js";
 export {
     Configuration,
     BrowserAuthOptions,

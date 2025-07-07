@@ -72,6 +72,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -264,9 +265,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
         // fetch the account from browser cache
-        const account = this.browserStorage.getBaseAccountInfo({
-            nativeAccountId,
-        });
+        const account = this.browserStorage.getBaseAccountInfo(
+            {
+                nativeAccountId,
+            },
+            request.correlationId
+        );
 
         if (!account) {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
@@ -301,16 +305,20 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * Acquires a token from native platform then redirects to the redirectUri instead of returning the response
      * @param {RedirectRequest} request
      * @param {InProgressPerformanceEvent} rootMeasurement
+     * @param {HandleRedirectPromiseOptions} options
      */
     async acquireTokenRedirect(
         request: RedirectRequest,
-        rootMeasurement: InProgressPerformanceEvent
+        rootMeasurement: InProgressPerformanceEvent,
+        options?: HandleRedirectPromiseOptions
     ): Promise<void> {
         this.logger.trace(
             "NativeInteractionClient - acquireTokenRedirect called."
         );
 
         const nativeRequest = await this.initializeNativeRequest(request);
+        const navigateToLoginRequestUrl =
+            options?.navigateToLoginRequestUrl ?? true;
 
         try {
             await this.platformAuthProvider.sendMessage(nativeRequest);
@@ -336,7 +344,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             timeout: this.config.system.redirectNavigationTimeout,
             noHistory: false,
         };
-        const redirectUri = this.config.auth.navigateToLoginRequestUrl
+        const redirectUri = navigateToLoginRequestUrl
             ? window.location.href
             : this.getRedirectUri(request.redirectUri);
         rootMeasurement.end({ success: true });
@@ -452,9 +460,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         const cachedhomeAccountId =
-            this.browserStorage.getAccountInfoFilteredBy({
-                nativeAccountId: request.accountId,
-            })?.homeAccountId;
+            this.browserStorage.getAccountInfoFilteredBy(
+                {
+                    nativeAccountId: request.accountId,
+                },
+                this.correlationId
+            )?.homeAccountId;
 
         // add exception for double brokering, please note this is temporary and will be fortified in future
         if (
@@ -482,13 +493,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             authority,
             homeAccountIdentifier,
             base64Decode,
+            this.correlationId,
             idTokenClaims,
             response.client_info,
             undefined, // environment
             idTokenClaims.tid,
             undefined, // auth code payload
-            response.account.id,
-            this.logger
+            response.account.id
         );
 
         // Ensure expires_in is in number format

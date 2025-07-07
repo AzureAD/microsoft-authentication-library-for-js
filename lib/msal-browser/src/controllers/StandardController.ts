@@ -78,7 +78,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js
 import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
-import { IController } from "./IController.js";
+import { HandleRedirectPromiseOptions, IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
@@ -392,25 +392,25 @@ export class StandardController implements IController {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @param options Object containing optional configuration for redirect promise handling.
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(
-        hash?: string
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
         // Block token acquisition before initialize has been called
         BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-
         if (this.isBrowserEnvironment) {
             /**
              * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            const redirectResponseKey = hash || "";
+            const redirectResponseKey = options?.hash || "";
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
-                response = this.handleRedirectPromiseInternal(hash);
+                response = this.handleRedirectPromiseInternal(options);
                 this.redirectResponse.set(redirectResponseKey, response);
                 this.logger.verbose(
                     "handleRedirectPromise has been called for the first time, storing the promise"
@@ -435,7 +435,7 @@ export class StandardController implements IController {
      * @returns
      */
     private async handleRedirectPromiseInternal(
-        hash?: string
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         if (!this.browserStorage.isInteractionInProgress(true)) {
             this.logger.info(
@@ -458,7 +458,9 @@ export class StandardController implements IController {
         const platformBrokerRequest: PlatformAuthRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
-            platformBrokerRequest && this.platformAuthProvider && !hash;
+            platformBrokerRequest &&
+            this.platformAuthProvider &&
+            !options?.hash;
 
         let rootMeasurement: InProgressPerformanceEvent;
 
@@ -518,7 +520,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(hash, standardRequest, codeVerifier, rootMeasurement);
+                )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
             this.browserStorage.resetRequestCache();
@@ -1378,6 +1380,7 @@ export class StandardController implements IController {
             this.logger,
             this.browserStorage,
             this.isBrowserEnvironment,
+            this.getRequestCorrelationId(),
             accountFilter
         );
     }
@@ -1391,7 +1394,8 @@ export class StandardController implements IController {
         return AccountManager.getAccount(
             accountFilter,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1407,7 +1411,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByUsername(
             username,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1422,7 +1427,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByHomeId(
             homeAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1437,7 +1443,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByLocalId(
             localAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1446,14 +1453,21 @@ export class StandardController implements IController {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        AccountManager.setActiveAccount(account, this.browserStorage);
+        AccountManager.setActiveAccount(
+            account,
+            this.browserStorage,
+            this.getRequestCorrelationId()
+        );
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return AccountManager.getActiveAccount(this.browserStorage);
+        return AccountManager.getActiveAccount(
+            this.browserStorage,
+            this.getRequestCorrelationId()
+        );
     }
 
     // #endregion

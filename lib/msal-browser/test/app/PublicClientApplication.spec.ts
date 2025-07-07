@@ -1275,7 +1275,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const promise2 = pca.handleRedirectPromise();
             const tokenResponse1 = await promise1;
             const tokenResponse2 = await promise2;
-            const tokenResponse3 = await pca.handleRedirectPromise("testHash");
+            const tokenResponse3 = await pca.handleRedirectPromise({
+                hash: "testHash",
+            });
             expect(tokenResponse3).toBe(null);
             const tokenResponse4 = await pca.handleRedirectPromise();
 
@@ -7214,7 +7216,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
                 .then(() => {
                     // Ensure account is present in the cache before setting it as active
-                    secondBrowserStorageInstance.setActiveAccount(accountInfo);
+                    secondBrowserStorageInstance.setActiveAccount(
+                        accountInfo,
+                        RANDOM_TEST_GUID
+                    );
                 });
         });
     });
