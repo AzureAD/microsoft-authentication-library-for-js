@@ -2238,7 +2238,8 @@ if (process.platform === "win32") {
     afterEach(() => {
         jest.restoreAllMocks();
     });
-    describe("NativeBrokerPlugin", () => {
+    // macOS currently is not supported by MSAL node runtime
+    describe.skip("NativeBrokerPlugin", () => {
         it("Sets isBrokerAvailable to false if the broker is not available", () => {
             const nativeBrokerPlugin = new NativeBrokerPlugin();
             expect(nativeBrokerPlugin.isBrokerAvailable).toBe(false);
@@ -2369,7 +2370,8 @@ if (process.platform === "win32") {
     afterEach(() => {
         jest.restoreAllMocks();
     });
-    describe("NativeBrokerPlugin", () => {
+    // linux currently is not supported by MSAL node runtime
+    describe.skip("NativeBrokerPlugin", () => {
         it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
             const testCorrelationId = generateCorrelationId();
             const testAuthenticationResult =
