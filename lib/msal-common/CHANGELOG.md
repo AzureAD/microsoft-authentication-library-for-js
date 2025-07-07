@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 01 Jul 2025 14:23:25 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 07 Jul 2025 23:09:37 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.8.1
+
+Mon, 07 Jul 2025 23:09:37 GMT
+
+### Patches
+
+- Remove RequestValidator class (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.8.0
 
