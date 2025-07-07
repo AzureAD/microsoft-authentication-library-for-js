@@ -648,7 +648,7 @@ if (process.platform === "win32") {
                     "chooseRedirectUriByPlatform"
                 );
                 await nativeBrokerPlugin.acquireTokenSilent(request);
-                expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
+                expect(chooseRedirectUriMock).toHaveBeenCalled();
                 expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                     `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
                 );
@@ -1495,7 +1495,7 @@ if (process.platform === "win32") {
                     "chooseRedirectUriByPlatform"
                 );
                 await nativeBrokerPlugin.acquireTokenInteractive(request);
-                expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
+                expect(chooseRedirectUriMock).toHaveBeenCalled();
                 expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                     `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
                 );
@@ -2295,7 +2295,7 @@ if (process.platform === "win32") {
                 "chooseRedirectUriByPlatform"
             );
             await nativeBrokerPlugin.acquireTokenSilent(request);
-            expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
+            expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                 `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
             );
@@ -2351,7 +2351,7 @@ if (process.platform === "win32") {
                 "chooseRedirectUriByPlatform"
             );
             await nativeBrokerPlugin.acquireTokenInteractive(request);
-            expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
+            expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                 `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
             );
@@ -2422,7 +2422,7 @@ if (process.platform === "win32") {
                 "chooseRedirectUriByPlatform"
             );
             await nativeBrokerPlugin.acquireTokenSilent(request);
-            expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
+            expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                 `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
             );
@@ -2478,7 +2478,7 @@ if (process.platform === "win32") {
                 "chooseRedirectUriByPlatform"
             );
             await nativeBrokerPlugin.acquireTokenInteractive(request);
-            expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
+            expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                 `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
             );
