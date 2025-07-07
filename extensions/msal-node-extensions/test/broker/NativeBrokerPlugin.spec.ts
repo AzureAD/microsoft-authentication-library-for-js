@@ -645,15 +645,13 @@ if (process.platform === "win32") {
                 const chooseRedirectUriMock = jest.spyOn(
                     NativeBrokerPlugin.prototype,
                     // @ts-ignore
-                    "chooseRedirectUri"
+                    "chooseRedirectUriByPlatform"
                 );
-                await nativeBrokerPlugin.acquireTokenSilent(
-                    request
-                );
+                await nativeBrokerPlugin.acquireTokenSilent(request);
                 expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
-                expect(
-                    chooseRedirectUriMock.mock.results[0].value
-                ).toBe(`ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`);
+                expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                    `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+                );
             });
         });
 
@@ -1494,15 +1492,13 @@ if (process.platform === "win32") {
                 const chooseRedirectUriMock = jest.spyOn(
                     NativeBrokerPlugin.prototype,
                     // @ts-ignore
-                    "chooseRedirectUri"
+                    "chooseRedirectUriByPlatform"
                 );
-                await nativeBrokerPlugin.acquireTokenInteractive(
-                    request
-                );
+                await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
-                expect(
-                    chooseRedirectUriMock.mock.results[0].value
-                ).toBe(`ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`);
+                expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                    `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+                );
             });
         });
 
@@ -2296,15 +2292,13 @@ if (process.platform === "win32") {
             const chooseRedirectUriMock = jest.spyOn(
                 NativeBrokerPlugin.prototype,
                 // @ts-ignore
-                "chooseRedirectUri"
+                "chooseRedirectUriByPlatform"
             );
-            await nativeBrokerPlugin.acquireTokenSilent(
-                request
-            );
+            await nativeBrokerPlugin.acquireTokenSilent(request);
             expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
-            expect(
-                chooseRedirectUriMock.mock.results[0].value
-            ).toBe(`ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`);
+            expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+            );
         });
         it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
             const testCorrelationId = generateCorrelationId();
@@ -2354,15 +2348,13 @@ if (process.platform === "win32") {
             const chooseRedirectUriMock = jest.spyOn(
                 NativeBrokerPlugin.prototype,
                 // @ts-ignore
-                "chooseRedirectUri"
+                "chooseRedirectUriByPlatform"
             );
-            await nativeBrokerPlugin.acquireTokenInteractive(
-                request
-            );
+            await nativeBrokerPlugin.acquireTokenInteractive(request);
             expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
-            expect(
-                chooseRedirectUriMock.mock.results[0].value
-            ).toBe(`ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`);
+            expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+            );
         });
     });
 } else {
@@ -2427,15 +2419,13 @@ if (process.platform === "win32") {
             const chooseRedirectUriMock = jest.spyOn(
                 NativeBrokerPlugin.prototype,
                 // @ts-ignore
-                "chooseRedirectUri"
+                "chooseRedirectUriByPlatform"
             );
-            await nativeBrokerPlugin.acquireTokenSilent(
-                request
-            );
+            await nativeBrokerPlugin.acquireTokenSilent(request);
             expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
-            expect(
-                chooseRedirectUriMock.mock.results[0].value
-            ).toBe(`ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`);
+            expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+            );
         });
         it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
             const testCorrelationId = generateCorrelationId();
@@ -2485,15 +2475,13 @@ if (process.platform === "win32") {
             const chooseRedirectUriMock = jest.spyOn(
                 NativeBrokerPlugin.prototype,
                 // @ts-ignore
-                "chooseRedirectUri"
+                "chooseRedirectUriByPlatform"
             );
-            await nativeBrokerPlugin.acquireTokenInteractive(
-                request
-            );
+            await nativeBrokerPlugin.acquireTokenInteractive(request);
             expect(chooseRedirectUriMock).toHaveBeenCalledTimes(1);
-            expect(
-                chooseRedirectUriMock.mock.results[0].value
-            ).toBe(`ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`);
+            expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+            );
         });
     });
 }

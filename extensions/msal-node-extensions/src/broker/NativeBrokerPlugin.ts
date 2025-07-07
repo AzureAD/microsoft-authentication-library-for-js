@@ -194,6 +194,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         );
         const authParams = this.generateRequestParameters(request);
         const account = await this.getAccount(request);
+        request.redirectUri = this.chooseRedirectUriByPlatform(request);
 
         return new Promise(
             (resolve: (value: AuthenticationResult) => void, reject) => {
@@ -248,6 +249,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             request.correlationId
         );
         const authParams = this.generateRequestParameters(request);
+        request.redirectUri = this.chooseRedirectUriByPlatform(request);
         const account = await this.getAccount(request);
         const windowHandle = providedWindowHandle || Buffer.from([0]);
 
@@ -458,7 +460,9 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 request.authority
             );
 
-            authParams.SetRedirectUri(this.chooseRedirectUri(request));
+            authParams.SetRedirectUri(
+                this.chooseRedirectUriByPlatform(request)
+            );
             authParams.SetRequestedScopes(request.scopes.join(" "));
 
             if (request.claims) {
@@ -517,7 +521,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         return authParams;
     }
 
-    private chooseRedirectUri(request: NativeRequest): string {
+    private chooseRedirectUriByPlatform(request: NativeRequest): string {
+        this.logger.trace(
+            "NativeBrokerPlugin - chooseRedirectUriByPlatform called",
+            request.correlationId
+        );
         let redirectUri: string;
         switch (process.platform) {
             case "darwin":
@@ -527,7 +535,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 redirectUri = `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`;
                 break;
             default:
-                redirectUri = "https://login.microsoftonline.com/common/oauth2/nativeclient";
+                redirectUri =
+                    "https://login.microsoftonline.com/common/oauth2/nativeclient";
         }
         return redirectUri;
     }
