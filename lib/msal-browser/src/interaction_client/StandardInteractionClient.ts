@@ -334,7 +334,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         }
 
         const account =
-            request.account || this.browserStorage.getActiveAccount();
+            request.account ||
+            this.browserStorage.getActiveAccount(this.correlationId);
         if (account) {
             this.logger.verbose(
                 "Setting validated request account",

@@ -25,6 +25,7 @@ import {
 import { Deserializer } from "./serializer/Deserializer.js";
 import { Serializer } from "./serializer/Serializer.js";
 import { ITokenCache } from "./ITokenCache.js";
+import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { GuidGenerator } from "../crypto/GuidGenerator.js";
 
 const defaultSerializedCache: JsonCache = {
@@ -130,7 +131,9 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     /**
      * API that retrieves all accounts currently in cache to the user
      */
-    async getAllAccounts(): Promise<AccountInfo[]> {
+    async getAllAccounts(
+        correlationId: string = new CryptoProvider().createNewGuid()
+    ): Promise<AccountInfo[]> {
         this.logger.trace("getAllAccounts called");
         let cacheContext;
         try {
@@ -138,7 +141,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 cacheContext = new TokenCacheContext(this, false);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
-            return this.storage.getAllAccounts();
+            return this.storage.getAllAccounts({}, correlationId);
         } finally {
             if (this.persistence && cacheContext) {
                 await this.persistence.afterCacheAccess(cacheContext);

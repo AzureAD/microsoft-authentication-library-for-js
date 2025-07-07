@@ -90,6 +90,9 @@ export class SilentCacheClient extends StandardInteractionClient {
     logout(logoutRequest?: ClearCacheRequest): Promise<void> {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        return this.clearCacheOnLogout(validLogoutRequest?.account);
+        return this.clearCacheOnLogout(
+            validLogoutRequest.correlationId,
+            validLogoutRequest?.account
+        );
     }
 }

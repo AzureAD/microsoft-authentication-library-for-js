@@ -26,6 +26,7 @@ import {
     TEST_REQ_CNF_DATA,
     ID_TOKEN_CLAIMS,
     TEST_TOKENS,
+    RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
@@ -54,7 +55,7 @@ class testStandardInteractionClient extends StandardInteractionClient {
     }
 
     logout(request: EndSessionRequest): Promise<void> {
-        return this.clearCacheOnLogout(request.account);
+        return this.clearCacheOnLogout(RANDOM_TEST_GUID, request.account);
     }
 }
 

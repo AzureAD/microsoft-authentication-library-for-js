@@ -7807,7 +7807,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
                 .then(() => {
                     // Ensure account is present in the cache before setting it as active
-                    secondBrowserStorageInstance.setActiveAccount(accountInfo);
+                    secondBrowserStorageInstance.setActiveAccount(
+                        accountInfo,
+                        RANDOM_TEST_GUID
+                    );
                 });
         });
     });

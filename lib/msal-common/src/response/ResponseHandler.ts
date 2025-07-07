@@ -279,7 +279,10 @@ export class ResponseHandler {
                 cacheRecord.account
             ) {
                 const key = cacheRecord.account.generateAccountKey();
-                const account = this.cacheStorage.getAccount(key);
+                const account = this.cacheStorage.getAccount(
+                    key,
+                    request.correlationId
+                );
                 if (!account) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
@@ -369,6 +372,7 @@ export class ResponseHandler {
                 authority,
                 this.homeAccountIdentifier,
                 this.cryptoObj.base64Decode,
+                request.correlationId,
                 idTokenClaims,
                 serverTokenResponse.client_info,
                 env,
@@ -610,6 +614,7 @@ export function buildAccountToCache(
     authority: Authority,
     homeAccountId: string,
     base64Decode: (input: string) => string,
+    correlationId: string,
     idTokenClaims?: TokenClaims,
     clientInfo?: string,
     environment?: string,
@@ -628,7 +633,7 @@ export function buildAccountToCache(
 
     let cachedAccount: AccountEntity | null = null;
     if (baseAccountKey) {
-        cachedAccount = cacheStorage.getAccount(baseAccountKey);
+        cachedAccount = cacheStorage.getAccount(baseAccountKey, correlationId);
     }
 
     const baseAccount =

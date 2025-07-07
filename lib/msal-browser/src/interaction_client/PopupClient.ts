@@ -480,7 +480,10 @@ export class PopupClient extends StandardInteractionClient {
 
         try {
             // Clear cache on logout
-            await this.clearCacheOnLogout(validRequest.account);
+            await this.clearCacheOnLogout(
+                this.correlationId,
+                validRequest.account
+            );
 
             // Initialize the client
             const authClient = await invokeAsync(

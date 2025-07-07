@@ -6,7 +6,7 @@ import { AuthError } from "../../src/error/AuthError.js";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule.js";
 import { Logger, LogLevel } from "../../src/logger/Logger.js";
 import { version } from "../../src/packageMetadata.js";
-import { TEST_CONFIG } from "../test_kit/StringConstants.js";
+import { RANDOM_TEST_GUID, TEST_CONFIG } from "../test_kit/StringConstants.js";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils.js";
 import { MockCache } from "../cache/entities/cacheConstants.js";
 import { Constants } from "../../src/utils/Constants.js";
@@ -48,12 +48,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.getAccount).not.toBeNull();
         expect(() =>
-            emptyConfig.storageInterface.getAccount("testKey")
+            emptyConfig.storageInterface.getAccount("testKey", RANDOM_TEST_GUID)
         ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
-            emptyConfig.storageInterface.getAccount("testKey")
+            emptyConfig.storageInterface.getAccount("testKey", RANDOM_TEST_GUID)
         ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.getKeys).not.toBeNull();
         expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
@@ -64,12 +64,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         );
         expect(emptyConfig.storageInterface.removeItem).not.toBeNull();
         expect(() =>
-            emptyConfig.storageInterface.removeItem("testKey")
+            emptyConfig.storageInterface.removeItem("testKey", RANDOM_TEST_GUID)
         ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
-            emptyConfig.storageInterface.removeItem("testKey")
+            emptyConfig.storageInterface.removeItem("testKey", RANDOM_TEST_GUID)
         ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.setAccount).not.toBeNull();
         expect(() =>

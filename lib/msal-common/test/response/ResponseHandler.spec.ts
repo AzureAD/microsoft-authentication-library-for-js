@@ -42,7 +42,7 @@ import {
     CacheErrorMessages,
 } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
-import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
+import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
@@ -54,7 +54,6 @@ const networkInterface: INetworkModule = {
         return {} as T;
     },
 };
-
 const cryptoInterface: ICrypto = mockCrypto;
 
 const testServerTokenResponse = {
@@ -833,7 +832,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[cacheQuotaExceededErrorCode]
+                    CacheErrorMessages[cacheQuotaExceeded]
                 );
             }
         });
@@ -879,7 +878,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[cacheQuotaExceededErrorCode]
+                    CacheErrorMessages[cacheQuotaExceeded]
                 );
             }
         });
@@ -967,10 +966,10 @@ describe("ResponseHandler.ts", () => {
                 expect(e).toBeInstanceOf(CacheError);
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual(
-                    CacheErrorCodes.cacheUnknownErrorCode
+                    CacheErrorCodes.cacheErrorUnknown
                 );
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[CacheErrorCodes.cacheUnknownErrorCode]
+                    CacheErrorMessages[CacheErrorCodes.cacheErrorUnknown]
                 );
             }
         });
