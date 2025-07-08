@@ -287,3 +287,6 @@ junit.xml
 
 # ApiExtractor
 temp/
+
+# Exclude package-lock.json
+package-lock.json
