@@ -106,6 +106,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenPopup(
         request: PopupRequest
     ): Promise<AuthenticationResult> {
+        this.getLogger().verbose(
+            "PublicClientApplication.acquireTokenPopup called"
+        );
         return this.controller.acquireTokenPopup(request);
     }
 
