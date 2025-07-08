@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751579081201,
+  "lastUpdate": 1752011810041,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15944,6 +15944,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.86%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fb872c69a729a48144c426ec7667c85464f3b3d0",
+          "message": "update release-staging filter for beachball:change workflow (#7913)\n\nUpdates the filter to skip beachball:change step for all post release\nPRs",
+          "timestamp": "2025-07-08T14:50:09-07:00",
+          "tree_id": "0c88866dd55beb7534b67a1b9171e93fc634dcff",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fb872c69a729a48144c426ec7667c85464f3b3d0"
+        },
+        "date": 1752011808432,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 248516,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 246107,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
