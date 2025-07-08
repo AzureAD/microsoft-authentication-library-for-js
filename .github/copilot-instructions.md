@@ -3,11 +3,13 @@ This repository contains JavaScript/TypeScript SDKs for integrating with Microso
 ## Code Standards
 
 ### Required before each commit:
-- Ensure all code builds successfully by running `npm run build:all`
-- Ensure all code is formatted by running `npm run format:fix`
-- Ensure changes pass linting by running `npm run lint`
-- Test all changes by running `npm run test`
-- Update apiExtractor reports by running `npm run apiExtractor -- -- --local`
+- Pull the latest changes from the base branch
+- Install dependencies for the relevant packages, for example if making changes to `msal-browser` you would run `npm install --workspace=@azure/msal-browser --workspace=@azure/msal-common --include-workspace-root`
+- Ensure all code builds successfully by running `npm run build:all` from the directory of each changed package.
+- Ensure all code is formatted by running `npm run format:fix` from the directory of each changed package.
+- Ensure changes pass linting by running `npm run lint` from the directory of each changed package.
+- Test all changes by running `npm run test` from the directory of each changed package.
+- Update apiExtractor reports by running `npm run apiExtractor -- -- --local` from the directory of each changed package.
 - Create changefiles by running `npm run beachball:change` from the root of the repo. Include PR number in changelog message.
 
 ## Repository Structure
@@ -19,6 +21,7 @@ This repository contains JavaScript/TypeScript SDKs for integrating with Microso
 - `samples/`: Contains sample applications demonstrating how to use the SDKs
 
 ## Key guidelines
+- This repo utilizes npm workspaces. Dependencies can be installed and scripts can be run for specific packages using the workspace flag, for example `npm install --workspace=@azure/msal-common --include-workspace-root`
 - Follow JavaScript and TypeScript best practices.
 - Follow Angular and React best practices in their respective SDKs (msal-angular and msal-react).
 - Never make breaking, non-backwards compatible, changes. Follow semantic versioning principles.
