@@ -9,7 +9,6 @@ import {
     BaseAuthRequest,
     ClientConfigurationErrorCodes,
     CommonSilentFlowRequest,
-    HttpMethod,
     IPerformanceClient,
     Logger,
     PerformanceEvents,
