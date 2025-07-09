@@ -38,14 +38,19 @@ import {
 } from "../util/TestConstants";
 
 // macOS and Linux currently are not supported by MSAL node runtime
-function createMockAuthResult(testAuthenticationResult: AuthenticationResult, correlationId: string): AuthResult {
+function createMockAuthResult(
+    testAuthenticationResult: AuthenticationResult,
+    correlationId: string
+): AuthResult {
     return {
         idToken: JSON.stringify(testAuthenticationResult.idTokenClaims),
         accessToken: testAuthenticationResult.accessToken,
         authorizationHeader: "",
         rawIdToken: testAuthenticationResult.idToken,
         grantedScopes: testAuthenticationResult.scopes.join(" "),
-        expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+        expiresOn: TimeUtils.toSecondsFromDate(
+            testAuthenticationResult.expiresOn!
+        ),
         isPopAuthorization: false,
         account: testMsalRuntimeAccount,
         CheckError: () => {},
@@ -614,10 +619,17 @@ if (process.platform === "win32") {
             });
             it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
                 const testCorrelationId = generateCorrelationId();
-                const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
-                const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
+                const testAuthenticationResult =
+                    getTestAuthenticationResult(testCorrelationId);
+                const result = createMockAuthResult(
+                    testAuthenticationResult,
+                    testCorrelationId
+                );
 
-                jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation(
+                jest.spyOn(
+                    msalNodeRuntime,
+                    "SignInSilentlyAsync"
+                ).mockImplementation(
                     (_authParams, _correlationId, callback) => {
                         expect(_correlationId).toEqual(testCorrelationId);
                         callback(result);
@@ -1441,11 +1453,21 @@ if (process.platform === "win32") {
 
             it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
                 const testCorrelationId = generateCorrelationId();
-                const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
-                const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
+                const testAuthenticationResult =
+                    getTestAuthenticationResult(testCorrelationId);
+                const result = createMockAuthResult(
+                    testAuthenticationResult,
+                    testCorrelationId
+                );
 
                 jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
-                    (_windowHandle, _authParams, _correlationId, _accountHint, callback) => {
+                    (
+                        _windowHandle,
+                        _authParams,
+                        _correlationId,
+                        _accountHint,
+                        callback
+                    ) => {
                         expect(_correlationId).toEqual(testCorrelationId);
                         callback(result);
                         return asyncHandle;
@@ -2218,16 +2240,21 @@ if (process.platform === "win32") {
         });
         it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
             const testCorrelationId = generateCorrelationId();
-            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
-            const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
-
-            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation(
-                (_authParams, _correlationId, callback) => {
-                    expect(_correlationId).toEqual(testCorrelationId);
-                    callback(result);
-                    return asyncHandle;
-                }
+            const testAuthenticationResult =
+                getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(
+                testAuthenticationResult,
+                testCorrelationId
             );
+
+            jest.spyOn(
+                msalNodeRuntime,
+                "SignInSilentlyAsync"
+            ).mockImplementation((_authParams, _correlationId, callback) => {
+                expect(_correlationId).toEqual(testCorrelationId);
+                callback(result);
+                return asyncHandle;
+            });
 
             const nativeBrokerPlugin = new NativeBrokerPlugin();
             const request: NativeRequest = {
@@ -2253,11 +2280,21 @@ if (process.platform === "win32") {
         });
         it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
             const testCorrelationId = generateCorrelationId();
-            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
-            const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
+            const testAuthenticationResult =
+                getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(
+                testAuthenticationResult,
+                testCorrelationId
+            );
 
             jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
-                (_windowHandle, _authParams, _correlationId, _accountHint, callback) => {
+                (
+                    _windowHandle,
+                    _authParams,
+                    _correlationId,
+                    _accountHint,
+                    callback
+                ) => {
                     expect(_correlationId).toEqual(testCorrelationId);
                     callback(result);
                     return asyncHandle;
@@ -2301,16 +2338,21 @@ if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
         it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
             const testCorrelationId = generateCorrelationId();
-            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
-            const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
-
-            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation(
-                (_authParams, _correlationId, callback) => {
-                    expect(_correlationId).toEqual(testCorrelationId);
-                    callback(result);
-                    return asyncHandle;
-                }
+            const testAuthenticationResult =
+                getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(
+                testAuthenticationResult,
+                testCorrelationId
             );
+
+            jest.spyOn(
+                msalNodeRuntime,
+                "SignInSilentlyAsync"
+            ).mockImplementation((_authParams, _correlationId, callback) => {
+                expect(_correlationId).toEqual(testCorrelationId);
+                callback(result);
+                return asyncHandle;
+            });
 
             const nativeBrokerPlugin = new NativeBrokerPlugin();
             const request: NativeRequest = {
@@ -2336,11 +2378,21 @@ if (process.platform === "win32") {
         });
         it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
             const testCorrelationId = generateCorrelationId();
-            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
-            const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
+            const testAuthenticationResult =
+                getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(
+                testAuthenticationResult,
+                testCorrelationId
+            );
 
             jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
-                (_windowHandle, _authParams, _correlationId, _accountHint, callback) => {
+                (
+                    _windowHandle,
+                    _authParams,
+                    _correlationId,
+                    _accountHint,
+                    callback
+                ) => {
                     expect(_correlationId).toEqual(testCorrelationId);
                     callback(result);
                     return asyncHandle;
