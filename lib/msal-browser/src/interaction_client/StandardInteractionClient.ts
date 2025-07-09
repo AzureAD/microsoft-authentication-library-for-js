@@ -20,6 +20,9 @@ import {
     BaseAuthRequest,
     StringDict,
     CommonAuthorizationUrlRequest,
+    HttpMethod,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import {
@@ -326,7 +329,15 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             nonce: request.nonce || createNewGuid(),
             responseMode: this.config.auth.OIDCOptions
                 .serverResponseType as ResponseMode,
+            httpMethod: request.httpMethod || HttpMethod.GET,
         };
+
+        // If there are authorizeBodyParameters, validate the request method is POST
+        if (validatedRequest.authorizeBodyParameters && validatedRequest.httpMethod !== HttpMethod.POST) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidAuthorizeBodyParameters
+            );
+        }
 
         // Skip active account lookup if either login hint or session id is set
         if (request.loginHint || request.sid) {

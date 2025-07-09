@@ -44,7 +44,6 @@ export async function initializeBaseRequest(
         correlationId: request.correlationId,
         authority,
         scopes,
-        httpMethod: request.httpMethod || HttpMethod.GET,
     };
 
     // Set authenticationScheme to BEARER if not explicitly set in the request
@@ -70,13 +69,6 @@ export async function initializeBaseRequest(
         }
         logger.verbose(
             `Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`
-        );
-    }
-
-    // If there are authorizeBodyParameters, validate the request method is POST
-    if (validatedRequest.authorizeBodyParameters && validatedRequest.httpMethod !== HttpMethod.POST) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidAuthorizeBodyParameters
         );
     }
 
