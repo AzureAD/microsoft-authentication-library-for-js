@@ -73,7 +73,6 @@ import {
     TEST_REDIRECTURI,
 } from "../util/TestConstants";
 
-// macOS and Linux currently are not supported by MSAL node runtime
 function createMockAuthResult(
     testAuthenticationResult: AuthenticationResult,
     correlationId: string
