@@ -2311,7 +2311,7 @@ if (process.platform === "win32") {
 
             expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
-                `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+                "msauth.com.msauth.unsignedapp://auth"
             );
         });
         it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
@@ -2355,7 +2355,7 @@ if (process.platform === "win32") {
             await nativeBrokerPlugin.acquireTokenInteractive(request);
             expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
-                `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+                "msauth.com.msauth.unsignedapp://auth"
             );
         });
     });
@@ -2409,7 +2409,7 @@ if (process.platform === "win32") {
 
             expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
-                `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+                "https://login.microsoftonline.com/common/oauth2/nativeclient"
             );
         });
         it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
@@ -2453,7 +2453,7 @@ if (process.platform === "win32") {
             await nativeBrokerPlugin.acquireTokenInteractive(request);
             expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
-                `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+                "https://login.microsoftonline.com/common/oauth2/nativeclient"
             );
         });
     });
