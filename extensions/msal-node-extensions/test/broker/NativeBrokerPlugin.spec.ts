@@ -37,6 +37,22 @@ import {
     TEST_REDIRECTURI,
 } from "../util/TestConstants";
 
+// macOS and Linux currently are not supported by MSAL node runtime
+function createMockAuthResult(testAuthenticationResult: AuthenticationResult, correlationId: string): AuthResult {
+    return {
+        idToken: JSON.stringify(testAuthenticationResult.idTokenClaims),
+        accessToken: testAuthenticationResult.accessToken,
+        authorizationHeader: "",
+        rawIdToken: testAuthenticationResult.idToken,
+        grantedScopes: testAuthenticationResult.scopes.join(" "),
+        expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+        isPopAuthorization: false,
+        account: testMsalRuntimeAccount,
+        CheckError: () => {},
+        telemetryData: correlationId,
+    };
+}
+
 if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
         const testNativeAuthError = new NativeAuthError(
@@ -596,40 +612,15 @@ if (process.platform === "win32") {
                         done();
                     });
             });
-            it("sets the correct redirectUri", async () => {
+            it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
                 const testCorrelationId = generateCorrelationId();
-                const testAuthenticationResult =
-                    getTestAuthenticationResult(testCorrelationId);
-                jest.spyOn(
-                    msalNodeRuntime,
-                    "SignInSilentlyAsync"
-                ).mockImplementation(
-                    (
-                        authParams: AuthParameters,
-                        correlationId: string,
-                        callback: (result: AuthResult) => void
-                    ) => {
-                        const result: AuthResult = {
-                            idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
-                            ),
-                            accessToken: testAuthenticationResult.accessToken,
-                            authorizationHeader: "",
-                            rawIdToken: testAuthenticationResult.idToken,
-                            grantedScopes:
-                                testAuthenticationResult.scopes.join(" "),
-                            // Converts to seconds as MsalRuntime returns expiresOn in seconds
-                            expiresOn: TimeUtils.toSecondsFromDate(
-                                testAuthenticationResult.expiresOn!
-                            ),
-                            isPopAuthorization: false,
-                            account: testMsalRuntimeAccount,
-                            CheckError: () => {},
-                            telemetryData: "",
-                        };
-                        expect(correlationId).toEqual(testCorrelationId);
-                        callback(result);
+                const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
+                const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
 
+                jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation(
+                    (_authParams, _correlationId, callback) => {
+                        expect(_correlationId).toEqual(testCorrelationId);
+                        callback(result);
                         return asyncHandle;
                     }
                 );
@@ -642,12 +633,15 @@ if (process.platform === "win32") {
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
                 };
+
                 const chooseRedirectUriMock = jest.spyOn(
                     NativeBrokerPlugin.prototype,
                     // @ts-ignore
                     "chooseRedirectUriByPlatform"
                 );
+
                 await nativeBrokerPlugin.acquireTokenSilent(request);
+
                 expect(chooseRedirectUriMock).toHaveBeenCalled();
                 expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                     `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
@@ -1444,39 +1438,16 @@ if (process.platform === "win32") {
                     nativeBrokerPlugin.acquireTokenInteractive(request)
                 ).rejects.toThrowError(testNativeAuthError);
             });
-            it("sets the correct redirectUri", async () => {
+
+            it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
                 const testCorrelationId = generateCorrelationId();
-                const testAuthenticationResult =
-                    getTestAuthenticationResult(testCorrelationId);
+                const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
+                const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
 
                 jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
-                    (
-                        windowHandle: Buffer,
-                        authParams: AuthParameters,
-                        correlationId: string,
-                        accountHint: string,
-                        callback: (result: AuthResult) => void
-                    ) => {
-                        const result: AuthResult = {
-                            idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
-                            ),
-                            accessToken: testAuthenticationResult.accessToken,
-                            authorizationHeader: "",
-                            rawIdToken: testAuthenticationResult.idToken,
-                            grantedScopes:
-                                testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(
-                                testAuthenticationResult.expiresOn!
-                            ),
-                            isPopAuthorization: false,
-                            account: testMsalRuntimeAccount,
-                            CheckError: () => {},
-                            telemetryData: "",
-                        };
-                        expect(correlationId).toEqual(testCorrelationId);
+                    (_windowHandle, _authParams, _correlationId, _accountHint, callback) => {
+                        expect(_correlationId).toEqual(testCorrelationId);
                         callback(result);
-
                         return asyncHandle;
                     }
                 );
@@ -1489,11 +1460,13 @@ if (process.platform === "win32") {
                     authority: testAuthenticationResult.authority,
                     redirectUri: TEST_REDIRECTURI,
                 };
+
                 const chooseRedirectUriMock = jest.spyOn(
                     NativeBrokerPlugin.prototype,
                     // @ts-ignore
                     "chooseRedirectUriByPlatform"
                 );
+
                 await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(chooseRedirectUriMock).toHaveBeenCalled();
                 expect(chooseRedirectUriMock.mock.results[0].value).toBe(
@@ -2238,7 +2211,6 @@ if (process.platform === "win32") {
     afterEach(() => {
         jest.restoreAllMocks();
     });
-    // macOS currently is not supported by MSAL node runtime
     describe.skip("NativeBrokerPlugin", () => {
         it("Sets isBrokerAvailable to false if the broker is not available", () => {
             const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -2246,38 +2218,13 @@ if (process.platform === "win32") {
         });
         it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
             const testCorrelationId = generateCorrelationId();
-            const testAuthenticationResult =
-                getTestAuthenticationResult(testCorrelationId);
-            jest.spyOn(
-                msalNodeRuntime,
-                "SignInSilentlyAsync"
-            ).mockImplementation(
-                (
-                    authParams: AuthParameters,
-                    correlationId: string,
-                    callback: (result: AuthResult) => void
-                ) => {
-                    const result: AuthResult = {
-                        idToken: JSON.stringify(
-                            testAuthenticationResult.idTokenClaims
-                        ),
-                        accessToken: testAuthenticationResult.accessToken,
-                        authorizationHeader: "",
-                        rawIdToken: testAuthenticationResult.idToken,
-                        grantedScopes:
-                            testAuthenticationResult.scopes.join(" "),
-                        // Converts to seconds as MsalRuntime returns expiresOn in seconds
-                        expiresOn: TimeUtils.toSecondsFromDate(
-                            testAuthenticationResult.expiresOn!
-                        ),
-                        isPopAuthorization: false,
-                        account: testMsalRuntimeAccount,
-                        CheckError: () => {},
-                        telemetryData: "",
-                    };
-                    expect(correlationId).toEqual(testCorrelationId);
-                    callback(result);
+            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
 
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation(
+                (_authParams, _correlationId, callback) => {
+                    expect(_correlationId).toEqual(testCorrelationId);
+                    callback(result);
                     return asyncHandle;
                 }
             );
@@ -2290,12 +2237,15 @@ if (process.platform === "win32") {
                 authority: testAuthenticationResult.authority,
                 redirectUri: TEST_REDIRECTURI,
             };
+
             const chooseRedirectUriMock = jest.spyOn(
                 NativeBrokerPlugin.prototype,
                 // @ts-ignore
                 "chooseRedirectUriByPlatform"
             );
+
             await nativeBrokerPlugin.acquireTokenSilent(request);
+
             expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                 `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
@@ -2303,37 +2253,13 @@ if (process.platform === "win32") {
         });
         it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
             const testCorrelationId = generateCorrelationId();
-            const testAuthenticationResult =
-                getTestAuthenticationResult(testCorrelationId);
+            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
 
             jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
-                (
-                    windowHandle: Buffer,
-                    authParams: AuthParameters,
-                    correlationId: string,
-                    accountHint: string,
-                    callback: (result: AuthResult) => void
-                ) => {
-                    const result: AuthResult = {
-                        idToken: JSON.stringify(
-                            testAuthenticationResult.idTokenClaims
-                        ),
-                        accessToken: testAuthenticationResult.accessToken,
-                        authorizationHeader: "",
-                        rawIdToken: testAuthenticationResult.idToken,
-                        grantedScopes:
-                            testAuthenticationResult.scopes.join(" "),
-                        expiresOn: TimeUtils.toSecondsFromDate(
-                            testAuthenticationResult.expiresOn!
-                        ),
-                        isPopAuthorization: false,
-                        account: testMsalRuntimeAccount,
-                        CheckError: () => {},
-                        telemetryData: "",
-                    };
-                    expect(correlationId).toEqual(testCorrelationId);
+                (_windowHandle, _authParams, _correlationId, _accountHint, callback) => {
+                    expect(_correlationId).toEqual(testCorrelationId);
                     callback(result);
-
                     return asyncHandle;
                 }
             );
@@ -2346,11 +2272,13 @@ if (process.platform === "win32") {
                 authority: testAuthenticationResult.authority,
                 redirectUri: TEST_REDIRECTURI,
             };
+
             const chooseRedirectUriMock = jest.spyOn(
                 NativeBrokerPlugin.prototype,
                 // @ts-ignore
                 "chooseRedirectUriByPlatform"
             );
+
             await nativeBrokerPlugin.acquireTokenInteractive(request);
             expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
@@ -2370,42 +2298,16 @@ if (process.platform === "win32") {
     afterEach(() => {
         jest.restoreAllMocks();
     });
-    // linux currently is not supported by MSAL node runtime
-    describe.skip("NativeBrokerPlugin", () => {
+    describe("NativeBrokerPlugin", () => {
         it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
             const testCorrelationId = generateCorrelationId();
-            const testAuthenticationResult =
-                getTestAuthenticationResult(testCorrelationId);
-            jest.spyOn(
-                msalNodeRuntime,
-                "SignInSilentlyAsync"
-            ).mockImplementation(
-                (
-                    authParams: AuthParameters,
-                    correlationId: string,
-                    callback: (result: AuthResult) => void
-                ) => {
-                    const result: AuthResult = {
-                        idToken: JSON.stringify(
-                            testAuthenticationResult.idTokenClaims
-                        ),
-                        accessToken: testAuthenticationResult.accessToken,
-                        authorizationHeader: "",
-                        rawIdToken: testAuthenticationResult.idToken,
-                        grantedScopes:
-                            testAuthenticationResult.scopes.join(" "),
-                        // Converts to seconds as MsalRuntime returns expiresOn in seconds
-                        expiresOn: TimeUtils.toSecondsFromDate(
-                            testAuthenticationResult.expiresOn!
-                        ),
-                        isPopAuthorization: false,
-                        account: testMsalRuntimeAccount,
-                        CheckError: () => {},
-                        telemetryData: "",
-                    };
-                    expect(correlationId).toEqual(testCorrelationId);
-                    callback(result);
+            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
 
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation(
+                (_authParams, _correlationId, callback) => {
+                    expect(_correlationId).toEqual(testCorrelationId);
+                    callback(result);
                     return asyncHandle;
                 }
             );
@@ -2418,12 +2320,15 @@ if (process.platform === "win32") {
                 authority: testAuthenticationResult.authority,
                 redirectUri: TEST_REDIRECTURI,
             };
+
             const chooseRedirectUriMock = jest.spyOn(
                 NativeBrokerPlugin.prototype,
                 // @ts-ignore
                 "chooseRedirectUriByPlatform"
             );
+
             await nativeBrokerPlugin.acquireTokenSilent(request);
+
             expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
                 `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
@@ -2431,37 +2336,13 @@ if (process.platform === "win32") {
         });
         it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
             const testCorrelationId = generateCorrelationId();
-            const testAuthenticationResult =
-                getTestAuthenticationResult(testCorrelationId);
+            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(testAuthenticationResult, testCorrelationId);
 
             jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
-                (
-                    windowHandle: Buffer,
-                    authParams: AuthParameters,
-                    correlationId: string,
-                    accountHint: string,
-                    callback: (result: AuthResult) => void
-                ) => {
-                    const result: AuthResult = {
-                        idToken: JSON.stringify(
-                            testAuthenticationResult.idTokenClaims
-                        ),
-                        accessToken: testAuthenticationResult.accessToken,
-                        authorizationHeader: "",
-                        rawIdToken: testAuthenticationResult.idToken,
-                        grantedScopes:
-                            testAuthenticationResult.scopes.join(" "),
-                        expiresOn: TimeUtils.toSecondsFromDate(
-                            testAuthenticationResult.expiresOn!
-                        ),
-                        isPopAuthorization: false,
-                        account: testMsalRuntimeAccount,
-                        CheckError: () => {},
-                        telemetryData: "",
-                    };
-                    expect(correlationId).toEqual(testCorrelationId);
+                (_windowHandle, _authParams, _correlationId, _accountHint, callback) => {
+                    expect(_correlationId).toEqual(testCorrelationId);
                     callback(result);
-
                     return asyncHandle;
                 }
             );
@@ -2474,11 +2355,13 @@ if (process.platform === "win32") {
                 authority: testAuthenticationResult.authority,
                 redirectUri: TEST_REDIRECTURI,
             };
+
             const chooseRedirectUriMock = jest.spyOn(
                 NativeBrokerPlugin.prototype,
                 // @ts-ignore
                 "chooseRedirectUriByPlatform"
             );
+
             await nativeBrokerPlugin.acquireTokenInteractive(request);
             expect(chooseRedirectUriMock).toHaveBeenCalled();
             expect(chooseRedirectUriMock.mock.results[0].value).toBe(
