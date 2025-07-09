@@ -221,7 +221,6 @@ export async function getPostForm(
     logger: Logger,
     performanceClient: IPerformanceClient
 ): Promise<HTMLFormElement> {
-
     const parameters = await getStandardParameters(
         config,
         authority,
@@ -230,10 +229,7 @@ export async function getPostForm(
         performanceClient
     );
 
-    RequestParameterBuilder.addResponseType(
-        parameters,
-        OAuthResponseType.CODE
-    );
+    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
 
     RequestParameterBuilder.addCodeChallengeParams(
         parameters,

@@ -13,6 +13,9 @@ import {
     ServerResponseType,
     AccountEntity,
     AccountInfo,
+    ClientConfigurationError,
+    ClientConfigurationErrorCodes,
+    HttpMethod,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
@@ -27,6 +30,7 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_TOKENS,
     RANDOM_TEST_GUID,
+    TEST_AUTHORIZE_BODY_PARAMS,
 } from "../utils/StringConstants.js";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
@@ -34,6 +38,7 @@ import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { CommonAuthorizationUrlRequest } from "../../../msal-common/lib/types/exports-common.js";
 
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
@@ -296,6 +301,77 @@ describe("StandardInteractionClient", () => {
         expect(authCodeRequest.account).toEqual(request.account);
         expect(authCodeRequest.sid).toEqual(request.sid);
     });
+
+    it("initializeAuthorizationRequest throws if request method is GET and includes authorizeBodyParameters", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+            httpMethod: HttpMethod.GET,
+            authorizeBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
+        };
+
+        try {
+            await testClient.initializeAuthorizationRequest(
+                request,
+                InteractionType.Redirect
+            );
+            throw "Unexpected! Should throw";
+        } catch (e) {
+            expect(e).toBeInstanceOf(ClientConfigurationError);
+            expect((e as ClientConfigurationError).errorCode).toEqual(
+                ClientConfigurationErrorCodes.invalidAuthorizeBodyParameters
+            );
+        }
+    });
+
+    it("initializeAuthorizationRequest sets httpMethod to GET by default", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+        expect(authCodeRequest.httpMethod).toEqual(HttpMethod.GET);
+    });
+
+    it("initializeAuthorizationRequest throws if no httpMethod is set in the request and authorizeBodyParameters are set", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+            authorizeBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
+        };
+
+        try {
+            await testClient.initializeAuthorizationRequest(
+                request,
+                InteractionType.Redirect
+            );
+            throw "Unexpected! Should throw";
+        } catch (e) {
+            expect(e).toBeInstanceOf(ClientConfigurationError);
+            expect((e as ClientConfigurationError).errorCode).toEqual(
+                ClientConfigurationErrorCodes.invalidAuthorizeBodyParameters
+            );
+        }
+    });
 });
 
 describe("StandardInteractionClient OIDCOptions Tests", () => {
@@ -373,5 +449,88 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             InteractionType.Redirect
         );
         expect(authCodeRequest.responseMode).toBe(ResponseMode.QUERY);
+    });
+});
+
+describe("StandardInteractionClient EAR Tests", () => {
+    let pca: PublicClientApplication;
+    let testClient: testStandardInteractionClient;
+
+    beforeEach(() => {
+        pca = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                protocolMode: ProtocolMode.EAR,
+            },
+        });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
+        // @ts-ignore
+        testClient = new testStandardInteractionClient(
+            //@ts-ignore
+            pca.config,
+            //@ts-ignore
+            pca.browserStorage,
+            //@ts-ignore
+            pca.browserCrypto,
+            //@ts-ignore
+            pca.logger,
+            //@ts-ignore
+            pca.eventHandler,
+            //@ts-ignore
+            null,
+            //@ts-ignore
+            pca.performanceClient
+        );
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it("initializeAuthorizationRequest throws error when protocolMode is EAR and httpMethod is GET", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+            httpMethod: HttpMethod.GET,
+        };
+
+        try {
+            await testClient.initializeAuthorizationRequest(
+                request,
+                InteractionType.Redirect
+            );
+            throw "Unexpected! Should throw";
+        } catch (e) {
+            expect(e).toBeInstanceOf(ClientConfigurationError);
+            expect((e as ClientConfigurationError).errorCode).toEqual(
+                ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+            );
+        }
+    });
+
+    it("initializeAuthorizationRequest sets httpMethod to POST when protocolMode is EAR and httpMethod is not set", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+        expect(authCodeRequest.httpMethod).toEqual(HttpMethod.POST);
     });
 });

@@ -8,10 +8,13 @@ import {
     AuthenticationScheme,
     BaseAuthRequest,
     ClientConfigurationErrorCodes,
+    CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
+    HttpMethod,
     IPerformanceClient,
     Logger,
     PerformanceEvents,
+    ProtocolMode,
     StringUtils,
     createClientConfigurationError,
     invokeAsync,
@@ -109,4 +112,44 @@ export async function initializeSilentRequest(
         account: account,
         forceRefresh: request.forceRefresh || false,
     };
+}
+
+/**
+ * Validates that the combination of request method, protocol mode and authorize body parameters is correct.
+ * @param interactionRequest
+ * @param protocolMode
+ * @returns
+ */
+export function validateRequestMethod(
+    interactionRequest: CommonAuthorizationUrlRequest,
+    protocolMode: ProtocolMode
+): CommonAuthorizationUrlRequest {
+    let httpMethod: HttpMethod | undefined;
+    const requestMethod = interactionRequest.httpMethod;
+
+    if (protocolMode === ProtocolMode.EAR) {
+        // Don't override httpMethod if it is already set, default to POST if not set
+        httpMethod = requestMethod || HttpMethod.POST;
+        // Validate that method is not GET if protocol mode is EAR
+        if (httpMethod !== HttpMethod.POST) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+            );
+        }
+    } else {
+        // For non-EAR protocol modes, default to GET if httpMethod is not set
+        httpMethod = requestMethod || HttpMethod.GET;
+    }
+
+    // Regardless of protocolMode, if there are authorizeBodyParameters, validate the request method is POST
+    if (
+        interactionRequest.authorizeBodyParameters &&
+        httpMethod !== HttpMethod.POST
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidAuthorizeBodyParameters
+        );
+    }
+
+    return { ...interactionRequest, httpMethod };
 }
