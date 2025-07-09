@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752011810041,
+  "lastUpdate": 1752019206915,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15982,6 +15982,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.85%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a3184515a369f1c8eed0c478a80c6b0c042ea7d0",
+          "message": "Release PR: official (#7911)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\n---------\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: Lalima Sharda <lalimasharda@microsoft.com>\nCo-authored-by: Lalima Sharda <lalima.sharda@gmail.com>",
+          "timestamp": "2025-07-08T16:53:36-07:00",
+          "tree_id": "61e3a2a2554943ff692eb23c10a233a05990ea02",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a3184515a369f1c8eed0c478a80c6b0c042ea7d0"
+        },
+        "date": 1752019205556,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 239061,
+            "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241094,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
