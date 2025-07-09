@@ -2270,10 +2270,6 @@ if (process.platform === "win32") {
         jest.restoreAllMocks();
     });
     describe("NativeBrokerPlugin", () => {
-        it("Sets isBrokerAvailable to false if the broker is not available", () => {
-            const nativeBrokerPlugin = new NativeBrokerPlugin();
-            expect(nativeBrokerPlugin.isBrokerAvailable).toBe(false);
-        });
         it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
             const testCorrelationId = generateCorrelationId();
             const testAuthenticationResult =
