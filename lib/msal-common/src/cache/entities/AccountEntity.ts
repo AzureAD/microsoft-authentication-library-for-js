@@ -294,6 +294,7 @@ export class AccountEntity {
                     }
                 } catch (e) {}
             }
+            logger.info("No client info in response");
         }
 
         // default to "sub" claim
