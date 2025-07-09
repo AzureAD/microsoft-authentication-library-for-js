@@ -9,7 +9,7 @@ This repository contains JavaScript/TypeScript SDKs for integrating with Microso
 - Ensure all code is formatted by running `npm run format:fix` from the directory of each changed package.
 - Ensure changes pass linting by running `npm run lint` from the directory of each changed package.
 - Test all changes by running `npm run test` from the directory of each changed package.
-- Update apiExtractor reports by running `npm run apiExtractor -- -- --local` from the directory of each changed package.
+- Update apiExtractor reports by running `npm run apiExtractor -- --local` from the directory of each changed package.
 - Create changefiles by running `npm run beachball:change` from the root of the repo. Include PR number in changelog message.
 
 ## Repository Structure
