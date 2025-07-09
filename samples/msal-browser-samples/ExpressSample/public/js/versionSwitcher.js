@@ -215,7 +215,11 @@ function showCustomVersionModal() {
         
         // Show modal
         modal.style.display = 'flex';
-        setTimeout(() => input.focus(), 100);
+        
+        // Focus input after modal is displayed
+        requestAnimationFrame(() => {
+            input.focus();
+        });
         
         // Setup event handlers if not already setup
         setupCustomVersionModal();
@@ -390,11 +394,7 @@ async function switchVersion(newVersion, customVersion = null) {
         if (result.success) {
             // Show success message
             showVersionSwitchSuccess(result);
-            
-            // Reload page to use new version
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
+            window.location.reload();
         } else {
             throw new Error(JSON.stringify({
                 message: result.error || 'Failed to switch version',

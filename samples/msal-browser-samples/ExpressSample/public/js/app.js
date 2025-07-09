@@ -3,30 +3,19 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
-// Main application entry point using ES6 modules
-import { showError, showErrorHTML, showSuccess } from './utils.js';
+// Main application entry point
 import { 
-    initializeMsal, 
-    handleRedirectPromise, 
-    setUpdateUIFunction,
+    initializeMsal,
     signInPopup,
     signInRedirect,
-    signInRedirectWithPrompt,
-    signOut,
     signOutPopup,
     signOutRedirect,
-    getAccessTokenSilent,
-    isAuthenticatedUser,
-    getCurrentUser,
-    getAllAccounts,
-    getMsalInstance,
-    handleProtectedRouteAuth,
-    debugAuthState,
-    refreshAuthState
+    msalInstance
 } from './auth.js';
-import { updateUI, updateNavigation, toggleDropdown, closeDropdown, closeAllDropdowns } from './ui.js';
+import { toggleDropdown, closeAllDropdowns, updateUI } from './ui.js';
 import { showAccountPickerModal, closeAccountPickerModal } from './account.js';
-import { navigate, handleRouting, setupSPANavigation } from './navigation.js';
+import { handleRouting, setupSPANavigation } from './navigation.js';
+import { loadProfileData } from "./graph.js";
 
 // Setup event listeners
 function setupEventListeners() {
@@ -102,6 +91,37 @@ function setupEventListeners() {
         });
     }
     
+    // Profile page sign in buttons (may not exist on all pages)
+    const profileSignInPopupBtn = document.getElementById('profileSignInPopup');
+    const profileSignInRedirectBtn = document.getElementById('profileSignInRedirect');
+    
+    if (profileSignInPopupBtn) {
+        profileSignInPopupBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            signInPopup();
+        });
+    }
+    
+    if (profileSignInRedirectBtn) {
+        profileSignInRedirectBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            signInRedirect();
+        });
+    }
+    
+    // Profile page refresh button (may not exist on all pages)
+    const refreshProfileBtn = document.getElementById('refreshProfileBtn');
+    if (refreshProfileBtn) {
+        refreshProfileBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            try {
+                loadProfileData();
+            } catch (error) {
+                console.error('Error refreshing profile data:', error);
+            }
+        });
+    }
+    
     // Account management event handlers
     if (switchAccountBtn) {
         switchAccountBtn.addEventListener('click', function(e) {
@@ -145,27 +165,18 @@ function setupEventListeners() {
 }
 
 // DOM ready function
-document.addEventListener('DOMContentLoaded', async function() {
-    // Set the updateUI function in the auth module
-    setUpdateUIFunction(updateUI);
-    
+document.addEventListener('DOMContentLoaded', async function() {    
     // Initialize MSAL first
     await initializeMsal();
     
-    // Handle any redirect promises
-    await handleRedirectPromise();
-    
     // Refresh authentication state (this will also call updateUI)
-    refreshAuthState();
+    updateUI(msalInstance.getActiveAccount());
     
     // Setup all event listeners
     setupEventListeners();
     
     // Handle initial route
     await handleRouting();
-    
-    // Debug authentication state (can be removed in production)
-    debugAuthState();
 });
 
 // Handle browser back/forward
@@ -177,41 +188,6 @@ window.addEventListener('popstate', function() {
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
         // Page became visible, refresh auth state
-        setTimeout(() => {
-            refreshAuthState();
-        }, 100);
+        updateUI(msalInstance.getActiveAccount());
     }
 });
-
-// Export main app functions for global access (backward compatibility)
-// This maintains compatibility with existing code that expects these on window
-window.msalApp = {
-    // Authentication methods
-    signInPopup,
-    signInRedirect,
-    signInRedirectWithPrompt,
-    signOut,
-    signOutPopup,
-    signOutRedirect,
-    getAccessTokenSilent,
-    
-    // Navigation methods
-    navigate,
-    
-    // Account methods
-    showAccountPickerModal,
-    closeAccountPickerModal,
-    
-    // State methods
-    isAuthenticated: isAuthenticatedUser,
-    getCurrentUser,
-    getAllAccounts
-};
-
-// Export utility functions globally (backward compatibility)
-window.showError = showError;
-window.showErrorHTML = showErrorHTML;
-window.showSuccess = showSuccess;
-
-// Export debug function globally for troubleshooting
-window.debugAuthState = debugAuthState;

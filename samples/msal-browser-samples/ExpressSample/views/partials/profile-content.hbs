@@ -105,7 +105,7 @@
     
     <div class="text-center">
         <a href="/" class="btn spa-link">← Back to Home</a>
-        <button onclick="window.graphUtils.loadProfileData()" class="btn btn-secondary">Refresh Profile</button>
+        <button id="refreshProfileBtn" class="btn btn-secondary">Refresh Profile</button>
     </div>
 </div>
 
@@ -120,8 +120,8 @@
         <p>This page requires you to be signed in to access your profile information from Microsoft Graph.</p>
         
         <div class="btn-group">
-            <button onclick="window.msalApp.signInPopup()" class="btn">Sign In with Popup</button>
-            <button onclick="window.msalApp.signInRedirect()" class="btn btn-secondary">Sign In with Redirect</button>
+            <button id="profileSignInPopup" class="btn">Sign In with Popup</button>
+            <button id="profileSignInRedirect" class="btn btn-secondary">Sign In with Redirect</button>
         </div>
         
         <div style="margin-top: 1rem;">

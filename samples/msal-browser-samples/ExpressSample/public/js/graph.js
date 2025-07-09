@@ -4,9 +4,12 @@
  */
 
 // MS Graph API call functionality
-async function callMsGraph(accessToken) {
+import { getAccessToken } from './auth.js';
+
+// MS Graph API call functionality
+export async function callMsGraph(accessToken) {
     if (!accessToken) {
-        accessToken = await window.msalApp.getAccessTokenSilent();
+        accessToken = await getAccessToken();
     }
 
     const headers = new Headers();
@@ -32,7 +35,7 @@ async function callMsGraph(accessToken) {
 }
 
 // Load and display profile data
-async function loadProfileData() {
+export async function loadProfileData() {
     const loadingElement = document.getElementById('profile-loading');
     const contentElement = document.getElementById('profile-content');
     const errorElement = document.getElementById('profile-error');
@@ -59,7 +62,7 @@ async function loadProfileData() {
 }
 
 // Display profile data in the UI
-function displayProfileData(profileData) {
+export function displayProfileData(profileData) {
     const elements = {
         'profile-display-name': profileData.displayName,
         'profile-email': profileData.mail || profileData.userPrincipalName,
@@ -87,22 +90,3 @@ function displayProfileData(profileData) {
         jsonElement.textContent = JSON.stringify(profileData, null, 2);
     }
 }
-
-// Initialize profile page if we're on the profile route
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.location.pathname === '/profile') {
-        // Wait a bit for MSAL to initialize
-        setTimeout(() => {
-            if (window.msalApp && window.msalApp.isAuthenticated()) {
-                loadProfileData();
-            }
-        }, 500);
-    }
-});
-
-// Export for global access
-window.graphUtils = {
-    callMsGraph,
-    loadProfileData,
-    displayProfileData
-};

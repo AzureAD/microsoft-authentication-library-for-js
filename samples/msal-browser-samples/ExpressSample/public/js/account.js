@@ -5,7 +5,7 @@
 
 // Account module - handles account management and picker functionality
 
-import { getMsalInstance, getCurrentUser } from './auth.js';
+import { msalInstance } from './auth.js';
 import { showError } from './utils.js';
 
 // Account picker modal functionality
@@ -40,7 +40,6 @@ export function closeAccountPickerModal() {
 
 function populateAccountList() {
     const accountList = document.getElementById('accountList');
-    const msalInstance = getMsalInstance();
     
     if (!accountList || !msalInstance) {
         console.error('Missing required elements for account list');
@@ -54,7 +53,7 @@ function populateAccountList() {
     
     // Add existing accounts
     accounts.forEach((account, index) => {
-        const accountItem = createAccountItem(account, account === activeAccount);
+        const accountItem = createAccountItem(account, account.homeAccountId === activeAccount.homeAccountId);
         accountList.appendChild(accountItem);
     });
     
@@ -135,15 +134,7 @@ function getAccountInitials(name) {
 }
 
 function selectAccount(account) {
-    try {
-        const msalInstance = getMsalInstance();
-        
-        if (!msalInstance) {
-            console.error('MSAL instance not available');
-            showError('MSAL instance not available');
-            return;
-        }
-        
+    try {        
         // Set the active account
         msalInstance.setActiveAccount(account);
         
@@ -162,18 +153,7 @@ function selectAccount(account) {
 function addAccount() {
     closeAccountPickerModal();
     // Import dynamically to avoid circular dependency
-    import('./auth.js').then(auth => {
-        auth.signInRedirectWithPrompt();
+    msalInstance.loginRedirect({
+        prompt: 'select_account'
     });
-}
-
-// Emergency function to fix scrolling if modal breaks
-export function resetBodyScroll() {
-    document.body.style.overflow = '';
-    console.log('Body scroll reset');
-}
-
-// Also expose it globally for debugging
-if (typeof window !== 'undefined') {
-    window.resetBodyScroll = resetBodyScroll;
 }

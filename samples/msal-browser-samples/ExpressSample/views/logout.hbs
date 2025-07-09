@@ -10,24 +10,15 @@
     </div>
     
     <div class="loading">
-        Signing you out...
+        <div class="loading-spinner"></div>
+        <p>Signing you out...</p>
     </div>
     
     <div style="text-align: center; margin-top: 2rem;">
-        <a href="/" class="btn">Return to Home</a>
+        <a href="/" class="btn spa-link">Return to Home</a>
+        <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+            If logout doesn't proceed automatically, click "Return to Home"
+        </p>
     </div>
 </div>
 
-<script>
-    // Automatically sign out when this page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(() => {
-            if (window.msalApp && window.msalApp.isAuthenticated()) {
-                window.msalApp.signOut();
-            } else {
-                // If not authenticated, redirect to home
-                window.location.href = '/';
-            }
-        }, 1000);
-    });
-</script>

@@ -214,6 +214,14 @@ main {
     background-color: #d4edda;
     border: 1px solid #c3e6cb;
     color: #155724;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.success-message.show {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Profile Page */
@@ -276,6 +284,17 @@ main {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #0078d4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
 }
 
 /* Dropdown Styles */

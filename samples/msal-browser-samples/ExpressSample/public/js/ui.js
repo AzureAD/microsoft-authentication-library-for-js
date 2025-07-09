@@ -5,29 +5,24 @@
 
 // UI module - handles UI updates, dropdowns, and event listeners
 
-import { isAuthenticatedUser, getCurrentUser } from './auth.js';
-
 // Update UI based on authentication state
-export function updateUI() {
-    const currentUser = getCurrentUser();
-    const isAuthenticated = isAuthenticatedUser();
-    
+export function updateUI(currentUser) {    
     const authElements = document.querySelectorAll('[data-auth-required]');
     const unauthElements = document.querySelectorAll('[data-unauth-required]');
     const userNameElements = document.querySelectorAll('[data-user-name]');
     
     authElements.forEach((el, index) => {
-        const newDisplay = isAuthenticated ? '' : 'none';
+        const newDisplay = !!currentUser ? '' : 'none';
         el.style.display = newDisplay;
     });
     
     unauthElements.forEach((el, index) => {
-        const newDisplay = isAuthenticated ? 'none' : '';
+        const newDisplay = !!currentUser ? 'none' : '';
         el.style.display = newDisplay;
     });
     
     userNameElements.forEach(el => {
-        if (isAuthenticated && currentUser) {
+        if (currentUser) {
             el.textContent = currentUser.name || currentUser.username;
         }
     });

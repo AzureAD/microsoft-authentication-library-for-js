@@ -5,8 +5,10 @@
 
 // Navigation module - handles SPA routing and navigation
 
-import { isAuthenticatedUser, handleProtectedRouteAuth } from './auth.js';
-import { updateNavigation } from './ui.js';
+import { msalInstance, handleProtectedRouteAuth, signOutRedirect } from './auth.js';
+import { updateNavigation, updateUI } from './ui.js';
+import { waitForElement, showSuccess } from './utils.js';
+import { loadProfileData } from "./graph.js";
 
 // Navigation function - SPA style routing
 export function navigate(path) {
@@ -22,11 +24,10 @@ export async function handleRouting() {
     const path = window.location.pathname;
     
     // Refresh authentication state before checking routes
-    const { refreshAuthState } = await import('./auth.js');
-    refreshAuthState();
+    updateUI(msalInstance.getActiveAccount());
     
     // Check if route requires authentication
-    if (path === '/profile' && !isAuthenticatedUser()) {
+    if (path === '/profile' && !msalInstance.getActiveAccount()) {
         const authSuccess = await handleProtectedRouteAuth(path);
         if (!authSuccess) {
             return; // Authentication in progress or failed
@@ -35,18 +36,15 @@ export async function handleRouting() {
     
     // Update navigation active states and UI
     updateNavigation();
-    
-    // Update UI to ensure auth state is reflected
-    const { updateUI } = await import('./ui.js');
-    updateUI();
+    updateUI(msalInstance.getActiveAccount());
     
     // If on profile page and authenticated, load profile data
-    if (path === '/profile' && isAuthenticatedUser()) {
-        setTimeout(() => {
-            if (window.graphUtils && window.graphUtils.loadProfileData) {
-                window.graphUtils.loadProfileData();
-            }
-        }, 100);
+    if (path === '/profile' && msalInstance.getActiveAccount()) {
+        try {
+            await loadProfileData();
+        } catch (error) {
+            console.error('Error loading profile data:', error);
+        }
     }
 }
 
@@ -91,9 +89,7 @@ async function loadPageContentSPA(path) {
         updateNavigation();
         
         // IMPORTANT: Update UI after content change to handle auth-required elements
-        // Import dynamically to avoid circular dependency
-        const { updateUI } = await import('./ui.js');
-        updateUI();
+        updateUI(msalInstance.getActiveAccount());
         
         // Handle specific page logic
         await handlePageSpecificLogic(path);
@@ -137,21 +133,31 @@ function updatePageTitle(path) {
 
 // Handle page-specific logic after content load
 async function handlePageSpecificLogic(path) {
-    if (path === '/profile' && isAuthenticatedUser()) {
-        setTimeout(() => {
-            if (window.graphUtils && window.graphUtils.loadProfileData) {
-                window.graphUtils.loadProfileData();
-            }
-        }, 100);
+    if (path === '/profile' && msalInstance.getActiveAccount()) {
+        // Wait for profile container to be available before loading data
+        try {
+            await waitForElement('#profile-content, .profile-container, .spa-content');
+            await loadProfileData();
+        } catch (error) {
+            console.error('Error loading profile data:', error);
+        }
     } else if (path === '/logout') {
-        setTimeout(() => {
-            // Import dynamically to avoid circular dependency
-            import('./auth.js').then(auth => {
-                if (auth.isAuthenticatedUser()) {
-                    auth.signOutRedirect();
-                }
-            });
-        }, 1000);
+        try {
+            // Show immediate feedback to user
+            showSuccess('Signing you out...');
+            
+            // Proceed with logout immediately
+            if (msalInstance.getActiveAccount()) {
+                signOutRedirect();
+            } else {
+                // If not authenticated, redirect to home
+                window.location.href = '/';
+            }
+        } catch (error) {
+            console.error('Error during logout:', error);
+            // Fallback to home page
+            window.location.href = '/';
+        }
     }
 }
 
@@ -166,11 +172,10 @@ export function setupSPANavigation() {
             const path = target.getAttribute('href');
             if (path) {
                 // Refresh authentication state before navigation
-                const { refreshAuthState } = await import('./auth.js');
-                refreshAuthState();
+                updateUI(msalInstance.getActiveAccount());
                 
                 // Check authentication for protected routes
-                if (path === '/profile' && !isAuthenticatedUser()) {
+                if (path === '/profile' && !msalInstance.getActiveAccount()) {
                     const authSuccess = await handleProtectedRouteAuth(path);
                     if (!authSuccess) {
                         return;

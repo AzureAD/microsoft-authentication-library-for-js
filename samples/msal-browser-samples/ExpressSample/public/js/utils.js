@@ -33,43 +33,59 @@ export function showError(message) {
     }
 }
 
-export function showErrorHTML(htmlContent) {
-    const errorDiv = document.getElementById('error-message');
-    if (errorDiv) {
-        // Set HTML content directly
-        errorDiv.innerHTML = htmlContent;
-        errorDiv.style.display = 'block';
-        
-        // Add dismiss button if not already present
-        let dismissBtn = errorDiv.querySelector('.dismiss-btn');
-        if (!dismissBtn) {
-            dismissBtn = document.createElement('button');
-            dismissBtn.className = 'dismiss-btn';
-            dismissBtn.innerHTML = '×';
-            dismissBtn.title = 'Dismiss';
-            dismissBtn.addEventListener('click', () => {
-                errorDiv.style.display = 'none';
-            });
-            errorDiv.appendChild(dismissBtn);
-        }
-        
-        // No automatic timeout - user must dismiss manually
-    } else {
-        // Fallback to alert with text content only
-        const textContent = htmlContent.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-        alert('Error: ' + textContent);
-    }
-}
-
 export function showSuccess(message) {
     const successDiv = document.getElementById('success-message');
     if (successDiv) {
         successDiv.textContent = message;
         successDiv.style.display = 'block';
-        setTimeout(() => {
-            successDiv.style.display = 'none';
-        }, 3000);
+        successDiv.classList.add('show');
+        
+        // Use CSS animation events for better control
+        const hideMessage = () => {
+            successDiv.classList.remove('show');
+            successDiv.addEventListener('transitionend', () => {
+                successDiv.style.display = 'none';
+            }, { once: true });
+        };
+        
+        // Auto-hide after 3 seconds using animation frame for better performance
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                // Double RAF ensures the show class is applied first
+                setTimeout(hideMessage, 3000);
+            });
+        });
     } else {
         console.log('Success: ' + message);
     }
 }
+
+// Utility function to wait for DOM elements to be available
+export function waitForElement(selector, timeout = 5000) {
+    return new Promise((resolve, reject) => {
+        const element = document.querySelector(selector);
+        if (element) {
+            return resolve(element);
+        }
+        
+        const observer = new MutationObserver((mutations, obs) => {
+            const element = document.querySelector(selector);
+            if (element) {
+                obs.disconnect();
+                resolve(element);
+            }
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Timeout fallback
+        setTimeout(() => {
+            observer.disconnect();
+            reject(new Error(`Element ${selector} not found within ${timeout}ms`));
+        }, timeout);
+    });
+}
+

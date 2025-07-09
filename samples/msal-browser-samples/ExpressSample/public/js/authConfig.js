@@ -3,17 +3,6 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
-// Browser check variables
-// If you support IE, our recommendation is that you sign-in using Redirect APIs
-const ua = window.navigator.userAgent;
-const msie = ua.indexOf("MSIE ");
-const msie11 = ua.indexOf("Trident/");
-const msedge = ua.indexOf("Edge/");
-const firefox = ua.indexOf("Firefox");
-const isIE = msie > 0 || msie11 > 0;
-const isEdge = msedge > 0;
-const isFirefox = firefox > 0; // Only needed if you need to support the redirect flow in Firefox incognito
-
 // Configuration object to be passed to Msal on creation
 // This configuration is injected from the server via window.msalConfig
 window.msalConfig = {
@@ -24,8 +13,7 @@ window.msalConfig = {
         postLogoutRedirectUri: window.envConfig.POST_LOGOUT_REDIRECT_URI,
     },
     cache: {
-        cacheLocation: "localStorage",
-        storeAuthStateInCookie: isIE || isEdge || isFirefox,
+        cacheLocation: window.envConfig.CACHE_LOCATION || "localStorage"
     },
     system: {
         allowPlatformBroker: false, // Disables WAM Broker
