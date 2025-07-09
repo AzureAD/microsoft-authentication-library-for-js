@@ -1,0 +1,131 @@
+<div class="page-header">
+    <h1 class="page-title">User Profile</h1>
+    <p class="page-subtitle">Your information from Microsoft Graph</p>
+</div>
+
+<!-- Loading state -->
+<div id="profile-loading" class="loading">
+    Loading your profile information...
+</div>
+
+<!-- Error state -->
+<div id="profile-error" class="message error-message" style="display: none;"></div>
+
+<!-- Content for authenticated users -->
+<div id="profile-content" data-auth-required style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Basic Information</h2>
+            <p class="card-description">Your basic profile details from Azure AD</p>
+        </div>
+        
+        <div class="profile-info">
+            <div>
+                <div class="profile-field">
+                    <label class="profile-label">Display Name:</label>
+                    <span id="profile-display-name" class="profile-value">-</span>
+                </div>
+                
+                <div class="profile-field">
+                    <label class="profile-label">Email:</label>
+                    <span id="profile-email" class="profile-value">-</span>
+                </div>
+                
+                <div class="profile-field">
+                    <label class="profile-label">Username:</label>
+                    <span id="profile-username" class="profile-value">-</span>
+                </div>
+                
+                <div class="profile-field">
+                    <label class="profile-label">User ID:</label>
+                    <span id="profile-id" class="profile-value">-</span>
+                </div>
+            </div>
+            
+            <div>
+                <div class="profile-field">
+                    <label class="profile-label">Given Name:</label>
+                    <span id="profile-given-name" class="profile-value">-</span>
+                </div>
+                
+                <div class="profile-field">
+                    <label class="profile-label">Surname:</label>
+                    <span id="profile-surname" class="profile-value">-</span>
+                </div>
+                
+                <div class="profile-field">
+                    <label class="profile-label">Job Title:</label>
+                    <span id="profile-job-title" class="profile-value">-</span>
+                </div>
+                
+                <div class="profile-field">
+                    <label class="profile-label">Department:</label>
+                    <span id="profile-department" class="profile-value">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Contact Information</h2>
+            <p class="card-description">Your contact details</p>
+        </div>
+        
+        <div class="profile-info">
+            <div>
+                <div class="profile-field">
+                    <label class="profile-label">Office Location:</label>
+                    <span id="profile-office-location" class="profile-value">-</span>
+                </div>
+                
+                <div class="profile-field">
+                    <label class="profile-label">Mobile Phone:</label>
+                    <span id="profile-mobile-phone" class="profile-value">-</span>
+                </div>
+                
+                <div class="profile-field">
+                    <label class="profile-label">Business Phones:</label>
+                    <span id="profile-business-phones" class="profile-value">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Raw Profile Data</h2>
+            <p class="card-description">Complete JSON response from Microsoft Graph</p>
+        </div>
+        
+        <div class="profile-json">
+            <pre id="profile-json">Loading...</pre>
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="/" class="btn spa-link">← Back to Home</a>
+        <button onclick="window.graphUtils.loadProfileData()" class="btn btn-secondary">Refresh Profile</button>
+    </div>
+</div>
+
+<!-- Content for unauthenticated users -->
+<div data-unauth-required>
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Authentication Required</h2>
+            <p class="card-description">Please sign in to view your profile information</p>
+        </div>
+        
+        <p>This page requires you to be signed in to access your profile information from Microsoft Graph.</p>
+        
+        <div class="btn-group">
+            <button onclick="window.msalApp.signInPopup()" class="btn">Sign In with Popup</button>
+            <button onclick="window.msalApp.signInRedirect()" class="btn btn-secondary">Sign In with Redirect</button>
+        </div>
+        
+        <div style="margin-top: 1rem;">
+            <a href="/" class="btn btn-secondary spa-link">← Back to Home</a>
+        </div>
+    </div>
+</div>

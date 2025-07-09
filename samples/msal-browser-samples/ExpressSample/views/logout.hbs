@@ -1,0 +1,33 @@
+<div class="page-header">
+    <h1 class="page-title">Signing Out...</h1>
+    <p class="page-subtitle">Please wait while we sign you out</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Logout</h2>
+        <p class="card-description">You are being signed out of the application</p>
+    </div>
+    
+    <div class="loading">
+        Signing you out...
+    </div>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="/" class="btn">Return to Home</a>
+    </div>
+</div>
+
+<script>
+    // Automatically sign out when this page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (window.msalApp && window.msalApp.isAuthenticated()) {
+                window.msalApp.signOut();
+            } else {
+                // If not authenticated, redirect to home
+                window.location.href = '/';
+            }
+        }, 1000);
+    });
+</script>
