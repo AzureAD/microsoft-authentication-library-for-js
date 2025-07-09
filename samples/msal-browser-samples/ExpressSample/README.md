@@ -17,31 +17,6 @@ This developer sample demonstrates how to use MSAL.js with an Express.js server 
 1. `./public/js/utils.js` - **Utility module** - Error handling, success messages, common utilities
 1. `./public/js/graph.js` - MS Graph API calls with access token handling
 
-## Features demonstrated
-
-### Authentication Features
-- MSAL.js PublicClientApplication initialization
-- Login/logout functionality with both popup and redirect flows
-- Protected routes that require authentication
-- MS Graph API integration for fetching user profile data
-- Token acquisition and renewal
-
-### `account.js` - Account Management Module
-- Account picker modal functionality
-- Add account functionality
-
-### `ui.js` - User Interface Module
-- Authentication-based UI updates
-
-### `navigation.js` - Single Page Application Navigation
-- SPA routing with authentication checks
-- Protected route handling
-
-### `utils.js` - Utility Functions
-- Error message display and management
-- Success message handling
-- Common utility functions
-
 ## How to run the sample
 
 ### Pre-requisites
@@ -57,6 +32,7 @@ This developer sample demonstrates how to use MSAL.js with an Express.js server 
   AUTHORITY=https://login.microsoftonline.com/ENTER_TENANT_ID_HERE
   REDIRECT_URI=http://localhost:3000
   POST_LOGOUT_REDIRECT_URI=http://localhost:3000
+  CACHE_LOCATION=localStorage
   ```
 
 - Replace `ENTER_CLIENT_ID_HERE` with the Application (client) ID from the portal registration.
