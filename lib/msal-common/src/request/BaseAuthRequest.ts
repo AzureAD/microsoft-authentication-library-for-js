@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme } from "../utils/Constants.js";
+import { AuthenticationScheme, HttpMethod } from "../utils/Constants.js";
 import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { StringDict } from "../utils/MsalTypes.js";
 import { StoreInCache } from "./StoreInCache.js";
@@ -54,4 +54,6 @@ export type BaseAuthRequest = {
     scenarioId?: string;
     popKid?: string;
     embeddedClientId?: string;
+    httpMethod?: HttpMethod;
+    authorizeBodyParameters?: StringDict;
 };
