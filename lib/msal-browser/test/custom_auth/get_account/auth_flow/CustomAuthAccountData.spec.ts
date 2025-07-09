@@ -12,6 +12,8 @@ import {
     Logger,
 } from "@azure/msal-common/browser";
 import { AuthenticationResult } from "../../../../src/response/AuthenticationResult.js";
+import { ServerError } from "@azure/msal-common";
+import { INVALID_REQUEST } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
 
 describe("CustomAuthAccountData", () => {
     let mockAccount: AccountInfo;
@@ -262,6 +264,50 @@ describe("CustomAuthAccountData", () => {
             expect(msalError.error).toEqual(errorCode);
             expect(msalError.errorDescription).toEqual(errorMessage);
             expect(msalError.subError).toEqual(subError);
+        });
+
+        describe("password reset required error handling", () => {
+            it("should wrap AADSTS50142 error with MsalCustomAuthError for password reset required", async () => {
+                (
+                    mockCacheClient.getCurrentAccount as jest.Mock
+                ).mockReturnValue(mockAccount);
+
+                const errorCode = INVALID_REQUEST;
+                const errorMessage = "50142";
+                const mockMSALServerError = new ServerError(
+                    errorCode,
+                    errorMessage,
+                    "",
+                    "50142"
+                );
+                (mockCacheClient.acquireToken as jest.Mock).mockRejectedValue(
+                    mockMSALServerError
+                );
+
+                const accountData = new CustomAuthAccountData(
+                    mockAccount,
+                    mockConfig,
+                    mockCacheClient,
+                    mockLogger,
+                    correlationId
+                );
+
+                const response = await accountData.getAccessToken({
+                    forceRefresh: false,
+                });
+
+                expect(response).toBeDefined();
+                expect(response.isFailed()).toBe(true);
+                expect(response.error?.errorData).toEqual(mockMSALServerError);
+                expect(response.error?.errorData).toBeInstanceOf(
+                    MsalCustomAuthError
+                );
+
+                const msalError = response.error
+                    ?.errorData as MsalCustomAuthError;
+                expect(msalError.error).toEqual(errorCode);
+                expect(msalError.errorDescription).toEqual(errorMessage);
+            });
         });
     });
 });
