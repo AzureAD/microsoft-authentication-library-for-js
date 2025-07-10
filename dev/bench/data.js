@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752081879804,
+  "lastUpdate": 1752162926827,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16058,6 +16058,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.95%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a95a31cd1c28ed773e7ca4cbbaad6fb4c7ca77cc",
+          "message": "Refine Copilot instructions (#7912)\n\nI'm seeing Copilot get hung up on a few of the instructions in the\n`.github/copilot-instructions.md` file so I'm making some changes to\nclarify the steps and make them easier to follow.",
+          "timestamp": "2025-07-10T08:49:09-07:00",
+          "tree_id": "c7fb6183ad61366f4576f734b37b7a365f0c08bc",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a95a31cd1c28ed773e7ca4cbbaad6fb4c7ca77cc"
+        },
+        "date": 1752162925364,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 253381,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 256676,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
