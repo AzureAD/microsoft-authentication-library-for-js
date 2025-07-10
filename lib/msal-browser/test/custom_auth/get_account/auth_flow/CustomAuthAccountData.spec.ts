@@ -14,6 +14,7 @@ import {
 import { AuthenticationResult } from "../../../../src/response/AuthenticationResult.js";
 import { ServerError } from "@azure/msal-common";
 import { INVALID_REQUEST } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
+import { AccessTokenRetrievalInputs } from "../../../../src/custom_auth/CustomAuthActionInputs.js";
 
 describe("CustomAuthAccountData", () => {
     let mockAccount: AccountInfo;
@@ -189,23 +190,23 @@ describe("CustomAuthAccountData", () => {
     });
 
     describe("getAccessToken", () => {
-        it("should return succeed GetAccessTokenState.Completed with cached tokens", async () => {
+        let accountData: CustomAuthAccountData;
+        beforeEach(() => {
             (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(
                 mockAccount
             );
-            jest.spyOn(
-                CustomAuthAccountData.prototype as any,
-                "createCommonSilentFlowRequest"
-            ).mockReturnValue({});
-            (mockCacheClient.acquireToken as jest.Mock).mockResolvedValue(
-                mockAuthenticationResult
-            );
-            const accountData = new CustomAuthAccountData(
+            accountData = new CustomAuthAccountData(
                 mockAccount,
                 mockConfig,
                 mockCacheClient,
                 mockLogger,
                 correlationId
+            );
+        });
+
+        it("should return succeed GetAccessTokenState.Completed with cached tokens", async () => {
+            (mockCacheClient.acquireToken as jest.Mock).mockResolvedValue(
+                mockAuthenticationResult
             );
 
             const response = await accountData.getAccessToken({
@@ -221,9 +222,6 @@ describe("CustomAuthAccountData", () => {
         });
 
         it("should return GetAccessTokenError if there is an error when aquire tokens", async () => {
-            (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(
-                mockAccount
-            );
             const errorCode =
                 InteractionRequiredAuthErrorCodes.refreshTokenExpired;
             const errorMessage = "Refresh token has expired.";
@@ -237,14 +235,6 @@ describe("CustomAuthAccountData", () => {
                 );
             (mockCacheClient.acquireToken as jest.Mock).mockRejectedValue(
                 mockRefreshTokenExpiredError
-            );
-
-            const accountData = new CustomAuthAccountData(
-                mockAccount,
-                mockConfig,
-                mockCacheClient,
-                mockLogger,
-                correlationId
             );
 
             const response = await accountData.getAccessToken({
@@ -266,48 +256,84 @@ describe("CustomAuthAccountData", () => {
             expect(msalError.subError).toEqual(subError);
         });
 
-        describe("password reset required error handling", () => {
-            it("should wrap AADSTS50142 error with MsalCustomAuthError for password reset required", async () => {
-                (
-                    mockCacheClient.getCurrentAccount as jest.Mock
-                ).mockReturnValue(mockAccount);
+        it("should include claims in getAccessToken when provided", async () => {
+            (mockCacheClient.acquireToken as jest.Mock).mockResolvedValue(
+                mockAuthenticationResult
+            );
 
-                const errorCode = INVALID_REQUEST;
-                const errorMessage = "50142";
-                const mockMSALServerError = new ServerError(
-                    errorCode,
-                    errorMessage,
-                    "",
-                    "50142"
-                );
-                (mockCacheClient.acquireToken as jest.Mock).mockRejectedValue(
-                    mockMSALServerError
-                );
-
-                const accountData = new CustomAuthAccountData(
-                    mockAccount,
-                    mockConfig,
-                    mockCacheClient,
-                    mockLogger,
-                    correlationId
-                );
-
-                const response = await accountData.getAccessToken({
-                    forceRefresh: false,
-                });
-
-                expect(response).toBeDefined();
-                expect(response.isFailed()).toBe(true);
-                expect(response.error?.errorData).toEqual(mockMSALServerError);
-                expect(response.error?.errorData).toBeInstanceOf(
-                    MsalCustomAuthError
-                );
-
-                const msalError = response.error
-                    ?.errorData as MsalCustomAuthError;
-                expect(msalError.error).toEqual(errorCode);
-                expect(msalError.errorDescription).toEqual(errorMessage);
+            const claimsRequest = JSON.stringify({
+                access_token: {
+                    acrs: {
+                        essential: true,
+                        value: "c1",
+                    },
+                },
             });
+
+            const accessTokenRetrievalInputs: AccessTokenRetrievalInputs = {
+                forceRefresh: false,
+                scopes: ["test-scope"],
+                claimsRequest: claimsRequest,
+            };
+            const response = await accountData.getAccessToken(
+                accessTokenRetrievalInputs
+            );
+
+            expect(response).toBeDefined();
+            expect(response.isCompleted()).toBe(true);
+            expect(response.data?.account).toEqual(mockAccount);
+            expect(response.data?.idToken).toEqual(
+                mockAuthenticationResult.idToken
+            );
+
+            expect(mockCacheClient.acquireToken).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    claims: claimsRequest,
+                })
+            );
+        });
+    });
+
+    describe("password reset required error handling", () => {
+        it("should wrap AADSTS50142 error with MsalCustomAuthError for password reset required", async () => {
+            (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(
+                mockAccount
+            );
+
+            const errorCode = INVALID_REQUEST;
+            const errorMessage = "50142";
+            const mockMSALServerError = new ServerError(
+                errorCode,
+                errorMessage,
+                "",
+                "50142"
+            );
+            (mockCacheClient.acquireToken as jest.Mock).mockRejectedValue(
+                mockMSALServerError
+            );
+
+            const accountData = new CustomAuthAccountData(
+                mockAccount,
+                mockConfig,
+                mockCacheClient,
+                mockLogger,
+                correlationId
+            );
+
+            const response = await accountData.getAccessToken({
+                forceRefresh: false,
+            });
+
+            expect(response).toBeDefined();
+            expect(response.isFailed()).toBe(true);
+            expect(response.error?.errorData).toEqual(mockMSALServerError);
+            expect(response.error?.errorData).toBeInstanceOf(
+                MsalCustomAuthError
+            );
+
+            const msalError = response.error?.errorData as MsalCustomAuthError;
+            expect(msalError.error).toEqual(errorCode);
+            expect(msalError.errorDescription).toEqual(errorMessage);
         });
     });
 });

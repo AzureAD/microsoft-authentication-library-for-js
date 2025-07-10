@@ -178,6 +178,152 @@ describe("Reset password", () => {
         signInResult.data?.signOut();
     });
 
+    it("should sign in with custom claims after reset password successfully", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-1",
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-2",
+                        challenge_type: "oob",
+                        binding_method: "prompt",
+                        challenge_channel: "email",
+                        challenge_target_label: "s****n@o*********m",
+                        code_length: 8,
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-3",
+                        expires_in: 600,
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-4",
+                        poll_interval: 1,
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        status: "in_progress",
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        status: "in_progress",
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-5",
+                        status: "succeeded",
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return TestServerTokenResponse;
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            });
+
+        const resetPasswordInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+        };
+
+        const startResult = await app.resetPassword(resetPasswordInputs);
+
+        expect(startResult).toBeInstanceOf(ResetPasswordStartResult);
+        expect(startResult.error).toBeUndefined();
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        const submitCodeResult = await (
+            startResult.state as ResetPasswordCodeRequiredState
+        ).submitCode("12345678");
+
+        expect(submitCodeResult).toBeInstanceOf(ResetPasswordSubmitCodeResult);
+        expect(submitCodeResult.error).toBeUndefined();
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
+
+        const submitPasswordResult = await (
+            submitCodeResult.state as ResetPasswordPasswordRequiredState
+        ).submitNewPassword("valid-password");
+
+        expect(submitPasswordResult).toBeInstanceOf(
+            ResetPasswordSubmitPasswordResult
+        );
+        expect(submitPasswordResult.error).toBeUndefined();
+        expect(submitPasswordResult.isCompleted()).toBe(true);
+
+        const claimsRequest = JSON.stringify({
+            access_token: {
+                acrs: {
+                    essential: true,
+                    value: "c1",
+                },
+            },
+        });
+
+        const signInResult = await (
+            submitPasswordResult.state as ResetPasswordCompletedState
+        ).signIn({
+            claimsRequest: claimsRequest,
+        });
+
+        expect(signInResult).toBeInstanceOf(SignInResult);
+        expect(signInResult.error).toBeUndefined();
+        expect(signInResult.isCompleted()).toBe(true);
+        expect(signInResult.data).toBeDefined();
+        expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(signInResult.data?.getAccount()?.idToken).toStrictEqual(
+            TestServerTokenResponse.id_token
+        );
+
+        // Sign out the user for clean up the state for the other tests.
+        signInResult.data?.signOut();
+    });
+
     it("should reset password failed if the redirect challenge returned", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce({
