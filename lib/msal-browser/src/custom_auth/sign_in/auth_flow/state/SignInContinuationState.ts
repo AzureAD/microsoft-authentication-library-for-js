@@ -33,6 +33,7 @@ export class SignInContinuationState extends SignInState<SignInContinuationState
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 username: this.stateParameters.username,
                 signInScenario: this.stateParameters.signInScenario,
+                claimsRequest: signInWithContinuationTokenInputs?.claimsRequest,
             };
 
             this.stateParameters.logger.verbose(

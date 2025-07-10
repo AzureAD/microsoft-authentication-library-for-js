@@ -37,6 +37,7 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 code: code,
                 username: this.stateParameters.username,
+                claimsRequest: this.stateParameters.claimsRequest,
             };
 
             this.stateParameters.logger.verbose(

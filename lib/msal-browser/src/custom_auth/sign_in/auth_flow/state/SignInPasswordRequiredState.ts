@@ -34,6 +34,7 @@ export class SignInPasswordRequiredState extends SignInState<SignInPasswordRequi
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 password: password,
                 username: this.stateParameters.username,
+                claimsRequest: this.stateParameters.claimsRequest,
             };
 
             this.stateParameters.logger.verbose(

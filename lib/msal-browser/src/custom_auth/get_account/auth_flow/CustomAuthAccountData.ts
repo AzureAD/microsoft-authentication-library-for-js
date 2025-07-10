@@ -133,7 +133,8 @@ export class CustomAuthAccountData {
             const commonSilentFlowRequest = this.createCommonSilentFlowRequest(
                 currentAccount,
                 accessTokenRetrievalInputs.forceRefresh,
-                newScopes
+                newScopes,
+                accessTokenRetrievalInputs.claimsRequest
             );
             const result = await this.cacheClient.acquireToken(
                 commonSilentFlowRequest
@@ -158,7 +159,8 @@ export class CustomAuthAccountData {
     private createCommonSilentFlowRequest(
         accountInfo: AccountInfo,
         forceRefresh: boolean = false,
-        requestScopes: Array<string>
+        requestScopes: Array<string>,
+        claimsRequest?: string
     ): CommonSilentFlowRequest {
         const silentRequest: SilentRequest = {
             authority: this.config.auth.authority,
@@ -171,6 +173,7 @@ export class CustomAuthAccountData {
                 accessToken: true,
                 refreshToken: true,
             },
+            ...(claimsRequest && { claims: claimsRequest }),
         };
 
         return {
