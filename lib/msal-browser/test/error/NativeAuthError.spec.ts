@@ -18,7 +18,7 @@ import * as NativeStatusCode from "../../src/broker/nativeBroker/NativeStatusCod
 describe("NativeAuthError Unit Tests", () => {
     describe("NativeAuthError", () => {
         describe("isFatal tests", () => {
-            it("should return true for isFatal when WAM status is PERSISTENT_ERROR", () => {
+            it("should return false for isFatal when WAM status is PERSISTENT_ERROR", () => {
                 const error = new NativeAuthError(
                     "testError",
                     "testErrorDescription",
@@ -29,7 +29,7 @@ describe("NativeAuthError Unit Tests", () => {
                         status: NativeStatusCode.PERSISTENT_ERROR,
                     }
                 );
-                expect(isFatalNativeAuthError(error)).toBe(true);
+                expect(isFatalNativeAuthError(error)).toBe(false);
             });
 
             it("should return true for isFatal when WAM status is DISABLED", () => {

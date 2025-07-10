@@ -1647,23 +1647,6 @@ export class StandardController implements IController {
             return false;
         }
 
-        if (request.prompt) {
-            switch (request.prompt) {
-                case PromptValue.NONE:
-                case PromptValue.CONSENT:
-                case PromptValue.LOGIN:
-                    this.logger.trace(
-                        "canUsePlatformBroker: prompt is compatible with platform broker flow"
-                    );
-                    break;
-                default:
-                    this.logger.trace(
-                        `canUsePlatformBroker: prompt = ${request.prompt} is not compatible with platform broker flow, returning false`
-                    );
-                    return false;
-            }
-        }
-
         if (!accountId && !this.getNativeAccountId(request)) {
             this.logger.trace(
                 "canUsePlatformBroker: nativeAccountId is not available, returning false"
