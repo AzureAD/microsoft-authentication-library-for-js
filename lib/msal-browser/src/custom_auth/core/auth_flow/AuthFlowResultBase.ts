@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, ServerError } from "@azure/msal-common/browser";
+import { AuthError } from "@azure/msal-common/browser";
 import { CustomAuthError } from "../error/CustomAuthError.js";
 import { MsalCustomAuthError } from "../error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../error/UnexpectedError.js";
@@ -42,8 +42,10 @@ export abstract class AuthFlowResultBase<
         if (error instanceof CustomAuthError) {
             return error;
         } else if (error instanceof AuthError) {
-            // during getAccesstoken, if user refresh access token by calling /token endpoint, and password change is required
-            // password change required will be ServerError and handled here
+            /*
+             * During getAccesstoken, if user refresh access token by calling /token endpoint, and password change is required
+             * password change required will be ServerError and handled here
+             */
             return new MsalCustomAuthError(
                 error.errorCode,
                 error.errorMessage,
