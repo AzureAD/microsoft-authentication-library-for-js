@@ -16,6 +16,7 @@ import { toggleDropdown, closeAllDropdowns, updateUI } from './ui.js';
 import { showAccountPickerModal, closeAccountPickerModal } from './account.js';
 import { handleRouting, setupSPANavigation } from './navigation.js';
 import { loadProfileData } from "./graph.js";
+import { validateEnvironmentVariables } from './utils.js';
 
 // Setup event listeners
 function setupEventListeners() {
@@ -166,7 +167,18 @@ function setupEventListeners() {
 
 // DOM ready function
 document.addEventListener('DOMContentLoaded', async function() {    
-    // Initialize MSAL first
+    // Validate environment variables first and show warning if needed
+    const envValid = validateEnvironmentVariables();
+    
+    // Only proceed with MSAL initialization if environment is properly configured
+    if (!envValid) {
+        console.warn('MSAL initialization skipped due to missing environment variables');
+        // Still setup basic event listeners for UI interactions
+        setupEventListeners();
+        return;
+    }
+    
+    // Initialize MSAL
     await initializeMsal();
     
     // Refresh authentication state (this will also call updateUI)

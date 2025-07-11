@@ -5,6 +5,7 @@
 
 // MS Graph API call functionality
 import { getAccessToken } from './auth.js';
+import { graphConfig } from "./authConfig.js";
 
 // MS Graph API call functionality
 export async function callMsGraph(accessToken) {
@@ -23,7 +24,7 @@ export async function callMsGraph(accessToken) {
     };
 
     try {
-        const response = await fetch(window.graphConfig.graphMeEndpoint, options);
+        const response = await fetch(graphConfig.graphMeEndpoint, options);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

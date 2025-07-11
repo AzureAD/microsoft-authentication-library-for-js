@@ -5,6 +5,7 @@
 
 import { showError, showSuccess } from './utils.js';
 import { updateUI } from './ui.js';
+import { createMsalConfig, loginRequest } from './authConfig.js';
 
 // Authentication module - handles all MSAL authentication logic
 
@@ -14,7 +15,9 @@ export let msalInstance;
 // Initialize MSAL
 export async function initializeMsal() {
     try {
-        msalInstance = new msal.PublicClientApplication(window.msalConfig);
+        // Create configuration at runtime
+        const msalConfig = createMsalConfig();
+        msalInstance = new msal.PublicClientApplication(msalConfig);
         await msalInstance.initialize();
         await msalInstance.handleRedirectPromise().then((response) => {
             if (response) {
@@ -34,7 +37,7 @@ export async function handleProtectedRouteAuth(path) {
     
     // First attempt SSO silent
     return msalInstance.ssoSilent({
-        scopes: window.loginRequest.scopes
+        scopes: loginRequest.scopes
     }).then((response) => {
         msalInstance.setActiveAccount(response.account);
         updateUI(response.account);
@@ -42,7 +45,7 @@ export async function handleProtectedRouteAuth(path) {
         console.error('SSO silent failed:', error);
         if (error instanceof msal.InteractionRequiredAuthError) {
             console.log('SSO silent failed - interaction required');
-            await msalInstance.acquireTokenRedirect(window.loginRequest);
+            await msalInstance.acquireTokenRedirect(loginRequest);
         } else {
             console.warn('SSO silent failed with unexpected error:', error);
         }
@@ -54,7 +57,7 @@ export async function handleProtectedRouteAuth(path) {
 // Sign in with popup
 export async function signInPopup() {
     try {
-        const response = await msalInstance.loginPopup(window.loginRequest);
+        const response = await msalInstance.loginPopup(loginRequest);
         msalInstance.setActiveAccount(response.account);
         updateUI(response.account);
         showSuccess('Successfully signed in!');
@@ -67,7 +70,7 @@ export async function signInPopup() {
 // Sign in with redirect
 export async function signInRedirect() {
     try {
-        await msalInstance.loginRedirect(window.loginRequest);
+        await msalInstance.loginRedirect(loginRequest);
     } catch (error) {
         console.error('Redirect sign in failed:', error);
         showError('Sign in failed: ' + error.message);
@@ -94,8 +97,7 @@ export async function signOutPopup() {
 export async function signOutRedirect() {
     try {
         const logoutRequest = {
-            account: msalInstance.getActiveAccount(),
-            postLogoutRedirectUri: window.msalConfig.auth.postLogoutRedirectUri
+            account: msalInstance.getActiveAccount()
         };
         
         await msalInstance.logoutRedirect(logoutRequest);
@@ -108,7 +110,7 @@ export async function signOutRedirect() {
 // Get access token silently
 export async function getAccessToken() {
     return msalInstance.acquireTokenSilent({
-        ...window.loginRequest
+        ...loginRequest
     }).then((response) => {
         return response.accessToken;
     }).catch(async (error) => {
@@ -117,7 +119,7 @@ export async function getAccessToken() {
         if (error instanceof msal.InteractionRequiredAuthError) {
             // Fallback to redirect
             await msalInstance.acquireTokenRedirect({
-                ...window.loginRequest,
+                ...loginRequest,
                 account: msalInstance.getActiveAccount()
             });
         }

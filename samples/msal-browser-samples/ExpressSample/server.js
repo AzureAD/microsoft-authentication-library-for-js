@@ -167,12 +167,34 @@ function getCurrentVersionInfo() {
 }
 
 // Helper function to pass environment variables and version info to templates
-const getEnvConfig = () => ({
-    CLIENT_ID: process.env.CLIENT_ID,
-    AUTHORITY: process.env.AUTHORITY,
-    REDIRECT_URI: process.env.REDIRECT_URI,
-    POST_LOGOUT_REDIRECT_URI: process.env.POST_LOGOUT_REDIRECT_URI
-});
+const getEnvConfig = () => {
+    const config = {
+        CLIENT_ID: process.env.CLIENT_ID,
+        AUTHORITY: process.env.AUTHORITY,
+        REDIRECT_URI: process.env.REDIRECT_URI,
+        POST_LOGOUT_REDIRECT_URI: process.env.POST_LOGOUT_REDIRECT_URI
+    };
+    
+    // Check for missing environment variables and log warnings
+    const missingVars = Object.entries(config)
+        .filter(([key, value]) => !value || value.trim() === '')
+        .map(([key]) => key);
+    
+    if (missingVars.length > 0) {
+        console.warn('\n⚠️  WARNING: Missing environment variables detected!');
+        console.warn('The following environment variables are not set or are empty:');
+        missingVars.forEach(varName => {
+            console.warn(`  - ${varName}`);
+        });
+        console.warn('\nTo fix this:');
+        console.warn('1. Create a .env file in the ExpressSample directory');
+        console.warn('2. Add the missing environment variables');
+        console.warn('3. See README.md for detailed setup instructions');
+        console.warn('');
+    }
+    
+    return config;
+};
 
 // Enhanced environment config with version info
 const getEnvConfigWithVersion = () => ({
