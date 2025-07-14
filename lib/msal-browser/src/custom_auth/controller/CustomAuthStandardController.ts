@@ -231,7 +231,7 @@ export class CustomAuthStandardController
                         username: signInInputs.username,
                         codeLength: startResult.codeLength,
                         scopes: signInInputs.scopes ?? [],
-                        claimsRequest: signInInputs.claimsRequest,
+                        claims: signInInputs.claims,
                     })
                 );
             } else if (
@@ -259,7 +259,7 @@ export class CustomAuthStandardController
                             cacheClient: this.cacheClient,
                             username: signInInputs.username,
                             scopes: signInInputs.scopes ?? [],
-                            claimsRequest: signInInputs.claimsRequest,
+                            claims: signInInputs.claims,
                         })
                     );
                 }
@@ -279,7 +279,7 @@ export class CustomAuthStandardController
                     continuationToken: startResult.continuationToken,
                     password: signInInputs.password,
                     username: signInInputs.username,
-                    claimsRequest: signInInputs.claimsRequest,
+                    claims: signInInputs.claims,
                 };
 
                 const completedResult = await this.signInClient.submitPassword(

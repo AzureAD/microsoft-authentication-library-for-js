@@ -128,6 +128,10 @@ export abstract class AuthFlowErrorBase {
         );
     }
 
+    /**
+     * @todo During getAccesstoken, if user refresh access token by calling /token endpoint, and password change is required
+     * password change required will be ServerError and handled here
+     */
     protected isPasswordResetRequiredError(): boolean {
         return (
             this.errorData instanceof CustomAuthApiError &&

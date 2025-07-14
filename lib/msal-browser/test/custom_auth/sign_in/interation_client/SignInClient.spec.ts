@@ -245,7 +245,7 @@ describe("SignInClient", () => {
         });
 
         it("should include claims in password token request", async () => {
-            const claimsRequest = JSON.stringify({
+            const claims = JSON.stringify({
                 access_token: {
                     acrs: {
                         essential: true,
@@ -254,13 +254,13 @@ describe("SignInClient", () => {
                 },
             });
 
-            signInSubmitCodeParams.claimsRequest = claimsRequest;
+            signInSubmitCodeParams.claims = claims;
             await client.submitCode(signInSubmitCodeParams);
 
             // Verify that the API was called with claims
             expect(signInApiClient.requestTokensWithOob).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    claims: claimsRequest,
+                    claims: claims,
                 })
             );
         });
@@ -320,7 +320,7 @@ describe("SignInClient", () => {
         });
 
         it("should include claims in password token request", async () => {
-            const claimsRequest = JSON.stringify({
+            const claims = JSON.stringify({
                 access_token: {
                     acrs: {
                         essential: true,
@@ -329,7 +329,7 @@ describe("SignInClient", () => {
                 },
             });
 
-            signInSubmitPasswordParams.claimsRequest = claimsRequest;
+            signInSubmitPasswordParams.claims = claims;
             await client.submitPassword(signInSubmitPasswordParams);
 
             // Verify that the API was called with claims
@@ -337,7 +337,7 @@ describe("SignInClient", () => {
                 signInApiClient.requestTokensWithPassword
             ).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    claims: claimsRequest,
+                    claims: claims,
                 })
             );
         });
@@ -427,7 +427,7 @@ describe("SignInClient", () => {
         });
 
         it("should include claims in password token request", async () => {
-            const claimsRequest = JSON.stringify({
+            const claims = JSON.stringify({
                 access_token: {
                     acrs: {
                         essential: true,
@@ -436,7 +436,7 @@ describe("SignInClient", () => {
                 },
             });
 
-            signInContinuationTokenParams.claimsRequest = claimsRequest;
+            signInContinuationTokenParams.claims = claims;
             await client.signInWithContinuationToken(
                 signInContinuationTokenParams
             );
@@ -446,7 +446,7 @@ describe("SignInClient", () => {
                 signInApiClient.requestTokenWithContinuationToken
             ).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    claims: claimsRequest,
+                    claims: claims,
                 })
             );
         });

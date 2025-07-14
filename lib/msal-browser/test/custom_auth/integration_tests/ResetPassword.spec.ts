@@ -296,7 +296,7 @@ describe("Reset password", () => {
         expect(submitPasswordResult.error).toBeUndefined();
         expect(submitPasswordResult.isCompleted()).toBe(true);
 
-        const claimsRequest = JSON.stringify({
+        const claims = JSON.stringify({
             access_token: {
                 acrs: {
                     essential: true,
@@ -308,7 +308,7 @@ describe("Reset password", () => {
         const signInResult = await (
             submitPasswordResult.state as ResetPasswordCompletedState
         ).signIn({
-            claimsRequest: claimsRequest,
+            claims: claims,
         });
 
         expect(signInResult).toBeInstanceOf(SignInResult);

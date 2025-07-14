@@ -276,7 +276,7 @@ describe("Sign up", () => {
         expect(submitPasswordResult.error).toBeUndefined();
         expect(submitPasswordResult.isCompleted()).toBe(true);
 
-        const claimsRequest = JSON.stringify({
+        const claims = JSON.stringify({
             access_token: {
                 acrs: {
                     essential: true,
@@ -288,7 +288,7 @@ describe("Sign up", () => {
         const signInResult = await (
             submitPasswordResult.state as SignUpCompletedState
         ).signIn({
-            claimsRequest: claimsRequest,
+            claims: claims,
         });
 
         expect(signInResult).toBeInstanceOf(SignInResult);

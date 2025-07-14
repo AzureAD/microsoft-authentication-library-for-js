@@ -195,8 +195,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             scope: scopes.join(" "),
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
-            ...(parameters.claimsRequest && {
-                claims: parameters.claimsRequest,
+            ...(parameters.claims && {
+                claims: parameters.claims,
             }),
         };
 
@@ -233,8 +233,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             scope: scopes.join(" "),
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
-            ...(parameters.claimsRequest && {
-                claims: parameters.claimsRequest,
+            ...(parameters.claims && {
+                claims: parameters.claims,
             }),
         };
 
@@ -269,8 +269,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
             scope: scopes.join(" "),
-            ...(parameters.claimsRequest && {
-                claims: parameters.claimsRequest,
+            ...(parameters.claims && {
+                claims: parameters.claims,
             }),
         };
 

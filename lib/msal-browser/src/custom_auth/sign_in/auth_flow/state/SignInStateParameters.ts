@@ -13,7 +13,7 @@ export interface SignInStateParameters
     username: string;
     signInClient: SignInClient;
     cacheClient: CustomAuthSilentCacheClient;
-    claimsRequest?: string;
+    claims?: string;
 }
 
 export interface SignInPasswordRequiredStateParameters

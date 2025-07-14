@@ -261,7 +261,7 @@ describe("CustomAuthAccountData", () => {
                 mockAuthenticationResult
             );
 
-            const claimsRequest = JSON.stringify({
+            const claims = JSON.stringify({
                 access_token: {
                     acrs: {
                         essential: true,
@@ -273,7 +273,7 @@ describe("CustomAuthAccountData", () => {
             const accessTokenRetrievalInputs: AccessTokenRetrievalInputs = {
                 forceRefresh: false,
                 scopes: ["test-scope"],
-                claimsRequest: claimsRequest,
+                claims: claims,
             };
             const response = await accountData.getAccessToken(
                 accessTokenRetrievalInputs
@@ -288,7 +288,7 @@ describe("CustomAuthAccountData", () => {
 
             expect(mockCacheClient.acquireToken).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    claims: claimsRequest,
+                    claims: claims,
                 })
             );
         });
