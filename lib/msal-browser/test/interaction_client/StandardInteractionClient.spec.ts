@@ -302,7 +302,7 @@ describe("StandardInteractionClient", () => {
         expect(authCodeRequest.sid).toEqual(request.sid);
     });
 
-    it("initializeAuthorizationRequest throws if request method is GET and includes authorizeBodyParameters", async () => {
+    it("initializeAuthorizationRequest throws if request method is GET and includes authorizePostBodyParameters", async () => {
         const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
@@ -312,7 +312,7 @@ describe("StandardInteractionClient", () => {
             responseMode: ResponseMode.QUERY,
             nonce: "",
             httpMethod: HttpMethod.GET,
-            authorizeBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
+            authorizePostBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
         };
 
         try {
@@ -324,7 +324,7 @@ describe("StandardInteractionClient", () => {
         } catch (e) {
             expect(e).toBeInstanceOf(ClientConfigurationError);
             expect((e as ClientConfigurationError).errorCode).toEqual(
-                ClientConfigurationErrorCodes.invalidAuthorizeBodyParameters
+                ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
             );
         }
     });
@@ -347,7 +347,7 @@ describe("StandardInteractionClient", () => {
         expect(authCodeRequest.httpMethod).toEqual(HttpMethod.GET);
     });
 
-    it("initializeAuthorizationRequest throws if no httpMethod is set in the request and authorizeBodyParameters are set", async () => {
+    it("initializeAuthorizationRequest throws if no httpMethod is set in the request and authorizePostBodyParameters are set", async () => {
         const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
@@ -356,7 +356,7 @@ describe("StandardInteractionClient", () => {
             correlationId: TEST_CONFIG.CORRELATION_ID,
             responseMode: ResponseMode.QUERY,
             nonce: "",
-            authorizeBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
+            authorizePostBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
         };
 
         try {
@@ -368,7 +368,7 @@ describe("StandardInteractionClient", () => {
         } catch (e) {
             expect(e).toBeInstanceOf(ClientConfigurationError);
             expect((e as ClientConfigurationError).errorCode).toEqual(
-                ClientConfigurationErrorCodes.invalidAuthorizeBodyParameters
+                ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
             );
         }
     });

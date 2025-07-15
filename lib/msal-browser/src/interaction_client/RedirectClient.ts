@@ -323,7 +323,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         this.browserStorage.cacheAuthorizeRequest(request);
 
-        const form = await Authorize.getPostForm(
+        const form = await Authorize.getCodeForm(
             document,
             this.config,
             discoveredAuthority,

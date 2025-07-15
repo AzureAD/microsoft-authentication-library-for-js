@@ -23,6 +23,7 @@ import {
     validEarJWK,
     getTestAuthenticationResult,
     validEarJWE,
+    testNavUrl,
 } from "../utils/StringConstants.js";
 import {
     ServerError,
@@ -50,6 +51,7 @@ import {
     InProgressPerformanceEvent,
     StubPerformanceClient,
     ProtocolMode,
+    HttpMethod,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -2016,6 +2018,74 @@ describe("RedirectClient", () => {
                 onRedirectNavigate,
             };
             redirectClient.acquireToken(loginRequest);
+        });
+
+        it("executes authorize request as GET when httpMethod is set to GET", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                httpMethod: HttpMethod.GET
+            };
+            
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const getFlowSpy = jest.spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl").mockImplementation(() => { return Promise.resolve(testNavUrl); });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(getFlowSpy).toHaveBeenCalled();
+        });
+
+        it("executes authorize request as GET when httpMethod is not explicitly set", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+            };
+            
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const getFlowSpy = jest.spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl").mockImplementation(() => { return Promise.resolve(testNavUrl); });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(getFlowSpy).toHaveBeenCalled();
+        });
+
+        it("executes authorize request as POST when httpMethod is set to POST", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                httpMethod: HttpMethod.POST
+            };
+            
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const postFlowSpy = jest.spyOn(RedirectClient.prototype, "executePostFlow").mockImplementation(() => { return Promise.resolve(); });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(postFlowSpy).toHaveBeenCalled();
         });
 
         describe("storeInCache tests", () => {

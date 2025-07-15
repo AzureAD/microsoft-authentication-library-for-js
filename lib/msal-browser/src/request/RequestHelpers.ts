@@ -141,13 +141,13 @@ export function validateRequestMethod(
         httpMethod = requestMethod || HttpMethod.GET;
     }
 
-    // Regardless of protocolMode, if there are authorizeBodyParameters, validate the request method is POST
+    // Regardless of protocolMode, if there are authorizePostBodyParameters, validate the request method is POST
     if (
-        interactionRequest.authorizeBodyParameters &&
+        interactionRequest.authorizePostBodyParameters &&
         httpMethod !== HttpMethod.POST
     ) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidAuthorizeBodyParameters
+            ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
         );
     }
 

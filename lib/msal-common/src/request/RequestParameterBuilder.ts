@@ -638,7 +638,7 @@ export function addEARParameters(
  * @param parameters 
  * @param bodyParameters 
  */
-export function addBodyParameters(
+export function addPostBodyParameters(
     parameters: Map<string, string>,
     bodyParameters: StringDict
 ): void {

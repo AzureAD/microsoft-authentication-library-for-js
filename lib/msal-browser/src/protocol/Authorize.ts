@@ -213,7 +213,7 @@ export async function getEARForm(
 /**
  * Gets the form that will be posted to /authorize with request parameters when using POST method
  */
-export async function getPostForm(
+export async function getCodeForm(
     frame: Document,
     config: BrowserConfiguration,
     authority: Authority,
@@ -237,9 +237,9 @@ export async function getPostForm(
         request.codeChallengeMethod || Constants.S256_CODE_CHALLENGE_METHOD
     );
 
-    RequestParameterBuilder.addBodyParameters(
+    RequestParameterBuilder.addPostBodyParameters(
         parameters,
-        request.authorizeBodyParameters || {}
+        request.authorizePostBodyParameters || {}
     );
 
     const queryParams = new Map<string, string>();
@@ -251,7 +251,7 @@ export async function getPostForm(
     const url = AuthorizeProtocol.getAuthorizeUrl(
         authority,
         queryParams,
-        config.auth.encodeExtraQueryParams,
+        config.auth.encodeExtraQueryParams, 
         request.extraQueryParameters
     );
 
