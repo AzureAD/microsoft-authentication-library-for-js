@@ -196,7 +196,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             if (redirectRequest.httpMethod === HttpMethod.POST) {
-                return await this.executePostFlow(redirectRequest);
+                return await this.executeCodeFlowWithPost(redirectRequest);
             } else {
                 // Initialize the client
                 const authClient: AuthorizationCodeClient = await invokeAsync(
@@ -303,7 +303,7 @@ export class RedirectClient extends StandardInteractionClient {
      * Executes classic Authorization Code flow with a POST request.
      * @param request
      */
-    async executePostFlow(
+    async executeCodeFlowWithPost(
         request: CommonAuthorizationUrlRequest
     ): Promise<void> {
         const correlationId = request.correlationId;

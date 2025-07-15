@@ -2091,7 +2091,7 @@ describe("RedirectClient", () => {
             });
 
             const postFlowSpy = jest
-                .spyOn(RedirectClient.prototype, "executePostFlow")
+                .spyOn(RedirectClient.prototype, "executeCodeFlowWithPost")
                 .mockImplementation(() => {
                     return Promise.resolve();
                 });
