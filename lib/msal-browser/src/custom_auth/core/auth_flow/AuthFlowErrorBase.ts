@@ -129,8 +129,8 @@ export abstract class AuthFlowErrorBase {
     }
 
     /**
-     * @todo During getAccesstoken, if user refresh access token by calling /token endpoint, and password change is required
-     * password change required will be ServerError and handled here
+     * @todo verify the password change required error can be detected once the MFA is in place.
+     * This error will be raised during signin and refresh tokens when calling /token endpoint.
      */
     protected isPasswordResetRequiredError(): boolean {
         return (
