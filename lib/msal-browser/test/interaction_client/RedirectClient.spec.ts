@@ -2029,15 +2029,19 @@ describe("RedirectClient", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
                 nonce: "",
-                httpMethod: HttpMethod.GET
+                httpMethod: HttpMethod.GET,
             };
-            
+
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
 
-            const getFlowSpy = jest.spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl").mockImplementation(() => { return Promise.resolve(testNavUrl); });
+            const getFlowSpy = jest
+                .spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                .mockImplementation(() => {
+                    return Promise.resolve(testNavUrl);
+                });
 
             await redirectClient.acquireToken(loginRequest);
             expect(getFlowSpy).toHaveBeenCalled();
@@ -2053,13 +2057,17 @@ describe("RedirectClient", () => {
                 responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
                 nonce: "",
             };
-            
+
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
 
-            const getFlowSpy = jest.spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl").mockImplementation(() => { return Promise.resolve(testNavUrl); });
+            const getFlowSpy = jest
+                .spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                .mockImplementation(() => {
+                    return Promise.resolve(testNavUrl);
+                });
 
             await redirectClient.acquireToken(loginRequest);
             expect(getFlowSpy).toHaveBeenCalled();
@@ -2074,15 +2082,19 @@ describe("RedirectClient", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
                 nonce: "",
-                httpMethod: HttpMethod.POST
+                httpMethod: HttpMethod.POST,
             };
-            
+
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
 
-            const postFlowSpy = jest.spyOn(RedirectClient.prototype, "executePostFlow").mockImplementation(() => { return Promise.resolve(); });
+            const postFlowSpy = jest
+                .spyOn(RedirectClient.prototype, "executePostFlow")
+                .mockImplementation(() => {
+                    return Promise.resolve();
+                });
 
             await redirectClient.acquireToken(loginRequest);
             expect(postFlowSpy).toHaveBeenCalled();

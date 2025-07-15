@@ -251,7 +251,7 @@ export async function getCodeForm(
     const url = AuthorizeProtocol.getAuthorizeUrl(
         authority,
         queryParams,
-        config.auth.encodeExtraQueryParams, 
+        config.auth.encodeExtraQueryParams,
         request.extraQueryParameters
     );
 
