@@ -19,6 +19,7 @@ import {
 } from "@azure/msal-common/browser";
 import { SilentRequest } from "../../../request/SilentRequest.js";
 import {
+    ensureArgumentIsJSONString,
     ensureArgumentIsNotEmptyString,
     ensureArgumentIsNotNullOrUndefined,
 } from "../../core/utils/ArgumentValidator.js";
@@ -110,6 +111,12 @@ export class CustomAuthAccountData {
             ensureArgumentIsNotNullOrUndefined(
                 "accessTokenRetrievalInputs",
                 accessTokenRetrievalInputs,
+                this.correlationId
+            );
+
+            ensureArgumentIsJSONString(
+                "accessTokenRetrievalInputs.claims",
+                accessTokenRetrievalInputs.claims,
                 this.correlationId
             );
 

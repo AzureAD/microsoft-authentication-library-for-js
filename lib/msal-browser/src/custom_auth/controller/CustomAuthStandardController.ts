@@ -42,6 +42,7 @@ import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpCli
 import { ResetPasswordClient } from "../reset_password/interaction_client/ResetPasswordClient.js";
 import { NoCachedAccountFoundError } from "../core/error/NoCachedAccountFoundError.js";
 import {
+    ensureArgumentIsJSONString,
     ensureArgumentIsNotEmptyString,
     ensureArgumentIsNotNullOrUndefined,
 } from "../core/utils/ArgumentValidator.js";
@@ -189,6 +190,12 @@ export class CustomAuthStandardController
                 correlationId
             );
             this.ensureUserNotSignedIn(correlationId);
+
+            ensureArgumentIsJSONString(
+                "signInInputs.claims",
+                signInInputs.claims,
+                correlationId
+            );
 
             // start the signin flow
             const signInStartParams: SignInStartParams = {
