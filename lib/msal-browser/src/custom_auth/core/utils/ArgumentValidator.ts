@@ -27,14 +27,19 @@ export function ensureArgumentIsNotEmptyString(
 
 export function ensureArgumentIsJSONString(
     argName: string,
-    argValue: string | undefined,
+    argValue: string,
     correlationId?: string
 ): void {
-    if (argValue !== undefined) {
-        try {
-            JSON.parse(argValue);
-        } catch (e) {
+    try {
+        const parsed = JSON.parse(argValue);
+        if (
+            typeof parsed !== "object" ||
+            parsed === null ||
+            Array.isArray(parsed)
+        ) {
             throw new InvalidArgumentError(argName, correlationId);
         }
+    } catch (e) {
+        throw new InvalidArgumentError(argName, correlationId);
     }
 }

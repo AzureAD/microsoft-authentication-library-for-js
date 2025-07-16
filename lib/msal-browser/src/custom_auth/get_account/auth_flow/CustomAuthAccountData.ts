@@ -18,11 +18,7 @@ import {
     TokenClaims,
 } from "@azure/msal-common/browser";
 import { SilentRequest } from "../../../request/SilentRequest.js";
-import {
-    ensureArgumentIsJSONString,
-    ensureArgumentIsNotEmptyString,
-    ensureArgumentIsNotNullOrUndefined,
-} from "../../core/utils/ArgumentValidator.js";
+import * as ArgumentValidator from "../../core/utils/ArgumentValidator.js";
 
 /*
  * Account information.
@@ -35,8 +31,15 @@ export class CustomAuthAccountData {
         private readonly logger: Logger,
         private readonly correlationId: string
     ) {
-        ensureArgumentIsNotEmptyString("correlationId", correlationId);
-        ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "correlationId",
+            correlationId
+        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "account",
+            account,
+            correlationId
+        );
     }
 
     /**
@@ -108,17 +111,19 @@ export class CustomAuthAccountData {
         accessTokenRetrievalInputs: AccessTokenRetrievalInputs
     ): Promise<GetAccessTokenResult> {
         try {
-            ensureArgumentIsNotNullOrUndefined(
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
                 "accessTokenRetrievalInputs",
                 accessTokenRetrievalInputs,
                 this.correlationId
             );
 
-            ensureArgumentIsJSONString(
-                "accessTokenRetrievalInputs.claims",
-                accessTokenRetrievalInputs.claims,
-                this.correlationId
-            );
+            if (accessTokenRetrievalInputs.claims) {
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "accessTokenRetrievalInputs.claims",
+                    accessTokenRetrievalInputs.claims,
+                    this.correlationId
+                );
+            }
 
             this.logger.verbose("Getting current account.", this.correlationId);
 

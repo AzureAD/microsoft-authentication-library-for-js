@@ -432,7 +432,7 @@ describe("Sign in", () => {
             ok: true,
         });
 
-        const claimsRequest = JSON.stringify({
+        const claims = JSON.stringify({
             access_token: {
                 acrs: {
                     essential: true,
@@ -445,7 +445,7 @@ describe("Sign in", () => {
             username: "test@test.com",
             password: "password",
             correlationId: correlationId,
-            claimsRequest: claimsRequest,
+            claims: claims,
         };
 
         const result = await app.signIn(signInInputs);

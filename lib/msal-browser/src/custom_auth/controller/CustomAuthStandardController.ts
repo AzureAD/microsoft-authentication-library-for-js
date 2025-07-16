@@ -41,11 +41,7 @@ import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/Cust
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 import { ResetPasswordClient } from "../reset_password/interaction_client/ResetPasswordClient.js";
 import { NoCachedAccountFoundError } from "../core/error/NoCachedAccountFoundError.js";
-import {
-    ensureArgumentIsJSONString,
-    ensureArgumentIsNotEmptyString,
-    ensureArgumentIsNotNullOrUndefined,
-} from "../core/utils/ArgumentValidator.js";
+import * as ArgumentValidator from "../core/utils/ArgumentValidator.js";
 import { UserAlreadySignedInError } from "../core/error/UserAlreadySignedInError.js";
 import { CustomAuthSilentCacheClient } from "../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { UnsupportedEnvironmentError } from "../core/error/UnsupportedEnvironmentError.js";
@@ -178,24 +174,26 @@ export class CustomAuthStandardController
         const correlationId = this.getCorrelationId(signInInputs);
 
         try {
-            ensureArgumentIsNotNullOrUndefined(
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
                 "signInInputs",
                 signInInputs,
                 correlationId
             );
 
-            ensureArgumentIsNotEmptyString(
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
                 "signInInputs.username",
                 signInInputs.username,
                 correlationId
             );
             this.ensureUserNotSignedIn(correlationId);
 
-            ensureArgumentIsJSONString(
-                "signInInputs.claims",
-                signInInputs.claims,
-                correlationId
-            );
+            if (signInInputs.claims) {
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "signInInputs.claims",
+                    signInInputs.claims,
+                    correlationId
+                );
+            }
 
             // start the signin flow
             const signInStartParams: SignInStartParams = {
@@ -337,13 +335,13 @@ export class CustomAuthStandardController
         const correlationId = this.getCorrelationId(signUpInputs);
 
         try {
-            ensureArgumentIsNotNullOrUndefined(
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
                 "signUpInputs",
                 signUpInputs,
                 correlationId
             );
 
-            ensureArgumentIsNotEmptyString(
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
                 "signUpInputs.username",
                 signUpInputs.username,
                 correlationId
@@ -449,13 +447,13 @@ export class CustomAuthStandardController
         const correlationId = this.getCorrelationId(resetPasswordInputs);
 
         try {
-            ensureArgumentIsNotNullOrUndefined(
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
                 "resetPasswordInputs",
                 resetPasswordInputs,
                 correlationId
             );
 
-            ensureArgumentIsNotEmptyString(
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
                 "resetPasswordInputs.username",
                 resetPasswordInputs.username,
                 correlationId

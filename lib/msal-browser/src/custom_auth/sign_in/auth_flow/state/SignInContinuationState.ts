@@ -10,7 +10,7 @@ import { SignInWithContinuationTokenInputs } from "../../../CustomAuthActionInpu
 import { SignInContinuationStateParameters } from "./SignInStateParameters.js";
 import { SignInState } from "./SignInState.js";
 import { SignInCompletedState } from "./SignInCompletedState.js";
-import { ensureArgumentIsJSONString } from "../../../core/utils/ArgumentValidator.js";
+import * as ArgumentValidator from "../../../core/utils/ArgumentValidator.js";
 
 /*
  * Sign-in continuation state.
@@ -26,7 +26,7 @@ export class SignInContinuationState extends SignInState<SignInContinuationState
     ): Promise<SignInResult> {
         try {
             if (signInWithContinuationTokenInputs?.claims) {
-                ensureArgumentIsJSONString(
+                ArgumentValidator.ensureArgumentIsJSONString(
                     "signInWithContinuationTokenInputs.claims",
                     signInWithContinuationTokenInputs.claims,
                     this.stateParameters.correlationId
