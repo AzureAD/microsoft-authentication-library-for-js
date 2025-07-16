@@ -195,7 +195,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         const platformRequest = request;
         const authParams = this.generateRequestParameters(platformRequest);
         const account = await this.getAccount(platformRequest);
-        platformRequest.redirectUri = this.chooseRedirectUriByPlatform(platformRequest);
+        platformRequest.redirectUri =
+            this.chooseRedirectUriByPlatform(platformRequest);
 
         return new Promise(
             (resolve: (value: AuthenticationResult) => void, reject) => {
@@ -251,7 +252,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         );
         const platformRequest = request;
         const authParams = this.generateRequestParameters(platformRequest);
-        platformRequest.redirectUri = this.chooseRedirectUriByPlatform(platformRequest);
+        platformRequest.redirectUri =
+            this.chooseRedirectUriByPlatform(platformRequest);
         const account = await this.getAccount(platformRequest);
         const windowHandle = providedWindowHandle || Buffer.from([0]);
 
@@ -284,7 +286,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                 platformRequest.correlationId
                             );
                             const loginHint =
-                                platformRequest.loginHint || Constants.EMPTY_STRING;
+                                platformRequest.loginHint ||
+                                Constants.EMPTY_STRING;
                             msalNodeRuntime.SignInInteractivelyAsync(
                                 windowHandle,
                                 authParams,
@@ -336,7 +339,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                     platformRequest.correlationId
                                 );
                                 const loginHint =
-                                    platformRequest.loginHint || Constants.EMPTY_STRING;
+                                    platformRequest.loginHint ||
+                                    Constants.EMPTY_STRING;
                                 msalNodeRuntime.SignInAsync(
                                     windowHandle,
                                     authParams,
