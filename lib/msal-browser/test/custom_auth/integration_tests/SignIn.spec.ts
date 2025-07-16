@@ -27,6 +27,11 @@ describe("Sign in", () => {
     });
 
     afterEach(() => {
+        const activeUser = app.getAllAccounts();
+        if (activeUser.length > 0) {
+            app.clearCache();
+        }
+
         const controller = app[
             "customAuthController"
         ] as CustomAuthStandardController;
@@ -450,8 +455,5 @@ describe("Sign in", () => {
         expect(result.isCompleted()).toBe(true);
         expect(result.data).toBeDefined();
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
-
-        // Sign out the user for clean up the state for the other tests.
-        result.data?.signOut();
     });
 });
