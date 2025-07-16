@@ -59,7 +59,7 @@ src/custom_auth/
     └── interaction_client/              # Clients for sign-up interactions
 ```
 
-## 3. Key Components
+## 3. Project Layers
 
 The Native Authentication feature is composed of several core components that work together to provide extensible authentication flows. Understanding these components and their relationships will help guide where to generate new code for future features:
 
@@ -68,22 +68,26 @@ The Native Authentication feature is composed of several core components that wo
   - Each method delegates to a controller for business logic.
 
 - **Controller: `CustomAuthStandardController`**
-  - Orchestrates all authentication flows.
-  - Receives input from the entry point, manages flow state, and coordinates interaction clients and network clients.
-  - Responsible for initializing the operating context and validating configuration.
+  - Acts as the bridge between the entry point (`CustomAuthPublicClientApplication`) and interaction clients.
+  - Receives input from the entry point, validates and prepares flow context, and delegates execution to the appropriate interaction client for each authentication operation.
+  - Manages state transitions and result objects, ensuring all flows follow project architecture and error handling patterns.
 
 - **Interaction Clients (e.g., `SignInClient`, `SignUpClient`, `ResetPasswordClient`)**
   - Encapsulate logic for interacting with the user and handling each step of the authentication process.
+  - Are used by both the controller and state/result objects to perform the actual logic for each authentication step, enabling the state machine pattern and supporting multi-step flows.
   - Created via the `CustomAuthInterationClientFactory`.
   - Handle multi-step flows, such as sending codes, verifying passwords, and managing continuation tokens.
 
 - **Network Clients (e.g., `CustomAuthApiClient`, `SignInApiClient`, `SignupApiClient`, `ResetPasswordApiClient`)**
   - Responsible for making HTTP requests to backend authentication APIs.
   - Used by interaction clients to perform server-side operations (e.g., validating credentials, sending OTPs).
+  - Each flow-specific API client (e.g., `SignInApiClient`, `SignupApiClient`, `ResetPasswordApiClient`) implements the endpoints and logic for its respective flow, and is composed into `CustomAuthApiClient`.
+  - When adding a new interaction client and corresponding network logic (e.g., `RegisterApiClient`), implement the new API client in the appropriate feature folder under `core/network_client/`, and expose its operations through `CustomAuthApiClient` to maintain a consistent and centralized network layer.
 
 - **State and Result Classes (e.g., `SignInState`, `SignInResult`, `SignUpState`, `ResetPasswordStartResult`)**
   - Represent the current state of an authentication flow and the result of each operation.
-  - Used to manage transitions between steps (e.g., from entering a password to entering a code).
+  - Result objects (e.g., `SignInResult`, `SignUpResult`) wrap state objects (e.g., `SignInState`, `SignUpState`) and expose methods to check the flow status and access the next actionable state.
+  - State objects encapsulate the logic and data for each step, providing methods to advance the flow (e.g., `submitPassword`, `submitCode`).
 
 ### State Machine Design Pattern
 
@@ -263,7 +267,6 @@ async function signInFlow(username: string, password?: string, code?: string): P
 
     // 2. Start the sign-in process
     let result: SignInResult = await client.signIn({ username });
-    let state: AuthFlowStateBase = result.state;
 
     // 3. Handle possible states
     if (result.isFailed()) {
@@ -284,35 +287,33 @@ async function signInFlow(username: string, password?: string, code?: string): P
     }
 
     // 4. Password required state
-    if (state instanceof SignInPasswordRequiredState) {
-        result = await state.submitPassword(password!);
-        state = result.state;
-        if (result.isFailed()) {
-            if (result.error?.isInvalidPassword()) {
+    if (result.isPasswordRequired()) {
+        const submitPasswordResult = await result.state.submitPassword(password!);
+        if (submitPasswordResult.isFailed()) {
+            if (submitPasswordResult.error?.isInvalidPassword()) {
                 showError("Incorrect password");
             } else {
-                showError(result.error?.errorData?.errorDescription || "Password verification failed");
+                showError(submitPasswordResult.error?.errorData?.errorDescription || "Password verification failed");
             }
             return;
         }
     }
 
     // 5. Code required state (e.g., OTP)
-    if (state instanceof SignInCodeRequiredState) {
-        result = await state.submitCode(code!);
-        state = result.state;
-        if (result.isFailed()) {
-            if (result.error?.isInvalidCode()) {
+    if (result.isCodeRequired()) {
+        const submitCodeResult = await state.submitCode(code!);
+        if (submitCodeResult.isFailed()) {
+            if (submitCodeResult.error?.isInvalidCode()) {
                 showError("Invalid code");
             } else {
-                showError(result.error?.errorData?.errorDescription || "Code verification failed");
+                showError(submitCodeResult.error?.errorData?.errorDescription || "Code verification failed");
             }
             return;
         }
     }
 
     // 6. Completed state
-    if (state instanceof SignInCompletedState) {
+    if (result.isCompleted()) {
         // Success! Access account data
         const account: CustomAuthAccountData = result.data;
         showSuccess(`Signed in as ${account.getAccount().username}`);
