@@ -12,8 +12,8 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
-import { urlEncodeArr } from "../encode/Base64Encode.js";
-import { base64DecToArr } from "../encode/Base64Decode.js";
+import { base64Encode, urlEncodeArr } from "../encode/Base64Encode.js";
+import { base64Decode, base64DecToArr } from "../encode/Base64Decode.js";
 
 /**
  * This file defines functions used by the browser library to perform cryptography operations such as
@@ -224,6 +224,95 @@ export async function sign(
         key,
         data
     ) as Promise<ArrayBuffer>;
+}
+
+/**
+ * Generates Base64 encoded jwk used in the Encrypted Authorize Response (EAR) flow
+ */
+export async function generateEarKey(): Promise<string> {
+    const key = await generateBaseKey();
+    const keyStr = urlEncodeArr(new Uint8Array(key));
+
+    const jwk = {
+        alg: "dir",
+        kty: "oct",
+        k: keyStr,
+    };
+
+    return base64Encode(JSON.stringify(jwk));
+}
+
+/**
+ * Parses earJwk for encryption key and returns CryptoKey object
+ * @param earJwk
+ * @returns
+ */
+export async function importEarKey(earJwk: string): Promise<CryptoKey> {
+    const b64DecodedJwk = base64Decode(earJwk);
+    const jwkJson = JSON.parse(b64DecodedJwk);
+    const rawKey = jwkJson.k;
+    const keyBuffer = base64DecToArr(rawKey);
+
+    return window.crypto.subtle.importKey(RAW, keyBuffer, AES_GCM, false, [
+        DECRYPT,
+    ]);
+}
+
+/**
+ * Decrypt ear_jwe response returned in the Encrypted Authorize Response (EAR) flow
+ * @param earJwk
+ * @param earJwe
+ * @returns
+ */
+export async function decryptEarResponse(
+    earJwk: string,
+    earJwe: string
+): Promise<string> {
+    const earJweParts = earJwe.split(".");
+    if (earJweParts.length !== 5) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "jwe_length"
+        );
+    }
+
+    const key = await importEarKey(earJwk).catch(() => {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "import_key"
+        );
+    });
+
+    try {
+        const header = new TextEncoder().encode(earJweParts[0]);
+        const iv = base64DecToArr(earJweParts[2]);
+        const ciphertext = base64DecToArr(earJweParts[3]);
+        const tag = base64DecToArr(earJweParts[4]);
+        const tagLengthBits = tag.byteLength * 8;
+
+        // Concat ciphertext and tag
+        const encryptedData = new Uint8Array(ciphertext.length + tag.length);
+        encryptedData.set(ciphertext);
+        encryptedData.set(tag, ciphertext.length);
+
+        const decryptedData = await window.crypto.subtle.decrypt(
+            {
+                name: AES_GCM,
+                iv: iv,
+                tagLength: tagLengthBits,
+                additionalData: header,
+            },
+            key,
+            encryptedData
+        );
+
+        return new TextDecoder().decode(decryptedData);
+    } catch (e) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "decrypt"
+        );
+    }
 }
 
 /**

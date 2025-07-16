@@ -5,8 +5,6 @@
 
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
-    DEFAULT_OPENID_CONFIG_RESPONSE,
-    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     ID_TOKEN_ALT_CLAIMS,
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
@@ -17,11 +15,10 @@ import {
     TEST_SSH_VALUES,
     TEST_STATE_VALUES,
     TEST_TOKEN_LIFETIMES,
-    TEST_TOKEN_RESPONSE,
     TEST_TOKENS,
     TEST_URIS,
     testLogoutUrl,
-    testNavUrlNoRequest,
+    verifyUrl,
 } from "../utils/StringConstants.js";
 import {
     AccountEntity,
@@ -33,7 +30,6 @@ import {
     CacheHelpers,
     CacheManager,
     ClientAuthErrorCodes,
-    CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
     Constants,
@@ -47,7 +43,6 @@ import {
     PerformanceClient,
     PerformanceEvent,
     PerformanceEvents,
-    PersistentCacheKeys,
     ProtocolMode,
     ProtocolUtils,
     RefreshTokenClient,
@@ -64,7 +59,8 @@ import {
     BrowserConstants,
     CacheLookupPolicy,
     InteractionType,
-    NativeConstants,
+    StaticCacheKeys,
+    PlatformAuthConstants,
     TemporaryCacheKeys,
     WrapperSKU,
 } from "../../src/utils/BrowserConstants.js";
@@ -80,7 +76,6 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { EventMessage } from "../../src/event/EventMessage.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
-import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     BrowserAuthError,
@@ -93,17 +88,12 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
-import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient.js";
-import {
-    AuthorizationCodeRequest,
-    EndSessionRequest,
-} from "../../src/index.js";
-import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
+import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { StandardController } from "../../src/controllers/StandardController.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
@@ -121,7 +111,11 @@ import {
     buildIdToken,
     TestTimeUtils,
 } from "msal-test-utils";
-import { nativeConnectionNotEstablished } from "../../src/error/BrowserAuthErrorCodes.js";
+import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
+import { version } from "../../src/packageMetadata.js";
+import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest.js";
+import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
+import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -142,7 +136,7 @@ let testAppConfig = {
     },
 };
 
-function stubProvider(config: Configuration) {
+function stubExtensionProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";
 
     const newConfig = buildConfiguration(config, browserEnvironment);
@@ -152,11 +146,10 @@ function stubProvider(config: Configuration) {
         "unittest"
     );
     const performanceClient = newConfig.telemetry.client;
-
     return jest
-        .spyOn(NativeMessageHandler, "createProvider")
+        .spyOn(PlatformAuthExtensionHandler, "createProvider")
         .mockImplementation(async () => {
-            return new NativeMessageHandler(
+            return new PlatformAuthExtensionHandler(
                 logger,
                 2000,
                 performanceClient,
@@ -165,10 +158,41 @@ function stubProvider(config: Configuration) {
         });
 }
 
+function stubDOMProvider(config: Configuration) {
+    const browserEnvironment = typeof window !== "undefined";
+
+    const newConfig = buildConfiguration(config, browserEnvironment);
+    const logger = new Logger(
+        newConfig.system.loggerOptions,
+        "unittest",
+        "unittest"
+    );
+    const performanceClient = newConfig.telemetry.client;
+    return jest
+        .spyOn(PlatformAuthDOMHandler, "createProvider")
+        .mockImplementation(async () => {
+            return new PlatformAuthDOMHandler(
+                logger,
+                performanceClient,
+                "test-correlation-id"
+            );
+        });
+}
+
+const testRequest: CommonAuthorizationUrlRequest = {
+    redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+    authority: `${Constants.DEFAULT_AUTHORITY}`,
+    correlationId: RANDOM_TEST_GUID,
+    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+    responseMode: ResponseMode.FRAGMENT,
+    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+    nonce: ID_TOKEN_CLAIMS.nonce,
+};
+
 describe("PublicClientApplication.ts Class Unit Tests", () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
+    let browserStorage: BrowserCacheManager;
     beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
@@ -187,6 +211,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         await pca.initialize();
+
+        // @ts-ignore
+        browserStorage = pca.controller.browserStorage;
 
         // Navigation not allowed in tests
         jest.spyOn(
@@ -233,11 +260,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca instanceof PublicClientApplication).toBeTruthy();
             done();
         });
+
+        it("Sets isBroker to false", () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            // @ts-ignore
+            expect(pca.isBroker).toBe(false);
+        });
     });
 
     describe("initialize tests", () => {
-        globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
-
         beforeEach(() => {
             jest.spyOn(MessageEvent.prototype, "source", "get").mockReturnValue(
                 window
@@ -270,7 +306,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             // @ts-ignore
             const handshakeSpy: jest.SpyInstance = jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 // @ts-ignore
                 "sendHandshakeRequest"
             );
@@ -283,8 +319,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     event.stopImmediatePropagation();
                     const request = event.data;
                     const req = {
-                        channel: NativeConstants.CHANNEL_ID,
-                        extensionId: NativeConstants.PREFERRED_EXTENSION_ID,
+                        channel: PlatformAuthConstants.CHANNEL_ID,
+                        extensionId:
+                            PlatformAuthConstants.PREFERRED_EXTENSION_ID,
                         responseId: request.responseId,
                         body: {
                             method: "HandshakeResponse",
@@ -323,7 +360,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // @ts-ignore
                     expect(
                         (apps[i] as any).controller.getNativeExtensionProvider()
-                    ).toBeInstanceOf(NativeMessageHandler);
+                    ).toBeInstanceOf(PlatformAuthExtensionHandler);
                 }
             } finally {
                 for (const port of ports) {
@@ -360,7 +397,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             // @ts-ignore
             const createProviderSpy: jest.SpyInstance = jest.spyOn(
-                NativeMessageHandler,
+                PlatformAuthExtensionHandler,
                 "createProvider"
             );
 
@@ -372,8 +409,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     event.stopImmediatePropagation();
                     const request = event.data;
                     const req = {
-                        channel: NativeConstants.CHANNEL_ID,
-                        extensionId: NativeConstants.PREFERRED_EXTENSION_ID,
+                        channel: PlatformAuthConstants.CHANNEL_ID,
+                        extensionId:
+                            PlatformAuthConstants.PREFERRED_EXTENSION_ID,
                         responseId: request.responseId,
                         body: {
                             method: "HandshakeResponse",
@@ -431,7 +469,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        it("creates extension provider if allowPlatformBroker is true", async () => {
+        it("creates platform auth extension handler if allowPlatformBroker is true", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -440,9 +478,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowPlatformBroker: true,
                 },
             };
+
+            jest.spyOn(
+                PlatformAuthProvider,
+                "isDomEnabledForPlatformAuth"
+            ).mockImplementation(() => {
+                return false;
+            });
+
+            const getPlatformAuthProviderSpy = jest.spyOn(
+                PlatformAuthProvider,
+                "getPlatformAuthProvider"
+            );
+
             pca = new PublicClientApplication(config);
 
-            const createProviderSpy = stubProvider(config);
+            const createExtensionProviderSpy = stubExtensionProvider(config);
 
             await pca.initialize();
 
@@ -450,39 +501,82 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
-            expect(createProviderSpy).toHaveBeenCalled();
+            expect(getPlatformAuthProviderSpy).toHaveBeenCalled();
+            expect(createExtensionProviderSpy).toHaveBeenCalled();
             // @ts-ignore
-            expect(pca.nativeExtensionProvider).toBeInstanceOf(
-                NativeMessageHandler
+            expect(pca.platformAuthProvider).toBeInstanceOf(
+                PlatformAuthExtensionHandler
             );
         });
 
         it("does not create extension provider if allowPlatformBroker is false", async () => {
-            const createProviderSpy = jest.spyOn(
-                NativeMessageHandler,
-                "createProvider"
+            const getPlatformAuthProviderSpy = jest.spyOn(
+                PlatformAuthProvider,
+                "getPlatformAuthProvider"
             );
-            pca = new PublicClientApplication({
+
+            const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
                     allowPlatformBroker: false,
                 },
-            });
+            };
+
+            pca = new PublicClientApplication(config);
+            const createProviderSpy = stubExtensionProvider(config);
+
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
             expect(createProviderSpy).toHaveBeenCalledTimes(0);
+            expect(getPlatformAuthProviderSpy).not.toHaveBeenCalled();
             // @ts-ignore
-            expect(pca.nativeExtensionProvider).toBeUndefined();
+            expect(pca.platformAuthProvider).toBeUndefined();
+        });
+
+        it("creates platform auth dom handler if allowPlatformBroker is true and dom APIs are present", async () => {
+            const getPlatformAuthProviderSpy = jest.spyOn(
+                PlatformAuthProvider,
+                "getPlatformAuthProvider"
+            );
+
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: true,
+                },
+            };
+
+            pca = new PublicClientApplication(config);
+            window.sessionStorage.setItem(
+                "msal.browser.platform.auth.dom",
+                "true"
+            );
+
+            const createDOMProviderSpy = stubDOMProvider(config);
+            await pca.initialize();
+
+            // Implementation of PCA was moved to controller.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            expect(getPlatformAuthProviderSpy).toHaveBeenCalled();
+            expect(createDOMProviderSpy).toHaveBeenCalled();
+            // @ts-ignore
+            expect(pca.platformAuthProvider).toBeInstanceOf(
+                PlatformAuthDOMHandler
+            );
         });
 
         it("catches error if extension provider fails to initialize", async () => {
             const createProviderSpy = jest
-                .spyOn(NativeMessageHandler, "createProvider")
+                .spyOn(PlatformAuthExtensionHandler, "createProvider")
                 .mockRejectedValue(new Error("testError"));
             pca = new PublicClientApplication({
                 auth: {
@@ -499,7 +593,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(createProviderSpy).toHaveBeenCalled();
             // @ts-ignore
-            expect(pca.nativeExtensionProvider).toBeUndefined();
+            expect(pca.platformAuthProvider).toBeUndefined();
         });
 
         it("reports telemetry event using provided correlation id", (done) => {
@@ -577,6 +671,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(preGenerateSpy).toHaveBeenCalledTimes(1);
         });
+
+        it("passes in isBroker in request", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+            });
+            const initializeControllerSpy = jest.spyOn(
+                StandardController.prototype,
+                "initialize"
+            );
+            await pca.initialize();
+            expect(initializeControllerSpy).toHaveBeenCalledWith(
+                undefined,
+                false
+            );
+        });
     });
 
     describe("handleRedirectPromise", () => {
@@ -607,6 +721,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
 
             const redirectClientSpy = jest
                 .spyOn(RedirectClient.prototype, "handleRedirectPromise")
@@ -654,6 +777,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
             jest.spyOn(pca, "getAllAccounts").mockReturnValue([testAccount]);
             jest.spyOn(
                 RedirectClient.prototype,
@@ -679,6 +811,31 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.handleRedirectPromise();
         });
 
+        it("cleans temporary cache and rethrows if error is thrown", (done) => {
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.cacheAuthorizeRequest(
+                testRequest,
+                TEST_CONFIG.TEST_VERIFIER
+            );
+            const testError: AuthError = new AuthError(
+                "Unexpected error!",
+                "Unexpected error"
+            );
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockRejectedValue(testError);
+            pca.handleRedirectPromise().catch((e) => {
+                expect(e).toMatchObject(testError);
+                expect(window.localStorage.length).toEqual(0);
+                expect(window.sessionStorage.length).toEqual(1);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
+                done();
+            });
+        });
+
         it("Calls NativeInteractionClient.handleRedirectPromise and returns its response", async () => {
             const config = {
                 auth: {
@@ -690,7 +847,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             // Implementation of PCA was moved to controller.
@@ -721,7 +878,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromNativeBroker: true,
             };
 
-            const nativeRequest: NativeTokenRequest = {
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+
+            const nativeRequest: PlatformAuthRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -738,7 +900,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             const redirectClientSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "handleRedirectPromise"
                 )
                 .mockImplementation(() => {
@@ -779,7 +941,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             };
             pca = new PublicClientApplication(config);
-            stubProvider(config);
+            stubExtensionProvider(config);
 
             pca.initialize().then(() => {
                 const callbackId = pca.addPerformanceCallback((events) => {
@@ -831,8 +993,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tokenType: AuthenticationScheme.BEARER,
                     fromNativeBroker: true,
                 };
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "isInteractionInProgress"
+                ).mockReturnValue(true);
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "getCachedRequest"
+                ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
 
-                const nativeRequest: NativeTokenRequest = {
+                const nativeRequest: PlatformAuthRequest = {
                     authority: TEST_CONFIG.validAuthority,
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -851,12 +1021,63 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     testAccount,
                 ]);
                 jest.spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "handleRedirectPromise"
                 ).mockResolvedValue(testTokenResponse);
 
                 pca.handleRedirectPromise();
             });
+        });
+
+        it("Calls NativeInteractionClient.handleRedirectPromise and clears interaction_in_progress flag if it fails", (done) => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+
+            stubExtensionProvider(config);
+
+            //@ts-ignore
+            pca.controller.browserStorage.setInteractionInProgress(true);
+
+            const nativeRequest: PlatformAuthRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                accountId: "1234",
+                redirectUri: window.location.href,
+                correlationId: RANDOM_TEST_GUID,
+                windowTitleSubstring: "test window",
+            };
+            // @ts-ignore
+            pca.controller.browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.NATIVE_REQUEST,
+                JSON.stringify(nativeRequest),
+                true
+            );
+            const redirectClientSpy: jest.SpyInstance = jest
+                .spyOn(
+                    PlatformAuthInteractionClient.prototype,
+                    "handleRedirectPromise"
+                )
+                .mockRejectedValue(new Error("testerror"));
+
+            pca.initialize().then(() =>
+                pca.handleRedirectPromise().catch((e) => {
+                    expect(redirectClientSpy).toHaveBeenCalled();
+                    expect(e.message).toEqual("testerror");
+                    expect(
+                        // @ts-ignore
+                        pca.controller.browserStorage.isInteractionInProgress()
+                    ).toEqual(false);
+                    done();
+                })
+            );
         });
 
         it("Emits acquireToken success event if user was already signed in", async () => {
@@ -881,6 +1102,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
             jest.spyOn(pca, "getAllAccounts").mockReturnValue([testAccount]);
             const redirectClientSpy: jest.SpyInstance = jest
                 .spyOn(RedirectClient.prototype, "handleRedirectPromise")
@@ -899,10 +1128,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(acquireTokenSuccessFired).toBe(true);
         });
 
-        it("Emits login failure event if user was already signed in", async () => {
+        it("Emits login failure event if user was already signed in", (done) => {
             const redirectClientSpy: jest.SpyInstance = jest
                 .spyOn(RedirectClient.prototype, "handleRedirectPromise")
                 .mockRejectedValue(new Error("Error"));
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
             let loginFailureFired = false;
             jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
                 (eventType) => {
@@ -911,13 +1148,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 }
             );
-            await pca.handleRedirectPromise().catch(() => {
+            pca.handleRedirectPromise().catch(() => {
                 expect(redirectClientSpy).toHaveBeenCalledTimes(1);
                 expect(loginFailureFired).toBe(true);
+                done();
             });
         });
 
-        it("Emits acquireToken failure event if user was already signed in", async () => {
+        it("Emits acquireToken failure event if user was already signed in", (done) => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -925,6 +1163,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
             };
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
             jest.spyOn(
                 StandardController.prototype,
                 "getAllAccounts"
@@ -941,31 +1187,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             );
 
-            await pca.handleRedirectPromise().catch(() => {
+            pca.handleRedirectPromise().catch(() => {
                 expect(redirectClientSpy).toHaveBeenCalledTimes(1);
                 expect(acquireTokenFailureFired).toBe(true);
+                done();
             });
         });
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
-            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
-                stateString
-            ).libraryState.id;
-
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
-            );
-            window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
-                TEST_CONFIG.validAuthority
-            );
-            window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
@@ -973,26 +1205,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
             );
-            window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
-                "123523"
-            );
-            const testTokenReq: CommonAuthorizationCodeRequest = {
-                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-                code: "thisIsATestCode",
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
-                base64Encode(JSON.stringify(testTokenReq))
-            );
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
             const testServerTokenResponse = {
                 headers: {},
                 status: 200,
@@ -1119,6 +1344,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             jest.spyOn(RedirectClient.prototype, "getRedirectResponse")
                 // @ts-ignore
                 .mockReturnValue([null, ""]);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events.length).toEqual(1);
@@ -1129,12 +1362,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.CORRELATION_ID}`,
-                RANDOM_TEST_GUID
-            );
-            window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
             );
             pca.handleRedirectPromise();
         });
@@ -1163,6 +1395,57 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             await pca.handleRedirectPromise();
             expect(emitSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("removes interaction_in_progress and returns null after sign-out", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await pca.initialize();
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNOUT,
+                })
+            );
+            const res = await pca.handleRedirectPromise();
+            expect(res).toBeNull();
+            expect(
+                // @ts-ignore
+                pca.controller.browserStorage.getInteractionInProgress()
+            ).toBeFalsy();
+        });
+
+        it("removes interaction_in_progress and throws after sign-in when there are no tokens in cache", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await pca.initialize();
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
+            );
+            try {
+                await pca.handleRedirectPromise();
+                throw "Unexpected code path";
+            } catch (e) {
+                // @ts-ignore
+                expect(e.errorCode).toEqual("no_token_request_cache_error");
+            }
+            expect(
+                // @ts-ignore
+                pca.controller.browserStorage.getInteractionInProgress()
+            ).toBeFalsy();
         });
     });
     describe("OIDC Protocol Mode tests", () => {
@@ -1194,6 +1477,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 RedirectClient.prototype,
                 <any>"getRedirectResponse"
             );
+
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                responseMode: ResponseMode.QUERY,
+                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                nonce: RANDOM_TEST_GUID,
+            };
+            // @ts-ignore
+            pca.controller.browserStorage.cacheAuthorizeRequest(
+                request,
+                RANDOM_TEST_GUID
+            );
+
             jest.spyOn(
                 BrowserCacheManager.prototype,
                 "isInteractionInProgress"
@@ -1213,6 +1514,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 {
                     code: "authCode",
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    nonce: RANDOM_TEST_GUID,
                 },
                 responseString,
             ]);
@@ -1286,12 +1588,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("navigates to created login url, with empty request", (done) => {
             jest.spyOn(
-                RedirectHandler.prototype,
+                RedirectClient.prototype,
                 "initiateAuthRequest"
             ).mockImplementation((navigateUrl): Promise<void> => {
-                expect(
-                    navigateUrl.startsWith(testNavUrlNoRequest)
-                ).toBeTruthy();
+                verifyUrl(navigateUrl);
                 return Promise.resolve(done());
             });
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -1341,7 +1641,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -1362,7 +1662,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "acquireTokenRedirect"
                 )
                 .mockResolvedValue();
@@ -1396,7 +1696,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events.length).toBeGreaterThanOrEqual(1);
@@ -1435,7 +1735,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = new PublicClientApplication(config);
 
             await pca.initialize();
-            stubProvider(config);
+            stubExtensionProvider(config);
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
@@ -1450,7 +1750,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy = jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireTokenRedirect"
             );
             const redirectSpy: jest.SpyInstance = jest
@@ -1477,7 +1777,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             // Implementation of PCA was moved to controller.
@@ -1495,7 +1795,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "acquireTokenRedirect"
                 )
                 .mockRejectedValue(
@@ -1524,7 +1824,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             // Implementation of PCA was moved to controller.
@@ -1542,7 +1842,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "acquireTokenRedirect"
                 )
                 .mockRejectedValue(
@@ -1573,7 +1873,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //PCA implementation moved to controller
@@ -1590,7 +1890,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "acquireTokenRedirect"
                 )
                 .mockRejectedValue(new Error("testError"));
@@ -1784,6 +2084,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(redirectClientSpy).toHaveBeenCalledTimes(1);
         });
 
+        it("Cleans temporary cache if error is thrown by RedirectClient.acquireToken", (done) => {
+            const redirectClientSpy: jest.SpyInstance = jest
+                .spyOn(RedirectClient.prototype, "acquireToken")
+                .mockImplementation(() => {
+                    expect(browserStorage.isInteractionInProgress()).toBe(true);
+                    browserStorage.cacheAuthorizeRequest(
+                        testRequest,
+                        TEST_CONFIG.TEST_VERIFIER
+                    );
+                    expect(window.sessionStorage.length).toBe(3);
+                    return Promise.reject(new Error("testerror"));
+                });
+
+            pca.acquireTokenRedirect({
+                scopes: ["openid"],
+            }).catch((e) => {
+                expect(redirectClientSpy).toHaveBeenCalledTimes(1);
+                expect(browserStorage.isInteractionInProgress()).toBe(false);
+                expect(window.localStorage.length).toBe(0);
+                expect(window.sessionStorage.length).toBe(1);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
+                done();
+            });
+        });
+
         it("Emits acquireToken Start and Failure events if user is already logged in", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1853,7 +2180,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             };
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             pca = new PublicClientApplication({
                 ...config,
                 telemetry: {
@@ -2193,7 +2520,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         beforeEach(async () => {
             const popupWindow = {
                 ...window,
+                location: {
+                    assign: () => {},
+                },
                 close: () => {},
+                focus: () => {},
             };
             // @ts-ignore
             jest.spyOn(window, "open").mockReturnValue(popupWindow);
@@ -2261,7 +2592,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -2295,7 +2626,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockImplementation(async (request) => {
                     expect(request.correlationId).toBe(RANDOM_TEST_GUID);
                     return testTokenResponse;
@@ -2324,7 +2655,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             const testAccount: AccountInfo = {
@@ -2351,7 +2682,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             );
             const popupSpy: jest.SpyInstance = jest
@@ -2379,7 +2710,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -2409,7 +2740,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
                     new NativeAuthError("ContentError", "error in extension")
                 );
@@ -2437,7 +2768,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -2467,7 +2798,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockImplementation(() => {
                     throw createInteractionRequiredAuthError(
                         InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
@@ -2497,7 +2828,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //PCA implementation moved to controller
@@ -2513,7 +2844,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
@@ -2906,10 +3237,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockRejectedValue("Not important for this test");
+
             try {
                 await testPca.acquireTokenPopup(request);
             } catch (e) {}
-
             expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(2);
             expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
                 request,
@@ -2962,6 +3297,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockRejectedValue("Not important for this test");
             try {
                 await testPca.acquireTokenPopup(request);
             } catch (e) {}
@@ -3042,7 +3381,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3072,7 +3411,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -3099,7 +3438,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3129,7 +3468,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
                     new NativeAuthError("ContentError", "error in extension")
                 );
@@ -3157,7 +3496,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3173,7 +3512,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -3448,7 +3787,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3478,7 +3817,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
             const response = await pca.acquireTokenByCode({
                 scopes: ["User.Read"],
@@ -3500,14 +3839,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
                     new NativeAuthError(
                         "ContentError",
@@ -3538,7 +3877,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             const nativeAcquireTokenSpy = jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             );
 
@@ -3945,7 +4284,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3975,7 +4314,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -4002,7 +4341,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -4032,7 +4371,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
                     new NativeAuthError("ContentError", "error in extension")
                 );
@@ -4062,7 +4401,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
@@ -4077,7 +4416,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -5143,7 +5482,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -5199,7 +5541,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await silentRequest3.catch(() => {});
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(atsSpy).toHaveBeenCalledTimes(1);
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -5907,7 +6252,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentIframeSpy).toHaveBeenCalledTimes(0);
             });
 
-            it("Calls SilentCacheClient.acquireToken, and calls NativeInteractionClient.acquireToken when CacheLookupPolicy is set to AccessToken", async () => {
+            it("Calls SilentCacheClient.acquireToken, and calls PlatformAuthInteractionClient.acquireToken when CacheLookupPolicy is set to AccessToken", async () => {
                 const silentCacheSpy: jest.SpyInstance = jest
                     .spyOn(SilentCacheClient.prototype, "acquireToken")
                     .mockRejectedValue(refreshRequiredCacheError);
@@ -5918,11 +6263,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
                     .mockImplementation();
 
-                const isPlatformBrokerAvailableSpy = jest
-                    .spyOn(NativeMessageHandler, "isPlatformBrokerAvailable")
+                const isPlatformAuthAllowedSpy = jest
+                    .spyOn(PlatformAuthProvider, "isPlatformAuthAllowed")
                     .mockReturnValue(true);
                 const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                    .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                    .spyOn(
+                        PlatformAuthInteractionClient.prototype,
+                        "acquireToken"
+                    )
                     .mockImplementation();
                 const cacheAccount = testAccount;
                 cacheAccount.nativeAccountId = "nativeAccountId";
@@ -5946,7 +6294,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(0);
 
                 nativeAcquireTokenSpy.mockRestore();
-                isPlatformBrokerAvailableSpy.mockRestore();
+                isPlatformAuthAllowedSpy.mockRestore();
             });
 
             it("Calls SilentRefreshClient.acquireToken, and does not call SilentCacheClient.acquireToken or SilentIframeClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshToken", async () => {
@@ -5983,13 +6331,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
                     .mockImplementation();
                 const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                    .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                    .spyOn(
+                        PlatformAuthInteractionClient.prototype,
+                        "acquireToken"
+                    )
                     .mockImplementation();
 
                 const cacheAccount = testAccount;
                 cacheAccount.nativeAccountId = "nativeAccountId";
-                const isPlatformBrokerAvailableSpy = jest
-                    .spyOn(NativeMessageHandler, "isPlatformBrokerAvailable")
+                const isPlatformAuthAllowedSpy = jest
+                    .spyOn(PlatformAuthProvider, "isPlatformAuthAllowed")
                     .mockReturnValue(true);
                 testAccount.nativeAccountId = "nativeAccountId";
 
@@ -6012,7 +6363,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentIframeSpy).toHaveBeenCalledTimes(0);
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(0);
                 nativeAcquireTokenSpy.mockRestore();
-                isPlatformBrokerAvailableSpy.mockRestore();
+                isPlatformAuthAllowedSpy.mockRestore();
             });
 
             it("Calls SilentRefreshClient.acquireToken, and does not call SilentCacheClient.acquireToken or SilentIframeClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshToken", async () => {
@@ -6383,6 +6734,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(accounts).toEqual([]);
         });
 
+        it("getAllAccounts throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
+
+            try {
+                pca.getAllAccounts();
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         it("getAccountByUsername returns account specified", () => {
             const account = pca.getAccountByUsername(
                 ID_TOKEN_CLAIMS.preferred_username
@@ -6418,6 +6796,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).toBe(null);
         });
 
+        it("getAccountByUsername throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
+
+            try {
+                pca.getAccountByUsername(testAccount1.username);
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         it("getAccountByHomeId returns account specified", () => {
             const account = pca.getAccountByHomeId(
                 testAccountInfo1.homeAccountId
@@ -6437,6 +6842,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).toBe(null);
         });
 
+        it("getAccountByUsername throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
+
+            try {
+                pca.getAccountByHomeId(testAccount1.homeAccountId);
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         it("getAccountByLocalId returns account specified", () => {
             const account = pca.getAccountByLocalId(ID_TOKEN_CLAIMS.oid);
             expect(account?.idTokenClaims).not.toBeUndefined();
@@ -6454,10 +6886,64 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).toBe(null);
         });
 
+        it("getAccountByLocalId throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
+
+            try {
+                pca.getAccountByLocalId(testAccount1.localAccountId);
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         describe("getAccount", () => {
             it("getAccount returns null if empty filter is passed in", () => {
                 const account = pca.getAccount({});
                 expect(account).toBe(null);
+            });
+
+            it("getAccount throws if called before initialize", (done) => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    cache: {
+                        cacheLocation: "localStorage",
+                    },
+                });
+
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([testAccount1.generateAccountKey()])
+                );
+
+                try {
+                    pca.getAccount({ username: testAccount1.username });
+                } catch (e) {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                        )
+                    );
+                    done();
+                }
             });
 
             describe("loginHint filter", () => {
@@ -6588,6 +7074,40 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("active account is initialized as null", () => {
                 // Public client should initialze with active account set to null.
                 expect(pca.getActiveAccount()).toBe(null);
+            });
+
+            it("getActiveAccount throws if called before initialize", (done) => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    cache: {
+                        cacheLocation: "localStorage",
+                    },
+                });
+
+                window.localStorage.setItem(
+                    `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.active-account-filters`,
+                    JSON.stringify({
+                        homeAccountId: testAccount1.homeAccountId,
+                        localAccountId: testAccount1.localAccountId,
+                    })
+                );
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([testAccount1.generateAccountKey()])
+                );
+
+                try {
+                    pca.getActiveAccount();
+                } catch (e) {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                        )
+                    );
+                    done();
+                }
             });
 
             it("setActiveAccount() sets the active account local id value correctly", () => {
@@ -6870,7 +7390,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -7259,7 +7779,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // Ensure account is present in the cache before removing it
                     const cacheKey =
                         AccountEntity.generateAccountCacheKey(accountInfo);
-                    secondBrowserStorageInstance.removeAccount(cacheKey);
+                    secondBrowserStorageInstance.removeAccount(
+                        cacheKey,
+                        RANDOM_TEST_GUID
+                    );
                 });
         });
 
@@ -7284,7 +7807,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
                 .then(() => {
                     // Ensure account is present in the cache before setting it as active
-                    secondBrowserStorageInstance.setActiveAccount(accountInfo);
+                    secondBrowserStorageInstance.setActiveAccount(
+                        accountInfo,
+                        RANDOM_TEST_GUID
+                    );
                 });
         });
     });
@@ -7332,6 +7858,125 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pkce1?.challenge).toBeDefined();
             expect(pkce2?.challenge).toBeDefined();
             expect(pkce1?.challenge !== pkce2?.challenge).toBeTruthy();
+        });
+    });
+    describe("Multi-instance tests", () => {
+        afterEach(() => {
+            // @ts-ignore
+            window.msal.clientIds = [];
+            // @ts-ignore
+            window.msal = {};
+        });
+        it("Logs warning if there are two applications with the same client id in the same frame", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Verbose,
+                        loggerCallback: jest.fn(),
+                    },
+                },
+            };
+            pca = new PublicClientApplication(msalConfig);
+            await pca.initialize();
+            const pca2 = new PublicClientApplication(msalConfig);
+            const logger = pca2.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+            await pca2.initialize();
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Warning,
+                expect.stringContaining(
+                    "There is already an instance of MSAL.js in the window with the same client id."
+                ),
+                false
+            );
+        });
+
+        it("Logs verbose if there are two applications with different client ids in the same frame", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Verbose,
+                        loggerCallback: jest.fn(),
+                    },
+                },
+            };
+            pca = new PublicClientApplication(msalConfig);
+            await pca.initialize();
+            const pca2 = new PublicClientApplication({
+                ...msalConfig,
+                auth: { clientId: "differentClientId" },
+            });
+            const logger = pca2.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+            await pca2.initialize();
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining(
+                    "There is already an instance of MSAL.js in the window."
+                ),
+                false
+            );
+        });
+
+        it("Reports in telemetry the number of applications in the same frame (different client ids)", async () => {
+            await pca.initialize();
+
+            const pca2 = new PublicClientApplication({
+                ...pca.getConfiguration(),
+                auth: { clientId: "different-client-id" },
+            });
+
+            const telemetryPromise = new Promise<void>((resolve) => {
+                const callbackId = pca2.addPerformanceCallback((events) => {
+                    expect(events.length).toEqual(1);
+                    const event = events[0];
+                    expect(event.name).toBe(
+                        PerformanceEvents.InitializeClientApplication
+                    );
+                    expect(event.msalInstanceCount).toEqual(2);
+                    expect(event.sameClientIdInstanceCount).toEqual(1);
+                    pca.removePerformanceCallback(callbackId);
+                    resolve();
+                });
+            });
+
+            await pca2.initialize();
+            await telemetryPromise;
+        });
+
+        it("Reports in telemetry the number of applications in the same frame (same client ids)", async () => {
+            await pca.initialize();
+
+            const pca2 = new PublicClientApplication(pca.getConfiguration());
+
+            const telemetryPromise = new Promise<void>((resolve) => {
+                const callbackId = pca2.addPerformanceCallback((events) => {
+                    expect(events.length).toEqual(1);
+                    const event = events[0];
+                    expect(event.name).toBe(
+                        PerformanceEvents.InitializeClientApplication
+                    );
+                    expect(event.msalInstanceCount).toEqual(2);
+                    expect(event.sameClientIdInstanceCount).toEqual(2);
+                    pca.removePerformanceCallback(callbackId);
+                    resolve();
+                });
+            });
+
+            await pca2.initialize();
+            await telemetryPromise;
         });
     });
 });

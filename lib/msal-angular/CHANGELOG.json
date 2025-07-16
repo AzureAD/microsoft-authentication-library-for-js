@@ -2,6 +2,225 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 08 Jul 2025 14:21:12 GMT",
+      "version": "4.0.15",
+      "tag": "@azure/msal-angular_v4.0.15",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.15.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 01 Jul 2025 14:23:25 GMT",
+      "version": "4.0.14",
+      "tag": "@azure/msal-angular_v4.0.14",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "b2942e458324c8bf767a068cae3eccbd4863baf3",
+            "comment": "Fix build output during publishing"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.14.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Jun 2025 15:21:55 GMT",
+      "version": "4.0.13",
+      "tag": "@azure/msal-angular_v4.0.13",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.13.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 06 May 2025 22:47:43 GMT",
+      "version": "4.0.12",
+      "tag": "@azure/msal-angular_v4.0.12",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.12.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 29 Apr 2025 20:25:48 GMT",
+      "version": "4.0.11",
+      "tag": "@azure/msal-angular_v4.0.11",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "2b6112d62495ac4e3245d8a0d9be6b541ffb206c",
+            "comment": "Fix circular dependency"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.11.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 15 Apr 2025 23:34:14 GMT",
+      "version": "4.0.10",
+      "tag": "@azure/msal-angular_v4.0.10",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.11.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Apr 2025 16:56:05 GMT",
+      "version": "4.0.9",
+      "tag": "@azure/msal-angular_v4.0.9",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "added resetInProgressEvent function to reset event after handleRedirectPromise is called #7682"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Deprecate logout() in Angular"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.10.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 25 Mar 2025 22:29:34 GMT",
+      "version": "4.0.8",
+      "tag": "@azure/msal-angular_v4.0.8",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "8bbed7012616d9106c923d08b5c4e408a741577f",
+            "comment": "Fix request type for ssoSilent"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.9.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 20 Mar 2025 22:09:04 GMT",
+      "version": "4.0.7",
+      "tag": "@azure/msal-angular_v4.0.7",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.8.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 11 Mar 2025 18:51:25 GMT",
       "version": "4.0.6",
       "tag": "@azure/msal-angular_v4.0.6",

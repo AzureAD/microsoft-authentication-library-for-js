@@ -4,7 +4,7 @@
  */
 
 import { CacheAccountType, Separators } from "../../utils/Constants.js";
-import { Authority } from "../../authority/Authority.js";
+import type { Authority } from "../../authority/Authority.js";
 import { ICrypto } from "../../crypto/ICrypto.js";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
 import {
@@ -62,6 +62,7 @@ export class AccountEntity {
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
+    lastUpdatedAt?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -150,10 +151,10 @@ export class AccountEntity {
 
         if (authority.authorityType === AuthorityType.Adfs) {
             account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
-        } else if (authority.protocolMode === ProtocolMode.AAD) {
-            account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
-        } else {
+        } else if (authority.protocolMode === ProtocolMode.OIDC) {
             account.authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        } else {
+            account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         }
 
         let clientInfo: ClientInfo | undefined;

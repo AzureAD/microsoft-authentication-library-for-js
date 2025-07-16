@@ -47,6 +47,7 @@ type EncryptedData = {
     id: string;
     nonce: string;
     data: string;
+    lastUpdatedAt: string;
 };
 
 export class LocalStorage implements IWindowStorage<string> {
@@ -77,8 +78,6 @@ export class LocalStorage implements IWindowStorage<string> {
     }
 
     async initialize(correlationId: string): Promise<void> {
-        this.initialized = true;
-
         const cookies = new CookieStorage();
         const cookieString = cookies.getItem(ENCRYPTION_KEY);
         let parsedCookie = { key: "", id: "" };
@@ -158,6 +157,8 @@ export class LocalStorage implements IWindowStorage<string> {
 
         // Register listener for cache updates in other tabs
         this.broadcast.addEventListener("message", this.updateCache.bind(this));
+
+        this.initialized = true;
     }
 
     getItem(key: string): string | null {
@@ -180,7 +181,8 @@ export class LocalStorage implements IWindowStorage<string> {
     async setUserData(
         key: string,
         value: string,
-        correlationId: string
+        correlationId: string,
+        timestamp: string
     ): Promise<void> {
         if (!this.initialized || !this.encryptionCookie) {
             throw createBrowserAuthError(
@@ -199,6 +201,7 @@ export class LocalStorage implements IWindowStorage<string> {
             id: this.encryptionCookie.id,
             nonce: nonce,
             data: data,
+            lastUpdatedAt: timestamp,
         };
 
         this.memoryStorage.setItem(key, value);

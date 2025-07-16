@@ -23,11 +23,8 @@ import {
     TEST_TOKEN_LIFETIMES,
     ID_TOKEN_ALT_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
-import {
-    ClientAuthErrorCodes,
-    createClientAuthError,
-} from "../../src/error/ClientAuthError.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { MockCache } from "./MockCache.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
@@ -282,10 +279,10 @@ describe("CacheManager.ts test cases", () => {
                 expect(
                     mockCache.cacheManager.getIdToken(
                         TEST_ACCOUNT_INFO,
+                        correlationId,
                         undefined,
                         TEST_ACCOUNT_INFO.tenantId,
-                        mockPerfClient,
-                        correlationId
+                        mockPerfClient
                     )
                 ).toBeNull();
                 expect(
@@ -330,10 +327,15 @@ describe("CacheManager.ts test cases", () => {
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
         it("getAllAccounts returns an empty array if there are no accounts in the cache", () => {
             mockCache.clearCache();
-            expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(0);
+            expect(
+                mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
+            ).toHaveLength(0);
         });
         it("getAllAccounts (gets all AccountInfo objects)", async () => {
-            const accounts = mockCache.cacheManager.getAllAccounts();
+            const accounts = mockCache.cacheManager.getAllAccounts(
+                {},
+                RANDOM_TEST_GUID
+            );
 
             expect(accounts).not.toBeNull();
             // 2 home accounts + 1 tenant profile
@@ -344,9 +346,12 @@ describe("CacheManager.ts test cases", () => {
         });
 
         it("getAllAccounts with isHomeTenant filter does not return guest tenant profiles as AccountInfo objects", () => {
-            const homeAccounts = mockCache.cacheManager.getAllAccounts({
-                isHomeTenant: true,
-            });
+            const homeAccounts = mockCache.cacheManager.getAllAccounts(
+                {
+                    isHomeTenant: true,
+                },
+                RANDOM_TEST_GUID
+            );
             expect(homeAccounts).not.toBeNull();
             expect(homeAccounts.length).toBe(2);
             expect(homeAccounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
@@ -360,14 +365,19 @@ describe("CacheManager.ts test cases", () => {
                     loginHint: ID_TOKEN_CLAIMS.login_hint,
                 };
 
-                let accounts =
-                    mockCache.cacheManager.getAllAccounts(successFilter);
+                let accounts = mockCache.cacheManager.getAllAccounts(
+                    successFilter,
+                    RANDOM_TEST_GUID
+                );
                 expect(accounts.length).toEqual(1);
 
                 const wrongFilter: AccountFilter = {
                     loginHint: "WrongHint",
                 };
-                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                accounts = mockCache.cacheManager.getAllAccounts(
+                    wrongFilter,
+                    RANDOM_TEST_GUID
+                );
                 expect(accounts.length).toBe(0);
             });
 
@@ -377,14 +387,19 @@ describe("CacheManager.ts test cases", () => {
                     loginHint: ID_TOKEN_CLAIMS.preferred_username,
                 };
 
-                let accounts =
-                    mockCache.cacheManager.getAllAccounts(successFilter);
+                let accounts = mockCache.cacheManager.getAllAccounts(
+                    successFilter,
+                    RANDOM_TEST_GUID
+                );
                 expect(accounts.length).toEqual(1);
 
                 const wrongFilter: AccountFilter = {
                     loginHint: "WrongHint",
                 };
-                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                accounts = mockCache.cacheManager.getAllAccounts(
+                    wrongFilter,
+                    RANDOM_TEST_GUID
+                );
                 expect(accounts.length).toBe(0);
             });
 
@@ -394,41 +409,59 @@ describe("CacheManager.ts test cases", () => {
                     loginHint: ID_TOKEN_CLAIMS.upn,
                 };
 
-                let accounts =
-                    mockCache.cacheManager.getAllAccounts(successFilter);
+                let accounts = mockCache.cacheManager.getAllAccounts(
+                    successFilter,
+                    RANDOM_TEST_GUID
+                );
                 expect(accounts.length).toEqual(1);
 
                 const wrongFilter: AccountFilter = {
                     loginHint: "WrongHint",
                 };
-                accounts = mockCache.cacheManager.getAllAccounts(wrongFilter);
+                accounts = mockCache.cacheManager.getAllAccounts(
+                    wrongFilter,
+                    RANDOM_TEST_GUID
+                );
                 expect(accounts.length).toBe(0);
             });
         });
 
         describe("getAllAccounts with filter", () => {
             it("Matches accounts by username", () => {
-                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                expect(
+                    mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
+                ).toHaveLength(3);
                 const account1Filter = { username: account1.username };
                 const account2Filter = { username: account2.username };
-                const accounts =
-                    mockCache.cacheManager.getAllAccounts(account1Filter);
+                const accounts = mockCache.cacheManager.getAllAccounts(
+                    account1Filter,
+                    RANDOM_TEST_GUID
+                );
                 expect(accounts).toHaveLength(1);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account1Filter)[0]
-                        .username
+                    mockCache.cacheManager.getAllAccounts(
+                        account1Filter,
+                        RANDOM_TEST_GUID
+                    )[0].username
                 ).toBe(account1.username);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account2Filter)
+                    mockCache.cacheManager.getAllAccounts(
+                        account2Filter,
+                        RANDOM_TEST_GUID
+                    )
                 ).toHaveLength(1);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account2Filter)[0]
-                        .username
+                    mockCache.cacheManager.getAllAccounts(
+                        account2Filter,
+                        RANDOM_TEST_GUID
+                    )[0].username
                 ).toBe(account2.username);
             });
 
             it("Matches accounts by homeAccountId", () => {
-                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                expect(
+                    mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
+                ).toHaveLength(3);
                 const multiTenantAccountFilter = {
                     homeAccountId: account1.homeAccountId,
                 };
@@ -444,7 +477,8 @@ describe("CacheManager.ts test cases", () => {
                 // Multi-tenant account has two tenant profiles which will both match the same homeAccountId
                 const multiTenantAccountProfiles =
                     mockCache.cacheManager.getAllAccounts(
-                        multiTenantAccountFilter
+                        multiTenantAccountFilter,
+                        RANDOM_TEST_GUID
                     );
                 expect(multiTenantAccountProfiles).toHaveLength(2);
                 expect(multiTenantAccountProfiles[0].homeAccountId).toBe(
@@ -454,7 +488,8 @@ describe("CacheManager.ts test cases", () => {
                 // Set isHomeTenant = true to only get baseAccount
                 const multiTenantAccountHomeTenantOnlyProfiles =
                     mockCache.cacheManager.getAllAccounts(
-                        multiTenantAccountHomeTenantOnlyFilter
+                        multiTenantAccountHomeTenantOnlyFilter,
+                        RANDOM_TEST_GUID
                     );
                 expect(multiTenantAccountHomeTenantOnlyProfiles).toHaveLength(
                     1
@@ -463,16 +498,23 @@ describe("CacheManager.ts test cases", () => {
                     multiTenantAccountHomeTenantOnlyProfiles[0].tenantId
                 ).toBe(account1.tenantId);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account2Filter)
+                    mockCache.cacheManager.getAllAccounts(
+                        account2Filter,
+                        RANDOM_TEST_GUID
+                    )
                 ).toHaveLength(1);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account2Filter)[0]
-                        .homeAccountId
+                    mockCache.cacheManager.getAllAccounts(
+                        account2Filter,
+                        RANDOM_TEST_GUID
+                    )[0].homeAccountId
                 ).toBe(account2.homeAccountId);
             });
 
             it("Matches accounts by localAccountId", () => {
-                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                expect(
+                    mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
+                ).toHaveLength(3);
                 // Local account ID is sourced from ID token claims so for this test we compare against the decoded ID token claims instead of mock account object
                 const account1Filter = {
                     localAccountId: ID_TOKEN_CLAIMS.oid,
@@ -481,23 +523,35 @@ describe("CacheManager.ts test cases", () => {
                     localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
                 };
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account1Filter)
+                    mockCache.cacheManager.getAllAccounts(
+                        account1Filter,
+                        RANDOM_TEST_GUID
+                    )
                 ).toHaveLength(1);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account1Filter)[0]
-                        .localAccountId
+                    mockCache.cacheManager.getAllAccounts(
+                        account1Filter,
+                        RANDOM_TEST_GUID
+                    )[0].localAccountId
                 ).toBe(account1Filter.localAccountId);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account2Filter)
+                    mockCache.cacheManager.getAllAccounts(
+                        account2Filter,
+                        RANDOM_TEST_GUID
+                    )
                 ).toHaveLength(1);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account2Filter)[0]
-                        .localAccountId
+                    mockCache.cacheManager.getAllAccounts(
+                        account2Filter,
+                        RANDOM_TEST_GUID
+                    )[0].localAccountId
                 ).toBe(account2Filter.localAccountId);
             });
 
             it("Matches accounts by tenantId", () => {
-                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                expect(
+                    mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
+                ).toHaveLength(3);
                 const firstTenantAccountFilter = {
                     tenantId: account1.tenantId,
                 };
@@ -506,29 +560,35 @@ describe("CacheManager.ts test cases", () => {
                 };
                 expect(
                     mockCache.cacheManager.getAllAccounts(
-                        firstTenantAccountFilter
+                        firstTenantAccountFilter,
+                        RANDOM_TEST_GUID
                     )
                 ).toHaveLength(1);
                 expect(
                     mockCache.cacheManager.getAllAccounts(
-                        firstTenantAccountFilter
+                        firstTenantAccountFilter,
+                        RANDOM_TEST_GUID
                     )[0].tenantId
                 ).toBe(firstTenantAccountFilter.tenantId);
                 // Guest profile of first user account is from the same tenant as account 2
                 expect(
                     mockCache.cacheManager.getAllAccounts(
-                        secondTenantAccountFilter
+                        secondTenantAccountFilter,
+                        RANDOM_TEST_GUID
                     )
                 ).toHaveLength(2);
                 expect(
                     mockCache.cacheManager.getAllAccounts(
-                        secondTenantAccountFilter
+                        secondTenantAccountFilter,
+                        RANDOM_TEST_GUID
                     )[0].tenantId
                 ).toBe(secondTenantAccountFilter.tenantId);
             });
 
             it("Matches accounts by environment", () => {
-                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                expect(
+                    mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
+                ).toHaveLength(3);
                 // Add local account ID to further filter because environments are aliases of eachother
                 const firstEnvironmentAccountsFilter = {
                     homeAccountId: account1.homeAccountId,
@@ -540,28 +600,34 @@ describe("CacheManager.ts test cases", () => {
                 };
                 expect(
                     mockCache.cacheManager.getAllAccounts(
-                        firstEnvironmentAccountsFilter
+                        firstEnvironmentAccountsFilter,
+                        RANDOM_TEST_GUID
                     )
                 ).toHaveLength(2);
                 expect(
                     mockCache.cacheManager.getAllAccounts(
-                        firstEnvironmentAccountsFilter
+                        firstEnvironmentAccountsFilter,
+                        RANDOM_TEST_GUID
                     )[0].environment
                 ).toBe(account1.environment);
                 expect(
                     mockCache.cacheManager.getAllAccounts(
-                        secondEnvironmentAccountsFilter
+                        secondEnvironmentAccountsFilter,
+                        RANDOM_TEST_GUID
                     )
                 ).toHaveLength(1);
                 expect(
                     mockCache.cacheManager.getAllAccounts(
-                        secondEnvironmentAccountsFilter
+                        secondEnvironmentAccountsFilter,
+                        RANDOM_TEST_GUID
                     )[0].environment
                 ).toBe(account2.environment);
             });
 
             it("Matches accounts by all filters", () => {
-                expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(3);
+                expect(
+                    mockCache.cacheManager.getAllAccounts({}, RANDOM_TEST_GUID)
+                ).toHaveLength(3);
                 const account1Filter = {
                     ...account1,
                     localAccountId: ID_TOKEN_CLAIMS.oid,
@@ -571,18 +637,28 @@ describe("CacheManager.ts test cases", () => {
                     localAccountId: ID_TOKEN_ALT_CLAIMS.oid,
                 };
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account1Filter)
+                    mockCache.cacheManager.getAllAccounts(
+                        account1Filter,
+                        RANDOM_TEST_GUID
+                    )
                 ).toHaveLength(1);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account1Filter)[0]
-                        .localAccountId
+                    mockCache.cacheManager.getAllAccounts(
+                        account1Filter,
+                        RANDOM_TEST_GUID
+                    )[0].localAccountId
                 ).toBe(account1Filter.localAccountId);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account2Filter)
+                    mockCache.cacheManager.getAllAccounts(
+                        account2Filter,
+                        RANDOM_TEST_GUID
+                    )
                 ).toHaveLength(1);
                 expect(
-                    mockCache.cacheManager.getAllAccounts(account2Filter)[0]
-                        .localAccountId
+                    mockCache.cacheManager.getAllAccounts(
+                        account2Filter,
+                        RANDOM_TEST_GUID
+                    )[0].localAccountId
                 ).toBe(account2Filter.localAccountId);
             });
         });
@@ -595,18 +671,24 @@ describe("CacheManager.ts test cases", () => {
         ).getAccountInfo();
         it("returns null if no accounts match filter", () => {
             expect(
-                mockCache.cacheManager.getAccountInfoFilteredBy({
-                    homeAccountId: "inexistent-account-id",
-                })
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: "inexistent-account-id",
+                    },
+                    RANDOM_TEST_GUID
+                )
             ).toBeNull();
         });
 
         it("returns an account matching filter", () => {
             const resultAccount =
-                mockCache.cacheManager.getAccountInfoFilteredBy({
-                    homeAccountId: multiTenantAccount.homeAccountId,
-                    tenantId: multiTenantAccount.tenantId,
-                });
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: multiTenantAccount.homeAccountId,
+                        tenantId: multiTenantAccount.tenantId,
+                    },
+                    RANDOM_TEST_GUID
+                );
             expect(resultAccount).not.toBeNull();
             expect(resultAccount).toMatchObject(multiTenantAccount);
         });
@@ -624,14 +706,20 @@ describe("CacheManager.ts test cases", () => {
                 homeAccountId: multiTenantAccount.homeAccountId,
             };
             // Remove main ID token
-            mockCache.cacheManager.removeIdToken(mainIdTokenKey);
+            mockCache.cacheManager.removeIdToken(
+                mainIdTokenKey,
+                RANDOM_TEST_GUID
+            );
             const resultAccount =
-                mockCache.cacheManager.getAccountInfoFilteredBy(filter);
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    filter,
+                    RANDOM_TEST_GUID
+                );
             expect(resultAccount).not.toBeNull();
             expect(resultAccount?.tenantId).toBe(GUEST_ID_TOKEN_CLAIMS.tid);
 
             const allAccountsReversed = mockCache.cacheManager
-                .getAllAccounts()
+                .getAllAccounts({}, RANDOM_TEST_GUID)
                 .reverse();
 
             jest.spyOn(
@@ -640,7 +728,10 @@ describe("CacheManager.ts test cases", () => {
             ).mockReturnValueOnce(allAccountsReversed);
 
             const reversedResultAccount =
-                mockCache.cacheManager.getAccountInfoFilteredBy(filter);
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    filter,
+                    RANDOM_TEST_GUID
+                );
             expect(reversedResultAccount).not.toBeNull();
             expect(reversedResultAccount?.tenantId).toBe(
                 GUEST_ID_TOKEN_CLAIMS.tid
@@ -649,11 +740,14 @@ describe("CacheManager.ts test cases", () => {
 
         it("returns account matching filter with isHomeTenant = true", () => {
             const resultAccount =
-                mockCache.cacheManager.getAccountInfoFilteredBy({
-                    homeAccountId: multiTenantAccount.homeAccountId,
-                    tenantId: multiTenantAccount.tenantId,
-                    isHomeTenant: true,
-                });
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: multiTenantAccount.homeAccountId,
+                        tenantId: multiTenantAccount.tenantId,
+                        isHomeTenant: true,
+                    },
+                    RANDOM_TEST_GUID
+                );
             expect(resultAccount).not.toBeNull();
             expect(resultAccount).toMatchObject(multiTenantAccount);
         });
@@ -665,19 +759,25 @@ describe("CacheManager.ts test cases", () => {
                 ID_TOKEN_CLAIMS,
                 [GUEST_ID_TOKEN_CLAIMS]
             ).getAccountInfo();
-            const resultAccount = mockCache.cacheManager.getBaseAccountInfo({
-                homeAccountId: multiTenantAccount.homeAccountId,
-                tenantId: GUEST_ID_TOKEN_CLAIMS.tid,
-            });
+            const resultAccount = mockCache.cacheManager.getBaseAccountInfo(
+                {
+                    homeAccountId: multiTenantAccount.homeAccountId,
+                    tenantId: GUEST_ID_TOKEN_CLAIMS.tid,
+                },
+                RANDOM_TEST_GUID
+            );
 
             expect(resultAccount).toEqual(multiTenantAccount);
         });
 
         it("returns null if no account matches filter", () => {
             expect(
-                mockCache.cacheManager.getBaseAccountInfo({
-                    homeAccountId: "inexistent-homeaccountid",
-                })
+                mockCache.cacheManager.getBaseAccountInfo(
+                    {
+                        homeAccountId: "inexistent-homeaccountid",
+                    },
+                    RANDOM_TEST_GUID
+                )
             ).toBeNull();
         });
     });
@@ -776,14 +876,18 @@ describe("CacheManager.ts test cases", () => {
             const successFilter: AccountFilter = {
                 homeAccountId: matchAccountEntity.homeAccountId,
             };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            let accounts = mockCache.cacheManager.getAccountsFilteredBy(
+                successFilter,
+                RANDOM_TEST_GUID
+            );
             // getAccountsFilteredBy only gets cached accounts, so don't expect all tenant profiles to be returned as account objects
             expect(Object.keys(accounts).length).toEqual(1);
 
             const wrongFilter: AccountFilter = { homeAccountId: "Wrong Id" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            accounts = mockCache.cacheManager.getAccountsFilteredBy(
+                wrongFilter,
+                RANDOM_TEST_GUID
+            );
             expect(Object.keys(accounts).length).toEqual(0);
         });
 
@@ -792,15 +896,19 @@ describe("CacheManager.ts test cases", () => {
             const successFilter: AccountFilter = {
                 environment: matchAccountEntity.environment,
             };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            let accounts = mockCache.cacheManager.getAccountsFilteredBy(
+                successFilter,
+                RANDOM_TEST_GUID
+            );
             // Both cached accounts have environments that are aliases of eachother, expect both to match
             expect(Object.keys(accounts).length).toEqual(2);
             jest.restoreAllMocks();
 
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            accounts = mockCache.cacheManager.getAccountsFilteredBy(
+                wrongFilter,
+                RANDOM_TEST_GUID
+            );
             expect(Object.keys(accounts).length).toEqual(0);
         });
 
@@ -809,13 +917,17 @@ describe("CacheManager.ts test cases", () => {
             const successFilter: AccountFilter = {
                 realm: matchAccountEntity.realm,
             };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            let accounts = mockCache.cacheManager.getAccountsFilteredBy(
+                successFilter,
+                RANDOM_TEST_GUID
+            );
             expect(Object.keys(accounts).length).toEqual(1);
 
             const wrongFilter: AccountFilter = { realm: "Wrong Realm" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            accounts = mockCache.cacheManager.getAccountsFilteredBy(
+                wrongFilter,
+                RANDOM_TEST_GUID
+            );
             expect(Object.keys(accounts).length).toEqual(0);
         });
 
@@ -824,13 +936,17 @@ describe("CacheManager.ts test cases", () => {
             const successFilter: AccountFilter = {
                 nativeAccountId: "mocked_native_account_id",
             };
-            let accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            let accounts = mockCache.cacheManager.getAccountsFilteredBy(
+                successFilter,
+                RANDOM_TEST_GUID
+            );
             expect(Object.keys(accounts).length).toEqual(1);
 
             const wrongFilter: AccountFilter = { realm: "notNativeAccountId" };
-            accounts =
-                mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            accounts = mockCache.cacheManager.getAccountsFilteredBy(
+                wrongFilter,
+                RANDOM_TEST_GUID
+            );
             expect(Object.keys(accounts).length).toEqual(0);
         });
     });
@@ -1276,9 +1392,12 @@ describe("CacheManager.ts test cases", () => {
         });
 
         it("credentialType filter (Access Tokens with and without Auth Scheme)", () => {
-            const accessToken = mockCache.cacheManager.getAccessTokensByFilter({
-                credentialType: "AccessToken",
-            });
+            const accessToken = mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType: "AccessToken",
+                },
+                RANDOM_TEST_GUID
+            );
             expect(
                 mockCache.cacheManager.credentialMatchesFilter(accessToken[0], {
                     credentialType: CredentialType.ACCESS_TOKEN,
@@ -1292,10 +1411,13 @@ describe("CacheManager.ts test cases", () => {
             ).toBe(false);
 
             const accessTokenWithAuthScheme =
-                mockCache.cacheManager.getAccessTokensByFilter({
-                    credentialType:
-                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                });
+                mockCache.cacheManager.getAccessTokensByFilter(
+                    {
+                        credentialType:
+                            CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    },
+                    RANDOM_TEST_GUID
+                );
             expect(
                 mockCache.cacheManager.credentialMatchesFilter(
                     accessTokenWithAuthScheme[0],
@@ -1386,10 +1508,14 @@ describe("CacheManager.ts test cases", () => {
         });
 
         it("tokenType filter", () => {
-            const accessToken = mockCache.cacheManager.getAccessTokensByFilter({
-                credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                tokenType: AuthenticationScheme.BEARER,
-            });
+            const accessToken = mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: AuthenticationScheme.BEARER,
+                },
+                RANDOM_TEST_GUID
+            );
             expect(
                 mockCache.cacheManager.credentialMatchesFilter(accessToken[0], {
                     tokenType: AuthenticationScheme.BEARER,
@@ -1406,10 +1532,14 @@ describe("CacheManager.ts test cases", () => {
                 })
             ).toBe(false);
 
-            const popToken = mockCache.cacheManager.getAccessTokensByFilter({
-                credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                tokenType: AuthenticationScheme.POP,
-            });
+            const popToken = mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: AuthenticationScheme.POP,
+                },
+                RANDOM_TEST_GUID
+            );
             expect(
                 mockCache.cacheManager.credentialMatchesFilter(popToken[0], {
                     tokenType: AuthenticationScheme.BEARER,
@@ -1426,10 +1556,14 @@ describe("CacheManager.ts test cases", () => {
                 })
             ).toBe(false);
 
-            const sshToken = mockCache.cacheManager.getAccessTokensByFilter({
-                credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-                tokenType: AuthenticationScheme.SSH,
-            });
+            const sshToken = mockCache.cacheManager.getAccessTokensByFilter(
+                {
+                    credentialType:
+                        CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    tokenType: AuthenticationScheme.SSH,
+                },
+                RANDOM_TEST_GUID
+            );
             expect(
                 mockCache.cacheManager.credentialMatchesFilter(sshToken[0], {
                     tokenType: AuthenticationScheme.BEARER,
@@ -1457,8 +1591,10 @@ describe("CacheManager.ts test cases", () => {
                 keyId: "some_key_id",
             };
 
-            let accessTokens =
-                mockCache.cacheManager.getAccessTokensByFilter(successFilter);
+            let accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
+                successFilter,
+                RANDOM_TEST_GUID
+            );
             expect(accessTokens.length).toEqual(1);
 
             const wrongFilter = {
@@ -1466,8 +1602,10 @@ describe("CacheManager.ts test cases", () => {
                 keyId: "wrong_key_id",
             };
 
-            accessTokens =
-                mockCache.cacheManager.getAccessTokensByFilter(wrongFilter);
+            accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
+                wrongFilter,
+                RANDOM_TEST_GUID
+            );
             expect(accessTokens.length).toEqual(0);
         });
 
@@ -1479,7 +1617,8 @@ describe("CacheManager.ts test cases", () => {
             };
 
             let accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
-                successFilterWithRCHash
+                successFilterWithRCHash,
+                RANDOM_TEST_GUID
             );
             expect(accessTokens.length).toEqual(1);
 
@@ -1490,7 +1629,8 @@ describe("CacheManager.ts test cases", () => {
             };
 
             accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
-                wrongFilterWithRCHash
+                wrongFilterWithRCHash,
+                RANDOM_TEST_GUID
             );
             expect(accessTokens.length).toEqual(0);
         });
@@ -1503,7 +1643,8 @@ describe("CacheManager.ts test cases", () => {
             };
 
             let accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
-                successFilterWithRCHash
+                successFilterWithRCHash,
+                RANDOM_TEST_GUID
             );
             expect(accessTokens.length).toEqual(1);
 
@@ -1514,7 +1655,8 @@ describe("CacheManager.ts test cases", () => {
             };
 
             accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
-                wrongFilterWithRCHash
+                wrongFilterWithRCHash,
+                RANDOM_TEST_GUID
             );
             expect(accessTokens.length).toEqual(0);
         });
@@ -1553,7 +1695,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("removeAppMetadata", () => {
-        mockCache.cacheManager.removeAppMetadata();
+        mockCache.cacheManager.removeAppMetadata(RANDOM_TEST_GUID);
         expect(
             mockCache.cacheManager.getAppMetadata(
                 "appmetadata-login.microsoftonline.com-mock_client_id"
@@ -1561,22 +1703,28 @@ describe("CacheManager.ts test cases", () => {
         ).toBeUndefined();
     });
 
-    it("removeAllAccounts", async () => {
-        const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts();
-        await mockCache.cacheManager.removeAllAccounts();
-        const accountsAfterRemove = mockCache.cacheManager.getAllAccounts();
+    it("removeAllAccounts", () => {
+        const accountsBeforeRemove = mockCache.cacheManager.getAllAccounts(
+            {},
+            RANDOM_TEST_GUID
+        );
+        mockCache.cacheManager.removeAllAccounts(RANDOM_TEST_GUID);
+        const accountsAfterRemove = mockCache.cacheManager.getAllAccounts(
+            {},
+            RANDOM_TEST_GUID
+        );
 
         expect(accountsBeforeRemove).toHaveLength(3);
         expect(accountsAfterRemove).toHaveLength(0);
     });
 
-    it("removeAccount", async () => {
+    it("removeAccount", () => {
         const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const accountToRemoveKey = accountToRemove.generateAccountKey();
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();
-        await mockCache.cacheManager.removeAccount(accountToRemoveKey);
+        mockCache.cacheManager.removeAccount(accountToRemoveKey);
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).toBeNull();
@@ -1596,8 +1744,9 @@ describe("CacheManager.ts test cases", () => {
             extendedExpiresOn: "4600",
         };
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(at)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(at),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(at);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
@@ -1624,8 +1773,9 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(atWithAuthScheme)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
@@ -1655,43 +1805,13 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        await mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(atWithAuthScheme)
+        mockCache.cacheManager.removeAccessToken(
+            CacheHelpers.generateCredentialKey(atWithAuthScheme),
+            RANDOM_TEST_GUID
         );
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy).toHaveBeenCalledTimes(0);
-    });
-
-    it("throws bindingKeyNotRemoved error when key is not deleted from storage", async () => {
-        const atWithAuthScheme = {
-            environment: "login.microsoftonline.com",
-            credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-            secret: "an access token",
-            realm: "microsoft",
-            target: "scope1 scope2 scope3",
-            clientId: "mock_client_id",
-            cachedAt: "1000",
-            homeAccountId: "uid.utid",
-            extendedExpiresOn: "4600",
-            expiresOn: "4600",
-            keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
-            tokenType: AuthenticationScheme.POP,
-        };
-
-        jest.spyOn(mockCrypto, "removeTokenBindingKey").mockImplementation(
-            (keyId: string): Promise<boolean> => {
-                return Promise.reject();
-            }
-        );
-
-        return await expect(
-            mockCache.cacheManager.removeAccessToken(
-                CacheHelpers.generateCredentialKey(atWithAuthScheme)
-            )
-        ).rejects.toThrow(
-            createClientAuthError(ClientAuthErrorCodes.bindingKeyNotRemoved)
-        );
     });
 
     it("getAccessToken matches multiple tokens, removes them and returns null", (done) => {
@@ -1770,35 +1890,18 @@ describe("CacheManager.ts test cases", () => {
                 forceRefresh: false,
             };
 
-            const mockPerfClient = new MockPerformanceClient();
-            const correlationId = "test-correlation-id";
-
-            mockPerfClient.addPerformanceCallback((events) => {
-                expect(events.length).toBe(1);
-                expect(events[0].multiMatchedAT).toEqual(2);
-                done();
-            });
-
-            const measurement = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
-                correlationId
-            );
-
             expect(
                 mockCache.cacheManager.getAccessToken(
                     mockedAccountInfo,
                     silentFlowRequest,
                     undefined,
-                    undefined,
-                    mockPerfClient,
-                    correlationId
+                    undefined
                 )
             ).toBeNull();
             expect(
                 mockCache.cacheManager.getTokenKeys().accessToken.length
             ).toEqual(0);
-
-            measurement.end();
+            done();
         });
     });
 
@@ -2162,7 +2265,8 @@ describe("CacheManager.ts test cases", () => {
         const matchAccountInfo =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
         const account = mockCache.cacheManager.readAccountFromCache(
-            matchAccountInfo
+            matchAccountInfo,
+            RANDOM_TEST_GUID
         ) as AccountEntity;
         if (!account) {
             throw TestError.createTestSetupError(
@@ -2173,11 +2277,14 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getAccountsFilteredBy nativeAccountId", () => {
-        const account = mockCache.cacheManager.getAccountsFilteredBy({
-            nativeAccountId:
-                CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID
-                    .nativeAccountId,
-        }) as AccountEntity[];
+        const account = mockCache.cacheManager.getAccountsFilteredBy(
+            {
+                nativeAccountId:
+                    CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID
+                        .nativeAccountId,
+            },
+            RANDOM_TEST_GUID
+        ) as AccountEntity[];
         if (account.length < 1) {
             throw TestError.createTestSetupError(
                 "account does not have a value"
@@ -2193,7 +2300,8 @@ describe("CacheManager.ts test cases", () => {
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
         // Get home ID token by default
         const idToken = mockCache.cacheManager.getIdToken(
-            baseAccountInfo
+            baseAccountInfo,
+            RANDOM_TEST_GUID
         ) as IdTokenEntity;
         if (!idToken) {
             throw TestError.createTestSetupError(
@@ -2203,6 +2311,7 @@ describe("CacheManager.ts test cases", () => {
         expect(idToken.realm).toBe(baseAccountInfo.tenantId);
         const guestIdToken = mockCache.cacheManager.getIdToken(
             baseAccountInfo,
+            RANDOM_TEST_GUID,
             undefined,
             GUEST_ID_TOKEN_CLAIMS.tid
         ) as IdTokenEntity;
@@ -2217,7 +2326,8 @@ describe("CacheManager.ts test cases", () => {
     it("getRefreshToken", () => {
         const refreshToken = mockCache.cacheManager.getRefreshToken(
             CACHE_MOCKS.MOCK_ACCOUNT_INFO,
-            false
+            false,
+            RANDOM_TEST_GUID
         ) as RefreshTokenEntity;
         if (!refreshToken) {
             throw TestError.createTestSetupError(
@@ -2230,7 +2340,8 @@ describe("CacheManager.ts test cases", () => {
     it("getRefreshToken Error", () => {
         const refreshToken = mockCache.cacheManager.getRefreshToken(
             { ...CACHE_MOCKS.MOCK_ACCOUNT_INFO, homeAccountId: "fake-home-id" },
-            true
+            true,
+            RANDOM_TEST_GUID
         );
         expect(refreshToken).toBe(null);
     });
@@ -2238,7 +2349,8 @@ describe("CacheManager.ts test cases", () => {
     it("getRefreshToken with familyId", () => {
         const refreshToken = mockCache.cacheManager.getRefreshToken(
             CACHE_MOCKS.MOCK_ACCOUNT_INFO,
-            true
+            true,
+            RANDOM_TEST_GUID
         ) as RefreshTokenEntity;
         if (!refreshToken) {
             throw TestError.createTestSetupError(
@@ -2276,7 +2388,8 @@ describe("CacheManager.ts test cases", () => {
 
         const cachedToken = mockCache.cacheManager.getRefreshToken(
             mockedAccountInfo,
-            false
+            false,
+            RANDOM_TEST_GUID
         ) as RefreshTokenEntity;
         if (!cachedToken) {
             throw TestError.createTestSetupError(

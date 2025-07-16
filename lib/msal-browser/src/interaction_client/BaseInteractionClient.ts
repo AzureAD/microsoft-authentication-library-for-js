@@ -34,10 +34,10 @@ import { version } from "../packageMetadata.js";
 import { BrowserConstants } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -47,7 +47,7 @@ export abstract class BaseInteractionClient {
     protected logger: Logger;
     protected eventHandler: EventHandler;
     protected navigationClient: INavigationClient;
-    protected nativeMessageHandler: NativeMessageHandler | undefined;
+    protected platformAuthProvider: IPlatformAuthHandler | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
 
@@ -59,7 +59,7 @@ export abstract class BaseInteractionClient {
         eventHandler: EventHandler,
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthProvider?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         this.config = config;
@@ -68,7 +68,7 @@ export abstract class BaseInteractionClient {
         this.networkClient = this.config.system.networkClient;
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
-        this.nativeMessageHandler = nativeMessageHandler;
+        this.platformAuthProvider = platformAuthProvider;
         this.correlationId = correlationId || createNewGuid();
         this.logger = logger.clone(
             BrowserConstants.MSAL_SKU,
@@ -87,23 +87,25 @@ export abstract class BaseInteractionClient {
     ): Promise<void>;
 
     protected async clearCacheOnLogout(
+        correlationId: string,
         account?: AccountInfo | null
     ): Promise<void> {
         if (account) {
             if (
                 AccountEntity.accountInfoIsEqual(
                     account,
-                    this.browserStorage.getActiveAccount(),
+                    this.browserStorage.getActiveAccount(correlationId),
                     false
                 )
             ) {
                 this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
+                this.browserStorage.setActiveAccount(null, correlationId);
             }
             // Clear given account.
             try {
-                await this.browserStorage.removeAccount(
-                    AccountEntity.generateAccountCacheKey(account)
+                this.browserStorage.removeAccount(
+                    AccountEntity.generateAccountCacheKey(account),
+                    correlationId
                 );
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
@@ -120,7 +122,7 @@ export abstract class BaseInteractionClient {
                     this.correlationId
                 );
                 // Clear all accounts and tokens
-                await this.browserStorage.clear();
+                this.browserStorage.clear(correlationId);
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
             } catch (e) {
