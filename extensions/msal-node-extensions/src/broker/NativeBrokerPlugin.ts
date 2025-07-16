@@ -192,7 +192,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             "NativeBrokerPlugin - acquireTokenSilent called",
             request.correlationId
         );
-        let platformRequest = request;
+        const platformRequest = request;
         const authParams = this.generateRequestParameters(platformRequest);
         const account = await this.getAccount(platformRequest);
         platformRequest.redirectUri = this.chooseRedirectUriByPlatform(platformRequest);
@@ -249,7 +249,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             "NativeBrokerPlugin - acquireTokenInteractive called",
             request.correlationId
         );
-        let platformRequest = request;
+        const platformRequest = request;
         const authParams = this.generateRequestParameters(platformRequest);
         platformRequest.redirectUri = this.chooseRedirectUriByPlatform(platformRequest);
         const account = await this.getAccount(platformRequest);
