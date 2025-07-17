@@ -9,6 +9,7 @@ import {
 } from "../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
 import * as CustomAuthApiErrorCode from "../../core/network_client/custom_auth_api/types/ApiErrorCodes.js";
+import { MFA_REQUIRED } from "../../core/network_client/custom_auth_api/types/ApiSuberrors.js";
 
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import {
@@ -22,10 +23,12 @@ import {
     createSignInCodeSendResult,
     createSignInCompleteResult,
     createSignInPasswordRequiredResult,
+    createSignInMfaRequiredResult,
     SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
     SignInCodeSendResult,
     SignInCompletedResult,
     SignInPasswordRequiredResult,
+    SignInMfaRequiredResult,
 } from "./result/SignInActionResult.js";
 import * as PublicApiId from "../../core/telemetry/PublicApiId.js";
 import {
@@ -149,14 +152,18 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             telemetryManager: telemetryManager,
         };
 
-        return this.performTokenRequest(
+        const result = this.performTokenRequest(
             () =>
                 this.customAuthApiClient.signInApi.requestTokensWithOob(
                     request
                 ),
             scopes,
-            parameters.correlationId
+            parameters.correlationId,
+            false // Don't handle MFA for code submission since email OTP MFA is the only auth method that is currently supported
         );
+
+        // Since handleMfa is false, this will always return SignInCompletedResult
+        return result as Promise<SignInCompletedResult>;
     }
 
     /**
@@ -166,7 +173,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async submitPassword(
         parameters: SignInSubmitPasswordParams
-    ): Promise<SignInCompletedResult> {
+    ): Promise<SignInCompletedResult | SignInMfaRequiredResult> {
         ensureArgumentIsNotEmptyString(
             "parameters.password",
             parameters.password,
@@ -191,7 +198,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                     request
                 ),
             scopes,
-            parameters.correlationId
+            parameters.correlationId,
+            true // Handle MFA for password submission
         );
     }
 
@@ -220,14 +228,18 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         };
 
         // Call token endpoint.
-        return this.performTokenRequest(
+        const result = this.performTokenRequest(
             () =>
                 this.customAuthApiClient.signInApi.requestTokenWithContinuationToken(
                     request
                 ),
             scopes,
-            parameters.correlationId
+            parameters.correlationId,
+            false // Don't handle MFA for continuation token sign-in
         );
+
+        // Since handleMfa is false, this will always return SignInCompletedResult
+        return result as Promise<SignInCompletedResult>;
     }
 
     /**
@@ -235,35 +247,55 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      * @param tokenEndpointCaller Function that calls the specific token endpoint
      * @param scopes Scopes for the token request
      * @param correlationId Correlation ID for logging and result
+     * @param handleMfa Whether to handle MFA required errors or throw them
      * @returns SignInCompletedResult with authentication result
      */
     private async performTokenRequest(
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
         scopes: string[],
-        correlationId: string
-    ): Promise<SignInCompletedResult> {
+        correlationId: string,
+        handleMfa: boolean
+    ): Promise<SignInCompletedResult | SignInMfaRequiredResult> {
         this.logger.verbose(
             "Calling token endpoint for sign in.",
             correlationId
         );
 
-        const tokenResponse = await tokenEndpointCaller();
+        try {
+            const tokenResponse = await tokenEndpointCaller();
 
-        this.logger.verbose(
-            "Token endpoint response received for sign in.",
-            correlationId
-        );
+            this.logger.verbose(
+                "Token endpoint response received for sign in.",
+                correlationId
+            );
 
-        const authResult = await this.handleTokenResponse(
-            tokenResponse,
-            scopes,
-            correlationId
-        );
+            const authResult = await this.handleTokenResponse(
+                tokenResponse,
+                scopes,
+                correlationId
+            );
 
-        return createSignInCompleteResult({
-            correlationId: tokenResponse.correlation_id ?? correlationId,
-            authenticationResult: authResult,
-        });
+            return createSignInCompleteResult({
+                correlationId: tokenResponse.correlation_id ?? correlationId,
+                authenticationResult: authResult,
+            });
+        } catch (error) {
+            if (
+                handleMfa &&
+                error instanceof CustomAuthApiError &&
+                error.subError === MFA_REQUIRED
+            ) {
+                this.logger.verbose("MFA required for sign in.", correlationId);
+
+                return createSignInMfaRequiredResult({
+                    correlationId: error.correlationId ?? correlationId,
+                    continuationToken: error.continuationToken ?? "",
+                });
+            }
+
+            // Re-throw any other errors or MFA errors when handleMfa is false
+            throw error;
+        }
     }
 
     private async performChallengeRequest(

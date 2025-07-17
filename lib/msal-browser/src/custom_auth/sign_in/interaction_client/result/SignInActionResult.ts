@@ -32,10 +32,15 @@ export interface SignInCodeSendResult extends SignInContinuationTokenResult {
     bindingMethod: string;
 }
 
+export interface SignInMfaRequiredResult extends SignInContinuationTokenResult {
+    type: typeof SIGN_IN_MFA_REQUIRED_RESULT_TYPE;
+}
+
 export const SIGN_IN_CODE_SEND_RESULT_TYPE = "SignInCodeSendResult";
 export const SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE =
     "SignInPasswordRequiredResult";
 export const SIGN_IN_COMPLETED_RESULT_TYPE = "SignInCompletedResult";
+export const SIGN_IN_MFA_REQUIRED_RESULT_TYPE = "SignInMfaRequiredResult";
 
 export function createSignInCompleteResult(
     input: Omit<SignInCompletedResult, "type">
@@ -60,6 +65,15 @@ export function createSignInCodeSendResult(
 ): SignInCodeSendResult {
     return {
         type: SIGN_IN_CODE_SEND_RESULT_TYPE,
+        ...input,
+    };
+}
+
+export function createSignInMfaRequiredResult(
+    input: Omit<SignInMfaRequiredResult, "type">
+): SignInMfaRequiredResult {
+    return {
+        type: SIGN_IN_MFA_REQUIRED_RESULT_TYPE,
         ...input,
     };
 }

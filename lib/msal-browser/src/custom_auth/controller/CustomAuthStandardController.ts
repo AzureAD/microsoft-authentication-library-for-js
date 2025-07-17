@@ -29,6 +29,8 @@ import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
     SIGN_IN_CODE_SEND_RESULT_TYPE,
     SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
+    SIGN_IN_COMPLETED_RESULT_TYPE,
+    SIGN_IN_MFA_REQUIRED_RESULT_TYPE,
 } from "../sign_in/interaction_client/result/SignInActionResult.js";
 import { SignUpClient } from "../sign_up/interaction_client/SignUpClient.js";
 import { CustomAuthInterationClientFactory } from "../core/interaction_client/CustomAuthInterationClientFactory.js";
@@ -279,24 +281,45 @@ export class CustomAuthStandardController
                     username: signInInputs.username,
                 };
 
-                const completedResult = await this.signInClient.submitPassword(
-                    submitPasswordParams
-                );
+                const submitPasswordResult =
+                    await this.signInClient.submitPassword(
+                        submitPasswordParams
+                    );
 
                 this.logger.verbose("Sign-in flow completed.", correlationId);
 
-                const accountInfo = new CustomAuthAccountData(
-                    completedResult.authenticationResult.account,
-                    this.customAuthConfig,
-                    this.cacheClient,
-                    this.logger,
-                    correlationId
-                );
+                if (
+                    submitPasswordResult.type === SIGN_IN_COMPLETED_RESULT_TYPE
+                ) {
+                    const accountInfo = new CustomAuthAccountData(
+                        submitPasswordResult.authenticationResult.account,
+                        this.customAuthConfig,
+                        this.cacheClient,
+                        this.logger,
+                        correlationId
+                    );
 
-                return new SignInResult(
-                    new SignInCompletedState(),
-                    accountInfo
-                );
+                    return new SignInResult(
+                        new SignInCompletedState(),
+                        accountInfo
+                    );
+                } else if (
+                    submitPasswordResult.type ===
+                    SIGN_IN_MFA_REQUIRED_RESULT_TYPE
+                ) {
+                    // MFA is required - return an error result for now until MFA states are implemented
+                    const error = new Error(
+                        "MFA required but not yet implemented"
+                    );
+                    return SignInResult.createWithError(error);
+                } else {
+                    // Unexpected result type
+                    const result = submitPasswordResult as { type: string };
+                    const error = new Error(
+                        `Unexpected result type: ${result.type}`
+                    );
+                    return SignInResult.createWithError(error);
+                }
             }
 
             this.logger.error(
