@@ -33,6 +33,10 @@ export interface SignInContinuationTokenRequest extends SignInTokenRequestBase {
     username: string;
 }
 
+export interface SignInIntrospectRequest extends ApiRequestBase {
+    continuation_token: string;
+}
+
 /* Sign-up API request types */
 export interface SignUpStartRequest extends ApiRequestBase {
     username: string;

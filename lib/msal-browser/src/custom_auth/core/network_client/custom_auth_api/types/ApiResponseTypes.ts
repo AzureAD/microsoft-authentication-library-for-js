@@ -38,6 +38,18 @@ export interface SignInTokenResponse extends ApiResponseBase {
     ext_expires_in?: number;
 }
 
+export interface AuthenticationMethod {
+    id: string;
+    challenge_type: string;
+    challenge_channel: string;
+    login_hint: string;
+}
+
+export interface SignInIntrospectResponse extends ApiResponseBase {
+    continuation_token: string;
+    methods: AuthenticationMethod[];
+}
+
 /* Sign-up API response types */
 export type SignUpStartResponse = InitiateResponse;
 
