@@ -103,7 +103,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
 
-        // Save tokens and create authentication result 44s
+        // Save tokens and create authentication result
         const result =
             await this.tokenResponseHandler.handleServerTokenResponse(
                 tokenResponse,
