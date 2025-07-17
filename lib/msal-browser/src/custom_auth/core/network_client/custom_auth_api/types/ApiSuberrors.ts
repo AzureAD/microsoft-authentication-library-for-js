@@ -13,3 +13,4 @@ export const INVALID_OOB_VALUE = "invalid_oob_value";
 export const ATTRIBUTE_VALIATION_FAILED = "attribute_validation_failed";
 export const NATIVEAUTHAPI_DISABLED = "nativeauthapi_disabled";
 export const MFA_REQUIRED = "mfa_required";
+export const INTROSPECT_REQUIRED = "introspect_required";

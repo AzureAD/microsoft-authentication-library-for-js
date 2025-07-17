@@ -41,57 +41,9 @@ import {
     SignInScenarioType,
 } from "../auth_flow/SignInScenario.js";
 import { UnexpectedError } from "../../core/error/UnexpectedError.js";
-import { ICustomAuthApiClient } from "../../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
-import { CustomAuthAuthority } from "../../core/CustomAuthAuthority.js";
-import {
-    ICrypto,
-    IPerformanceClient,
-    Logger,
-    ResponseHandler,
-} from "@azure/msal-common/browser";
-import { BrowserConfiguration } from "../../../config/Configuration.js";
-import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
-import { EventHandler } from "../../../event/EventHandler.js";
-import { INavigationClient } from "../../../navigation/INavigationClient.js";
-import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
 import { ensureArgumentIsNotEmptyString } from "../../core/utils/ArgumentValidator.js";
 
 export class SignInClient extends CustomAuthInteractionClientBase {
-    private readonly tokenResponseHandler: ResponseHandler;
-
-    constructor(
-        config: BrowserConfiguration,
-        storageImpl: BrowserCacheManager,
-        browserCrypto: ICrypto,
-        logger: Logger,
-        eventHandler: EventHandler,
-        navigationClient: INavigationClient,
-        performanceClient: IPerformanceClient,
-        customAuthApiClient: ICustomAuthApiClient,
-        customAuthAuthority: CustomAuthAuthority
-    ) {
-        super(
-            config,
-            storageImpl,
-            browserCrypto,
-            logger,
-            eventHandler,
-            navigationClient,
-            performanceClient,
-            customAuthApiClient,
-            customAuthAuthority
-        );
-
-        this.tokenResponseHandler = new ResponseHandler(
-            this.config.auth.clientId,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            null,
-            null
-        );
-    }
-
     /**
      * Starts the signin flow.
      * @param parameters The parameters required to start the sign-in flow.
@@ -202,7 +154,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 this.customAuthApiClient.signInApi.requestTokensWithOob(
                     request
                 ),
-            scopes
+            scopes,
+            parameters.correlationId
         );
     }
 
@@ -237,7 +190,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 this.customAuthApiClient.signInApi.requestTokensWithPassword(
                     request
                 ),
-            scopes
+            scopes,
+            parameters.correlationId
         );
     }
 
@@ -271,48 +225,44 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 this.customAuthApiClient.signInApi.requestTokenWithContinuationToken(
                     request
                 ),
-            scopes
+            scopes,
+            parameters.correlationId
         );
     }
 
+    /**
+     * Common method to handle token endpoint calls and create sign-in results.
+     * @param tokenEndpointCaller Function that calls the specific token endpoint
+     * @param scopes Scopes for the token request
+     * @param correlationId Correlation ID for logging and result
+     * @returns SignInCompletedResult with authentication result
+     */
     private async performTokenRequest(
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
-        requestScopes: string[]
+        scopes: string[],
+        correlationId: string
     ): Promise<SignInCompletedResult> {
         this.logger.verbose(
             "Calling token endpoint for sign in.",
-            this.correlationId
+            correlationId
         );
 
-        const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
         const tokenResponse = await tokenEndpointCaller();
 
         this.logger.verbose(
-            "Token endpoint called for sign in.",
-            this.correlationId
+            "Token endpoint response received for sign in.",
+            correlationId
         );
 
-        // Save tokens and create authentication result.
-        const result =
-            await this.tokenResponseHandler.handleServerTokenResponse(
-                tokenResponse,
-                this.customAuthAuthority,
-                requestTimestamp,
-                {
-                    authority: this.customAuthAuthority.canonicalAuthority,
-                    correlationId: tokenResponse.correlation_id ?? "",
-                    scopes: requestScopes,
-                    storeInCache: {
-                        idToken: true,
-                        accessToken: true,
-                        refreshToken: true,
-                    },
-                }
-            );
+        const authResult = await this.handleTokenResponse(
+            tokenResponse,
+            scopes,
+            correlationId
+        );
 
         return createSignInCompleteResult({
-            correlationId: tokenResponse.correlation_id ?? "",
-            authenticationResult: result as AuthenticationResult,
+            correlationId: tokenResponse.correlation_id ?? correlationId,
+            authenticationResult: authResult,
         });
     }
 

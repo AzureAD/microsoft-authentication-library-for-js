@@ -14,6 +14,7 @@ export interface SignInInitiateRequest extends ApiRequestBase {
 export interface SignInChallengeRequest extends ApiRequestBase {
     challenge_type: string;
     continuation_token: string;
+    id?: string;
 }
 
 interface SignInTokenRequestBase extends ApiRequestBase {
