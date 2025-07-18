@@ -1056,5 +1056,104 @@ describe("SignInClient", () => {
                 telemetryManager: expect.any(Object),
             });
         });
+
+        it("should return SignInMfaRequiredResult when MFA_REQUIRED error occurs", async () => {
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA is required",
+                "corr123"
+            );
+            mfaError.subError = MFA_REQUIRED;
+            mfaError.continuationToken = "mfa_continuation_token";
+
+            const mockMfaIntrospectResponse = {
+                correlation_id: "mfa_corr_id",
+                continuation_token: "mfa_introspect_continuation_token",
+                methods: [
+                    { id: "sms", type: "sms" },
+                    { id: "email", type: "email" },
+                ],
+            };
+
+            signInApiClient.requestTokenWithContinuationToken.mockRejectedValue(
+                mfaError
+            );
+            signInApiClient.requestAuthMethods.mockResolvedValue(
+                mockMfaIntrospectResponse
+            );
+
+            const result = await client.signInWithContinuationToken({
+                continuationToken: "continuation_token_1",
+                username: "abc@test.com",
+                clientId: customAuthConfig.auth.clientId,
+                challengeType: [
+                    ChallengeType.OOB,
+                    ChallengeType.PASSWORD,
+                    ChallengeType.REDIRECT,
+                ],
+                correlationId: "corr123",
+                scopes: [],
+                signInScenario: SignInScenario.SignInAfterSignUp,
+            });
+
+            expect(result.type).toStrictEqual(SIGN_IN_MFA_REQUIRED_RESULT_TYPE);
+            expect(result.correlationId).toBe("mfa_corr_id");
+
+            if (result.type === SIGN_IN_MFA_REQUIRED_RESULT_TYPE) {
+                const mfaResult = result as SignInMfaRequiredResult;
+                expect(mfaResult.continuationToken).toBe(
+                    "mfa_introspect_continuation_token"
+                );
+                expect(mfaResult.authMethods).toEqual(
+                    mockMfaIntrospectResponse.methods
+                );
+            }
+
+            // Verify introspect was called with correct parameters
+            expect(signInApiClient.requestAuthMethods).toHaveBeenCalledWith({
+                continuation_token: "mfa_continuation_token",
+                correlationId: "corr123",
+                telemetryManager: expect.any(Object),
+            });
+        });
+
+        it("should throw error when MFA introspect call fails", async () => {
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA is required",
+                "corr123"
+            );
+            mfaError.subError = MFA_REQUIRED;
+            mfaError.continuationToken = "mfa_continuation_token";
+
+            const introspectError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA introspect call failed",
+                "corr123"
+            );
+
+            signInApiClient.requestTokenWithContinuationToken.mockRejectedValue(
+                mfaError
+            );
+            signInApiClient.requestAuthMethods.mockRejectedValue(
+                introspectError
+            );
+
+            await expect(
+                client.signInWithContinuationToken({
+                    continuationToken: "continuation_token_1",
+                    username: "abc@test.com",
+                    clientId: customAuthConfig.auth.clientId,
+                    challengeType: [
+                        ChallengeType.OOB,
+                        ChallengeType.PASSWORD,
+                        ChallengeType.REDIRECT,
+                    ],
+                    correlationId: "corr123",
+                    scopes: [],
+                    signInScenario: SignInScenario.SignInAfterSignUp,
+                })
+            ).rejects.toThrow(introspectError);
+        });
     });
 });

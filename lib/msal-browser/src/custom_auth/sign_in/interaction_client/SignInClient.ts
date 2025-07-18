@@ -176,8 +176,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager,
-            true
+            telemetryManager
         );
     }
 
@@ -221,8 +220,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager,
-            true
+            telemetryManager
         );
     }
 
@@ -233,7 +231,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async signInWithContinuationToken(
         parameters: SignInContinuationTokenParams
-    ): Promise<SignInCompletedResult | SignInJitRequiredResult> {
+    ): Promise<
+        | SignInCompletedResult
+        | SignInJitRequiredResult
+        | SignInMfaRequiredResult
+    > {
         const apiId = this.getPublicApiIdBySignInScenario(
             parameters.signInScenario,
             parameters.correlationId
@@ -261,9 +263,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager,
-            false
-        ) as Promise<SignInCompletedResult | SignInJitRequiredResult>;
+            telemetryManager
+        );
     }
 
     /**
@@ -278,8 +279,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
         scopes: string[],
         correlationId: string,
-        telemetryManager: ServerTelemetryManager,
-        handleMfa: boolean
+        telemetryManager: ServerTelemetryManager
     ): Promise<
         | SignInCompletedResult
         | SignInJitRequiredResult
@@ -319,7 +319,6 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                     correlationId
                 );
             } else if (
-                handleMfa &&
                 error instanceof CustomAuthApiError &&
                 error.subError === MFA_REQUIRED
             ) {
