@@ -134,8 +134,8 @@ export class MfaClient extends CustomAuthInteractionClientBase {
         parameters: MfaSubmitChallengeParams
     ): Promise<MfaCompletedResult> {
         ensureArgumentIsNotEmptyString(
-            "parameters.challenge",
-            parameters.challenge,
+            "parameters.code",
+            parameters.code,
             parameters.correlationId
         );
 
@@ -145,7 +145,7 @@ export class MfaClient extends CustomAuthInteractionClientBase {
 
         const request: SignInOobTokenRequest = {
             continuation_token: parameters.continuationToken,
-            oob: parameters.challenge,
+            oob: parameters.code,
             scope: scopes.join(" "),
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,

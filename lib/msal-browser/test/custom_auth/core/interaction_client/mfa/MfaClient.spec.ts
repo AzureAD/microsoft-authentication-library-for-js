@@ -306,7 +306,7 @@ describe("MfaClient", () => {
             const result = await client.submitChallenge({
                 correlationId: "corr123",
                 continuationToken: "continuation_token_1",
-                challenge: "123456",
+                code: "123456",
                 scopes: ["User.Read"],
             });
 
@@ -349,7 +349,7 @@ describe("MfaClient", () => {
                 client.submitChallenge({
                     correlationId: "corr123",
                     continuationToken: "continuation_token_1",
-                    challenge: "",
+                    code: "",
                     scopes: ["User.Read"],
                 })
             ).rejects.toThrow();
@@ -363,7 +363,7 @@ describe("MfaClient", () => {
             await client.submitChallenge({
                 correlationId: "corr123",
                 continuationToken: "continuation_token_1",
-                challenge: "123456",
+                code: "123456",
                 scopes: ["User.Read", "Mail.Read", "openid"],
             });
 
@@ -384,7 +384,7 @@ describe("MfaClient", () => {
             await client.submitChallenge({
                 correlationId: "corr123",
                 continuationToken: "continuation_token_1",
-                challenge: "123456",
+                code: "123456",
                 scopes: [],
             });
 

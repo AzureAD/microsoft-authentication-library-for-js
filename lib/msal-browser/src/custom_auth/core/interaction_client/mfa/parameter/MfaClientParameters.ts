@@ -32,9 +32,9 @@ export interface MfaRequestChallengeParams extends MfaClientParametersBase {
  */
 export interface MfaSubmitChallengeParams extends MfaClientParametersBase {
     /**
-     * The challenge response (e.g., OTP code) from the user.
+     * The challenge code (e.g., OTP code) from the user.
      */
-    challenge: string;
+    code: string;
 
     /**
      * Scopes for the token request.
