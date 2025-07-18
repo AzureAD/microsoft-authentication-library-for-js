@@ -15,6 +15,7 @@ import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { SignInCodeRequiredState } from "../../../../../src/custom_auth/sign_in/auth_flow/state/SignInCodeRequiredState.js";
 import { DefaultCustomAuthApiCodeLength } from "../../../../../src/custom_auth/CustomAuthConstants.js";
+import { MfaClient } from "../../../../../src/custom_auth/core/interaction_client/mfa/MfaClient.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("SignInCodeRequiredState", () => {
@@ -31,6 +32,12 @@ describe("SignInCodeRequiredState", () => {
     const mockCacheClient =
         {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
 
+    const mockMfaClient = {
+        requestChallenge: jest.fn(),
+        submitChallenge: jest.fn(),
+        getAuthMethods: jest.fn(),
+    } as unknown as jest.Mocked<MfaClient>;
+
     const username = "testuser";
     const correlationId = "test-correlation-id";
     const continuationToken = "test-continuation-token";
@@ -42,6 +49,7 @@ describe("SignInCodeRequiredState", () => {
             username: username,
             signInClient: mockSignInClient,
             cacheClient: mockCacheClient,
+            mfaClient: mockMfaClient,
             correlationId: correlationId,
             logger: getDefaultLogger(),
             continuationToken: continuationToken,

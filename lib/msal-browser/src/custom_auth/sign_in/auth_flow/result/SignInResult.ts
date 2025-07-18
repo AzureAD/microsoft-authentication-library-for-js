@@ -10,6 +10,7 @@ import { SignInCodeRequiredState } from "../state/SignInCodeRequiredState.js";
 import { SignInPasswordRequiredState } from "../state/SignInPasswordRequiredState.js";
 import { SignInFailedState } from "../state/SignInFailedState.js";
 import { SignInCompletedState } from "../state/SignInCompletedState.js";
+import { MfaAwaitingState } from "../../../core/auth_flow/mfa/state/MfaState.js";
 
 /*
  * Result of a sign-in operation.
@@ -70,6 +71,13 @@ export class SignInResult extends AuthFlowResultBase<
     isCompleted(): this is SignInResult & { state: SignInCompletedState } {
         return this.state instanceof SignInCompletedState;
     }
+
+    /**
+     * Checks if the result requires MFA.
+     */
+    isMfaRequired(): this is SignInResult & { state: MfaAwaitingState } {
+        return this.state instanceof MfaAwaitingState;
+    }
 }
 
 /**
@@ -79,9 +87,11 @@ export class SignInResult extends AuthFlowResultBase<
  * - SignInPasswordRequiredState: The sign-in process requires a password.
  * - SignInFailedState: The sign-in process has failed.
  * - SignInCompletedState: The sign-in process is completed.
+ * - MfaAwaitingState: The sign-in process requires MFA.
  */
 export type SignInResultState =
     | SignInCodeRequiredState
     | SignInPasswordRequiredState
     | SignInFailedState
-    | SignInCompletedState;
+    | SignInCompletedState
+    | MfaAwaitingState;

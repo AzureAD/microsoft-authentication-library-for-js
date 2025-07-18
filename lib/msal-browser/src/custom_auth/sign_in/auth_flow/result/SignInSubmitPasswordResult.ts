@@ -6,12 +6,18 @@
 import { SignInSubmitPasswordError } from "../error_type/SignInError.js";
 import { SignInCompletedState } from "../state/SignInCompletedState.js";
 import { SignInFailedState } from "../state/SignInFailedState.js";
-import { SignInSubmitCredentialResult } from "./SignInSubmitCredentialResult.js";
+import { MfaAwaitingState } from "../../../core/auth_flow/mfa/state/MfaState.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
+import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 
 /*
  * Result of a sign-in submit password operation.
  */
-export class SignInSubmitPasswordResult extends SignInSubmitCredentialResult<SignInSubmitPasswordError> {
+export class SignInSubmitPasswordResult extends AuthFlowResultBase<
+    SignInSubmitPasswordResultState,
+    SignInSubmitPasswordError,
+    CustomAuthAccountData
+> {
     static createWithError(error: unknown): SignInSubmitPasswordResult {
         const result = new SignInSubmitPasswordResult(new SignInFailedState());
         result.error = new SignInSubmitPasswordError(
@@ -38,4 +44,25 @@ export class SignInSubmitPasswordResult extends SignInSubmitCredentialResult<Sig
     } {
         return this.state instanceof SignInCompletedState;
     }
+
+    /**
+     * Checks if the result requires MFA.
+     */
+    isMfaRequired(): this is SignInSubmitPasswordResult & {
+        state: MfaAwaitingState;
+    } {
+        return this.state instanceof MfaAwaitingState;
+    }
 }
+
+/**
+ * The possible states of the SignInSubmitPasswordResult.
+ * This includes:
+ * - SignInCompletedState: The sign-in process has completed successfully.
+ * - SignInFailedState: The sign-in process has failed.
+ * - MfaAwaitingState: The sign-in process requires MFA.
+ */
+export type SignInSubmitPasswordResultState =
+    | SignInCompletedState
+    | SignInFailedState
+    | MfaAwaitingState;

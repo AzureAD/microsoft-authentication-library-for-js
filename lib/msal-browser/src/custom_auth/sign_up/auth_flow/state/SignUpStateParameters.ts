@@ -8,6 +8,7 @@ import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.j
 import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { AuthFlowActionRequiredStateParameters } from "../../../core/auth_flow/AuthFlowState.js";
 import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import { MfaClient } from "../../../core/interaction_client/mfa/MfaClient.js";
 
 export interface SignUpStateParameters
     extends AuthFlowActionRequiredStateParameters {
@@ -15,6 +16,7 @@ export interface SignUpStateParameters
     signUpClient: SignUpClient;
     signInClient: SignInClient;
     cacheClient: CustomAuthSilentCacheClient;
+    mfaClient: MfaClient;
 }
 
 export type SignUpPasswordRequiredStateParameters = SignUpStateParameters;

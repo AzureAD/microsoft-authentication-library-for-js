@@ -113,6 +113,7 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                     config: this.stateParameters.config,
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
+                    mfaClient: this.stateParameters.mfaClient,
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
                     scopes: this.stateParameters.scopes,

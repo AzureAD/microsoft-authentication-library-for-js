@@ -50,13 +50,18 @@ export {
     SignInResult,
     SignInResultState,
 } from "./sign_in/auth_flow/result/SignInResult.js";
-export { SignInSubmitCodeResult } from "./sign_in/auth_flow/result/SignInSubmitCodeResult.js";
+export {
+    SignInSubmitCodeResult,
+    SignInSubmitCodeResultState,
+} from "./sign_in/auth_flow/result/SignInSubmitCodeResult.js";
 export {
     SignInResendCodeResult,
     SignInResendCodeResultState,
 } from "./sign_in/auth_flow/result/SignInResendCodeResult.js";
-export { SignInSubmitPasswordResult } from "./sign_in/auth_flow/result/SignInSubmitPasswordResult.js";
-export { SignInSubmitCredentialResultState } from "./sign_in/auth_flow/result/SignInSubmitCredentialResult.js";
+export {
+    SignInSubmitPasswordResult,
+    SignInSubmitPasswordResultState,
+} from "./sign_in/auth_flow/result/SignInSubmitPasswordResult.js";
 
 // Sign-in Errors
 export {

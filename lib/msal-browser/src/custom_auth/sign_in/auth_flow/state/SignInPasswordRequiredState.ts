@@ -13,6 +13,7 @@ import {
     SIGN_IN_COMPLETED_RESULT_TYPE,
     SIGN_IN_MFA_REQUIRED_RESULT_TYPE,
 } from "../../interaction_client/result/SignInActionResult.js";
+import { MfaAwaitingState } from "../../../core/auth_flow/mfa/state/MfaState.js";
 
 /*
  * Sign-in password required state.
@@ -71,9 +72,24 @@ export class SignInPasswordRequiredState extends SignInState<SignInPasswordRequi
             } else if (
                 submitPasswordResult.type === SIGN_IN_MFA_REQUIRED_RESULT_TYPE
             ) {
-                // MFA is required - return an error result for now until MFA states are implemented
-                const error = new Error("MFA required but not yet implemented");
-                return SignInSubmitPasswordResult.createWithError(error);
+                // MFA is required - return MfaAwaitingState
+                this.stateParameters.logger.verbose(
+                    "MFA required after password submission.",
+                    this.stateParameters.correlationId
+                );
+
+                return new SignInSubmitPasswordResult(
+                    new MfaAwaitingState({
+                        correlationId: this.stateParameters.correlationId,
+                        continuationToken:
+                            submitPasswordResult.continuationToken,
+                        logger: this.stateParameters.logger,
+                        config: this.stateParameters.config,
+                        mfaClient: this.stateParameters.mfaClient,
+                        cacheClient: this.stateParameters.cacheClient,
+                        scopes: this.stateParameters.scopes ?? [],
+                    })
+                );
             } else {
                 // Unexpected result type
                 const result = submitPasswordResult as { type: string };

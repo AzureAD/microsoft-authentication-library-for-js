@@ -7,6 +7,7 @@ import { createSignInCompleteResult } from "../../../../../src/custom_auth/sign_
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { SignInScenario } from "../../../../../src/custom_auth/sign_in/auth_flow/SignInScenario.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { MfaClient } from "../../../../../src/custom_auth/core/interaction_client/mfa/MfaClient.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("SignInContinuationState", () => {
@@ -22,6 +23,12 @@ describe("SignInContinuationState", () => {
     const mockCacheClient =
         {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
 
+    const mockMfaClient = {
+        requestChallenge: jest.fn(),
+        submitChallenge: jest.fn(),
+        getAuthMethods: jest.fn(),
+    } as unknown as jest.Mocked<MfaClient>;
+
     const username = "testuser";
     const correlationId = "test-correlation-id";
     const continuationToken = "test-continuation-token";
@@ -33,6 +40,7 @@ describe("SignInContinuationState", () => {
             username: username,
             signInClient: mockSignInClient,
             cacheClient: mockCacheClient,
+            mfaClient: mockMfaClient,
             correlationId: correlationId,
             logger: getDefaultLogger(),
             continuationToken: continuationToken,

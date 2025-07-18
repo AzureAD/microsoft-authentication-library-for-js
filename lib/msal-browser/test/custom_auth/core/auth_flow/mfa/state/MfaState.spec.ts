@@ -107,12 +107,13 @@ describe("MfaAwaitingState", () => {
                 },
             ];
 
-            const mockMethodSelectionResult: MfaMethodSelectionRequiredResult = {
-                type: MFA_METHOD_SELECTION_REQUIRED_RESULT_TYPE,
-                correlationId: "test-correlation-id",
-                continuationToken: "new-continuation-token",
-                authMethods: mockAuthMethods,
-            };
+            const mockMethodSelectionResult: MfaMethodSelectionRequiredResult =
+                {
+                    type: MFA_METHOD_SELECTION_REQUIRED_RESULT_TYPE,
+                    correlationId: "test-correlation-id",
+                    continuationToken: "new-continuation-token",
+                    authMethods: mockAuthMethods,
+                };
 
             mockMfaClient.requestChallenge.mockResolvedValue(
                 mockMethodSelectionResult
@@ -383,12 +384,13 @@ describe("MfaVerificationRequiredState", () => {
                 },
             ];
 
-            const mockMethodSelectionResult: MfaMethodSelectionRequiredResult = {
-                type: MFA_METHOD_SELECTION_REQUIRED_RESULT_TYPE,
-                correlationId: "test-correlation-id",
-                continuationToken: "new-continuation-token",
-                authMethods: mockAuthMethods,
-            };
+            const mockMethodSelectionResult: MfaMethodSelectionRequiredResult =
+                {
+                    type: MFA_METHOD_SELECTION_REQUIRED_RESULT_TYPE,
+                    correlationId: "test-correlation-id",
+                    continuationToken: "new-continuation-token",
+                    authMethods: mockAuthMethods,
+                };
 
             mockMfaClient.requestChallenge.mockResolvedValue(
                 mockMethodSelectionResult
@@ -519,12 +521,13 @@ describe("MfaMethodSelectionRequiredState", () => {
         });
 
         it("should successfully request challenge and return method selection required result", async () => {
-            const mockMethodSelectionResult: MfaMethodSelectionRequiredResult = {
-                type: MFA_METHOD_SELECTION_REQUIRED_RESULT_TYPE,
-                correlationId: "test-correlation-id",
-                continuationToken: "new-continuation-token",
-                authMethods: mockAuthMethods,
-            };
+            const mockMethodSelectionResult: MfaMethodSelectionRequiredResult =
+                {
+                    type: MFA_METHOD_SELECTION_REQUIRED_RESULT_TYPE,
+                    correlationId: "test-correlation-id",
+                    continuationToken: "new-continuation-token",
+                    authMethods: mockAuthMethods,
+                };
 
             mockMfaClient.requestChallenge.mockResolvedValue(
                 mockMethodSelectionResult
