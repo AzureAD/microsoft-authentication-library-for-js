@@ -27,6 +27,11 @@ describe("Sign in", () => {
     });
 
     afterEach(() => {
+        const activeUser = app.getAllAccounts();
+        if (activeUser.length > 0) {
+            app.clearCache();
+        }
+
         const controller = app[
             "customAuthController"
         ] as CustomAuthStandardController;
@@ -391,5 +396,64 @@ describe("Sign in", () => {
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitCodeResult);
         expect(submitCodeResult.error).toBeDefined();
         expect(submitCodeResult.error?.isInvalidCode()).toBe(true);
+    });
+
+    it("should sign in successfully if giving custom claims with password as the challenge type", async () => {
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return {
+                    continuation_token: "test-continuation-token-1",
+                    challenge_type: "oob password redirect",
+                };
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return {
+                    continuation_token: "test-continuation-token-2",
+                    challenge_type: "password",
+                };
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return TestServerTokenResponse;
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        const claims = JSON.stringify({
+            access_token: {
+                acrs: {
+                    essential: true,
+                    value: "c1",
+                },
+            },
+        });
+
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+            claims: claims,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isCompleted()).toBe(true);
+        expect(result.data).toBeDefined();
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 });
