@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 18 Jul 2025 20:17:15 GMT",
+      "version": "4.16.0",
+      "tag": "@azure/msal-browser_v4.16.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f8bda57c0c30cbc1fb99541988483d4e53f5eb64",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2d931672bcdd0e18ac6b780971d8029ef7cb7872",
+            "comment": "Fix exception when using claims with Nested App Auth in JS Runtime environment (#7926)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 08 Jul 2025 14:21:12 GMT",
       "version": "4.15.0",
       "tag": "@azure/msal-browser_v4.15.0",
