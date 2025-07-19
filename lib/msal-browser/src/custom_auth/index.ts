@@ -186,5 +186,36 @@ export { UnsupportedEnvironmentError } from "./core/error/UnsupportedEnvironment
 export { UserAccountAttributeError } from "./core/error/UserAccountAttributeError.js";
 export { UserAlreadySignedInError } from "./core/error/UserAlreadySignedInError.js";
 
+// MFA State
+export { MfaAwaitingState } from "./core/auth_flow/mfa/state/MfaState.js";
+export { MfaVerificationRequiredState } from "./core/auth_flow/mfa/state/MfaState.js";
+export { MfaMethodSelectionRequiredState } from "./core/auth_flow/mfa/state/MfaState.js";
+export { MfaCompletedState } from "./core/auth_flow/mfa/state/MfaCompletedState.js";
+export { MfaFailedState } from "./core/auth_flow/mfa/state/MfaFailedState.js";
+
+// MFA Results
+export {
+    MfaRequestChallengeResult,
+    MfaRequestChallengeResultState,
+} from "./core/auth_flow/mfa/result/MfaRequestChallengeResult.js";
+export {
+    MfaSubmitChallengeResult,
+    MfaSubmitChallengeResultState,
+} from "./core/auth_flow/mfa/result/MfaSubmitChallengeResult.js";
+export {
+    MfaGetAuthMethodsResult,
+    MfaGetAuthMethodsResultState,
+} from "./core/auth_flow/mfa/result/MfaGetAuthMethodsResult.js";
+
+// MFA Errors
+export {
+    MfaRequestChallengeError,
+    MfaSubmitChallengeError,
+    MfaGetAuthMethodsError,
+} from "./core/auth_flow/mfa/error_type/MfaError.js";
+
+// MFA Types
+export { AuthenticationMethod } from "./core/network_client/custom_auth_api/types/ApiResponseTypes.js";
+
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";
