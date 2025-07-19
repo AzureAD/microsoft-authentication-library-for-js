@@ -13,6 +13,12 @@ import { CustomAuthStandardController } from "../../../src/custom_auth/controlle
 import { SignInCodeRequiredState } from "../../../src/custom_auth/sign_in/auth_flow/state/SignInCodeRequiredState.js";
 import { SignInPasswordRequiredState } from "../../../src/custom_auth/sign_in/auth_flow/state/SignInPasswordRequiredState.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
+import { MfaAwaitingState } from "../../../src/custom_auth/core/auth_flow/mfa/state/MfaState.js";
+import { MfaVerificationRequiredState } from "../../../src/custom_auth/core/auth_flow/mfa/state/MfaState.js";
+import { MfaMethodSelectionRequiredState } from "../../../src/custom_auth/core/auth_flow/mfa/state/MfaState.js";
+import { MfaRequestChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaRequestChallengeResult.js";
+import { MfaSubmitChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaSubmitChallengeResult.js";
+import { MfaGetAuthMethodsResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaGetAuthMethodsResult.js";
 
 describe("Sign in", () => {
     let app: CustomAuthPublicClientApplication;
@@ -391,5 +397,823 @@ describe("Sign in", () => {
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitCodeResult);
         expect(submitCodeResult.error).toBeDefined();
         expect(submitCodeResult.error?.isInvalidCode()).toBe(true);
+    });
+
+    it("should handle MFA required after signIn() and complete flow with requestChallenge() and submitChallenge()", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - MFA required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /oauth2/challenge - MFA challenge request (default method)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target_label: "jo**@co***so.com",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /oauth2/token - successful MFA completion
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify MFA is required
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isMfaRequired()).toBe(true);
+        expect(result.state).toBeInstanceOf(MfaAwaitingState);
+
+        const mfaState = result.state as MfaAwaitingState;
+
+        // Request MFA challenge (default method)
+        const requestChallengeResult = await mfaState.requestChallenge();
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeUndefined();
+        expect(requestChallengeResult.isVerificationRequired()).toBe(true);
+        expect(requestChallengeResult.state).toBeInstanceOf(
+            MfaVerificationRequiredState
+        );
+
+        const verificationState =
+            requestChallengeResult.state as MfaVerificationRequiredState;
+
+        // Verify MFA verification state properties
+        expect(verificationState.getChannel()).toBe("email");
+        expect(verificationState.getSentTo()).toBe("jo**@co***so.com");
+        expect(verificationState.getCodeLength()).toBe(6);
+
+        // Submit MFA challenge
+        const submitChallengeResult = await verificationState.submitChallenge(
+            "123456"
+        );
+
+        expect(submitChallengeResult).toBeInstanceOf(MfaSubmitChallengeResult);
+        expect(submitChallengeResult.error).toBeUndefined();
+        expect(submitChallengeResult.isCompleted()).toBe(true);
+        expect(submitChallengeResult.data).toBeInstanceOf(
+            CustomAuthAccountData
+        );
+
+        // Clean up
+        submitChallengeResult.data?.signOut();
+    });
+
+    it("should handle MFA required after submitPassword() and complete flow", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - MFA required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /oauth2/challenge - MFA challenge request
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target_label: "jo**@co***so.com",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /oauth2/token - successful MFA completion
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Start sign-in without password
+        const signInInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+        };
+
+        const signInResult = await app.signIn(signInInputs);
+
+        // Verify password is required
+        expect(signInResult).toBeInstanceOf(SignInResult);
+        expect(signInResult.error).toBeUndefined();
+        expect(signInResult.isPasswordRequired()).toBe(true);
+
+        const passwordState = signInResult.state as SignInPasswordRequiredState;
+
+        // Submit password - should trigger MFA
+        const submitPasswordResult = await passwordState.submitPassword(
+            "password"
+        );
+
+        // Verify MFA is required after password submission
+        expect(submitPasswordResult).toBeInstanceOf(SignInSubmitPasswordResult);
+        expect(submitPasswordResult.error).toBeUndefined();
+        expect(submitPasswordResult.isMfaRequired()).toBe(true);
+        expect(submitPasswordResult.state).toBeInstanceOf(MfaAwaitingState);
+
+        const mfaState = submitPasswordResult.state as MfaAwaitingState;
+
+        // Request MFA challenge
+        const requestChallengeResult = await mfaState.requestChallenge();
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeUndefined();
+        expect(requestChallengeResult.isVerificationRequired()).toBe(true);
+
+        const verificationState =
+            requestChallengeResult.state as MfaVerificationRequiredState;
+
+        // Submit MFA challenge
+        const submitChallengeResult = await verificationState.submitChallenge(
+            "123456"
+        );
+
+        expect(submitChallengeResult).toBeInstanceOf(MfaSubmitChallengeResult);
+        expect(submitChallengeResult.error).toBeUndefined();
+        expect(submitChallengeResult.isCompleted()).toBe(true);
+        expect(submitChallengeResult.data).toBeInstanceOf(
+            CustomAuthAccountData
+        );
+
+        // Clean up
+        submitChallengeResult.data?.signOut();
+    });
+
+    it("should handle MFA with method selection when introspect is required", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - MFA required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /oauth2/challenge - introspect required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_request",
+                error_description:
+                    "Introspect required to get available auth methods.",
+                suberror: "introspect_required",
+                continuation_token: "introspect-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 5: Mock /oauth2/introspect - return available methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "method-selection-token",
+                methods: [
+                    {
+                        id: "01488-13...",
+                        challenge_type: "oob",
+                        challenge_channel: "email",
+                        login_hint: "jo**@co***so.com",
+                    },
+                    {
+                        id: "01489-14...",
+                        challenge_type: "oob",
+                        challenge_channel: "sms",
+                        login_hint: "+1***5678",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /oauth2/challenge - specific method challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "selected-method-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target_label: "jo**@co***so.com",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 7: Mock /oauth2/token - successful MFA completion
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify MFA is required
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isMfaRequired()).toBe(true);
+
+        const mfaState = result.state as MfaAwaitingState;
+
+        // Request MFA challenge (should trigger introspect)
+        const requestChallengeResult = await mfaState.requestChallenge();
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeUndefined();
+        expect(requestChallengeResult.isMethodSelectionRequired()).toBe(true);
+        expect(requestChallengeResult.state).toBeInstanceOf(
+            MfaMethodSelectionRequiredState
+        );
+
+        const methodSelectionState =
+            requestChallengeResult.state as MfaMethodSelectionRequiredState;
+
+        // Get available auth methods
+        const authMethods = methodSelectionState.getAuthMethods();
+        expect(authMethods).toHaveLength(2);
+        expect(authMethods[0].challenge_channel).toBe("email");
+        expect(authMethods[1].challenge_channel).toBe("sms");
+
+        // Request challenge with specific method (email)
+        const specificMethodResult =
+            await methodSelectionState.requestChallenge(authMethods[0].id);
+
+        expect(specificMethodResult).toBeInstanceOf(MfaRequestChallengeResult);
+        expect(specificMethodResult.error).toBeUndefined();
+        expect(specificMethodResult.isVerificationRequired()).toBe(true);
+
+        const verificationState =
+            specificMethodResult.state as MfaVerificationRequiredState;
+
+        // Submit MFA challenge
+        const submitChallengeResult = await verificationState.submitChallenge(
+            "123456"
+        );
+
+        expect(submitChallengeResult).toBeInstanceOf(MfaSubmitChallengeResult);
+        expect(submitChallengeResult.error).toBeUndefined();
+        expect(submitChallengeResult.isCompleted()).toBe(true);
+        expect(submitChallengeResult.data).toBeInstanceOf(
+            CustomAuthAccountData
+        );
+
+        // Clean up
+        submitChallengeResult.data?.signOut();
+    });
+
+    it("should handle getAuthMethods() call in MfaVerificationRequiredState", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - MFA required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /oauth2/challenge - successful default method challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target_label: "jo**@co***so.com",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /oauth2/introspect - return available methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-challenge-token",
+                methods: [
+                    {
+                        id: "01488-13...",
+                        challenge_type: "oob",
+                        challenge_channel: "email",
+                        login_hint: "jo**@co***so.com",
+                    },
+                    {
+                        id: "01489-14...",
+                        challenge_type: "oob",
+                        challenge_channel: "sms",
+                        login_hint: "+1***5678",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify MFA is required
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isMfaRequired()).toBe(true);
+
+        const mfaState = result.state as MfaAwaitingState;
+
+        // Request MFA challenge (default method)
+        const requestChallengeResult = await mfaState.requestChallenge();
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeUndefined();
+        expect(requestChallengeResult.isVerificationRequired()).toBe(true);
+
+        const verificationState =
+            requestChallengeResult.state as MfaVerificationRequiredState;
+
+        // Get auth methods from verification state
+        const getAuthMethodsResult = await verificationState.getAuthMethods();
+
+        expect(getAuthMethodsResult).toBeInstanceOf(MfaGetAuthMethodsResult);
+        expect(getAuthMethodsResult.error).toBeUndefined();
+        expect(getAuthMethodsResult.isMethodSelectionRequired()).toBe(true);
+
+        const methodSelectionState =
+            getAuthMethodsResult.state as MfaMethodSelectionRequiredState;
+        const authMethods = methodSelectionState.getAuthMethods();
+        expect(authMethods).toHaveLength(2);
+        expect(authMethods[0].challenge_channel).toBe("email");
+        expect(authMethods[1].challenge_channel).toBe("sms");
+    });
+
+    it("should handle MFA errors - invalid MFA code", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - MFA required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /oauth2/challenge - MFA challenge request
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target_label: "jo**@co***so.com",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /oauth2/token - invalid MFA code response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "The verification code is incorrect.",
+                suberror: "invalid_oob_value",
+                error_codes: [50125],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify MFA is required
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isMfaRequired()).toBe(true);
+
+        const mfaState = result.state as MfaAwaitingState;
+
+        // Request MFA challenge
+        const requestChallengeResult = await mfaState.requestChallenge();
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeUndefined();
+        expect(requestChallengeResult.isVerificationRequired()).toBe(true);
+
+        const verificationState =
+            requestChallengeResult.state as MfaVerificationRequiredState;
+
+        // Submit invalid MFA code
+        const submitChallengeResult = await verificationState.submitChallenge(
+            "000000"
+        );
+
+        expect(submitChallengeResult).toBeInstanceOf(MfaSubmitChallengeResult);
+        expect(submitChallengeResult.error).toBeDefined();
+        expect(submitChallengeResult.isFailed()).toBe(true);
+        expect(submitChallengeResult.error?.isInvalidCode()).toBe(true);
+    });
+
+    it("should handle MFA errors - challenge request failure", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - MFA required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /oauth2/challenge - challenge request failure
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_request",
+                error_description: "Failed to send challenge.",
+                error_codes: [90210],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify MFA is required
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isMfaRequired()).toBe(true);
+
+        const mfaState = result.state as MfaAwaitingState;
+
+        // Request MFA challenge - should fail
+        const requestChallengeResult = await mfaState.requestChallenge();
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeDefined();
+        expect(requestChallengeResult.isFailed()).toBe(true);
+        expect(requestChallengeResult.error?.errorData?.error).toBe(
+            "invalid_request"
+        );
+    });
+
+    it("should handle resend challenge in MfaVerificationRequiredState", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - MFA required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "Multi-factor authentication is required.",
+                suberror: "mfa_required",
+                continuation_token: "mfa-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /oauth2/challenge - initial MFA challenge request
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target_label: "jo**@co***so.com",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /oauth2/challenge - resend challenge request
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "mfa-resend-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target_label: "jo**@co***so.com",
+                code_length: 6,
+                binding_method: "prompt",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify MFA is required
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isMfaRequired()).toBe(true);
+
+        const mfaState = result.state as MfaAwaitingState;
+
+        // Request MFA challenge
+        const requestChallengeResult = await mfaState.requestChallenge();
+
+        expect(requestChallengeResult).toBeInstanceOf(
+            MfaRequestChallengeResult
+        );
+        expect(requestChallengeResult.error).toBeUndefined();
+        expect(requestChallengeResult.isVerificationRequired()).toBe(true);
+
+        const verificationState =
+            requestChallengeResult.state as MfaVerificationRequiredState;
+
+        // Resend challenge (equivalent to calling requestChallenge again)
+        const resendResult = await verificationState.requestChallenge();
+
+        expect(resendResult).toBeInstanceOf(MfaRequestChallengeResult);
+        expect(resendResult.error).toBeUndefined();
+        expect(resendResult.isVerificationRequired()).toBe(true);
+        expect(resendResult.state).toBeInstanceOf(MfaVerificationRequiredState);
+
+        const newVerificationState =
+            resendResult.state as MfaVerificationRequiredState;
+        expect(newVerificationState.getChannel()).toBe("email");
+        expect(newVerificationState.getSentTo()).toBe("jo**@co***so.com");
+        expect(newVerificationState.getCodeLength()).toBe(6);
     });
 });
