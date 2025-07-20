@@ -1785,7 +1785,7 @@ describe("RedirectClient", () => {
                 authenticationScheme: AuthenticationScheme.SSH,
             };
 
-            expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
+            await expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
                 )
@@ -1805,9 +1805,31 @@ describe("RedirectClient", () => {
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
-            expect(redirectClient.acquireToken(request)).rejects.toThrow(
+            await expect(redirectClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshKid
+                )
+            );
+        });
+
+        it("throws error when httpMethod is set to GET and authorizePostBodyParameters is set", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                httpMethod: HttpMethod.GET,
+                authorizePostBodyParameters: {
+                   testParam: "testValue",
+                },
+            };
+
+            await expect(redirectClient.acquireToken(request)).rejects.toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
                 )
             );
         });

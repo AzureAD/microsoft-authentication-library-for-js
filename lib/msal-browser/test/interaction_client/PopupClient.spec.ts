@@ -38,6 +38,7 @@ import {
     AuthError,
     ProtocolUtils,
     ProtocolMode,
+    HttpMethod,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -157,7 +158,7 @@ describe("PopupClient", () => {
                 authenticationScheme: AuthenticationScheme.SSH,
             };
 
-            expect(popupClient.acquireToken(request)).rejects.toThrow(
+            await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
                 )
@@ -177,7 +178,7 @@ describe("PopupClient", () => {
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
-            expect(popupClient.acquireToken(request)).rejects.toThrow(
+            await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshKid
                 )
@@ -200,7 +201,7 @@ describe("PopupClient", () => {
                 },
             };
 
-            expect(popupClient.acquireToken(request)).rejects.toThrow(
+            await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
                 )
@@ -925,19 +926,17 @@ describe("PopupClient", () => {
             });
 
             it("throws error when ProtocolMode is set to EAR and httpMethod is set to GET", async () => {
-                const request: CommonAuthorizationUrlRequest = {
-                    redirectUri: TEST_URIS.TEST_REDIR_URI,
-                    scopes: ["user.read"],
-                    state: TEST_STATE_VALUES.USER_STATE,
+                const validRequest: PopupRequest = {
                     authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
                     correlationId: TEST_CONFIG.CORRELATION_ID,
-                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                    nonce: "",
-                    authenticationScheme: AuthenticationScheme.BEARER,
-                    httpMethod: "GET",
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                    httpMethod: HttpMethod.GET,
                 };
 
-                expect(popupClient.acquireToken(request)).rejects.toThrow(
+                await expect(pca.acquireTokenPopup(validRequest)).rejects.toThrow(
                     createClientConfigurationError(
                         ClientConfigurationErrorCodes.invalidRequestMethodForEAR
                     )
