@@ -3,7 +3,7 @@ const msalConfig = {
     auth: {
         clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
         authority:
-            "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47",
+            "https://login.microsoftonline.com/common",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -47,6 +47,18 @@ const msalConfig = {
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
     scopes: ["User.Read"],
+    httpMethod: "POST",
+    authorizePostBodyParameters: {
+        xassertion: "value",
+    },
+    forceRefresh: false, // Set this to "true" to skip a cached token and go to the server to get a new token
+    prompt: "select_account", // Use "select_account" to force the user to select an account, or "login" to force the user to re-enter credentials
+    extraQueryParameters: {
+        dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1"
+    },
+    tokenQueryParameters: {
+        slice: "TestSlice&dc=ESTS-PUB-WUS2-AZ1-FD000-TEST1"
+    }
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.

@@ -184,6 +184,29 @@ describe("PopupClient", () => {
             );
         });
 
+        it("throws error when httpMethod is set to GET and authorizePostBodyParameters are set", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.BEARER,
+                httpMethod: "GET",
+                authorizePostBodyParameters: {
+                    testAssertion: "testValue",
+                },
+            };
+
+            expect(popupClient.acquireToken(request)).rejects.toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
+                )
+            );
+        });
+
         it("opens popup window before network request by default", async () => {
             const request: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -899,6 +922,26 @@ describe("PopupClient", () => {
                 const result = await pca.acquireTokenPopup(validRequest);
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+            });
+
+            it("throws error when ProtocolMode is set to EAR and httpMethod is set to GET", async () => {
+                const request: CommonAuthorizationUrlRequest = {
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: ["user.read"],
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                    nonce: "",
+                    authenticationScheme: AuthenticationScheme.BEARER,
+                    httpMethod: "GET",
+                };
+
+                expect(popupClient.acquireToken(request)).rejects.toThrow(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                    )
+                );
             });
         });
     });

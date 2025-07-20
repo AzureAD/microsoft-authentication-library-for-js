@@ -22,6 +22,8 @@ import {
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
 import { hashString } from "../crypto/BrowserCrypto.js";
+import { PopupRequest } from "./PopupRequest.js";
+import { RedirectRequest } from "./RedirectRequest.js";
 
 /**
  * Initializer function for all request APIs
@@ -116,14 +118,15 @@ export async function initializeSilentRequest(
 
 /**
  * Validates that the combination of request method, protocol mode and authorize body parameters is correct.
+ * Returns the validated or defaulted HTTP method or throws if the configured combination is invalid.
  * @param interactionRequest
  * @param protocolMode
  * @returns
  */
 export function validateRequestMethod(
-    interactionRequest: CommonAuthorizationUrlRequest,
+    interactionRequest: BaseAuthRequest | PopupRequest | RedirectRequest,
     protocolMode: ProtocolMode
-): CommonAuthorizationUrlRequest {
+): HttpMethod {
     let httpMethod: HttpMethod | undefined;
     const requestMethod = interactionRequest.httpMethod;
 
@@ -151,5 +154,5 @@ export function validateRequestMethod(
         );
     }
 
-    return { ...interactionRequest, httpMethod };
+    return httpMethod;
 }
