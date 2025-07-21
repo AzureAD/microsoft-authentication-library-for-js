@@ -15,6 +15,7 @@ export interface SignInStateParameters
     signInClient: SignInClient;
     cacheClient: CustomAuthSilentCacheClient;
     mfaClient: MfaClient;
+    claims?: string;
 }
 
 export interface SignInPasswordRequiredStateParameters

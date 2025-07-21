@@ -24,3 +24,22 @@ export function ensureArgumentIsNotEmptyString(
         throw new InvalidArgumentError(argName, correlationId);
     }
 }
+
+export function ensureArgumentIsJSONString(
+    argName: string,
+    argValue: string,
+    correlationId?: string
+): void {
+    try {
+        const parsed = JSON.parse(argValue);
+        if (
+            typeof parsed !== "object" ||
+            parsed === null ||
+            Array.isArray(parsed)
+        ) {
+            throw new InvalidArgumentError(argName, correlationId);
+        }
+    } catch (e) {
+        throw new InvalidArgumentError(argName, correlationId);
+    }
+}

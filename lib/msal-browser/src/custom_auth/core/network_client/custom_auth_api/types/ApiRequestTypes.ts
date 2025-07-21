@@ -20,6 +20,7 @@ export interface SignInChallengeRequest extends ApiRequestBase {
 interface SignInTokenRequestBase extends ApiRequestBase {
     continuation_token: string;
     scope: string;
+    claims?: string;
 }
 
 export interface SignInPasswordTokenRequest extends SignInTokenRequestBase {

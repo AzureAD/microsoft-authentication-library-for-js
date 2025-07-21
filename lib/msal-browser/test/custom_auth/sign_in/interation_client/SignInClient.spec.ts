@@ -29,6 +29,11 @@ import {
 import { CustomAuthApiError } from "../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { MFA_REQUIRED } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiSuberrors.js";
 import * as CustomAuthApiErrorCode from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
+import {
+    SignInContinuationTokenParams,
+    SignInSubmitCodeParams,
+    SignInSubmitPasswordParams,
+} from "../../../../src/custom_auth/sign_in/interaction_client/parameter/SignInParams.js";
 
 jest.mock(
     "../../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js",
@@ -195,12 +200,14 @@ describe("SignInClient", () => {
     });
 
     describe("submitCode", () => {
-        it("should return SignInCompleteResult for valid code", async () => {
+        let signInSubmitCodeParams: SignInSubmitCodeParams;
+
+        beforeEach(() => {
             signInApiClient.requestTokensWithOob.mockResolvedValue(
                 TestServerTokenResponse
             );
 
-            const result = await client.submitCode({
+            signInSubmitCodeParams = {
                 code: "123456",
                 continuationToken: "continuation_token_1",
                 username: "abc@test.com",
@@ -212,7 +219,11 @@ describe("SignInClient", () => {
                 ],
                 correlationId: "corr123",
                 scopes: [],
-            });
+            };
+        });
+
+        it("should return SignInCompleteResult for valid code", async () => {
+            const result = await client.submitCode(signInSubmitCodeParams);
 
             expect(result.type).toStrictEqual(SIGN_IN_COMPLETED_RESULT_TYPE);
             expect(result.correlationId).toBe(
@@ -236,6 +247,27 @@ describe("SignInClient", () => {
             expect(result.authenticationResult.account).toBeDefined();
             expect(result.authenticationResult.account.username).toBe(
                 "abc@test.com"
+            );
+        });
+
+        it("should include claims in password token request", async () => {
+            const claims = JSON.stringify({
+                access_token: {
+                    acrs: {
+                        essential: true,
+                        value: "c1",
+                    },
+                },
+            });
+
+            signInSubmitCodeParams.claims = claims;
+            await client.submitCode(signInSubmitCodeParams);
+
+            // Verify that the API was called with claims
+            expect(signInApiClient.requestTokensWithOob).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    claims: claims,
+                })
             );
         });
 
@@ -297,12 +329,14 @@ describe("SignInClient", () => {
     });
 
     describe("submitPassword", () => {
-        it("should return SignInCompleteResult for valid password when MFA is not required", async () => {
+        let signInSubmitPasswordParams: SignInSubmitPasswordParams;
+
+        beforeEach(() => {
             signInApiClient.requestTokensWithPassword.mockResolvedValue(
                 TestServerTokenResponse
             );
 
-            const result = await client.submitPassword({
+            signInSubmitPasswordParams = {
                 password: "123456",
                 continuationToken: "continuation_token_1",
                 username: "abc@test.com",
@@ -314,15 +348,20 @@ describe("SignInClient", () => {
                 ],
                 correlationId: "corr123",
                 scopes: [],
-            });
+            };
+        });
+
+        it("should return SignInCompleteResult for valid password", async () => {
+            const result = await client.submitPassword(
+                signInSubmitPasswordParams
+            );
 
             expect(result.type).toStrictEqual(SIGN_IN_COMPLETED_RESULT_TYPE);
             expect(result.correlationId).toBe(
                 TestServerTokenResponse.correlation_id
             );
 
-            // Type assertion since we've already verified the type above
-            const completedResult = result as SignInCompletedResult; // Using any to access authenticationResult
+            const completedResult = result as SignInCompletedResult;
             expect(completedResult.authenticationResult).toBeDefined();
             expect(completedResult.authenticationResult.accessToken).toBe(
                 TestServerTokenResponse.access_token
@@ -346,6 +385,49 @@ describe("SignInClient", () => {
             expect(completedResult.authenticationResult.account.username).toBe(
                 "abc@test.com"
             );
+        });
+
+        it("should include claims in password token request", async () => {
+            const claims = JSON.stringify({
+                access_token: {
+                    acrs: {
+                        essential: true,
+                        value: "c1",
+                    },
+                },
+            });
+
+            signInSubmitPasswordParams.claims = claims;
+            await client.submitPassword(signInSubmitPasswordParams);
+
+            // Verify that the API was called with claims
+            expect(
+                signInApiClient.requestTokensWithPassword
+            ).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    claims: claims,
+                })
+            );
+        });
+
+        it("should return SignInCompleteResult for valid password when MFA is not required", async () => {
+            signInApiClient.requestTokensWithPassword.mockResolvedValue(
+                TestServerTokenResponse
+            );
+
+            signInSubmitPasswordParams = {
+                password: "123456",
+                continuationToken: "continuation_token_1",
+                username: "abc@test.com",
+                clientId: customAuthConfig.auth.clientId,
+                challengeType: [
+                    ChallengeType.OOB,
+                    ChallengeType.PASSWORD,
+                    ChallengeType.REDIRECT,
+                ],
+                correlationId: "corr123",
+                scopes: [],
+            };
         });
 
         it("should return SignInMfaRequiredResult when MFA is required", async () => {
@@ -500,12 +582,14 @@ describe("SignInClient", () => {
     });
 
     describe("signInWithContinuationToken", () => {
-        it("should return SignInCompleteResult", async () => {
+        let signInContinuationTokenParams: SignInContinuationTokenParams;
+
+        beforeEach(() => {
             signInApiClient.requestTokenWithContinuationToken.mockResolvedValue(
                 TestServerTokenResponse
             );
 
-            const result = await client.signInWithContinuationToken({
+            signInContinuationTokenParams = {
                 continuationToken: "continuation_token_1",
                 username: "abc@test.com",
                 clientId: customAuthConfig.auth.clientId,
@@ -517,7 +601,13 @@ describe("SignInClient", () => {
                 correlationId: "corr123",
                 scopes: [],
                 signInScenario: SignInScenario.SignInAfterSignUp,
-            });
+            };
+        });
+
+        it("should return SignInCompleteResult", async () => {
+            const result = await client.signInWithContinuationToken(
+                signInContinuationTokenParams
+            );
 
             expect(result.correlationId).toBe(
                 TestServerTokenResponse.correlation_id
@@ -540,6 +630,31 @@ describe("SignInClient", () => {
             expect(result.authenticationResult.account).toBeDefined();
             expect(result.authenticationResult.account.username).toBe(
                 "abc@test.com"
+            );
+        });
+
+        it("should include claims in password token request", async () => {
+            const claims = JSON.stringify({
+                access_token: {
+                    acrs: {
+                        essential: true,
+                        value: "c1",
+                    },
+                },
+            });
+
+            signInContinuationTokenParams.claims = claims;
+            await client.signInWithContinuationToken(
+                signInContinuationTokenParams
+            );
+
+            // Verify that the API was called with claims
+            expect(
+                signInApiClient.requestTokenWithContinuationToken
+            ).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    claims: claims,
+                })
             );
         });
 

@@ -150,6 +150,9 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             scope: scopes.join(" "),
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
+            ...(parameters.claims && {
+                claims: parameters.claims,
+            }),
         };
 
         const result = this.performTokenRequest(
@@ -190,6 +193,9 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             scope: scopes.join(" "),
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
+            ...(parameters.claims && {
+                claims: parameters.claims,
+            }),
         };
 
         return this.performTokenRequest(
@@ -225,6 +231,9 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
             scope: scopes.join(" "),
+            ...(parameters.claims && {
+                claims: parameters.claims,
+            }),
         };
 
         // Call token endpoint.

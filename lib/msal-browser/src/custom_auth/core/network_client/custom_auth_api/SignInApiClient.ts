@@ -93,6 +93,7 @@ export class SignInApiClient extends BaseApiClient {
                 grant_type: GrantType.PASSWORD,
                 scope: params.scope,
                 password: params.password,
+                ...(params.claims && { claims: params.claims }),
             },
             params.telemetryManager,
             params.correlationId
@@ -108,6 +109,7 @@ export class SignInApiClient extends BaseApiClient {
                 scope: params.scope,
                 oob: params.oob,
                 grant_type: GrantType.OOB,
+                ...(params.claims && { claims: params.claims }),
             },
             params.telemetryManager,
             params.correlationId
@@ -124,6 +126,7 @@ export class SignInApiClient extends BaseApiClient {
                 scope: params.scope,
                 grant_type: GrantType.CONTINUATION_TOKEN,
                 client_info: true,
+                ...(params.claims && { claims: params.claims }),
             },
             params.telemetryManager,
             params.correlationId

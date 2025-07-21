@@ -33,6 +33,11 @@ describe("Sign in", () => {
     });
 
     afterEach(() => {
+        const activeUser = app.getAllAccounts();
+        if (activeUser.length > 0) {
+            app.clearCache();
+        }
+
         const controller = app[
             "customAuthController"
         ] as CustomAuthStandardController;
@@ -94,9 +99,6 @@ describe("Sign in", () => {
         expect(result.isCompleted()).toBe(true);
         expect(result.data).toBeDefined();
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
-
-        // Sign out the user for clean up the state for the other tests.
-        result.data?.signOut();
     });
 
     it("should sign in successfully if the challenge type is oob", async () => {
@@ -153,9 +155,6 @@ describe("Sign in", () => {
         expect(submitCodeResult).toBeDefined();
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitCodeResult);
         expect(submitCodeResult.data).toBeInstanceOf(CustomAuthAccountData);
-
-        // Sign out the user for clean up the state for the other tests.
-        submitCodeResult.data?.signOut();
     });
 
     it("should sign in successfully if the challenge type is password", async () => {
@@ -212,9 +211,6 @@ describe("Sign in", () => {
         expect(submitCodeResult).toBeDefined();
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitPasswordResult);
         expect(submitCodeResult.data).toBeInstanceOf(CustomAuthAccountData);
-
-        // Sign out the user for clean up the state for the other tests.
-        submitCodeResult.data?.signOut();
     });
 
     it("should sign in failed with error if the challenge type is redirect", async () => {
@@ -399,6 +395,65 @@ describe("Sign in", () => {
         expect(submitCodeResult.error?.isInvalidCode()).toBe(true);
     });
 
+    it("should sign in successfully if giving custom claims with password as the challenge type", async () => {
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return {
+                    continuation_token: "test-continuation-token-1",
+                    challenge_type: "oob password redirect",
+                };
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return {
+                    continuation_token: "test-continuation-token-2",
+                    challenge_type: "password",
+                };
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return TestServerTokenResponse;
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        const claims = JSON.stringify({
+            access_token: {
+                acrs: {
+                    essential: true,
+                    value: "c1",
+                },
+            },
+        });
+
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+            claims: claims,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isCompleted()).toBe(true);
+        expect(result.data).toBeDefined();
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
     it("should handle MFA required after signIn() and complete flow with requestChallenge() and submitChallenge()", async () => {
         // Step 1: Mock /oauth2/initiate - successful initiate
         (fetch as jest.Mock).mockResolvedValueOnce({
@@ -509,9 +564,6 @@ describe("Sign in", () => {
         expect(submitChallengeResult.data).toBeInstanceOf(
             CustomAuthAccountData
         );
-
-        // Clean up
-        submitChallengeResult.data?.signOut();
     });
 
     it("should handle MFA required after submitPassword() and complete flow", async () => {
@@ -627,9 +679,6 @@ describe("Sign in", () => {
         expect(submitChallengeResult.data).toBeInstanceOf(
             CustomAuthAccountData
         );
-
-        // Clean up
-        submitChallengeResult.data?.signOut();
     });
 
     it("should handle MFA with method selection when introspect is required", async () => {
@@ -792,9 +841,6 @@ describe("Sign in", () => {
         expect(submitChallengeResult.data).toBeInstanceOf(
             CustomAuthAccountData
         );
-
-        // Clean up
-        submitChallengeResult.data?.signOut();
     });
 
     it("should handle getAuthMethods() call in MfaVerificationRequiredState", async () => {
