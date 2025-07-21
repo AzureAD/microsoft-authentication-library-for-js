@@ -48,7 +48,7 @@ async function signIn(method) {
     if (signInType === "popup") {
         return myMSALObj.loginPopup({
             ...loginRequest,
-            redirectUri: "http://localhost:30662"
+            // redirectUri: "http://localhost:30662"
         }).then(handleResponse).catch(function (error) {
             console.log(error);
         });

@@ -42,9 +42,9 @@ app.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/l
 // }));
 
 app.use(express.static('app/', {
-    setHeaders: (res) => {
-      res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-    }
+    // setHeaders: (res) => {
+    //   res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    // }
 }));
 
 if (logHttpRequests) {
@@ -55,12 +55,12 @@ if (logHttpRequests) {
 // set up a route for redirect.html. When using popup and silent APIs, 
 // we recommend setting the redirectUri to a blank page or a page that does not implement MSAL.
 app.get("/redirect", function (req, res) {
-    res.sendFile(path.join(__dirname + "/redirect.html"));
+    res.sendFile(path.join(APP_DIR + "/redirect.html"));
 });
 
 // Set up a route for index.html.
 app.get('*', function (req, res) {
-    res.sendFile(path.join(__dirname + '/index.html'));
+    res.sendFile(path.join(APP_DIR + '/index.html'));
 });
 
 // Start the server.
