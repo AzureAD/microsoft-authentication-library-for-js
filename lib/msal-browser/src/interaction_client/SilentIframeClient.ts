@@ -341,7 +341,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         };
 
         let msalFrame: HTMLIFrameElement;
-        
+
         if (request.httpMethod === HttpMethod.POST) {
             msalFrame = await invokeAsync(
                 initiateCodeFlowWithPost,

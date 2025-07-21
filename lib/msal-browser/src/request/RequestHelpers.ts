@@ -8,7 +8,6 @@ import {
     AuthenticationScheme,
     BaseAuthRequest,
     ClientConfigurationErrorCodes,
-    CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
     HttpMethod,
     IPerformanceClient,
