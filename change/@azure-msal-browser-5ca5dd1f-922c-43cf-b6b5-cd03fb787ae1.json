@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix exception when using claims with Nested App Auth in JS Runtime environment (#7926)",
-  "packageName": "@azure/msal-browser",
-  "email": "dasau@microsoft.com",
-  "dependentChangeType": "patch"
-}
