@@ -45,10 +45,10 @@ function handleResponse(resp) {
 
 async function signIn(method) {
     signInType = isIE ? "redirect" : method;
-
     if (signInType === "popup") {
         return myMSALObj.loginPopup({
             ...loginRequest,
+            redirectUri: "/redirect"
         }).then(handleResponse).catch(function (error) {
             console.log(error);
         });
