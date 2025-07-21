@@ -30,28 +30,31 @@ Email OTP Strong auth: This is an authentication method that can be used within 
 
 1. signIn(email, password): Developers start the authentication process by calling the SDK’s signIn() method in the entry point.
 
-   1. This will call /oauth2/initiate, followed by /oauth2/challenge.
-   2. Once /challenge returns a “challenge_type=password”, indicating that a password is needed, the SDK sends the password to the /token endpoint.
-   3. /token will return an “mfa_required” error when MFA is needed.
+    1. This will call /oauth2/initiate, followed by /oauth2/challenge.
+    2. Once /challenge returns a “challenge_type=password”, indicating that a password is needed, the SDK sends the password to the /token endpoint.
+    3. /token will return an “mfa_required” error when MFA is needed.
 
 2. onAwaitingMFA: The SDK will return an onAwaitingMFA result back to the developer. This allows the developer to pause execution before sending the code to the user’s email, to for example build additional UI to inform the user.
 
 3. requestChallenge(): The developer calls requestChallenge(), triggering a challenge of the default auth method.
 
-   1. This will call the /oauth2/challenge endpoint.
-   2. eSTS will send an email with the OTP code to the user’s registered email address.
-   3. If no default auth method is available, the API will return an error “introspect_required”. If this error is received, the SDK will immediately call /introspect.
+    1. This will call the /oauth2/challenge endpoint.
+    2. eSTS will send an email with the OTP code to the user’s registered email address.
+    3. If no default auth method is available, the API will return an error “introspect_required”. If this error is received, the SDK will immediately call /introspect.
 
 4. getAuthMethods(): The developer has the option to call getAuthMethods(), to retrieve all auth methods of a user and build UI that allows the user to pick a different auth method.
-   1. This will call the /oauth2/introspect endpoint and return a list of all the available strong authentication methods for the user.
+
+    1. This will call the /oauth2/introspect endpoint and return a list of all the available strong authentication methods for the user.
 
 5. requestChallenge(challenge_id): The developer has the option to call requestChallenge(challenge_id), passing the ID from one of the auth methods received from getAuthMethods().
-   1. This will call /challenge with a specific auth method in the body of the request.
+
+    1. This will call /challenge with a specific auth method in the body of the request.
 
 6. submitChallenge(challenge): Once the code has been submitted by the user, the developer calls submitChallenge(challenge).
-   1. This will call the /token endpoint and submit the OTP. MFA requirements should now be satisfied, and the endpoint should return an HTTP 200 with tokens, completing the sign in flow.
+    1. This will call the /token endpoint and submit the OTP. MFA requirements should now be satisfied, and the endpoint should return an HTTP 200 with tokens, completing the sign in flow.
 
 ## Flow diagram
+
 [Sequence Diagram](MFA_EMAIL_OTP.png)
 
 ## Sample codes
@@ -62,7 +65,10 @@ Email OTP Strong auth: This is an authentication method that can be used within 
 // Create the client
 const client = await CustomAuthPublicClientApplication.create(customAuthConfig);
 
-async function signInWithPassword(username: string, password: string): Promise<CustomAuthAccountData | undefined> {
+async function signInWithPassword(
+    username: string,
+    password: string
+): Promise<CustomAuthAccountData | undefined> {
     // Start the sign-in process
     const result: SignInResult = await client.signIn({ username, password });
 
@@ -81,7 +87,8 @@ async function signInWithPassword(username: string, password: string): Promise<C
     if (result.isMfaRequired()) {
         // result.isMfaRequired() method will check the state in the result is MfaAwaitingState.
         // result.state.requestChallenge() method will be used to request the server to send the OTP to user by a default authentication method.
-        const mfaResult: MfaRequestChallengeResult = await result.state.requestChallenge();
+        const mfaResult: MfaRequestChallengeResult =
+            await result.state.requestChallenge();
 
         if (mfaResult.isFailed()) {
             // Handle errors
@@ -100,7 +107,8 @@ async function signInWithPassword(username: string, password: string): Promise<C
             // check where the OTP code is sent
             const sentTo = mfaResult.state.sentTo();
 
-            const submitChallengeResult: MfaSubmitChallengeResult = await mfaResult.state.submitChallenge(challenge);
+            const submitChallengeResult: MfaSubmitChallengeResult =
+                await mfaResult.state.submitChallenge(challenge);
 
             if (submitChallengeResult.isFailed()) {
                 // handle errors.
@@ -131,7 +139,8 @@ async function signInWithPassword(username: string, password: string): Promise<C
             // UI needs to show the auth methods to user and return the user's selection here.
             // for example: const selectedMethod = getUserSelectionFromUI();
 
-            const requestChallengeResult: MfaRequestChallengeResult = await mfaResult.state.requestChallenge(selectedMethod);
+            const requestChallengeResult: MfaRequestChallengeResult =
+                await mfaResult.state.requestChallenge(selectedMethod);
 
             if (requestChallengeResult.isFailed()) {
                 // Handle errors
@@ -140,7 +149,10 @@ async function signInWithPassword(username: string, password: string): Promise<C
             if (requestChallengeResult.isVerificationRequired()) {
                 // the challenge value used when calling submitChallenge method should be collected from users, the challenge can be an Email OTP.
 
-                const submitChallengeResult: MfaSubmitChallengeResult = await requestChallengeResult.state.submitChallenge(challenge);
+                const submitChallengeResult: MfaSubmitChallengeResult =
+                    await requestChallengeResult.state.submitChallenge(
+                        challenge
+                    );
 
                 if (submitChallengeResult.isFailed()) {
                     // handle errors.
@@ -149,7 +161,9 @@ async function signInWithPassword(username: string, password: string): Promise<C
                 if (submitChallengeResult.isCompleted()) {
                     // Success! Access account data
                     const account: CustomAuthAccountData = result.data;
-                    showSuccess(`Signed in as ${account.getAccount().username}`);
+                    showSuccess(
+                        `Signed in as ${account.getAccount().username}`
+                    );
                     return account;
                 }
             }
@@ -164,7 +178,10 @@ async function signInWithPassword(username: string, password: string): Promise<C
 // Create the client
 const client = await CustomAuthPublicClientApplication.create(customAuthConfig);
 
-async function signInWithPassword(username: string, password: string): Promise<CustomAuthAccountData | undefined> {
+async function signInWithPassword(
+    username: string,
+    password: string
+): Promise<CustomAuthAccountData | undefined> {
     // Start the sign-in process
     const result: SignInResult = await client.signIn({ username });
 
@@ -175,7 +192,9 @@ async function signInWithPassword(username: string, password: string): Promise<C
     // Password is required during the sign-in flow.
     if (result.isPasswordRequired()) {
         // result.isPasswordRequired() method checks the state in the result is SignInPasswordRequiredState.
-        const submitPasswordResult = await result.state.submitPassword(password);
+        const submitPasswordResult = await result.state.submitPassword(
+            password
+        );
 
         if (submitPasswordResult.isFailed()) {
             // Handle errors
@@ -191,14 +210,16 @@ async function signInWithPassword(username: string, password: string): Promise<C
         // Mfa is required during the sign-in flow.
         if (submitPasswordResult.isMfaRequired()) {
             // The logic inside this if block will be same as the sample codes in the section "How to handle MFA required scenario after calling CustomAuthPublicClientApplication.signIn()"
-            const mfaResult: MfaRequestChallengeResult = await result.state.requestChallenge();
+            const mfaResult: MfaRequestChallengeResult =
+                await result.state.requestChallenge();
 
             if (mfaResult.isFailed()) {
                 // Handle errors
             }
 
             if (mfaResult.isVerificationRequired()) {
-                const submitChallengeResult: MfaSubmitChallengeResult = await mfaResult.state.submitChallenge(challenge);
+                const submitChallengeResult: MfaSubmitChallengeResult =
+                    await mfaResult.state.submitChallenge(challenge);
 
                 if (submitChallengeResult.isFailed()) {
                     // handle errors.
@@ -207,7 +228,9 @@ async function signInWithPassword(username: string, password: string): Promise<C
                 if (submitChallengeResult.isCompleted()) {
                     // Success! Access account data
                     const account: CustomAuthAccountData = result.data;
-                    showSuccess(`Signed in as ${account.getAccount().username}`);
+                    showSuccess(
+                        `Signed in as ${account.getAccount().username}`
+                    );
                     return account;
                 }
             }

@@ -1,6 +1,7 @@
 # AI Testing Instructions for Custom Authentication
 
 ## Overview
+
 This document provides detailed guidance for writing, organizing, and running tests for the Custom Authentication feature in MSAL Browser.
 
 ---
@@ -8,25 +9,29 @@ This document provides detailed guidance for writing, organizing, and running te
 ## Unit Tests
 
 ### Structure & Location
-- All unit tests for Custom Authentication are located in `lib/msal-browser/test/custom_auth/` and its subfolders.
-- Tests are organized to mirror the folder structure of the feature code in `src/custom_auth/` (e.g., `sign_in/`, `sign_up/`, `reset_password/`, `get_account/`, `controller/`, `core/`, etc.).
-- Each major state, result, error, and client class has a dedicated test file (e.g., `SignInPasswordRequiredState.spec.ts`, `SignInError.spec.ts`).
-- The `integration_tests` folder is reserved for integration tests and should not be used for unit tests.
-- The `test_resources` folder is used for reusable test utilities, constants, and test configuration shared across tests.
+
+-   All unit tests for Custom Authentication are located in `lib/msal-browser/test/custom_auth/` and its subfolders.
+-   Tests are organized to mirror the folder structure of the feature code in `src/custom_auth/` (e.g., `sign_in/`, `sign_up/`, `reset_password/`, `get_account/`, `controller/`, `core/`, etc.).
+-   Each major state, result, error, and client class has a dedicated test file (e.g., `SignInPasswordRequiredState.spec.ts`, `SignInError.spec.ts`).
+-   The `integration_tests` folder is reserved for integration tests and should not be used for unit tests.
+-   The `test_resources` folder is used for reusable test utilities, constants, and test configuration shared across tests.
 
 ### Coverage Target
-- The target test coverage for this feature is **greater than 85%**. Use coverage reports to monitor and address any gaps.
+
+-   The target test coverage for this feature is **greater than 85%**. Use coverage reports to monitor and address any gaps.
 
 ### Best Practices
-- Use Jest for all unit tests.
-- Mock dependencies to isolate units under test, but **do not mock any components outside the native auth feature** (i.e., outside `custom_auth`). For such components, create real test objects as shown in `test_resources/TestModules.ts`.
-- Follow Arrange-Act-Assert (AAA) structure for clarity.
-- Test all public methods, state transitions, and error scenarios (including edge cases and invalid input).
-- Ensure all error helper methods are covered.
-- Keep tests deterministic and repeatable.
-- Use descriptive test names and document complex scenarios in comments.
+
+-   Use Jest for all unit tests.
+-   Mock dependencies to isolate units under test, but **do not mock any components outside the native auth feature** (i.e., outside `custom_auth`). For such components, create real test objects as shown in `test_resources/TestModules.ts`.
+-   Follow Arrange-Act-Assert (AAA) structure for clarity.
+-   Test all public methods, state transitions, and error scenarios (including edge cases and invalid input).
+-   Ensure all error helper methods are covered.
+-   Keep tests deterministic and repeatable.
+-   Use descriptive test names and document complex scenarios in comments.
 
 ### Example Test File Structure
+
 ```text
 lib/msal-browser/test/custom_auth/
   ├── CustomAuthPublicClientApplication.spec.ts
@@ -42,6 +47,7 @@ lib/msal-browser/test/custom_auth/
 ```
 
 ### Running Unit Tests
+
 To run all unit tests for Custom Authentication (and the full MSAL Browser project), use the following command from the project root:
 
 ```sh
@@ -54,4 +60,4 @@ This will execute all tests, including those in `lib/msal-browser/test/custom_au
 
 ## E2E Tests
 
-*To be added.*
+_To be added._
