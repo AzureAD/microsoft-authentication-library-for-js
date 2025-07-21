@@ -337,7 +337,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 interactionRequest,
                 this.config.auth.protocolMode
             ),
-        }
+        };
 
         // Skip active account lookup if either login hint or session id is set
         if (request.loginHint || request.sid) {

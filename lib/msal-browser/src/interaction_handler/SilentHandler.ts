@@ -84,7 +84,7 @@ export async function initiateCodeFlowWithPost(
     );
     form.submit();
     return frame;
-};
+}
 
 export async function initiateEarRequest(
     config: BrowserConfiguration,

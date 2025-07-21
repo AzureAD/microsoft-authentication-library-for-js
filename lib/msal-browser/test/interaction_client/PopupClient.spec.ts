@@ -936,7 +936,9 @@ describe("PopupClient", () => {
                     httpMethod: HttpMethod.GET,
                 };
 
-                await expect(pca.acquireTokenPopup(validRequest)).rejects.toThrow(
+                await expect(
+                    pca.acquireTokenPopup(validRequest)
+                ).rejects.toThrow(
                     createClientConfigurationError(
                         ClientConfigurationErrorCodes.invalidRequestMethodForEAR
                     )

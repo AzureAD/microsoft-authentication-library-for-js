@@ -1785,7 +1785,9 @@ describe("RedirectClient", () => {
                 authenticationScheme: AuthenticationScheme.SSH,
             };
 
-            await expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
+            await expect(
+                redirectClient.acquireToken(loginRequest)
+            ).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
                 )
@@ -1823,7 +1825,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 httpMethod: HttpMethod.GET,
                 authorizePostBodyParameters: {
-                   testParam: "testValue",
+                    testParam: "testValue",
                 },
             };
 
