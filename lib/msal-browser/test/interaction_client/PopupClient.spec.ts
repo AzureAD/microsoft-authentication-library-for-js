@@ -195,7 +195,7 @@ describe("PopupClient", () => {
                 responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
                 nonce: "",
                 authenticationScheme: AuthenticationScheme.BEARER,
-                httpMethod: "GET",
+                httpMethod: HttpMethod.GET,
                 authorizePostBodyParameters: {
                     testAssertion: "testValue",
                 },
