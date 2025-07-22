@@ -36,6 +36,7 @@ import {
 } from "../utils/BrowserConstants.js";
 import {
     initiateCodeRequest,
+    initiateCodeFlowWithPost,
     initiateEarRequest,
     monitorIframeForHash,
 } from "../interaction_handler/SilentHandler.js";
@@ -357,29 +358,48 @@ export class SilentIframeClient extends StandardInteractionClient {
             ...request,
             codeChallenge: pkceCodes.challenge,
         };
-        // Create authorize request url
-        const navigateUrl = await invokeAsync(
-            Authorize.getAuthCodeRequestUrl,
-            PerformanceEvents.GetAuthCodeUrl,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            this.config,
-            authClient.authority,
-            silentRequest,
-            this.logger,
-            this.performanceClient
-        );
 
-        // Get the frame handle for the silent request
-        const msalFrame = await invokeAsync(
-            initiateCodeRequest,
-            BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(navigateUrl, this.performanceClient, this.logger, correlationId);
+        let msalFrame: HTMLIFrameElement;
+
+        if (request.httpMethod === Constants.HttpMethod.POST) {
+            msalFrame = await invokeAsync(
+                initiateCodeFlowWithPost,
+                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                this.config,
+                authClient.authority,
+                silentRequest,
+                this.logger,
+                this.performanceClient
+            );
+        } else {
+            // Create authorize request url
+            const navigateUrl = await invokeAsync(
+                Authorize.getAuthCodeRequestUrl,
+                PerformanceEvents.GetAuthCodeUrl,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                this.config,
+                authClient.authority,
+                silentRequest,
+                this.logger,
+                this.performanceClient
+            );
+
+            // Get the frame handle for the silent request
+            msalFrame = await invokeAsync(
+                initiateCodeRequest,
+                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(navigateUrl, this.performanceClient, this.logger, correlationId);
+        }
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.

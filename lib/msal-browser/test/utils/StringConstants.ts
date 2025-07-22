@@ -624,3 +624,7 @@ export const PlatformDOMTestErrorResponseObject = {
         protocolError: "",
     },
 };
+
+export const TEST_AUTHORIZE_BODY_PARAMS = {
+    assertionName: "testAssertionName",
+};
