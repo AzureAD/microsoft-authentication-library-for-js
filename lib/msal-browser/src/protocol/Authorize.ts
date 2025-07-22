@@ -211,6 +211,54 @@ export async function getEARForm(
 }
 
 /**
+ * Gets the form that will be posted to /authorize with request parameters when using POST method
+ */
+export async function getCodeForm(
+    frame: Document,
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLFormElement> {
+    const parameters = await getStandardParameters(
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+
+    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
+
+    RequestParameterBuilder.addCodeChallengeParams(
+        parameters,
+        request.codeChallenge,
+        request.codeChallengeMethod || Constants.S256_CODE_CHALLENGE_METHOD
+    );
+
+    RequestParameterBuilder.addPostBodyParameters(
+        parameters,
+        request.authorizePostBodyParameters || {}
+    );
+
+    const queryParams = new Map<string, string>();
+    RequestParameterBuilder.addExtraQueryParameters(
+        queryParams,
+        request.extraQueryParameters || {}
+    );
+
+    const url = AuthorizeProtocol.getAuthorizeUrl(
+        authority,
+        queryParams,
+        config.auth.encodeExtraQueryParams,
+        request.extraQueryParameters
+    );
+
+    return createForm(frame, url, parameters);
+}
+
+/**
  * Creates form element in the provided document with auth parameters in the post body
  * @param frame
  * @param authorizeUrl
