@@ -769,7 +769,9 @@ describe("PopupClient", () => {
                 RANDOM_TEST_GUID
             );
 
-            const postCodeFlowSpy = jest.spyOn(PopupClient.prototype, "executeCodeFlowWithPost").mockResolvedValue(testTokenResponse);
+            const postCodeFlowSpy = jest
+                .spyOn(PopupClient.prototype, "executeCodeFlowWithPost")
+                .mockResolvedValue(testTokenResponse);
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
