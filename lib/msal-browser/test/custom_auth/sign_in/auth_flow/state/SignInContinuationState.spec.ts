@@ -1,4 +1,3 @@
-import { Logger } from "@azure/msal-browser";
 import { CustomAuthAccountData } from "../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthBrowserConfiguration } from "../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { SignInError } from "../../../../../src/custom_auth/sign_in/auth_flow/error_type/SignInError.js";
@@ -8,6 +7,7 @@ import { createSignInCompleteResult } from "../../../../../src/custom_auth/sign_
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { SignInScenario } from "../../../../../src/custom_auth/sign_in/auth_flow/SignInScenario.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("SignInContinuationState", () => {
     const mockConfig = {
@@ -18,13 +18,6 @@ describe("SignInContinuationState", () => {
     const mockSignInClient = {
         signInWithContinuationToken: jest.fn(),
     } as unknown as jest.Mocked<SignInClient>;
-
-    const mockLogger = {
-        info: jest.fn(),
-        verbose: jest.fn(),
-        error: jest.fn(),
-        errorPii: jest.fn(),
-    } as unknown as jest.Mocked<Logger>;
 
     const mockCacheClient =
         {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
@@ -41,7 +34,7 @@ describe("SignInContinuationState", () => {
             signInClient: mockSignInClient,
             cacheClient: mockCacheClient,
             correlationId: correlationId,
-            logger: mockLogger,
+            logger: getDefaultLogger(),
             continuationToken: continuationToken,
             config: mockConfig,
             signInScenario: SignInScenario.SignInAfterSignUp,

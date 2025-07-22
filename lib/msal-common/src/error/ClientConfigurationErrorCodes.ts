@@ -9,7 +9,6 @@ export const authorityUriInsecure = "authority_uri_insecure";
 export const urlParseError = "url_parse_error";
 export const urlEmptyError = "empty_url_error";
 export const emptyInputScopesError = "empty_input_scopes_error";
-export const invalidPromptValue = "invalid_prompt_value";
 export const invalidClaims = "invalid_claims";
 export const tokenRequestEmpty = "token_request_empty";
 export const logoutRequestEmpty = "logout_request_empty";
@@ -26,3 +25,6 @@ export const invalidAuthenticationHeader = "invalid_authentication_header";
 export const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 export const cannotAllowPlatformBroker = "cannot_allow_platform_broker";
 export const authorityMismatch = "authority_mismatch";
+export const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
+export const invalidAuthorizePostBodyParameters =
+    "invalid_authorize_post_body_parameters";

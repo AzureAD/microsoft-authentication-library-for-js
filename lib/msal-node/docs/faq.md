@@ -39,7 +39,7 @@ Yes. Please refer to [MSAL Node samples](https://github.com/AzureAD/microsoft-au
 
 ### Is interactive flow supported?
 
-Currently No. Authentication for MSAL Node using authorization code grant is a two legged flow, as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/request.md). There are plans to provide a single API to achieve this, and invoke the browser on the user's behalf. However it is currently not supported.
+Yes, there is an all-in-one `acquireTokenInteractive` API available for `PublicClientApplication` scenarios. Please read more about this API [here](./request.md#acquireTokenInteractive)
 
 ### Are SPAs supported by MSAL Node?
 
