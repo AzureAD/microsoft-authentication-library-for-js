@@ -457,7 +457,7 @@ export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
     extExpiresOn: new Date(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
     familyId: "",
     fromCache: false,
-    fromNativeBroker: false,
+    fromPlatformBroker: false,
     idToken: "",
     idTokenClaims: {},
     msGraphHost: "",
