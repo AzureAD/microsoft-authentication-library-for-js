@@ -632,3 +632,19 @@ export function addEARParameters(
     const jweCryptoB64Encoded = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0";
     parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
 }
+
+/**
+ * Adds authorize body parameters to the request parameters
+ * @param parameters
+ * @param bodyParameters
+ */
+export function addPostBodyParameters(
+    parameters: Map<string, string>,
+    bodyParameters: StringDict
+): void {
+    Object.entries(bodyParameters).forEach(([key, value]) => {
+        if (value) {
+            parameters.set(key, value);
+        }
+    });
+}
