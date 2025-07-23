@@ -10,6 +10,7 @@ const msalConfig = {
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
     system: {
+        asyncPopups: false, // Set to true to enable the use of async popups for authentication
         loggerOptions: {
             logLevel: msal.LogLevel.Trace,
             loggerCallback: (level, message, containsPii) => {

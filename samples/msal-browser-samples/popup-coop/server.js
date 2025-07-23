@@ -33,18 +33,11 @@ let logHttpRequests = true;
 // Set the front-end folder to serve public assets.
 app.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
 
-// app.use(express.static('app/'));
-
-// app.use(express.static('app/', {
-//     setHeaders: (res) => {
-//       res.set('Cross-Origin-Opener-Policy', 'same-origin');
-//     }
-// }));
 
 app.use(express.static('app/', {
-    // setHeaders: (res) => {
-    //   res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-    // }
+    setHeaders: (res) => {
+      res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    }
 }));
 
 if (logHttpRequests) {
