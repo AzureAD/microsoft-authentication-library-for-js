@@ -998,7 +998,7 @@ export class StandardController implements IController {
                 );
                 this.ssoSilentMeasurement?.end({
                     success: true,
-                    isNativeBroker: response.fromNativeBroker,
+                    isNativeBroker: response.fromPlatformBroker,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
                     accountType: getAccountType(response.account),
@@ -1082,7 +1082,7 @@ export class StandardController implements IController {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.end({
                                 success: true,
-                                isNativeBroker: result.fromNativeBroker,
+                                isNativeBroker: result.fromPlatformBroker,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                                 accountType: getAccountType(result.account),
@@ -1200,7 +1200,7 @@ export class StandardController implements IController {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
-                    isNativeBroker: response.fromNativeBroker,
+                    isNativeBroker: response.fromPlatformBroker,
                 });
                 return response;
             })
@@ -1500,7 +1500,7 @@ export class StandardController implements IController {
             result.correlationId
         );
 
-        if (result.fromNativeBroker) {
+        if (result.fromPlatformBroker) {
             this.logger.verbose(
                 "Response was from native broker, storing in-memory"
             );
@@ -1930,7 +1930,7 @@ export class StandardController implements IController {
                 atsMeasurement.end({
                     success: true,
                     fromCache: result.fromCache,
-                    isNativeBroker: result.fromNativeBroker,
+                    isNativeBroker: result.fromPlatformBroker,
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
                 });
@@ -2164,7 +2164,7 @@ export class StandardController implements IController {
                     this.performanceClient.addFields(
                         {
                             fromCache: response.fromCache,
-                            isNativeBroker: response.fromNativeBroker,
+                            isNativeBroker: response.fromPlatformBroker,
                         },
                         request.correlationId
                     );

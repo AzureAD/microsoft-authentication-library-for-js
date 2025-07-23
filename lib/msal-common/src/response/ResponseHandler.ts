@@ -588,7 +588,7 @@ export class ResponseHandler {
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
             msGraphHost: cacheRecord.account?.msGraphHost || "",
             code: serverTokenResponse?.spa_code,
-            fromNativeBroker: false,
+            fromPlatformBroker: false,
         };
     }
 }

@@ -711,7 +711,7 @@ describe("SilentIframeClient", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
-                fromNativeBroker: false,
+                fromPlatformBroker: false,
                 code: undefined,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 expiresOn: TestTimeUtils.calculateExpiresDate(

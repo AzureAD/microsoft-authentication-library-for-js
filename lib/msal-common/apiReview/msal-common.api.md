@@ -571,7 +571,7 @@ export type AuthenticationResult = {
     cloudGraphHostName?: string;
     msGraphHost?: string;
     code?: string;
-    fromNativeBroker?: boolean;
+    fromPlatformBroker?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "AuthenticationScheme" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
