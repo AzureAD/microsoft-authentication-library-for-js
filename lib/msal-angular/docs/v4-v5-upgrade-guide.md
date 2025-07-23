@@ -13,3 +13,7 @@ See the [guide to redirects](https://github.com/AzureAD/microsoft-authentication
 ### `inject(TOKEN)` syntax
 
 `MSAL_INSTANCE`, `MSAL_GUARD_CONFIG`, `MSAL_INTERCEPTOR_CONFIG`, and `MSAL_BROADCAST_CONFIG` now resolve to types instead of strings in order to support `inject(TOKEN)` syntax. This change may cause TypeScript errors in applications without explicit typing.
+
+### `logout()`
+
+`logout()` has been removed. Please use `logoutRedirect()` or `logoutPopup()` instead.
