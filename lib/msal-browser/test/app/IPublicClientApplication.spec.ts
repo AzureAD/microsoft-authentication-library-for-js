@@ -4,8 +4,11 @@
  */
 
 import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication";
-import { BrowserConfigurationAuthErrorMessage } from "../../src/error/BrowserConfigurationAuthError";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import {
+    BrowserAuthError,
+    getDefaultErrorMessage,
+} from "../../src/error/BrowserAuthError.js";
+import { BrowserConfigurationAuthErrorCodes } from "../../src/error/BrowserConfigurationAuthError.js";
 
 describe("IPublicClientApplication.ts Class Unit Tests", () => {
     describe("stubbedPublicClientApplication tests", () => {
@@ -14,12 +17,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                 .acquireTokenPopup({ scopes: ["openid"] })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserConfigurationAuthErrorMessage
-                            .stubPcaInstanceCalled.code
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserConfigurationAuthErrorMessage
-                            .stubPcaInstanceCalled.desc
+                        getDefaultErrorMessage(
+                            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                        )
                     );
                     done();
                 });
@@ -30,12 +33,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                 .acquireTokenRedirect({ scopes: ["openid"] })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserConfigurationAuthErrorMessage
-                            .stubPcaInstanceCalled.code
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserConfigurationAuthErrorMessage
-                            .stubPcaInstanceCalled.desc
+                        getDefaultErrorMessage(
+                            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                        )
                     );
                     done();
                 });
@@ -46,12 +49,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                 .acquireTokenSilent({ scopes: ["openid"] })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserConfigurationAuthErrorMessage
-                            .stubPcaInstanceCalled.code
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserConfigurationAuthErrorMessage
-                            .stubPcaInstanceCalled.desc
+                        getDefaultErrorMessage(
+                            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                        )
                     );
                     done();
                 });
@@ -61,12 +64,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                 .handleRedirectPromise()
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserConfigurationAuthErrorMessage
-                            .stubPcaInstanceCalled.code
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserConfigurationAuthErrorMessage
-                            .stubPcaInstanceCalled.desc
+                        getDefaultErrorMessage(
+                            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                        )
                     );
                     done();
                 });
@@ -75,12 +78,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
         it("loginPopup throws", (done) => {
             stubbedPublicClientApplication.loginPopup().catch((e) => {
                 expect(e.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .code
+                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .desc
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
@@ -89,26 +92,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
         it("loginRedirect throws", (done) => {
             stubbedPublicClientApplication.loginRedirect().catch((e) => {
                 expect(e.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .code
+                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .desc
-                );
-                done();
-            });
-        });
-
-        it("logout throws", (done) => {
-            stubbedPublicClientApplication.logout().catch((e) => {
-                expect(e.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .code
-                );
-                expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .desc
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
@@ -117,12 +106,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
         it("logoutRedirect throws", (done) => {
             stubbedPublicClientApplication.logoutRedirect().catch((e) => {
                 expect(e.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .code
+                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .desc
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
@@ -131,12 +120,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
         it("logoutPopup throws", (done) => {
             stubbedPublicClientApplication.logoutPopup().catch((e) => {
                 expect(e.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .code
+                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .desc
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
@@ -145,31 +134,15 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
         it("ssoSilent throws", (done) => {
             stubbedPublicClientApplication.ssoSilent({}).catch((e) => {
                 expect(e.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .code
+                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(e.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .desc
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
                 done();
             });
-        });
-
-        it("getTokenCache throws", () => {
-            try {
-                stubbedPublicClientApplication.getTokenCache();
-            } catch (e) {
-                const browserAuthError = e as BrowserAuthError;
-                expect(browserAuthError.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .code
-                );
-                expect(browserAuthError.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .desc
-                );
-            }
         });
 
         it("getLogger throws", () => {
@@ -178,12 +151,12 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {
                 const browserAuthError = e as BrowserAuthError;
                 expect(browserAuthError.errorCode).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .code
+                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
                 );
                 expect(browserAuthError.errorMessage).toEqual(
-                    BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled
-                        .desc
+                    getDefaultErrorMessage(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    )
                 );
             }
         });

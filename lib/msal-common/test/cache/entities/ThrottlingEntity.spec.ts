@@ -4,14 +4,14 @@
  */
 
 import { CacheHelpers } from "../../../src";
-import { ThrottlingConstants, Separators } from "../../../src/utils/Constants";
+import * as Constants from "../../../src/utils/Constants.js";
 import { TEST_CONFIG } from "../../test_kit/StringConstants";
 
 describe("ThrottlingEntity", () => {
     describe("isThrottlingEntity", () => {
         const key =
-            ThrottlingConstants.THROTTLING_PREFIX +
-            Separators.CACHE_KEY_SEPARATOR +
+            Constants.THROTTLING_PREFIX +
+            Constants.CACHE_KEY_SEPARATOR +
             TEST_CONFIG.MSAL_CLIENT_ID;
         it("Verifies if an object is a ThrottlingEntity", () => {
             const throttlingObject = {

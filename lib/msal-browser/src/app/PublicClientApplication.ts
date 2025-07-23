@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -11,7 +10,10 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
-import { IController } from "../controllers/IController.js";
+import {
+    HandleRedirectPromiseOptions,
+    IController,
+} from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
@@ -42,6 +44,7 @@ import { EventType } from "../event/EventType.js";
  */
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
+    protected isBroker: boolean = false;
 
     /**
      * Creates StandardController and passes it to the PublicClientApplication
@@ -92,7 +95,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request {?InitializeApplicationRequest}
      */
     async initialize(request?: InitializeApplicationRequest): Promise<void> {
-        return this.controller.initialize(request);
+        return this.controller.initialize(request, this.isBroker);
     }
 
     /**
@@ -190,63 +193,12 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
-     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     */
-    enableAccountStorageEvents(): void {
-        this.controller.enableAccountStorageEvents();
-    }
-
-    /**
-     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     */
-    disableAccountStorageEvents(): void {
-        this.controller.disableAccountStorageEvents();
-    }
-
-    /**
      * Returns the first account found in the cache that matches the account filter passed in.
      * @param accountFilter
      * @returns The first account found in the cache matching the provided filter or null if no account could be found.
      */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
         return this.controller.getAccount(accountFilter);
-    }
-
-    /**
-     * Returns the signed in account matching homeAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param homeAccountId
-     * @returns The account object stored in MSAL
-     * @deprecated - Use getAccount instead
-     */
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return this.controller.getAccountByHomeId(homeAccountId);
-    }
-
-    /**
-     * Returns the signed in account matching localAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param localAccountId
-     * @returns The account object stored in MSAL
-     * @deprecated - Use getAccount instead
-     */
-    getAccountByLocalId(localId: string): AccountInfo | null {
-        return this.controller.getAccountByLocalId(localId);
-    }
-
-    /**
-     * Returns the signed in account matching username.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found.
-     * This API is provided for convenience but getAccountById should be used for best reliability
-     * @param userName
-     * @returns The account object stored in MSAL
-     * @deprecated - Use getAccount instead
-     */
-    getAccountByUsername(userName: string): AccountInfo | null {
-        return this.controller.getAccountByUsername(userName);
     }
 
     /**
@@ -263,12 +215,13 @@ export class PublicClientApplication implements IPublicClientApplication {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @param options Object containing optional configuration for redirect promise handling.
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(
-        hash?: string | undefined
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        return this.controller.handleRedirectPromise(hash);
+        return this.controller.handleRedirectPromise(options);
     }
 
     /**
@@ -295,15 +248,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
         return this.controller.loginRedirect(request);
-    }
-
-    /**
-     * Deprecated logout function. Use logoutRedirect or logoutPopup instead
-     * @param logoutRequest
-     * @deprecated
-     */
-    logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        return this.controller.logout(logoutRequest);
     }
 
     /**
@@ -340,13 +284,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         return this.controller.ssoSilent(request);
-    }
-
-    /**
-     * Gets the token cache for the application.
-     */
-    getTokenCache(): ITokenCache {
-        return this.controller.getTokenCache();
     }
 
     /**

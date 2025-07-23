@@ -1,14 +1,11 @@
 import { FetchClient } from "../../src/network/FetchClient";
 import { HTTP_REQUEST_TYPE } from "../../src/utils/BrowserConstants";
 import {
-    Constants,
     NetworkError,
     NetworkRequestOptions,
+    Constants,
 } from "@azure/msal-common";
-import {
-    BrowserAuthErrorMessage,
-    BrowserAuthError,
-} from "../../src/error/BrowserAuthError";
+import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
 const mockResponse: Response = {
     headers: new Headers(),
@@ -140,10 +137,11 @@ describe("FetchClient.ts Unit Tests", () => {
             fetchClient
                 .sendPostRequestAsync<any>(targetUri, requestOptions)
                 .catch((e) => {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toBeInstanceOf(NetworkError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.postRequestFailed.code
+                        BrowserAuthErrorCodes.postRequestFailed
                     );
+                    expect(e.errorMessage).toContain(`additionalErrorInfo:`);
                     done();
                 });
         });
@@ -161,10 +159,11 @@ describe("FetchClient.ts Unit Tests", () => {
                 );
 
             fetchClient.sendGetRequestAsync<any>(targetUri).catch((e) => {
-                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e).toBeInstanceOf(NetworkError);
                 expect(e.errorCode).toBe(
-                    BrowserAuthErrorMessage.getRequestFailed.code
+                    BrowserAuthErrorCodes.getRequestFailed
                 );
+                expect(e.errorMessage).toContain(`additionalErrorInfo:`);
                 done();
             });
         });
@@ -195,11 +194,10 @@ describe("FetchClient.ts Unit Tests", () => {
                 .sendPostRequestAsync<any>(targetUri, requestOptions)
                 .catch((e) => {
                     expect(e).toBeInstanceOf(NetworkError);
-                    expect(e.error).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.failedToParseNetworkResponse
-                            .code
+                        BrowserAuthErrorCodes.failedToParseResponse
                     );
+                    expect(e.errorMessage).toContain(`additionalErrorInfo:`);
                     done();
                 });
         });
@@ -235,10 +233,11 @@ describe("FetchClient.ts Unit Tests", () => {
             fetchClient
                 .sendPostRequestAsync<any>(targetUri, requestOptions)
                 .catch((e) => {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toBeInstanceOf(NetworkError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.noNetworkConnectivity.code
+                        BrowserAuthErrorCodes.noNetworkConnectivity
                     );
+                    expect(e.errorMessage).toContain(`additionalErrorInfo:`);
                     done();
                 });
         });

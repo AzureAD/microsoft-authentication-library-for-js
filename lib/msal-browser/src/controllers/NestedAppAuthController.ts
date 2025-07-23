@@ -12,16 +12,15 @@ import {
     ICrypto,
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    PerformanceEvents,
     TimeUtils,
     buildStaticAuthorityOptions,
-    AccountEntity,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     BaseAuthRequest,
     AccountFilter,
     AuthError,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
-import { ITokenCache } from "../cache/ITokenCache.js";
+import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
@@ -38,7 +37,7 @@ import {
     DEFAULT_REQUEST,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
-import { IController } from "./IController.js";
+import { IController, HandleRedirectPromiseOptions } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -57,7 +56,6 @@ import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-
 export class NestedAppAuthController implements IController {
     // OperatingContext
     protected readonly operatingContext: NestedAppOperatingContext;
@@ -159,7 +157,11 @@ export class NestedAppAuthController implements IController {
      * Specific implementation of initialize function for NestedAppAuthController
      * @returns
      */
-    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+    async initialize(
+        request?: InitializeApplicationRequest,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        isBroker?: boolean
+    ): Promise<void> {
         const initCorrelationId = request?.correlationId || createNewGuid();
         await this.browserStorage.initialize(initCorrelationId);
         return Promise.resolve();
@@ -203,7 +205,7 @@ export class NestedAppAuthController implements IController {
         );
 
         const atPopupMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenPopup,
+            RootPerformanceEvents.AcquireTokenPopup,
             validRequest.correlationId
         );
 
@@ -302,7 +304,7 @@ export class NestedAppAuthController implements IController {
 
         // proceed with acquiring tokens via the host
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.SsoSilent,
+            RootPerformanceEvents.SsoSilent,
             validRequest.correlationId
         );
 
@@ -381,7 +383,7 @@ export class NestedAppAuthController implements IController {
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
         const atsMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
+            RootPerformanceEvents.AcquireTokenSilent,
             request.correlationId
         );
 
@@ -437,7 +439,7 @@ export class NestedAppAuthController implements IController {
             return result;
         }
 
-        this.logger.error(
+        this.logger.warning(
             "Cached tokens are not found for the account, proceeding with silent token request."
         );
 
@@ -464,12 +466,14 @@ export class NestedAppAuthController implements IController {
         // always prioritize the account context from the bridge
         const accountContext =
             this.bridgeProxy.getAccountContext() || this.currentAccountContext;
+        const correlationId = request.correlationId || createNewGuid();
         let currentAccount: AccountInfo | null = null;
         if (accountContext) {
             currentAccount = AccountManager.getAccount(
                 accountContext,
                 this.logger,
-                this.browserStorage
+                this.browserStorage,
+                correlationId
             );
         }
 
@@ -487,12 +491,11 @@ export class NestedAppAuthController implements IController {
 
         const authRequest: BaseAuthRequest = {
             ...request,
-            correlationId:
-                request.correlationId || this.browserCrypto.createNewGuid(),
+            correlationId: correlationId,
             authority: request.authority || currentAccount.environment,
             scopes: request.scopes?.length
                 ? request.scopes
-                : [...OIDC_DEFAULT_SCOPES],
+                : [...Constants.OIDC_DEFAULT_SCOPES],
         };
 
         // fetch access token and check for expiry
@@ -501,9 +504,7 @@ export class NestedAppAuthController implements IController {
             currentAccount,
             authRequest,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         // If there is no access token, log it and return null
@@ -523,10 +524,9 @@ export class NestedAppAuthController implements IController {
 
         const cachedIdToken = this.browserStorage.getIdToken(
             currentAccount,
+            authRequest.correlationId,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         if (!cachedIdToken) {
@@ -599,6 +599,7 @@ export class NestedAppAuthController implements IController {
                       CommonAuthorizationUrlRequest,
                       | "requestedClaimsHash"
                       | "responseMode"
+                      | "earJwk"
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "platformBroker"
@@ -653,14 +654,6 @@ export class NestedAppAuthController implements IController {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
-    enableAccountStorageEvents(): void {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    disableAccountStorageEvents(): void {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
     // #region Account APIs
 
     /**
@@ -673,6 +666,7 @@ export class NestedAppAuthController implements IController {
             this.logger,
             this.browserStorage,
             this.isBrowserEnv(),
+            createNewGuid(),
             accountFilter
         );
     }
@@ -686,7 +680,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccount(
             accountFilter,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -702,7 +697,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccountByUsername(
             username,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -717,7 +713,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccountByHomeId(
             homeAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -732,7 +729,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccountByLocalId(
             localAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -745,20 +743,27 @@ export class NestedAppAuthController implements IController {
          * StandardController uses this to allow the developer to set the active account
          * in the nested app auth scenario the active account is controlled by the app hosting the nested app
          */
-        return AccountManager.setActiveAccount(account, this.browserStorage);
+        return AccountManager.setActiveAccount(
+            account,
+            this.browserStorage,
+            createNewGuid()
+        );
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return AccountManager.getActiveAccount(this.browserStorage);
+        return AccountManager.getActiveAccount(
+            this.browserStorage,
+            createNewGuid()
+        );
     }
 
     // #endregion
 
     handleRedirectPromise(
-        hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        options?: HandleRedirectPromiseOptions // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {
         return Promise.resolve(null);
     }
@@ -769,10 +774,6 @@ export class NestedAppAuthController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    logout(logoutRequest?: EndSessionRequest | undefined): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }
     logoutRedirect(
@@ -792,6 +793,7 @@ export class NestedAppAuthController implements IController {
                 CommonAuthorizationUrlRequest,
                 | "requestedClaimsHash"
                 | "responseMode"
+                | "earJwk"
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "platformBroker"
@@ -799,9 +801,6 @@ export class NestedAppAuthController implements IController {
         >
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(request as SilentRequest);
-    }
-    getTokenCache(): ITokenCache {
-        throw NestedAppAuthError.createUnsupportedError();
     }
 
     /**
@@ -870,11 +869,12 @@ export class NestedAppAuthController implements IController {
     ): Promise<void> {
         this.logger.verbose("hydrateCache called");
 
-        const accountEntity = AccountEntity.createFromAccountInfo(
-            result.account,
-            result.cloudGraphHostName,
-            result.msGraphHost
-        );
+        const accountEntity =
+            AccountEntityUtils.createAccountEntityFromAccountInfo(
+                result.account,
+                result.cloudGraphHostName,
+                result.msGraphHost
+            );
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId

@@ -12,8 +12,8 @@
  * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable. We strongly discourage using them directly, you do so at your own risk.
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
-
 import * as internals from "./internals.js";
+import { Constants as CommonConstants } from "@azure/msal-common/node";
 export { internals };
 
 // Interfaces
@@ -79,32 +79,29 @@ export type { InteractiveRequest } from "./request/InteractiveRequest.js";
 export type { SignOutRequest } from "./request/SignOutRequest.js";
 export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequestParams.js";
 
+const PromptValue = CommonConstants.PromptValue;
+const ResponseMode = CommonConstants.ResponseMode;
+export { PromptValue, ResponseMode };
+
 // Common Object Formats
 export {
-    // Request
-    PromptValue,
-    ResponseMode,
     AuthorizationCodePayload,
     // Response
     AuthenticationResult,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
     IdTokenClaims,
     // Cache
     AccountInfo,
     ValidCacheType,
     // Error
     AuthError,
-    AuthErrorMessage,
     AuthErrorCodes,
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessage,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessage,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessage,
     ServerError,
     // Network Interface
     INetworkModule,

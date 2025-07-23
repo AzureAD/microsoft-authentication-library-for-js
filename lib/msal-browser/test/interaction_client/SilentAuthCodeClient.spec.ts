@@ -18,7 +18,7 @@ import {
     AccountInfo,
     TokenClaims,
     AuthorizationCodeClient,
-    AuthenticationScheme,
+    Constants,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -34,6 +34,7 @@ import {
 } from "../../src/index.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { TestTimeUtils } from "msal-test-utils";
 
 describe("SilentAuthCodeClient", () => {
@@ -134,11 +135,11 @@ describe("SilentAuthCodeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             const handleCodeSpy = jest
                 .spyOn(

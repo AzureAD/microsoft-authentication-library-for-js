@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update rxjs dependency #7726",
+  "packageName": "@azure/msal-angular",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}

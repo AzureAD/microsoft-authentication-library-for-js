@@ -19,7 +19,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 import { StringUtils } from "../utils/StringUtils.js";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
 import { TokenClaims } from "../account/TokenClaims.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { getTenantFromAuthorityString } from "../authority/Authority.js";
 
@@ -39,17 +39,9 @@ export class SilentFlowClient extends BaseClient {
     async acquireCachedToken(
         request: CommonSilentFlowRequest
     ): Promise<[AuthenticationResult, CacheOutcome]> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.SilentFlowClientAcquireCachedToken,
-            request.correlationId
-        );
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
-        if (
-            request.forceRefresh ||
-            (!this.config.cacheOptions.claimsBasedCachingEnabled &&
-                !StringUtils.isEmptyObj(request.claims))
-        ) {
+        if (request.forceRefresh || !StringUtils.isEmptyObj(request.claims)) {
             // Must refresh due to present force_refresh flag.
             this.setCacheOutcome(
                 CacheOutcome.FORCE_REFRESH_OR_CLAIMS,
@@ -75,9 +67,7 @@ export class SilentFlowClient extends BaseClient {
             request.account,
             request,
             tokenKeys,
-            requestTenantId,
-            this.performanceClient,
-            request.correlationId
+            requestTenantId
         );
 
         if (!cachedAccessToken) {
@@ -117,14 +107,16 @@ export class SilentFlowClient extends BaseClient {
         const environment =
             request.authority || this.authority.getPreferredCache();
         const cacheRecord: CacheRecord = {
-            account: this.cacheManager.readAccountFromCache(request.account),
+            account: this.cacheManager.readAccountFromCache(
+                request.account,
+                request.correlationId
+            ),
             accessToken: cachedAccessToken,
             idToken: this.cacheManager.getIdToken(
                 request.account,
+                request.correlationId,
                 tokenKeys,
-                requestTenantId,
-                this.performanceClient,
-                request.correlationId
+                requestTenantId
             ),
             refreshToken: null,
             appMetadata:
@@ -175,10 +167,6 @@ export class SilentFlowClient extends BaseClient {
         cacheRecord: CacheRecord,
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.SilentFlowClientGenerateResultFromCacheRecord,
-            request.correlationId
-        );
         let idTokenClaims: TokenClaims | undefined;
         if (cacheRecord.idToken) {
             idTokenClaims = extractTokenClaims(

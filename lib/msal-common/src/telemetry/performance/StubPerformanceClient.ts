@@ -50,23 +50,7 @@ export class StubPerformanceClient implements IPerformanceClient {
                 startTimeMs: Date.now(),
                 correlationId: correlationId || "",
             },
-            measurement: new StubPerformanceMeasurement(),
         };
-    }
-
-    startPerformanceMeasurement(): IPerformanceMeasurement {
-        return new StubPerformanceMeasurement();
-    }
-    calculateQueuedTime(): number {
-        return 0;
-    }
-
-    addQueueMeasurement(): void {
-        return;
-    }
-
-    setPreQueueTime(): void {
-        return;
     }
 
     endMeasurement(): PerformanceEvent | null {

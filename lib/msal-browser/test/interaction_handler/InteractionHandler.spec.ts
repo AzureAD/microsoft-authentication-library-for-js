@@ -14,7 +14,7 @@ import {
     CommonAuthorizationCodeRequest,
     AuthenticationResult,
     AuthorizationCodeClient,
-    AuthenticationScheme,
+    Constants,
     ProtocolMode,
     Authority,
     ClientConfiguration,
@@ -34,23 +34,14 @@ import {
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
-    TEST_HASHES,
     TEST_POP_VALUES,
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
     TEST_CRYPTO_VALUES,
 } from "../utils/StringConstants.js";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { TestStorageManager } from "../cache/TestStorageManager.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import {
-    TemporaryCacheKeys,
-    BrowserConstants,
-} from "../../src/utils/BrowserConstants.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { TestTimeUtils } from "msal-test-utils";
 
@@ -82,7 +73,7 @@ class TestInteractionHandler extends InteractionHandler {
 }
 
 const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
-    authenticationScheme: AuthenticationScheme.BEARER,
+    authenticationScheme: Constants.AuthenticationScheme.BEARER,
     authority: TEST_CONFIG.validAuthority,
     redirectUri: TEST_URIS.TEST_REDIR_URI,
     scopes: ["scope1", "scope2"],
@@ -148,8 +139,8 @@ const cryptoInterface = {
     signJwt: async (): Promise<string> => {
         return "signedJwt";
     },
-    removeTokenBindingKey: async (): Promise<boolean> => {
-        return Promise.resolve(true);
+    removeTokenBindingKey: async (): Promise<void> => {
+        return Promise.resolve();
     },
     clearKeystore: async (): Promise<boolean> => {
         return Promise.resolve(true);
@@ -166,7 +157,6 @@ const performanceClient = {
     removePerformanceCallback: jest.fn(),
     addPerformanceCallback: jest.fn(),
     emitEvents: jest.fn(),
-    startPerformanceMeasurement: jest.fn(),
     generateId: jest.fn(),
     calculateQueuedTime: jest.fn(),
     addQueueMeasurement: jest.fn(),
@@ -231,7 +221,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             storageInterface: new TestStorageManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cryptoInterface,
-                logger
+                logger,
+                new StubPerformanceClient()
             ),
             networkInterface: {
                 sendGetRequestAsync: async (
@@ -310,25 +301,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             testAuthCodeRequest.ccsCredential = testCcsCred;
-            browserStorage.setTemporaryCache(
-                browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            browserStorage.setTemporaryCache(
-                browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                idTokenClaims.nonce
-            );
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.CCS_CREDENTIAL,
-                CcsCredentialType.UPN
-            );
             const acquireTokenSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
@@ -403,24 +378,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
-            browserStorage.setTemporaryCache(
-                browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            browserStorage.setTemporaryCache(
-                browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                idTokenClaims.nonce
-            );
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "handleFragmentResponse"
-            ).mockReturnValue(testCodeResponse);
             const updateAuthoritySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 "updateAuthority"
@@ -434,10 +393,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(
-                {
-                    code: "authCode",
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                },
+                testCodeResponse,
                 {
                     authority: TEST_CONFIG.validAuthority,
                     scopes: ["User.Read"],
@@ -503,29 +459,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
                 state: "testState",
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             testAuthCodeRequest.ccsCredential = testCcsCred;
-            browserStorage.setTemporaryCache(
-                browserStorage.generateStateKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            browserStorage.setTemporaryCache(
-                browserStorage.generateNonceKey(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                ),
-                idTokenClaims.nonce
-            );
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.CCS_CREDENTIAL,
-                CcsCredentialType.UPN
-            );
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "handleFragmentResponse"
-            ).mockReturnValue(testCodeResponse);
             const acquireTokenSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
@@ -535,10 +471,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(
-                {
-                    code: "authCode",
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                },
+                testCodeResponse,
                 {
                     authority: TEST_CONFIG.validAuthority,
                     scopes: ["User.Read"],

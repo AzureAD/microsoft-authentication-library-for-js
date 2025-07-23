@@ -13,10 +13,11 @@ import {
     ServerTelemetryEntity,
     ThrottlingEntity,
     AuthorityMetadataEntity,
-    ValidCredentialType,
     TokenKeys,
     CacheHelpers,
+    AccountEntityUtils,
 } from "@azure/msal-common";
+import { RANDOM_TEST_GUID } from "../utils/StringConstants.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -43,7 +44,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = value.generateAccountKey();
+        const key = AccountEntityUtils.generateAccountKey(value);
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
@@ -53,8 +54,8 @@ export class TestStorageManager extends CacheManager {
         }
     }
 
-    async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+    removeAccount(key: string): void {
+        super.removeAccount(key, RANDOM_TEST_GUID);
         this.removeAccountKeyFromMap(key);
     }
 

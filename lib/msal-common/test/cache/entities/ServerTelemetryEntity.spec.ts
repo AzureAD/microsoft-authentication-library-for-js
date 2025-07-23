@@ -1,14 +1,14 @@
 import {
-    SERVER_TELEM_CONSTANTS,
-    Separators,
-} from "../../../src/utils/Constants";
+    SERVER_TELEM_CACHE_KEY,
+    CACHE_KEY_SEPARATOR,
+} from "../../../src/utils/Constants.js";
 import { TEST_CONFIG } from "../../test_kit/StringConstants";
 import * as CacheHelpers from "../../../src/cache/utils/CacheHelpers";
 
 describe("ServerTelemetryEntity.ts Unit Tests", () => {
     const ServerTelemetryKey =
-        SERVER_TELEM_CONSTANTS.CACHE_KEY +
-        Separators.CACHE_KEY_SEPARATOR +
+        SERVER_TELEM_CACHE_KEY +
+        CACHE_KEY_SEPARATOR +
         TEST_CONFIG.MSAL_CLIENT_ID;
     it("Verify if an object is a ServerTelemetry Entity", () => {
         const serverTelemetryObject = {
@@ -83,8 +83,8 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
 
     it("Verify an object is not a ServerTelemetry Entity only when cache key is passed", () => {
         const ServerTelemetryKey =
-            Separators.CACHE_KEY_SEPARATOR +
-            SERVER_TELEM_CONSTANTS.CACHE_KEY +
+            CACHE_KEY_SEPARATOR +
+            SERVER_TELEM_CACHE_KEY +
             TEST_CONFIG.MSAL_CLIENT_ID;
         expect(CacheHelpers.isServerTelemetryEntity(ServerTelemetryKey)).toBe(
             false

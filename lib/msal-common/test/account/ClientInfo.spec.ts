@@ -3,83 +3,20 @@ import {
     buildClientInfoFromHomeAccountId,
     ClientInfo,
 } from "../../src/account/ClientInfo";
-import {
-    TEST_DATA_CLIENT_INFO,
-    RANDOM_TEST_GUID,
-    TEST_POP_VALUES,
-    TEST_CRYPTO_VALUES,
-} from "../test_kit/StringConstants";
+import { TEST_DATA_CLIENT_INFO } from "../test_kit/StringConstants";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessage,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
-import { Constants } from "../../src";
+import { mockCrypto } from "../client/ClientTestUtils.js";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
     describe("buildClientInfo()", () => {
         let cryptoInterface: ICrypto;
         beforeEach(() => {
-            cryptoInterface = {
-                createNewGuid(): string {
-                    return RANDOM_TEST_GUID;
-                },
-                base64Decode(input: string): string {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                },
-                base64Encode(input: string): string {
-                    switch (input) {
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-uid":
-                            return "NDU2LXRlc3QtdWlk";
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        default:
-                            return input;
-                    }
-                },
-                base64UrlEncode(input: string): string {
-                    switch (input) {
-                        case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                            return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                        default:
-                            return input;
-                    }
-                },
-                encodeKid(input: string): string {
-                    switch (input) {
-                        case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                            return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                        default:
-                            return input;
-                    }
-                },
-                async getPublicKeyThumbprint(): Promise<string> {
-                    return TEST_POP_VALUES.KID;
-                },
-                async signJwt(): Promise<string> {
-                    return "";
-                },
-                async removeTokenBindingKey(): Promise<boolean> {
-                    return Promise.resolve(true);
-                },
-                async clearKeystore(): Promise<boolean> {
-                    return Promise.resolve(true);
-                },
-                async hashString(): Promise<string> {
-                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-                },
-            };
+            cryptoInterface = mockCrypto;
         });
 
         afterEach(() => {
@@ -88,20 +25,15 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
         it("Throws error if clientInfo is null or empty", () => {
             // @ts-ignore
-            expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(
-                ClientAuthErrorMessage.clientInfoEmptyError.desc
-            );
-            // @ts-ignore
-            expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(
-                ClientAuthError
+            expect(() => buildClientInfo(null, cryptoInterface)).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError)
             );
 
             expect(() =>
                 buildClientInfo("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthErrorMessage.clientInfoEmptyError.desc);
-            expect(() =>
-                buildClientInfo("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthError);
+            ).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError)
+            );
         });
 
         it("Throws error if function could not successfully decode ", () => {
@@ -110,13 +42,11 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                     "ThisCan'tbeParsed",
                     cryptoInterface.base64Decode
                 )
-            ).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
-            expect(() =>
-                buildClientInfo(
-                    "ThisCan'tbeParsed",
-                    cryptoInterface.base64Decode
+            ).toThrow(
+                new ClientAuthError(
+                    ClientAuthErrorCodes.clientInfoDecodingError
                 )
-            ).toThrowError(ClientAuthError);
+            );
         });
 
         it("Succesfully returns decoded client info", () => {
@@ -145,7 +75,7 @@ describe("ClientInfo.ts Class Unit Tests", () => {
         it("Builds partial clientInfo from homeAccountId with only single string", () => {
             const expectedClientInfo: ClientInfo = {
                 uid: TEST_DATA_CLIENT_INFO.TEST_UID,
-                utid: Constants.EMPTY_STRING,
+                utid: "",
             };
             expect(
                 buildClientInfoFromHomeAccountId(TEST_DATA_CLIENT_INFO.TEST_UID)

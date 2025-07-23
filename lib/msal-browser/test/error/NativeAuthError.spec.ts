@@ -6,13 +6,13 @@ import {
 } from "../../src/error/NativeAuthError";
 import {
     InteractionRequiredAuthError,
-    InteractionRequiredAuthErrorMessage,
+    InteractionRequiredAuthErrorCodes,
 } from "@azure/msal-common";
-import {
-    BrowserAuthError,
-    BrowserAuthErrorMessage,
-} from "../../src/error/BrowserAuthError";
 import * as NativeStatusCode from "../../src/broker/nativeBroker/NativeStatusCodes";
+import {
+    BrowserAuthErrorCodes,
+    BrowserAuthError,
+} from "../../src/error/BrowserAuthError.js";
 
 describe("NativeAuthError Unit Tests", () => {
     describe("NativeAuthError", () => {
@@ -114,8 +114,24 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(InteractionRequiredAuthError);
                 expect(error.errorCode).toBe(
-                    InteractionRequiredAuthErrorMessage
-                        .native_account_unavailable.code
+                    InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                );
+            });
+
+            it("translates UX_NOT_ALLOWED status into corresponding InteractionRequiredError", () => {
+                const error = createNativeAuthError(
+                    "interaction_required",
+                    "interaction is required",
+                    {
+                        error: 1,
+                        protocol_error: "testProtocolError",
+                        properties: {},
+                        status: NativeStatusCode.UX_NOT_ALLOWED,
+                    }
+                );
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(error.errorCode).toBe(
+                    InteractionRequiredAuthErrorCodes.uxNotAllowed
                 );
             });
 
@@ -132,7 +148,7 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(BrowserAuthError);
                 expect(error.errorCode).toBe(
-                    BrowserAuthErrorMessage.userCancelledError.code
+                    BrowserAuthErrorCodes.userCancelled
                 );
             });
 
@@ -149,7 +165,7 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(BrowserAuthError);
                 expect(error.errorCode).toBe(
-                    BrowserAuthErrorMessage.noNetworkConnectivity.code
+                    BrowserAuthErrorCodes.noNetworkConnectivity
                 );
             });
         });

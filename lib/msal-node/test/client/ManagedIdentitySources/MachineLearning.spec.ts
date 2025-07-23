@@ -9,7 +9,6 @@ import {
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_MACHINE_LEARNING_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_RESOURCE,
-    MANAGED_IDENTITY_RESOURCE_ID,
 } from "../../test_kit/StringConstants.js";
 
 import {
@@ -19,10 +18,11 @@ import {
     networkClient,
     ManagedIdentityNetworkErrorClient,
     userAssignedResourceIdConfig,
+    userAssignedObjectIdConfig,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
-    HttpStatus,
+    Constants,
     ServerError,
 } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
@@ -31,9 +31,13 @@ import {
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
+import { MANAGED_IDENTITY_MACHINE_LEARNING_UNSUPPORTED_ID_TYPE_ERROR } from "../../../src/client/ManagedIdentitySources/MachineLearning.js";
 
 describe("Acquires a token successfully via an Machine Learning Managed Identity", () => {
     beforeAll(() => {
+        process.env[
+            ManagedIdentityEnvironmentVariableNames.DEFAULT_IDENTITY_CLIENT_ID
+        ] = "fake_DEFAULT_IDENTITY_CLIENT_ID";
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
             "fake_MSI_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET] =
@@ -41,6 +45,9 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
     });
 
     afterAll(() => {
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.DEFAULT_IDENTITY_CLIENT_ID
+        ];
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT
         ];
@@ -57,30 +64,13 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
 
     describe("User Assigned", () => {
         test("acquires a User Assigned Client Id token", async () => {
-            const managedIdentityApplication: ManagedIdentityApplication =
-                new ManagedIdentityApplication(userAssignedClientIdConfig);
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.MACHINE_LEARNING
-            );
-
-            const networkManagedIdentityResult: AuthenticationResult =
-                await managedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
-                );
-
-            expect(networkManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-            );
-        });
-
-        test("acquires a User Assigned Resource Id token", async () => {
             const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
                 networkClient,
                 <any>"sendGetRequestAsync"
             );
 
             const managedIdentityApplication: ManagedIdentityApplication =
-                new ManagedIdentityApplication(userAssignedResourceIdConfig);
+                new ManagedIdentityApplication(userAssignedClientIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
                 ManagedIdentitySourceNames.MACHINE_LEARNING
             );
@@ -99,14 +89,22 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
             );
             expect(
                 url.has(
-                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                )
+            ).toBe(false);
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
                 )
             ).toBe(true);
             expect(
                 url.get(
-                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
                 )
-            ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
+            ).toEqual(
+                userAssignedClientIdConfig.managedIdentityIdParams
+                    ?.userAssignedClientId
+            );
         });
 
         test("ensures that App Service is selected as the Managed Identity source when all App Service and Machine Learning environment variables are present", async () => {
@@ -144,6 +142,11 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
         });
 
         test("acquires a token", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -152,6 +155,30 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
 
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+
+            const url: URLSearchParams = new URLSearchParams(
+                sendGetRequestAsyncSpy.mock.lastCall[0]
+            );
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                )
+            ).toBe(false);
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
+                )
+            ).toBe(true);
+            expect(
+                url.get(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
+                )
+            ).toEqual(
+                process.env[
+                    ManagedIdentityEnvironmentVariableNames
+                        .DEFAULT_IDENTITY_CLIENT_ID
+                ]
             );
         });
 
@@ -183,7 +210,7 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
                 new ManagedIdentityNetworkErrorClient(
                     MANAGED_IDENTITY_MACHINE_LEARNING_NETWORK_REQUEST_400_ERROR,
                     undefined,
-                    HttpStatus.BAD_REQUEST
+                    Constants.HTTP_BAD_REQUEST
                 );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")
@@ -218,5 +245,34 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
                 )
             ).toBe(true);
         });
+
+        test.each([
+            ["a resource", userAssignedResourceIdConfig],
+            ["an object", userAssignedObjectIdConfig],
+        ])(
+            "ensures that providing %s id will throw an error",
+            async (_description, userAssignedIdConfig) => {
+                const managedIdentityApplication: ManagedIdentityApplication =
+                    new ManagedIdentityApplication(userAssignedIdConfig);
+                expect(
+                    managedIdentityApplication.getManagedIdentitySource()
+                ).toBe(ManagedIdentitySourceNames.MACHINE_LEARNING);
+
+                let error: Error = new Error();
+                try {
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                } catch (e) {
+                    error = e as Error;
+                }
+
+                expect(
+                    error.message.includes(
+                        MANAGED_IDENTITY_MACHINE_LEARNING_UNSUPPORTED_ID_TYPE_ERROR
+                    )
+                ).toBe(true);
+            }
+        );
     });
 });

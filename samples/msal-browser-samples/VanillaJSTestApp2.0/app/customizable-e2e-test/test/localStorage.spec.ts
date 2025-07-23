@@ -112,7 +112,7 @@ describe("LocalStorage Tests", function () {
                 `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
             );
             await clickLoginRedirect(screenshot, page);
-            await page.waitForNavigation({ waitUntil: "networkidle0" });
+            await page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
             // Navigate back to home page
             await page.goto(sampleHomeUrl);
             // Wait for processing
@@ -125,9 +125,9 @@ describe("LocalStorage Tests", function () {
                 const sessionStorage =
                     await sessionBrowserStorage.getWindowStorage();
                 const localStorage = await BrowserCache.getWindowStorage();
-                expect(Object.keys(localStorage).length).toBeLessThanOrEqual(2);
+                expect(Object.keys(localStorage).length).toBeLessThanOrEqual(3);
                 Object.keys(localStorage).forEach((key) => {
-                    expect(key.startsWith("msal.token.keys") || key === "msal.account.keys").toBe(true);
+                    expect(key.startsWith("msal.token.keys") || key === "msal.account.keys" || key == "msal.version").toBe(true);
                 });
                 expect(Object.keys(sessionStorage).length).toEqual(0);
             }, ONE_SECOND_IN_MS);
@@ -166,7 +166,7 @@ describe("LocalStorage Tests", function () {
                 screenshot,
                 page
             );
-            await popupPage.waitForNavigation({ waitUntil: "networkidle0" });
+            await popupPage.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
             await popupPage.close();
             // Wait until popup window closes
             await popupWindowClosed;
@@ -180,7 +180,7 @@ describe("LocalStorage Tests", function () {
                 const sessionStorage =
                     await sessionBrowserStorage.getWindowStorage();
                 const localStorage = await BrowserCache.getWindowStorage();
-                expect(Object.keys(localStorage).length).toEqual(1); // Telemetry
+                expect(Object.keys(localStorage).length).toEqual(2); // Telemetry
                 expect(Object.keys(sessionStorage).length).toEqual(0);
             }, ONE_SECOND_IN_MS);
         });

@@ -6,13 +6,10 @@
 import {
     AuthErrorCodes,
     BaseClient,
-    ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonDeviceCodeRequest,
-    Constants,
-    GrantType,
     createAuthError,
     createClientAuthError,
+    Constants,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -31,6 +28,8 @@ import {
 } from "./ClientTestUtils.js";
 import { DeviceCodeClient } from "../../src/index.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest.js";
+import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 
 describe("DeviceCodeClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -141,7 +140,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 clientSku: true,
                 clientVersion: true,
                 clientOs: true,
@@ -223,7 +222,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 claims: true,
                 clientSku: true,
                 clientVersion: true,
@@ -271,7 +270,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 claims: false,
                 clientSku: true,
                 clientVersion: true,
@@ -330,7 +329,7 @@ describe("DeviceCodeClient unit tests", () => {
             request.cancel = true;
             await expect(client.acquireToken(request)).rejects.toMatchObject(
                 createClientAuthError(
-                    ClientAuthErrorCodes.deviceCodePollingCancelled
+                    NodeClientAuthErrorCodes.deviceCodePollingCancelled
                 )
             );
         }, 6000);
@@ -356,7 +355,9 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.deviceCodeExpired)
+                createClientAuthError(
+                    NodeClientAuthErrorCodes.deviceCodeExpired
+                )
             );
         }, 6000);
 
@@ -378,7 +379,9 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.userTimeoutReached)
+                createClientAuthError(
+                    NodeClientAuthErrorCodes.userTimeoutReached
+                )
             );
 
             expect(executePostToTokenEndpointSpy.mock.calls.length).toBe(1);

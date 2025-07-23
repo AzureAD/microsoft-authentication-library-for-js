@@ -1,5 +1,8 @@
 import { BaseClient } from "../../src/client/BaseClient.js";
-import { HeaderNames, Constants } from "../../src/utils/Constants.js";
+import {
+    HeaderNames,
+    URL_FORM_CONTENT_TYPE,
+} from "../../src/utils/Constants.js";
 import { ClientTestUtils } from "./ClientTestUtils.js";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
 import {
@@ -102,7 +105,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const headers = client.createTokenRequestHeaders();
 
             expect(headers[HeaderNames.CONTENT_TYPE]).toBe(
-                Constants.URL_FORM_CONTENT_TYPE
+                URL_FORM_CONTENT_TYPE
             );
         });
     });
@@ -220,7 +223,8 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 ThrottlingUtils.preProcess(
                     // @ts-ignore
                     client.cacheManager,
-                    thumbprint
+                    thumbprint,
+                    RANDOM_TEST_GUID
                 )
             ).toThrowError(ServerError);
         });

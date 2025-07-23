@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants.js";
 import { AuthError } from "./AuthError.js";
 import * as InteractionRequiredAuthErrorCodes from "./InteractionRequiredAuthErrorCodes.js";
 export { InteractionRequiredAuthErrorCodes };
@@ -16,6 +15,7 @@ export const InteractionRequiredServerErrorMessage = [
     InteractionRequiredAuthErrorCodes.consentRequired,
     InteractionRequiredAuthErrorCodes.loginRequired,
     InteractionRequiredAuthErrorCodes.badToken,
+    InteractionRequiredAuthErrorCodes.uxNotAllowed,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -25,43 +25,8 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "user_password_expired",
     "consent_required",
     "bad_token",
+    "ux_not_allowed",
 ];
-
-const InteractionRequiredAuthErrorMessages = {
-    [InteractionRequiredAuthErrorCodes.noTokensFound]:
-        "No refresh token found in the cache. Please sign-in.",
-    [InteractionRequiredAuthErrorCodes.nativeAccountUnavailable]:
-        "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API.",
-    [InteractionRequiredAuthErrorCodes.refreshTokenExpired]:
-        "Refresh token has expired.",
-    [InteractionRequiredAuthErrorCodes.badToken]:
-        "Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.",
-};
-
-/**
- * Interaction required errors defined by the SDK
- * @deprecated Use InteractionRequiredAuthErrorCodes instead
- */
-export const InteractionRequiredAuthErrorMessage = {
-    noTokensFoundError: {
-        code: InteractionRequiredAuthErrorCodes.noTokensFound,
-        desc: InteractionRequiredAuthErrorMessages[
-            InteractionRequiredAuthErrorCodes.noTokensFound
-        ],
-    },
-    native_account_unavailable: {
-        code: InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
-        desc: InteractionRequiredAuthErrorMessages[
-            InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
-        ],
-    },
-    bad_token: {
-        code: InteractionRequiredAuthErrorCodes.badToken,
-        desc: InteractionRequiredAuthErrorMessages[
-            InteractionRequiredAuthErrorCodes.badToken
-        ],
-    },
-};
 
 /**
  * Error thrown when user interaction is required.
@@ -106,10 +71,10 @@ export class InteractionRequiredAuthError extends AuthError {
         super(errorCode, errorMessage, subError);
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
 
-        this.timestamp = timestamp || Constants.EMPTY_STRING;
-        this.traceId = traceId || Constants.EMPTY_STRING;
-        this.correlationId = correlationId || Constants.EMPTY_STRING;
-        this.claims = claims || Constants.EMPTY_STRING;
+        this.timestamp = timestamp || "";
+        this.traceId = traceId || "";
+        this.correlationId = correlationId || "";
+        this.claims = claims || "";
         this.name = "InteractionRequiredAuthError";
         this.errorNo = errorNo;
     }
@@ -149,10 +114,8 @@ export function isInteractionRequiredError(
  * Creates an InteractionRequiredAuthError
  */
 export function createInteractionRequiredAuthError(
-    errorCode: string
+    errorCode: string,
+    errorMessage?: string
 ): InteractionRequiredAuthError {
-    return new InteractionRequiredAuthError(
-        errorCode,
-        InteractionRequiredAuthErrorMessages[errorCode]
-    );
+    return new InteractionRequiredAuthError(errorCode, errorMessage);
 }

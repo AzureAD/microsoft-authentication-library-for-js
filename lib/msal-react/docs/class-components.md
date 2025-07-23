@@ -32,7 +32,12 @@ Just like when using function components you can use the `AuthenticatedTemplate`
 
 ```javascript
 import React from "react";
-import { MsalProvider, AuthenticatedTemplate, UnauthenticatedTemplate, MsalAuthenticationTemplate } from "@azure/msal-react";
+import {
+    MsalProvider,
+    AuthenticatedTemplate,
+    UnauthenticatedTemplate,
+    MsalAuthenticationTemplate,
+} from "@azure/msal-react";
 import { PublicClientApplication, InteractionType } from "@azure/msal-browser";
 
 const pca = new PublicClientApplication(config);
@@ -43,14 +48,16 @@ class App extends React.Component {
             <MsalProvider instance={pca}>
                 <AuthenticatedTemplate>
                     <span>This will only render for authenticated users</span>
-                </ AuthenticatedTemplate>
+                </AuthenticatedTemplate>
                 <UnauthenticatedTemplate>
                     <span>This will only render for unauthenticated users</span>
-                </ UnauthenticatedTemplate>
-                <MsalAuthenticationTemplate interactionType={InteractionType.Popup}>
+                </UnauthenticatedTemplate>
+                <MsalAuthenticationTemplate
+                    interactionType={InteractionType.Popup}
+                >
                     <span>This will only render for authenticated users.</span>
-                </ MsalAuthenticationTemplate>
-            </ MsalProvider>
+                </MsalAuthenticationTemplate>
+            </MsalProvider>
         );
     }
 }
@@ -73,8 +80,8 @@ class App extends React.Component {
     render() {
         return (
             <MsalProvider instance={pca}>
-                <YourClassComponent/>
-            </ MsalProvider>
+                <YourClassComponent />
+            </MsalProvider>
         );
     }
 }
@@ -85,7 +92,12 @@ class YourClassComponent extends React.Component {
     render() {
         const isAuthenticated = this.context.accounts.length > 0;
         if (isAuthenticated) {
-            return <span>There are currently {this.context.accounts.length} users signed in!</span>
+            return (
+                <span>
+                    There are currently {this.context.accounts.length} users
+                    signed in!
+                </span>
+            );
         }
     }
 }
@@ -106,7 +118,12 @@ class YourClassComponent extends React.Component {
     render() {
         const isAuthenticated = this.props.msalContext.accounts.length > 0;
         if (isAuthenticated) {
-            return <span>There are currently {this.props.msalContext.accounts.length} users signed in!</span>
+            return (
+                <span>
+                    There are currently {this.props.msalContext.accounts.length}{" "}
+                    users signed in!
+                </span>
+            );
         }
     }
 }
@@ -118,7 +135,7 @@ class App extends React.Component {
         return (
             <MsalProvider instance={pca}>
                 <YourWrappedComponent />
-            </ MsalProvider>
+            </MsalProvider>
         );
     }
 }
@@ -128,7 +145,7 @@ For a working example, see [ProfileWithMsal.jsx](../../../samples/msal-react-sam
 
 ## Logging in using a class component
 
-Regardless of which approach you take to get the `MSAL React` context the usage will be the same. Once you have the context object you can invoke [any of the APIs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_browser.ipublicclientapplication.html) on `PublicClientApplication`, inspect the accounts signed in, or determine if authentication is currently in progress.
+Regardless of which approach you take to get the `MSAL React` context the usage will be the same. Once you have the context object you can invoke [any of the APIs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_browser.IPublicClientApplication.html) on `PublicClientApplication`, inspect the accounts signed in, or determine if authentication is currently in progress.
 
 The following examples will show how to login using the `withMsal` HOC approach but you can quickly adapt to the other approach if needed.
 
@@ -145,9 +162,13 @@ class LoginButton extends React.Component {
         const isAuthenticated = this.props.msalContext.accounts.length > 0;
         const msalInstance = this.props.msalContext.instance;
         if (isAuthenticated) {
-            return <button onClick={() => msalInstance.logout()}>Logout</button>    
+            return (
+                <button onClick={() => msalInstance.logout()}>Logout</button>
+            );
         } else {
-            return <button onClick={() => msalInstance.loginPopup()}>Login</button>
+            return (
+                <button onClick={() => msalInstance.loginPopup()}>Login</button>
+            );
         }
     }
 }
@@ -168,7 +189,10 @@ class ProtectedComponent extends React.Component {
         const msalInstance = this.props.msalContext.instance;
 
         // If a user is not logged in and authentication is not already in progress, invoke login
-        if (!isAuthenticated && this.props.msalContext.inProgress === InteractionStatus.None) {
+        if (
+            !isAuthenticated &&
+            this.props.msalContext.inProgress === InteractionStatus.None
+        ) {
             msalInstance.loginPopup();
         }
     }
@@ -179,11 +203,11 @@ class ProtectedComponent extends React.Component {
     componentDidUpdate() {
         this.callLogin();
     }
-    
+
     render() {
         const isAuthenticated = this.props.msalContext.accounts.length > 0;
         if (isAuthenticated) {
-            return <span>User is authenticated</span>
+            return <span>User is authenticated</span>;
         } else {
             return <span>Authentication in progress</span>;
         }

@@ -3,14 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    SERVER_TELEM_CONSTANTS,
-    Separators,
-    CacheOutcome,
-    Constants,
-    RegionDiscoverySources,
-    RegionDiscoveryOutcomes,
-} from "../../utils/Constants.js";
+import * as Constants from "../../utils/Constants.js";
 import { CacheManager } from "../../cache/CacheManager.js";
 import { AuthError } from "../../error/AuthError.js";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest.js";
@@ -89,9 +82,10 @@ export class ServerTelemetryManager {
     private wrapperSKU: String;
     private wrapperVer: String;
     private regionUsed: string | undefined;
-    private regionSource: RegionDiscoverySources | undefined;
-    private regionOutcome: RegionDiscoveryOutcomes | undefined;
-    private cacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
+    private regionSource: Constants.RegionDiscoverySources | undefined;
+    private regionOutcome: Constants.RegionDiscoveryOutcomes | undefined;
+    private cacheOutcome: Constants.CacheOutcome =
+        Constants.CacheOutcome.NOT_APPLICABLE;
 
     constructor(
         telemetryRequest: ServerTelemetryRequest,
@@ -100,12 +94,12 @@ export class ServerTelemetryManager {
         this.cacheManager = cacheManager;
         this.apiId = telemetryRequest.apiId;
         this.correlationId = telemetryRequest.correlationId;
-        this.wrapperSKU = telemetryRequest.wrapperSKU || Constants.EMPTY_STRING;
-        this.wrapperVer = telemetryRequest.wrapperVer || Constants.EMPTY_STRING;
+        this.wrapperSKU = telemetryRequest.wrapperSKU || "";
+        this.wrapperVer = telemetryRequest.wrapperVer || "";
 
         this.telemetryCacheKey =
-            SERVER_TELEM_CONSTANTS.CACHE_KEY +
-            Separators.CACHE_KEY_SEPARATOR +
+            Constants.SERVER_TELEM_CACHE_KEY +
+            Constants.CACHE_KEY_SEPARATOR +
             telemetryRequest.clientId;
     }
 
@@ -113,26 +107,26 @@ export class ServerTelemetryManager {
      * API to add MSER Telemetry to request
      */
     generateCurrentRequestHeaderValue(): string {
-        const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${this.cacheOutcome}`;
+        const request = `${this.apiId}${Constants.SERVER_TELEM_VALUE_SEPARATOR}${this.cacheOutcome}`;
         const platformFieldsArr = [this.wrapperSKU, this.wrapperVer];
         const nativeBrokerErrorCode = this.getNativeBrokerErrorCode();
         if (nativeBrokerErrorCode?.length) {
             platformFieldsArr.push(`broker_error=${nativeBrokerErrorCode}`);
         }
         const platformFields = platformFieldsArr.join(
-            SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR
+            Constants.SERVER_TELEM_VALUE_SEPARATOR
         );
         const regionDiscoveryFields = this.getRegionDiscoveryFields();
         const requestWithRegionDiscoveryFields = [
             request,
             regionDiscoveryFields,
-        ].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
+        ].join(Constants.SERVER_TELEM_VALUE_SEPARATOR);
 
         return [
-            SERVER_TELEM_CONSTANTS.SCHEMA_VERSION,
+            Constants.SERVER_TELEM_SCHEMA_VERSION,
             requestWithRegionDiscoveryFields,
             platformFields,
-        ].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
+        ].join(Constants.SERVER_TELEM_CATEGORY_SEPARATOR);
     }
 
     /**
@@ -144,28 +138,28 @@ export class ServerTelemetryManager {
         const maxErrors = ServerTelemetryManager.maxErrorsToSend(lastRequests);
         const failedRequests = lastRequests.failedRequests
             .slice(0, 2 * maxErrors)
-            .join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
+            .join(Constants.SERVER_TELEM_VALUE_SEPARATOR);
         const errors = lastRequests.errors
             .slice(0, maxErrors)
-            .join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
+            .join(Constants.SERVER_TELEM_VALUE_SEPARATOR);
         const errorCount = lastRequests.errors.length;
 
         // Indicate whether this header contains all data or partial data
         const overflow =
             maxErrors < errorCount
-                ? SERVER_TELEM_CONSTANTS.OVERFLOW_TRUE
-                : SERVER_TELEM_CONSTANTS.OVERFLOW_FALSE;
+                ? Constants.SERVER_TELEM_OVERFLOW_TRUE
+                : Constants.SERVER_TELEM_OVERFLOW_FALSE;
         const platformFields = [errorCount, overflow].join(
-            SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR
+            Constants.SERVER_TELEM_VALUE_SEPARATOR
         );
 
         return [
-            SERVER_TELEM_CONSTANTS.SCHEMA_VERSION,
+            Constants.SERVER_TELEM_SCHEMA_VERSION,
             lastRequests.cacheHits,
             failedRequests,
             errors,
             platformFields,
-        ].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
+        ].join(Constants.SERVER_TELEM_CATEGORY_SEPARATOR);
     }
 
     /**
@@ -176,7 +170,7 @@ export class ServerTelemetryManager {
         const lastRequests = this.getLastRequests();
         if (
             lastRequests.errors.length >=
-            SERVER_TELEM_CONSTANTS.MAX_CACHED_ERRORS
+            Constants.SERVER_TELEM_MAX_CACHED_ERRORS
         ) {
             // Remove a cached error to make room, first in first out
             lastRequests.failedRequests.shift(); // apiId
@@ -199,12 +193,13 @@ export class ServerTelemetryManager {
                 lastRequests.errors.push(error.toString());
             }
         } else {
-            lastRequests.errors.push(SERVER_TELEM_CONSTANTS.UNKNOWN_ERROR);
+            lastRequests.errors.push(Constants.SERVER_TELEM_UNKNOWN_ERROR);
         }
 
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
+            this.correlationId
         );
 
         return;
@@ -219,7 +214,8 @@ export class ServerTelemetryManager {
 
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
+            this.correlationId
         );
         return lastRequests.cacheHits;
     }
@@ -250,7 +246,10 @@ export class ServerTelemetryManager {
         const errorCount = lastRequests.errors.length;
         if (numErrorsFlushed === errorCount) {
             // All errors were sent on last request, clear Telemetry cache
-            this.cacheManager.removeItem(this.telemetryCacheKey);
+            this.cacheManager.removeItem(
+                this.telemetryCacheKey,
+                this.correlationId
+            );
         } else {
             // Partial data was flushed to server, construct a new telemetry cache item with errors that were not flushed
             const serverTelemEntity: ServerTelemetryEntity = {
@@ -263,7 +262,8 @@ export class ServerTelemetryManager {
 
             this.cacheManager.setServerTelemetry(
                 this.telemetryCacheKey,
-                serverTelemEntity
+                serverTelemEntity,
+                this.correlationId
             );
         }
     }
@@ -281,14 +281,10 @@ export class ServerTelemetryManager {
         const errorCount = serverTelemetryEntity.errors.length;
         for (i = 0; i < errorCount; i++) {
             // failedRequests parameter contains pairs of apiId and correlationId, multiply index by 2 to preserve pairs
-            const apiId =
-                serverTelemetryEntity.failedRequests[2 * i] ||
-                Constants.EMPTY_STRING;
+            const apiId = serverTelemetryEntity.failedRequests[2 * i] || "";
             const correlationId =
-                serverTelemetryEntity.failedRequests[2 * i + 1] ||
-                Constants.EMPTY_STRING;
-            const errorCode =
-                serverTelemetryEntity.errors[i] || Constants.EMPTY_STRING;
+                serverTelemetryEntity.failedRequests[2 * i + 1] || "";
+            const errorCode = serverTelemetryEntity.errors[i] || "";
 
             // Count number of characters that would be added to header, each character is 1 byte. Add 3 at the end to account for separators
             dataSize +=
@@ -297,7 +293,7 @@ export class ServerTelemetryManager {
                 errorCode.length +
                 3;
 
-            if (dataSize < SERVER_TELEM_CONSTANTS.MAX_LAST_HEADER_BYTES) {
+            if (dataSize < Constants.SERVER_TELEM_MAX_LAST_HEADER_BYTES) {
                 // Adding this entry to the header would still keep header size below the limit
                 maxErrors += 1;
             } else {
@@ -316,11 +312,9 @@ export class ServerTelemetryManager {
     getRegionDiscoveryFields(): string {
         const regionDiscoveryFields: string[] = [];
 
-        regionDiscoveryFields.push(this.regionUsed || Constants.EMPTY_STRING);
-        regionDiscoveryFields.push(this.regionSource || Constants.EMPTY_STRING);
-        regionDiscoveryFields.push(
-            this.regionOutcome || Constants.EMPTY_STRING
-        );
+        regionDiscoveryFields.push(this.regionUsed || "");
+        regionDiscoveryFields.push(this.regionSource || "");
+        regionDiscoveryFields.push(this.regionOutcome || "");
 
         return regionDiscoveryFields.join(",");
     }
@@ -342,7 +336,7 @@ export class ServerTelemetryManager {
     /**
      * Set cache outcome
      */
-    setCacheOutcome(cacheOutcome: CacheOutcome): void {
+    setCacheOutcome(cacheOutcome: Constants.CacheOutcome): void {
         this.cacheOutcome = cacheOutcome;
     }
 
@@ -351,7 +345,8 @@ export class ServerTelemetryManager {
         lastRequests.nativeBrokerErrorCode = errorCode;
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
+            this.correlationId
         );
     }
 
@@ -364,7 +359,8 @@ export class ServerTelemetryManager {
         delete lastRequests.nativeBrokerErrorCode;
         this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
-            lastRequests
+            lastRequests,
+            this.correlationId
         );
     }
 

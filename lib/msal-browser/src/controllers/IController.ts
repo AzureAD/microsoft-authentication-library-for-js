@@ -18,7 +18,6 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -29,7 +28,10 @@ import { EventType } from "../event/EventType.js";
 
 export interface IController {
     // TODO: Make request mandatory in the next major version?
-    initialize(request?: InitializeApplicationRequest): Promise<void>;
+    initialize(
+        request?: InitializeApplicationRequest,
+        isBroker?: boolean
+    ): Promise<void>;
 
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
 
@@ -60,10 +62,6 @@ export interface IController {
 
     removePerformanceCallback(callbackId: string): boolean;
 
-    enableAccountStorageEvents(): void;
-
-    disableAccountStorageEvents(): void;
-
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
 
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -74,13 +72,13 @@ export interface IController {
 
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
-    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(
+        options?: HandleRedirectPromiseOptions
+    ): Promise<AuthenticationResult | null>;
 
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
 
     loginRedirect(request?: RedirectRequest): Promise<void>;
-
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
 
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
 
@@ -89,8 +87,6 @@ export interface IController {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
 
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
-
-    getTokenCache(): ITokenCache;
 
     getLogger(): Logger;
 
@@ -122,3 +118,8 @@ export interface IController {
     /** @internal */
     getPerformanceClient(): IPerformanceClient;
 }
+
+export type HandleRedirectPromiseOptions = {
+    hash?: string;
+    navigateToLoginRequestUrl?: boolean;
+};

@@ -45,7 +45,7 @@ function callPopResource(endpoint, method, accessToken, callback) {
 }
 
 async function popRequest() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccount({username});
     if (currentAcc) {
         const response = await getTokenPopup(popTokenRequest, currentAcc).catch(error => {
             console.log(error);
@@ -57,7 +57,7 @@ async function popRequest() {
 }
 
 async function fetchPopToken() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccount({username});
     if (currentAcc) {
         popToken = getTokenPopup(popTokenRequest, currentAcc).then(response => {
             if (response.accessToken) {
@@ -71,7 +71,7 @@ async function fetchPopToken() {
 }
 
 async function fetchPopTokenWithKid() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccount({username});
     if (currentAcc) {
         return getTokenPopup(popTokenWithKidRequest, currentAcc).then(response => {
             if (response.accessToken) {
@@ -85,7 +85,7 @@ async function fetchPopTokenWithKid() {
 }
 
 async function seeProfile() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccount({username});
     if (currentAcc) {
         const response = await getTokenPopup(bearerTokenRequest, currentAcc).catch(error => {
             console.log(error);
@@ -97,7 +97,7 @@ async function seeProfile() {
 }
 
 async function seeProfileRedirect() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccount({username});
     if (currentAcc) {
         const response = await getTokenRedirect(loginRequest, currentAcc).catch(error => {
             console.log(error);

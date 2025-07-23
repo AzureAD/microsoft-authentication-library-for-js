@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { ServerResponseType } from "../utils/Constants.js";
+import { ResponseMode } from "../utils/Constants.js";
 
 /**
  * Options for the OIDC protocol mode.
  */
 export type OIDCOptions = {
-    serverResponseType?: ServerResponseType;
+    responseMode?: ResponseMode;
     defaultScopes?: Array<string>;
 };

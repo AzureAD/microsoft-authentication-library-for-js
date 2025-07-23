@@ -1,11 +1,12 @@
 import {
     AccountEntity,
     AccountInfo,
-    CredentialType,
+    Constants,
     IdTokenEntity,
     TenantProfile,
     TokenClaims,
     buildTenantProfile,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 
 export function buildAccountFromIdTokenClaims(
@@ -51,7 +52,7 @@ export function buildAccountFromIdTokenClaims(
             )
         );
     });
-    return AccountEntity.createFromAccountInfo({ ...accountInfo, ...options });
+    return AccountEntityUtils.createAccountEntityFromAccountInfo({ ...accountInfo, ...options });
 }
 
 export function buildIdToken(
@@ -64,7 +65,7 @@ export function buildIdToken(
     const idToken = {
         realm: tid || "",
         environment: "login.microsoftonline.com",
-        credentialType: CredentialType.ID_TOKEN,
+        credentialType: Constants.CredentialType.ID_TOKEN,
         secret: idTokenSecret,
         clientId: "mock_client_id",
         homeAccountId: homeAccountId,

@@ -16,42 +16,46 @@ import {
     TEST_STATE_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
+    validEarJWK,
+    getTestAuthenticationResult,
+    validEarJWE,
 } from "../utils/StringConstants.js";
 import {
     AccountInfo,
     TokenClaims,
-    PromptValue,
-    AuthorizationCodeClient,
-    AuthenticationScheme,
+    Constants,
     ServerTelemetryManager,
     ProtocolUtils,
     TenantProfile,
     Authority,
-} from "@azure/msal-common";
+    ProtocolMode,
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessage,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { ApiId, AuthenticationResult } from "../../src/index.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import {
+    ApiId,
     BrowserConstants,
     InteractionType,
 } from "../../src/utils/BrowserConstants.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import { SsoSilentRequest } from "../../src/index.js";
 
 describe("SilentIframeClient", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let silentIframeClient: SilentIframeClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
@@ -142,11 +146,11 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -171,14 +175,14 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(tokenResp).toEqual(testTokenResponse);
             expect(initializeAuthorizationRequestSpy).toBeCalledWith(
                 {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
-                    prompt: PromptValue.NONE,
+                    prompt: Constants.PromptValue.NONE,
                 },
                 InteractionType.Silent
             );
@@ -186,8 +190,8 @@ describe("SilentIframeClient", () => {
 
         it("Errors thrown during token acquisition are cached for telemetry and browserStorage is cleaned", (done) => {
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockRejectedValue(
                 createBrowserAuthError(
@@ -224,8 +228,8 @@ describe("SilentIframeClient", () => {
 
         it("Unexpected non-msal errors do not add correlationId and browserStorage is cleaned", (done) => {
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             const testError = {
                 errorCode: "Unexpected error",
@@ -295,11 +299,11 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -318,7 +322,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.NO_SESSION,
+                prompt: Constants.PromptValue.NO_SESSION,
             });
             expect(tokenResp).toEqual(testTokenResponse);
         });
@@ -364,11 +368,11 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -407,7 +411,7 @@ describe("SilentIframeClient", () => {
             pca = (pca as any).controller;
 
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -475,17 +479,17 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -577,17 +581,17 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -603,12 +607,12 @@ describe("SilentIframeClient", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                        getDefaultErrorMessage(
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        )
                     );
                     done();
                 });
@@ -707,7 +711,7 @@ describe("SilentIframeClient", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
-                fromNativeBroker: false,
+                fromPlatformBroker: false,
                 code: undefined,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 expiresOn: TestTimeUtils.calculateExpiresDate(
@@ -718,7 +722,7 @@ describe("SilentIframeClient", () => {
                         testServerTokenResponse.ext_expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 refreshOn: undefined,
                 requestId: "",
                 familyId: "",
@@ -727,8 +731,8 @@ describe("SilentIframeClient", () => {
                 cloudGraphHostName: "",
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -747,7 +751,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.NO_SESSION,
+                prompt: Constants.PromptValue.NO_SESSION,
                 nonce: "123523",
                 state: TEST_STATE_VALUES.USER_STATE,
             });
@@ -779,8 +783,8 @@ describe("SilentIframeClient", () => {
                 status: 200,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -800,7 +804,7 @@ describe("SilentIframeClient", () => {
                 .acquireToken({
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
-                    prompt: PromptValue.NO_SESSION,
+                    prompt: Constants.PromptValue.NO_SESSION,
                     state: TEST_STATE_VALUES.USER_STATE,
                 })
                 .catch((e) => {
@@ -882,7 +886,7 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -910,7 +914,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
             });
             expect(generateAuthoritySpy.mock.calls[0][0]).toEqual(
@@ -985,11 +989,11 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -1017,7 +1021,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
             });
             expect(
@@ -1095,11 +1099,11 @@ describe("SilentIframeClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
@@ -1128,7 +1132,7 @@ describe("SilentIframeClient", () => {
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
                 extraQueryParameters: {
                     instance_aware: "false",
@@ -1234,6 +1238,59 @@ describe("SilentIframeClient", () => {
                 expect(tokenKeys.idToken).toHaveLength(1);
                 expect(tokenKeys.accessToken).toHaveLength(1);
                 expect(tokenKeys.refreshToken).toHaveLength(0);
+            });
+        });
+
+        describe("EAR Flow Tests", () => {
+            beforeAll(() => {
+                jest.useFakeTimers();
+            });
+
+            afterAll(() => {
+                jest.useRealTimers();
+            });
+
+            beforeEach(async () => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    system: {
+                        protocolMode: ProtocolMode.EAR,
+                    },
+                });
+                await pca.initialize();
+
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
+            });
+
+            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+                const validRequest: SsoSilentRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                const earFormSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockResolvedValue(document.createElement("iframe"));
+                jest.spyOn(
+                    SilentHandler,
+                    "monitorIframeForHash"
+                ).mockResolvedValue(
+                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                );
+
+                const result = await pca.ssoSilent(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
             });
         });
     });

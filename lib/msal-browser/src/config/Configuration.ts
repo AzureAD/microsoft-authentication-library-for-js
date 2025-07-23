@@ -8,10 +8,8 @@ import {
     LoggerOptions,
     INetworkModule,
     DEFAULT_SYSTEM_OPTIONS,
-    Constants,
     ProtocolMode,
     OIDCOptions,
-    ServerResponseType,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -22,6 +20,7 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     Logger,
+    Constants,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheLocation,
@@ -70,18 +69,11 @@ export type BrowserAuthOptions = {
      * The redirect URI where the window navigates after a successful logout.
      */
     postLogoutRedirectUri?: string | null;
-    /**
-     * Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
-     */
-    navigateToLoginRequestUrl?: boolean;
+
     /**
      * Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
      */
     clientCapabilities?: Array<string>;
-    /**
-     * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
-     */
-    protocolMode?: ProtocolMode;
     /**
      * Enum that configures options for the OIDC protocol mode.
      */
@@ -90,16 +82,6 @@ export type BrowserAuthOptions = {
      * Enum that represents the Azure Cloud to use.
      */
     azureCloudOptions?: AzureCloudOptions;
-    /**
-     * Flag of whether to use the local metadata cache
-     */
-    skipAuthorityMetadataCache?: boolean;
-    /**
-     * App supports nested app auth or not; defaults to
-     *
-     * @deprecated This flag is deprecated and will be removed in the next major version. createNestablePublicClientApplication should be used instead.
-     */
-    supportsNestedAppAuth?: boolean;
     /**
      * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
      */
@@ -127,27 +109,6 @@ export type CacheOptions = {
      * Used to specify the cacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     cacheLocation?: BrowserCacheLocation | string;
-    /**
-     * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
-     */
-    temporaryCacheLocation?: BrowserCacheLocation | string;
-    /**
-     * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
-     */
-    storeAuthStateInCookie?: boolean;
-    /**
-     * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to true.
-     * @deprecated This option will be removed in a future major version and all cookies set will include the Secure attribute.
-     */
-    secureCookies?: boolean;
-    /**
-     * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
-     */
-    cacheMigrationEnabled?: boolean;
-    /**
-     * Flag that determines whether access tokens are stored based on requested claims
-     */
-    claimsBasedCachingEnabled?: boolean;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -176,18 +137,13 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     loadFrameTimeout?: number;
     /**
-     * Maximum time the library should wait for a frame to load
-     * @deprecated This was previously needed for older browsers which are no longer supported by MSAL.js. This option will be removed in the next major version
-     */
-    navigateFrameWait?: number;
-    /**
      * Time to wait for redirection to occur before resolving promise
      */
     redirectNavigationTimeout?: number;
     /**
-     * Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
+     * Sets whether popups are opened and navigated to later. By default, this flag is set to true. When set to true, blank popups are opened and navigates to login domain. When set to false, popups are opened directly to the login domain.
      */
-    asyncPopups?: boolean;
+    navigatePopups?: boolean;
     /**
      * Flag to enable redirect opertaions when the app is rendered in an iframe (to support scenarios such as embedded B2C login).
      */
@@ -204,6 +160,10 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
      */
     pollIntervalMilliseconds?: number;
+    /**
+     * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+     */
+    protocolMode?: ProtocolMode;
 };
 
 /**
@@ -270,19 +230,17 @@ export function buildConfiguration(
 ): BrowserConfiguration {
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
-        clientId: Constants.EMPTY_STRING,
+        clientId: "",
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
-        cloudDiscoveryMetadata: Constants.EMPTY_STRING,
-        authorityMetadata: Constants.EMPTY_STRING,
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
         redirectUri:
             typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
-        postLogoutRedirectUri: Constants.EMPTY_STRING,
-        navigateToLoginRequestUrl: true,
+        postLogoutRedirectUri: "",
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD,
         OIDCOptions: {
-            serverResponseType: ServerResponseType.FRAGMENT,
+            responseMode: Constants.ResponseMode.FRAGMENT,
             defaultScopes: [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -291,26 +249,14 @@ export function buildConfiguration(
         },
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
-            tenant: Constants.EMPTY_STRING,
+            tenant: "",
         },
-        skipAuthorityMetadataCache: false,
-        supportsNestedAppAuth: false,
         instanceAware: false,
     };
 
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
-        temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-        storeAuthStateInCookie: false,
-        secureCookies: false,
-        // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
-        cacheMigrationEnabled:
-            userInputCache &&
-            userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage
-                ? true
-                : false,
-        claimsBasedCachingEnabled: false,
     };
 
     // Default logger options for browser
@@ -337,15 +283,15 @@ export function buildConfiguration(
             userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
-        navigateFrameWait: 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
-        asyncPopups: false,
         allowRedirectInIframe: false,
+        navigatePopups: true,
         allowPlatformBroker: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
+        protocolMode: ProtocolMode.AAD,
     };
 
     const providedSystemOptions: Required<BrowserSystemOptions> = {
@@ -356,15 +302,15 @@ export function buildConfiguration(
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
-            appName: Constants.EMPTY_STRING,
-            appVersion: Constants.EMPTY_STRING,
+            appName: "",
+            appVersion: "",
         },
         client: new StubPerformanceClient(),
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if (
-        userInputAuth?.protocolMode !== ProtocolMode.OIDC &&
+        userInputSystem?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
         const logger = new Logger(providedSystemOptions.loggerOptions);
@@ -377,10 +323,10 @@ export function buildConfiguration(
         );
     }
 
-    // Throw an error if user has set allowPlatformBroker to true without being in AAD protocol mode
+    // Throw an error if user has set allowPlatformBroker to true with OIDC protocol mode
     if (
-        userInputAuth?.protocolMode &&
-        userInputAuth.protocolMode !== ProtocolMode.AAD &&
+        userInputSystem?.protocolMode &&
+        userInputSystem.protocolMode === ProtocolMode.OIDC &&
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(

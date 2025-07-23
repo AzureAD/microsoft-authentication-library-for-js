@@ -19,24 +19,18 @@ import {
     CommonRefreshTokenRequest,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
-    CommonUsernamePasswordRequest,
-    AuthenticationScheme,
-    ResponseMode,
     AuthorityOptions,
-    OIDC_DEFAULT_SCOPES,
     AzureRegionConfiguration,
     AuthError,
     AzureCloudOptions,
     AuthorizationCodePayload,
-    Constants,
-    StringUtils,
     createClientAuthError,
     ClientAuthErrorCodes,
     buildStaticAuthorityOptions,
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     ClientAssertionCallback,
-    CacheOutcome,
+    Constants,
     ClientAuthError,
 } from "@azure/msal-common/node";
 import {
@@ -55,8 +49,10 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
 import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { version, name } from "../packageMetadata.js";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest.js";
+import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
+import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -128,26 +124,24 @@ export abstract class ClientApplication {
         const validRequest: CommonAuthorizationUrlRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
-            responseMode: request.responseMode || ResponseMode.QUERY,
-            authenticationScheme: AuthenticationScheme.BEARER,
+            responseMode: request.responseMode || Constants.ResponseMode.QUERY,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
+            state: request.state || "",
+            nonce: request.nonce || "",
         };
 
-        const authClientConfig = await this.buildOauthClientConfiguration(
+        const discoveredAuthority = await this.createAuthority(
             validRequest.authority,
             validRequest.correlationId,
-            validRequest.redirectUri,
-            undefined,
             undefined,
             request.azureCloudOptions
         );
-        const authorizationCodeClient = new AuthorizationCodeClient(
-            authClientConfig
+        return getAuthCodeRequestUrl(
+            this.config,
+            discoveredAuthority,
+            validRequest,
+            this.logger
         );
-        this.logger.verbose(
-            "Auth code client created",
-            validRequest.correlationId
-        );
-        return authorizationCodeClient.getAuthCodeUrl(validRequest);
     }
 
     /**
@@ -172,7 +166,7 @@ export abstract class ClientApplication {
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
-            authenticationScheme: AuthenticationScheme.BEARER,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
         };
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -180,13 +174,17 @@ export abstract class ClientApplication {
             validRequest.correlationId
         );
         try {
-            const authClientConfig = await this.buildOauthClientConfiguration(
+            const discoveredAuthority = await this.createAuthority(
                 validRequest.authority,
                 validRequest.correlationId,
-                validRequest.redirectUri,
-                serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
+            );
+            const authClientConfig = await this.buildOauthClientConfiguration(
+                discoveredAuthority,
+                validRequest.correlationId,
+                validRequest.redirectUri,
+                serverTelemetryManager
             );
             const authorizationCodeClient = new AuthorizationCodeClient(
                 authClientConfig
@@ -225,7 +223,7 @@ export abstract class ClientApplication {
         const validRequest: CommonRefreshTokenRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
-            authenticationScheme: AuthenticationScheme.BEARER,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
         };
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -233,14 +231,18 @@ export abstract class ClientApplication {
             validRequest.correlationId
         );
         try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                undefined,
+                request.azureCloudOptions
+            );
             const refreshTokenClientConfig =
                 await this.buildOauthClientConfiguration(
-                    validRequest.authority,
+                    discoveredAuthority,
                     validRequest.correlationId,
                     validRequest.redirectUri || "",
-                    serverTelemetryManager,
-                    undefined,
-                    request.azureCloudOptions
+                    serverTelemetryManager
                 );
             const refreshTokenClient = new RefreshTokenClient(
                 refreshTokenClientConfig
@@ -283,14 +285,18 @@ export abstract class ClientApplication {
         );
 
         try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                undefined,
+                request.azureCloudOptions
+            );
             const clientConfiguration =
                 await this.buildOauthClientConfiguration(
-                    validRequest.authority,
+                    discoveredAuthority,
                     validRequest.correlationId,
                     validRequest.redirectUri || "",
-                    serverTelemetryManager,
-                    undefined,
-                    validRequest.azureCloudOptions
+                    serverTelemetryManager
                 );
             const silentFlowClient = new SilentFlowClient(clientConfiguration);
             this.logger.verbose(
@@ -339,10 +345,10 @@ export abstract class ClientApplication {
                 ...validRequest,
                 scopes: validRequest.scopes?.length
                     ? validRequest.scopes
-                    : [...OIDC_DEFAULT_SCOPES],
+                    : [...Constants.OIDC_DEFAULT_SCOPES],
             });
 
-        if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+        if (cacheOutcome === Constants.CacheOutcome.PROACTIVELY_REFRESHED) {
             this.logger.info(
                 "ClientApplication:acquireCachedTokenSilent - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
             );
@@ -391,14 +397,18 @@ export abstract class ClientApplication {
             validRequest.correlationId
         );
         try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                undefined,
+                request.azureCloudOptions
+            );
             const usernamePasswordClientConfig =
                 await this.buildOauthClientConfiguration(
-                    validRequest.authority,
+                    discoveredAuthority,
                     validRequest.correlationId,
                     "",
-                    serverTelemetryManager,
-                    undefined,
-                    request.azureCloudOptions
+                    serverTelemetryManager
                 );
             const usernamePasswordClient = new UsernamePasswordClient(
                 usernamePasswordClientConfig
@@ -465,29 +475,14 @@ export abstract class ClientApplication {
      * @param serverTelemetryManager - initializes servertelemetry if passed
      */
     protected async buildOauthClientConfiguration(
-        authority: string,
+        discoveredAuthority: Authority,
         requestCorrelationId: string,
         redirectUri: string,
-        serverTelemetryManager?: ServerTelemetryManager,
-        azureRegionConfiguration?: AzureRegionConfiguration,
-        azureCloudOptions?: AzureCloudOptions
+        serverTelemetryManager?: ServerTelemetryManager
     ): Promise<ClientConfiguration> {
         this.logger.verbose(
             "buildOauthClientConfiguration called",
             requestCorrelationId
-        );
-
-        // precedence - azureCloudInstance + tenant >> authority and request  >> config
-        const userAzureCloudOptions = azureCloudOptions
-            ? azureCloudOptions
-            : this.config.auth.azureCloudOptions;
-
-        // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
-        const discoveredAuthority = await this.createAuthority(
-            authority,
-            requestCorrelationId,
-            azureRegionConfiguration,
-            userAzureCloudOptions
         );
 
         this.logger.info(
@@ -513,10 +508,6 @@ export abstract class ClientApplication {
                     this.config.system.loggerOptions.piiLoggingEnabled,
                 correlationId: requestCorrelationId,
             },
-            cacheOptions: {
-                claimsBasedCachingEnabled:
-                    this.config.cache.claimsBasedCachingEnabled,
-            },
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system.networkClient,
             storageInterface: this.storage,
@@ -530,8 +521,8 @@ export abstract class ClientApplication {
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || Constants.EMPTY_STRING,
-                os: process.platform || Constants.EMPTY_STRING,
+                cpu: process.arch || "",
+                os: process.platform || "",
             },
             telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
@@ -580,7 +571,8 @@ export abstract class ClientApplication {
         // Default authenticationScheme to Bearer, log that POP isn't supported yet
         if (
             authRequest.authenticationScheme &&
-            authRequest.authenticationScheme === AuthenticationScheme.POP
+            authRequest.authenticationScheme ===
+                Constants.AuthenticationScheme.POP
         ) {
             this.logger.verbose(
                 "Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request",
@@ -588,24 +580,14 @@ export abstract class ClientApplication {
             );
         }
 
-        authRequest.authenticationScheme = AuthenticationScheme.BEARER;
-
-        // Set requested claims hash if claims-based caching is enabled and claims were requested
-        if (
-            this.config.cache.claimsBasedCachingEnabled &&
-            authRequest.claims &&
-            // Checks for empty stringified object "{}" which doesn't qualify as requested claims
-            !StringUtils.isEmptyObj(authRequest.claims)
-        ) {
-            authRequest.requestedClaimsHash =
-                await this.cryptoProvider.hashString(authRequest.claims);
-        }
+        authRequest.authenticationScheme =
+            Constants.AuthenticationScheme.BEARER;
 
         return {
             ...authRequest,
             scopes: [
                 ...((authRequest && authRequest.scopes) || []),
-                ...OIDC_DEFAULT_SCOPES,
+                ...Constants.OIDC_DEFAULT_SCOPES,
             ],
             correlationId:
                 (authRequest && authRequest.correlationId) ||
@@ -640,7 +622,7 @@ export abstract class ClientApplication {
      * object. If no authority set in application object, then default to common authority.
      * @param authorityString - authority from user configuration
      */
-    private async createAuthority(
+    protected async createAuthority(
         authorityString: string,
         requestCorrelationId: string,
         azureRegionConfiguration?: AzureRegionConfiguration,
@@ -651,17 +633,15 @@ export abstract class ClientApplication {
         // build authority string based on auth params - azureCloudInstance is prioritized if provided
         const authorityUrl = Authority.generateAuthority(
             authorityString,
-            azureCloudOptions
+            azureCloudOptions || this.config.auth.azureCloudOptions
         );
 
         const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.auth.protocolMode,
+            protocolMode: this.config.system.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
             azureRegionConfiguration,
-            skipAuthorityMetadataCache:
-                this.config.auth.skipAuthorityMetadataCache,
         };
 
         return AuthorityFactory.createDiscoveredInstance(

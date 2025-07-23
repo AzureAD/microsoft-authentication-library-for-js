@@ -14,7 +14,6 @@ import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     AccountFilter,
 } from "@azure/msal-common/browser";
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import {
     BrowserCacheManager,
@@ -30,7 +29,7 @@ import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
-import { IController } from "./IController.js";
+import { IController, HandleRedirectPromiseOptions } from "./IController.js";
 import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
@@ -186,6 +185,7 @@ export class UnknownOperatingContextController implements IController {
                   Omit<
                       CommonAuthorizationUrlRequest,
                       | "responseMode"
+                      | "earJwk"
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "requestedClaimsHash"
@@ -235,18 +235,10 @@ export class UnknownOperatingContextController implements IController {
         blockNonBrowserEnvironment();
         return true;
     }
-    enableAccountStorageEvents(): void {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-    }
-    disableAccountStorageEvents(): void {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-    }
 
     handleRedirectPromise(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        hash?: string | undefined
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         blockAPICallsBeforeInitialize(this.initialized);
         return Promise.resolve(null);
@@ -293,6 +285,7 @@ export class UnknownOperatingContextController implements IController {
             Omit<
                 CommonAuthorizationUrlRequest,
                 | "responseMode"
+                | "earJwk"
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "requestedClaimsHash"
@@ -303,11 +296,6 @@ export class UnknownOperatingContextController implements IController {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
         return {} as Promise<AuthenticationResult>;
-    }
-    getTokenCache(): ITokenCache {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as ITokenCache;
     }
     getLogger(): Logger {
         return this.logger;

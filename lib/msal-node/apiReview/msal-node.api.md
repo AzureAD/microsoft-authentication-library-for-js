@@ -19,34 +19,32 @@ import { AppTokenProviderResult } from '@azure/msal-common/node';
 import { AuthenticationResult } from '@azure/msal-common/node';
 import { AuthError } from '@azure/msal-common/node';
 import { AuthErrorCodes } from '@azure/msal-common/node';
-import { AuthErrorMessage } from '@azure/msal-common/node';
 import { Authority } from '@azure/msal-common/node';
 import { AuthorityMetadataEntity } from '@azure/msal-common/node';
 import { AuthorizationCodePayload } from '@azure/msal-common/node';
+import { AuthorizeResponse } from '@azure/msal-common/node';
 import { AzureCloudInstance } from '@azure/msal-common/node';
 import { AzureCloudOptions } from '@azure/msal-common/node';
+import { AzureRegion } from '@azure/msal-common';
 import { AzureRegionConfiguration } from '@azure/msal-common/node';
-import { BaseAuthRequest } from '@azure/msal-common/node';
+import { BaseAuthRequest } from '@azure/msal-common';
+import { BaseAuthRequest as BaseAuthRequest_2 } from '@azure/msal-common/node';
 import { BaseClient } from '@azure/msal-common/node';
 import { CacheManager } from '@azure/msal-common/node';
-import { CacheOutcome } from '@azure/msal-common/node';
+import { ClientAssertion as ClientAssertion_2 } from '@azure/msal-common';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
 import { ClientAuthErrorCodes } from '@azure/msal-common/node';
-import { ClientAuthErrorMessage } from '@azure/msal-common/node';
 import { ClientConfiguration } from '@azure/msal-common/node';
 import { ClientConfigurationError } from '@azure/msal-common/node';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/node';
-import { ClientConfigurationErrorMessage } from '@azure/msal-common/node';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
-import { CommonClientCredentialRequest } from '@azure/msal-common/node';
-import { CommonDeviceCodeRequest } from '@azure/msal-common/node';
-import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
-import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
-import { DeviceCodeResponse } from '@azure/msal-common/node';
+import { Constants } from '@azure/msal-common/node';
+import { DeviceCodeResponse } from '@azure/msal-common';
+import { DeviceCodeResponse as DeviceCodeResponse_2 } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
 import { IAppTokenProvider } from '@azure/msal-common/node';
@@ -59,7 +57,6 @@ import { INativeBrokerPlugin } from '@azure/msal-common/node';
 import { INetworkModule } from '@azure/msal-common/node';
 import { InteractionRequiredAuthError } from '@azure/msal-common/node';
 import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common/node';
-import { InteractionRequiredAuthErrorMessage } from '@azure/msal-common/node';
 import { ISerializableTokenCache } from '@azure/msal-common/node';
 import { Logger } from '@azure/msal-common/node';
 import { LoggerOptions } from '@azure/msal-common/node';
@@ -67,16 +64,14 @@ import { LogLevel } from '@azure/msal-common/node';
 import { NetworkRequestOptions } from '@azure/msal-common/node';
 import { NetworkResponse } from '@azure/msal-common/node';
 import { PkceCodes } from '@azure/msal-common/node';
-import { PromptValue } from '@azure/msal-common/node';
 import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
-import { ResponseMode } from '@azure/msal-common/node';
-import { ServerAuthorizationCodeResponse } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
+import { StringDict } from '@azure/msal-common';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
@@ -95,8 +90,6 @@ export { AuthError }
 
 export { AuthErrorCodes }
 
-export { AuthErrorMessage }
-
 export { AuthorizationCodePayload }
 
 // @public
@@ -113,6 +106,8 @@ export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest
     redirectUri: string;
 };
 
+export { AuthorizeResponse }
+
 export { AzureCloudInstance }
 
 export { AzureCloudOptions }
@@ -128,7 +123,6 @@ export type CacheKVStore = Record<string, ValidCacheType>;
 // @public
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
-    claimsBasedCachingEnabled?: boolean;
 };
 
 // @public
@@ -139,12 +133,13 @@ export abstract class ClientApplication {
     // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    protected buildOauthClientConfiguration(authority: string, requestCorrelationId: string, redirectUri: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration>;
+    protected buildOauthClientConfiguration(discoveredAuthority: Authority, requestCorrelationId: string, redirectUri: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration>;
     clearCache(): void;
     protected clientAssertion: ClientAssertion;
     protected clientSecret: string;
     // Warning: (ae-forgotten-export) The symbol "NodeConfiguration" needs to be exported by the entry point index.d.ts
     protected config: NodeConfiguration;
+    protected createAuthority(authorityString: string, requestCorrelationId: string, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<Authority>;
     // (undocumented)
     protected readonly cryptoProvider: CryptoProvider;
     // (undocumented)
@@ -152,7 +147,7 @@ export abstract class ClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     getLogger(): Logger;
     getTokenCache(): TokenCache;
-    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): Promise<BaseAuthRequest>;
+    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest_2>): Promise<BaseAuthRequest_2>;
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
     setLogger(logger: Logger): void;
@@ -177,19 +172,16 @@ export { ClientAuthError }
 
 export { ClientAuthErrorCodes }
 
-export { ClientAuthErrorMessage }
-
 export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
 
-export { ClientConfigurationErrorMessage }
-
 // @public
 export class ClientCredentialClient extends BaseClient {
     constructor(configuration: ClientConfiguration, appTokenProvider?: IAppTokenProvider);
+    // Warning: (ae-forgotten-export) The symbol "CommonClientCredentialRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null>;
-    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, CacheOutcome]>;
+    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, Constants.CacheOutcome]>;
 }
 
 // @public
@@ -226,7 +218,7 @@ export class CryptoProvider implements ICrypto {
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<boolean>;
+    removeTokenBindingKey(): Promise<void>;
     signJwt(): Promise<string>;
 }
 
@@ -244,6 +236,7 @@ class Deserializer {
 // @public
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonDeviceCodeRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonDeviceCodeRequest): Promise<AuthenticationResult | null>;
     createExtraQueryParameters(request: CommonDeviceCodeRequest): string;
 }
@@ -251,7 +244,7 @@ export class DeviceCodeClient extends BaseClient {
 // @public
 export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
     scopes: Array<string>;
-    deviceCodeCallback: (response: DeviceCodeResponse) => void;
+    deviceCodeCallback: (response: DeviceCodeResponse_2) => void;
 };
 
 // @public
@@ -297,7 +290,7 @@ export interface ILoopbackClient {
     // (undocumented)
     getRedirectUri(): string;
     // (undocumented)
-    listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<ServerAuthorizationCodeResponse>;
+    listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<AuthorizeResponse>;
 }
 
 export { INativeBrokerPlugin }
@@ -316,8 +309,6 @@ export type InMemoryCache = {
 export { InteractionRequiredAuthError }
 
 export { InteractionRequiredAuthErrorCodes }
-
-export { InteractionRequiredAuthErrorMessage }
 
 // @public
 export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache">> & {
@@ -393,6 +384,7 @@ export class ManagedIdentityApplication {
 
 // @public (undocumented)
 export type ManagedIdentityConfiguration = {
+    clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
@@ -445,9 +437,7 @@ export type NodeAuthOptions = {
     cloudDiscoveryMetadata?: string;
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
-    protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
-    skipAuthorityMetadataCache?: boolean;
 };
 
 // @public
@@ -457,6 +447,7 @@ export type NodeSystemOptions = {
     proxyUrl?: string;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
     disableInternalRetries?: boolean;
+    protocolMode?: ProtocolMode;
 };
 
 // @public (undocumented)
@@ -467,6 +458,7 @@ export type NodeTelemetryOptions = {
 // @public
 export class OnBehalfOfClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonOnBehalfOfRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null>;
 }
 
@@ -476,7 +468,17 @@ export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssert
     scopes: Array<string>;
 };
 
-export { PromptValue }
+// Warning: (ae-missing-release-tag) "PromptValue" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const PromptValue: {
+    LOGIN: string;
+    SELECT_ACCOUNT: string;
+    CONSENT: string;
+    NONE: string;
+    CREATE: string;
+    NO_SESSION: string;
+};
 
 export { ProtocolMode }
 
@@ -497,7 +499,14 @@ export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scope
     forceCache?: boolean;
 };
 
-export { ResponseMode }
+// Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const ResponseMode: {
+    readonly QUERY: "query";
+    readonly FRAGMENT: "fragment";
+    readonly FORM_POST: "form_post";
+};
 
 // @public
 export type SerializedAccessTokenEntity = {
@@ -574,8 +583,6 @@ class Serializer {
     static serializeRefreshTokens(rtCache: RefreshTokenCache): Record<string, SerializedRefreshTokenEntity>;
 }
 
-export { ServerAuthorizationCodeResponse }
-
 export { ServerError }
 
 // @public (undocumented)
@@ -596,14 +603,14 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
-    getAllAccounts(): Promise<AccountInfo[]>;
+    getAllAccounts(correlationId?: string): Promise<AccountInfo[]>;
     getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
     overwriteCache(): Promise<void>;
     // (undocumented)
     readonly persistence: ICachePlugin;
-    removeAccount(account: AccountInfo): Promise<void>;
+    removeAccount(account: AccountInfo, correlationId?: string): Promise<void>;
     serialize(): string;
 }
 
@@ -612,6 +619,7 @@ export { TokenCacheContext }
 // @public @deprecated
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonUsernamePasswordRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
 }
 
@@ -627,7 +635,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.3.0";
+export const version = "3.6.0";
 
 // Warnings were encountered during analysis:
 //

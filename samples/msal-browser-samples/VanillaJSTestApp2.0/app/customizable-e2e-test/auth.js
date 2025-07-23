@@ -17,7 +17,6 @@ async function initializeMsal() {
                 console.error(err);
             });
 
-            myMSALObj.enableAccountStorageEvents();
             myMSALObj.addEventCallback((event) => {
                 if (event.eventType === msal.EventType.ACTIVE_ACCOUNT_CHANGED) {
                     showWelcomeMessage(myMSALObj.getActiveAccount());

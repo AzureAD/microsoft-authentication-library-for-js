@@ -1,8 +1,7 @@
-import { AuthError } from "../../src/error/AuthError";
+import { AuthError, getDefaultErrorMessage } from "../../src/error/AuthError";
 import {
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessages,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
 
@@ -16,7 +15,7 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             const err: ClientConfigurationError =
                 createClientConfigurationError(code);
 
-            const message = ClientConfigurationErrorMessages[code];
+            const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
 
             expect(err instanceof ClientConfigurationError).toBe(true);

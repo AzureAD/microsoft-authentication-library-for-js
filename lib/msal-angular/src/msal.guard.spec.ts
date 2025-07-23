@@ -1,7 +1,6 @@
-import { HttpClientTestingModule } from "@angular/common/http/testing";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { UrlTree } from "@angular/router";
-import { RouterTestingModule } from "@angular/router/testing";
+import { provideRouter, UrlTree } from "@angular/router";
 import { Location } from "@angular/common";
 import {
   BrowserSystemOptions,
@@ -9,7 +8,7 @@ import {
   IPublicClientApplication,
   LogLevel,
   PublicClientApplication,
-  UrlString,
+  BrowserUtils,
 } from "@azure/msal-browser";
 import { of } from "rxjs";
 import {
@@ -19,6 +18,10 @@ import {
   MsalBroadcastService,
 } from "./public-api";
 import { MsalGuardConfiguration } from "./msal.guard.config";
+import {
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
 
 let guard: MsalGuard;
 let authService: MsalService;
@@ -64,10 +67,17 @@ function initializeMsal(providers: any[] = []) {
         interactionType: InteractionType.Popup,
         protectedResourceMap: new Map(),
       }),
-      HttpClientTestingModule,
-      RouterTestingModule.withRoutes([]),
     ],
-    providers: [MsalGuard, MsalService, MsalBroadcastService, ...providers],
+    providers: [
+      MsalGuard,
+      MsalService,
+      MsalBroadcastService,
+      ...providers,
+      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClientTesting(),
+      provideRouter([]),
+    ],
+    teardown: { destroyAfterEach: false },
   });
 
   authService = TestBed.inject(MsalService);
@@ -99,13 +109,25 @@ describe("MsalGuard", () => {
     }
   });
 
-  it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
-    spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
-    spyOnProperty(window, "parent", "get").and.returnValue({ ...window });
+  describe("IFrames", () => {
+    // ensures that the hash is reset even if the test fails or times out
+    let originalHash: string;
+    beforeEach(() => {
+      originalHash = window.location.hash;
+      window.location.hash = "#code=123";
+    });
 
-    guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
-      expect(result).toBeFalse();
-      done();
+    afterEach(() => {
+      window.location.hash = originalHash;
+    });
+
+    it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
+      spyOnProperty(window, "parent", "get").and.returnValue({ ...window });
+
+      guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
+        expect(result).toBeFalse();
+        done();
+      });
     });
   });
 

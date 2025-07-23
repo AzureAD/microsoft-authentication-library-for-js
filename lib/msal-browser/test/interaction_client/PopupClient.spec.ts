@@ -17,15 +17,15 @@ import {
     TEST_SSH_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
+    validEarJWK,
+    getTestAuthenticationResult,
+    validEarJWE,
 } from "../utils/StringConstants.js";
 import {
-    Constants,
     AccountInfo,
     TokenClaims,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
-    ResponseMode,
-    AuthenticationScheme,
     ServerTelemetryEntity,
     AccountEntity,
     CommonEndSessionRequest,
@@ -35,31 +35,37 @@ import {
     AuthError,
     ProtocolUtils,
     ProtocolMode,
+    Constants,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
     ApiId,
     BrowserConstants,
+    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import {
     BrowserAuthError,
     createBrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { BrowserAuthErrorCodes, BrowserUtils } from "../../src/index.js";
+import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { PopupRequest } from "../../src/request/PopupRequest.js";
+import { version } from "../../src/packageMetadata.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -69,7 +75,6 @@ const testPopupWondowDefaults = {
 };
 
 describe("PopupClient", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let popupClient: PopupClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
@@ -145,9 +150,10 @@ describe("PopupClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
             };
 
             expect(popupClient.acquireToken(request)).rejects.toThrow(
@@ -164,9 +170,10 @@ describe("PopupClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
@@ -185,10 +192,11 @@ describe("PopupClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -206,14 +214,14 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
         });
 
-        it("opens popups asynchronously if configured", async () => {
+        it("opens popups when making network request if configured", async () => {
             const perfClient = getDefaultPerformanceClient();
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
                 telemetry: {
                     client: perfClient,
@@ -264,10 +272,11 @@ describe("PopupClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const rootMeasurement = perfClient.startMeasurement(
@@ -366,11 +375,11 @@ describe("PopupClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
@@ -386,7 +395,7 @@ describe("PopupClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -396,7 +405,7 @@ describe("PopupClient", () => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
             );
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -493,11 +502,11 @@ describe("PopupClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
@@ -513,7 +522,7 @@ describe("PopupClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -550,12 +559,12 @@ describe("PopupClient", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                        getDefaultErrorMessage(
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        )
                     );
                 });
         });
@@ -601,11 +610,11 @@ describe("PopupClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(PopupClient.prototype, "initiateAuthRequest")
                 .mockClear()
@@ -786,8 +795,8 @@ describe("PopupClient", () => {
                 "Error in creating a login url"
             );
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
@@ -809,7 +818,10 @@ describe("PopupClient", () => {
                 });
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -823,6 +835,75 @@ describe("PopupClient", () => {
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
                 expect(e).toEqual(testError);
             }
+        });
+
+        describe("EAR Flow Tests", () => {
+            let popupWindow: Window;
+            beforeAll(() => {
+                jest.useFakeTimers();
+            });
+
+            afterAll(() => {
+                jest.useRealTimers();
+            });
+
+            beforeEach(async () => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    system: {
+                        protocolMode: ProtocolMode.EAR,
+                    },
+                });
+                await pca.initialize();
+
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
+                popupWindow = {
+                    ...window,
+                    //@ts-ignore
+                    location: {
+                        assign: () => {},
+                    },
+                    focus: () => {},
+                    close: () => {},
+                };
+            });
+
+            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+                const validRequest: PopupRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_POPUP
+                );
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue(popupWindow);
+                const earFormSpy = jest
+                    .spyOn(HTMLFormElement.prototype, "submit")
+                    .mockImplementation(() => {
+                        // Suppress navigation
+                    });
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "monitorPopupForHash"
+                ).mockResolvedValue(
+                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                );
+
+                const result = await pca.acquireTokenPopup(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
+            });
         });
     });
 
@@ -852,13 +933,13 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
         });
 
-        it("opens popups asynchronously if configured", async () => {
+        it("opens popups when making network request if configured", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -941,7 +1022,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1002,7 +1083,7 @@ describe("PopupClient", () => {
                     postLogoutRedirectUri,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1053,7 +1134,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1106,7 +1187,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1157,7 +1238,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1208,16 +1289,16 @@ describe("PopupClient", () => {
                 idTokenClaims: testIdTokenClaims,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             // @ts-ignore
             await pca.browserStorage.setAccount(testAccount);
@@ -1245,7 +1326,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1296,16 +1377,16 @@ describe("PopupClient", () => {
                 idTokenClaims: testIdTokenClaims,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             // @ts-ignore
             await pca.browserStorage.setAccount(testAccount);
@@ -1399,16 +1480,16 @@ describe("PopupClient", () => {
                 username: testIdTokenClaims.preferred_username || "",
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
@@ -1806,7 +1887,7 @@ describe("PopupClient", () => {
                 .monitorPopupForHash(popup as Window, window)
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.monitorPopupTimeoutError.code
+                        BrowserAuthErrorCodes.monitorPopupTimeout
                     );
                 });
         });
@@ -1833,12 +1914,14 @@ describe("PopupClient", () => {
                 });
         });
 
-        it("returns server code response in query form when serverResponseType in OIDCOptions is query", async () => {
+        it("returns server code response in query form when responseMode in OIDCOptions is query", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    OIDCOptions: { responseMode: "query" },
+                },
+                system: {
                     protocolMode: ProtocolMode.OIDC,
-                    OIDCOptions: { serverResponseType: "query" },
                 },
             });
 
@@ -1951,7 +2034,7 @@ describe("PopupClient", () => {
     describe("initiateAuthRequest()", () => {
         it("throws error if request uri is empty", () => {
             const testTokenReq: CommonAuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -1965,7 +2048,9 @@ describe("PopupClient", () => {
                     popupWindowAttributes: {},
                     popupWindowParent: window,
                 })
-            ).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            ).toThrow(
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+            );
             expect(() =>
                 popupClient.initiateAuthRequest("", {
                     popupName: "name",
@@ -1976,7 +2061,7 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
-                BrowserAuthErrorMessage.emptyNavigateUriError.desc
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
             );
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
@@ -1992,7 +2077,7 @@ describe("PopupClient", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             window.focus = (): void => {
                 return;
@@ -2038,7 +2123,7 @@ describe("PopupClient", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const popupWindow = popupClient.initiateAuthRequest(
@@ -2062,7 +2147,7 @@ describe("PopupClient", () => {
             jest.spyOn(window, "focus").mockImplementation();
 
             const testRequest: CommonAuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 redirectUri: "",
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -2125,7 +2210,7 @@ describe("PopupClient", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             expect(() =>
@@ -2150,7 +2235,7 @@ describe("PopupClient", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             expect(() =>
                 popupClient.initiateAuthRequest(

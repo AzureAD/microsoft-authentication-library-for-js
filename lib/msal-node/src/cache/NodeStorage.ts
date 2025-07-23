@@ -20,6 +20,7 @@ import {
     ValidCredentialType,
     StaticAuthorityOptions,
     CacheHelpers,
+    AccountEntityUtils,
 } from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -29,6 +30,7 @@ import {
     JsonCache,
     CacheKVStore,
 } from "./serializer/SerializerTypes.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -46,7 +48,13 @@ export class NodeStorage extends CacheManager {
         cryptoImpl: ICrypto,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            new StubPerformanceClient(),
+            staticAuthorityOptions
+        );
         this.logger = logger;
     }
 
@@ -83,7 +91,7 @@ export class NodeStorage extends CacheManager {
             if (typeof value !== "object") {
                 continue;
             }
-            if (value instanceof AccountEntity) {
+            if (AccountEntityUtils.isAccountEntity(value)) {
                 inMemoryCache.accounts[key] = value as AccountEntity;
             } else if (CacheHelpers.isIdTokenEntity(value)) {
                 inMemoryCache.idTokens[key] = value as IdTokenEntity;
@@ -220,8 +228,8 @@ export class NodeStorage extends CacheManager {
      */
     getAccount(accountKey: string): AccountEntity | null {
         const cachedAccount = this.getItem(accountKey);
-        return cachedAccount
-            ? Object.assign(new AccountEntity(), this.getItem(accountKey))
+        return cachedAccount && typeof cachedAccount === "object"
+            ? ({ ...cachedAccount } as AccountEntity)
             : null;
     }
 
@@ -230,7 +238,7 @@ export class NodeStorage extends CacheManager {
      * @param account - cache value to be set of type AccountEntity
      */
     async setAccount(account: AccountEntity): Promise<void> {
-        const accountKey = account.generateAccountKey();
+        const accountKey = AccountEntityUtils.generateAccountKey(account);
         this.setItem(accountKey, account);
     }
 

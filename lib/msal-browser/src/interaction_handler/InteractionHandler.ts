@@ -14,16 +14,17 @@ import {
     PerformanceEvents,
     invokeAsync,
     CcsCredentialType,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
+    AuthorizeProtocol,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.
@@ -54,17 +55,12 @@ export class InteractionHandler {
      * @param locationHash
      */
     async handleCodeResponse(
-        response: ServerAuthorizationCodeResponse,
-        request: AuthorizationUrlRequest
+        response: AuthorizeResponse,
+        request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponse,
-            request.correlationId
-        );
-
         let authCodeResponse;
         try {
-            authCodeResponse = this.authModule.handleFragmentResponse(
+            authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
                 response,
                 request.state
             );
@@ -101,13 +97,9 @@ export class InteractionHandler {
      */
     async handleCodeResponseFromServer(
         authCodeResponse: AuthorizationCodePayload,
-        request: AuthorizationUrlRequest,
+        request: CommonAuthorizationUrlRequest,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponseFromServer,
-            request.correlationId
-        );
         this.logger.trace(
             "InteractionHandler.handleCodeResponseFromServer called"
         );
@@ -119,7 +111,7 @@ export class InteractionHandler {
         if (authCodeResponse.cloud_instance_host_name) {
             await invokeAsync(
                 this.authModule.updateAuthority.bind(this.authModule),
-                PerformanceEvents.UpdateTokenEndpointAuthority,
+                BrowserPerformanceEvents.UpdateTokenEndpointAuthority,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -147,7 +139,7 @@ export class InteractionHandler {
         // Acquire token with retrieved code.
         const tokenResponse = (await invokeAsync(
             this.authModule.acquireToken.bind(this.authModule),
-            PerformanceEvents.AuthClientAcquireToken,
+            BrowserPerformanceEvents.AuthClientAcquireToken,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -159,7 +151,7 @@ export class InteractionHandler {
      * Build ccs creds if available
      */
     protected createCcsCredentials(
-        request: AuthorizationUrlRequest
+        request: CommonAuthorizationUrlRequest
     ): CcsCredential | null {
         if (request.account) {
             return {

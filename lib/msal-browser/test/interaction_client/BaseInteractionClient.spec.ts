@@ -111,17 +111,17 @@ describe("BaseInteractionClient", () => {
                 homeAccountId: testAccountInfo1.homeAccountId,
             };
 
-            const testAccount1: AccountEntity = new AccountEntity();
-            testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-            testAccount1.localAccountId = testAccountInfo1.localAccountId;
-            testAccount1.environment = testAccountInfo1.environment;
-            testAccount1.realm = testAccountInfo1.tenantId;
-            testAccount1.username = testAccountInfo1.username;
-            testAccount1.name = testAccountInfo1.name;
-            testAccount1.authorityType = "MSSTS";
-            testAccount1.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount1.tenantProfiles = [tenantProfile1];
+            const testAccount1: AccountEntity = {
+                homeAccountId: testAccountInfo1.homeAccountId,
+                localAccountId: testAccountInfo1.localAccountId,
+                environment: testAccountInfo1.environment,
+                realm: testAccountInfo1.tenantId,
+                username: testAccountInfo1.username,
+                name: testAccountInfo1.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                tenantProfiles: [tenantProfile1],
+            };
 
             const testIdTokenClaims2: TokenClaims = ID_TOKEN_ALT_CLAIMS;
             const tenantProfile2: TenantProfile = {
@@ -151,17 +151,17 @@ describe("BaseInteractionClient", () => {
                 homeAccountId: testAccountInfo2.homeAccountId,
             };
 
-            const testAccount2: AccountEntity = new AccountEntity();
-            testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
-            testAccount2.localAccountId = testAccountInfo2.localAccountId;
-            testAccount2.environment = testAccountInfo2.environment;
-            testAccount2.realm = testAccountInfo2.tenantId;
-            testAccount2.username = testAccountInfo2.username;
-            testAccount2.name = testAccountInfo2.name;
-            testAccount2.authorityType = "MSSTS";
-            testAccount2.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-            testAccount2.tenantProfiles = [tenantProfile2];
+            const testAccount2: AccountEntity = {
+                homeAccountId: testAccountInfo2.homeAccountId,
+                localAccountId: testAccountInfo2.localAccountId,
+                environment: testAccountInfo2.environment,
+                realm: testAccountInfo2.tenantId,
+                username: testAccountInfo2.username,
+                name: testAccountInfo2.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                tenantProfiles: [tenantProfile2],
+            };
 
             pca.setActiveAccount(testAccountInfo1);
             // @ts-ignore
@@ -217,11 +217,15 @@ describe("BaseInteractionClient", () => {
             expect(pca.getAllAccounts().length).toBe(2);
             expect(pca.getActiveAccount()).toMatchObject(testAccountInfo1);
             await testClient.logout({ account: testAccountInfo1 });
-            expect(pca.getAccountByHomeId(testAccountInfo1.homeAccountId)).toBe(
-                null
-            );
             expect(
-                pca.getAccountByHomeId(testAccountInfo2.homeAccountId)
+                pca.getAccount({
+                    homeAccountId: testAccountInfo1.homeAccountId,
+                })
+            ).toBe(null);
+            expect(
+                pca.getAccount({
+                    homeAccountId: testAccountInfo2.homeAccountId,
+                })
             ).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
         });

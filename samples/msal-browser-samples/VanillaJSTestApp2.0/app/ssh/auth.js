@@ -56,14 +56,14 @@ async function signIn(method) {
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccountByUsername(username)
+        account: myMSALObj.getAccount({username})
     };
 
     myMSALObj.logoutRedirect(logoutRequest);
 }
 
 async function fetchSshCert() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccount({username});
     if (currentAcc) {
         sshCert = getCertPopup(sshCertRequest, currentAcc).then(response => {
             console.log("Response: ", response);

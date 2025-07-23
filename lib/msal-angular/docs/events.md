@@ -222,7 +222,6 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
             },
             cache: {
                 cacheLocation : BrowserCacheLocation.LocalStorage,
-                storeAuthStateInCookie: true, // set to true for IE 11
             },
             system: {
                 loggerOptions: {

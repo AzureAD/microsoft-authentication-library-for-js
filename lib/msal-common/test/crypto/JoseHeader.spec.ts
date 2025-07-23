@@ -1,13 +1,11 @@
 import { JoseHeader } from "../../src/crypto/JoseHeader";
-import {
-    JoseHeaderErrorCodes,
-    JoseHeaderErrorMessages,
-} from "../../src/error/JoseHeaderError";
+import { JoseHeaderErrorCodes } from "../../src/error/JoseHeaderError";
 import { JsonWebTokenTypes } from "../../src/utils/Constants";
 import {
     TEST_CRYPTO_ALGORITHMS,
     TEST_POP_VALUES,
 } from "../test_kit/StringConstants";
+import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 
 describe("JoseHeader.ts Unit Tests", () => {
     describe("getShrHeaderString", () => {
@@ -42,7 +40,7 @@ describe("JoseHeader.ts Unit Tests", () => {
                     typ: JsonWebTokenTypes.Pop,
                 })
             ).toThrowError(
-                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingKidError]
+                getDefaultErrorMessage(JoseHeaderErrorCodes.missingKidError)
             );
         });
 
@@ -53,7 +51,7 @@ describe("JoseHeader.ts Unit Tests", () => {
                     typ: JsonWebTokenTypes.Pop,
                 })
             ).toThrowError(
-                JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingAlgError]
+                getDefaultErrorMessage(JoseHeaderErrorCodes.missingAlgError)
             );
         });
     });

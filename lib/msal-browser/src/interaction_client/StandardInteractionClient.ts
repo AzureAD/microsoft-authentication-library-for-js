@@ -5,25 +5,21 @@
 
 import {
     ServerTelemetryManager,
-    CommonAuthorizationCodeRequest,
-    Constants,
     AuthorizationCodeClient,
     ClientConfiguration,
     UrlString,
     CommonEndSessionRequest,
     ProtocolUtils,
-    ResponseMode,
     IdTokenClaims,
     AccountInfo,
     AzureCloudOptions,
-    PerformanceEvents,
     invokeAsync,
     BaseAuthRequest,
     StringDict,
-    PkceCodes,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import {
     BrowserConstants,
     InteractionType,
@@ -35,7 +31,6 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
 
@@ -43,43 +38,6 @@ import { initializeBaseRequest } from "../request/RequestHelpers.js";
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
  */
 export abstract class StandardInteractionClient extends BaseInteractionClient {
-    /**
-     * Generates an auth code request tied to the url request.
-     * @param request
-     * @param pkceCodes
-     */
-    protected async initializeAuthorizationCodeRequest(
-        request: AuthorizationUrlRequest,
-        pkceCodes?: PkceCodes
-    ): Promise<CommonAuthorizationCodeRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            this.correlationId
-        );
-
-        const generatedPkceParams: PkceCodes =
-            pkceCodes ||
-            (await invokeAsync(
-                generatePkceCodes,
-                PerformanceEvents.GeneratePkceCodes,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )(this.performanceClient, this.logger, this.correlationId));
-
-        const authCodeRequest: CommonAuthorizationCodeRequest = {
-            ...request,
-            redirectUri: request.redirectUri,
-            code: Constants.EMPTY_STRING,
-            codeVerifier: generatedPkceParams.verifier,
-        };
-
-        request.codeChallenge = generatedPkceParams.challenge;
-        request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
-
-        return authCodeRequest;
-    }
-
     /**
      * Initializer for the logout request.
      * @param logoutRequest
@@ -224,14 +182,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
     }): Promise<AuthorizationCodeClient> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-            this.correlationId
-        );
         // Create auth module.
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -268,13 +222,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             account,
         } = params;
 
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.correlationId
-        );
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -304,10 +254,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 logLevel: logger.logLevel,
                 correlationId: this.correlationId,
             },
-            cacheOptions: {
-                claimsBasedCachingEnabled:
-                    this.config.cache.claimsBasedCachingEnabled,
-            },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
@@ -315,8 +261,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
-                cpu: Constants.EMPTY_STRING,
-                os: Constants.EMPTY_STRING,
+                cpu: "",
+                os: "",
             },
             telemetry: this.config.telemetry,
         };
@@ -330,25 +276,20 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async initializeAuthorizationRequest(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         interactionType: InteractionType
-    ): Promise<AuthorizationUrlRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-            this.correlationId
-        );
-
+    ): Promise<CommonAuthorizationUrlRequest> {
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
         };
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || Constants.EMPTY_STRING,
+            (request && request.state) || "",
             browserState
         );
 
         const baseRequest: BaseAuthRequest = await invokeAsync(
             initializeBaseRequest,
-            PerformanceEvents.InitializeBaseRequest,
+            BrowserPerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -359,13 +300,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger
         );
 
-        const validatedRequest: AuthorizationUrlRequest = {
+        const validatedRequest: CommonAuthorizationUrlRequest = {
             ...baseRequest,
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || createNewGuid(),
-            responseMode: this.config.auth.OIDCOptions
-                .serverResponseType as ResponseMode,
+            responseMode: this.config.auth.OIDCOptions.responseMode,
         };
 
         // Skip active account lookup if either login hint or session id is set
@@ -374,7 +314,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         }
 
         const account =
-            request.account || this.browserStorage.getActiveAccount();
+            request.account ||
+            this.browserStorage.getActiveAccount(this.correlationId);
         if (account) {
             this.logger.verbose(
                 "Setting validated request account",

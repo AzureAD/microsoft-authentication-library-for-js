@@ -5,11 +5,7 @@
 
 import { NetworkResponse } from "./NetworkResponse.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
-import {
-    HeaderNames,
-    ThrottlingConstants,
-    Constants,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import { CacheManager } from "../cache/CacheManager.js";
 import { ServerError } from "../error/ServerError.js";
 import {
@@ -26,9 +22,7 @@ export class ThrottlingUtils {
      * @param thumbprint
      */
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
-        return `${ThrottlingConstants.THROTTLING_PREFIX}.${JSON.stringify(
-            thumbprint
-        )}`;
+        return `${Constants.THROTTLING_PREFIX}.${JSON.stringify(thumbprint)}`;
     }
 
     /**
@@ -38,18 +32,19 @@ export class ThrottlingUtils {
      */
     static preProcess(
         cacheManager: CacheManager,
-        thumbprint: RequestThumbprint
+        thumbprint: RequestThumbprint,
+        correlationId: string
     ): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
         const value = cacheManager.getThrottlingCache(key);
 
         if (value) {
             if (value.throttleTime < Date.now()) {
-                cacheManager.removeItem(key);
+                cacheManager.removeItem(key, correlationId);
                 return;
             }
             throw new ServerError(
-                value.errorCodes?.join(" ") || Constants.EMPTY_STRING,
+                value.errorCodes?.join(" ") || "",
                 value.errorMessage,
                 value.subError
             );
@@ -65,7 +60,8 @@ export class ThrottlingUtils {
     static postProcess(
         cacheManager: CacheManager,
         thumbprint: RequestThumbprint,
-        response: NetworkResponse<ServerAuthorizationTokenResponse>
+        response: NetworkResponse<ServerAuthorizationTokenResponse>,
+        correlationId: string
     ): void {
         if (
             ThrottlingUtils.checkResponseStatus(response) ||
@@ -73,7 +69,9 @@ export class ThrottlingUtils {
         ) {
             const thumbprintValue: ThrottlingEntity = {
                 throttleTime: ThrottlingUtils.calculateThrottleTime(
-                    parseInt(response.headers[HeaderNames.RETRY_AFTER])
+                    parseInt(
+                        response.headers[Constants.HeaderNames.RETRY_AFTER]
+                    )
                 ),
                 error: response.body.error,
                 errorCodes: response.body.error_codes,
@@ -82,7 +80,8 @@ export class ThrottlingUtils {
             };
             cacheManager.setThrottlingCache(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
-                thumbprintValue
+                thumbprintValue,
+                correlationId
             );
         }
     }
@@ -109,7 +108,9 @@ export class ThrottlingUtils {
     ): boolean {
         if (response.headers) {
             return (
-                response.headers.hasOwnProperty(HeaderNames.RETRY_AFTER) &&
+                response.headers.hasOwnProperty(
+                    Constants.HeaderNames.RETRY_AFTER
+                ) &&
                 (response.status < 200 || response.status >= 300)
             );
         }
@@ -127,9 +128,8 @@ export class ThrottlingUtils {
         return Math.floor(
             Math.min(
                 currentSeconds +
-                    (time || ThrottlingConstants.DEFAULT_THROTTLE_TIME_SECONDS),
-                currentSeconds +
-                    ThrottlingConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
+                    (time || Constants.DEFAULT_THROTTLE_TIME_SECONDS),
+                currentSeconds + Constants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
             ) * 1000
         );
     }
@@ -146,6 +146,6 @@ export class ThrottlingUtils {
             homeAccountIdentifier
         );
         const key = this.generateThrottlingStorageKey(thumbprint);
-        cacheManager.removeItem(key);
+        cacheManager.removeItem(key, request.correlationId);
     }
 }

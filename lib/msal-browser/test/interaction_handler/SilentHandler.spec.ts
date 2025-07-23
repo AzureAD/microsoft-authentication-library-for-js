@@ -7,15 +7,15 @@ import {
     Logger,
     LoggerOptions,
     IPerformanceClient,
-    ServerResponseType,
+    Constants,
 } from "@azure/msal-common";
-import * as SilentHandler from "../../src/interaction_handler/SilentHandler";
-import { testNavUrl, RANDOM_TEST_GUID } from "../utils/StringConstants";
+import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
+import { testNavUrl, RANDOM_TEST_GUID } from "../utils/StringConstants.js";
 import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError";
+} from "../../src/error/BrowserAuthError.js";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 const DEFAULT_POLL_INTERVAL_MS = 30;
@@ -37,11 +37,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             removePerformanceCallback: jest.fn(),
             addPerformanceCallback: jest.fn(),
             emitEvents: jest.fn(),
-            startPerformanceMeasurement: jest.fn(),
             generateId: jest.fn(),
-            calculateQueuedTime: jest.fn(),
-            addQueueMeasurement: jest.fn(),
-            setPreQueueTime: jest.fn(),
             addFields: jest.fn(),
             incrementFields: jest.fn(),
         };
@@ -54,7 +50,7 @@ describe("SilentHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
         it("throws error if requestUrl is empty", async () => {
             await expect(
-                SilentHandler.initiateAuthRequest(
+                SilentHandler.initiateCodeRequest(
                     "",
                     performanceClient,
                     browserRequestLogger,
@@ -65,37 +61,13 @@ describe("SilentHandler.ts Unit Tests", () => {
             );
         });
 
-        it(
-            "Creates a frame asynchronously when created with default timeout",
-            async () => {
-                const startTime = Date.now();
-                const authFrame = await SilentHandler.initiateAuthRequest(
-                    testNavUrl,
-                    performanceClient,
-                    browserRequestLogger,
-                    RANDOM_TEST_GUID,
-                    DEFAULT_IFRAME_TIMEOUT_MS
-                );
-                const endTime = Date.now();
-                expect(endTime - startTime).toBeGreaterThanOrEqual(
-                    DEFAULT_IFRAME_TIMEOUT_MS
-                );
-                expect(authFrame instanceof HTMLIFrameElement).toBe(true);
-            },
-            DEFAULT_IFRAME_TIMEOUT_MS + 1000
-        );
-
-        it("Creates a frame synchronously when created with a timeout of 0", async () => {
-            const startTime = Date.now();
-            const authFrame = await SilentHandler.initiateAuthRequest(
+        it("Creates a frame", async () => {
+            const authFrame = await SilentHandler.initiateCodeRequest(
                 testNavUrl,
                 performanceClient,
                 browserRequestLogger,
-                RANDOM_TEST_GUID,
-                0
+                RANDOM_TEST_GUID
             );
-            const endTime = Date.now();
-            expect(endTime - startTime).toBeLessThan(DEFAULT_IFRAME_TIMEOUT_MS);
             expect(authFrame instanceof HTMLIFrameElement).toBe(true);
         });
     });
@@ -117,7 +89,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ServerResponseType.FRAGMENT
+                Constants.ResponseMode.FRAGMENT
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
@@ -149,7 +121,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ServerResponseType.FRAGMENT
+                Constants.ResponseMode.FRAGMENT
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e).toMatchObject(
@@ -202,7 +174,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 performanceClient,
                 browserRequestLogger,
                 RANDOM_TEST_GUID,
-                ServerResponseType.FRAGMENT
+                Constants.ResponseMode.FRAGMENT
             ).then((hash: string) => {
                 expect(hash).toEqual("#code=hello");
                 done();

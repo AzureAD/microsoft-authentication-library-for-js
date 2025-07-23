@@ -6,55 +6,69 @@
 import {
     Logger,
     IPerformanceClient,
-    PerformanceEvents,
-    invokeAsync,
     invoke,
-    ServerResponseType,
+    Constants,
+    Authority,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration.js";
+import {
+    BrowserConfiguration,
+    DEFAULT_IFRAME_TIMEOUT_MS,
+} from "../config/Configuration.js";
+import { getEARForm } from "../protocol/Authorize.js";
 
 /**
  * Creates a hidden iframe to given URL using user-requested scopes as an id.
  * @param urlNavigate
  * @param userRequestScopes
  */
-export async function initiateAuthRequest(
+export async function initiateCodeRequest(
     requestUrl: string,
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string,
-    navigateFrameWait?: number
+    correlationId: string
 ): Promise<HTMLIFrameElement> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.SilentHandlerInitiateAuthRequest,
-        correlationId
-    );
-
     if (!requestUrl) {
         // Throw error if request URL is empty.
         logger.info("Navigate url is empty");
         throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri);
     }
-    if (navigateFrameWait) {
-        return invokeAsync(
-            loadFrame,
-            PerformanceEvents.SilentHandlerLoadFrame,
-            logger,
-            performanceClient,
-            correlationId
-        )(requestUrl, navigateFrameWait, performanceClient, correlationId);
-    }
+
     return invoke(
         loadFrameSync,
-        PerformanceEvents.SilentHandlerLoadFrameSync,
+        BrowserPerformanceEvents.SilentHandlerLoadFrameSync,
         logger,
         performanceClient,
         correlationId
     )(requestUrl);
+}
+
+export async function initiateEarRequest(
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLIFrameElement> {
+    const frame = createHiddenIframe();
+    if (!frame.contentDocument) {
+        throw "No document associated with iframe!";
+    }
+    const form = await getEARForm(
+        frame.contentDocument,
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    form.submit();
+    return frame;
 }
 
 /**
@@ -69,13 +83,8 @@ export async function monitorIframeForHash(
     performanceClient: IPerformanceClient,
     logger: Logger,
     correlationId: string,
-    responseType: ServerResponseType
+    responseType: Constants.ResponseMode
 ): Promise<string> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.SilentHandlerMonitorIframeForHash,
-        correlationId
-    );
-
     return new Promise<string>((resolve, reject) => {
         if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
             logger.warning(
@@ -114,7 +123,7 @@ export async function monitorIframeForHash(
 
             let responseString = "";
             if (contentWindow) {
-                if (responseType === ServerResponseType.QUERY) {
+                if (responseType === Constants.ResponseMode.QUERY) {
                     responseString = contentWindow.location.search;
                 } else {
                     responseString = contentWindow.location.hash;
@@ -127,7 +136,7 @@ export async function monitorIframeForHash(
     }).finally(() => {
         invoke(
             removeHiddenIframe,
-            PerformanceEvents.RemoveHiddenIframe,
+            BrowserPerformanceEvents.RemoveHiddenIframe,
             logger,
             performanceClient,
             correlationId
@@ -135,43 +144,6 @@ export async function monitorIframeForHash(
     });
 }
 
-/**
- * @hidden
- * Loads iframe with authorization endpoint URL
- * @ignore
- * @deprecated
- */
-function loadFrame(
-    urlNavigate: string,
-    navigateFrameWait: number,
-    performanceClient: IPerformanceClient,
-    correlationId: string
-): Promise<HTMLIFrameElement> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.SilentHandlerLoadFrame,
-        correlationId
-    );
-
-    /*
-     * This trick overcomes iframe navigation in IE
-     * IE does not load the page consistently in iframe
-     */
-
-    return new Promise((resolve, reject) => {
-        const frameHandle = createHiddenIframe();
-
-        window.setTimeout(() => {
-            if (!frameHandle) {
-                reject("Unable to load iframe");
-                return;
-            }
-
-            frameHandle.src = urlNavigate;
-
-            resolve(frameHandle);
-        }, navigateFrameWait);
-    });
-}
 /**
  * @hidden
  * Loads the iframe synchronously when the navigateTimeFrame is set to `0`

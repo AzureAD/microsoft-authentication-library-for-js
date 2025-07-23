@@ -21,7 +21,6 @@ import {
 import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -29,6 +28,7 @@ import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
+import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
 
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
@@ -48,21 +48,16 @@ export interface IPublicClientApplication {
     removeEventCallback(callbackId: string): void;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     removePerformanceCallback(callbackId: string): boolean;
-    enableAccountStorageEvents(): void;
-    disableAccountStorageEvents(): void;
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-    getAccountByLocalId(localId: string): AccountInfo | null;
-    getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
-    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(
+        options?: HandleRedirectPromiseOptions
+    ): Promise<AuthenticationResult | null>;
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
-    getTokenCache(): ITokenCache;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
@@ -124,15 +119,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     getAccount: () => {
         return null;
     },
-    getAccountByHomeId: () => {
-        return null;
-    },
-    getAccountByUsername: () => {
-        return null;
-    },
-    getAccountByLocalId: () => {
-        return null;
-    },
     handleRedirectPromise: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(
@@ -148,13 +134,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         );
     },
     loginRedirect: () => {
-        return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
-        );
-    },
-    logout: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(
                 BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
@@ -193,17 +172,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     removePerformanceCallback: () => {
         return false;
-    },
-    enableAccountStorageEvents: () => {
-        return;
-    },
-    disableAccountStorageEvents: () => {
-        return;
-    },
-    getTokenCache: () => {
-        throw createBrowserConfigurationAuthError(
-            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-        );
     },
     getLogger: () => {
         throw createBrowserConfigurationAuthError(

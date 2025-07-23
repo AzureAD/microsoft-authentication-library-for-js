@@ -7,20 +7,17 @@ import {
     AccessTokenEntity,
     AppTokenProviderResult,
     AuthenticationResult,
-    AuthenticationScheme,
     Authority,
     BaseClient,
     CacheManager,
     ClientConfiguration,
-    CommonClientCredentialRequest,
-    CommonUsernamePasswordRequest,
     IAppTokenProvider,
     InteractionRequiredAuthError,
     TimeUtils,
     createClientAuthError,
     ClientAuthErrorCodes,
     CacheHelpers,
-    GrantType,
+    Constants,
 } from "@azure/msal-common";
 import {
     ClientCredentialClient,
@@ -34,6 +31,7 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     DSTS_OPENID_CONFIG_RESPONSE,
+    RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_TOKENS,
 } from "../test_kit/StringConstants.js";
@@ -44,6 +42,8 @@ import {
     mockCrypto,
 } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
+import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest.js";
 
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -108,7 +108,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -291,7 +291,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             dstsScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -373,7 +373,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -536,7 +536,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -592,7 +592,7 @@ describe("ClientCredentialClient unit tests", () => {
             const checks = {
                 graphScope: true,
                 clientId: true,
-                grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+                grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
                 clientSecret: true,
                 clientSku: true,
                 clientVersion: true,
@@ -655,7 +655,7 @@ describe("ClientCredentialClient unit tests", () => {
             const checks = {
                 graphScope: true,
                 clientId: true,
-                grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+                grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
                 clientSecret: true,
                 clientSku: true,
                 clientVersion: true,
@@ -717,7 +717,7 @@ describe("ClientCredentialClient unit tests", () => {
                 Date.now() + 60 * 30 * 1000,
                 mockCrypto.base64Decode,
                 undefined,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
         jest.spyOn(
@@ -764,7 +764,7 @@ describe("ClientCredentialClient unit tests", () => {
                 TimeUtils.nowSeconds() + 4600,
                 mockCrypto.base64Decode,
                 TimeUtils.nowSeconds() - 4600, // expired refreshOn value
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
         jest.spyOn(
@@ -817,7 +817,10 @@ describe("ClientCredentialClient unit tests", () => {
                     if (accessTokenKey) {
                         // use it to get the access token (from the cache)
                         const accessTokenFromCache: AccessTokenEntity | null =
-                            cache.getAccessTokenCredential(accessTokenKey);
+                            cache.getAccessTokenCredential(
+                                accessTokenKey,
+                                RANDOM_TEST_GUID
+                            );
                         // return it and clear the interval
                         resolve(accessTokenFromCache);
                         clearInterval(interval);
@@ -859,7 +862,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
         };
         checkMockedNetworkRequest(returnVal, checks);
@@ -896,7 +899,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
         };
         checkMockedNetworkRequest(returnVal, checks);
@@ -916,7 +919,7 @@ describe("ClientCredentialClient unit tests", () => {
                 4600,
                 mockCrypto.base64Decode,
                 undefined,
-                AuthenticationScheme.BEARER,
+                Constants.AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
             );
 
@@ -932,7 +935,7 @@ describe("ClientCredentialClient unit tests", () => {
                 4600,
                 mockCrypto.base64Decode,
                 undefined,
-                AuthenticationScheme.BEARER,
+                Constants.AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
             );
 

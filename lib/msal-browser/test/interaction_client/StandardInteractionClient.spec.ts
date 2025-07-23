@@ -4,15 +4,15 @@
  */
 
 import {
-    ResponseMode,
-    AuthenticationScheme,
+    Constants,
     AzureCloudOptions,
     AzureCloudInstance,
     Authority,
     ProtocolMode,
-    ServerResponseType,
     AccountEntity,
     AccountInfo,
+    CommonAuthorizationUrlRequest,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
@@ -27,7 +27,6 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
-import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
@@ -37,10 +36,6 @@ import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
         return Promise.resolve();
-    }
-
-    async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest) {
-        return super.initializeAuthorizationCodeRequest(request);
     }
 
     async initializeAuthorizationRequest(
@@ -70,7 +65,8 @@ describe("StandardInteractionClient", () => {
         undefined,
         { environment: "login.microsoftonline.com" }
     );
-    const testAccount: AccountInfo = testAccountEntity.getAccountInfo();
+    const testAccount: AccountInfo =
+        AccountEntityUtils.getAccountInfo(testAccountEntity);
 
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -127,81 +123,6 @@ describe("StandardInteractionClient", () => {
         jest.restoreAllMocks();
     });
 
-    it("initializeAuthorizationCodeRequest", async () => {
-        const request: AuthorizationUrlRequest = {
-            redirectUri: TEST_URIS.TEST_REDIR_URI,
-            scopes: ["scope"],
-            loginHint: "AbeLi@microsoft.com",
-            state: TEST_STATE_VALUES.USER_STATE,
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-            nonce: "",
-            authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-        };
-
-        jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        });
-
-        const authCodeRequest =
-            await testClient.initializeAuthorizationCodeRequest(request);
-        expect(request.codeChallenge).toBe(TEST_CONFIG.TEST_CHALLENGE);
-        expect(authCodeRequest.codeVerifier).toBe(TEST_CONFIG.TEST_VERIFIER);
-        expect(authCodeRequest.popKid).toBeUndefined;
-    });
-
-    it("initializeAuthorizationCodeRequest validates the request and does not influence undefined popKid param", async () => {
-        const request: AuthorizationUrlRequest = {
-            redirectUri: TEST_URIS.TEST_REDIR_URI,
-            scopes: ["scope"],
-            loginHint: "AbeLi@microsoft.com",
-            state: TEST_STATE_VALUES.USER_STATE,
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-            nonce: "",
-            authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-        };
-
-        jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        });
-
-        const authCodeRequest =
-            await testClient.initializeAuthorizationCodeRequest(request);
-        expect(authCodeRequest.popKid).toBeUndefined;
-    });
-
-    it("initializeAuthorizationCodeRequest validates the request and adds reqCnf param when user defined", async () => {
-        const request: AuthorizationUrlRequest = {
-            redirectUri: TEST_URIS.TEST_REDIR_URI,
-            scopes: ["scope"],
-            loginHint: "AbeLi@microsoft.com",
-            state: TEST_STATE_VALUES.USER_STATE,
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-            nonce: "",
-            authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            popKid: TEST_REQ_CNF_DATA.kid,
-        };
-
-        jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-            challenge: TEST_CONFIG.TEST_CHALLENGE,
-            verifier: TEST_CONFIG.TEST_VERIFIER,
-        });
-
-        const authCodeRequest =
-            await testClient.initializeAuthorizationCodeRequest(request);
-        expect(authCodeRequest.popKid).toEqual(TEST_REQ_CNF_DATA.kid);
-    });
-
     it("getDiscoveredAuthority - request authority only", async () => {
         const requestAuthority = TEST_CONFIG.validAuthority;
 
@@ -249,13 +170,13 @@ describe("StandardInteractionClient", () => {
         await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -267,14 +188,14 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationRequest persists account in request", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             account: { ...testAccount },
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -290,14 +211,14 @@ describe("StandardInteractionClient", () => {
         await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             loginHint: "AbeLi@microsoft.com",
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -314,14 +235,14 @@ describe("StandardInteractionClient", () => {
         await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             sid: "test_sid",
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -334,7 +255,7 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationRequest keeps both loginHint and account", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             loginHint: "AbeLi@microsoft.com",
@@ -342,7 +263,7 @@ describe("StandardInteractionClient", () => {
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -355,7 +276,7 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationRequest keeps both sid and account", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             sid: "test_sid",
@@ -363,7 +284,7 @@ describe("StandardInteractionClient", () => {
             state: TEST_STATE_VALUES.USER_STATE,
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
             nonce: "",
         };
 
@@ -384,8 +305,10 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                OIDCOptions: { responseMode: Constants.ResponseMode.QUERY },
+            },
+            system: {
                 protocolMode: ProtocolMode.OIDC,
-                OIDCOptions: { serverResponseType: ServerResponseType.QUERY },
             },
         });
 
@@ -433,7 +356,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
         });
     });
 
-    it("initializeAuthorizationRequest calls for a query response when OIDCOptions.serverResponseType is set to query", async () => {
+    it("initializeAuthorizationRequest calls for a query response when OIDCOptions.responseMode is set to query", async () => {
         const request: RedirectRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
@@ -443,13 +366,13 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             correlationId: TEST_CONFIG.CORRELATION_ID,
             nonce: "",
             authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
         };
 
         const authCodeRequest = await testClient.initializeAuthorizationRequest(
             request,
             InteractionType.Redirect
         );
-        expect(authCodeRequest.responseMode).toBe(ResponseMode.QUERY);
+        expect(authCodeRequest.responseMode).toBe(Constants.ResponseMode.QUERY);
     });
 });

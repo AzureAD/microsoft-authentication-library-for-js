@@ -4,8 +4,9 @@
  */
 
 import {
-    HeaderNames,
+    Constants,
     INetworkModule,
+    Logger,
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-common/node";
@@ -15,13 +16,16 @@ import { HttpMethod } from "../utils/Constants.js";
 export class HttpClientWithRetries implements INetworkModule {
     private httpClientNoRetries: INetworkModule;
     private retryPolicy: IHttpRetryPolicy;
+    private logger: Logger;
 
     constructor(
         httpClientNoRetries: INetworkModule,
-        retryPolicy: IHttpRetryPolicy
+        retryPolicy: IHttpRetryPolicy,
+        logger: Logger
     ) {
         this.httpClientNoRetries = httpClientNoRetries;
         this.retryPolicy = retryPolicy;
+        this.logger = logger;
     }
 
     private async sendNetworkRequestAsyncHelper<T>(
@@ -45,12 +49,17 @@ export class HttpClientWithRetries implements INetworkModule {
         let response: NetworkResponse<T> =
             await this.sendNetworkRequestAsyncHelper(httpMethod, url, options);
 
+        if ("isNewRequest" in this.retryPolicy) {
+            this.retryPolicy.isNewRequest = true;
+        }
+
         let currentRetry: number = 0;
         while (
             await this.retryPolicy.pauseForRetry(
                 response.status,
                 currentRetry,
-                response.headers[HeaderNames.RETRY_AFTER]
+                this.logger,
+                response.headers[Constants.HeaderNames.RETRY_AFTER]
             )
         ) {
             response = await this.sendNetworkRequestAsyncHelper(

@@ -7,7 +7,7 @@ import { ICrypto, SignedHttpRequestParameters } from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import { UrlString } from "../url/UrlString.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
 
@@ -54,11 +54,6 @@ export class PopTokenGenerator {
         request: SignedHttpRequestParameters,
         logger: Logger
     ): Promise<ReqCnfData> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.PopTokenGenerateCnf,
-            request.correlationId
-        );
-
         const reqCnf = await invokeAsync(
             this.generateKid.bind(this),
             PerformanceEvents.PopTokenGenerateCnf,
@@ -82,11 +77,6 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.PopTokenGenerateKid,
-            request.correlationId
-        );
-
         const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(
             request
         );

@@ -22,7 +22,7 @@ import {
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
-    HttpStatus,
+    Constants,
     ServerError,
 } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
@@ -58,6 +58,11 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
     describe("User Assigned", () => {
         test("acquires a User Assigned Client Id token", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
@@ -68,10 +73,23 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
                 );
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+
+            const url: URLSearchParams = new URLSearchParams(
+                sendGetRequestAsyncSpy.mock.lastCall[0]
+            );
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                )
+            ).toBe(true);
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
+                )
+            ).toBe(false);
         });
 
         test("acquires a User Assigned Resource Id token", async () => {
@@ -164,7 +182,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                 new ManagedIdentityNetworkErrorClient(
                     MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR,
                     undefined,
-                    HttpStatus.BAD_REQUEST
+                    Constants.HTTP_BAD_REQUEST
                 );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")

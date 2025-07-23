@@ -9,6 +9,7 @@ import * as CacheHelpers from "./cache/utils/CacheHelpers.js";
 import * as TimeUtils from "./utils/TimeUtils.js";
 import * as UrlUtils from "./utils/UrlUtils.js";
 import * as AADServerParamKeys from "./constants/AADServerParamKeys.js";
+import * as AccountEntityUtils from "./cache/utils/AccountEntityUtils.js";
 
 export { AuthToken };
 export { AuthorityFactory };
@@ -16,6 +17,7 @@ export { CacheHelpers };
 export { TimeUtils };
 export { UrlUtils };
 export { AADServerParamKeys };
+export { AccountEntityUtils };
 
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient.js";
 export { RefreshTokenClient } from "./client/RefreshTokenClient.js";
@@ -25,7 +27,6 @@ export {
     AuthOptions,
     SystemOptions,
     LoggerOptions,
-    CacheOptions,
     DEFAULT_SYSTEM_OPTIONS,
     AzureCloudOptions,
     ApplicationTelemetry,
@@ -105,6 +106,8 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+
+export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export { BaseAuthRequest } from "./request/BaseAuthRequest.js";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest.js";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest.js";
@@ -117,7 +120,7 @@ export { AzureRegion } from "./authority/AzureRegion.js";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration.js";
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js";
-export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse.js";
+export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
     ResponseHandler,
@@ -129,56 +132,32 @@ export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessage,
     createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError.js";
 export {
     AuthError,
-    AuthErrorMessage,
     AuthErrorCodes,
     createAuthError,
 } from "./error/AuthError.js";
 export { ServerError } from "./error/ServerError.js";
 export { NetworkError, createNetworkError } from "./error/NetworkError.js";
-export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
+export {
+    CacheError,
+    CacheErrorCodes,
+    createCacheError,
+} from "./error/CacheError.js";
 export {
     ClientAuthError,
-    ClientAuthErrorMessage,
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "./error/ClientAuthError.js";
 export {
     ClientConfigurationError,
-    ClientConfigurationErrorMessage,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
 } from "./error/ClientConfigurationError.js";
-export {
-    Constants,
-    OIDC_DEFAULT_SCOPES,
-    PromptValue,
-    PersistentCacheKeys,
-    ServerResponseType,
-    ResponseMode,
-    CacheOutcome,
-    CredentialType,
-    CacheType,
-    CacheAccountType,
-    AuthenticationScheme,
-    CodeChallengeMethodValues,
-    PasswordGrantConstants,
-    ThrottlingConstants,
-    ClaimsRequestKeys,
-    HeaderNames,
-    Errors,
-    THE_FAMILY_ID,
-    ONE_DAY_IN_MS,
-    GrantType,
-    AADAuthorityConstants,
-    HttpStatus,
-    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    JsonWebTokenTypes,
-} from "./utils/Constants.js";
+export * as Constants from "./utils/Constants.js";
+
 export { StringUtils } from "./utils/StringUtils.js";
 export { StringDict } from "./utils/MsalTypes.js";
 export {

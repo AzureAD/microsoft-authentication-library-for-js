@@ -15,26 +15,25 @@ import {
     MSAL_FORCE_REGION,
 } from "../utils/Constants.js";
 import {
-    CommonClientCredentialRequest,
-    CommonOnBehalfOfRequest,
     AuthenticationResult,
     AzureRegionConfiguration,
     AuthError,
     IAppTokenProvider,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     UrlString,
-    AADAuthorityConstants,
     createClientAuthError,
-    ClientAuthErrorCodes,
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     AzureRegion,
 } from "@azure/msal-common/node";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
+import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
 import { ClientCredentialClient } from "./ClientCredentialClient.js";
 import { OnBehalfOfClient } from "./OnBehalfOfClient.js";
+import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
@@ -91,7 +90,7 @@ export class ConfidentialClientApplication
             (clientSecretNotEmpty && certificateNotEmpty)
         ) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.invalidClientCredential
             );
         }
 
@@ -108,7 +107,7 @@ export class ConfidentialClientApplication
 
         if (!certificateNotEmpty) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.invalidClientCredential
+                NodeClientAuthErrorCodes.invalidClientCredential
             );
         } else {
             this.clientAssertion = !!this.config.auth.clientCertificate
@@ -168,7 +167,8 @@ export class ConfidentialClientApplication
         const validBaseRequest = {
             ...baseRequest,
             scopes: baseRequest.scopes.filter(
-                (scope: string) => !OIDC_DEFAULT_SCOPES.includes(scope)
+                (scope: string) =>
+                    !Constants.OIDC_DEFAULT_SCOPES.includes(scope)
             ),
         };
 
@@ -185,12 +185,12 @@ export class ConfidentialClientApplication
         const authority = new UrlString(validRequest.authority);
         const tenantId = authority.getUrlComponents().PathSegments[0];
         if (
-            Object.values(AADAuthorityConstants).includes(
-                tenantId as AADAuthorityConstants
+            Object.values(Constants.AADAuthority).includes(
+                tenantId as Constants.AADAuthority
             )
         ) {
             throw createClientAuthError(
-                ClientAuthErrorCodes.missingTenantIdError
+                NodeClientAuthErrorCodes.missingTenantIdError
             );
         }
 
@@ -221,14 +221,18 @@ export class ConfidentialClientApplication
             validRequest.skipCache
         );
         try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                azureRegionConfiguration,
+                request.azureCloudOptions
+            );
             const clientCredentialConfig =
                 await this.buildOauthClientConfiguration(
-                    validRequest.authority,
+                    discoveredAuthority,
                     validRequest.correlationId,
                     "",
-                    serverTelemetryManager,
-                    azureRegionConfiguration,
-                    request.azureCloudOptions
+                    serverTelemetryManager
                 );
             const clientCredentialClient = new ClientCredentialClient(
                 clientCredentialConfig,
@@ -271,13 +275,17 @@ export class ConfidentialClientApplication
             ...(await this.initializeBaseRequest(request)),
         };
         try {
-            const onBehalfOfConfig = await this.buildOauthClientConfiguration(
+            const discoveredAuthority = await this.createAuthority(
                 validRequest.authority,
                 validRequest.correlationId,
-                "",
-                undefined,
                 undefined,
                 request.azureCloudOptions
+            );
+            const onBehalfOfConfig = await this.buildOauthClientConfiguration(
+                discoveredAuthority,
+                validRequest.correlationId,
+                "",
+                undefined
             );
             const oboClient = new OnBehalfOfClient(onBehalfOfConfig);
             this.logger.verbose(

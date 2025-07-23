@@ -12,15 +12,14 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
     "module": "es2020",
     "esModuleInterop": true,
     "lib": [
-      "es2020",
+      "es2021",
       "dom"
     ],
     "paths": {
@@ -29,6 +28,12 @@
       ],
       "@azure/msal-angular": [
         "../../../node_modules/@azure/msal-angular/dist"
+      ],
+      "rxjs": [
+        "node_modules/rxjs"
+      ],
+      "rxjs/*": [
+        "node_modules/rxjs/*"
       ]
     },
     "useDefineForClassFields": false,

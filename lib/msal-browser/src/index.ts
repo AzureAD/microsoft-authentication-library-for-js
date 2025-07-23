@@ -9,6 +9,7 @@
  */
 
 import * as BrowserUtils from "./utils/BrowserUtils.js";
+import { Constants } from "@azure/msal-common/browser";
 export { BrowserUtils };
 
 export {
@@ -17,7 +18,10 @@ export {
     createStandardPublicClientApplication,
 } from "./app/PublicClientApplication.js";
 export { PublicClientNext } from "./app/PublicClientNext.js";
-export { IController } from "./controllers/IController.js";
+export {
+    IController,
+    HandleRedirectPromiseOptions,
+} from "./controllers/IController.js";
 export {
     Configuration,
     BrowserAuthOptions,
@@ -39,14 +43,9 @@ export {
 // Browser Errors
 export {
     BrowserAuthError,
-    BrowserAuthErrorMessage,
     BrowserAuthErrorCodes,
 } from "./error/BrowserAuthError.js";
-export {
-    BrowserConfigurationAuthError,
-    BrowserConfigurationAuthErrorCodes,
-    BrowserConfigurationAuthErrorMessage,
-} from "./error/BrowserConfigurationAuthError.js";
+export { BrowserConfigurationAuthError } from "./error/BrowserConfigurationAuthError.js";
 
 // Interfaces
 export {
@@ -62,7 +61,6 @@ export { SilentRequest } from "./request/SilentRequest.js";
 export { SsoSilentRequest } from "./request/SsoSilentRequest.js";
 export { EndSessionRequest } from "./request/EndSessionRequest.js";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest.js";
-export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest.js";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest.js";
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { ClearCacheRequest } from "./request/ClearCacheRequest.js";
@@ -70,7 +68,7 @@ export { InitializeApplicationRequest } from "./request/InitializeApplicationReq
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";
-export { ITokenCache } from "./cache/ITokenCache.js";
+export { loadExternalTokens } from "./cache/TokenCache.js";
 
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";
@@ -86,6 +84,7 @@ export {
     EventCallbackFunction,
     EventMessageUtils,
     PopupEvent,
+    BrokerConnectionEvent,
 } from "./event/EventMessage.js";
 export { EventType } from "./event/EventType.js";
 export { EventHandler } from "./event/EventHandler.js";
@@ -105,26 +104,32 @@ export {
 export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient.js";
 export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement.js";
 
+// Common constants
+export const AuthenticationScheme = Constants.AuthenticationScheme;
+export type AuthenticationScheme = Constants.AuthenticationScheme;
+export const ResponseMode = Constants.ResponseMode;
+export type ResponseMode = Constants.ResponseMode;
+export const PromptValue = Constants.PromptValue;
+export const JsonWebTokenTypes = Constants.JsonWebTokenTypes;
+export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
+export const OIDC_DEFAULT_SCOPES = Constants.OIDC_DEFAULT_SCOPES;
+
 // Common Object Formats
 export {
-    AuthenticationScheme,
     // Account
     AccountInfo,
     AccountEntity,
+    AccountEntityUtils,
     IdTokenClaims,
     // Error
     AuthError,
     AuthErrorCodes,
-    AuthErrorMessage,
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessage,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessage,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessage,
     ServerError,
     // Network
     INetworkModule,
@@ -136,27 +141,25 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
-    ServerResponseType,
-    PromptValue,
     // Server Response
     ExternalTokenResponse,
     // Utils
     StringUtils,
     UrlString,
-    JsonWebTokenTypes,
     // AzureCloudInstance enum
     AzureCloudInstance,
     AzureCloudOptions,
     AuthenticationHeaderParser,
-    OIDC_DEFAULT_SCOPES,
     PerformanceCallbackFunction,
     PerformanceEvent,
-    PerformanceEvents,
     // Telemetry
     InProgressPerformanceEvent,
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
+export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 
 export { version } from "./packageMetadata.js";
+
+export { isPlatformBrokerAvailable } from "./broker/nativeBroker/PlatformAuthProvider.js";
