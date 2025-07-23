@@ -80,7 +80,7 @@ pca.handleRedirectPromise({
 The following functions in `PublicClientApplication` have been removed:
 1. `enableAccountStorageEvents()` and `disableAccountStorageEvents()`: account storage events are now always enabled.
 1. `getAccountByHomeId()`, `getAccountByLocalId()`, and `getAccountByUsername()`: use `getAccount()` instead.
-1. `logout()`: use `logoutRedirect()` or `logoutPopup` instead.
+1. `logout()`: use `logoutRedirect()` or `logoutPopup()` instead.
 
 ## Removal of `startPerformanceMeasurement()`
 
