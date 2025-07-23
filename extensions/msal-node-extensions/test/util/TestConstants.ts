@@ -84,7 +84,7 @@ export const getTestAuthenticationResult = (
         expiresOn: TestTimeUtils.nowDateWithOffset(3600),
         tokenType: "Bearer",
         correlationId,
-        fromNativeBroker: true,
+        fromPlatformBroker: true,
     };
 };
 

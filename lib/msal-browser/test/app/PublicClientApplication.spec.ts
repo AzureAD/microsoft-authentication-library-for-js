@@ -872,7 +872,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
                 tokenType: Constants.AuthenticationScheme.BEARER,
-                fromNativeBroker: true,
+                fromPlatformBroker: true,
             };
 
             jest.spyOn(
@@ -988,7 +988,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                     account: testAccount,
                     tokenType: Constants.AuthenticationScheme.BEARER,
-                    fromNativeBroker: true,
+                    fromPlatformBroker: true,
                 };
                 jest.spyOn(
                     BrowserCacheManager.prototype,
@@ -5554,7 +5554,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     fromCache: true,
                     accessToken: "abc",
                     idToken: "defg",
-                    fromNativeBroker: true,
+                    fromPlatformBroker: true,
                 });
 
             const callbackId = pca.addPerformanceCallback((events) => {
@@ -6820,7 +6820,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeResult = {
                 ...testAuthenticationResult,
                 account: nativeAccount,
-                fromNativeBroker: true,
+                fromPlatformBroker: true,
             };
 
             const nativeRequest = {
