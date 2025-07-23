@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Rename fromNativeBroker and isNativeBroker to fromPlatformBroker and isPlatformBroker #7940",
+  "comment": "Rename fromNativeBroker to fromPlatformBroker #7940",
   "packageName": "@azure/msal-node",
   "email": "shylasummers@microsoft.com",
   "dependentChangeType": "patch"
