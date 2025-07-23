@@ -159,7 +159,7 @@ export type PerformanceEvent = {
      *
      * @type {?boolean}
      */
-    isPlatformBroker?: boolean;
+    isNativeBroker?: boolean;
 
     /**
      * Request ID returned from the response

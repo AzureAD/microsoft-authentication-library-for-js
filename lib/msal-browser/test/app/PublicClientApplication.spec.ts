@@ -5563,7 +5563,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].fromCache).toBe(true);
                 expect(events[0].accessTokenSize).toBe(3);
                 expect(events[0].idTokenSize).toBe(4);
-                expect(events[0].isPlatformBroker).toBe(true);
+                expect(events[0].isNativeBroker).toBe(true);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].scenarioId).toBe("test-scenario-id");
                 expect(events[0].accountType).toBe("AAD");
@@ -5621,7 +5621,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].fromCache).toBe(false);
                 expect(events[0].accessTokenSize).toBe(16);
                 expect(events[0].idTokenSize).toBe(12);
-                expect(events[0].isPlatformBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
                 expect(events[0].accountType).toBe("AAD");
@@ -5679,7 +5679,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].fromCache).toBe(false);
                 expect(events[0].accessTokenSize).toBe(16);
                 expect(events[0].idTokenSize).toBe(12);
-                expect(events[0].isPlatformBroker).toBe(undefined);
+                expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(1);
 

@@ -3368,7 +3368,7 @@ export type PerformanceEvent = {
     libraryName: string;
     libraryVersion: string;
     previousLibraryVersion?: string;
-    isPlatformBroker?: boolean;
+    isNativeBroker?: boolean;
     requestId?: string;
     cacheLookupPolicy?: number | undefined;
     cacheOutcome?: number;

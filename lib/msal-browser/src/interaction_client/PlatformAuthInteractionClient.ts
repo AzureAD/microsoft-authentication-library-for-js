@@ -178,7 +178,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 );
                 nativeATMeasurement.end({
                     success: true,
-                    isPlatformBroker: false, // Should be true only when the result is coming directly from the broker
+                    isNativeBroker: false, // Should be true only when the result is coming directly from the broker
                     fromCache: true,
                 });
                 return result;
@@ -206,7 +206,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 .then((result: AuthenticationResult) => {
                     nativeATMeasurement.end({
                         success: true,
-                        isPlatformBroker: true,
+                        isNativeBroker: true,
                         requestId: result.requestId,
                     });
                     serverTelemetryManager.clearNativeBrokerErrorCode();
@@ -217,7 +217,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                         success: false,
                         errorCode: error.errorCode,
                         subErrorCode: error.subError,
-                        isPlatformBroker: true,
+                        isNativeBroker: true,
                     });
                     throw error;
                 });

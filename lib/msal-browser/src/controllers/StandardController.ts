@@ -805,7 +805,7 @@ export class StandardController implements IController {
                 .then((response) => {
                     atPopupMeasurement.end({
                         success: true,
-                        isPlatformBroker: true,
+                        isNativeBroker: true,
                         accountType: getAccountType(response.account),
                     });
                     return response;
@@ -998,7 +998,7 @@ export class StandardController implements IController {
                 );
                 this.ssoSilentMeasurement?.end({
                     success: true,
-                    isPlatformBroker: response.fromPlatformBroker,
+                    isNativeBroker: response.fromPlatformBroker,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
                     accountType: getAccountType(response.account),
@@ -1082,7 +1082,7 @@ export class StandardController implements IController {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.end({
                                 success: true,
-                                isPlatformBroker: result.fromPlatformBroker,
+                                isNativeBroker: result.fromPlatformBroker,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                                 accountType: getAccountType(result.account),
@@ -1200,7 +1200,7 @@ export class StandardController implements IController {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
-                    isPlatformBroker: response.fromPlatformBroker,
+                    isNativeBroker: response.fromPlatformBroker,
                 });
                 return response;
             })
@@ -1930,7 +1930,7 @@ export class StandardController implements IController {
                 atsMeasurement.end({
                     success: true,
                     fromCache: result.fromCache,
-                    isPlatformBroker: result.fromPlatformBroker,
+                    isNativeBroker: result.fromPlatformBroker,
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
                 });
@@ -2164,7 +2164,7 @@ export class StandardController implements IController {
                     this.performanceClient.addFields(
                         {
                             fromCache: response.fromCache,
-                            isPlatformBroker: response.fromPlatformBroker,
+                            isNativeBroker: response.fromPlatformBroker,
                         },
                         request.correlationId
                     );
