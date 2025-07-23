@@ -82,7 +82,7 @@ The following functions in `PublicClientApplication` have been removed:
 1. `getAccountByHomeId()`, `getAccountByLocalId()`, and `getAccountByUsername()`: use `getAccount()` instead.
 1. `logout()`: use `logoutRedirect()` or `logoutPopup()` instead.
 
-## Removal of `startPerformanceMeasurement()`
+### Removal of `startPerformanceMeasurement()`
 
 `startPerformanceMeasurement()` has been removed. Please use `startMeasurement()` instead.
 
