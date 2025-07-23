@@ -414,6 +414,6 @@ function generateAuthenticationResult(
         state: request.state || "",
         cloudGraphHostName: accountEntity.cloudGraphHostName || "",
         msGraphHost: accountEntity.msGraphHost || "",
-        fromNativeBroker: false,
+        fromPlatformBroker: false,
     };
 }

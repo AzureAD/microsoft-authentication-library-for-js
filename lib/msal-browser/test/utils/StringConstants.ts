@@ -570,7 +570,7 @@ export function getTestAuthenticationResult(): AuthenticationResult {
             (TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) *
                 1000
         ),
-        fromNativeBroker: false,
+        fromPlatformBroker: false,
         msGraphHost: "",
         refreshOn: undefined,
         requestId: "",
