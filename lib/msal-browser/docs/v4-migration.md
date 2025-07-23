@@ -75,6 +75,17 @@ pca.handleRedirectPromise({
 })
 ```
 
+### Removal of some functions in `PublicClientApplication` 
+
+The following functions in `PublicClientApplication` have been removed:
+1. `enableAccountStorageEvents()` and `disableAccountStorageEvents()`: account storage events are now always enabled.
+1. `getAccountByHomeId()`, `getAccountByLocalId()`, and `getAccountByUsername()`: use `getAccount()` instead.
+1. `logout()`: use `logoutRedirect()` or `logoutPopup` instead.
+
+## Removal of `startPerformanceMeasurement()`
+
+`startPerformanceMeasurement()` has been removed. Please use `startMeasurement()` instead.
+
 ## Configuration changes
 
 ### BrowserAuthOptions changes
@@ -87,6 +98,9 @@ pca.handleRedirectPromise({
     ```typescript
       pca.handleRedirectPromise({ navigateToLoginRequestUrl: false })
     ```
+1. The `encodeExtraQueryParams` parameter has been removed. All extra query params will be encoded.
+1. The `supportsNestedAppAuth` parameter has been removed. Use `createNestablePublicClientApplication()` instead.
+1. The `OIDCOptions` parameter now takes in a `ResponseMode` instead of a `ServerResponseType`. Please use `ResponseMode.QUERY` in place of `ServerResponseType.QUERY` and `ResponseMode.FRAGMENT` instead of `ServerResponseType.FRAGMENT`.
 
 ### CacheOptions changes
 
@@ -101,6 +115,7 @@ The following parameters were deprecated in MSAL Browser v4 and have been remove
 ### SystemOptions
 
 1. The `protocolMode` parameter has been moved to `SystemOptions` from `BrowserAuthOptions` in Configuration. There are no changes to its options or functionality.
+1. The `navigateFrameWait` parameter has been removed. This was previously needed by older browsers which are no longer supported by MSAL.js.
 
 #### `asyncPopups`
 
@@ -112,7 +127,9 @@ See the [Configuration doc](./configuration.md#system-config-options) for more d
 
 ## Changes on request
 
-[TBD]
+### Removal of `onRedirectNavigate` parameter
+
+The `onRedirectNavigate` parameter has been removed from the `RedirectRequest` object. It has *not* been removed from the `Configuration` object and can continue to be set there.
 
 ## Behavioral Breaking Changes
 
