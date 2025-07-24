@@ -78,8 +78,20 @@ pca.handleRedirectPromise({
 ### Removal of some functions in `PublicClientApplication` 
 
 The following functions in `PublicClientApplication` have been removed:
-1. `enableAccountStorageEvents()` and `disableAccountStorageEvents()`: account storage events are now always enabled.
+1. `enableAccountStorageEvents()` and `disableAccountStorageEvents()`: account storage events are now always enabled. These function calls are no longer necessary.
 1. `getAccountByHomeId()`, `getAccountByLocalId()`, and `getAccountByUsername()`: use `getAccount()` instead.
+
+    ```typescript
+    // BEFORE
+    const account1 = accountManager.getAccountByHomeId(yourHomeAccountId);
+    const account2 = accountManager.getAccountByLocalId(yourLocalAccountId);
+    const account3 = accountManager.getAccountByUsername(yourUsername);
+
+    // AFTER
+    const account1 = accountManager.getAccount({ homeAccountId: yourHomeAccountId });
+    const account2 = accountManager.getAccount({ localAccountId: yourLocalAccountId });
+    const account3 = accountManager.getAccount({ username: yourUsername });
+    ```
 1. `logout()`: use `logoutRedirect()` or `logoutPopup()` instead.
 
 ### Removal of `startPerformanceMeasurement()`
@@ -100,6 +112,24 @@ The following functions in `PublicClientApplication` have been removed:
     ```
 1. The `encodeExtraQueryParams` parameter has been removed. All extra query params will be encoded.
 1. The `supportsNestedAppAuth` parameter has been removed. Use `createNestablePublicClientApplication()` instead.
+    ```typescript
+        // BEFORE
+        const pca = new PublicClientApplication({
+            auth: {
+                clientId: "your-client-id",
+                authority: "https://login.microsoftonline.com/common"
+                supportsNestedAppAuth: true
+            },
+        });
+
+        // AFTER
+        const pca = createNestablePublicClientApplication({
+            auth: {
+                clientId: "your-client-id",
+                authority: "https://login.microsoftonline.com/common"
+            }
+        });
+    ```
 1. The `OIDCOptions` parameter now takes in a `ResponseMode` instead of a `ServerResponseType`. Please use `ResponseMode.QUERY` in place of `ServerResponseType.QUERY` and `ResponseMode.FRAGMENT` instead of `ServerResponseType.FRAGMENT`.
 
 ### CacheOptions changes
