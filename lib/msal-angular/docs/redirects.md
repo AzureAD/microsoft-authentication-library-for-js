@@ -13,13 +13,8 @@ Note that specific guidance has been added for using MSAL Angular with Angular s
 Many apps using Angular 17 or above will be unable to handle redirects with `MsalRedirectComponent`. If you are unable to bootstrap the `MsalRedirectComponent`, you **must** handle redirects using the `handleRedirectObservable` as follows:
 
 - `handleRedirectObservable()` should be subscribed to on **every** page to which a redirect may occur. Pages protected by the MSAL Guard do not need to subscribe to `handleRedirectObservable()`, as redirects are processed in the Guard.
-<<<<<<< HEAD
 - Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete, as it may not be fully populated until then. Additionally, if interactive APIs are called while `handleRedirectObservable()` is in progress, it will result in an `interaction_in_progress` error. See our document on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions, and our document on [errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/errors.md) for details about the `interaction_in_progress` error. 
 - See our [MSAL Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.component.ts) for examples of this approach.
-=======
-- Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete, as it may not be fully populated until then. Additionally, if interactive APIs are called while `handleRedirectObservables()` is in progress, it will result in an `interaction_in_progress` error. See our document on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions, and our document on [errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/errors.md) for details about the `interaction_in_progress` error. 
-- See our [MSAL Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-modules-sample) for examples of this approach.
->>>>>>> e4944e430ac9f5119234317e7a1edacb4e0511c1
 
 Example of home.component.ts file:
 ```js
