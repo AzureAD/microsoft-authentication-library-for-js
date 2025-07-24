@@ -1,6 +1,6 @@
 # Upgrading from MSAL Angular v4 to v5
 
-MSAL Angular v5 requires Angular 19 or above.
+MSAL Angular v5 requires a minimum version of Angular 19 and is dropping support for Angular 15, 16, 17, and 18.
 
 ## Changes in `@azure/msal-angular@5`
 
