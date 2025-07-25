@@ -144,6 +144,12 @@ export class BrowserCacheManager extends CacheManager {
     async migrateExistingCache(correlationId: string): Promise<void> {
         const accountKeys0 = getAccountKeys(this.browserStorage, 0);
         const tokenKeys0 = getTokenKeys(this.clientId, this.browserStorage, 0);
+        this.performanceClient.addFields({
+            oldAccountCount: accountKeys0.length,
+            oldAccessCount: tokenKeys0.accessToken.length,
+            oldIdCount: tokenKeys0.idToken.length,
+            oldRefreshCount: tokenKeys0.refreshToken.length,
+        }, correlationId);
 
         if (this.cacheConfig.cacheRetentionDays <= 0) {
             // Clear all old entries if cache retention is set to 0 or less
@@ -164,6 +170,12 @@ export class BrowserCacheManager extends CacheManager {
 
         const accountKeys1 = getAccountKeys(this.browserStorage, 1);
         const tokenKeys1 = getTokenKeys(this.clientId, this.browserStorage, 1);
+        this.performanceClient.addFields({
+            currAccountCount: accountKeys1.length,
+            currAccessCount: tokenKeys1.accessToken.length,
+            currIdCount: tokenKeys1.idToken.length,
+            currRefreshCount: tokenKeys1.refreshToken.length,
+        }, correlationId);
 
         await this.updateV0ToCurrent(
             CacheKeys.ACCOUNT_SCHEMA_VERSION,
