@@ -8,7 +8,6 @@ import {
     INetworkModule,
     Logger,
     AccountInfo,
-    AccountEntity,
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,

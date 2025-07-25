@@ -49,4 +49,9 @@ export class SessionStorage implements IWindowStorage<string> {
     containsKey(key: string): boolean {
         return window.sessionStorage.hasOwnProperty(key);
     }
+
+    decryptData(): Promise<object | null> {
+        // Session storage does not support encryption, so this method is a no-op
+        return Promise.resolve(null);
+    }
 }

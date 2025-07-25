@@ -32,7 +32,8 @@ import { CookieStorage, SameSiteOptions } from "./CookieStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
-import { CACHE_KEY_PREFIX, StaticCacheKeys } from "../utils/BrowserConstants.js";
+import * as CacheKeys from "./CacheKeys.js";
+import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 
 const ENCRYPTION_KEY = "msal.cache.encryption";
 const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
@@ -40,13 +41,6 @@ const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
 type EncryptionCookie = {
     id: string;
     key: CryptoKey;
-};
-
-type EncryptedData = {
-    id: string;
-    nonce: string;
-    data: string;
-    lastUpdatedAt: string;
 };
 
 export class LocalStorage implements IWindowStorage<string> {
@@ -173,6 +167,50 @@ export class LocalStorage implements IWindowStorage<string> {
         return this.memoryStorage.getItem(key);
     }
 
+    async decryptData(key: string, data: EncryptedData, correlationId: string): Promise<object | null> {
+        if (!this.initialized || !this.encryptionCookie) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication
+            );
+        }
+
+        if (data.id !== this.encryptionCookie.id) {
+            // Data was encrypted with a different key. It must be removed because it is from a previous session.
+            this.performanceClient.incrementFields(
+                { encryptedCacheExpiredCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+
+        const decryptedData = await invokeAsync(
+            decrypt,
+            PerformanceEvents.Decrypt,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            this.encryptionCookie.key,
+            data.nonce,
+            this.getContext(key),
+            data.data
+        );
+
+        if (!decryptedData) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(decryptedData);
+        } catch (e) {
+            this.performanceClient.incrementFields(
+                { encryptedCacheCorruptionCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+    }
+
     setItem(key: string, value: string): void {
         window.localStorage.setItem(key, value);
     }
@@ -251,7 +289,7 @@ export class LocalStorage implements IWindowStorage<string> {
         // Clean up anything left
         this.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.startsWith(CACHE_KEY_PREFIX) ||
+                cacheKey.startsWith(CacheKeys.PREFIX) ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.removeItem(cacheKey);
@@ -271,7 +309,7 @@ export class LocalStorage implements IWindowStorage<string> {
         let accountKeys = getAccountKeys(this);
         accountKeys = await this.importArray(accountKeys, correlationId);
         // Write valid account keys back to map
-        this.setItem(StaticCacheKeys.ACCOUNT_KEYS, JSON.stringify(accountKeys));
+        this.setItem(CacheKeys.getAccountKeysCacheKey(), JSON.stringify(accountKeys));
 
         const tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
         tokenKeys.idToken = await this.importArray(
@@ -288,7 +326,7 @@ export class LocalStorage implements IWindowStorage<string> {
         );
         // Write valid token keys back to map
         this.setItem(
-            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
+            CacheKeys.getTokenKeysCacheKey(this.clientId),
             JSON.stringify(tokenKeys)
         );
     }
@@ -319,7 +357,7 @@ export class LocalStorage implements IWindowStorage<string> {
             return null;
         }
 
-        if (!encObj.id || !encObj.nonce || !encObj.data) {
+        if (!isEncrypted(encObj)) {
             // Data is not encrypted, likely from old version of MSAL. It must be removed because we don't know how old it is.
             this.performanceClient.incrementFields(
                 { unencryptedCacheCount: 1 },

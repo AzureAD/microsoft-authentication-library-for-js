@@ -48,6 +48,7 @@ export function createIdTokenEntity(
         clientId: clientId,
         secret: idToken,
         realm: tenantId,
+        lastUpdatedAt: Date.now().toString(), // Set the last updated time to now
     };
 
     return idTokenEntity;
@@ -93,6 +94,7 @@ export function createAccessTokenEntity(
         realm: tenantId,
         target: scopes,
         tokenType: tokenType || AuthenticationScheme.BEARER,
+        lastUpdatedAt: Date.now().toString(), // Set the last updated time to now
     };
 
     if (userAssertionHash) {
@@ -161,6 +163,7 @@ export function createRefreshTokenEntity(
         environment: environment,
         clientId: clientId,
         secret: refreshToken,
+        lastUpdatedAt: Date.now().toString()
     };
 
     if (userAssertionHash) {

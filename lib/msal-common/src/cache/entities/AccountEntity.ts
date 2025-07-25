@@ -62,7 +62,7 @@ export class AccountEntity {
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
-    lastUpdatedAt?: string;
+    lastUpdatedAt: string;
 
     /**
      * Returns the AccountInfo interface for this account.
