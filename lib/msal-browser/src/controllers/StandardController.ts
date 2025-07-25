@@ -262,7 +262,7 @@ export class StandardController implements IController {
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
-            cacheRetentionDays: 5, 
+            cacheRetentionDays: 5,
             temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
             secureCookies: false,

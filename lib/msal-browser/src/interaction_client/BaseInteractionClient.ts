@@ -92,10 +92,7 @@ export abstract class BaseInteractionClient {
         if (account) {
             // Clear given account.
             try {
-                this.browserStorage.removeAccount(
-                    account,
-                    correlationId
-                );
+                this.browserStorage.removeAccount(account, correlationId);
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
                 );

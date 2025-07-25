@@ -55,5 +55,9 @@ export interface IWindowStorage<T> {
      */
     containsKey(key: string): boolean;
 
-    decryptData(key: string, data: EncryptedData, correlationId: string): Promise<object | null>;
+    decryptData(
+        key: string,
+        data: EncryptedData,
+        correlationId: string
+    ): Promise<object | null>;
 }

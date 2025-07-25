@@ -16,9 +16,7 @@ import {
 } from "@azure/msal-common/browser";
 import { Configuration } from "../config/Configuration.js";
 import { name, version } from "../packageMetadata.js";
-import {
-    BrowserCacheLocation,
-} from "../utils/BrowserConstants.js";
+import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import { BROWSER_PERF_ENABLED_KEY } from "../cache/CacheKeys.js";
 

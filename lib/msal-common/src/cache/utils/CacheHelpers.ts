@@ -24,6 +24,7 @@ import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity.js";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity.js";
+import { CredentialEntity } from "../entities/CredentialEntity.js";
 import { IdTokenEntity } from "../entities/IdTokenEntity.js";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity.js";
 
@@ -181,7 +182,7 @@ export function createRefreshTokenEntity(
     return rtEntity;
 }
 
-export function isCredentialEntity(entity: object): boolean {
+export function isCredentialEntity(entity: object): entity is CredentialEntity {
     return (
         entity.hasOwnProperty("homeAccountId") &&
         entity.hasOwnProperty("environment") &&
@@ -195,7 +196,7 @@ export function isCredentialEntity(entity: object): boolean {
  * Validates an entity: checks for all expected params
  * @param entity
  */
-export function isAccessTokenEntity(entity: object): boolean {
+export function isAccessTokenEntity(entity: object): entity is AccessTokenEntity {
     if (!entity) {
         return false;
     }
@@ -214,7 +215,7 @@ export function isAccessTokenEntity(entity: object): boolean {
  * Validates an entity: checks for all expected params
  * @param entity
  */
-export function isIdTokenEntity(entity: object): boolean {
+export function isIdTokenEntity(entity: object): entity is IdTokenEntity {
     if (!entity) {
         return false;
     }
@@ -230,7 +231,7 @@ export function isIdTokenEntity(entity: object): boolean {
  * Validates an entity: checks for all expected params
  * @param entity
  */
-export function isRefreshTokenEntity(entity: object): boolean {
+export function isRefreshTokenEntity(entity: object): entity is RefreshTokenEntity {
     if (!entity) {
         return false;
     }

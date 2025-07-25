@@ -15,7 +15,9 @@ export const BROWSER_PERF_ENABLED_KEY = `${PREFIX}.${BROWSER_PREFIX}.performance
 export const PLATFORM_AUTH_DOM_SUPPORT = `${PREFIX}.${BROWSER_PREFIX}.platform.auth.dom`;
 export const VERSION_CACHE_KEY = `${PREFIX}.version`;
 
-export function getAccountKeysCacheKey(schema: number = ACCOUNT_SCHEMA_VERSION): string {
+export function getAccountKeysCacheKey(
+    schema: number = ACCOUNT_SCHEMA_VERSION
+): string {
     if (schema < 1) {
         return `${PREFIX}.account.keys`;
     }
@@ -23,7 +25,10 @@ export function getAccountKeysCacheKey(schema: number = ACCOUNT_SCHEMA_VERSION):
     return `${PREFIX}.${schema}.account.keys`;
 }
 
-export function getTokenKeysCacheKey(clientId: string, schema: number = CREDENTIAL_SCHEMA_VERSION): string {
+export function getTokenKeysCacheKey(
+    clientId: string,
+    schema: number = CREDENTIAL_SCHEMA_VERSION
+): string {
     if (schema < 1) {
         return `${PREFIX}.token.keys.${clientId}`;
     }

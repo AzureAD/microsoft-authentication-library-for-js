@@ -11,7 +11,9 @@ export type EncryptedData = {
 };
 
 export function isEncrypted(data: object): data is EncryptedData {
-    return data.hasOwnProperty("id") &&
+    return (
+        data.hasOwnProperty("id") &&
         data.hasOwnProperty("nonce") &&
-        data.hasOwnProperty("data");
+        data.hasOwnProperty("data")
+    );
 }

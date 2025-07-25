@@ -167,7 +167,11 @@ export class LocalStorage implements IWindowStorage<string> {
         return this.memoryStorage.getItem(key);
     }
 
-    async decryptData(key: string, data: EncryptedData, correlationId: string): Promise<object | null> {
+    async decryptData(
+        key: string,
+        data: EncryptedData,
+        correlationId: string
+    ): Promise<object | null> {
         if (!this.initialized || !this.encryptionCookie) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.uninitializedPublicClientApplication
@@ -309,7 +313,10 @@ export class LocalStorage implements IWindowStorage<string> {
         let accountKeys = getAccountKeys(this);
         accountKeys = await this.importArray(accountKeys, correlationId);
         // Write valid account keys back to map
-        this.setItem(CacheKeys.getAccountKeysCacheKey(), JSON.stringify(accountKeys));
+        this.setItem(
+            CacheKeys.getAccountKeysCacheKey(),
+            JSON.stringify(accountKeys)
+        );
 
         const tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
         tokenKeys.idToken = await this.importArray(

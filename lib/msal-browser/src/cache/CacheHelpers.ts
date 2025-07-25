@@ -12,8 +12,13 @@ import * as CacheKeys from "./CacheKeys.js";
  * @param storage
  * @returns
  */
-export function getAccountKeys(storage: IWindowStorage<string>, schemaVersion?: number): Array<string> {
-    const accountKeys = storage.getItem(CacheKeys.getAccountKeysCacheKey(schemaVersion));
+export function getAccountKeys(
+    storage: IWindowStorage<string>,
+    schemaVersion?: number
+): Array<string> {
+    const accountKeys = storage.getItem(
+        CacheKeys.getAccountKeysCacheKey(schemaVersion)
+    );
     if (accountKeys) {
         return JSON.parse(accountKeys);
     }
@@ -32,7 +37,9 @@ export function getTokenKeys(
     storage: IWindowStorage<string>,
     schemaVersion?: number
 ): TokenKeys {
-    const item = storage.getItem(CacheKeys.getTokenKeysCacheKey(clientId, schemaVersion));
+    const item = storage.getItem(
+        CacheKeys.getTokenKeysCacheKey(clientId, schemaVersion)
+    );
     if (item) {
         const tokenKeys = JSON.parse(item);
         if (
