@@ -54,6 +54,7 @@ export class AccountEntity {
     localAccountId: string;
     username: string;
     authorityType: string;
+    loginHint?: string;
     clientInfo?: string;
     name?: string;
     lastModificationTime?: string;
@@ -82,6 +83,7 @@ export class AccountEntity {
             tenantId: this.realm,
             username: this.username,
             localAccountId: this.localAccountId,
+            loginHint: this.loginHint,
         });
     }
 
@@ -95,6 +97,7 @@ export class AccountEntity {
             tenantId: this.realm,
             username: this.username,
             localAccountId: this.localAccountId,
+            loginHint: this.loginHint,
             name: this.name,
             nativeAccountId: this.nativeAccountId,
             authorityType: this.authorityType,
@@ -207,6 +210,7 @@ export class AccountEntity {
             : null;
 
         account.username = preferredUsername || email || "";
+        account.loginHint = accountDetails.idTokenClaims?.login_hint || "";
         account.name = accountDetails.idTokenClaims?.name || "";
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
@@ -252,6 +256,7 @@ export class AccountEntity {
 
         account.username = accountInfo.username;
         account.name = accountInfo.name;
+        account.loginHint = accountInfo.loginHint;
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;
@@ -353,6 +358,7 @@ export class AccountEntity {
             accountA.localAccountId === accountB.localAccountId &&
             accountA.username === accountB.username &&
             accountA.tenantId === accountB.tenantId &&
+            accountA.loginHint === accountB.loginHint &&
             accountA.environment === accountB.environment &&
             accountA.nativeAccountId === accountB.nativeAccountId &&
             claimsMatch

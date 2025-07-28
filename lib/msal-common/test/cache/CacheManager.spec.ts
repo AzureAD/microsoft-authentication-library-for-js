@@ -1880,6 +1880,7 @@ describe("CacheManager.ts test cases", () => {
                 environment: "login.microsoftonline.com",
                 tenantId: TEST_CONFIG.TENANT,
                 username: "John Doe",
+                loginHing: "loginHint"
             };
 
             const silentFlowRequest: CommonSilentFlowRequest = {

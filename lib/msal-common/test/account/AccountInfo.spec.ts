@@ -254,6 +254,7 @@ describe("AccountInfo Unit Tests", () => {
             localAccountId,
             name,
             username,
+            loginHint,
             ...CONSTANT_ACCOUNT_PROPERTIES
         } = baseAccountInfo;
 
@@ -272,6 +273,7 @@ describe("AccountInfo Unit Tests", () => {
                 localAccountId: "guest-local-account-id",
                 name: "guest-name",
                 username: "guest-username",
+                loginHint: "guest-login-hint",
                 isHomeTenant: false,
             };
 
@@ -289,6 +291,9 @@ describe("AccountInfo Unit Tests", () => {
             );
             expect(updatedAccountInfo.name).toEqual(guestTenantProfile.name);
             expect(updatedAccountInfo.username).toEqual(guestTenantProfile.username);
+            expect(updatedAccountInfo.loginHint).toEqual(
+                guestTenantProfile.loginHint
+            );
             expect(updatedAccountInfo.idTokenClaims).toBeUndefined();
             expect(updatedAccountInfo).toMatchObject(
                 CONSTANT_ACCOUNT_PROPERTIES
@@ -326,6 +331,7 @@ describe("AccountInfo Unit Tests", () => {
                 localAccountId: "guest-local-account-id",
                 name: "guest-name",
                 username: "guest-username",
+                loginHint: "guest-login-hint",
                 isHomeTenant: false,
             };
 
