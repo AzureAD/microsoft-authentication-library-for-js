@@ -210,7 +210,7 @@ export class AccountEntity {
             : null;
 
         account.username = preferredUsername || email || "";
-        account.loginHint = accountDetails.idTokenClaims?.login_hint || "";
+        account.loginHint = accountDetails.idTokenClaims?.login_hint;
         account.name = accountDetails.idTokenClaims?.name || "";
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;

@@ -117,7 +117,7 @@ export function buildTenantProfile(
             localAccountId: oid || sub || "",
             name: name,
             username: preferred_username || upn || "",
-            loginHint: login_hint || "",
+            loginHint: login_hint,
             isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
         };
     } else {
@@ -125,7 +125,6 @@ export function buildTenantProfile(
             tenantId,
             localAccountId,
             username: "",
-            loginHint: "",
             isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
         };
     }
