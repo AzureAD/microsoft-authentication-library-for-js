@@ -164,7 +164,7 @@ export function createRefreshTokenEntity(
         environment: environment,
         clientId: clientId,
         secret: refreshToken,
-        lastUpdatedAt: Date.now().toString()
+        lastUpdatedAt: Date.now().toString(),
     };
 
     if (userAssertionHash) {
@@ -196,7 +196,9 @@ export function isCredentialEntity(entity: object): entity is CredentialEntity {
  * Validates an entity: checks for all expected params
  * @param entity
  */
-export function isAccessTokenEntity(entity: object): entity is AccessTokenEntity {
+export function isAccessTokenEntity(
+    entity: object
+): entity is AccessTokenEntity {
     if (!entity) {
         return false;
     }
@@ -231,7 +233,9 @@ export function isIdTokenEntity(entity: object): entity is IdTokenEntity {
  * Validates an entity: checks for all expected params
  * @param entity
  */
-export function isRefreshTokenEntity(entity: object): entity is RefreshTokenEntity {
+export function isRefreshTokenEntity(
+    entity: object
+): entity is RefreshTokenEntity {
     if (!entity) {
         return false;
     }

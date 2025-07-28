@@ -252,13 +252,13 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Returns credential cache key from the entity
-     * @param credential 
+     * @param credential
      */
     abstract generateCredentialKey(credential: CredentialEntity): string;
 
     /**
      * Returns the account cache key from the account info
-     * @param account 
+     * @param account
      */
     abstract generateAccountKey(account: AccountInfo): string;
 
@@ -898,9 +898,7 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Removes all accounts and related tokens from cache.
      */
-    removeAllAccounts(
-        correlationId: string
-    ): void {
+    removeAllAccounts(correlationId: string): void {
         const accounts = this.getAllAccounts({}, correlationId);
         accounts.forEach((account) => {
             this.removeAccount(account, correlationId);
@@ -915,7 +913,10 @@ export abstract class CacheManager implements ICacheManager {
         this.removeAccountContext(account, correlationId);
         const accountKeys = this.getAccountKeys();
         const keyFilter = (key: string): boolean => {
-            return key.includes(account.homeAccountId) && key.includes(account.environment);
+            return (
+                key.includes(account.homeAccountId) &&
+                key.includes(account.environment)
+            );
         };
         accountKeys.filter(keyFilter).forEach((key) => {
             this.removeItem(key, correlationId);
@@ -933,7 +934,10 @@ export abstract class CacheManager implements ICacheManager {
     removeAccountContext(account: AccountInfo, correlationId: string): void {
         const allTokenKeys = this.getTokenKeys();
         const keyFilter = (key: string): boolean => {
-            return key.includes(account.homeAccountId) && key.includes(account.environment);
+            return (
+                key.includes(account.homeAccountId) &&
+                key.includes(account.environment)
+            );
         };
 
         allTokenKeys.idToken.filter(keyFilter).forEach((key) => {
@@ -941,11 +945,11 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         allTokenKeys.accessToken.filter(keyFilter).forEach((key) => {
-                this.removeAccessToken(key, correlationId);
+            this.removeAccessToken(key, correlationId);
         });
 
         allTokenKeys.refreshToken.filter(keyFilter).forEach((key) => {
-                this.removeRefreshToken(key, correlationId);
+            this.removeRefreshToken(key, correlationId);
         });
     }
 

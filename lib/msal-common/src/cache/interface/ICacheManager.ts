@@ -210,7 +210,7 @@ export interface ICacheManager {
      */
     removeAccount(account: AccountInfo, correlationId: string): void;
 
-     /**
+    /**
      * returns a boolean if the given account is removed
      * @param account
      */
