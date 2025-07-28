@@ -40,6 +40,9 @@ export function ensureArgumentIsJSONString(
             throw new InvalidArgumentError(argName, correlationId);
         }
     } catch (e) {
-        throw new InvalidArgumentError(argName, correlationId);
+        if (e instanceof SyntaxError) {
+            throw new InvalidArgumentError(argName, correlationId);
+        }
+        throw e; // Rethrow unexpected errors
     }
 }
