@@ -79,6 +79,7 @@ const testIdTokenClaims: TokenClaims = {
     oid: "00000000-0000-0000-66f3-3332eca7ea81",
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
+    login_hint: "testLoginHint",
 };
 const testAccount: AccountInfo = {
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
@@ -86,6 +87,7 @@ const testAccount: AccountInfo = {
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
     username: testIdTokenClaims.preferred_username || "",
+    loginHint: testIdTokenClaims.login_hint || "",
 };
 
 const authorityOptions: AuthorityOptions = {
@@ -143,6 +145,7 @@ describe("ResponseHandler.ts", () => {
             environment: "login.windows.net",
             tenantId: "testTenantId",
             username: "test@contoso.com",
+            loginHint: "testLoginHint"
         });
     });
 

@@ -88,6 +88,7 @@ export const NAA_APP_CONSTANTS = {
     environment: "login.microsoftonline.com",
     tenantId: "51178b70-16cc-41b5-bef1-ae1808139065",
     username: "AdeleV@vc6w6.onmicrosoft.com",
+    loginHint: "AbeLiLoginHint",
     altUsername: "sampleacccounto.onmicrosoft.com",
     idTokenClaims: {
         ver: "2.0",

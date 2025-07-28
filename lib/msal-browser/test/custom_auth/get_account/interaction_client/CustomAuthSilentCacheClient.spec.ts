@@ -337,6 +337,7 @@ describe("CustomAuthSilentCacheClient", () => {
                     tenantId: "test-tenant-id",
                     username: "test-username",
                     localAccountId: "test-local-account-id",
+                    loginHint: "test-login-hint",
                 },
                 {
                     homeAccountId: "test-home-account-id-2",
@@ -344,6 +345,7 @@ describe("CustomAuthSilentCacheClient", () => {
                     tenantId: "test-tenant-id-2",
                     username: "test-username-2",
                     localAccountId: "test-local-account-id-2",
+                    loginHint: "test-login-hint-2",
                 },
             ]);
 
@@ -374,6 +376,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 tenantId: "test-tenant-id-2",
                 username: "test-username-2",
                 localAccountId: "test-local-account-id-2",
+                loginHint: "test-login-hint-2",
             });
 
             jest.spyOn(mockCacheManager, "removeAccount");
@@ -385,6 +388,7 @@ describe("CustomAuthSilentCacheClient", () => {
                     tenantId: "test-tenant-id",
                     username: "test-username",
                     localAccountId: "test-local-account-id",
+                    loginHint: "test-login-hint",
                 },
             });
 

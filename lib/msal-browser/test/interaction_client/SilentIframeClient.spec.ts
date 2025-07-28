@@ -136,6 +136,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -289,6 +290,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -358,6 +360,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -469,6 +472,7 @@ describe("SilentIframeClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 nativeAccountId: "test-nativeAccountId",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -571,6 +575,7 @@ describe("SilentIframeClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 nativeAccountId: "test-nativeAccountId",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -690,6 +695,7 @@ describe("SilentIframeClient", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                loginHint: ID_TOKEN_CLAIMS.login_hint,
                 name: ID_TOKEN_CLAIMS.name,
                 nativeAccountId: undefined,
                 authorityType: "MSSTS",
@@ -699,6 +705,8 @@ describe("SilentIframeClient", () => {
                         {
                             isHomeTenant: false,
                             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                            username: ID_TOKEN_CLAIMS.preferred_username,
+                            loginHint: ID_TOKEN_CLAIMS.login_hint,
                             name: ID_TOKEN_CLAIMS.name,
                             tenantId: ID_TOKEN_CLAIMS.tid,
                         },
@@ -876,6 +884,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -979,6 +988,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1089,6 +1099,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1174,6 +1185,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,

@@ -432,6 +432,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     iat: 100,
@@ -443,6 +444,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     iat: undefined,
@@ -477,6 +479,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     nonce: "56789",
@@ -488,6 +491,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     nonce: undefined,

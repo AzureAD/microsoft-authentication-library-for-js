@@ -743,6 +743,7 @@ export const CACHE_MOCKS = {
         environment: "login.microsoftonline.com",
         tenantId: ID_TOKEN_CLAIMS.tid,
         username: "John Doe",
+        loginHint: "testLoginHint"
     },
     MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID: {
         homeAccountId: "uid.utid2",
