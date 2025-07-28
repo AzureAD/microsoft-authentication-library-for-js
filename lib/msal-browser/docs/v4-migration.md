@@ -123,7 +123,7 @@ The following functions in `PublicClientApplication` have been removed:
         });
 
         // AFTER
-        const pca = createNestablePublicClientApplication({
+        const pca = await createNestablePublicClientApplication({
             auth: {
                 clientId: "your-client-id",
                 authority: "https://login.microsoftonline.com/common"
