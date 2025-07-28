@@ -208,4 +208,5 @@ export const ACCOUNT_INFO_RESPONSE: AccountInfo = {
     tenantId: "tenantid",
     username: "C",
     localAccountId: "B",
+    loginHint: "D",
 };
