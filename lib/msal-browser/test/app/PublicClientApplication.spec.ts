@@ -145,7 +145,10 @@ const BASIC_TEST_ACCOUNT_INFO: AccountInfo = {
     loginHint: "AbeLiLoginHint",
 };
 
-const BASIC_NATIVE_TEST_ACCOUNT_INFO: AccountInfo = { ...BASIC_TEST_ACCOUNT_INFO, nativeAccountId: "test-nativeAccountId" };
+const BASIC_NATIVE_TEST_ACCOUNT_INFO: AccountInfo = {
+    ...BASIC_TEST_ACCOUNT_INFO,
+    nativeAccountId: "test-nativeAccountId",
+};
 
 function stubExtensionProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";
@@ -2393,7 +2396,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
             const testAccount = {
                 ...BASIC_TEST_ACCOUNT_INFO,
@@ -4434,7 +4437,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -4554,7 +4557,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -4664,7 +4667,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -4880,7 +4883,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -5133,7 +5136,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -5582,7 +5585,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -5672,9 +5675,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
-    
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -5851,7 +5854,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                login_hint: "testLoginHint"
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,

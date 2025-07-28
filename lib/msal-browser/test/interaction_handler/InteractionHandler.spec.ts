@@ -283,7 +283,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 username: idTokenClaims.preferred_username,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                loginHint: idTokenClaims.login_hint || ""
+                loginHint: idTokenClaims.login_hint || "",
             };
             const testCcsCred: CcsCredential = {
                 credential: idTokenClaims.preferred_username || "",

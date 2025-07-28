@@ -290,7 +290,9 @@ describe("AccountInfo Unit Tests", () => {
                 guestTenantProfile.localAccountId
             );
             expect(updatedAccountInfo.name).toEqual(guestTenantProfile.name);
-            expect(updatedAccountInfo.username).toEqual(guestTenantProfile.username);
+            expect(updatedAccountInfo.username).toEqual(
+                guestTenantProfile.username
+            );
             expect(updatedAccountInfo.loginHint).toEqual(
                 guestTenantProfile.loginHint
             );

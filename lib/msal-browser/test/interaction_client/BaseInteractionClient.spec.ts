@@ -245,7 +245,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows-ppe.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
-                loginHint: "loginHint"
+                loginHint: "loginHint",
             };
 
             await testClient
@@ -274,7 +274,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
-                loginHint: "loginHint"
+                loginHint: "loginHint",
             };
 
             testClient
@@ -299,7 +299,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
-                loginHint: "loginHint"
+                loginHint: "loginHint",
             };
 
             // @ts-ignore
@@ -342,7 +342,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
-                loginHint: "loginHint"
+                loginHint: "loginHint",
             };
 
             // @ts-ignore

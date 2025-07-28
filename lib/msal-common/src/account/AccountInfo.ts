@@ -92,7 +92,17 @@ export function buildTenantProfile(
     idTokenClaims?: TokenClaims
 ): TenantProfile {
     if (idTokenClaims) {
-        const { oid, sub, tid, name, tfp, acr, preferred_username, upn, login_hint } = idTokenClaims;
+        const {
+            oid,
+            sub,
+            tid,
+            name,
+            tfp,
+            acr,
+            preferred_username,
+            upn,
+            login_hint,
+        } = idTokenClaims;
 
         /**
          * Since there is no way to determine if the authority is AAD or B2C, we exhaust all the possible claims that can serve as tenant ID with the following precedence:

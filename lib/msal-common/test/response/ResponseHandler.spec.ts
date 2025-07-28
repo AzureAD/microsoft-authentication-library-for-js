@@ -145,7 +145,7 @@ describe("ResponseHandler.ts", () => {
             environment: "login.windows.net",
             tenantId: "testTenantId",
             username: "test@contoso.com",
-            loginHint: "testLoginHint"
+            loginHint: "testLoginHint",
         });
     });
 
