@@ -260,10 +260,7 @@ describe("AccountInfo Unit Tests", () => {
 
         it("returns unmodified baseAccountInfo when tenantProfile and idTokenClaims are undefined", () => {
             const updatedAccountInfo =
-                AccountInfo.updateAccountTenantProfileData(
-                    baseAccountInfo,
-                    undefined
-                );
+                AccountInfo.updateAccountTenantProfileData(baseAccountInfo);
             expect(updatedAccountInfo).toEqual(baseAccountInfo);
         });
 
