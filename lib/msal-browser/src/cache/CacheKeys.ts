@@ -14,15 +14,17 @@ export const LOG_PII_CACHE_KEY = `${PREFIX}.${BROWSER_PREFIX}.log.pii`;
 export const BROWSER_PERF_ENABLED_KEY = `${PREFIX}.${BROWSER_PREFIX}.performance.enabled`;
 export const PLATFORM_AUTH_DOM_SUPPORT = `${PREFIX}.${BROWSER_PREFIX}.platform.auth.dom`;
 export const VERSION_CACHE_KEY = `${PREFIX}.version`;
+export const ACCOUNT_KEYS = "account.keys";
+export const TOKEN_KEYS = "token.keys";
 
 export function getAccountKeysCacheKey(
     schema: number = ACCOUNT_SCHEMA_VERSION
 ): string {
     if (schema < 1) {
-        return `${PREFIX}.account.keys`;
+        return `${PREFIX}.${ACCOUNT_KEYS}`;
     }
 
-    return `${PREFIX}.${schema}.account.keys`;
+    return `${PREFIX}.${schema}.${ACCOUNT_KEYS}`;
 }
 
 export function getTokenKeysCacheKey(
@@ -30,8 +32,8 @@ export function getTokenKeysCacheKey(
     schema: number = CREDENTIAL_SCHEMA_VERSION
 ): string {
     if (schema < 1) {
-        return `${PREFIX}.token.keys.${clientId}`;
+        return `${PREFIX}.${TOKEN_KEYS}.${clientId}`;
     }
 
-    return `${PREFIX}.${schema}.token.keys.${clientId}`;
+    return `${PREFIX}.${schema}.${TOKEN_KEYS}.${clientId}`;
 }
