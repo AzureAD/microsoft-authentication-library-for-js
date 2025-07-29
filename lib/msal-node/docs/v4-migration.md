@@ -41,7 +41,7 @@ The `encodeExtraQueryParams` parameter has been removed and all extra query para
 - `isSingleTenant` (now takes in an AccountEntity object)
 - `generateAccountCacheKey` (no changes in input parameters)
 - `createAccountEntity` (renamed from `createAccount`, no changes in input parameters)
-- `createAccountEntityFromAccountInfo` (renamed from `createFromAcocuntInfo`, no changes in input parameters)
+- `createAccountEntityFromAccountInfo` (renamed from `createFromAccountInfo`, no changes in input parameters)
 - `generateHomeAccountId` (no changes in input parameters)
 - `isAccountEntity` (no changes in input parameters)
 - `accountInfoIsEqual` (no changes in input parameters)
