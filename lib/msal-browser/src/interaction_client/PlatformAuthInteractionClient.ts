@@ -697,7 +697,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             tokenType: tokenType,
             correlationId: this.correlationId,
             state: response.state,
-            fromNativeBroker: true,
+            fromPlatformBroker: true,
         };
 
         return result;
