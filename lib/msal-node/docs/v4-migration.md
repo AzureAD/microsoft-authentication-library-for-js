@@ -34,4 +34,4 @@ The `encodeExtraQueryParams` parameter has been removed and all extra query para
 
 ## `fromNativeBroker` field is now called `fromPlatformBroker`
 
-In the `AuthenticationResult` object, the `fromNativeBroker` field has been renamed to `fromPlatformBroker`
+In the `AuthenticationResult` object, the `fromNativeBroker` field has been renamed to `fromPlatformBroker`.
