@@ -144,38 +144,27 @@ export class BrowserCacheManager extends CacheManager {
     async migrateExistingCache(correlationId: string): Promise<void> {
         const accountKeys0 = getAccountKeys(this.browserStorage, 0);
         const tokenKeys0 = getTokenKeys(this.clientId, this.browserStorage, 0);
-        this.performanceClient.addFields({
-            oldAccountCount: accountKeys0.length,
-            oldAccessCount: tokenKeys0.accessToken.length,
-            oldIdCount: tokenKeys0.idToken.length,
-            oldRefreshCount: tokenKeys0.refreshToken.length,
-        }, correlationId);
-
-        if (this.cacheConfig.cacheRetentionDays <= 0) {
-            // Clear all old entries if cache retention is set to 0 or less
-            for (const key of [
-                ...accountKeys0,
-                ...tokenKeys0.idToken,
-                ...tokenKeys0.accessToken,
-                ...tokenKeys0.refreshToken,
-            ]) {
-                this.browserStorage.removeItem(key);
-            }
-            this.browserStorage.removeItem(CacheKeys.getAccountKeysCacheKey(0));
-            this.browserStorage.removeItem(
-                CacheKeys.getTokenKeysCacheKey(this.clientId, 0)
-            );
-            return;
-        }
+        this.performanceClient.addFields(
+            {
+                oldAccountCount: accountKeys0.length,
+                oldAccessCount: tokenKeys0.accessToken.length,
+                oldIdCount: tokenKeys0.idToken.length,
+                oldRefreshCount: tokenKeys0.refreshToken.length,
+            },
+            correlationId
+        );
 
         const accountKeys1 = getAccountKeys(this.browserStorage, 1);
         const tokenKeys1 = getTokenKeys(this.clientId, this.browserStorage, 1);
-        this.performanceClient.addFields({
-            currAccountCount: accountKeys1.length,
-            currAccessCount: tokenKeys1.accessToken.length,
-            currIdCount: tokenKeys1.idToken.length,
-            currRefreshCount: tokenKeys1.refreshToken.length,
-        }, correlationId);
+        this.performanceClient.addFields(
+            {
+                currAccountCount: accountKeys1.length,
+                currAccessCount: tokenKeys1.accessToken.length,
+                currIdCount: tokenKeys1.idToken.length,
+                currRefreshCount: tokenKeys1.refreshToken.length,
+            },
+            correlationId
+        );
 
         await this.updateV0ToCurrent(
             CacheKeys.ACCOUNT_SCHEMA_VERSION,
@@ -220,35 +209,8 @@ export class BrowserCacheManager extends CacheManager {
             this.browserStorage.removeItem(CacheKeys.getAccountKeysCacheKey(1));
         }
 
-        if (
-            tokenKeys0.idToken.length > 0 ||
-            tokenKeys0.accessToken.length > 0 ||
-            tokenKeys0.refreshToken.length > 0
-        ) {
-            this.browserStorage.setItem(
-                CacheKeys.getTokenKeysCacheKey(this.clientId, 0),
-                JSON.stringify(tokenKeys0)
-            );
-        } else {
-            this.browserStorage.removeItem(
-                CacheKeys.getTokenKeysCacheKey(this.clientId, 0)
-            );
-        }
-
-        if (
-            tokenKeys1.idToken.length > 0 ||
-            tokenKeys1.accessToken.length > 0 ||
-            tokenKeys1.refreshToken.length > 0
-        ) {
-            this.browserStorage.setItem(
-                CacheKeys.getTokenKeysCacheKey(this.clientId, 1),
-                JSON.stringify(tokenKeys1)
-            );
-        } else {
-            this.browserStorage.removeItem(
-                CacheKeys.getTokenKeysCacheKey(this.clientId, 1)
-            );
-        }
+        this.setTokenKeys(tokenKeys0, correlationId, 0);
+        this.setTokenKeys(tokenKeys1, correlationId, 1);
     }
 
     async updateV0ToCurrent(
@@ -271,9 +233,10 @@ export class BrowserCacheManager extends CacheManager {
             if (!parsedV0Value.lastUpdatedAt) {
                 // Add lastUpdatedAt to the existing v0 entry if it doesnt exist so we know when it's safe to remove it
                 parsedV0Value.lastUpdatedAt = Date.now().toString();
-                this.browserStorage.setItem(
+                this.setItem(
                     v0Key,
-                    JSON.stringify(parsedV0Value)
+                    JSON.stringify(parsedV0Value),
+                    correlationId
                 );
             }
 
@@ -321,7 +284,7 @@ export class BrowserCacheManager extends CacheManager {
                 const v1Key = `${CacheKeys.PREFIX}.${currentSchema}.${v0Key}`;
                 const rawV1Entry = this.browserStorage.getItem(v1Key);
                 if (!rawV1Entry) {
-                    await this.browserStorage.setUserData(
+                    await this.setUserData(
                         v1Key,
                         JSON.stringify(decryptedData),
                         correlationId,
@@ -342,7 +305,7 @@ export class BrowserCacheManager extends CacheManager {
                         parsedV0Value.lastUpdatedAt >
                         parsedV1Entry.lastUpdatedAt
                     ) {
-                        await this.browserStorage.setUserData(
+                        await this.setUserData(
                             v1Key,
                             JSON.stringify(decryptedData),
                             correlationId,
@@ -356,7 +319,7 @@ export class BrowserCacheManager extends CacheManager {
                     }
                 }
             } else {
-                // Can't migrate unencrypted data right now as we can't guarantee KMSI=no
+                // Can't migrate unencrypted localStorage data right now as we can't guarantee KMSI=no
                 return;
             }
         }
@@ -503,7 +466,10 @@ export class BrowserCacheManager extends CacheManager {
                     i < maxRetries
                 ) {
                     if (!accessTokenKeys.length) {
-                        accessTokenKeys = this.getTokenKeys().accessToken;
+                        accessTokenKeys = [
+                            ...this.getTokenKeys(0).accessToken,
+                            ...this.getTokenKeys().accessToken,
+                        ];
                     }
                     if (accessTokenKeys.length <= i) {
                         // Nothing left to remove, rethrow the error
@@ -766,8 +732,10 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the keys for the cached tokens associated with this clientId
      * @returns
      */
-    getTokenKeys(): TokenKeys {
-        return getTokenKeys(this.clientId, this.browserStorage);
+    getTokenKeys(
+        schemaVersion: number = CacheKeys.CREDENTIAL_SCHEMA_VERSION
+    ): TokenKeys {
+        return getTokenKeys(this.clientId, this.browserStorage, schemaVersion);
     }
 
     /**
@@ -776,18 +744,24 @@ export class BrowserCacheManager extends CacheManager {
      * @param correlationId
      * @returns
      */
-    setTokenKeys(tokenKeys: TokenKeys, correlationId: string): void {
+    setTokenKeys(
+        tokenKeys: TokenKeys,
+        correlationId: string,
+        schemaVersion: number = CacheKeys.CREDENTIAL_SCHEMA_VERSION
+    ): void {
         if (
             tokenKeys.idToken.length === 0 &&
             tokenKeys.accessToken.length === 0 &&
             tokenKeys.refreshToken.length === 0
         ) {
             // If no keys left, remove the map
-            this.removeItem(CacheKeys.getTokenKeysCacheKey(this.clientId));
+            this.removeItem(
+                CacheKeys.getTokenKeysCacheKey(this.clientId, schemaVersion)
+            );
             return;
         } else {
             this.setItem(
-                CacheKeys.getTokenKeysCacheKey(this.clientId),
+                CacheKeys.getTokenKeysCacheKey(this.clientId, schemaVersion),
                 JSON.stringify(tokenKeys),
                 correlationId
             );
