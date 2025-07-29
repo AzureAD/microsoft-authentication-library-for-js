@@ -1,7 +1,7 @@
 {
-  "type": "minor",
-  "comment": "Bump @azure/msal-browser to v4.18.0",
+  "type": "patch",
+  "comment": "Bump @azure/msal-browser to v4.17.1",
   "packageName": "@azure/msal-browser",
   "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "none"
 }
