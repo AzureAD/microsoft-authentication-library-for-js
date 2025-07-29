@@ -71,10 +71,6 @@ import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
-import {
-    isAccessTokenEntity,
-    isRefreshTokenEntity,
-} from "../../../msal-common/dist/cache/utils/CacheHelpers.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -249,9 +245,9 @@ export class BrowserCacheManager extends CacheManager {
                 : parsedV0Value;
             let expirationTime;
             if (decryptedData) {
-                if (isAccessTokenEntity(decryptedData)) {
+                if (CacheHelpers.isAccessTokenEntity(decryptedData)) {
                     expirationTime = decryptedData.expiresOn;
-                } else if (isRefreshTokenEntity(decryptedData)) {
+                } else if (CacheHelpers.isRefreshTokenEntity(decryptedData)) {
                     expirationTime = decryptedData.expiresOn;
                 }
             }

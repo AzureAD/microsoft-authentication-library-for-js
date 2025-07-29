@@ -98,16 +98,8 @@ export class LocalStorage implements IWindowStorage<string> {
                     correlationId
                 )(baseKey),
             };
-            await invokeAsync(
-                this.importExistingCache.bind(this),
-                PerformanceEvents.ImportExistingCache,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(correlationId);
         } else {
-            // Encryption key doesn't exist or is invalid, generate a new one and clear existing cache
-            this.clear();
+            // Encryption key doesn't exist or is invalid, generate a new one
             const id = createNewGuid();
             const baseKey = await invokeAsync(
                 generateBaseKey,
@@ -147,6 +139,14 @@ export class LocalStorage implements IWindowStorage<string> {
                 SameSiteOptions.None // SameSite must be None to support iframed apps
             );
         }
+
+        await invokeAsync(
+            this.importExistingCache.bind(this),
+            PerformanceEvents.ImportExistingCache,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(correlationId);
 
         // Register listener for cache updates in other tabs
         this.broadcast.addEventListener("message", this.updateCache.bind(this));
@@ -365,12 +365,12 @@ export class LocalStorage implements IWindowStorage<string> {
         }
 
         if (!isEncrypted(encObj)) {
-            // Data is not encrypted, likely from old version of MSAL. It must be removed because we don't know how old it is.
+            // Data is not encrypted
             this.performanceClient.incrementFields(
                 { unencryptedCacheCount: 1 },
                 correlationId
             );
-            return null;
+            return encObj;
         }
 
         if (encObj.id !== this.encryptionCookie.id) {
