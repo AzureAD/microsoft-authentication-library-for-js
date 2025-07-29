@@ -382,7 +382,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -510,7 +510,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -619,7 +619,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -739,7 +739,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1400,7 +1400,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 
@@ -1490,7 +1490,7 @@ describe("PopupClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 idTokenClaims: testIdTokenClaims,
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
 
             const testAccount: AccountEntity = new AccountEntity();
@@ -1594,7 +1594,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
 
             const testAccount: AccountEntity = new AccountEntity();

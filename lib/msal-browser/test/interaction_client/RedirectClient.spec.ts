@@ -2512,7 +2512,7 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 
@@ -2570,7 +2570,7 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 

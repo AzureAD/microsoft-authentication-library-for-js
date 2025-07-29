@@ -89,7 +89,7 @@ describe("BaseInteractionClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 localAccountId: testIdTokenClaims.oid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
                 name: testIdTokenClaims.name,
                 isHomeTenant: true,
             };
@@ -100,7 +100,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-                loginHint: testIdTokenClaims.login_hint || "",
+                loginHint: testIdTokenClaims.login_hint,
                 tenantProfiles: new Map([
                     [tenantProfile1.tenantId, tenantProfile1],
                 ]),
@@ -132,7 +132,7 @@ describe("BaseInteractionClient", () => {
                 tenantId: testIdTokenClaims2.tid || "",
                 localAccountId: testIdTokenClaims2.oid || "",
                 username: testIdTokenClaims2.preferred_username || "",
-                loginHint: testIdTokenClaims2.login_hint || "",
+                loginHint: testIdTokenClaims2.login_hint,
                 name: testIdTokenClaims2.name,
                 isHomeTenant: true,
             };
@@ -143,7 +143,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims2.tid || "",
                 username: testIdTokenClaims2.preferred_username || "",
-                loginHint: testIdTokenClaims2.login_hint || "",
+                loginHint: testIdTokenClaims2.login_hint,
                 tenantProfiles: new Map([
                     [tenantProfile2.tenantId, tenantProfile2],
                 ]),
