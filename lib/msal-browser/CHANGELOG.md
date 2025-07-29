@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 08 Jul 2025 14:21:12 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 23 Jul 2025 14:54:36 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.16.0
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Minor changes
+
+- Add support for authorize call using method POST #7920 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix exception when using claims with Nested App Auth in JS Runtime environment (#7926) (dasau@microsoft.com)
 
 ## 4.15.0
 
