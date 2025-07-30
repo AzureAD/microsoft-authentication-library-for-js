@@ -32,6 +32,14 @@ export class SignInError extends AuthActionErrorBase {
     }
 
     /**
+     * Checks if the error is due to password reset being required.
+     * @returns true if the error is due to password reset being required, false otherwise.
+     */
+    isPasswordResetRequired(): boolean {
+        return this.isPasswordResetRequiredError();
+    }
+
+    /**
      * Checks if the error is due to the provided challenge type is not supported.
      * @returns {boolean} True if the error is due to the provided challenge type is not supported, false otherwise.
      */

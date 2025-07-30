@@ -18,10 +18,7 @@ import {
     TokenClaims,
 } from "@azure/msal-common/browser";
 import { SilentRequest } from "../../../request/SilentRequest.js";
-import {
-    ensureArgumentIsNotEmptyString,
-    ensureArgumentIsNotNullOrUndefined,
-} from "../../core/utils/ArgumentValidator.js";
+import * as ArgumentValidator from "../../core/utils/ArgumentValidator.js";
 
 /*
  * Account information.
@@ -34,8 +31,15 @@ export class CustomAuthAccountData {
         private readonly logger: Logger,
         private readonly correlationId: string
     ) {
-        ensureArgumentIsNotEmptyString("correlationId", correlationId);
-        ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "correlationId",
+            correlationId
+        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "account",
+            account,
+            correlationId
+        );
     }
 
     /**
@@ -107,11 +111,19 @@ export class CustomAuthAccountData {
         accessTokenRetrievalInputs: AccessTokenRetrievalInputs
     ): Promise<GetAccessTokenResult> {
         try {
-            ensureArgumentIsNotNullOrUndefined(
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
                 "accessTokenRetrievalInputs",
                 accessTokenRetrievalInputs,
                 this.correlationId
             );
+
+            if (accessTokenRetrievalInputs.claims) {
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "accessTokenRetrievalInputs.claims",
+                    accessTokenRetrievalInputs.claims,
+                    this.correlationId
+                );
+            }
 
             this.logger.verbose("Getting current account.", this.correlationId);
 
@@ -133,7 +145,8 @@ export class CustomAuthAccountData {
             const commonSilentFlowRequest = this.createCommonSilentFlowRequest(
                 currentAccount,
                 accessTokenRetrievalInputs.forceRefresh,
-                newScopes
+                newScopes,
+                accessTokenRetrievalInputs.claims
             );
             const result = await this.cacheClient.acquireToken(
                 commonSilentFlowRequest
@@ -158,7 +171,8 @@ export class CustomAuthAccountData {
     private createCommonSilentFlowRequest(
         accountInfo: AccountInfo,
         forceRefresh: boolean = false,
-        requestScopes: Array<string>
+        requestScopes: Array<string>,
+        claims?: string
     ): CommonSilentFlowRequest {
         const silentRequest: SilentRequest = {
             authority: this.config.auth.authority,
@@ -171,6 +185,7 @@ export class CustomAuthAccountData {
                 accessToken: true,
                 refreshToken: true,
             },
+            ...(claims && { claims: claims }),
         };
 
         return {
