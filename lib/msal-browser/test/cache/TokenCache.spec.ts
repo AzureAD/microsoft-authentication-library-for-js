@@ -69,6 +69,7 @@ describe("TokenCache tests", () => {
             secureCookies: false,
             cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
+            cacheRetentionDays: 5,
         };
         logger = new Logger({
             loggerCallback: (
@@ -221,7 +222,7 @@ describe("TokenCache tests", () => {
                 { environment: testEnvironment }
             ).getAccountInfo();
             const testAccountKey =
-                AccountEntity.generateAccountCacheKey(testAccountInfo);
+                browserStorage.generateAccountKey(testAccountInfo);
             const result = await tokenCache.loadExternalTokens(
                 request,
                 response,

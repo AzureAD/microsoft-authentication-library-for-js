@@ -313,10 +313,14 @@ export class LocalStorage implements IWindowStorage<string> {
         let accountKeys = getAccountKeys(this);
         accountKeys = await this.importArray(accountKeys, correlationId);
         // Write valid account keys back to map
-        this.setItem(
-            CacheKeys.getAccountKeysCacheKey(),
-            JSON.stringify(accountKeys)
-        );
+        if (accountKeys.length) {
+            this.setItem(
+                CacheKeys.getAccountKeysCacheKey(),
+                JSON.stringify(accountKeys)
+            );
+        } else {
+            this.removeItem(CacheKeys.getAccountKeysCacheKey());
+        }
 
         const tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
         tokenKeys.idToken = await this.importArray(
@@ -332,10 +336,18 @@ export class LocalStorage implements IWindowStorage<string> {
             correlationId
         );
         // Write valid token keys back to map
-        this.setItem(
-            CacheKeys.getTokenKeysCacheKey(this.clientId),
-            JSON.stringify(tokenKeys)
-        );
+        if (
+            tokenKeys.idToken.length ||
+            tokenKeys.accessToken.length ||
+            tokenKeys.refreshToken.length
+        ) {
+            this.setItem(
+                CacheKeys.getTokenKeysCacheKey(this.clientId),
+                JSON.stringify(tokenKeys)
+            );
+        } else {
+            this.removeItem(CacheKeys.getTokenKeysCacheKey(this.clientId));
+        }
     }
 
     /**
