@@ -10,12 +10,13 @@ Note that specific guidance has been added for using MSAL Angular with Angular s
 
 ## `MsalRedirectComponent`: A dedicated `handleRedirectObservable` component
 
+> [!NOTE]
+> Note that this approach is not compatible with Angular standalone components. See the section on [redirects with standalone components below](#redirects-with-standalone-components) for further guidance.
+
 - `@azure/msal-angular` provides a dedicated redirect component that can be imported  into your application. You can import the `MsalRedirectComponent` and bootstrap this alongside `AppComponent` in your application on the `app.module.ts`. This will handle all redirects without your components needing to subscribe to `handleRedirectObservable()` manually.
 - Pages that wish to perform functions following redirects (e.g. user account functions, UI changes, etc) should subscribe to the `inProgress$` observable, filtering for `InteractionStatus.None`. This will ensure that there are no interactions in progress when performing the functions. Note that the last / most recent `InteractionStatus` will also be available when subscribing to the `inProgress$` observable. Please see our documentation on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions.
 - If you do not wish to use the `MsalRedirectComponent`, you **must** handle redirects with `handleRedirectObservable()` yourself, as laid out in the approach above.
 - See our [Angular modules sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.module.ts#L110) for an example of this approach.
-
-Note that this approach is not compatible with Angular standalone components. See the section on [redirects with standalone components below](#redirects-with-standalone-components) for further guidance.
 
 msal.redirect.component.ts
 ```js
