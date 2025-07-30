@@ -27,6 +27,11 @@ describe("GetAccount", () => {
     });
 
     afterEach(() => {
+        const activeUser = app.getAllAccounts();
+        if (activeUser.length > 0) {
+            app.clearCache();
+        }
+
         const controller = app[
             "customAuthController"
         ] as CustomAuthStandardController;
