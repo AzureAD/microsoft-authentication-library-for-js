@@ -15,7 +15,7 @@ Note that specific guidance has been added for using MSAL Angular with Angular s
 - If you do not wish to use the `MsalRedirectComponent`, you **must** handle redirects with `handleRedirectObservable()` yourself, as laid out in the approach above.
 - See our [Angular modules sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.module.ts#L110) for an example of this approach.
 
-Note that this approach may not work with Angular standalone components. See the section on [redirects with standalone components below](#redirects-with-standalone-components) for further guidance.
+Note that this approach is not compatible with Angular standalone components. See the section on [redirects with standalone components below](#redirects-with-standalone-components) for further guidance.
 
 msal.redirect.component.ts
 ```js
