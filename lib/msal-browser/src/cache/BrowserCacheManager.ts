@@ -129,10 +129,13 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     async initialize(correlationId: string): Promise<void> {
-        this.performanceClient.addFields({
-            cacheLocation: this.cacheConfig.cacheLocation,
-            cacheRetentionDays: this.cacheConfig.cacheRetentionDays
-        }, correlationId);
+        this.performanceClient.addFields(
+            {
+                cacheLocation: this.cacheConfig.cacheLocation,
+                cacheRetentionDays: this.cacheConfig.cacheRetentionDays,
+            },
+            correlationId
+        );
         await this.browserStorage.initialize(correlationId);
         await this.migrateExistingCache(correlationId);
         this.trackVersionChanges(correlationId);
@@ -281,7 +284,7 @@ export class BrowserCacheManager extends CacheManager {
                     BrowserCacheLocation.LocalStorage ||
                 isEncrypted(parsedV0Value)
             ) {
-                const v1Key = `${CacheKeys.PREFIX}.${currentSchema}.${v0Key}`;
+                const v1Key = `${CacheKeys.PREFIX}.${currentSchema}${CacheKeys.CACHE_KEY_SEPARATOR}${v0Key}`;
                 const rawV1Entry = this.browserStorage.getItem(v1Key);
                 if (!rawV1Entry) {
                     await this.setUserData(

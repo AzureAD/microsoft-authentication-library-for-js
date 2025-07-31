@@ -35,6 +35,7 @@ import {
     StubPerformanceClient,
     CommonAuthorizationUrlRequest,
     ResponseMode,
+    CredentialEntity,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -44,16 +45,13 @@ import {
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
+import { EncryptedData } from "../../src/cache/EncryptedData.js";
 import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { CookieStorage } from "../../src/cache/CookieStorage.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
-import {
-    getAccountKeysCacheKey,
-    getTokenKeysCacheKey,
-} from "../../src/cache/CacheKeys.js";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -218,6 +216,593 @@ describe("BrowserCacheManager tests", () => {
                 CacheKeys.VERSION_CACHE_KEY,
                 expect.anything()
             );
+        });
+    });
+
+    describe("Cache Migration and Schema Versioning", () => {
+        let browserCacheManager: BrowserCacheManager;
+        let performanceClient: StubPerformanceClient;
+
+        beforeEach(async () => {
+            performanceClient = new StubPerformanceClient();
+            browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                performanceClient,
+                new EventHandler()
+            );
+        });
+
+        afterEach(() => {
+            window.localStorage.clear();
+            window.sessionStorage.clear();
+            jest.restoreAllMocks();
+        });
+
+        describe("migrateExistingCache", () => {
+            it("should collect performance telemetry for old and current cache counts", async () => {
+                // Setup some v0 cache entries
+                const v0AccountKey = "msal.account.keys";
+                const v0TokenKey = `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`;
+                window.localStorage.setItem(
+                    v0AccountKey,
+                    JSON.stringify(["acc1", "acc2"])
+                );
+                window.localStorage.setItem(
+                    v0TokenKey,
+                    JSON.stringify({
+                        idToken: ["id1"],
+                        accessToken: ["at1", "at2"],
+                        refreshToken: ["rt1"],
+                    })
+                );
+
+                // Setup some v1 cache entries
+                const v1AccountKey = CacheKeys.getAccountKeysCacheKey(1);
+                const v1TokenKey = CacheKeys.getTokenKeysCacheKey(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    1
+                );
+                window.localStorage.setItem(
+                    v1AccountKey,
+                    JSON.stringify(["acc1_v1"])
+                );
+                window.localStorage.setItem(
+                    v1TokenKey,
+                    JSON.stringify({
+                        idToken: ["id1_v1"],
+                        accessToken: [],
+                        refreshToken: ["rt1_v1"],
+                    })
+                );
+
+                const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(addFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        oldAccountCount: 2,
+                        oldAccessCount: 2,
+                        oldIdCount: 1,
+                        oldRefreshCount: 1,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(addFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        currAccountCount: 1,
+                        currAccessCount: 0,
+                        currIdCount: 1,
+                        currRefreshCount: 1,
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should migrate encrypted v0 tokens to encrypted v1 format in localStorage", async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Mock the decryptData method to handle our fake encrypted data
+                const localStorage = (browserCacheManager as any)
+                    .browserStorage;
+
+                const v0TokenKeysKey = `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`;
+                const v0TokenKeys = {
+                    idToken: ["v0-id-token-1"],
+                    accessToken: ["v0-access-token-1"],
+                    refreshToken: ["v0-refresh-token-1"],
+                };
+
+                window.localStorage.setItem(
+                    v0TokenKeysKey,
+                    JSON.stringify(v0TokenKeys)
+                );
+
+                // Add v0 token data as encrypted entries
+                const accessToken = {
+                    credentialType: "AccessToken",
+                    secret: "access-token-1",
+                    expiresOn: Math.floor(Date.now() / 1000) + 3600, // 1 hour from now
+                };
+                await localStorage.setUserData(
+                    "v0-access-token-1",
+                    JSON.stringify(accessToken)
+                );
+
+                const idToken = {
+                    credentialType: "IdToken",
+                    secret: "id-token-1",
+                };
+                await localStorage.setUserData(
+                    "v0-id-token-1",
+                    JSON.stringify(idToken)
+                );
+
+                const refreshToken = {
+                    credentialType: "RefreshToken",
+                    secret: "refresh-token-1",
+                };
+                await localStorage.setUserData(
+                    "v0-refresh-token-1",
+                    JSON.stringify(refreshToken)
+                );
+
+                const setTokenKeysSpy = jest.spyOn(
+                    browserCacheManager,
+                    "setTokenKeys"
+                );
+
+                const v1TokenKeysKey = `msal.1.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`;
+
+                await browserCacheManager.migrateExistingCache(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Verify v0 token keys were processed and migrated
+                expect(setTokenKeysSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        idToken: expect.arrayContaining(["v0-id-token-1"]),
+                        accessToken: expect.arrayContaining([
+                            "v0-access-token-1",
+                        ]),
+                        refreshToken: expect.arrayContaining([
+                            "v0-refresh-token-1",
+                        ]),
+                    }),
+                    TEST_CONFIG.CORRELATION_ID,
+                    0
+                );
+
+                // Verify v1 token keys were updated (should include migrated tokens)
+                expect(setTokenKeysSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        idToken: expect.arrayContaining([
+                            "msal.1-v0-id-token-1",
+                        ]),
+                        accessToken: expect.arrayContaining([
+                            "msal.1-v0-access-token-1",
+                        ]),
+                        refreshToken: expect.arrayContaining([
+                            "msal.1-v0-refresh-token-1",
+                        ]),
+                    }),
+                    TEST_CONFIG.CORRELATION_ID,
+                    1
+                );
+
+                // Verify the final v1 keys contain both original v1 data and migrated data
+                const finalV1Keys = JSON.parse(
+                    window.localStorage.getItem(v1TokenKeysKey) || "{}"
+                );
+                expect(finalV1Keys.idToken).toEqual(
+                    expect.arrayContaining(["msal.1-v0-id-token-1"])
+                );
+                expect(finalV1Keys.accessToken).toEqual(
+                    expect.arrayContaining(["msal.1-v0-access-token-1"])
+                );
+
+                // Verify tokens now exist under both v0 and v1 cache keys
+                // Check v0 tokens still exist (originals should be preserved)
+                const v0AccessToken1 =
+                    localStorage.getUserData("v0-access-token-1");
+                const v0IdToken1 = localStorage.getUserData("v0-id-token-1");
+                const v0RefreshToken1 =
+                    localStorage.getUserData("v0-refresh-token-1");
+
+                expect(v0AccessToken1).toBe(JSON.stringify(accessToken));
+                expect(v0IdToken1).toBe(JSON.stringify(idToken));
+                expect(v0RefreshToken1).toBe(JSON.stringify(refreshToken));
+
+                // Check that v1 migrated tokens exist (should have v1 prefix)
+                const v1AccessTokenKey = `${CacheKeys.PREFIX}.${CacheKeys.CREDENTIAL_SCHEMA_VERSION}-v0-access-token-1`;
+                const v1IdTokenKey = `${CacheKeys.PREFIX}.${CacheKeys.CREDENTIAL_SCHEMA_VERSION}-v0-id-token-1`;
+                const v1RefreshTokenKey = `${CacheKeys.PREFIX}.${CacheKeys.CREDENTIAL_SCHEMA_VERSION}-v0-refresh-token-1`;
+
+                const v1AccessToken1 =
+                    localStorage.getUserData(v1AccessTokenKey);
+                const v1IdToken1 = localStorage.getUserData(v1IdTokenKey);
+                const v1RefreshToken1 =
+                    localStorage.getUserData(v1RefreshTokenKey);
+
+                expect(v1AccessToken1).toBe(JSON.stringify(accessToken));
+                expect(v1IdToken1).toBe(JSON.stringify(idToken));
+                expect(v1RefreshToken1).toBe(JSON.stringify(refreshToken));
+            });
+        });
+
+        describe("updateV0ToCurrent", () => {
+            it("should add lastUpdatedAt to v0 entries that don't have it", async () => {
+                const v0Key = "test-v0-key";
+                const v0Value = { someProperty: "value" };
+                window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
+
+                await browserCacheManager.updateV0ToCurrent(
+                    CacheKeys.ACCOUNT_SCHEMA_VERSION,
+                    [v0Key],
+                    [],
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                const updatedValue = JSON.parse(
+                    window.localStorage.getItem(v0Key)!
+                );
+                expect(updatedValue.lastUpdatedAt).toBeDefined();
+                expect(typeof updatedValue.lastUpdatedAt).toBe("string");
+            });
+
+            it("should remove expired cache entries based on cache retention days", async () => {
+                const v0Key = "test-expired-key";
+                const expiredTimestamp = (
+                    Date.now() -
+                    10 * 24 * 60 * 60 * 1000
+                ).toString(); // 10 days ago
+                const v0Value = {
+                    someProperty: "value",
+                    lastUpdatedAt: expiredTimestamp,
+                };
+                window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                const v0Keys = [v0Key];
+                await browserCacheManager.updateV0ToCurrent(
+                    CacheKeys.ACCOUNT_SCHEMA_VERSION,
+                    v0Keys,
+                    [],
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(window.localStorage.getItem(v0Key)).toBeNull();
+                expect(v0Keys).not.toContain(v0Key);
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { expiredCacheRemovedCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should remove expired access tokens based on expiresOn", async () => {
+                const v0Key = "test-expired-access-token";
+                const expiredExpiresOn = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+                const v0Value = {
+                    credentialType: CredentialType.ACCESS_TOKEN,
+                    environment: "login.microsoftonline.com",
+                    homeAccountId: "test",
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    realm: "common",
+                    target: "https://graph.microsoft.com/.default",
+                    secret: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9",
+                    tokenType: AuthenticationScheme.BEARER,
+                    expiresOn: expiredExpiresOn.toString(),
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                const v0Keys = [v0Key];
+                await browserCacheManager.updateV0ToCurrent(
+                    CacheKeys.CREDENTIAL_SCHEMA_VERSION,
+                    v0Keys,
+                    [],
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(window.localStorage.getItem(v0Key)).toBeNull();
+                expect(v0Keys).not.toContain(v0Key);
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { expiredCacheRemovedCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should not migrate unencrypted localStorage data to v1 format", async () => {
+                const v0Key = "test-migration-key";
+                const v0Value = {
+                    someProperty: "value",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                window.localStorage.setItem(v0Key, JSON.stringify(v0Value));
+                const setUserDataSpy = jest.spyOn(
+                    browserCacheManager,
+                    "setUserData"
+                );
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
+
+                const v1Keys: string[] = [];
+                await browserCacheManager.updateV0ToCurrent(
+                    CacheKeys.ACCOUNT_SCHEMA_VERSION,
+                    [v0Key],
+                    v1Keys,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // For localStorage with unencrypted data, no migration to v1 should occur
+                expect(setUserDataSpy).not.toHaveBeenCalled();
+                expect(v1Keys).toHaveLength(0);
+                expect(incrementFieldsSpy).not.toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        upgradedCacheCount: expect.any(Number),
+                    }),
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Clean up
+                window.localStorage.clear();
+            });
+
+            it("should handle missing cache entries gracefully", async () => {
+                const missingKey = "non-existent-key";
+                const v0Keys = [missingKey];
+
+                await browserCacheManager.updateV0ToCurrent(
+                    CacheKeys.ACCOUNT_SCHEMA_VERSION,
+                    v0Keys,
+                    [],
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(v0Keys).not.toContain(missingKey);
+            });
+        });
+
+        describe("Schema Key Generation", () => {
+            it("should generate v0 account keys cache key correctly", () => {
+                const v0Key = CacheKeys.getAccountKeysCacheKey(0);
+                expect(v0Key).toBe("msal.account.keys");
+            });
+
+            it("should generate v1 account keys cache key correctly", () => {
+                const v1Key = CacheKeys.getAccountKeysCacheKey(1);
+                expect(v1Key).toBe("msal.1.account.keys");
+            });
+
+            it("should generate v0 token keys cache key correctly", () => {
+                const v0Key = CacheKeys.getTokenKeysCacheKey(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    0
+                );
+                expect(v0Key).toBe(
+                    `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`
+                );
+            });
+
+            it("should generate v1 token keys cache key correctly", () => {
+                const v1Key = CacheKeys.getTokenKeysCacheKey(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    1
+                );
+                expect(v1Key).toBe(
+                    `msal.1.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`
+                );
+            });
+        });
+
+        describe("Cache Key Generation", () => {
+            it("should generate credential keys with schema version", () => {
+                const credential: CredentialEntity = {
+                    credentialType: CredentialType.ACCESS_TOKEN,
+                    environment: "login.microsoftonline.com",
+                    homeAccountId: "test.tenant",
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    realm: "tenant",
+                    target: "scope1 scope2",
+                    tokenType: AuthenticationScheme.BEARER,
+                    secret: "token-secret",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+
+                const key =
+                    browserCacheManager.generateCredentialKey(credential);
+                expect(key).toContain(
+                    `msal.${CacheKeys.CREDENTIAL_SCHEMA_VERSION}`
+                );
+                expect(key).toContain(credential.homeAccountId);
+                expect(key).toContain(credential.environment);
+                expect(key).toContain(credential.credentialType.toLowerCase());
+            });
+
+            it("should generate account keys with schema version", () => {
+                const account = {
+                    homeAccountId: "test.tenant",
+                    environment: "login.microsoftonline.com",
+                    tenantId: "tenant",
+                    username: "test@example.com",
+                    localAccountId: "test",
+                };
+
+                const key = browserCacheManager.generateAccountKey(account);
+                expect(key).toContain(
+                    `msal.${CacheKeys.ACCOUNT_SCHEMA_VERSION}`
+                );
+                expect(key).toContain(account.homeAccountId);
+                expect(key).toContain(account.environment);
+            });
+        });
+
+        describe("Token Keys Management with Schema Versioning", () => {
+            it("should get token keys for different schema versions", () => {
+                const v0TokenKeys = {
+                    idToken: ["id1"],
+                    accessToken: ["at1"],
+                    refreshToken: ["rt1"],
+                };
+                const v1TokenKeys = {
+                    idToken: ["id2"],
+                    accessToken: ["at2"],
+                    refreshToken: ["rt2"],
+                };
+
+                window.localStorage.setItem(
+                    CacheKeys.getTokenKeysCacheKey(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        0
+                    ),
+                    JSON.stringify(v0TokenKeys)
+                );
+                window.localStorage.setItem(
+                    CacheKeys.getTokenKeysCacheKey(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        1
+                    ),
+                    JSON.stringify(v1TokenKeys)
+                );
+
+                const retrievedV0 = browserCacheManager.getTokenKeys(0);
+                const retrievedV1 = browserCacheManager.getTokenKeys(1);
+
+                expect(retrievedV0).toEqual(v0TokenKeys);
+                expect(retrievedV1).toEqual(v1TokenKeys);
+            });
+
+            it("should set token keys for different schema versions", () => {
+                const tokenKeys = {
+                    idToken: ["id1"],
+                    accessToken: ["at1"],
+                    refreshToken: ["rt1"],
+                };
+
+                browserCacheManager.setTokenKeys(
+                    tokenKeys,
+                    TEST_CONFIG.CORRELATION_ID,
+                    0
+                );
+                browserCacheManager.setTokenKeys(
+                    tokenKeys,
+                    TEST_CONFIG.CORRELATION_ID,
+                    1
+                );
+
+                const v0Key = CacheKeys.getTokenKeysCacheKey(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    0
+                );
+                const v1Key = CacheKeys.getTokenKeysCacheKey(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    1
+                );
+
+                expect(window.localStorage.getItem(v0Key)).toBe(
+                    JSON.stringify(tokenKeys)
+                );
+                expect(window.localStorage.getItem(v1Key)).toBe(
+                    JSON.stringify(tokenKeys)
+                );
+            });
+
+            it("should remove token keys cache when all arrays are empty", () => {
+                const emptyTokenKeys = {
+                    idToken: [],
+                    accessToken: [],
+                    refreshToken: [],
+                };
+
+                browserCacheManager.setTokenKeys(
+                    emptyTokenKeys,
+                    TEST_CONFIG.CORRELATION_ID,
+                    0
+                );
+                browserCacheManager.setTokenKeys(
+                    emptyTokenKeys,
+                    TEST_CONFIG.CORRELATION_ID,
+                    1
+                );
+
+                const v0Key = CacheKeys.getTokenKeysCacheKey(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    0
+                );
+                const v1Key = CacheKeys.getTokenKeysCacheKey(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    1
+                );
+
+                expect(window.localStorage.getItem(v0Key)).toBeNull();
+                expect(window.localStorage.getItem(v1Key)).toBeNull();
+            });
+        });
+
+        it("should remove access tokens from correct schema version", () => {
+            const v0TokenKeys = {
+                idToken: [],
+                accessToken: ["at1", "at2"],
+                refreshToken: [],
+            };
+            const v1TokenKeys = {
+                idToken: [],
+                accessToken: ["at3", "at4"],
+                refreshToken: [],
+            };
+
+            window.localStorage.setItem(
+                CacheKeys.getTokenKeysCacheKey(TEST_CONFIG.MSAL_CLIENT_ID, 0),
+                JSON.stringify(v0TokenKeys)
+            );
+            window.localStorage.setItem(
+                CacheKeys.getTokenKeysCacheKey(TEST_CONFIG.MSAL_CLIENT_ID, 1),
+                JSON.stringify(v1TokenKeys)
+            );
+
+            browserCacheManager.removeAccessTokenKeys(
+                ["at1"],
+                TEST_CONFIG.CORRELATION_ID,
+                0
+            );
+            browserCacheManager.removeAccessTokenKeys(
+                ["at3"],
+                TEST_CONFIG.CORRELATION_ID,
+                1
+            );
+
+            const updatedV0 = browserCacheManager.getTokenKeys(0);
+            const updatedV1 = browserCacheManager.getTokenKeys(1);
+
+            // Verify v0 schema: "at1" was removed, "at2" remains
+            expect(updatedV0.accessToken).toEqual(["at2"]);
+            expect(updatedV0.idToken).toEqual([]);
+            expect(updatedV0.refreshToken).toEqual([]);
+
+            // Verify v1 schema: "at3" was removed, "at4" remains
+            expect(updatedV1.accessToken).toEqual(["at4"]);
+            expect(updatedV1.idToken).toEqual([]);
+            expect(updatedV1.refreshToken).toEqual([]);
         });
     });
 
