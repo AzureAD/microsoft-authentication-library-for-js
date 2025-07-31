@@ -15,7 +15,6 @@ import {
     createClientConfigurationError,
     IdTokenClaims,
     INativeBrokerPlugin,
-    InteractionRequiredAuthError,
     Logger,
     LoggerOptions,
     NativeRequest,
@@ -617,9 +616,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
                 case ErrorStatus.AccountUnusable:
-                    return new InteractionRequiredAuthError(
-                        ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
-                        errorContext
+                    return new NativeAuthError(
+                        ErrorStatus[errorStatus],
+                        errorContext,
+                        errorCode,
+                        errorTag
                     );
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:

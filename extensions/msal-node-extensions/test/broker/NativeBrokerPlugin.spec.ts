@@ -18,7 +18,6 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     createClientAuthError,
-    InteractionRequiredAuthError,
     NativeRequest,
     NativeSignOutRequest,
     PromptValue,
@@ -1632,8 +1631,14 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
                     .catch((error) => {
-                        expect(error).toBeInstanceOf(
-                            InteractionRequiredAuthError
+                        const expectedError = new NativeAuthError(
+                            "InteractionRequired",
+                            "",
+                            0,
+                            0
+                        );
+                        expect(error).toStrictEqual<NativeAuthError>(
+                            expectedError
                         );
                         done();
                     });
@@ -1689,8 +1694,14 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
                     .catch((error) => {
-                        expect(error).toBeInstanceOf(
-                            InteractionRequiredAuthError
+                        const expectedError = new NativeAuthError(
+                            "AccountUnusable",
+                            "",
+                            0,
+                            0
+                        );
+                        expect(error).toStrictEqual<NativeAuthError>(
+                            expectedError
                         );
                         done();
                     });
