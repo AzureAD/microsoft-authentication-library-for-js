@@ -19,7 +19,10 @@ import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { InvalidConfigurationError } from "./core/error/InvalidConfigurationError.js";
-import { ChallengeType } from "./CustomAuthConstants.js";
+import {
+    ChallengeType,
+    NATIVE_AUTH_CAPABILITIES,
+} from "./CustomAuthConstants.js";
 import { PublicClientApplication } from "../app/PublicClientApplication.js";
 import {
     InvalidAuthority,
@@ -149,6 +152,25 @@ export class CustomAuthPublicClientApplication
                         InvalidChallengeType,
                         `Challenge type ${challengeType} in the configuration are not valid. Supported challenge types are ${Object.values(
                             ChallengeType
+                        )}`
+                    );
+                }
+            });
+        }
+
+        const capabilities = config.customAuth.capabilities;
+
+        if (!!capabilities && capabilities.length > 0) {
+            capabilities.forEach((capability) => {
+                if (
+                    capability !== NATIVE_AUTH_CAPABILITIES.MFA_REQUIRED &&
+                    capability !==
+                        NATIVE_AUTH_CAPABILITIES.REGISTRATION_REQUIRED
+                ) {
+                    throw new InvalidConfigurationError(
+                        "InvalidCapabilities",
+                        `Capability ${capability} in the configuration is not valid. Supported capabilities are ${Object.values(
+                            NATIVE_AUTH_CAPABILITIES
                         )}`
                     );
                 }

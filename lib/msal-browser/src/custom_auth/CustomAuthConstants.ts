@@ -45,6 +45,14 @@ export const ResetPasswordPollStatus = {
     NOT_STARTED: "not_started",
 } as const;
 
+export const NATIVE_AUTH_CAPABILITIES = {
+    MFA_REQUIRED: "mfa_required",
+    REGISTRATION_REQUIRED: "registration_required",
+} as const;
+
+export type NativeAuthCapability =
+    (typeof NATIVE_AUTH_CAPABILITIES)[keyof typeof NATIVE_AUTH_CAPABILITIES];
+
 export const DefaultCustomAuthApiCodeLength = -1; // Default value indicating that the code length is not specified
 export const DefaultCustomAuthApiCodeResendIntervalInSec = 300; // seconds
 export const PasswordResetPollingTimeoutInMs = 300000; // milliseconds
