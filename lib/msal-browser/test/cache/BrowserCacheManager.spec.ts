@@ -503,7 +503,7 @@ describe("BrowserCacheManager tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     realm: "common",
                     target: "https://graph.microsoft.com/.default",
-                    secret: "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9",
+                    secret: TEST_TOKENS.ACCESS_TOKEN,
                     tokenType: AuthenticationScheme.BEARER,
                     expiresOn: expiredExpiresOn.toString(),
                     lastUpdatedAt: Date.now().toString(),
