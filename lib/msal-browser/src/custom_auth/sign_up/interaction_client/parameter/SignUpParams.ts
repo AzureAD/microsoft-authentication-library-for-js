@@ -13,6 +13,7 @@ export interface SignUpParamsBase {
 export interface SignUpStartParams extends SignUpParamsBase {
     password?: string;
     attributes?: Record<string, string>;
+    capabilities?: Array<string>;
 }
 
 export interface SignUpResendCodeParams extends SignUpParamsBase {

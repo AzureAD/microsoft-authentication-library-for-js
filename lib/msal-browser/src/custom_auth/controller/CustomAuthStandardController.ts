@@ -203,6 +203,9 @@ export class CustomAuthStandardController
                     this.customAuthConfig.customAuth.challengeTypes ?? [],
                 username: signInInputs.username,
                 password: signInInputs.password,
+                ...(this.customAuthConfig.customAuth.capabilities && {
+                    capabilities: this.customAuthConfig.customAuth.capabilities,
+                }),
             };
 
             this.logger.verbose(
@@ -369,6 +372,9 @@ export class CustomAuthStandardController
                 username: signUpInputs.username,
                 password: signUpInputs.password,
                 attributes: signUpInputs.attributes,
+                ...(this.customAuthConfig.customAuth.capabilities && {
+                    capabilities: this.customAuthConfig.customAuth.capabilities,
+                }),
             });
 
             this.logger.verbose("Sign-up flow started.", correlationId);
@@ -468,6 +474,9 @@ export class CustomAuthStandardController
                 challengeType:
                     this.customAuthConfig.customAuth.challengeTypes ?? [],
                 username: resetPasswordInputs.username,
+                ...(this.customAuthConfig.customAuth.capabilities && {
+                    capabilities: this.customAuthConfig.customAuth.capabilities,
+                }),
             });
 
             this.logger.verbose("Password-reset flow started.", correlationId);

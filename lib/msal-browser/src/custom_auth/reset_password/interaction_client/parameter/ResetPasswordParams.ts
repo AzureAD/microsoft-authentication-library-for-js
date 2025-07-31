@@ -10,7 +10,9 @@ export interface ResetPasswordParamsBase {
     correlationId: string;
 }
 
-export type ResetPasswordStartParams = ResetPasswordParamsBase;
+export interface ResetPasswordStartParams extends ResetPasswordParamsBase {
+    capabilities?: Array<string>;
+}
 
 export interface ResetPasswordResendCodeParams extends ResetPasswordParamsBase {
     continuationToken: string;

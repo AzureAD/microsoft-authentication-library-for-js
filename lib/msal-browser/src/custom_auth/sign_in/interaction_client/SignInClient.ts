@@ -50,6 +50,7 @@ import {
     ResponseHandler,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../../../config/Configuration.js";
+import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
 import { EventHandler } from "../../../event/EventHandler.js";
 import { INavigationClient } from "../../../navigation/INavigationClient.js";
@@ -110,11 +111,14 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             parameters.correlationId
         );
 
+        const capabilities = this.getCapabilities(parameters.capabilities);
+
         const initReq: SignInInitiateRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             username: parameters.username,
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
+            ...(capabilities && { capabilities }),
         };
 
         const initiateResponse =

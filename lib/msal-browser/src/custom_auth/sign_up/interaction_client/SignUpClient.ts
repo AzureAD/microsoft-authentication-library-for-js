@@ -58,6 +58,8 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             : PublicApiId.SIGN_UP_WITH_PASSWORD_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
+        const capabilities = this.getCapabilities(parameters.capabilities);
+
         const startRequest: SignUpStartRequest = {
             username: parameters.username,
             password: parameters.password,
@@ -65,6 +67,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             telemetryManager,
             correlationId: parameters.correlationId,
+            ...(capabilities && { capabilities }),
         };
 
         this.logger.verbose(

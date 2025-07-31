@@ -62,6 +62,16 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
         return challengeType.join(" ");
     }
 
+    protected getCapabilities(
+        configuredCapabilities: string[] | undefined
+    ): string | undefined {
+        const capabilities = configuredCapabilities ?? [];
+        if (capabilities.length === 0) {
+            return undefined;
+        }
+        return capabilities.join(" ");
+    }
+
     protected getScopes(scopes: string[] | undefined): string[] {
         if (!!scopes && scopes.length > 0) {
             scopes;
