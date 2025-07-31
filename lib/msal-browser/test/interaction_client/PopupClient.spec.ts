@@ -38,6 +38,7 @@ import {
     AuthError,
     ProtocolUtils,
     ProtocolMode,
+    HttpMethod,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -157,7 +158,7 @@ describe("PopupClient", () => {
                 authenticationScheme: AuthenticationScheme.SSH,
             };
 
-            expect(popupClient.acquireToken(request)).rejects.toThrow(
+            await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
                 )
@@ -177,9 +178,32 @@ describe("PopupClient", () => {
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
-            expect(popupClient.acquireToken(request)).rejects.toThrow(
+            await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshKid
+                )
+            );
+        });
+
+        it("throws error when httpMethod is set to GET and authorizePostBodyParameters are set", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.BEARER,
+                httpMethod: HttpMethod.GET,
+                authorizePostBodyParameters: {
+                    testAssertion: "testValue",
+                },
+            };
+
+            await expect(popupClient.acquireToken(request)).rejects.toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
                 )
             );
         });
@@ -686,6 +710,76 @@ describe("PopupClient", () => {
                 });
         });
 
+        it("uses POST code flow when httpMethod is set to POST", async () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                correlationId: RANDOM_TEST_GUID,
+                fromCache: false,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            jest.spyOn(
+                InteractionHandler.prototype,
+                "handleCodeResponse"
+            ).mockResolvedValue(testTokenResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const postCodeFlowSpy = jest
+                .spyOn(PopupClient.prototype, "executeCodeFlowWithPost")
+                .mockResolvedValue(testTokenResponse);
+            const tokenResp = await popupClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                httpMethod: HttpMethod.POST,
+            });
+            expect(tokenResp).toEqual(testTokenResponse);
+            expect(postCodeFlowSpy).toHaveBeenCalled();
+        });
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
@@ -899,6 +993,26 @@ describe("PopupClient", () => {
                 const result = await pca.acquireTokenPopup(validRequest);
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+            });
+
+            it("throws error when ProtocolMode is set to EAR and httpMethod is set to GET", async () => {
+                const validRequest: PopupRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                    httpMethod: HttpMethod.GET,
+                };
+
+                await expect(
+                    pca.acquireTokenPopup(validRequest)
+                ).rejects.toThrow(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                    )
+                );
             });
         });
     });

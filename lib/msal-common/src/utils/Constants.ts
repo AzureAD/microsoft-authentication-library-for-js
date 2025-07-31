@@ -82,6 +82,12 @@ export const HttpStatus = {
 } as const;
 export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
 
+export const HttpMethod = {
+    GET: "GET",
+    POST: "POST",
+} as const;
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
+
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,
     Constants.PROFILE_SCOPE,
