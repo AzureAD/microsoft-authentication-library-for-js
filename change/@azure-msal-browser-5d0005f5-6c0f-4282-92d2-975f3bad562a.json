@@ -1,7 +1,7 @@
 {
     "type": "minor",
-    "comment": "Add support for custom claims and password change required error, #7948",
+    "comment": "Add support for custom claims and password change required error, #7955",
     "packageName": "@azure/msal-browser",
-    "email": "ydi.w127@gmail.com",
+    "email": "yongdiwang@microsoft.com",
     "dependentChangeType": "patch"
 }
