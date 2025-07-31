@@ -1484,6 +1484,554 @@ describe("BrowserCacheManager tests", () => {
             expect(spy).toHaveBeenCalledTimes(4); // First attempt + 3 attempts after each access token removed
         });
 
+        it("setItem prioritizes removing v0 tokens before v1 tokens when cache quota is exceeded", async () => {
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+
+            // Create v0 access tokens
+            const v0AccessToken1 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId1",
+                "environment1",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId1",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+            const v0AccessToken2 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId2",
+                "environment2",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId2",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            // Create v1 access tokens
+            const v1AccessToken1 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId3",
+                "environment3",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId3",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+            const v1AccessToken2 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId4",
+                "environment4",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId4",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            // Generate keys with schema versions
+            const v0AtKey1 =
+                browserCacheManager.generateCredentialKey(v0AccessToken1);
+            const v0AtKey2 =
+                browserCacheManager.generateCredentialKey(v0AccessToken2);
+            const v1AtKey1 =
+                browserCacheManager.generateCredentialKey(v1AccessToken1);
+            const v1AtKey2 =
+                browserCacheManager.generateCredentialKey(v1AccessToken2);
+
+            // Store tokens directly in cache
+            window.sessionStorage.setItem(
+                v0AtKey1,
+                JSON.stringify(v0AccessToken1)
+            );
+            window.sessionStorage.setItem(
+                v0AtKey2,
+                JSON.stringify(v0AccessToken2)
+            );
+            window.sessionStorage.setItem(
+                v1AtKey1,
+                JSON.stringify(v1AccessToken1)
+            );
+            window.sessionStorage.setItem(
+                v1AtKey2,
+                JSON.stringify(v1AccessToken2)
+            );
+
+            // Set token keys with schema versions
+            const v0TokenKeys = {
+                idToken: [],
+                accessToken: [v0AtKey1, v0AtKey2],
+                refreshToken: [],
+            };
+            const v1TokenKeys = {
+                idToken: [],
+                accessToken: [v1AtKey1, v1AtKey2],
+                refreshToken: [],
+            };
+            browserCacheManager.setTokenKeys(v0TokenKeys, RANDOM_TEST_GUID, 0);
+            browserCacheManager.setTokenKeys(v1TokenKeys, RANDOM_TEST_GUID, 1);
+
+            // Verify tokens are in cache
+            expect(window.sessionStorage.getItem(v0AtKey1)).toBe(
+                JSON.stringify(v0AccessToken1)
+            );
+            expect(window.sessionStorage.getItem(v0AtKey2)).toBe(
+                JSON.stringify(v0AccessToken2)
+            );
+            expect(window.sessionStorage.getItem(v1AtKey1)).toBe(
+                JSON.stringify(v1AccessToken1)
+            );
+            expect(window.sessionStorage.getItem(v1AtKey2)).toBe(
+                JSON.stringify(v1AccessToken2)
+            );
+
+            // Verify token keys are set correctly
+            const initialV0TokenKeys = browserCacheManager.getTokenKeys(0);
+            const initialV1TokenKeys = browserCacheManager.getTokenKeys(1);
+            expect(initialV0TokenKeys.accessToken).toEqual([
+                v0AtKey1,
+                v0AtKey2,
+            ]);
+            expect(initialV1TokenKeys.accessToken).toEqual([
+                v1AtKey1,
+                v1AtKey2,
+            ]);
+
+            const newCacheKey = "test-cache-entry";
+            const newCacheVal = "test-cache-value";
+
+            // Mock storage to throw quota error twice, then succeed
+            let callCount = 0;
+            jest.spyOn(Storage.prototype, "setItem").mockImplementation(
+                (key, value) => {
+                    if (key === newCacheKey && callCount < 2) {
+                        callCount++;
+                        const error: any = new DOMException(
+                            "The quota has been exceeded",
+                            "QuotaExceededError"
+                        );
+                        throw error;
+                    }
+                    // Call the original implementation for other keys or after quota errors
+                    jest.restoreAllMocks(); // Restore before calling the original
+                    return window.sessionStorage.setItem(key, value);
+                }
+            );
+
+            browserCacheManager.setItem(
+                newCacheKey,
+                newCacheVal,
+                RANDOM_TEST_GUID
+            );
+
+            // First v0 token should be removed, second v0 token should be removed, v1 tokens should remain
+            expect(window.sessionStorage.getItem(v0AtKey1)).toBeNull();
+            expect(window.sessionStorage.getItem(v0AtKey2)).toBeNull();
+            expect(window.sessionStorage.getItem(v1AtKey1)).toBe(
+                JSON.stringify(v1AccessToken1)
+            );
+            expect(window.sessionStorage.getItem(v1AtKey2)).toBe(
+                JSON.stringify(v1AccessToken2)
+            );
+
+            // The new item should be set
+            expect(window.sessionStorage.getItem(newCacheKey)).toBe(
+                newCacheVal
+            );
+
+            // Token keys should be updated correctly - v0 tokens removed, v1 tokens remain
+            const updatedV0Keys = browserCacheManager.getTokenKeys(0);
+            const updatedV1Keys = browserCacheManager.getTokenKeys(1);
+            expect(updatedV0Keys.accessToken).toEqual([]);
+            expect(updatedV1Keys.accessToken).toEqual([v1AtKey1, v1AtKey2]);
+        });
+
+        it("setItem removes v1 tokens only after all v0 tokens are removed", async () => {
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+
+            // Create one v0 token and multiple v1 tokens
+            const v0AccessToken = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId1",
+                "environment1",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId1",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            const v1AccessToken1 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId2",
+                "environment2",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId2",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            const v1AccessToken2 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId3",
+                "environment3",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId3",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            const v0AtKey =
+                browserCacheManager.generateCredentialKey(v0AccessToken);
+            const v1AtKey1 =
+                browserCacheManager.generateCredentialKey(v1AccessToken1);
+            const v1AtKey2 =
+                browserCacheManager.generateCredentialKey(v1AccessToken2);
+
+            // Store tokens directly in cache
+            window.sessionStorage.setItem(
+                v0AtKey,
+                JSON.stringify(v0AccessToken)
+            );
+            window.sessionStorage.setItem(
+                v1AtKey1,
+                JSON.stringify(v1AccessToken1)
+            );
+            window.sessionStorage.setItem(
+                v1AtKey2,
+                JSON.stringify(v1AccessToken2)
+            );
+
+            // Set token keys with schema versions
+            const v0TokenKeys = {
+                idToken: [],
+                accessToken: [v0AtKey],
+                refreshToken: [],
+            };
+            const v1TokenKeys = {
+                idToken: [],
+                accessToken: [v1AtKey1, v1AtKey2],
+                refreshToken: [],
+            };
+            browserCacheManager.setTokenKeys(v0TokenKeys, RANDOM_TEST_GUID, 0);
+            browserCacheManager.setTokenKeys(v1TokenKeys, RANDOM_TEST_GUID, 1);
+
+            const newCacheKey = "test-cache-entry";
+            const newCacheVal = "test-cache-value";
+
+            // Mock storage to throw quota error 2 times, then succeed
+            let callCount = 0;
+            jest.spyOn(Storage.prototype, "setItem").mockImplementation(
+                (key, value) => {
+                    if (key === newCacheKey && callCount < 2) {
+                        callCount++;
+                        const error: any = new DOMException(
+                            "The quota has been exceeded",
+                            "QuotaExceededError"
+                        );
+                        throw error;
+                    }
+                    jest.restoreAllMocks(); // Restore before calling the original
+                    return window.sessionStorage.setItem(key, value);
+                }
+            );
+
+            browserCacheManager.setItem(
+                newCacheKey,
+                newCacheVal,
+                RANDOM_TEST_GUID
+            );
+
+            // With 2 quota errors, v0 token and first v1 token are removed, second v1 token remains
+            expect(window.sessionStorage.getItem(v0AtKey)).toBeNull();
+            expect(window.sessionStorage.getItem(v1AtKey1)).toBeNull();
+            expect(window.sessionStorage.getItem(v1AtKey2)).toBe(
+                JSON.stringify(v1AccessToken2)
+            );
+
+            // Token keys should reflect the removal priority
+            const updatedV0Keys = browserCacheManager.getTokenKeys(0);
+            const updatedV1Keys = browserCacheManager.getTokenKeys(1);
+            expect(updatedV0Keys.accessToken).toEqual([]);
+            expect(updatedV1Keys.accessToken).toEqual([v1AtKey2]);
+        });
+
+        it("setUserData prioritizes removing v0 tokens before v1 tokens when cache quota is exceeded", async () => {
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+
+            // Create v0 and v1 access tokens
+            const v0AccessToken1 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId1",
+                "environment1",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId1",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            const v1AccessToken1 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId2",
+                "environment2",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId2",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            const v0AtKey1 =
+                browserCacheManager.generateCredentialKey(v0AccessToken1);
+            const v1AtKey1 =
+                browserCacheManager.generateCredentialKey(v1AccessToken1);
+
+            // Store tokens directly in cache
+            window.sessionStorage.setItem(
+                v0AtKey1,
+                JSON.stringify(v0AccessToken1)
+            );
+            window.sessionStorage.setItem(
+                v1AtKey1,
+                JSON.stringify(v1AccessToken1)
+            );
+
+            // Set token keys with schema versions
+            const v0TokenKeys = {
+                idToken: [],
+                accessToken: [v0AtKey1],
+                refreshToken: [],
+            };
+            const v1TokenKeys = {
+                idToken: [],
+                accessToken: [v1AtKey1],
+                refreshToken: [],
+            };
+            browserCacheManager.setTokenKeys(v0TokenKeys, RANDOM_TEST_GUID, 0);
+            browserCacheManager.setTokenKeys(v1TokenKeys, RANDOM_TEST_GUID, 1);
+
+            const newCacheKey = "test-cache-entry";
+            const newCacheVal = "test-cache-value";
+
+            // Mock setUserData to throw quota error once, then succeed
+            let callCount = 0;
+            jest.spyOn(
+                // @ts-ignore
+                browserCacheManager.browserStorage,
+                "setUserData"
+            ).mockImplementation(async () => {
+                if (callCount < 1) {
+                    callCount++;
+                    const error: any = new DOMException(
+                        "The quota has been exceeded",
+                        "QuotaExceededError"
+                    );
+                    throw error;
+                }
+                return Promise.resolve();
+            });
+
+            await browserCacheManager.setUserData(
+                newCacheKey,
+                newCacheVal,
+                RANDOM_TEST_GUID,
+                Date.now().toString()
+            );
+
+            // v0 token should be removed first, v1 token should remain
+            expect(window.sessionStorage.getItem(v0AtKey1)).toBeNull();
+            expect(window.sessionStorage.getItem(v1AtKey1)).toBe(
+                JSON.stringify(v1AccessToken1)
+            );
+
+            // Token keys should be updated correctly
+            const updatedV0Keys = browserCacheManager.getTokenKeys(0);
+            const updatedV1Keys = browserCacheManager.getTokenKeys(1);
+            expect(updatedV0Keys.accessToken).toEqual([]);
+            expect(updatedV1Keys.accessToken).toEqual([v1AtKey1]);
+        });
+
+        it("setUserData removes v1 tokens only after all v0 tokens are exhausted", async () => {
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+
+            // Create mixed v0 and v1 tokens
+            const v0AccessToken1 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId1",
+                "environment1",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId1",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            const v0AccessToken2 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId2",
+                "environment2",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId2",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            const v1AccessToken1 = CacheHelpers.createAccessTokenEntity(
+                "homeAccountId3",
+                "environment3",
+                TEST_TOKENS.ACCESS_TOKEN,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenantId3",
+                "openid",
+                1000,
+                1000,
+                browserCrypto.base64Decode,
+                500,
+                AuthenticationScheme.BEARER
+            );
+
+            const v0AtKey1 =
+                browserCacheManager.generateCredentialKey(v0AccessToken1);
+            const v0AtKey2 =
+                browserCacheManager.generateCredentialKey(v0AccessToken2);
+            const v1AtKey1 =
+                browserCacheManager.generateCredentialKey(v1AccessToken1);
+
+            // Store tokens directly in cache
+            window.sessionStorage.setItem(
+                v0AtKey1,
+                JSON.stringify(v0AccessToken1)
+            );
+            window.sessionStorage.setItem(
+                v0AtKey2,
+                JSON.stringify(v0AccessToken2)
+            );
+            window.sessionStorage.setItem(
+                v1AtKey1,
+                JSON.stringify(v1AccessToken1)
+            );
+
+            // Set token keys with schema versions
+            const v0TokenKeys = {
+                idToken: [],
+                accessToken: [v0AtKey1, v0AtKey2],
+                refreshToken: [],
+            };
+            const v1TokenKeys = {
+                idToken: [],
+                accessToken: [v1AtKey1],
+                refreshToken: [],
+            };
+            browserCacheManager.setTokenKeys(v0TokenKeys, RANDOM_TEST_GUID, 0);
+            browserCacheManager.setTokenKeys(v1TokenKeys, RANDOM_TEST_GUID, 1);
+
+            const newCacheKey = "test-cache-entry";
+            const newCacheVal = "test-cache-value";
+
+            // Mock setUserData to throw quota error 3 times, then succeed
+            let callCount = 0;
+            jest.spyOn(
+                // @ts-ignore
+                browserCacheManager.browserStorage,
+                "setUserData"
+            ).mockImplementation(async () => {
+                if (callCount < 3) {
+                    callCount++;
+                    const error: any = new DOMException(
+                        "The quota has been exceeded",
+                        "QuotaExceededError"
+                    );
+                    throw error;
+                }
+                return Promise.resolve();
+            });
+
+            await browserCacheManager.setUserData(
+                newCacheKey,
+                newCacheVal,
+                RANDOM_TEST_GUID,
+                Date.now().toString()
+            );
+
+            // All v0 tokens should be removed first, then v1 tokens
+            expect(window.sessionStorage.getItem(v0AtKey1)).toBeNull();
+            expect(window.sessionStorage.getItem(v0AtKey2)).toBeNull();
+            expect(window.sessionStorage.getItem(v1AtKey1)).toBeNull();
+
+            // Token keys should be updated to reflect removals
+            const updatedV0Keys = browserCacheManager.getTokenKeys(0);
+            const updatedV1Keys = browserCacheManager.getTokenKeys(1);
+            expect(updatedV0Keys.accessToken).toEqual([]);
+            expect(updatedV1Keys.accessToken).toEqual([]);
+        });
+
         it("removeItem()", () => {
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
