@@ -127,6 +127,18 @@ export abstract class AuthFlowErrorBase {
             this.errorData.error === CustomAuthApiErrorCode.EXPIRED_TOKEN
         );
     }
+
+    /**
+     * @todo verify the password change required error can be detected once the MFA is in place.
+     * This error will be raised during signin and refresh tokens when calling /token endpoint.
+     */
+    protected isPasswordResetRequiredError(): boolean {
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
+            this.errorData.errorCodes?.includes(50142) === true
+        );
+    }
 }
 
 export abstract class AuthActionErrorBase extends AuthFlowErrorBase {

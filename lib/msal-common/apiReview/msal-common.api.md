@@ -411,6 +411,13 @@ function addPassword(parameters: Map<string, string>, password: string): void;
 function addPopToken(parameters: Map<string, string>, cnfString: string): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "addPostBodyParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function addPostBodyParameters(parameters: Map<string, string>, bodyParameters: StringDict): void;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "addPostLogoutRedirectUri" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -906,6 +913,8 @@ export type BaseAuthRequest = {
     scenarioId?: string;
     popKid?: string;
     embeddedClientId?: string;
+    httpMethod?: HttpMethod;
+    authorizePostBodyParameters?: StringDict;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "BaseClient" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1676,7 +1685,9 @@ declare namespace ClientConfigurationErrorCodes {
         invalidAuthenticationHeader,
         cannotSetOIDCOptions,
         cannotAllowPlatformBroker,
-        authorityMismatch
+        authorityMismatch,
+        invalidRequestMethodForEAR,
+        invalidAuthorizePostBodyParameters
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1766,6 +1777,14 @@ export const ClientConfigurationErrorMessage: {
         desc: string;
     };
     authorityMismatch: {
+        code: string;
+        desc: string;
+    };
+    invalidAuthorizePostBodyParameters: {
+        code: string;
+        desc: string;
+    };
+    invalidRequestMethodForEAR: {
         code: string;
         desc: string;
     };
@@ -2419,6 +2438,18 @@ export const HeaderNames: {
 // @public (undocumented)
 export type HeaderNames = (typeof HeaderNames)[keyof typeof HeaderNames];
 
+// Warning: (ae-missing-release-tag) "HttpMethod" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "HttpMethod" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const HttpMethod: {
+    readonly GET: "GET";
+    readonly POST: "POST";
+};
+
+// @public (undocumented)
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
+
 // Warning: (ae-missing-release-tag) "HttpStatus" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "HttpStatus" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2658,6 +2689,11 @@ const invalidAuthenticationHeader = "invalid_authentication_header";
 // @public (undocumented)
 const invalidAuthorityMetadata = "invalid_authority_metadata";
 
+// Warning: (ae-missing-release-tag) "invalidAuthorizePostBodyParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const invalidAuthorizePostBodyParameters = "invalid_authorize_post_body_parameters";
+
 // Warning: (ae-missing-release-tag) "invalidCacheEnvironment" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -2687,6 +2723,11 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 //
 // @public (undocumented)
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
+
+// Warning: (ae-missing-release-tag) "invalidRequestMethodForEAR" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
 
 // Warning: (ae-missing-release-tag) "invalidState" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3813,7 +3854,8 @@ declare namespace RequestParameterBuilder {
         addThrottling,
         addLogoutHint,
         addBrokerParameters,
-        addEARParameters
+        addEARParameters,
+        addPostBodyParameters
     }
 }
 
@@ -4510,7 +4552,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "15.8.1";
+export const version = "15.9.0";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

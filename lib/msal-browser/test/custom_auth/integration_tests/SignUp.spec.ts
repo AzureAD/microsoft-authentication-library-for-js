@@ -33,6 +33,11 @@ describe("Sign up", () => {
     });
 
     afterEach(() => {
+        const activeUser = app.getAllAccounts();
+        if (activeUser.length > 0) {
+            app.clearCache();
+        }
+
         const controller = app[
             "customAuthController"
         ] as CustomAuthStandardController;
@@ -156,6 +161,140 @@ describe("Sign up", () => {
         const signInResult = await (
             submitPasswordResult.state as SignUpCompletedState
         ).signIn();
+
+        expect(signInResult).toBeInstanceOf(SignInResult);
+        expect(signInResult.error).toBeUndefined();
+        expect(signInResult.isCompleted()).toBe(true);
+        expect(signInResult.data).toBeDefined();
+        expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(signInResult.data?.getAccount()?.idToken).toStrictEqual(
+            TestServerTokenResponse.id_token
+        );
+
+        // Sign out the user for clean up the state for the other tests.
+        signInResult.data?.signOut();
+    });
+
+    it("should sign in with custom claims after sign up successfully", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-1",
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-2",
+                        challenge_type: "oob",
+                        binding_method: "prompt",
+                        challenge_channel: "email",
+                        challenge_target_label: "s****n@o*********m",
+                        code_length: 8,
+                        interval: 300,
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 400,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-4",
+                        error: "credential_required",
+                        error_description: "Credential required.",
+                        error_codes: [55103],
+                        timestamp: "yy-mm-dd 02:37:33Z",
+                        trace_id: "test-trace-id",
+                        correlation_id: correlationId,
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: false,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-5",
+                        challenge_type: "password",
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return {
+                        continuation_token: "test-continuation-token-6",
+                    };
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            })
+            .mockResolvedValueOnce({
+                status: 200,
+                json: async () => {
+                    return TestServerTokenResponse;
+                },
+                headers: new Headers({ "content-type": "application/json" }),
+                ok: true,
+            });
+
+        const attributes: UserAccountAttributes = {
+            city: "test-city",
+        };
+
+        const signUpInputs: SignUpInputs = {
+            username: "test@test.com",
+            correlationId: correlationId,
+            attributes: attributes,
+        };
+
+        const startResult = await app.signUp(signUpInputs);
+
+        expect(startResult).toBeInstanceOf(SignUpResult);
+        expect(startResult.error).toBeUndefined();
+        expect(startResult.isCodeRequired()).toBe(true);
+
+        const submitCodeResult = await (
+            startResult.state as SignUpCodeRequiredState
+        ).submitCode("12345678");
+
+        expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
+        expect(submitCodeResult.error).toBeUndefined();
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
+
+        const submitPasswordResult = await (
+            submitCodeResult.state as SignUpPasswordRequiredState
+        ).submitPassword("valid-password");
+
+        expect(submitPasswordResult).toBeInstanceOf(SignUpSubmitPasswordResult);
+        expect(submitPasswordResult.error).toBeUndefined();
+        expect(submitPasswordResult.isCompleted()).toBe(true);
+
+        const claims = JSON.stringify({
+            access_token: {
+                acrs: {
+                    essential: true,
+                    value: "c1",
+                },
+            },
+        });
+
+        const signInResult = await (
+            submitPasswordResult.state as SignUpCompletedState
+        ).signIn({
+            claims: claims,
+        });
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
