@@ -1,3 +1,3 @@
 /* eslint-disable header/header */
 export const name = "@azure/msal-common";
-export const version = "15.8.1";
+export const version = "15.9.0";
