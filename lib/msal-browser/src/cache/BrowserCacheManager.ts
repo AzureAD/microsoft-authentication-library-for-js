@@ -129,6 +129,10 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     async initialize(correlationId: string): Promise<void> {
+        this.performanceClient.addFields({
+            cacheLocation: this.cacheConfig.cacheLocation,
+            cacheRetentionDays: this.cacheConfig.cacheRetentionDays
+        }, correlationId);
         await this.browserStorage.initialize(correlationId);
         await this.migrateExistingCache(correlationId);
         this.trackVersionChanges(correlationId);
