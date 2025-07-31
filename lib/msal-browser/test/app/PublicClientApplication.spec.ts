@@ -71,6 +71,7 @@ import { EventType } from "../../src/event/EventType.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
+import { SsoSilentRequest } from "../../src/request/SsoSilentRequest.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { EventMessage } from "../../src/event/EventMessage.js";
@@ -3314,6 +3315,197 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
             expect(preGenPkce2).toBeUndefined();
+        });
+    });
+
+    describe("getNativeAccountId", () => {
+        beforeEach(async () => {
+            pca = (pca as any).controller;
+            await pca.initialize();
+        });
+
+        it("returns nativeAccountId from request.account when available", () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId",
+            };
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("test-nativeAccountId");
+        });
+
+        it("returns empty string from request.account when account has no nativeAccountId", () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("");
+        });
+
+        it("returns nativeAccountId from getAccount when loginHint is provided and no account in request", () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId-from-hint",
+            };
+
+            const getAccountSpy = jest
+                .spyOn(pca, "getAccount")
+                .mockReturnValue(testAccount);
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+                loginHint: "AbeLi@microsoft.com",
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("test-nativeAccountId-from-hint");
+            expect(getAccountSpy).toHaveBeenCalledWith({
+                loginHint: "AbeLi@microsoft.com",
+                sid: undefined,
+            });
+        });
+
+        it("returns nativeAccountId from getAccount when sid is provided and no account in request", () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId-from-sid",
+            };
+
+            const getAccountSpy = jest
+                .spyOn(pca, "getAccount")
+                .mockReturnValue(testAccount);
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+                sid: "test-sid",
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("test-nativeAccountId-from-sid");
+            expect(getAccountSpy).toHaveBeenCalledWith({
+                loginHint: undefined,
+                sid: "test-sid",
+            });
+        });
+
+        it("returns nativeAccountId from getActiveAccount when no account, loginHint, or sid in request", () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId-from-active",
+            };
+
+            const getActiveAccountSpy = jest
+                .spyOn(pca, "getActiveAccount")
+                .mockReturnValue(testAccount);
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("test-nativeAccountId-from-active");
+            expect(getActiveAccountSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("returns empty string when no account found and no nativeAccountId available", () => {
+            const getActiveAccountSpy = jest
+                .spyOn(pca, "getActiveAccount")
+                .mockReturnValue(null);
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("");
+            expect(getActiveAccountSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("returns empty string when account found but has no nativeAccountId", () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+
+            const getActiveAccountSpy = jest
+                .spyOn(pca, "getActiveAccount")
+                .mockReturnValue(testAccount);
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("");
+            expect(getActiveAccountSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("prioritizes request.account over loginHint when both are provided", () => {
+            const accountFromRequest: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId-from-request",
+            };
+
+            const accountFromHint: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId-from-hint",
+            };
+
+            const getAccountSpy = jest
+                .spyOn(pca, "getAccount")
+                .mockReturnValue(accountFromHint);
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+                account: accountFromRequest,
+                loginHint: "AbeLi@microsoft.com",
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("test-nativeAccountId-from-request");
+            expect(getAccountSpy).not.toHaveBeenCalled();
         });
     });
 
