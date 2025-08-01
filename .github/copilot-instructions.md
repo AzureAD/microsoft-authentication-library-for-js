@@ -16,7 +16,21 @@ This repository contains JavaScript/TypeScript SDKs for integrating with Microso
 
 To facilitate bundle size minification and tree-shaking, follow these practices when writing code:
 
--   Prefer simple constants over nested ones
+-   Prefer simple constants over nested ones  
+    <details>
+    <summary>Example</summary>
+
+    ```ts
+    // Prefer this (simple constant):
+    const STATUS_SUCCESS = "success";
+
+    // Over this (nested constant):
+    const STATUS = {
+        SUCCESS: "success",
+        ERROR: "error"
+    };
+    ```
+    </details>
 -   Prefer `const` objects with `as const` or literal types over TypeScript enums
 -   Prefer standalone functions over classes when possible. If using classes, keep attribute and method names short
 -   Use `const` for immutable data
