@@ -228,14 +228,14 @@ export class BrowserCacheManager extends CacheManager {
 
         for (const v0Key of [...v0Keys]) {
             const rawV0Value = this.browserStorage.getItem(v0Key);
-            if (!rawV0Value) {
+            const parsedV0Value = this.validateAndParseJson(
+                rawV0Value || ""
+            ) as CredentialEntity | AccountEntity | EncryptedData | null;
+
+            if (!parsedV0Value) {
                 removeElementFromArray(v0Keys, v0Key);
                 continue;
             }
-            const parsedV0Value = this.validateAndParseJson(rawV0Value) as
-                | CredentialEntity
-                | AccountEntity
-                | EncryptedData;
 
             if (!parsedV0Value.lastUpdatedAt) {
                 // Add lastUpdatedAt to the existing v0 entry if it doesnt exist so we know when it's safe to remove it
