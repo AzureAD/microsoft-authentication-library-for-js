@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fixed getAccount API bug to correctly return current active account if loginhint or sid is not provided #7960",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
