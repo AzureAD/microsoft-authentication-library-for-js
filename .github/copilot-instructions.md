@@ -12,6 +12,16 @@ This repository contains JavaScript/TypeScript SDKs for integrating with Microso
 - Update apiExtractor reports by running `npm run apiExtractor -- --local` from the directory of each changed package.
 - Create changefiles by running `npm run beachball:change` from the root of the repo. Include PR number in changelog message.
 
+### Bundle minification practices
+
+To facilitate bundle size minification and tree-shaking, follow these practices when writing code:
+
+-   Prefer simple constants over nested ones
+-   Prefer `const` objects with `as const` or literal types over TypeScript enums
+-   Prefer standalone functions over classes when possible. If using classes, keep attribute and method names short
+-   Use `const` for immutable data
+-   Avoid complex type computations
+
 ## Repository Structure
 
 - `lib/`: Contains the source code for the MSAL SDKs
