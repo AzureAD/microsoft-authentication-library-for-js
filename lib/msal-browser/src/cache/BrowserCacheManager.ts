@@ -226,7 +226,7 @@ export class BrowserCacheManager extends CacheManager {
             const rawV0Value = this.browserStorage.getItem(v0Key);
             if (!rawV0Value) {
                 removeElementFromArray(v0Keys, v0Key);
-                return;
+                continue;
             }
             const parsedV0Value = this.validateAndParseJson(rawV0Value) as
                 | CredentialEntity
@@ -276,7 +276,7 @@ export class BrowserCacheManager extends CacheManager {
                     { expiredCacheRemovedCount: 1 },
                     correlationId
                 );
-                return;
+                continue;
             }
 
             if (
@@ -298,7 +298,7 @@ export class BrowserCacheManager extends CacheManager {
                         { upgradedCacheCount: 1 },
                         correlationId
                     );
-                    return;
+                    continue;
                 } else {
                     const parsedV1Entry = this.validateAndParseJson(
                         rawV1Entry
@@ -318,13 +318,14 @@ export class BrowserCacheManager extends CacheManager {
                             { updatedCacheFromV0Count: 1 },
                             correlationId
                         );
-                        return;
+                        continue;
                     }
                 }
-            } else {
-                // Can't migrate unencrypted localStorage data right now as we can't guarantee KMSI=no
-                return;
             }
+            /*
+             * Note: If we reach here for unencrypted localStorage data, we continue without migrating
+             * as we can't migrate unencrypted localStorage data right now since we can't guarantee KMSI=no
+             */
         }
     }
 

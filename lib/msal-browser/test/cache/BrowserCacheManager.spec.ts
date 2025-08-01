@@ -581,6 +581,151 @@ describe("BrowserCacheManager tests", () => {
 
                 expect(v0Keys).not.toContain(missingKey);
             });
+
+            it("should process all keys", async () => {
+                // Create a new browser cache manager with sessionStorage for this test
+                const sessionStorageCacheManager = new BrowserCacheManager(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    {
+                        ...cacheConfig,
+                        cacheLocation: BrowserCacheLocation.SessionStorage,
+                    },
+                    browserCrypto,
+                    logger,
+                    performanceClient,
+                    new EventHandler()
+                );
+
+                // Create mock localStorage implementation
+                const mockStorage = {
+                    getItem: jest.fn(),
+                    setItem: jest.fn(),
+                    removeItem: jest.fn(),
+                    getUserData: jest.fn(),
+                    setUserData: jest.fn(),
+                    decryptData: jest.fn(),
+                    initialize: jest.fn(),
+                    getKeys: jest.fn()
+                };
+
+                // Replace browser storage with mock
+                // @ts-ignore
+                sessionStorageCacheManager.browserStorage = mockStorage;
+
+                // Setup test data - multiple keys with different scenarios
+                const v0Keys = [
+                    "key1-missing",      // Should be removed from array
+                    "key2-expired",      // Should be removed due to expiration
+                    "key3-migrate",      // Should be migrated successfully
+                    "key4-update",       // Should update existing v1 entry
+                ];
+                const v1Keys: string[] = ["msal.1-key4-update"]; // Existing v1 entry to update
+
+                const now = Date.now();
+                const oldTimestamp = (now - 7 * 24 * 60 * 60 * 1000).toString(); // 7 days ago
+                const currentTimestamp = now.toString();
+
+                // Mock responses for getItem calls
+                mockStorage.getItem.mockImplementation((key: string) => {
+                    switch (key) {
+                        case "key1-missing":
+                            return null; // Missing key
+                        case "key2-expired":
+                            return JSON.stringify({
+                                lastUpdatedAt: oldTimestamp,
+                                credentialType: CredentialType.ACCESS_TOKEN,
+                                expiresOn: (now - 1000).toString() // Already expired
+                            });
+                        case "key3-migrate":
+                            return JSON.stringify({
+                                lastUpdatedAt: currentTimestamp,
+                                credentialType: CredentialType.ACCESS_TOKEN,
+                                expiresOn: (now + 3600 * 1000).toString(), // Valid for 1 hour
+                            });
+                        case "key4-update":
+                            return JSON.stringify({
+                                lastUpdatedAt: currentTimestamp,
+                                credentialType: CredentialType.ACCESS_TOKEN,
+                                expiresOn: (now + 3600 * 1000).toString()
+                            });
+                        case "msal.1-key4-update": // Existing v1 entry with older timestamp
+                            return JSON.stringify({
+                                lastUpdatedAt: oldTimestamp
+                            });
+                        default:
+                            return null;
+                    }
+                });
+
+                // Mock decryptData to return the same data
+                mockStorage.decryptData.mockImplementation(async (key: string, data: any) => {
+                    return data;
+                });
+
+                // Mock setUserData
+                mockStorage.setUserData.mockResolvedValue(undefined);
+
+                // Spy on performance client
+                const incrementFieldsSpy = jest.spyOn(performanceClient, 'incrementFields');
+
+                // Execute the function
+                await sessionStorageCacheManager.updateV0ToCurrent(
+                    CacheKeys.CREDENTIAL_SCHEMA_VERSION,
+                    v0Keys,
+                    v1Keys,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Verify all keys were processed
+                // key1-missing should be removed from v0Keys array
+                expect(v0Keys).not.toContain("key1-missing");
+
+                // key2-expired should be removed from storage and v0Keys array
+                expect(mockStorage.removeItem).toHaveBeenCalledWith("key2-expired");
+                expect(v0Keys).not.toContain("key2-expired");
+
+                // key3-migrate should be migrated to v1
+                expect(mockStorage.setUserData).toHaveBeenCalledWith(
+                    "msal.1-key3-migrate",
+                    expect.any(String),
+                    TEST_CONFIG.CORRELATION_ID,
+                    currentTimestamp
+                );
+                expect(v1Keys).toContain("msal.1-key3-migrate");
+
+                // key4-update should update existing v1 entry (since v0 timestamp is newer)
+                expect(mockStorage.setUserData).toHaveBeenCalledWith(
+                    "msal.1-key4-update",
+                    expect.any(String),
+                    TEST_CONFIG.CORRELATION_ID,
+                    currentTimestamp
+                );
+
+                // Verify performance counters were incremented correctly
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { expiredCacheRemovedCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { upgradedCacheCount: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                    { updatedCacheFromV0Count: 1 },
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                // Verify the function processed all keys and didn't exit early
+                // Should have called getItem for each v0 key plus v1 entry checks for encrypted keys
+                expect(mockStorage.getItem).toHaveBeenCalledTimes(6); // 4 v0 keys + 2 v1 key checks (for key3, key4)
+
+                // Verify all valid keys were processed (1 successful new migrations, 1 update)
+                expect(v1Keys).toHaveLength(2);
+                expect(v1Keys).toEqual(expect.arrayContaining([
+                    "msal.1-key3-migrate",
+                    "msal.1-key4-update"
+                ]));
+            });
         });
 
         describe("Schema Key Generation", () => {
