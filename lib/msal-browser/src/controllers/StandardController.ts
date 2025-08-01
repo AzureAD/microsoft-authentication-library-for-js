@@ -1684,12 +1684,11 @@ export class StandardController implements IController {
     ): string {
         const account =
             request.account ||
-            (request.loginHint || request.sid
-                ? this.getAccount({
-                      loginHint: request.loginHint,
-                      sid: request.sid,
-                  })
-                : this.getActiveAccount());
+            this.getAccount({
+                loginHint: request.loginHint,
+                sid: request.sid,
+            }) ||
+            this.getActiveAccount();
 
         return (account && account.nativeAccountId) || "";
     }
