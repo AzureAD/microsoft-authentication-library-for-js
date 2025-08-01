@@ -312,8 +312,8 @@ export class BrowserCacheManager extends CacheManager {
                     ) as CredentialEntity | AccountEntity | EncryptedData;
                     // If the entry already exists but is older than the v0 entry, replace it
                     if (
-                        parsedV0Value.lastUpdatedAt >
-                        parsedV1Entry.lastUpdatedAt
+                        Number(parsedV0Value.lastUpdatedAt) >
+                        Number(parsedV1Entry.lastUpdatedAt)
                     ) {
                         upgradePromises.push(
                             this.setUserData(
