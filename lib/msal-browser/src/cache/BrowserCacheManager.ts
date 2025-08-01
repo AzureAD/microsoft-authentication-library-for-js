@@ -223,7 +223,9 @@ export class BrowserCacheManager extends CacheManager {
         v0Keys: Array<string>,
         v1Keys: Array<string>,
         correlationId: string
-    ): Promise<void> {
+    ): Promise<void[]> {
+        const upgradePromises: Array<Promise<void>> = [];
+
         for (const v0Key of [...v0Keys]) {
             const rawV0Value = this.browserStorage.getItem(v0Key);
             if (!rawV0Value) {
@@ -289,16 +291,19 @@ export class BrowserCacheManager extends CacheManager {
                 const v1Key = `${CacheKeys.PREFIX}.${currentSchema}${CacheKeys.CACHE_KEY_SEPARATOR}${v0Key}`;
                 const rawV1Entry = this.browserStorage.getItem(v1Key);
                 if (!rawV1Entry) {
-                    await this.setUserData(
-                        v1Key,
-                        JSON.stringify(decryptedData),
-                        correlationId,
-                        parsedV0Value.lastUpdatedAt
-                    );
-                    v1Keys.push(v1Key);
-                    this.performanceClient.incrementFields(
-                        { upgradedCacheCount: 1 },
-                        correlationId
+                    upgradePromises.push(
+                        this.setUserData(
+                            v1Key,
+                            JSON.stringify(decryptedData),
+                            correlationId,
+                            parsedV0Value.lastUpdatedAt
+                        ).then(() => {
+                            v1Keys.push(v1Key);
+                            this.performanceClient.incrementFields(
+                                { upgradedCacheCount: 1 },
+                                correlationId
+                            );
+                        })
                     );
                     continue;
                 } else {
@@ -310,15 +315,18 @@ export class BrowserCacheManager extends CacheManager {
                         parsedV0Value.lastUpdatedAt >
                         parsedV1Entry.lastUpdatedAt
                     ) {
-                        await this.setUserData(
-                            v1Key,
-                            JSON.stringify(decryptedData),
-                            correlationId,
-                            parsedV0Value.lastUpdatedAt
-                        );
-                        this.performanceClient.incrementFields(
-                            { updatedCacheFromV0Count: 1 },
-                            correlationId
+                        upgradePromises.push(
+                            this.setUserData(
+                                v1Key,
+                                JSON.stringify(decryptedData),
+                                correlationId,
+                                parsedV0Value.lastUpdatedAt
+                            ).then(() => {
+                                this.performanceClient.incrementFields(
+                                    { updatedCacheFromV0Count: 1 },
+                                    correlationId
+                                );
+                            })
                         );
                         continue;
                     }
@@ -329,6 +337,8 @@ export class BrowserCacheManager extends CacheManager {
              * as we can't migrate unencrypted localStorage data right now since we can't guarantee KMSI=no
              */
         }
+
+        return Promise.all(upgradePromises);
     }
 
     /**
