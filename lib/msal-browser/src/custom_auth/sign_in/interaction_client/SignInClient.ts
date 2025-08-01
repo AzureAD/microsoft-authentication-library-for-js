@@ -50,7 +50,6 @@ import {
     ResponseHandler,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../../../config/Configuration.js";
-import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
 import { EventHandler } from "../../../event/EventHandler.js";
 import { INavigationClient } from "../../../navigation/INavigationClient.js";
