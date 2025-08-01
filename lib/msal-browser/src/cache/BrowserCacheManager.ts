@@ -169,30 +169,32 @@ export class BrowserCacheManager extends CacheManager {
             correlationId
         );
 
-        await this.updateV0ToCurrent(
-            CacheKeys.ACCOUNT_SCHEMA_VERSION,
-            accountKeys0,
-            accountKeys1,
-            correlationId
-        );
-        await this.updateV0ToCurrent(
-            CacheKeys.CREDENTIAL_SCHEMA_VERSION,
-            tokenKeys0.idToken,
-            tokenKeys1.idToken,
-            correlationId
-        );
-        await this.updateV0ToCurrent(
-            CacheKeys.CREDENTIAL_SCHEMA_VERSION,
-            tokenKeys0.accessToken,
-            tokenKeys1.accessToken,
-            correlationId
-        );
-        await this.updateV0ToCurrent(
-            CacheKeys.CREDENTIAL_SCHEMA_VERSION,
-            tokenKeys0.refreshToken,
-            tokenKeys1.refreshToken,
-            correlationId
-        );
+        await Promise.all([
+            this.updateV0ToCurrent(
+                CacheKeys.ACCOUNT_SCHEMA_VERSION,
+                accountKeys0,
+                accountKeys1,
+                correlationId
+            ),
+            this.updateV0ToCurrent(
+                CacheKeys.CREDENTIAL_SCHEMA_VERSION,
+                tokenKeys0.idToken,
+                tokenKeys1.idToken,
+                correlationId
+            ),
+            this.updateV0ToCurrent(
+                CacheKeys.CREDENTIAL_SCHEMA_VERSION,
+                tokenKeys0.accessToken,
+                tokenKeys1.accessToken,
+                correlationId
+            ),
+            this.updateV0ToCurrent(
+                CacheKeys.CREDENTIAL_SCHEMA_VERSION,
+                tokenKeys0.refreshToken,
+                tokenKeys1.refreshToken,
+                correlationId
+            ),
+        ]);
 
         if (accountKeys0.length > 0) {
             this.browserStorage.setItem(

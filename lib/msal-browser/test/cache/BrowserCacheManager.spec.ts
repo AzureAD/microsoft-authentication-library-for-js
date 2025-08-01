@@ -605,7 +605,7 @@ describe("BrowserCacheManager tests", () => {
                     setUserData: jest.fn(),
                     decryptData: jest.fn(),
                     initialize: jest.fn(),
-                    getKeys: jest.fn()
+                    getKeys: jest.fn(),
                 };
 
                 // Replace browser storage with mock
@@ -614,10 +614,10 @@ describe("BrowserCacheManager tests", () => {
 
                 // Setup test data - multiple keys with different scenarios
                 const v0Keys = [
-                    "key1-missing",      // Should be removed from array
-                    "key2-expired",      // Should be removed due to expiration
-                    "key3-migrate",      // Should be migrated successfully
-                    "key4-update",       // Should update existing v1 entry
+                    "key1-missing", // Should be removed from array
+                    "key2-expired", // Should be removed due to expiration
+                    "key3-migrate", // Should be migrated successfully
+                    "key4-update", // Should update existing v1 entry
                 ];
                 const v1Keys: string[] = ["msal.1-key4-update"]; // Existing v1 entry to update
 
@@ -634,7 +634,7 @@ describe("BrowserCacheManager tests", () => {
                             return JSON.stringify({
                                 lastUpdatedAt: oldTimestamp,
                                 credentialType: CredentialType.ACCESS_TOKEN,
-                                expiresOn: (now - 1000).toString() // Already expired
+                                expiresOn: (now - 1000).toString(), // Already expired
                             });
                         case "key3-migrate":
                             return JSON.stringify({
@@ -646,11 +646,11 @@ describe("BrowserCacheManager tests", () => {
                             return JSON.stringify({
                                 lastUpdatedAt: currentTimestamp,
                                 credentialType: CredentialType.ACCESS_TOKEN,
-                                expiresOn: (now + 3600 * 1000).toString()
+                                expiresOn: (now + 3600 * 1000).toString(),
                             });
                         case "msal.1-key4-update": // Existing v1 entry with older timestamp
                             return JSON.stringify({
-                                lastUpdatedAt: oldTimestamp
+                                lastUpdatedAt: oldTimestamp,
                             });
                         default:
                             return null;
@@ -658,15 +658,20 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 // Mock decryptData to return the same data
-                mockStorage.decryptData.mockImplementation(async (key: string, data: any) => {
-                    return data;
-                });
+                mockStorage.decryptData.mockImplementation(
+                    async (key: string, data: any) => {
+                        return data;
+                    }
+                );
 
                 // Mock setUserData
                 mockStorage.setUserData.mockResolvedValue(undefined);
 
                 // Spy on performance client
-                const incrementFieldsSpy = jest.spyOn(performanceClient, 'incrementFields');
+                const incrementFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "incrementFields"
+                );
 
                 // Execute the function
                 await sessionStorageCacheManager.updateV0ToCurrent(
@@ -681,7 +686,9 @@ describe("BrowserCacheManager tests", () => {
                 expect(v0Keys).not.toContain("key1-missing");
 
                 // key2-expired should be removed from storage and v0Keys array
-                expect(mockStorage.removeItem).toHaveBeenCalledWith("key2-expired");
+                expect(mockStorage.removeItem).toHaveBeenCalledWith(
+                    "key2-expired"
+                );
                 expect(v0Keys).not.toContain("key2-expired");
 
                 // key3-migrate should be migrated to v1
@@ -721,10 +728,12 @@ describe("BrowserCacheManager tests", () => {
 
                 // Verify all valid keys were processed (1 successful new migrations, 1 update)
                 expect(v1Keys).toHaveLength(2);
-                expect(v1Keys).toEqual(expect.arrayContaining([
-                    "msal.1-key3-migrate",
-                    "msal.1-key4-update"
-                ]));
+                expect(v1Keys).toEqual(
+                    expect.arrayContaining([
+                        "msal.1-key3-migrate",
+                        "msal.1-key4-update",
+                    ])
+                );
             });
         });
 
