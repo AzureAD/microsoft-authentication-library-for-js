@@ -690,6 +690,16 @@ export class BrowserCacheManager extends CacheManager {
             correlationId
         );
 
+        // Remove all other associated cache items
+        this.browserStorage.getKeys().forEach((key) => {
+            if (
+                key.includes(account.homeAccountId) &&
+                key.includes(account.environment)
+            ) {
+                this.browserStorage.removeItem(key);
+            }
+        });
+
         /**
          * @deprecated - Remove this in next major version in favor of more consistent LOGOUT event
          */
