@@ -20,7 +20,7 @@ To facilitate bundle size minification and tree-shaking, follow these practices 
 -   Prefer `const` objects with `as const` or literal types over TypeScript enums
 -   Prefer standalone functions over classes when possible. If using classes, keep attribute and method names short
 -   Use `const` for immutable data
--   Avoid complex type computations
+-   Avoid complex type computations (e.g., deeply nested conditional types, recursive mapped types, or types that require multiple layers of inference). Prefer simple, readable type definitions. When possible, use interfaces or type aliases with straightforward structures, and avoid advanced TypeScript features unless absolutely necessary.
 
 ## Repository Structure
 
