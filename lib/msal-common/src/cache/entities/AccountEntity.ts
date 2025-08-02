@@ -83,7 +83,6 @@ export class AccountEntity {
             tenantId: this.realm,
             username: this.username,
             localAccountId: this.localAccountId,
-            loginHint: this.loginHint,
         });
     }
 
