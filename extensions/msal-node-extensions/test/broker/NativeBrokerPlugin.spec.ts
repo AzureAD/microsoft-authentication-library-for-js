@@ -1,3 +1,30 @@
+jest.mock("@azure/msal-node-runtime", () => {
+    const actual = jest.requireActual("@azure/msal-node-runtime");
+    return {
+        ...actual,
+        msalNodeRuntime: {
+            ...actual.msalNodeRuntime,
+            SignInSilentlyAsync: jest.fn(),
+            SignInAsync: jest.fn(),
+            AcquireTokenSilentlyAsync: jest.fn(),
+            AcquireTokenInteractivelyAsync: jest.fn(),
+            SignInInteractivelyAsync: jest.fn(),
+            ReadAccountByIdAsync: jest.fn(),
+            DiscoverAccountsAsync: jest.fn(),
+            SignOutSilentlyAsync: jest.fn(),
+            RegisterLogger: jest.fn(),
+            StartupError: undefined,
+            AuthParameters: jest.fn().mockImplementation(() => ({
+                CreateAuthParameters: jest.fn(),
+                SetRedirectUri: jest.fn(),
+                SetRequestedScopes: jest.fn(),
+                SetDecodedClaims: jest.fn(),
+                SetPopParams: jest.fn(),
+                SetAdditionalParameter: jest.fn(),
+            })),
+        }
+    };
+});
 import { NativeBrokerPlugin } from "../../src/broker/NativeBrokerPlugin";
 import {
     Account,
@@ -1711,8 +1738,7 @@ if (process.platform === "win32") {
                             CheckError: () => {
                                 const testError: MsalRuntimeError = {
                                     errorCode: 0,
-                                    errorStatus:
-                                        ErrorStatus.InteractionRequired,
+                                    errorStatus: ErrorStatus.InteractionRequired,
                                     errorContext: "",
                                     errorTag: 0,
                                 };
