@@ -190,6 +190,9 @@ export class NestedAppAuthAdapter {
 
         const name = fromAccount.name || effectiveIdTokenClaims?.name;
 
+        const loginHint =
+            fromAccount.loginHint || effectiveIdTokenClaims?.login_hint;
+
         const tenantProfiles = new Map<string, TenantProfile>();
 
         const tenantProfile = buildTenantProfile(
@@ -207,6 +210,7 @@ export class NestedAppAuthAdapter {
             username,
             localAccountId,
             name,
+            loginHint,
             idToken: idToken,
             idTokenClaims: effectiveIdTokenClaims,
             tenantProfiles,
