@@ -411,5 +411,5 @@ function extractAccountSid(account: AccountInfo): string | null {
 }
 
 function extractLoginHint(account: AccountInfo): string | null {
-    return account.idTokenClaims?.login_hint || null;
+    return account.loginHint || account.idTokenClaims?.login_hint || null;
 }
