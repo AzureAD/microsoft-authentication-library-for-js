@@ -859,6 +859,10 @@ export type PerformanceEvent = {
     // Event context as JSON string
     context?: string;
 
+    // Cache Data
+    cacheLocation?: string;
+    cacheRetentionDays?: number;
+
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
     cacheIdCount?: number;
@@ -927,4 +931,14 @@ export const IntFields: ReadonlySet<string> = new Set([
     "multiMatchedRT",
     "unencryptedCacheCount",
     "encryptedCacheExpiredCount",
+    "oldAccountCount",
+    "oldAccessCount",
+    "oldIdCount",
+    "oldRefreshCount",
+    "currAccountCount",
+    "currAccessCount",
+    "currIdCount",
+    "currRefreshCount",
+    "expiredCacheRemovedCount",
+    "upgradedCacheCount",
 ]);
