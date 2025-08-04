@@ -22,7 +22,7 @@ jest.mock("@azure/msal-node-runtime", () => {
                 SetPopParams: jest.fn(),
                 SetAdditionalParameter: jest.fn(),
             })),
-        }
+        },
     };
 });
 import { NativeBrokerPlugin } from "../../src/broker/NativeBrokerPlugin";
@@ -1738,7 +1738,8 @@ if (process.platform === "win32") {
                             CheckError: () => {
                                 const testError: MsalRuntimeError = {
                                     errorCode: 0,
-                                    errorStatus: ErrorStatus.InteractionRequired,
+                                    errorStatus:
+                                        ErrorStatus.InteractionRequired,
                                     errorContext: "",
                                     errorTag: 0,
                                 };
