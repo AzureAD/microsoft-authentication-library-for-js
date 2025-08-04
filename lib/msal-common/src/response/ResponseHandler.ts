@@ -278,7 +278,9 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = cacheRecord.account.generateAccountKey();
+                const key = this.cacheStorage.generateAccountKey(
+                    cacheRecord.account.getAccountInfo()
+                );
                 const account = this.cacheStorage.getAccount(
                     key,
                     request.correlationId

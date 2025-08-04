@@ -115,8 +115,8 @@ export class SilentFlowClient extends BaseClient {
         const environment =
             request.authority || this.authority.getPreferredCache();
         const cacheRecord: CacheRecord = {
-            account: this.cacheManager.readAccountFromCache(
-                request.account,
+            account: this.cacheManager.getAccount(
+                this.cacheManager.generateAccountKey(request.account),
                 request.correlationId
             ),
             accessToken: cachedAccessToken,
