@@ -35,17 +35,6 @@ export function getAccount(
     browserStorage: BrowserCacheManager,
     correlationId: string
 ): AccountInfo | null {
-    logger.trace("getAccount called");
-    if (
-        Object.keys(accountFilter).length === 0 ||
-        Object.values(accountFilter).every(
-            (value) => value === null || value === undefined
-        )
-    ) {
-        logger.warning("getAccount: No valid accountFilter provided");
-        return null;
-    }
-
     const account: AccountInfo | null = browserStorage.getAccountInfoFilteredBy(
         accountFilter,
         correlationId
