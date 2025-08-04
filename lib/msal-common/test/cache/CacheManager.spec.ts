@@ -28,7 +28,11 @@ import {
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { MockCache } from "./MockCache.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
-import { mockCrypto } from "../client/ClientTestUtils.js";
+import {
+    generateAccountKey,
+    generateCredentialKey,
+    mockCrypto,
+} from "../client/ClientTestUtils.js";
 import { TestError } from "../test_kit/TestErrors.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity.js";
@@ -91,7 +95,7 @@ describe("CacheManager.ts test cases", () => {
             ac.username = "Jane Goodman";
             ac.authorityType = "MSSTS";
 
-            const accountKey = ac.generateAccountKey();
+            const accountKey = generateAccountKey(ac.getAccountInfo());
             const cacheRecord: CacheRecord = {};
             cacheRecord.account = ac;
             await mockCache.cacheManager.saveCacheRecord(
@@ -122,9 +126,10 @@ describe("CacheManager.ts test cases", () => {
                 expiresOn: "4600",
                 extendedExpiresOn: "4600",
                 tokenType: AuthenticationScheme.BEARER,
+                lastUpdatedAt: Date.now().toString(),
             };
 
-            const atKey = CacheHelpers.generateCredentialKey(at);
+            const atKey = generateCredentialKey(at);
             const cacheRecord: CacheRecord = {};
             cacheRecord.accessToken = at;
             await mockCache.cacheManager.saveCacheRecord(
@@ -159,7 +164,7 @@ describe("CacheManager.ts test cases", () => {
                 mockCrypto.base64Decode
             );
 
-            const atKey = CacheHelpers.generateCredentialKey(at);
+            const atKey = generateCredentialKey(at);
             const cacheRecord: CacheRecord = {};
             cacheRecord.accessToken = at;
             await mockCache.cacheManager.saveCacheRecord(
@@ -188,9 +193,10 @@ describe("CacheManager.ts test cases", () => {
                 extendedExpiresOn: "4600",
                 keyId: "some_key",
                 tokenType: AuthenticationScheme.POP,
+                lastUpdatedAt: Date.now().toString(),
             };
 
-            const atKey = CacheHelpers.generateCredentialKey(at);
+            const atKey = generateCredentialKey(at);
             const cacheRecord: CacheRecord = {};
             cacheRecord.accessToken = at;
             await mockCache.cacheManager.saveCacheRecord(
@@ -222,7 +228,7 @@ describe("CacheManager.ts test cases", () => {
                 TEST_CONFIG.MSAL_TENANT_ID
             );
 
-            const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
+            const idTokenKey = generateCredentialKey(idToken);
             const cacheRecord: CacheRecord = {};
             cacheRecord.idToken = idToken;
             await mockCache.cacheManager.saveCacheRecord(
@@ -301,8 +307,7 @@ describe("CacheManager.ts test cases", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
 
-            const refreshTokenKey =
-                CacheHelpers.generateCredentialKey(refreshToken);
+            const refreshTokenKey = generateCredentialKey(refreshToken);
             const cacheRecord: CacheRecord = {};
             cacheRecord.refreshToken = refreshToken;
             await mockCache.cacheManager.saveCacheRecord(
@@ -711,8 +716,7 @@ describe("CacheManager.ts test cases", () => {
                 TEST_TOKENS.IDTOKEN_V2,
                 { homeAccountId: multiTenantAccount.homeAccountId }
             );
-            const mainIdTokenKey =
-                CacheHelpers.generateCredentialKey(mainIdTokenEntity);
+            const mainIdTokenKey = generateCredentialKey(mainIdTokenEntity);
 
             const filter = {
                 homeAccountId: multiTenantAccount.homeAccountId,
@@ -803,7 +807,7 @@ describe("CacheManager.ts test cases", () => {
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
 
-        const accountKey = ac.generateAccountKey();
+        const accountKey = generateAccountKey(ac.getAccountInfo());
         const cacheRecord: CacheRecord = {};
         cacheRecord.account = ac;
         await mockCache.cacheManager.saveCacheRecord(
@@ -829,9 +833,10 @@ describe("CacheManager.ts test cases", () => {
             secret: TEST_TOKENS.ACCESS_TOKEN,
             cachedAt: "1000",
             expiresOn: "4600",
+            lastUpdatedAt: Date.now().toString(),
         };
 
-        const credKey = CacheHelpers.generateCredentialKey(accessTokenEntity);
+        const credKey = generateCredentialKey(accessTokenEntity);
         const cacheRecord: CacheRecord = {};
         cacheRecord.accessToken = accessTokenEntity;
         await mockCache.cacheManager.saveCacheRecord(
@@ -860,9 +865,10 @@ describe("CacheManager.ts test cases", () => {
             secret: TEST_TOKENS.ACCESS_TOKEN,
             cachedAt: "1000",
             expiresOn: "4600",
+            lastUpdatedAt: Date.now().toString(),
         };
 
-        const credKey = CacheHelpers.generateCredentialKey(accessTokenEntity);
+        const credKey = generateCredentialKey(accessTokenEntity);
         const cacheRecord: CacheRecord = {};
         cacheRecord.accessToken = accessTokenEntity;
         await mockCache.cacheManager.saveCacheRecord(
@@ -960,60 +966,6 @@ describe("CacheManager.ts test cases", () => {
                 RANDOM_TEST_GUID
             );
             expect(Object.keys(accounts).length).toEqual(0);
-        });
-    });
-
-    describe("isCredentialKey", () => {
-        it("Returns false if key does not contain enough '-' deliniated sections", () => {
-            expect(
-                mockCache.cacheManager.isCredentialKey(
-                    "clientid-idToken-homeId"
-                )
-            ).toBe(false);
-        });
-
-        it("Returns false if key does not contain a valid credential type", () => {
-            expect(
-                mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-credentialType-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-requestedClaimsHash-scheme`
-                )
-            ).toBe(false);
-        });
-
-        it("Returns false if key does not contain clientId", () => {
-            expect(
-                mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-accessToken-clientId-realm-target-requestedClaimsHash-scheme`
-                )
-            ).toBe(false);
-        });
-
-        it("Returns true if key matches credential", () => {
-            expect(
-                mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-${CredentialType.ID_TOKEN}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm---`
-                )
-            ).toBe(true);
-            expect(
-                mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-${CredentialType.ACCESS_TOKEN}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target--`
-                )
-            ).toBe(true);
-            expect(
-                mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-${CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-requestedClaimsHash-scheme`
-                )
-            ).toBe(true);
-            expect(
-                mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-${CredentialType.REFRESH_TOKEN}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm---`
-                )
-            ).toBe(true);
-            expect(
-                mockCache.cacheManager.isCredentialKey(
-                    `homeAccountId-environment-${CredentialType.REFRESH_TOKEN}-1-realm---`
-                )
-            ).toBe(true); // FamilyId test
         });
     });
 
@@ -1732,11 +1684,16 @@ describe("CacheManager.ts test cases", () => {
 
     it("removeAccount", () => {
         const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountToRemoveKey = accountToRemove.generateAccountKey();
+        const accountToRemoveKey = generateAccountKey(
+            accountToRemove.getAccountInfo()
+        );
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();
-        mockCache.cacheManager.removeAccount(accountToRemoveKey);
+        mockCache.cacheManager.removeAccount(
+            accountToRemove.getAccountInfo(),
+            RANDOM_TEST_GUID
+        );
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).toBeNull();
@@ -1754,13 +1711,14 @@ describe("CacheManager.ts test cases", () => {
             cachedAt: "1000",
             expiresOn: "4600",
             extendedExpiresOn: "4600",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(at),
+            generateCredentialKey(at),
             RANDOM_TEST_GUID
         );
-        const atKey = CacheHelpers.generateCredentialKey(at);
+        const atKey = generateCredentialKey(at);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
     });
 
@@ -1778,6 +1736,7 @@ describe("CacheManager.ts test cases", () => {
             expiresOn: "4600",
             keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
             tokenType: AuthenticationScheme.POP,
+            lastUpdatedAt: Date.now().toString(),
         };
 
         const removeTokenBindingKeySpy = jest.spyOn(
@@ -1786,10 +1745,10 @@ describe("CacheManager.ts test cases", () => {
         );
 
         mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(atWithAuthScheme),
+            generateCredentialKey(atWithAuthScheme),
             RANDOM_TEST_GUID
         );
-        const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
+        const atKey = generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy.mock.calls[0][0]).toEqual(
             atWithAuthScheme.keyId
@@ -1810,6 +1769,7 @@ describe("CacheManager.ts test cases", () => {
             expiresOn: "4600",
             keyId: "some_key_id",
             tokenType: AuthenticationScheme.SSH,
+            lastUpdatedAt: Date.now().toString(),
         };
 
         const removeTokenBindingKeySpy = jest.spyOn(
@@ -1818,10 +1778,10 @@ describe("CacheManager.ts test cases", () => {
         );
 
         mockCache.cacheManager.removeAccessToken(
-            CacheHelpers.generateCredentialKey(atWithAuthScheme),
+            generateCredentialKey(atWithAuthScheme),
             RANDOM_TEST_GUID
         );
-        const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
+        const atKey = generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy).toHaveBeenCalledTimes(0);
     });
@@ -2276,21 +2236,6 @@ describe("CacheManager.ts test cases", () => {
                 silentFlowRequest
             )
         ).toEqual(mockedSshAtEntity);
-    });
-
-    it("readAccountFromCache", () => {
-        const matchAccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
-        const account = mockCache.cacheManager.readAccountFromCache(
-            matchAccountInfo,
-            RANDOM_TEST_GUID
-        ) as AccountEntity;
-        if (!account) {
-            throw TestError.createTestSetupError(
-                "Sccount does not have a value"
-            );
-        }
-        expect(account.homeAccountId).toBe(matchAccountInfo.homeAccountId);
     });
 
     it("getAccountsFilteredBy nativeAccountId", () => {

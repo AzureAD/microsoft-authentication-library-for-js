@@ -768,11 +768,6 @@ export class RedirectClient extends StandardInteractionClient {
                     authClient.authority.endSessionEndpoint;
                 } catch {
                     if (validLogoutRequest.account?.homeAccountId) {
-                        this.browserStorage.removeAccount(
-                            validLogoutRequest.account?.homeAccountId,
-                            this.correlationId
-                        );
-
                         this.eventHandler.emitEvent(
                             EventType.LOGOUT_SUCCESS,
                             InteractionType.Redirect,

@@ -70,6 +70,7 @@ export function buildIdToken(
         secret: idTokenSecret,
         clientId: "mock_client_id",
         homeAccountId: homeAccountId,
+        lastUpdatedAt: Date.now().toString()
     };
 
     return { ...idToken, ...options };

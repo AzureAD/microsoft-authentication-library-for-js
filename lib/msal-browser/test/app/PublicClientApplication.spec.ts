@@ -59,7 +59,6 @@ import {
     BrowserConstants,
     CacheLookupPolicy,
     InteractionType,
-    StaticCacheKeys,
     PlatformAuthConstants,
     TemporaryCacheKeys,
     WrapperSKU,
@@ -117,6 +116,8 @@ import { version } from "../../src/packageMetadata.js";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest.js";
 import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
+import * as CacheKeys from "../../src/cache/CacheKeys.js";
+import { getAccountKeysCacheKey } from "../../src/cache/CacheKeys.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -125,6 +126,7 @@ const cacheConfig = {
     secureCookies: false,
     cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
+    cacheRetentionDays: 5,
 };
 
 let testAppConfig = {
@@ -833,7 +835,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(1);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                 done();
             });
@@ -1189,15 +1191,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1350,7 +1352,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1388,7 +1390,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNOUT,
@@ -1411,7 +1413,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -2052,7 +2054,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.localStorage.length).toBe(0);
                 expect(window.sessionStorage.length).toBe(1);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                 done();
             });
@@ -5436,7 +5438,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(2);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
@@ -5496,7 +5498,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(atsSpy).toHaveBeenCalledTimes(1);
                 expect(window.sessionStorage).toHaveLength(2);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
@@ -6697,8 +6699,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.localStorage.setItem(
-                "msal.account.keys",
-                JSON.stringify([testAccount1.generateAccountKey()])
+                getAccountKeysCacheKey(),
+                JSON.stringify([
+                    browserStorage.generateAccountKey(testAccountInfo1),
+                ])
             );
 
             try {
@@ -6759,8 +6763,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.localStorage.setItem(
-                "msal.account.keys",
-                JSON.stringify([testAccount1.generateAccountKey()])
+                getAccountKeysCacheKey(),
+                JSON.stringify([
+                    browserStorage.generateAccountKey(testAccountInfo1),
+                ])
             );
 
             try {
@@ -6805,8 +6811,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.localStorage.setItem(
-                "msal.account.keys",
-                JSON.stringify([testAccount1.generateAccountKey()])
+                getAccountKeysCacheKey(),
+                JSON.stringify([
+                    browserStorage.generateAccountKey(testAccountInfo1),
+                ])
             );
 
             try {
@@ -6849,8 +6857,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.localStorage.setItem(
-                "msal.account.keys",
-                JSON.stringify([testAccount1.generateAccountKey()])
+                getAccountKeysCacheKey(),
+                JSON.stringify([
+                    browserStorage.generateAccountKey(testAccountInfo1),
+                ])
             );
 
             try {
@@ -6882,8 +6892,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 window.localStorage.setItem(
-                    "msal.account.keys",
-                    JSON.stringify([testAccount1.generateAccountKey()])
+                    getAccountKeysCacheKey(),
+                    JSON.stringify([
+                        browserStorage.generateAccountKey(testAccountInfo1),
+                    ])
                 );
 
                 try {
@@ -7046,8 +7058,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     })
                 );
                 window.localStorage.setItem(
-                    "msal.account.keys",
-                    JSON.stringify([testAccount1.generateAccountKey()])
+                    getAccountKeysCacheKey(),
+                    JSON.stringify([
+                        browserStorage.generateAccountKey(testAccountInfo1),
+                    ])
                 );
 
                 try {
@@ -7114,9 +7128,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(activeAccount).toEqual(testAccountInfo2);
 
                     const cacheKey2 =
-                        AccountEntity.generateAccountCacheKey(testAccountInfo2);
+                        browserStorage.generateAccountKey(testAccountInfo2);
                     const idTokenKey2 =
-                        CacheHelpers.generateCredentialKey(idToken2);
+                        browserStorage.generateCredentialKey(idToken2);
                     window.sessionStorage.removeItem(cacheKey2);
                     window.sessionStorage.removeItem(idTokenKey2);
                     expect(pca.getActiveAccount()).toBe(null);
@@ -7662,6 +7676,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     secureCookies: true,
                     cacheMigrationEnabled: false,
                     claimsBasedCachingEnabled: false,
+                    cacheRetentionDays: 5,
                 },
                 new CryptoOps(new Logger({})),
                 new Logger({}),
@@ -7729,10 +7744,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
                 .then(() => {
                     // Ensure account is present in the cache before removing it
-                    const cacheKey =
-                        AccountEntity.generateAccountCacheKey(accountInfo);
                     secondBrowserStorageInstance.removeAccount(
-                        cacheKey,
+                        accountInfo,
                         RANDOM_TEST_GUID
                     );
                 });
