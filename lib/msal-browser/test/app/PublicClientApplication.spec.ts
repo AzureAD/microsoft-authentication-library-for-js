@@ -3438,6 +3438,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(getActiveAccountSpy).toHaveBeenCalledTimes(1);
         });
 
+        it("returns empty nativeAccountId when no account, loginHint, or sid in request and no active account set", () => {
+            const getActiveAccountSpy = jest
+                .spyOn(pca, "getActiveAccount")
+                .mockReturnValue(null);
+
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+            };
+
+            const result = (pca as any).getNativeAccountId(request);
+            expect(result).toBe("");
+            expect(getActiveAccountSpy).toHaveBeenCalledTimes(1);
+        });
+
         it("returns empty string when no account found and no nativeAccountId available", () => {
             const getActiveAccountSpy = jest
                 .spyOn(pca, "getActiveAccount")
