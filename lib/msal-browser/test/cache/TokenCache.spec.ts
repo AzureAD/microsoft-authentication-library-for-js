@@ -152,6 +152,7 @@ describe("TokenCache tests", () => {
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
                     localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                    loginHint: "login_hint",
                 },
             };
             const response: ExternalTokenResponse = {
@@ -326,8 +327,9 @@ describe("TokenCache tests", () => {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: testEnvironment,
                     tenantId: ID_TOKEN_CLAIMS.tid,
-                    username: "username",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
                     localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -362,8 +364,9 @@ describe("TokenCache tests", () => {
                     homeAccountId: testHomeAccountId,
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
-                    username: "username",
-                    localAccountId: "localAccountId",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -396,8 +399,9 @@ describe("TokenCache tests", () => {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
-                    username: "username",
-                    localAccountId: "localAccountId",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {

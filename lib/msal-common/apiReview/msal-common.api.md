@@ -167,6 +167,8 @@ export class AccountEntity {
     // (undocumented)
     localAccountId: string;
     // (undocumented)
+    loginHint?: string;
+    // (undocumented)
     msGraphHost?: string;
     // (undocumented)
     name?: string;
@@ -203,6 +205,7 @@ export type AccountInfo = {
     tenantId: string;
     username: string;
     localAccountId: string;
+    loginHint?: string;
     name?: string;
     idToken?: string;
     idTokenClaims?: TokenClaims & {
@@ -4249,7 +4252,7 @@ export function tenantIdMatchesHomeTenant(tenantId?: string, homeAccountId?: str
 // Warning: (ae-missing-release-tag) "TenantProfile" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type TenantProfile = Pick<AccountInfo, "tenantId" | "localAccountId" | "name"> & {
+export type TenantProfile = Pick<AccountInfo, "tenantId" | "localAccountId" | "name" | "username" | "loginHint"> & {
     isHomeTenant?: boolean;
 };
 
