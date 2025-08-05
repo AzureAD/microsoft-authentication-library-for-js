@@ -59,7 +59,6 @@ import {
     BrowserConstants,
     CacheLookupPolicy,
     InteractionType,
-    StaticCacheKeys,
     PlatformAuthConstants,
     TemporaryCacheKeys,
     WrapperSKU,
@@ -116,6 +115,8 @@ import { version } from "../../src/packageMetadata.js";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest.js";
 import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
+import * as CacheKeys from "../../src/cache/CacheKeys.js";
+import { getAccountKeysCacheKey } from "../../src/cache/CacheKeys.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -124,6 +125,7 @@ const cacheConfig = {
     secureCookies: false,
     cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
+    cacheRetentionDays: 5,
 };
 
 let testAppConfig = {
@@ -134,6 +136,20 @@ let testAppConfig = {
     userInputSystem: {
         loggerOptions: void 0,
     },
+};
+
+const BASIC_TEST_ACCOUNT_INFO: AccountInfo = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+    environment: "login.windows.net",
+    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+    username: "AbeLi@microsoft.com",
+    loginHint: "AbeLiLoginHint",
+};
+
+const BASIC_NATIVE_TEST_ACCOUNT_INFO: AccountInfo = {
+    ...BASIC_TEST_ACCOUNT_INFO,
+    nativeAccountId: "test-nativeAccountId",
 };
 
 function stubExtensionProvider(config: Configuration) {
@@ -700,13 +716,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
         it("Calls RedirectClient.handleRedirectPromise and returns its response", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -755,13 +765,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls RedirectClient.handleRedirectPromise and emits telemetry event", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -830,7 +834,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(1);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                 done();
             });
@@ -861,6 +865,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
                 nativeAccountId: "test-nativeAccountId",
+                loginHint: "AbeLiLoginHint",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -973,6 +978,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     environment: "login.windows.net",
                     tenantId: "9188040d-6c67-4c5b-b112-36a304b66dad",
                     username: "AbeLi@microsoft.com",
+                    loginHint: "AbeLiLoginHint",
                     nativeAccountId: "test-nativeAccountId",
                     idTokenClaims: {
                         tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
@@ -1081,13 +1087,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Emits acquireToken success event if user was already signed in", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -1156,13 +1156,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Emits acquireToken failure event if user was already signed in", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             jest.spyOn(
                 BrowserCacheManager.prototype,
                 "isInteractionInProgress"
@@ -1196,15 +1190,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1239,6 +1233,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1329,13 +1324,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Emits performance event with error code if no response is provided", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             jest.spyOn(
                 StandardController.prototype,
                 "getAllAccounts"
@@ -1362,7 +1351,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1372,13 +1361,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Discards performance event if handleRedirectPromise returns null and no error code is set", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             jest.spyOn(
                 StandardController.prototype,
                 "getAllAccounts"
@@ -1406,7 +1389,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNOUT,
@@ -1429,7 +1412,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1647,14 +1630,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
@@ -1740,14 +1716,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
             const nativeAcquireTokenSpy = jest.spyOn(
                 PlatformAuthInteractionClient.prototype,
@@ -1784,14 +1753,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
@@ -1831,14 +1793,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
@@ -1879,14 +1834,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
@@ -2105,20 +2053,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.localStorage.length).toBe(0);
                 expect(window.sessionStorage.length).toBe(1);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                 done();
             });
         });
 
         it("Emits acquireToken Start and Failure events if user is already logged in", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
 
             jest.spyOn(
                 StandardController.prototype,
@@ -2206,14 +2148,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     done();
                 });
 
-                const testAccount: AccountInfo = {
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                    environment: "login.windows.net",
-                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    username: "AbeLi@microsoft.com",
-                    nativeAccountId: "test-nativeAccountId",
-                };
+                const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
                 jest.spyOn(
                     RedirectClient.prototype,
@@ -2463,13 +2398,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
+            const testAccount = {
+                ...BASIC_TEST_ACCOUNT_INFO,
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -2598,14 +2533,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -2658,14 +2586,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             stubExtensionProvider(config);
             await pca.initialize();
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -2716,14 +2637,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -2774,14 +2688,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -2834,14 +2741,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //PCA implementation moved to controller
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
@@ -2925,13 +2825,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls PopupClient.acquireToken and returns its response", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -2959,13 +2853,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Emits Login Start and Success Events if no user is signed in", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3011,13 +2899,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Emits AcquireToken Start and Success Events if user is already signed in", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3061,13 +2943,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Emits AcquireToken Start and Failure events if a user is already logged in", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
 
             jest.spyOn(
                 StandardController.prototype,
@@ -3153,12 +3029,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("emits successful performance telemetry event", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
+            const testAccount = {
+                ...BASIC_TEST_ACCOUNT_INFO,
                 idTokenClaims: {
                     tfp: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 },
@@ -3387,14 +3259,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3444,14 +3309,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3502,14 +3360,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
@@ -3559,13 +3410,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls SilentIframeClient.acquireToken and returns its response", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3604,13 +3449,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("emits expect performance event when successful ", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3646,13 +3485,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("sets visibilityChange in perf event to true when visibility changes ", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3690,12 +3523,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("emits expect performance event when there is an error", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
+            const testAccount = {
+                ...BASIC_TEST_ACCOUNT_INFO,
                 idTokenClaims: {
                     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 },
@@ -3793,14 +3622,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3930,13 +3752,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls SilentAuthCodeClient.acquireToken and returns its response", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -3968,13 +3784,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("calls SilentAuthCodeClient.acquireToken once if multiple concurrent calls are made", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4014,13 +3824,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("calls SilentAuthCodeClient.acquireToken twice if multiple serial calls are made", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4067,12 +3871,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("emits expect performance event when successful", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
+            const testAccount = {
+                ...BASIC_TEST_ACCOUNT_INFO,
                 idTokenClaims: {
                     tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
                 },
@@ -4114,13 +3914,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("sets visibilityChange in perf event to true when visibility changes", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4167,13 +3961,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("emits expect performance event when there is an error", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4290,14 +4078,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4347,14 +4128,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4406,14 +4180,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId",
-            };
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
@@ -4448,13 +4215,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls SilentCacheClient.acquireToken and returns its response", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4496,13 +4257,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls SilentCacheClient.acquireToken and captures the stack trace for non-auth error", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
 
             jest.spyOn(
                 SilentCacheClient.prototype,
@@ -4539,13 +4294,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls SilentRefreshClient.acquireToken and returns its response if cache lookup throws", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4585,13 +4334,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls SilentIframeClient.acquireToken and returns its response if cache lookup throws and refresh token is expired", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4635,13 +4378,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls SilentIframeClient.acquireToken and returns its response if no RT is cached", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -4702,6 +4439,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -4709,6 +4447,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -4820,6 +4559,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -4827,6 +4567,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -4928,6 +4669,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -4935,6 +4677,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -5142,6 +4885,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -5149,6 +4893,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -5393,6 +5138,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -5400,6 +5146,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -5470,6 +5217,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "username@contoso.com",
+                loginHint: "testLoginHint",
             };
             jest.spyOn(
                 RefreshTokenClient.prototype,
@@ -5484,7 +5232,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(2);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
@@ -5512,6 +5260,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "username@contoso.com",
+                loginHint: "testLoginHint",
             };
             const atsSpy: jest.SpyInstance = jest.spyOn(
                 StandardController.prototype,
@@ -5543,7 +5292,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(atsSpy).toHaveBeenCalledTimes(1);
                 expect(window.sessionStorage).toHaveLength(2);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
@@ -5567,6 +5316,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "username@contoso.com",
+                loginHint: "testLoginHint",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -5660,6 +5410,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "username@contoso.com",
+                loginHint: "testLoginHint",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -5778,6 +5529,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "username@contoso.com",
+                loginHint: "testLoginHint",
             };
 
             jest.spyOn(
@@ -5835,6 +5587,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -5842,6 +5595,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -5923,13 +5677,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: { ...testIdTokenClaims },
             };
 
@@ -5980,6 +5737,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "testLoginHint",
                 idTokenClaims: {
                     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 },
@@ -6035,13 +5793,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("sets visibilityChange in perf event to true when visibility changes", (done) => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -6104,6 +5856,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -6111,6 +5864,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: {
                     ...testIdTokenClaims,
                 },
@@ -6149,13 +5903,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         describe("Cache Lookup Policies", () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
@@ -6745,8 +6493,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.localStorage.setItem(
-                "msal.account.keys",
-                JSON.stringify([testAccount1.generateAccountKey()])
+                getAccountKeysCacheKey(),
+                JSON.stringify([
+                    browserStorage.generateAccountKey(testAccountInfo1),
+                ])
             );
 
             try {
@@ -6807,8 +6557,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.localStorage.setItem(
-                "msal.account.keys",
-                JSON.stringify([testAccount1.generateAccountKey()])
+                getAccountKeysCacheKey(),
+                JSON.stringify([
+                    browserStorage.generateAccountKey(testAccountInfo1),
+                ])
             );
 
             try {
@@ -6853,8 +6605,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.localStorage.setItem(
-                "msal.account.keys",
-                JSON.stringify([testAccount1.generateAccountKey()])
+                getAccountKeysCacheKey(),
+                JSON.stringify([
+                    browserStorage.generateAccountKey(testAccountInfo1),
+                ])
             );
 
             try {
@@ -6897,8 +6651,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.localStorage.setItem(
-                "msal.account.keys",
-                JSON.stringify([testAccount1.generateAccountKey()])
+                getAccountKeysCacheKey(),
+                JSON.stringify([
+                    browserStorage.generateAccountKey(testAccountInfo1),
+                ])
             );
 
             try {
@@ -6930,8 +6686,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 window.localStorage.setItem(
-                    "msal.account.keys",
-                    JSON.stringify([testAccount1.generateAccountKey()])
+                    getAccountKeysCacheKey(),
+                    JSON.stringify([
+                        browserStorage.generateAccountKey(testAccountInfo1),
+                    ])
                 );
 
                 try {
@@ -7094,8 +6852,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     })
                 );
                 window.localStorage.setItem(
-                    "msal.account.keys",
-                    JSON.stringify([testAccount1.generateAccountKey()])
+                    getAccountKeysCacheKey(),
+                    JSON.stringify([
+                        browserStorage.generateAccountKey(testAccountInfo1),
+                    ])
                 );
 
                 try {
@@ -7162,9 +6922,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(activeAccount).toEqual(testAccountInfo2);
 
                     const cacheKey2 =
-                        AccountEntity.generateAccountCacheKey(testAccountInfo2);
+                        browserStorage.generateAccountKey(testAccountInfo2);
                     const idTokenKey2 =
-                        CacheHelpers.generateCredentialKey(idToken2);
+                        browserStorage.generateCredentialKey(idToken2);
                     window.sessionStorage.removeItem(cacheKey2);
                     window.sessionStorage.removeItem(idTokenKey2);
                     expect(pca.getActiveAccount()).toBe(null);
@@ -7710,6 +7470,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     secureCookies: true,
                     cacheMigrationEnabled: false,
                     claimsBasedCachingEnabled: false,
+                    cacheRetentionDays: 5,
                 },
                 new CryptoOps(new Logger({})),
                 new Logger({}),
@@ -7777,10 +7538,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
                 .then(() => {
                     // Ensure account is present in the cache before removing it
-                    const cacheKey =
-                        AccountEntity.generateAccountCacheKey(accountInfo);
                     secondBrowserStorageInstance.removeAccount(
-                        cacheKey,
+                        accountInfo,
                         RANDOM_TEST_GUID
                     );
                 });

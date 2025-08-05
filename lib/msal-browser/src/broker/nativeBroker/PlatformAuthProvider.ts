@@ -19,10 +19,8 @@ import { PlatformAuthExtensionHandler } from "./PlatformAuthExtensionHandler.js"
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import { PlatformAuthDOMHandler } from "./PlatformAuthDOMHandler.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
-import {
-    BrowserCacheLocation,
-    PLATFORM_AUTH_DOM_SUPPORT,
-} from "../../utils/BrowserConstants.js";
+import { BrowserCacheLocation } from "../../utils/BrowserConstants.js";
+import { PLATFORM_AUTH_DOM_SUPPORT } from "../../cache/CacheKeys.js";
 
 /**
  * Checks if the platform broker is available in the current environment.
