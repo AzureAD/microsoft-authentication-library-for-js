@@ -2,6 +2,51 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 05 Aug 2025 21:52:28 GMT",
+      "version": "14.16.1",
+      "tag": "@azure/msal-common_v14.16.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "42862573acd9d04ebbb407cd5ac35161092760be",
+            "comment": "On logout remove all cache associated with account #7966"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8f1c0c33e16af25afe7fb147b51c88eaebce20c6",
+            "comment": "Add correlationIds to cache APIs"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "54cc6649fc20be3735dff53262e80678e49a1162",
+            "comment": "Add lastUpdatedAt timestamp to cache entities #7796"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Nov 2024 18:58:46 GMT",
       "version": "14.16.0",
       "tag": "@azure/msal-common_v14.16.0",

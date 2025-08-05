@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "On logout remove all cache associated with account #7966",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

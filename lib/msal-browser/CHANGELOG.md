@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 14 Jan 2025 22:59:33 GMT and should not be manually modified.
+<!-- This log was last generated on Tue, 05 Aug 2025 21:52:29 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.30.0
+
+Tue, 05 Aug 2025 21:52:29 GMT
+
+### Minor changes
+
+- Remove access tokens when cache quota is reached (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.16.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Track last used version, last updated timestamp for cache entries & don't remove cache entries in get calls #7796 (thomas.norling@microsoft.com)
 
 ## 3.28.1
 
