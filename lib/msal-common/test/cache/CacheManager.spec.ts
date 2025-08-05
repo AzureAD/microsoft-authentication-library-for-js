@@ -674,6 +674,7 @@ describe("CacheManager.ts test cases", () => {
             ID_TOKEN_CLAIMS,
             [GUEST_ID_TOKEN_CLAIMS]
         ).getAccountInfo();
+
         it("returns null if no accounts match filter", () => {
             expect(
                 mockCache.cacheManager.getAccountInfoFilteredBy(
