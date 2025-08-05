@@ -1047,6 +1047,12 @@ export abstract class CacheManager implements ICacheManager {
                 this.removeRefreshToken(key, correlationId);
             }
         });
+
+        this.getKeys().forEach((key) => {
+            if (key.includes(accountId)) {
+                this.removeItem(key, correlationId);
+            }
+        });
     }
 
     /**
