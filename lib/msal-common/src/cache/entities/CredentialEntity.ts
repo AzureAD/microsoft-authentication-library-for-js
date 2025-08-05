@@ -34,5 +34,5 @@ export type CredentialEntity = {
     /** Matches the SHA 256 hash of the claims object included in the token request */
     requestedClaimsHash?: string;
     /** Timestamp when the entry was last updated */
-    lastUpdatedAt?: string;
+    lastUpdatedAt: string;
 };

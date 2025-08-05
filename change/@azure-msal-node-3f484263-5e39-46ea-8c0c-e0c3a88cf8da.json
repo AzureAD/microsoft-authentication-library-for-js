@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update internal cache key generation",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

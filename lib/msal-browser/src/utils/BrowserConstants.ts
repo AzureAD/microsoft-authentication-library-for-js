@@ -100,14 +100,6 @@ export const TemporaryCacheKeys = {
 export type TemporaryCacheKeys =
     (typeof TemporaryCacheKeys)[keyof typeof TemporaryCacheKeys];
 
-export const StaticCacheKeys = {
-    ACCOUNT_KEYS: "msal.account.keys",
-    TOKEN_KEYS: "msal.token.keys",
-    VERSION: "msal.version",
-} as const;
-export type StaticCacheKeys =
-    (typeof StaticCacheKeys)[keyof typeof StaticCacheKeys];
-
 /**
  * Cache keys stored in-memory
  */
@@ -249,10 +241,3 @@ export const iFrameRenewalPolicies: CacheLookupPolicy[] = [
     CacheLookupPolicy.Skip,
     CacheLookupPolicy.RefreshTokenAndNetwork,
 ];
-
-export const LOG_LEVEL_CACHE_KEY = "msal.browser.log.level";
-export const LOG_PII_CACHE_KEY = "msal.browser.log.pii";
-
-export const BROWSER_PERF_ENABLED_KEY = "msal.browser.performance.enabled";
-
-export const PLATFORM_AUTH_DOM_SUPPORT = "msal.browser.platform.auth.dom";
