@@ -2407,11 +2407,13 @@ describe("CacheManager.ts test cases", () => {
             // Get an account that should exist in the initialized cache
             const allAccountKeys = mockCache.cacheManager.getAccountKeys();
             expect(allAccountKeys.length).toBeGreaterThan(0);
-            
-            const testAccountKey = allAccountKeys[0];
-            const knownAccountId = mockCache.cacheManager.getAccount(testAccountKey)!.generateAccountId();
 
-            // Create additional cache keys that contain the accountId 
+            const testAccountKey = allAccountKeys[0];
+            const knownAccountId = mockCache.cacheManager
+                .getAccount(testAccountKey)!
+                .generateAccountId();
+
+            // Create additional cache keys that contain the accountId
             const additionalKeysWithAccountId = [
                 `custom-cache-${knownAccountId}`,
                 `metadata-${knownAccountId}`,
@@ -2419,20 +2421,20 @@ describe("CacheManager.ts test cases", () => {
                 `prefix-${knownAccountId}-middle`,
                 `appmetadata-${knownAccountId}`,
             ];
-            
+
             const keysWithoutAccountId = [
                 "other-key-without-accountid",
                 "different-cache-item",
                 `partial-${knownAccountId.substring(0, 10)}-match`, // partial match should not be removed
-                "unrelated-key"
+                "unrelated-key",
             ];
 
             // Manually add additional cache entries to storage
-            additionalKeysWithAccountId.forEach(key => {
+            additionalKeysWithAccountId.forEach((key) => {
                 (mockCache.cacheManager as any).store[key] = "test-value";
             });
-            
-            keysWithoutAccountId.forEach(key => {
+
+            keysWithoutAccountId.forEach((key) => {
                 (mockCache.cacheManager as any).store[key] = "test-value";
             });
 
@@ -2440,13 +2442,17 @@ describe("CacheManager.ts test cases", () => {
             await mockCache.cacheManager.removeAccount(testAccountKey);
 
             // Assert - verify that additional keys containing accountId were removed
-            additionalKeysWithAccountId.forEach(key => {
-                expect((mockCache.cacheManager as any).store[key]).toBeUndefined();
+            additionalKeysWithAccountId.forEach((key) => {
+                expect(
+                    (mockCache.cacheManager as any).store[key]
+                ).toBeUndefined();
             });
 
             // Verify that keys not containing accountId were NOT removed
-            keysWithoutAccountId.forEach(key => {
-                expect((mockCache.cacheManager as any).store[key]).toEqual("test-value");
+            keysWithoutAccountId.forEach((key) => {
+                expect((mockCache.cacheManager as any).store[key]).toEqual(
+                    "test-value"
+                );
             });
         });
     });
