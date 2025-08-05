@@ -15,6 +15,7 @@ import {
     createClientConfigurationError,
     IdTokenClaims,
     INativeBrokerPlugin,
+    InteractionRequiredAuthError,
     Logger,
     LoggerOptions,
     NativeRequest,
@@ -644,7 +645,16 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         ) {
             const { errorCode, errorStatus, errorContext, errorTag } =
                 error as MsalRuntimeError;
+            const enhancedErrorContext = errorContext
+                ? `${errorContext} (Error Code: ${errorCode}, Tag: ${errorTag})`
+                : `(Error Code: ${errorCode}, Tag: ${errorTag})`;
             switch (errorStatus) {
+                case ErrorStatus.InteractionRequired:
+                case ErrorStatus.AccountUnusable:
+                    return new InteractionRequiredAuthError(
+                        ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
+                        enhancedErrorContext
+                    );
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
                     return createClientAuthError(
@@ -670,12 +680,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     return createClientAuthError(
                         ClientAuthErrorCodes.noAccountFound
                     );
-                case ErrorStatus.InteractionRequired:
-                case ErrorStatus.AccountUnusable:
                 default:
                     return new NativeAuthError(
                         ErrorStatus[errorStatus],
-                        errorContext,
+                        enhancedErrorContext,
                         errorCode,
                         errorTag
                     );

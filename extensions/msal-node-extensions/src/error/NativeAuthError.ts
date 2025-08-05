@@ -15,11 +15,7 @@ export class NativeAuthError extends AuthError {
         errorCode: number,
         errorTag: number
     ) {
-        // Include statusCode and tag in the error message
-        const enhancedErrorContext = errorContext
-            ? `${errorContext} (Error Code: ${errorCode}, Tag: ${errorTag})`
-            : `(Error Code: ${errorCode}, Tag: ${errorTag})`;
-        super(errorStatus, enhancedErrorContext);
+        super(errorStatus, errorContext);
         this.name = "NativeAuthError";
         this.statusCode = errorCode;
         this.tag = errorTag;

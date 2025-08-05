@@ -1,9 +1,6 @@
 jest.mock("@azure/msal-node-runtime", () => {
-    const actual = jest.requireActual("@azure/msal-node-runtime");
     return {
-        ...actual,
         msalNodeRuntime: {
-            ...actual.msalNodeRuntime,
             SignInSilentlyAsync: jest.fn(),
             SignInAsync: jest.fn(),
             AcquireTokenSilentlyAsync: jest.fn(),
@@ -22,6 +19,18 @@ jest.mock("@azure/msal-node-runtime", () => {
                 SetPopParams: jest.fn(),
                 SetAdditionalParameter: jest.fn(),
             })),
+        },
+        ErrorStatus: {
+            Unexpected: 0,
+            InteractionRequired: 1,
+            AccountUnusable: 2,
+            NoNetwork: 3,
+            NetworkTemporarilyUnavailable: 4,
+            ServerTemporarilyUnavailable: 5,
+            UserCanceled: 6,
+            AuthorityUntrusted: 7,
+            UserSwitched: 8,
+            AccountNotFound: 9,
         },
     };
 });
@@ -45,6 +54,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     createClientAuthError,
+    InteractionRequiredAuthError,
     NativeRequest,
     NativeSignOutRequest,
     PromptValue,
@@ -1765,14 +1775,8 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
                     .catch((error) => {
-                        const expectedError = new NativeAuthError(
-                            "InteractionRequired",
-                            "",
-                            0,
-                            0
-                        );
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            expectedError
+                        expect(error).toBeInstanceOf(
+                            InteractionRequiredAuthError
                         );
                         done();
                     });
@@ -1828,14 +1832,8 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
                     .catch((error) => {
-                        const expectedError = new NativeAuthError(
-                            "AccountUnusable",
-                            "",
-                            0,
-                            0
-                        );
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            expectedError
+                        expect(error).toBeInstanceOf(
+                            InteractionRequiredAuthError
                         );
                         done();
                     });
