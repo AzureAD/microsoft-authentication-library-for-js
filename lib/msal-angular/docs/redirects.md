@@ -1,6 +1,6 @@
 # Using redirects in MSAL Angular
 
-When using redirects with MSAL, it is **mandatory** to handle redirects with either the `MsalRedirectComponent` or `handleRedirectObservable`. While we recommend `MsalRedirectComponent` as the best approach, both approaches are detailed below.
+When using redirects with MSAL, it is **mandatory** to handle redirects with either the `MsalRedirectComponent` or `handleRedirectObservable`.
 
 Note that specific guidance has been added for using MSAL Angular with Angular standalone components below.
 
@@ -10,14 +10,13 @@ Note that specific guidance has been added for using MSAL Angular with Angular s
 
 ## `MsalRedirectComponent`: A dedicated `handleRedirectObservable` component
 
-This is our recommended approach for handling redirects:
+> [!NOTE]
+> Note that this approach is not compatible with Angular standalone components. See the section on [redirects with standalone components below](#redirects-with-standalone-components) for further guidance.
 
-- `@azure/msal-angular` provides a dedicated redirect component that can be imported  into your application. We recommend importing the `MsalRedirectComponent` and bootstrapping this alongside `AppComponent` in your application on the `app.module.ts`, as this will handle all redirects without your components needing to subscribe to `handleRedirectObservable()` manually.
+- `@azure/msal-angular` provides a dedicated redirect component that can be imported  into your application. You can import the `MsalRedirectComponent` and bootstrap this alongside `AppComponent` in your application on the `app.module.ts`. This will handle all redirects without your components needing to subscribe to `handleRedirectObservable()` manually.
 - Pages that wish to perform functions following redirects (e.g. user account functions, UI changes, etc) should subscribe to the `inProgress$` observable, filtering for `InteractionStatus.None`. This will ensure that there are no interactions in progress when performing the functions. Note that the last / most recent `InteractionStatus` will also be available when subscribing to the `inProgress$` observable. Please see our documentation on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions.
-- If you do not wish to use the `MsalRedirectComponent`, you **must** handle redirects with `handleRedirectObservable()` yourself, as laid out in the approach below.
-- See our [Angular 15 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.module.ts#L110) for an example of this approach.
-
-Note that although this is our recommendation for most Angular applications, this approach may not work with Angular standalone components. See the section on [redirects with standalone components below](#redirects-with-standalone-components) for further guidance.
+- If you do not wish to use the `MsalRedirectComponent`, you **must** handle redirects with `handleRedirectObservable()` yourself, as laid out in the approach above.
+- See our [Angular modules sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.module.ts#L110) for an example of this approach.
 
 msal.redirect.component.ts
 ```js
@@ -185,11 +184,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
 ## Subscribing to `handleRedirectObservable` manually
 
-This is not our recommended approach, but if you are unable to bootstrap the `MsalRedirectComponent`, you **must** handle redirects using the `handleRedirectObservable` as follows:
+Apps using standalone components will be unable to handle redirects with `MsalRedirectComponent`. If you are unable to bootstrap the `MsalRedirectComponent`, you **must** handle redirects using the `handleRedirectObservable` as follows:
 
 - `handleRedirectObservable()` should be subscribed to on **every** page to which a redirect may occur. Pages protected by the MSAL Guard do not need to subscribe to `handleRedirectObservable()`, as redirects are processed in the Guard.
-- Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete, as it may not be fully populated until then. Additionally, if interactive APIs are called while `handleRedirectObservables()` is in progress, it will result in an `interaction_in_progress` error. See our document on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions, and our document on [errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/errors.md) for details about the `interaction_in_progress` error. 
-- See our [older MSAL Angular v2 Angular 9 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular9-v2-sample-app) for examples of this approach.
+- Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete, as it may not be fully populated until then. Additionally, if interactive APIs are called while `handleRedirectObservable()` is in progress, it will result in an `interaction_in_progress` error. See our document on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions, and our document on [errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/errors.md) for details about the `interaction_in_progress` error. 
+- See our [MSAL Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.component.ts) for examples of this approach.
 
 Example of home.component.ts file:
 ```js
