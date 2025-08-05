@@ -35,11 +35,8 @@ import {
     StubPerformanceClient,
     CommonAuthorizationUrlRequest,
     ResponseMode,
-<<<<<<< HEAD
     AccountFilter,
-=======
     CredentialEntity,
->>>>>>> ebef0077979a685e9b6655eca7bd63e578873367
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
