@@ -2393,4 +2393,67 @@ describe("CacheManager.ts test cases", () => {
         expect(cachedToken.homeAccountId).toBe("uid.utid");
         expect(cachedToken.environment).toBe("login.microsoftonline.com");
     });
+
+    describe("removeAccountContext", () => {
+        beforeEach(() => {
+            mockCache.initializeCache();
+        });
+
+        afterEach(async () => {
+            await mockCache.clearCache();
+        });
+
+        it("removes additional cache items containing accountId via key.includes logic", async () => {
+            // Get an account that should exist in the initialized cache
+            const allAccountKeys = mockCache.cacheManager.getAccountKeys();
+            expect(allAccountKeys.length).toBeGreaterThan(0);
+
+            const testAccountKey = allAccountKeys[0];
+            const knownAccountId = mockCache.cacheManager
+                .getAccount(testAccountKey)!
+                .generateAccountId();
+
+            // Create additional cache keys that contain the accountId
+            const additionalKeysWithAccountId = [
+                `custom-cache-${knownAccountId}`,
+                `metadata-${knownAccountId}`,
+                `${knownAccountId}-suffix`,
+                `prefix-${knownAccountId}-middle`,
+                `appmetadata-${knownAccountId}`,
+            ];
+
+            const keysWithoutAccountId = [
+                "other-key-without-accountid",
+                "different-cache-item",
+                `partial-${knownAccountId.substring(0, 10)}-match`, // partial match should not be removed
+                "unrelated-key",
+            ];
+
+            // Manually add additional cache entries to storage
+            additionalKeysWithAccountId.forEach((key) => {
+                (mockCache.cacheManager as any).store[key] = "test-value";
+            });
+
+            keysWithoutAccountId.forEach((key) => {
+                (mockCache.cacheManager as any).store[key] = "test-value";
+            });
+
+            // Act - call removeAccount which internally calls removeAccountContext
+            await mockCache.cacheManager.removeAccount(testAccountKey);
+
+            // Assert - verify that additional keys containing accountId were removed
+            additionalKeysWithAccountId.forEach((key) => {
+                expect(
+                    (mockCache.cacheManager as any).store[key]
+                ).toBeUndefined();
+            });
+
+            // Verify that keys not containing accountId were NOT removed
+            keysWithoutAccountId.forEach((key) => {
+                expect((mockCache.cacheManager as any).store[key]).toEqual(
+                    "test-value"
+                );
+            });
+        });
+    });
 });
