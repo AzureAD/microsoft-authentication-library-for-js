@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754421228248,
+  "lastUpdate": 1754427122298,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16286,6 +16286,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.91%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "42862573acd9d04ebbb407cd5ac35161092760be",
+          "message": "[v3] On logout remove all cache associated with account (#7966)\n\nAdds additional cleanup logic for logout to clear all remaining entries\nthat have the account id in the key. This is to account for entries\nwritten by newer versions of MSAL.js that are not yet known by this\nversion.",
+          "timestamp": "2025-08-05T13:46:08-07:00",
+          "tree_id": "5b567d6b1f988d9a860cf632624f9ba705c04c6e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/42862573acd9d04ebbb407cd5ac35161092760be"
+        },
+        "date": 1754427119973,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 244803,
+            "range": "±0.89%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 251296,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
