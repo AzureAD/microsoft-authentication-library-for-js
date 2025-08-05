@@ -86,9 +86,12 @@ function createMockAuthResult(
 
 if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
+        const enhancedErrorContext = msalRuntimeExampleError.errorContext
+            ? `${msalRuntimeExampleError.errorContext} (Error Code: ${msalRuntimeExampleError.errorCode}, Tag: ${msalRuntimeExampleError.errorTag})`
+            : `(Error Code: ${msalRuntimeExampleError.errorCode}, Tag: ${msalRuntimeExampleError.errorTag})`;
         const testNativeAuthError = new NativeAuthError(
             ErrorStatus[msalRuntimeExampleError.errorStatus],
-            msalRuntimeExampleError.errorContext,
+            enhancedErrorContext,
             msalRuntimeExampleError.errorCode,
             msalRuntimeExampleError.errorTag
         );
