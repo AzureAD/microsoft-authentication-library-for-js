@@ -1,0 +1,7 @@
+{
+    "type": "none",
+    "comment": "Improve the custom auth unit tests #7955",
+    "packageName": "@azure/msal-browser",
+    "email": "jiashen@microsoft.com",
+    "dependentChangeType": "none"
+}

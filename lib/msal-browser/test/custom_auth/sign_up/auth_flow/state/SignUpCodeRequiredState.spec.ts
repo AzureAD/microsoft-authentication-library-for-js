@@ -11,9 +11,9 @@ import {
     createSignUpPasswordRequiredResult,
 } from "../../../../../src/custom_auth/sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpClient } from "../../../../../src/custom_auth/sign_up/interaction_client/SignUpClient.js";
-import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("SignUpCodeRequiredState", () => {
     const mockConfig = {
@@ -27,13 +27,6 @@ describe("SignUpCodeRequiredState", () => {
     } as unknown as jest.Mocked<SignUpClient>;
 
     const mockSignInClient = {} as unknown as jest.Mocked<SignInClient>;
-
-    const mockLogger = {
-        info: jest.fn(),
-        verbose: jest.fn(),
-        error: jest.fn(),
-        errorPii: jest.fn(),
-    } as unknown as jest.Mocked<Logger>;
 
     const username = "testuser";
     const correlationId = "test-correlation-id";
@@ -49,7 +42,7 @@ describe("SignUpCodeRequiredState", () => {
             cacheClient:
                 {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>,
             correlationId: correlationId,
-            logger: mockLogger,
+            logger: getDefaultLogger(),
             continuationToken: continuationToken,
             config: mockConfig,
             codeLength: 8,
