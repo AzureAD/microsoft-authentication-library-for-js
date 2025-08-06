@@ -25,4 +25,69 @@ describe("CustomAuthApiClient", () => {
     it("should initialize resetPasswordApiClient correctly", () => {
         expect(customAuthApiClient.resetPasswordApi).toBeDefined();
     });
+
+    describe("extraQueryParameters", () => {
+        it("should initialize with extraQueryParameters containing dc", () => {
+            const logger = getDefaultLogger();
+            const extraQueryParameters = { dc: "datacenter1" };
+
+            const apiClient = new CustomAuthApiClient(
+                "https://test.com",
+                "client_id",
+                new FetchHttpClient(logger),
+                extraQueryParameters
+            );
+
+            expect(apiClient.signInApi).toBeDefined();
+            expect(apiClient.signUpApi).toBeDefined();
+            expect(apiClient.resetPasswordApi).toBeDefined();
+        });
+
+        it("should initialize with extraQueryParameters containing slice", () => {
+            const logger = getDefaultLogger();
+            const extraQueryParameters = { slice: "slice2" };
+
+            const apiClient = new CustomAuthApiClient(
+                "https://test.com",
+                "client_id",
+                new FetchHttpClient(logger),
+                extraQueryParameters
+            );
+
+            expect(apiClient.signInApi).toBeDefined();
+            expect(apiClient.signUpApi).toBeDefined();
+            expect(apiClient.resetPasswordApi).toBeDefined();
+        });
+
+        it("should initialize with extraQueryParameters containing both dc and slice", () => {
+            const logger = getDefaultLogger();
+            const extraQueryParameters = { dc: "datacenter1", slice: "slice2" };
+
+            const apiClient = new CustomAuthApiClient(
+                "https://test.com",
+                "client_id",
+                new FetchHttpClient(logger),
+                extraQueryParameters
+            );
+
+            expect(apiClient.signInApi).toBeDefined();
+            expect(apiClient.signUpApi).toBeDefined();
+            expect(apiClient.resetPasswordApi).toBeDefined();
+        });
+
+        it("should initialize with undefined extraQueryParameters", () => {
+            const logger = getDefaultLogger();
+
+            const apiClient = new CustomAuthApiClient(
+                "https://test.com",
+                "client_id",
+                new FetchHttpClient(logger),
+                undefined
+            );
+
+            expect(apiClient.signInApi).toBeDefined();
+            expect(apiClient.signUpApi).toBeDefined();
+            expect(apiClient.resetPasswordApi).toBeDefined();
+        });
+    });
 });

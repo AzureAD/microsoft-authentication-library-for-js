@@ -23,3 +23,18 @@ export function buildUrl(baseUrl: string, path: string): URL {
     const url = new URL(newPath, newBaseUrl);
     return url;
 }
+
+export function addQueryParametersToUrl(
+    url: URL,
+    queryParams?: Record<string, string>
+): void {
+    if (!queryParams) {
+        return;
+    }
+
+    Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+            url.searchParams.set(key, String(value));
+        }
+    });
+}
