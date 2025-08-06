@@ -647,12 +647,15 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         ) {
             const { errorCode, errorStatus, errorContext, errorTag } =
                 error as MsalRuntimeError;
+            const enhancedErrorContext = errorContext
+                ? `${errorContext} (Error Code: ${errorCode}, Tag: ${errorTag})`
+                : `(Error Code: ${errorCode}, Tag: ${errorTag})`;
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
                 case ErrorStatus.AccountUnusable:
                     return new InteractionRequiredAuthError(
                         ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
-                        errorContext
+                        enhancedErrorContext
                     );
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
@@ -682,7 +685,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 default:
                     return new NativeAuthError(
                         ErrorStatus[errorStatus],
-                        errorContext,
+                        enhancedErrorContext,
                         errorCode,
                         errorTag
                     );

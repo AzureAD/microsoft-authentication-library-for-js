@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Surface Errors from MsalRuntime with Interaction Required #7961",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "akaliugonna@microsoft.com",
+  "dependentChangeType": "patch"
+}
