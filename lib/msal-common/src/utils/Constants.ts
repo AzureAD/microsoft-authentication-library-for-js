@@ -4,8 +4,6 @@
  */
 
 export const SKU = "msal.js.common";
-// Prefix for all library cache entries
-export const CACHE_PREFIX = "msal";
 // default authority
 export const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
 export const DEFAULT_AUTHORITY_HOST = "login.microsoftonline.com";

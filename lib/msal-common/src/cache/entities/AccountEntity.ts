@@ -43,4 +43,6 @@ export type AccountEntity = {
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
+    /** Timestamp when the entry was last updated */
+    lastUpdatedAt: string;
 };

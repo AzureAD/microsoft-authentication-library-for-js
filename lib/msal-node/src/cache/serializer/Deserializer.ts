@@ -67,6 +67,7 @@ export class Deserializer {
                             return JSON.parse(serializedTenantProfile);
                         }
                     ),
+                    lastUpdatedAt: Date.now().toString(),
                 };
                 const account: AccountEntity = {} as AccountEntity;
                 CacheManager.toObject(account, mappedAcc);
@@ -96,6 +97,7 @@ export class Deserializer {
                     clientId: serializedIdT.client_id,
                     secret: serializedIdT.secret,
                     realm: serializedIdT.realm,
+                    lastUpdatedAt: Date.now().toString(),
                 };
                 idObjects[key] = idToken;
             });
@@ -133,6 +135,7 @@ export class Deserializer {
                     requestedClaims: serializedAT.requestedClaims,
                     requestedClaimsHash: serializedAT.requestedClaimsHash,
                     userAssertionHash: serializedAT.userAssertionHash,
+                    lastUpdatedAt: Date.now().toString(),
                 };
                 atObjects[key] = accessToken;
             });
@@ -162,6 +165,7 @@ export class Deserializer {
                     familyId: serializedRT.family_id,
                     target: serializedRT.target,
                     realm: serializedRT.realm,
+                    lastUpdatedAt: Date.now().toString(),
                 };
                 rtObjects[key] = refreshToken;
             });

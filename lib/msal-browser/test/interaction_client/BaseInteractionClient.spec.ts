@@ -109,6 +109,7 @@ describe("BaseInteractionClient", () => {
                 secret: TEST_TOKENS.IDTOKEN_V2,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo1.homeAccountId,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testAccount1: AccountEntity = {
@@ -149,6 +150,7 @@ describe("BaseInteractionClient", () => {
                 secret: TEST_TOKENS.IDTOKEN_V2_ALT,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo2.homeAccountId,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testAccount2: AccountEntity = {

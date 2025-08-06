@@ -90,22 +90,9 @@ export abstract class BaseInteractionClient {
         account?: AccountInfo | null
     ): Promise<void> {
         if (account) {
-            if (
-                AccountEntityUtils.accountInfoIsEqual(
-                    account,
-                    this.browserStorage.getActiveAccount(this.correlationId),
-                    false
-                )
-            ) {
-                this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null, this.correlationId);
-            }
             // Clear given account.
             try {
-                this.browserStorage.removeAccount(
-                    AccountEntityUtils.generateAccountCacheKey(account),
-                    this.correlationId
-                );
+                this.browserStorage.removeAccount(account, this.correlationId);
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
                 );

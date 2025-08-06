@@ -945,6 +945,10 @@ export function isPlatformBrokerAvailable(loggerOptions?: LoggerOptions, perfCli
 export interface IWindowStorage<T> {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     containsKey(key: string): boolean;
+    // Warning: (ae-forgotten-export) The symbol "EncryptedData" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    decryptData(key: string, data: EncryptedData, correlationId: string): Promise<object | null>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getItem(key: string): T | null;
     getKeys(): string[];
@@ -997,6 +1001,8 @@ export class LocalStorage implements IWindowStorage<string> {
     // (undocumented)
     containsKey(key: string): boolean;
     // (undocumented)
+    decryptData(key: string, data: EncryptedData, correlationId: string): Promise<object | null>;
+    // (undocumented)
     getItem(key: string): string | null;
     // (undocumented)
     getKeys(): string[];
@@ -1030,6 +1036,8 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     clear(): void;
     // (undocumented)
     containsKey(key: string): boolean;
+    // (undocumented)
+    decryptData(): Promise<object | null>;
     // (undocumented)
     getItem(key: string): T | null;
     // (undocumented)
@@ -1420,6 +1428,8 @@ export class SessionStorage implements IWindowStorage<string> {
     constructor();
     // (undocumented)
     containsKey(key: string): boolean;
+    // (undocumented)
+    decryptData(): Promise<object | null>;
     // (undocumented)
     getItem(key: string): string | null;
     // (undocumented)

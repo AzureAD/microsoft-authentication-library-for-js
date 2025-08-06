@@ -68,6 +68,7 @@ describe("TokenCache tests", () => {
         );
         cacheConfig = {
             cacheLocation: BrowserCacheLocation.SessionStorage,
+            cacheRetentionDays: 5,
         };
         logger = new Logger({
             loggerCallback: (

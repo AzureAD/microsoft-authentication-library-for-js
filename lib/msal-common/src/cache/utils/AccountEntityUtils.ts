@@ -37,19 +37,6 @@ export function generateAccountId(accountEntity: AccountEntity): string {
 }
 
 /**
- * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
- */
-export function generateAccountKey(accountEntity: AccountEntity): string {
-    return generateAccountCacheKey({
-        homeAccountId: accountEntity.homeAccountId,
-        environment: accountEntity.environment,
-        tenantId: accountEntity.realm,
-        username: accountEntity.username,
-        localAccountId: accountEntity.localAccountId,
-    });
-}
-
-/**
  * Returns the AccountInfo interface for this account.
  */
 export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
@@ -76,21 +63,6 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
  */
 export function isSingleTenant(accountEntity: AccountEntity): boolean {
     return !accountEntity.tenantProfiles;
-}
-
-/**
- * Generates account key from interface
- * @param accountInterface
- */
-export function generateAccountCacheKey(accountInterface: AccountInfo): string {
-    const homeTenantId = accountInterface.homeAccountId.split(".")[1];
-    const accountKey = [
-        accountInterface.homeAccountId,
-        accountInterface.environment || "",
-        homeTenantId || accountInterface.tenantId || "",
-    ];
-
-    return accountKey.join(Constants.CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -256,7 +228,7 @@ export function generateHomeAccountId(
  * Validates an entity: checks for all expected params
  * @param entity
  */
-export function isAccountEntity(entity: object): boolean {
+export function isAccountEntity(entity: object): entity is AccountEntity {
     if (!entity) {
         return false;
     }

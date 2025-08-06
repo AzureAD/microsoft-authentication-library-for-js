@@ -15,15 +15,56 @@ import {
     AuthorityMetadataEntity,
     TokenKeys,
     CacheHelpers,
-    AccountEntityUtils,
+    CredentialEntity,
+    CredentialType,
+    AuthenticationScheme,
+    AccountInfo,
 } from "@azure/msal-common";
-import { RANDOM_TEST_GUID } from "../utils/StringConstants.js";
+import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class TestStorageManager extends CacheManager {
     store = {};
+
+    generateCredentialKey(credential: CredentialEntity): string {
+        const familyId =
+            (credential.credentialType === CredentialType.REFRESH_TOKEN &&
+                credential.familyId) ||
+            credential.clientId;
+        const scheme =
+            credential.tokenType &&
+            credential.tokenType.toLowerCase() !==
+                AuthenticationScheme.BEARER.toLowerCase()
+                ? credential.tokenType.toLowerCase()
+                : "";
+        const credentialKey = [
+            `${CacheKeys.PREFIX}.${CacheKeys.CREDENTIAL_SCHEMA_VERSION}`,
+            credential.homeAccountId,
+            credential.environment,
+            credential.credentialType,
+            familyId,
+            credential.realm || "",
+            credential.target || "",
+            credential.requestedClaimsHash || "",
+            scheme,
+        ];
+
+        return credentialKey.join(CacheKeys.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
+
+    generateAccountKey(account: AccountInfo): string {
+        const homeTenantId = account.homeAccountId.split(".")[1];
+        const accountKey = [
+            `${CacheKeys.PREFIX}.${CacheKeys.ACCOUNT_SCHEMA_VERSION}`,
+            account.homeAccountId,
+            account.environment,
+            homeTenantId || account.tenantId || "",
+        ];
+
+        return accountKey.join(CacheKeys.CACHE_KEY_SEPARATOR).toLowerCase();
+    }
 
     // Accounts
     getAccount(key: string): AccountEntity | null {
@@ -44,7 +85,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = AccountEntityUtils.generateAccountKey(value);
+        const key = this.generateAccountKey(value.getAccountInfo());
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
@@ -54,8 +95,9 @@ export class TestStorageManager extends CacheManager {
         }
     }
 
-    removeAccount(key: string): void {
-        super.removeAccount(key, RANDOM_TEST_GUID);
+    removeAccount(account: AccountInfo, correlationId: string): void {
+        const key = this.generateAccountKey(account);
+        super.removeAccount(account, correlationId);
         this.removeAccountKeyFromMap(key);
     }
 
@@ -79,7 +121,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     async setIdTokenCredential(idToken: IdTokenEntity): Promise<void> {
-        const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
+        const idTokenKey = this.generateCredentialKey(idToken);
         this.store[idTokenKey] = idToken;
 
         const tokenKeys = this.getTokenKeys();
@@ -95,7 +137,7 @@ export class TestStorageManager extends CacheManager {
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity
     ): Promise<void> {
-        const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
+        const accessTokenKey = this.generateCredentialKey(accessToken);
         this.store[accessTokenKey] = accessToken;
 
         const tokenKeys = this.getTokenKeys();
@@ -110,8 +152,7 @@ export class TestStorageManager extends CacheManager {
     async setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity
     ): Promise<void> {
-        const refreshTokenKey =
-            CacheHelpers.generateCredentialKey(refreshToken);
+        const refreshTokenKey = this.generateCredentialKey(refreshToken);
         this.store[refreshTokenKey] = refreshToken;
 
         const tokenKeys = this.getTokenKeys();
