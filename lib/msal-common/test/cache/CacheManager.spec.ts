@@ -674,11 +674,24 @@ describe("CacheManager.ts test cases", () => {
             ID_TOKEN_CLAIMS,
             [GUEST_ID_TOKEN_CLAIMS]
         ).getAccountInfo();
+
         it("returns null if no accounts match filter", () => {
             expect(
                 mockCache.cacheManager.getAccountInfoFilteredBy(
                     {
                         homeAccountId: "inexistent-account-id",
+                    },
+                    RANDOM_TEST_GUID
+                )
+            ).toBeNull();
+        });
+
+        it("returns null if filter passed in is empty", () => {
+            expect(
+                mockCache.cacheManager.getAccountInfoFilteredBy(
+                    {
+                        homeAccountId: "",
+                        loginHint: "",
                     },
                     RANDOM_TEST_GUID
                 )
