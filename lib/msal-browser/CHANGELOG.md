@@ -1,8 +1,52 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 08 Jul 2025 14:21:12 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 05 Aug 2025 20:00:24 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.19.0
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Minor changes
+
+- Cache upgrade & rollback support (thomas.norling@microsoft.com)
+- Update AccountInfo construction to include tenant-specific claims #7949 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.10.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.18.0
+
+Wed, 30 Jul 2025 18:23:45 GMT
+
+### Minor changes
+
+- Add support for custom claims and password change required error, #7948 (ydi.w127@gmail.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Bump @azure/msal-browser to v4.17.1 (shylasummers@microsoft.com)
+
+## 4.16.0
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Minor changes
+
+- Add support for authorize call using method POST #7920 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix exception when using claims with Nested App Auth in JS Runtime environment (#7926) (dasau@microsoft.com)
 
 ## 4.15.0
 

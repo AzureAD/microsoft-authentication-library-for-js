@@ -148,8 +148,8 @@ export class OnBehalfOfClient extends BaseClient {
                 localAccountId: localAccountId || Constants.EMPTY_STRING,
             };
 
-            cachedAccount = this.cacheManager.readAccountFromCache(
-                accountInfo,
+            cachedAccount = this.cacheManager.getAccount(
+                this.cacheManager.generateAccountKey(accountInfo),
                 request.correlationId
             );
         }

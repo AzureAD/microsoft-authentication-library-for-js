@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { EncryptedData } from "./EncryptedData.js";
+
 export interface IWindowStorage<T> {
     /**
      * Async initializer
@@ -52,4 +54,10 @@ export interface IWindowStorage<T> {
      * @param key
      */
     containsKey(key: string): boolean;
+
+    decryptData(
+        key: string,
+        data: EncryptedData,
+        correlationId: string
+    ): Promise<object | null>;
 }

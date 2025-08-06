@@ -1,8 +1,30 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 08 Jul 2025 14:21:12 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 05 Aug 2025 20:00:24 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.7.0
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Minor changes
+
+- Update internal cache key generation (thomas.norling@microsoft.com)
+- Update AccountInfo construction to include tenant-specific claims #7949 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.10.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.4
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.6.3
 
