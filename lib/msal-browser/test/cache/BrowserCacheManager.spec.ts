@@ -35,6 +35,7 @@ import {
     StubPerformanceClient,
     CommonAuthorizationUrlRequest,
     ResponseMode,
+    AccountFilter,
     CredentialEntity,
 } from "@azure/msal-common";
 import {
@@ -51,6 +52,7 @@ import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformance
 import { CookieStorage } from "../../src/cache/CookieStorage.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { version } from "../../src/packageMetadata.js";
+import { getAccount } from "../../src/cache/AccountManager.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
 describe("BrowserCacheManager tests", () => {
@@ -2325,6 +2327,22 @@ describe("BrowserCacheManager tests", () => {
                             TEST_CONFIG.CORRELATION_ID
                         )
                     ).toBeInstanceOf(AccountEntity);
+                });
+
+                it("getAccount returns null if accountfilter is passed but values are undefined", () => {
+                    const testAccountFilter: AccountFilter = {
+                        loginHint: undefined,
+                        sid: undefined,
+                    };
+
+                    expect(
+                        getAccount(
+                            testAccountFilter,
+                            logger,
+                            browserSessionStorage,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toEqual(null);
                 });
             });
 
