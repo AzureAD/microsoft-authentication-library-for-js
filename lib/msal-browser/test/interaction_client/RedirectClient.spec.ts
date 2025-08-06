@@ -2459,6 +2459,7 @@ describe("RedirectClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             jest.spyOn(
@@ -2516,6 +2517,7 @@ describe("RedirectClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             jest.spyOn(
@@ -2605,6 +2607,7 @@ describe("RedirectClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const logoutUriSpy = jest
@@ -2719,6 +2722,7 @@ describe("RedirectClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const logoutUriSpy = jest

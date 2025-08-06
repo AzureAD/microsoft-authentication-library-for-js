@@ -122,6 +122,7 @@ describe("BaseInteractionClient", () => {
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
                 tenantProfiles: [tenantProfile1],
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testIdTokenClaims2: TokenClaims = ID_TOKEN_ALT_CLAIMS;
@@ -163,6 +164,7 @@ describe("BaseInteractionClient", () => {
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
                 tenantProfiles: [tenantProfile2],
+                lastUpdatedAt: Date.now().toString(),
             };
 
             pca.setActiveAccount(testAccountInfo1);

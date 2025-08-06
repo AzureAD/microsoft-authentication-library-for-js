@@ -29,22 +29,26 @@ describe("LocalStorage tests", () => {
         await localStorageInstance.setUserData(
             idTokenKey,
             idTokenVal,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
         await localStorageInstance.setUserData(
             accessTokenKey,
             accessTokenVal,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
         await localStorageInstance.setUserData(
             refreshTokenKey,
             refreshTokenVal,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
         await localStorageInstance.setUserData(
             accountKey,
             accountVal,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
 
         localStorage.setItem(
@@ -164,7 +168,8 @@ describe("LocalStorage tests", () => {
         await localStorageInstance.setUserData(
             "testKey",
             "testVal",
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
         expect(localStorage.getItem("testKey")).toBeTruthy(); // Encrypted
         expect(localStorageInstance.getUserData("testKey")).toBe("testVal"); // From in-memory
@@ -212,7 +217,8 @@ describe("LocalStorage tests", () => {
         await localStorageInstance.setUserData(
             "testKey",
             "testVal",
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
 
         const encrypted = localStorage.getItem("testKey") || "";
@@ -245,7 +251,8 @@ describe("LocalStorage tests", () => {
         await localStorageInstance1.setUserData(
             "testKey",
             "testVal",
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
 
         expect(localStorageInstance1.getUserData("testKey")).toBe("testVal");

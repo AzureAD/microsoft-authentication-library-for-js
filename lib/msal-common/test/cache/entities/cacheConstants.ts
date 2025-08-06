@@ -11,9 +11,7 @@ import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity
 import { AuthenticationScheme } from "../../../src/utils/Constants.js";
 import * as CacheHelpers from "../../../src/cache/utils/CacheHelpers.js";
 import { TEST_CONFIG } from "../../test_kit/StringConstants.js";
-import {
-    generateCredentialKey,
-} from "../../client/ClientTestUtils.js";
+import { generateCredentialKey } from "../../client/ClientTestUtils.js";
 import * as AccountEntityUtils from "../../../src/cache/utils/AccountEntityUtils";
 
 // mock tokens
@@ -171,7 +169,9 @@ export const MockCache = {
     rtF: mockCache.createMockRTWithFamilyId(),
     rtFKey: generateCredentialKey(mockCache.createMockRTWithFamilyId()),
     acc: mockCache.createMockAcc(),
-    accKey: AccountEntityUtils.generateAccountKey(AccountEntityUtils.getAccountInfo(mockCache.createMockAcc())),
+    accKey: AccountEntityUtils.generateAccountKey(
+        AccountEntityUtils.getAccountInfo(mockCache.createMockAcc())
+    ),
     amdt: mockCache.createMockAmdt(),
     amdtKey: CacheHelpers.generateAppMetadataKey(mockCache.createMockAmdt()),
 };

@@ -16,9 +16,9 @@ import {
     TokenKeys,
     CacheHelpers,
     CredentialEntity,
-    CredentialType,
-    AuthenticationScheme,
     AccountInfo,
+    Constants,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
@@ -30,13 +30,14 @@ export class TestStorageManager extends CacheManager {
 
     generateCredentialKey(credential: CredentialEntity): string {
         const familyId =
-            (credential.credentialType === CredentialType.REFRESH_TOKEN &&
+            (credential.credentialType ===
+                Constants.CredentialType.REFRESH_TOKEN &&
                 credential.familyId) ||
             credential.clientId;
         const scheme =
             credential.tokenType &&
             credential.tokenType.toLowerCase() !==
-                AuthenticationScheme.BEARER.toLowerCase()
+                Constants.AuthenticationScheme.BEARER.toLowerCase()
                 ? credential.tokenType.toLowerCase()
                 : "";
         const credentialKey = [
@@ -85,7 +86,9 @@ export class TestStorageManager extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = this.generateAccountKey(value.getAccountInfo());
+        const key = this.generateAccountKey(
+            AccountEntityUtils.getAccountInfo(value)
+        );
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();

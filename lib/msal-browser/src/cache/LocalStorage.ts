@@ -244,7 +244,7 @@ export class LocalStorage implements IWindowStorage<string> {
             id: this.encryptionCookie.id,
             nonce: nonce,
             data: data,
-            lastUpdatedAt: timestamp
+            lastUpdatedAt: timestamp,
         };
 
         this.memoryStorage.setItem(key, value);

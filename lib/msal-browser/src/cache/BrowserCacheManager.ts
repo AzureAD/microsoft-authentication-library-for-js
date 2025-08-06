@@ -553,7 +553,6 @@ export class BrowserCacheManager extends CacheManager {
             !parsedAccount ||
             !AccountEntityUtils.isAccountEntity(parsedAccount)
         ) {
-            this.removeAccountKeyFromMap(accountKey, correlationId);
             return null;
         }
 
@@ -572,7 +571,9 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
-        const key = this.generateAccountKey(AccountEntityUtils.getAccountInfo(account));
+        const key = this.generateAccountKey(
+            AccountEntityUtils.getAccountInfo(account)
+        );
         const timestamp = Date.now().toString();
         account.lastUpdatedAt = timestamp;
         await this.setUserData(
@@ -1453,7 +1454,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     generateCredentialKey(credential: CredentialEntity): string {
         const familyId =
-            (credential.credentialType === Constants.CredentialType.REFRESH_TOKEN &&
+            (credential.credentialType ===
+                Constants.CredentialType.REFRESH_TOKEN &&
                 credential.familyId) ||
             credential.clientId;
         const scheme =
@@ -1809,7 +1811,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
-        cacheRetentionDays: 5
+        cacheRetentionDays: 5,
     };
     return new BrowserCacheManager(
         clientId,

@@ -96,7 +96,9 @@ describe("CacheManager.ts test cases", () => {
                 authorityType: "MSSTS",
             };
 
-            const accountKey = generateAccountKey(AccountEntityUtils.getAccountInfo(ac));
+            const accountKey = generateAccountKey(
+                AccountEntityUtils.getAccountInfo(ac)
+            );
             const cacheRecord: CacheRecord = {};
             cacheRecord.account = ac;
             await mockCache.cacheManager.saveCacheRecord(
@@ -795,7 +797,9 @@ describe("CacheManager.ts test cases", () => {
             authorityType: "MSSTS",
         };
 
-        const accountKey = generateAccountKey(AccountEntityUtils.getAccountInfo(ac));
+        const accountKey = generateAccountKey(
+            AccountEntityUtils.getAccountInfo(ac)
+        );
         const cacheRecord: CacheRecord = {};
         cacheRecord.account = ac;
         await mockCache.cacheManager.saveCacheRecord(
@@ -1672,8 +1676,9 @@ describe("CacheManager.ts test cases", () => {
 
     it("removeAccount", () => {
         const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountToRemoveKey =
-            generateAccountKey(AccountEntityUtils.getAccountInfo(accountToRemove));
+        const accountToRemoveKey = generateAccountKey(
+            AccountEntityUtils.getAccountInfo(accountToRemove)
+        );
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();

@@ -34,7 +34,6 @@ import {
     CommonAuthorizationUrlRequest,
     AccountEntityUtils,
     Constants,
-    ResponseMode,
     CredentialEntity,
 } from "@azure/msal-common";
 import {
@@ -491,14 +490,14 @@ describe("BrowserCacheManager tests", () => {
                 const v0Key = "test-expired-access-token";
                 const expiredExpiresOn = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
                 const v0Value = {
-                    credentialType: CredentialType.ACCESS_TOKEN,
+                    credentialType: Constants.CredentialType.ACCESS_TOKEN,
                     environment: "login.microsoftonline.com",
                     homeAccountId: "test",
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     realm: "common",
                     target: "https://graph.microsoft.com/.default",
                     secret: TEST_TOKENS.ACCESS_TOKEN,
-                    tokenType: AuthenticationScheme.BEARER,
+                    tokenType: Constants.AuthenticationScheme.BEARER,
                     expiresOn: expiredExpiresOn.toString(),
                     lastUpdatedAt: Date.now().toString(),
                 };
@@ -627,19 +626,22 @@ describe("BrowserCacheManager tests", () => {
                         case "key2-expired":
                             return JSON.stringify({
                                 lastUpdatedAt: oldTimestamp,
-                                credentialType: CredentialType.ACCESS_TOKEN,
+                                credentialType:
+                                    Constants.CredentialType.ACCESS_TOKEN,
                                 expiresOn: (now - 1000).toString(), // Already expired
                             });
                         case "key3-migrate":
                             return JSON.stringify({
                                 lastUpdatedAt: currentTimestamp,
-                                credentialType: CredentialType.ACCESS_TOKEN,
+                                credentialType:
+                                    Constants.CredentialType.ACCESS_TOKEN,
                                 expiresOn: (now + 3600 * 1000).toString(), // Valid for 1 hour
                             });
                         case "key4-update":
                             return JSON.stringify({
                                 lastUpdatedAt: currentTimestamp,
-                                credentialType: CredentialType.ACCESS_TOKEN,
+                                credentialType:
+                                    Constants.CredentialType.ACCESS_TOKEN,
                                 expiresOn: (now + 3600 * 1000).toString(),
                             });
                         case "msal.1-key4-update": // Existing v1 entry with older timestamp
@@ -766,13 +768,13 @@ describe("BrowserCacheManager tests", () => {
         describe("Cache Key Generation", () => {
             it("should generate credential keys with schema version", () => {
                 const credential: CredentialEntity = {
-                    credentialType: CredentialType.ACCESS_TOKEN,
+                    credentialType: Constants.CredentialType.ACCESS_TOKEN,
                     environment: "login.microsoftonline.com",
                     homeAccountId: "test.tenant",
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     realm: "tenant",
                     target: "scope1 scope2",
-                    tokenType: AuthenticationScheme.BEARER,
+                    tokenType: Constants.AuthenticationScheme.BEARER,
                     secret: "token-secret",
                     lastUpdatedAt: Date.now().toString(),
                 };
@@ -1410,7 +1412,8 @@ describe("BrowserCacheManager tests", () => {
             await browserCacheManager.setUserData(
                 newCacheKey,
                 newCacheVal,
-                RANDOM_TEST_GUID
+                RANDOM_TEST_GUID,
+                Date.now().toString()
             );
 
             // The access token should have been removed from storage
@@ -1485,7 +1488,8 @@ describe("BrowserCacheManager tests", () => {
                 browserCacheManager.setUserData(
                     newCacheKey,
                     newCacheVal,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
+                    Date.now().toString()
                 )
             ).rejects.toEqual(
                 new CacheError(CacheErrorCodes.cacheQuotaExceeded)
@@ -1604,7 +1608,8 @@ describe("BrowserCacheManager tests", () => {
                 browserCacheManager.setUserData(
                     newCacheKey,
                     newCacheVal,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
+                    Date.now().toString()
                 )
             ).rejects.toEqual(
                 new CacheError(CacheErrorCodes.cacheQuotaExceeded)
@@ -1643,7 +1648,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
             const v0AccessToken2 = CacheHelpers.createAccessTokenEntity(
                 "homeAccountId2",
@@ -1656,7 +1661,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             // Create v1 access tokens
@@ -1671,7 +1676,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
             const v1AccessToken2 = CacheHelpers.createAccessTokenEntity(
                 "homeAccountId4",
@@ -1684,7 +1689,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             // Generate keys with schema versions
@@ -1826,7 +1831,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             const v1AccessToken1 = CacheHelpers.createAccessTokenEntity(
@@ -1840,7 +1845,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             const v1AccessToken2 = CacheHelpers.createAccessTokenEntity(
@@ -1854,7 +1859,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             const v0AtKey =
@@ -1954,7 +1959,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             const v1AccessToken1 = CacheHelpers.createAccessTokenEntity(
@@ -1968,7 +1973,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             const v0AtKey1 =
@@ -2063,7 +2068,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             const v0AccessToken2 = CacheHelpers.createAccessTokenEntity(
@@ -2077,7 +2082,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             const v1AccessToken1 = CacheHelpers.createAccessTokenEntity(
@@ -2091,7 +2096,7 @@ describe("BrowserCacheManager tests", () => {
                 1000,
                 browserCrypto.base64Decode,
                 500,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
             const v0AtKey1 =
@@ -2603,48 +2608,47 @@ describe("BrowserCacheManager tests", () => {
                         testAccessTokenWithoutAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
-                    // Cache pop token
                     await browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithAuthScheme,
                         TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            browserSessionStorage.generateCredentialKey(
+                        browserLocalStorage.getAccessTokenCredential(
+                            browserLocalStorage.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             ),
                             RANDOM_TEST_GUID
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
-                            browserSessionStorage.generateCredentialKey(
+                        browserLocalStorage.getAccessTokenCredential(
+                            browserLocalStorage.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             ),
                             RANDOM_TEST_GUID
                         )?.credentialType
                     ).toBe(Constants.CredentialType.ACCESS_TOKEN);
+
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(
+                        browserSessionStorage.getAccessTokenCredential(
+                            browserSessionStorage.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             ),
                             RANDOM_TEST_GUID
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(
+                        browserSessionStorage.getAccessTokenCredential(
+                            browserSessionStorage.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             ),
                             RANDOM_TEST_GUID
@@ -2707,7 +2711,9 @@ describe("BrowserCacheManager tests", () => {
                             ),
                             TEST_CONFIG.CORRELATION_ID
                         )?.credentialType
-                    ).toBe(Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+                    ).toBe(
+                        Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+                    );
 
                     await browserSessionStorage.setAccessTokenCredential(
                         testAccessTokenWithoutAuthScheme,
