@@ -30,19 +30,6 @@ export interface ICacheManager {
     setAccount(account: AccountEntity, correlationId: string): Promise<void>;
 
     /**
-     * Returns true if the given key matches our account key schema. Also matches homeAccountId and/or tenantId if provided
-     * @param key
-     * @param homeAccountId
-     * @param tenantId
-     * @returns
-     */
-    isAccountKey(
-        key: string,
-        homeAccountId?: string,
-        tenantId?: string
-    ): boolean;
-
-    /**
      * fetch the idToken entity from the platform cache
      * @param idTokenKey
      */
@@ -221,13 +208,13 @@ export interface ICacheManager {
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(accountKey: string, correlationId: string): void;
+    removeAccount(account: AccountInfo, correlationId: string): void;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccountContext(account: AccountEntity, correlationId: string): void;
+    removeAccountContext(account: AccountInfo, correlationId: string): void;
 
     /**
      * @param key

@@ -722,9 +722,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
         await this.browserStorage.setAccount(accountEntity, this.correlationId);
-
         // Remove any existing cached tokens for this account in browser storage
-        this.browserStorage.removeAccountContext(accountEntity, correlationId);
+        this.browserStorage.removeAccountContext(
+            accountEntity.getAccountInfo(),
+            correlationId
+        );
     }
 
     /**
