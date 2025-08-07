@@ -1881,6 +1881,7 @@ describe("CacheManager.ts test cases", () => {
                 environment: "login.microsoftonline.com",
                 tenantId: TEST_CONFIG.TENANT,
                 username: "John Doe",
+                loginHint: "loginHint",
             };
 
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -1985,6 +1986,7 @@ describe("CacheManager.ts test cases", () => {
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe",
+            loginHint: "testLoginHint",
         };
 
         const silentFlowRequest: CommonSilentFlowRequest = {
@@ -2045,6 +2047,7 @@ describe("CacheManager.ts test cases", () => {
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe",
+            loginHint: "testLoginHint",
         };
 
         const silentFlowRequest: CommonSilentFlowRequest = {
@@ -2142,6 +2145,7 @@ describe("CacheManager.ts test cases", () => {
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe",
+            loginHint: "testLoginHint",
         };
 
         const silentFlowRequest: CommonSilentFlowRequest = {
@@ -2242,6 +2246,7 @@ describe("CacheManager.ts test cases", () => {
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe",
+            loginHint: "testLoginHint",
         };
 
         const silentFlowRequest: CommonSilentFlowRequest = {
@@ -2387,6 +2392,7 @@ describe("CacheManager.ts test cases", () => {
             environment: "login.windows.net",
             tenantId: "mocked_tid",
             username: "mocked_username",
+            loginHint: "mocked_login_hint",
         };
 
         const cachedToken = mockCache.cacheManager.getRefreshToken(

@@ -35,6 +35,7 @@ export type AccountEntity = {
     localAccountId: string;
     username: string;
     authorityType: string;
+    loginHint?: string;
     clientInfo?: string;
     name?: string;
     lastModificationTime?: string;
