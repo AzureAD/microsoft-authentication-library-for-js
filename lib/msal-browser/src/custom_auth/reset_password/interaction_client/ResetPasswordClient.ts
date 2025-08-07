@@ -48,7 +48,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_START;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -102,7 +102,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_SUBMIT_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -147,7 +147,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_RESEND_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -182,7 +182,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_SUBMIT_PASSWORD;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger

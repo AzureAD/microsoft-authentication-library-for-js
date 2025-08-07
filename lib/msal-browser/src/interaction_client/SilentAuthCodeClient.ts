@@ -97,7 +97,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
 
         const serverTelemetryManager = initializeServerTelemetryManager(
             this.apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger

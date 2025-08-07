@@ -58,7 +58,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
 
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger

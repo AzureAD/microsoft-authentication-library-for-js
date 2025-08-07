@@ -169,7 +169,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         const serverTelemetryManager = initializeServerTelemetryManager(
             this.apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -336,7 +336,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             if (e instanceof NativeAuthError) {
                 const serverTelemetryManager = initializeServerTelemetryManager(
                     this.apiId,
-                    this.config,
+                    this.config.auth.clientId,
                     this.correlationId,
                     this.browserStorage,
                     this.logger
@@ -431,7 +431,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
             const serverTelemetryManager = initializeServerTelemetryManager(
                 this.apiId,
-                this.config,
+                this.config.auth.clientId,
                 this.correlationId,
                 this.browserStorage,
                 this.logger

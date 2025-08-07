@@ -106,7 +106,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -153,7 +153,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -201,7 +201,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_IN_SUBMIT_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -245,7 +245,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_IN_SUBMIT_PASSWORD;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -286,7 +286,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         );
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger

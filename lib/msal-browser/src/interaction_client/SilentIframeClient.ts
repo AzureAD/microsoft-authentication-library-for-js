@@ -162,7 +162,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         let authClient: AuthorizationCodeClient | undefined;
         const serverTelemetryManager = initializeServerTelemetryManager(
             this.apiId,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger

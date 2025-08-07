@@ -43,7 +43,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
     ): Promise<AuthenticationResult> {
         const telemetryManager = initializeServerTelemetryManager(
             PublicApiId.ACCOUNT_GET_ACCESS_TOKEN,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger,

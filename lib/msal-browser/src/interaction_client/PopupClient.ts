@@ -275,7 +275,7 @@ export class PopupClient extends StandardInteractionClient {
         const correlationId = request.correlationId;
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.acquireTokenPopup,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -518,7 +518,7 @@ export class PopupClient extends StandardInteractionClient {
 
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.logoutPopup,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger

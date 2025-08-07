@@ -187,7 +187,7 @@ export class RedirectClient extends StandardInteractionClient {
         const correlationId = request.correlationId;
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.acquireTokenRedirect,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -334,7 +334,7 @@ export class RedirectClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.handleRedirectPromise,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -711,7 +711,7 @@ export class RedirectClient extends StandardInteractionClient {
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.logout,
-            this.config,
+            this.config.auth.clientId,
             this.correlationId,
             this.browserStorage,
             this.logger

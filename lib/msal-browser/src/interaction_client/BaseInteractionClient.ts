@@ -113,7 +113,7 @@ export function getRedirectUri(
  */
 export function initializeServerTelemetryManager(
     apiId: number,
-    config: BrowserConfiguration,
+    clientId: string,
     correlationId: string,
     browserStorage: BrowserCacheManager,
     logger?: Logger,
@@ -121,7 +121,7 @@ export function initializeServerTelemetryManager(
 ): ServerTelemetryManager {
     logger?.verbose("initializeServerTelemetryManager called");
     const telemetryPayload: ServerTelemetryRequest = {
-        clientId: config.auth.clientId,
+        clientId: clientId,
         correlationId: correlationId,
         apiId: apiId,
         forceRefresh: forceRefresh || false,
