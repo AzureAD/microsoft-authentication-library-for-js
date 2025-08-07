@@ -8,7 +8,6 @@ import {
     INetworkModule,
     Logger,
     AccountInfo,
-    AccountEntity,
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,
@@ -91,22 +90,9 @@ export abstract class BaseInteractionClient {
         account?: AccountInfo | null
     ): Promise<void> {
         if (account) {
-            if (
-                AccountEntity.accountInfoIsEqual(
-                    account,
-                    this.browserStorage.getActiveAccount(correlationId),
-                    false
-                )
-            ) {
-                this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null, correlationId);
-            }
             // Clear given account.
             try {
-                this.browserStorage.removeAccount(
-                    AccountEntity.generateAccountCacheKey(account),
-                    correlationId
-                );
+                this.browserStorage.removeAccount(account, correlationId);
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
                 );

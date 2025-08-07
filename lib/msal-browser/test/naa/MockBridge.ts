@@ -12,6 +12,7 @@ import { BridgeResponseEnvelope } from "../../src/naa/BridgeResponseEnvelope.js"
 import { InitContext } from "../../src/naa/InitContext.js";
 
 export class MockBridge implements AuthBridge {
+    private bridgeRequests: string[] = [];
     private listeners: { [key: string]: ((response: string) => void)[] } = {};
     private responses: {
         [key: string]: Partial<BridgeResponseEnvelope>[];
@@ -28,6 +29,7 @@ export class MockBridge implements AuthBridge {
     }
 
     public postMessage(message: string): void {
+        this.bridgeRequests.push(message);
         const request = JSON.parse(message);
         if (isBridgeRequestEnvelope(request)) {
             const response = this.responses[request.method].pop();
@@ -93,6 +95,10 @@ export class MockBridge implements AuthBridge {
 
     public removeAllResponses(): void {
         this.responses = {};
+    }
+
+    public getBridgeRequests(): string[] {
+        return this.bridgeRequests;
     }
 }
 

@@ -4,12 +4,46 @@ Since MSAL Node supports various authorization code grants, there is support for
 
 ## Authorization Code Flow
 
-### Public APIs
+### acquireTokenInteractive
 
--   [getAuthCodeUrl()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#getauthcodeurl): This API is the first leg of the `authorization code grant` for MSAL Node. The request is of the type [AuthorizationUrlRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_authorizationurlrequest_.html).
-    The application is sent a URL that can be used to generate an `authorization code`. This URL can be opened in a browser of choice, where the user can input their credentials, and will be redirected back to the `redirectUri` (registered during the [app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)) with an `authorization code`. The `authorization code` can now be redeemed for a `token` with the following step. Note that if authorization code flow is being done for a public client application, [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
+[acquireTokenInteractive()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.PublicClientApplication.html#acquireTokenInteractive): This API handles both legs of the authorization code flow. It is available for PublicClientApplication only. The request type is documented here: [InteractiveRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.InteractiveRequest.html). The only required parameter is a `openBrowser` callback which should accept a `url` parameter and open the browser of choice to complete the sign-in. A sample demonstrating its usage can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-app)
 
--   [acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html#acquiretokenbycode): This API is the second leg of the `authorization code grant` for MSAL Node. The request constructed here should be of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_authorizationcoderequest_.html). The application passed the `authorization code` received as a part of the above step and exchanges it for a `token`. Note that if authorization code flow is being done for a public client application, [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
+```javascript
+import { PublicClientApplication }  from "@azure/msal-node";
+import open from "open";
+
+// Open browser to sign user in and consent to scopes needed for application
+const openBrowser = async (url) => {
+    // You can open a browser window with any library or method you wish to use - the 'open' npm package is used here for demonstration purposes.
+    open(url);
+};
+
+const loginRequest = {
+    scopes: ["User.Read"],
+    openBrowser,
+    successTemplate: "Successfully signed in! You can close this window now." // Will be shown in the browser window after authentication is complete
+};
+
+// Create msal application object
+const pca = new PublicClientApplication({
+    auth: { 
+        clientId: "<your clientId here>"
+        }
+});
+pca.acquireTokenInteractive(loginRequest).then((response) => {
+        // Do something with the token e.g. call an API
+        callAPI(response.accessToken)
+    })
+    .catch((error) => {
+        console.log(error);
+    });
+
+```
+
+## getAuthCodeUrl
+
+[getAuthCodeUrl()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.IConfidentialClientApplication.html#getAuthCodeUrl): This API performs the first leg of the authorization code flow. The request is of the type [AuthorizationUrlRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.AuthorizationUrlRequest.html).
+getAuthCodeUrl returns a url that can be used to generate an `authorization code`. This URL can be opened in a browser of choice, where the user can input their credentials, and will be redirected back to the `redirectUri` (registered during the [app registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-desktop-app-registration)) with an `authorization code`. The `authorization code` can now be redeemed for a `token` using acquireTokenByCode, documented below. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
 ```javascript
 const authCodeUrlParameters = {
@@ -17,23 +51,43 @@ const authCodeUrlParameters = {
     redirectUri: "your_redirect_uri",
 };
 
+const cca = new ConfidentialClientApplication({
+    auth: { 
+        clientId: "<your clientId here>"
+        }
+});
+
 // get url to sign user in and consent to scopes needed for application
 cca.getAuthCodeUrl(authCodeUrlParameters)
-    .then((response) => {
-        console.log(response);
+    .then((url) => {
+        // redirect to url
     })
     .catch((error) => console.log(JSON.stringify(error)));
+```
 
+## acquireTokenByCode
+
+[acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.IConfidentialClientApplication.html#acquireTokenByCode): This API is the second leg of the authorization code flow. The request is of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.AuthorizationCodeRequest.html). The application should have received an `authorization code` as a part of the above step and can now exchange it for a `token`. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
+
+
+```javascript
 const tokenRequest = {
     code: "authorization_code",
     redirectUri: "your_redirect_uri",
     scopes: ["sample_scope"],
 };
 
+const cca = new ConfidentialClientApplication({
+    auth: { 
+        clientId: "<your clientId here>"
+        }
+});
+
 // acquire a token by exchanging the code
 cca.acquireTokenByCode(tokenRequest)
     .then((response) => {
-        console.log("\nResponse: \n:", response);
+        // Do something with the token e.g. call an API
+        callAPI(response.accessToken)
     })
     .catch((error) => {
         console.log(error);
