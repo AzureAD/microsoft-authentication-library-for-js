@@ -10,7 +10,7 @@ import {
 
 describe("CustomAuthApiError", () => {
     describe("RedirectError", () => {
-        it("should create RedirectError with correlation ID only", () => {
+        it("should create RedirectError with correlation ID only - web fallback", () => {
             const correlationId = "test-correlation-id";
             const error = new RedirectError(correlationId);
 
@@ -18,12 +18,10 @@ describe("CustomAuthApiError", () => {
             expect(error.correlationId).toBe(correlationId);
             expect(error.error).toBe("redirect");
             expect(error.message).toContain("redirect:");
-            expect(error.message).toContain(
-                "No required authentication method"
-            );
+            expect(error.message).toContain("Redirect Error");
         });
 
-        it("should create RedirectError with correlation ID and redirect reason", () => {
+        it("should create RedirectError with correlation ID and redirect reason - MFA backward compability", () => {
             const correlationId = "test-correlation-id";
             const redirectReason = "Client is missing mfa_required capability.";
             const error = new RedirectError(correlationId, redirectReason);
