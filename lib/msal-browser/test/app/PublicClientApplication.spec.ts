@@ -2251,6 +2251,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].name).toBe(
                     PerformanceEvents.AcquireTokenPreRedirect
                 );
+                expect(events[0].navigateCallbackResult).toBeTruthy();
                 pca.removePerformanceCallback(callbackId);
             });
 
@@ -2271,15 +2272,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.acquireTokenRedirect(loginRequest);
         });
 
-        it("discards pre-redirect telemetry event when onRedirectNavigate callback returns false", async () => {
+        it("instruments pre-redirect telemetry event when onRedirectNavigate callback returns false", async () => {
             const onRedirectNavigate = (url: string) => {
                 return false;
             };
 
-            const measurementDiscardSpy = jest.spyOn(
-                PerformanceClient.prototype,
-                "discardMeasurements"
-            );
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].name).toBe(
+                    PerformanceEvents.AcquireTokenPreRedirect
+                );
+                expect(events[0].navigateCallbackResult).toBeFalsy();
+                pca.removePerformanceCallback(callbackId);
+            });
 
             jest.spyOn(
                 NavigationClient.prototype,
@@ -2297,7 +2302,41 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 onRedirectNavigate,
             };
             await pca.acquireTokenRedirect(loginRequest);
-            expect(measurementDiscardSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("instruments pre-redirect telemetry event when navigation times out", async () => {
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(false);
+                expect(events[0].name).toBe(
+                    PerformanceEvents.AcquireTokenPreRedirect
+                );
+                expect(events[0].errorCode).toEqual("timed_out");
+                pca.removePerformanceCallback(callbackId);
+            });
+
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "failed_to_redirect"
+                )
+            );
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const loginRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read", "openid", "profile"],
+                state: TEST_STATE_VALUES.USER_STATE,
+            };
+
+            try {
+                await pca.acquireTokenRedirect(loginRequest);
+            } catch (e) {}
         });
 
         it("instruments initialization error", (done) => {

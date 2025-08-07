@@ -650,37 +650,9 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        // Override on request only if set, as onRedirectNavigate field is deprecated
-        const onRedirectNavigateCb = request.onRedirectNavigate;
-        if (onRedirectNavigateCb) {
-            request.onRedirectNavigate = (url: string) => {
-                const navigate =
-                    typeof onRedirectNavigateCb === "function"
-                        ? onRedirectNavigateCb(url)
-                        : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
-                return navigate;
-            };
-        } else {
-            const configOnRedirectNavigateCb =
-                this.config.auth.onRedirectNavigate;
-            this.config.auth.onRedirectNavigate = (url: string) => {
-                const navigate =
-                    typeof configOnRedirectNavigateCb === "function"
-                        ? configOnRedirectNavigateCb(url)
-                        : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
-                return navigate;
-            };
-        }
+        const handleUnload = () => {
+            atrMeasurement.end({ success: true });
+        };
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -706,6 +678,7 @@ export class StandardController implements IController {
             }
 
             let result: Promise<void>;
+            window.addEventListener("beforeunload", handleUnload);
 
             if (
                 this.platformAuthProvider &&
@@ -726,7 +699,7 @@ export class StandardController implements IController {
                     correlationId
                 );
                 result = nativeClient
-                    .acquireTokenRedirect(request, atrMeasurement)
+                    .acquireTokenRedirect(request)
                     .catch((e: AuthError) => {
                         if (
                             e instanceof NativeAuthError &&
@@ -751,9 +724,14 @@ export class StandardController implements IController {
                 result = redirectClient.acquireToken(request);
             }
 
-            return await result;
+            await result;
+            // End measurement if navigation callback returned false
+            atrMeasurement.end({ success: true });
+            return;
         } catch (e) {
             this.browserStorage.resetRequestCache();
+            typeof window !== "undefined" &&
+                window.removeEventListener("beforeunload", handleUnload);
             atrMeasurement.end({ success: false }, e);
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(

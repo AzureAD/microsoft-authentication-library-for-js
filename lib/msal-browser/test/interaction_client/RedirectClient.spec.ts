@@ -2029,7 +2029,11 @@ describe("RedirectClient", () => {
                 RedirectClient.prototype,
                 "initiateAuthRequest"
             ).mockImplementation(
-                (navigateUrl, onRedirectNavigateCb): Promise<void> => {
+                (
+                    navigateUrl,
+                    correlationId,
+                    onRedirectNavigateCb
+                ): Promise<void> => {
                     expect(onRedirectNavigateCb).toEqual(onRedirectNavigate);
                     verifyUrl(navigateUrl, ["user.read"]);
                     onRedirectNavigate(navigateUrl);
@@ -2945,7 +2949,7 @@ describe("RedirectClient", () => {
 
     describe("initiateAuthRequest()", () => {
         it("throws error if requestUrl is empty", (done) => {
-            redirectClient.initiateAuthRequest("").catch((e) => {
+            redirectClient.initiateAuthRequest("", "").catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toEqual(
                     BrowserAuthErrorCodes.emptyNavigateUri
@@ -2970,7 +2974,8 @@ describe("RedirectClient", () => {
             redirectClient.navigationClient = navigationClient;
 
             redirectClient.initiateAuthRequest(
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                TEST_CONFIG.CORRELATION_ID
             );
         });
 
@@ -2993,6 +2998,7 @@ describe("RedirectClient", () => {
             };
             redirectClient.initiateAuthRequest(
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                TEST_CONFIG.CORRELATION_ID,
                 onRedirectNavigate
             );
         });
@@ -3016,6 +3022,7 @@ describe("RedirectClient", () => {
             };
             redirectClient.initiateAuthRequest(
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                TEST_CONFIG.CORRELATION_ID,
                 onRedirectNavigate
             );
         });

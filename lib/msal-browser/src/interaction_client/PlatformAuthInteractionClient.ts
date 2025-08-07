@@ -308,12 +308,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     /**
      * Acquires a token from native platform then redirects to the redirectUri instead of returning the response
      * @param {RedirectRequest} request
-     * @param {InProgressPerformanceEvent} rootMeasurement
      */
-    async acquireTokenRedirect(
-        request: RedirectRequest,
-        rootMeasurement: InProgressPerformanceEvent
-    ): Promise<void> {
+    async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         this.logger.trace(
             "NativeInteractionClient - acquireTokenRedirect called."
         );
@@ -352,7 +348,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const redirectUri = this.config.auth.navigateToLoginRequestUrl
             ? window.location.href
             : this.getRedirectUri(request.redirectUri);
-        rootMeasurement.end({ success: true });
         await this.navigationClient.navigateExternal(
             redirectUri,
             navigationOptions

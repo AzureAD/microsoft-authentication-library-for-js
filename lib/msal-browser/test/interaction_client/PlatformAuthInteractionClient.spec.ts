@@ -1082,40 +1082,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                },
-                perfMeasurement
-            );
-        });
-
-        it("emits successful pre-redirect telemetry event", (done) => {
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation((url: string) => {
-                expect(url).toBe(window.location.href);
-                return Promise.resolve(true);
+            platformAuthInteractionClient.acquireTokenRedirect({
+                scopes: ["User.Read"],
             });
-            jest.spyOn(
-                PlatformAuthExtensionHandler.prototype,
-                "sendMessage"
-            ).mockImplementation((): Promise<PlatformAuthResponse> => {
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
-            const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].success).toBe(true);
-                expect(events[0].name).toBe(perfMeasurement.event.name);
-                pca.removePerformanceCallback(callbackId);
-                done();
-            });
-            platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                },
-                perfMeasurement
-            );
         });
 
         it("throws if native token acquisition fails with fatal error", (done) => {
@@ -1131,10 +1100,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 );
             });
             platformAuthInteractionClient
-                .acquireTokenRedirect(
-                    { scopes: ["User.Read"] },
-                    perfMeasurement
-                )
+                .acquireTokenRedirect({ scopes: ["User.Read"] })
                 .catch((e) => {
                     expect(e.errorCode).toBe("ContentError");
                     done();
@@ -1159,12 +1125,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 );
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                },
-                perfMeasurement
-            );
+            platformAuthInteractionClient.acquireTokenRedirect({
+                scopes: ["User.Read"],
+            });
         });
 
         it("sets native broker error to server telemetry", (done) => {
@@ -1194,12 +1157,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     new NativeAuthError("test_native_error_code")
                 );
             });
-            platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                },
-                perfMeasurement
-            );
+            platformAuthInteractionClient.acquireTokenRedirect({
+                scopes: ["User.Read"],
+            });
         });
 
         it("resets native broker error in server telemetry", async () => {
@@ -1237,12 +1197,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 );
 
             try {
-                await platformAuthInteractionClient.acquireTokenRedirect(
-                    {
-                        scopes: ["User.Read"],
-                    },
-                    perfMeasurement
-                );
+                await platformAuthInteractionClient.acquireTokenRedirect({
+                    scopes: ["User.Read"],
+                });
             } catch (e) {}
 
             expect(
@@ -1258,12 +1215,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 nativeBrokerErrorCode: "test_native_error_code",
             });
 
-            await platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                },
-                perfMeasurement
-            );
+            await platformAuthInteractionClient.acquireTokenRedirect({
+                scopes: ["User.Read"],
+            });
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
             await platformAuthInteractionClient.handleRedirectPromise();
@@ -1292,15 +1246,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(request.onRedirectNavigate).toBeUndefined();
                 done();
             });
-            platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                    onRedirectNavigate: (url: string) => {
-                        return true;
-                    },
+            platformAuthInteractionClient.acquireTokenRedirect({
+                scopes: ["User.Read"],
+                onRedirectNavigate: (url: string) => {
+                    return true;
                 },
-                perfMeasurement
-            );
+            });
         });
     });
 
@@ -1321,12 +1272,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
-            await platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                },
-                perfMeasurement
-            );
+            await platformAuthInteractionClient.acquireTokenRedirect({
+                scopes: ["User.Read"],
+            });
             const response =
                 await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).not.toBe(null);
@@ -1372,13 +1320,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
-            await platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                    prompt: "login",
-                },
-                perfMeasurement
-            );
+            await platformAuthInteractionClient.acquireTokenRedirect({
+                scopes: ["User.Read"],
+                prompt: "login",
+            });
             const response =
                 await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).not.toBe(null);
@@ -1418,12 +1363,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockImplementation((): Promise<PlatformAuthResponse> => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
-            await platformAuthInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                },
-                perfMeasurement
-            );
+            await platformAuthInteractionClient.acquireTokenRedirect({
+                scopes: ["User.Read"],
+            });
             const response =
                 await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).toBe(null);

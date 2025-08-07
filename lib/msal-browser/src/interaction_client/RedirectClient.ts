@@ -231,6 +231,7 @@ export class RedirectClient extends StandardInteractionClient {
                 // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
                 return await this.initiateAuthRequest(
                     navigateUrl,
+                    request.correlationId,
                     onRedirectNavigate
                 );
             }
@@ -650,11 +651,13 @@ export class RedirectClient extends StandardInteractionClient {
 
     /**
      * Redirects window to given URL.
-     * @param urlNavigate
+     * @param requestUrl - request url
+     * @param correlationId - correlation id
      * @param onRedirectNavigateRequest - onRedirectNavigate callback provided on the request
      */
     async initiateAuthRequest(
         requestUrl: string,
+        correlationId: string,
         onRedirectNavigateRequest?: (url: string) => boolean | void
     ): Promise<void> {
         this.logger.verbose("RedirectHandler.initiateAuthRequest called");
@@ -685,6 +688,10 @@ export class RedirectClient extends StandardInteractionClient {
                     this.logger.verbose(
                         "RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating"
                     );
+                    this.performanceClient.addFields(
+                        { navigateCallbackResult: true },
+                        correlationId
+                    );
                     await this.navigationClient.navigateExternal(
                         requestUrl,
                         navigationOptions
@@ -693,6 +700,10 @@ export class RedirectClient extends StandardInteractionClient {
                 } else {
                     this.logger.verbose(
                         "RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation"
+                    );
+                    this.performanceClient.addFields(
+                        { navigateCallbackResult: false },
+                        correlationId
                     );
                     return;
                 }
