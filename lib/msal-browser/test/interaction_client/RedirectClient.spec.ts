@@ -2447,6 +2447,7 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 
@@ -2505,6 +2506,7 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 
@@ -2596,6 +2598,7 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
             const testAccount: AccountEntity = {
@@ -2711,6 +2714,7 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
             const testAccount: AccountEntity = {

@@ -17,17 +17,20 @@ export const TestHomeAccountId =
     "5122efb1-f3a3-4a5d-b5ae-c5474ea1c7bd.d37e5645-4170-4ce0-a618-1b9008b14e58"; // fake homeAccountId
 export const TestTenantId = "d37e5645-4170-4ce0-a618-1b9008b14e58"; // fake tenantId
 export const TestUsername = "abc@test.com"; // fake username
+export const TestLoginHint = "loginHint"; // fake login hint
 
 export const TestAccountDetails = {
     homeAccountId: TestHomeAccountId,
     environment: "spasamples.ciamlogin.com",
     tenantId: TestTenantId,
     username: TestUsername,
+    loginHint: TestLoginHint,
     localAccountId: "d8dcce8-b8bc-452c-8bcc-a6eb953db459",
     idTokenClaims: {
         tid: TestTenantId,
         oid: "dcb04862-f956-4301-b3fc-0fd38fa5be7f",
         preferred_username: TestUsername,
+        loginHint: TestLoginHint,
     },
     name: "Test User",
     idToken: TestTokenResponse.ID_TOKEN,

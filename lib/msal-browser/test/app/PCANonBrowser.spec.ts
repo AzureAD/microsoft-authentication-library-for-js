@@ -180,6 +180,7 @@ describe("Non-browser environment", () => {
             environment: "login.windows.net",
             tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
             username: "AbeLi@microsoft.com",
+            loginHint: "AbeLiLoginHint",
         };
 
         const instance = new PublicClientApplication({
@@ -381,6 +382,7 @@ describe("Non-browser environment", () => {
             environment: "login.windows.net",
             tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
             username: "AbeLi@microsoft.com",
+            loginHint: "AbeLiLoginHint",
         };
         const testAuthenticationResult: AuthenticationResult = {
             authority: TEST_CONFIG.validAuthority,

@@ -47,6 +47,7 @@ const testAccount: AccountInfo = {
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
     username: testIdTokenClaims.preferred_username || "",
+    loginHint: testIdTokenClaims.login_hint,
 };
 
 describe("SilentRefreshClient", () => {
