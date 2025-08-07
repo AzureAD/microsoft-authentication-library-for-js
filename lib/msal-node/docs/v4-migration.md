@@ -1,7 +1,7 @@
 # Migrating from MSAL Node v3 to v4
 
 ## Dropped support for Node 16 and 18
-msal-node v4 no longer supports Node 16 or 18, you must use 20 or greater.
+MSAL Node v4 no longer supports Node.js 16 or 18; you must use Node.js 20 or greater.
 
 ## Configuration Changes
 
