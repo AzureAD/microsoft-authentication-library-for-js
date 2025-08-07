@@ -20,7 +20,6 @@ import {
     AzureCloudOptions,
     invokeAsync,
     StringDict,
-    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
