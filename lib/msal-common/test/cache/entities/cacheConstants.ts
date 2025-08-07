@@ -11,8 +11,11 @@ import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity
 import { AuthenticationScheme } from "../../../src/utils/Constants.js";
 import * as CacheHelpers from "../../../src/cache/utils/CacheHelpers.js";
 import { TEST_CONFIG } from "../../test_kit/StringConstants.js";
-import { generateCredentialKey } from "../../client/ClientTestUtils.js";
-import * as AccountEntityUtils from "../../../src/cache/utils/AccountEntityUtils";
+import {
+    generateAccountKey,
+    generateCredentialKey,
+} from "../../client/ClientTestUtils.js";
+import * as AccountEntityUtils from "../../../src/cache/utils/AccountEntityUtils.js";
 
 // mock tokens
 export const mockAccessTokenEntity_1: AccessTokenEntity = {
@@ -96,6 +99,7 @@ export const mockAccountEntity = {
     username: "John Doe",
     authorityType: "MSSTS",
     clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const mockAppMetaDataEntity = {
@@ -169,7 +173,7 @@ export const MockCache = {
     rtF: mockCache.createMockRTWithFamilyId(),
     rtFKey: generateCredentialKey(mockCache.createMockRTWithFamilyId()),
     acc: mockCache.createMockAcc(),
-    accKey: AccountEntityUtils.generateAccountKey(
+    accKey: generateAccountKey(
         AccountEntityUtils.getAccountInfo(mockCache.createMockAcc())
     ),
     amdt: mockCache.createMockAmdt(),

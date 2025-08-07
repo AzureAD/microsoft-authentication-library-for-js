@@ -69,6 +69,7 @@ const testAccountEntity: AccountEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     username: ID_TOKEN_CLAIMS.preferred_username,
     authorityType: "MSSTS",
+    lastUpdatedAt: Date.now().toString(),
 };
 
 const testAppMetadata: AppMetadataEntity = {
@@ -1306,6 +1307,7 @@ describe("RefreshTokenClient unit tests", () => {
                 realm: "testTenantId",
                 username: "username@contoso.com",
                 authorityType: "MSSTS",
+                lastUpdatedAt: Date.now().toString(),
             };
             jest.spyOn(
                 MockStorageClass.prototype,

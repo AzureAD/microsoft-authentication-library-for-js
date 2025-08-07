@@ -34,6 +34,7 @@ import {
     AuthenticationScheme,
     CACHE_KEY_SEPARATOR,
     CredentialType,
+    SKU,
 } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
@@ -78,7 +79,7 @@ export function generateAccountKey(account: AccountInfo): string {
         account.environment,
         homeTenantId || account.tenantId || "",
     ];
-    return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    return accountKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 export class MockStorageClass extends CacheManager {

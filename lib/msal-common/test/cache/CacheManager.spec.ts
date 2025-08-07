@@ -94,6 +94,7 @@ describe("CacheManager.ts test cases", () => {
                 localAccountId: "object1234",
                 username: "Jane Goodman",
                 authorityType: "MSSTS",
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const accountKey = generateAccountKey(
@@ -795,6 +796,7 @@ describe("CacheManager.ts test cases", () => {
             localAccountId: "object1234",
             username: "Jane Goodman",
             authorityType: "MSSTS",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         const accountKey = generateAccountKey(

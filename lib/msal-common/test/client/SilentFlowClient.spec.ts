@@ -488,6 +488,7 @@ describe("SilentFlowClient unit tests", () => {
                 realm: "testTenantId",
                 username: "username@contoso.com",
                 authorityType: "MSSTS",
+                lastUpdatedAt: Date.now().toString(),
             };
 
             jest.spyOn(
