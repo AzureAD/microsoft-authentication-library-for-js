@@ -87,6 +87,8 @@ describe("BaseInteractionClient", () => {
             const tenantProfile1: TenantProfile = {
                 tenantId: testIdTokenClaims.tid || "",
                 localAccountId: testIdTokenClaims.oid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 name: testIdTokenClaims.name,
                 isHomeTenant: true,
             };
@@ -97,6 +99,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 tenantProfiles: new Map([
                     [tenantProfile1.tenantId, tenantProfile1],
                 ]),
@@ -127,6 +130,8 @@ describe("BaseInteractionClient", () => {
             const tenantProfile2: TenantProfile = {
                 tenantId: testIdTokenClaims2.tid || "",
                 localAccountId: testIdTokenClaims2.oid || "",
+                username: testIdTokenClaims2.preferred_username || "",
+                loginHint: testIdTokenClaims2.login_hint,
                 name: testIdTokenClaims2.name,
                 isHomeTenant: true,
             };
@@ -137,6 +142,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims2.tid || "",
                 username: testIdTokenClaims2.preferred_username || "",
+                loginHint: testIdTokenClaims2.login_hint,
                 tenantProfiles: new Map([
                     [tenantProfile2.tenantId, tenantProfile2],
                 ]),
@@ -242,6 +248,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows-ppe.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
             await testClient
@@ -270,6 +277,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
             testClient
@@ -294,6 +302,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
             // @ts-ignore
@@ -336,6 +345,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
             // @ts-ignore
