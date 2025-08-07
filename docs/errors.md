@@ -728,6 +728,13 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `failed_to_decrypt_ear_response`
 - Failed to decrypt ear response.
 
+### `timed_out`
+- The request failed to complete within the configured timeout. Review logs and network traces to identify potential causes. Retrying the request once or increasing the configured timeout may sometimes resolve timeouts caused by general runtime or network latency.
+
+#### acquireTokenRedirect timed out
+
+If this error is thrown from `acquireTokenRedirect` it means your application failed to redirect to your identity provider's /authorize endpoint in time. Review the network trace to identify potential causes.
+
 ## Browser configuration errors
 
 ### `storage_not_supported`
@@ -750,6 +757,102 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 ### `unsupported_method`
 - This method is not supported in nested app environment.
+
+## Custom Authentication errors
+
+### HTTP errors
+
+#### `no_network_connectivity`
+- No network connectivity. Check your internet connection.
+
+#### `failed_send_request`
+- Failed to send HTTP request to the server.
+
+### Configuration errors
+
+#### `missing_configuration`
+- Required configuration is missing for the custom authentication flow.
+
+#### `invalid_authority`
+- The provided authority URL is invalid or not supported for custom authentication.
+
+#### `invalid_challenge_type`
+- The challenge type specified in the configuration is not supported.
+
+### URL parsing errors
+
+#### `invalid_url`
+- The provided URL could not be parsed or is malformed.
+
+### User account attribute errors
+
+#### `invalid_attribute`
+- One or more user account attributes provided are invalid or malformed.
+
+### API errors
+
+#### `continuation_token_missing`
+- The continuation token required for the next step in the authentication flow is missing.
+
+#### `invalid_response_body`
+- The response body from the authentication server is invalid or malformed.
+
+#### `empty_response`
+- The server returned an empty response when data was expected.
+
+#### `unsupported_challenge_type`
+- The challenge type provided is not supported.
+
+#### `access_token_missing`
+- The access token is missing from the authentication response.
+
+#### `id_token_missing`
+- The ID token is missing from the authentication response.
+
+#### `refresh_token_missing`
+- The refresh token is missing from the authentication response.
+
+#### `invalid_expires_in`
+- The token expiration time (expires_in) value is invalid.
+
+#### `invalid_token_type`
+- The token type returned by the server is not supported.
+
+#### `http_request_failed`
+- The HTTP request to the authentication server failed.
+
+#### `invalid_request`
+- The authentication request is malformed or contains invalid parameters.
+
+#### `user_not_found`
+- The specified user could not be found.
+
+#### `invalid_grant`
+- The authorization grant provided is invalid, expired, or revoked.
+
+#### `credential_required`
+- User credentials are required to complete the authentication flow.
+
+#### `attributes_required`
+- Additional user attributes are required to complete the authentication flow.
+
+#### `user_already_exists`
+- A user with the specified identifier already exists.
+
+#### `invalid_poll_status`
+- The polling status returned by the server is invalid.
+
+#### `password_change_failed`
+- The password change operation failed.
+
+#### `password_reset_timeout`
+- The password reset operation timed out.
+
+#### `client_info_missing`
+- Client information is missing from the authentication response.
+
+#### `expired_token`
+- The provided token has expired and cannot be used.
 
 ## Other
 

@@ -39,7 +39,7 @@ Yes. Please refer to [MSAL Node samples](https://github.com/AzureAD/microsoft-au
 
 ### Is interactive flow supported?
 
-Currently No. Authentication for MSAL Node using authorization code grant is a two legged flow, as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/request.md). There are plans to provide a single API to achieve this, and invoke the browser on the user's behalf. However it is currently not supported.
+Yes, there is an all-in-one `acquireTokenInteractive` API available for `PublicClientApplication` scenarios. Please read more about this API [here](./request.md#acquireTokenInteractive)
 
 ### Are SPAs supported by MSAL Node?
 
@@ -68,11 +68,11 @@ MSAL Node supports self-service sign-up in the auth code flow. Please see our do
 
 ### Why doesn't my app function correctly when it's running behind a proxy?
 
-Developers can provide a `proxyUrl` string in the system config options as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md#system-config-options). Developers can also implement their own NetworkManager by instantiating an [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.inetworkmodule.html) and building proxy support in it.
+Developers can provide a `proxyUrl` string in the system config options as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md#system-config-options). Developers can also implement their own NetworkManager by instantiating an [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.INetworkModule.html) and building proxy support in it.
 
 ### How do I implement a custom http(s) agent in MSAL Node?
 
-Developers can use a custom http(s) agent by providing a `customAgentOptions` object in the system config options as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md#system-config-options). Developers can also implement their own NetworkManager by instantiating an [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.inetworkmodule.html) and building custom http(s) agent support in it.
+Developers can use a custom http(s) agent by providing a `customAgentOptions` object in the system config options as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md#system-config-options). Developers can also implement their own NetworkManager by instantiating an [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.INetworkModule.html) and building custom http(s) agent support in it.
 
 ## B2C
 

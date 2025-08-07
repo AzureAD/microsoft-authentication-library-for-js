@@ -987,7 +987,7 @@ export class StandardController implements IController {
                 );
                 this.ssoSilentMeasurement?.end({
                     success: true,
-                    isNativeBroker: response.fromNativeBroker,
+                    isNativeBroker: response.fromPlatformBroker,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
                     accountType: getAccountType(response.account),
@@ -1071,7 +1071,7 @@ export class StandardController implements IController {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.end({
                                 success: true,
-                                isNativeBroker: result.fromNativeBroker,
+                                isNativeBroker: result.fromPlatformBroker,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                                 accountType: getAccountType(result.account),
@@ -1189,7 +1189,7 @@ export class StandardController implements IController {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
-                    isNativeBroker: response.fromNativeBroker,
+                    isNativeBroker: response.fromPlatformBroker,
                 });
                 return response;
             })
@@ -1369,6 +1369,7 @@ export class StandardController implements IController {
             this.logger,
             this.browserStorage,
             this.isBrowserEnvironment,
+            this.getRequestCorrelationId(),
             accountFilter
         );
     }
@@ -1382,7 +1383,8 @@ export class StandardController implements IController {
         return AccountManager.getAccount(
             accountFilter,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1398,7 +1400,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByUsername(
             username,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1413,7 +1416,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByHomeId(
             homeAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1428,7 +1432,8 @@ export class StandardController implements IController {
         return AccountManager.getAccountByLocalId(
             localAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            this.getRequestCorrelationId()
         );
     }
 
@@ -1437,14 +1442,21 @@ export class StandardController implements IController {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        AccountManager.setActiveAccount(account, this.browserStorage);
+        AccountManager.setActiveAccount(
+            account,
+            this.browserStorage,
+            this.getRequestCorrelationId()
+        );
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return AccountManager.getActiveAccount(this.browserStorage);
+        return AccountManager.getActiveAccount(
+            this.browserStorage,
+            this.getRequestCorrelationId()
+        );
     }
 
     // #endregion
@@ -1477,7 +1489,7 @@ export class StandardController implements IController {
             result.correlationId
         );
 
-        if (result.fromNativeBroker) {
+        if (result.fromPlatformBroker) {
             this.logger.verbose(
                 "Response was from native broker, storing in-memory"
             );
@@ -1907,7 +1919,7 @@ export class StandardController implements IController {
                 atsMeasurement.end({
                     success: true,
                     fromCache: result.fromCache,
-                    isNativeBroker: result.fromNativeBroker,
+                    isNativeBroker: result.fromPlatformBroker,
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
                 });
@@ -2141,7 +2153,7 @@ export class StandardController implements IController {
                     this.performanceClient.addFields(
                         {
                             fromCache: response.fromCache,
-                            isNativeBroker: response.fromNativeBroker,
+                            isNativeBroker: response.fromPlatformBroker,
                         },
                         request.correlationId
                     );

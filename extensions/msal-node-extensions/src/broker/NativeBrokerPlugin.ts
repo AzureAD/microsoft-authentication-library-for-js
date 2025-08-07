@@ -572,7 +572,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             expiresOn: TimeUtils.toDateFromSeconds(authResult.expiresOn),
             tokenType: tokenType,
             correlationId: request.correlationId,
-            fromNativeBroker: true,
+            fromPlatformBroker: true,
         };
         return result;
     }

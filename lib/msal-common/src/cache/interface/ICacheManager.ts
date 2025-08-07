@@ -21,7 +21,7 @@ export interface ICacheManager {
      * fetch the account entity from the platform cache
      * @param accountKey
      */
-    getAccount(accountKey: string): AccountEntity | null;
+    getAccount(accountKey: string, correlationId: string): AccountEntity | null;
 
     /**
      * set account entity in the platform cache
@@ -46,7 +46,10 @@ export interface ICacheManager {
      * fetch the idToken entity from the platform cache
      * @param idTokenKey
      */
-    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
+    getIdTokenCredential(
+        idTokenKey: string,
+        correlationId: string
+    ): IdTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
@@ -61,7 +64,10 @@ export interface ICacheManager {
      * fetch the idToken entity from the platform cache
      * @param accessTokenKey
      */
-    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
+    getAccessTokenCredential(
+        accessTokenKey: string,
+        correlationId: string
+    ): AccessTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
@@ -77,7 +83,8 @@ export interface ICacheManager {
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(
-        refreshTokenKey: string
+        refreshTokenKey: string,
+        correlationId: string
     ): RefreshTokenEntity | null;
 
     /**
@@ -99,7 +106,7 @@ export interface ICacheManager {
      * set appMetadata entity to the platform cache
      * @param appMetadata
      */
-    setAppMetadata(appMetadata: AppMetadataEntity): void;
+    setAppMetadata(appMetadata: AppMetadataEntity, correlationId: string): void;
 
     /**
      * fetch server telemetry entity from the platform cache
@@ -116,7 +123,8 @@ export interface ICacheManager {
      */
     setServerTelemetry(
         serverTelemetryKey: string,
-        serverTelemetry: ServerTelemetryEntity
+        serverTelemetry: ServerTelemetryEntity,
+        correlationId: string
     ): void;
 
     /**
@@ -162,13 +170,14 @@ export interface ICacheManager {
      */
     setThrottlingCache(
         throttlingCacheKey: string,
-        throttlingCache: ThrottlingEntity
+        throttlingCache: ThrottlingEntity,
+        correlationId: string
     ): void;
 
     /**
      * Returns all accounts in cache
      */
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(filter: AccountFilter, correlationId: string): AccountInfo[];
 
     /**
      * saves a cache record
@@ -186,13 +195,19 @@ export interface ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredBy(filter: AccountFilter): AccountEntity[];
+    getAccountsFilteredBy(
+        filter: AccountFilter,
+        correlationId: string
+    ): AccountEntity[];
 
     /**
      * Get AccountInfo object based on provided filters
      * @param filter
      */
-    getAccountInfoFilteredBy(filter: AccountFilter): AccountInfo | null;
+    getAccountInfoFilteredBy(
+        filter: AccountFilter,
+        correlationId: string
+    ): AccountInfo | null;
 
     /**
      * Removes all accounts and related tokens from cache.
@@ -214,7 +229,7 @@ export interface ICacheManager {
     /**
      * @param key
      */
-    removeIdToken(key: string): void;
+    removeIdToken(key: string, correlationId: string): void;
 
     /**
      * @param key
@@ -224,5 +239,5 @@ export interface ICacheManager {
     /**
      * @param key
      */
-    removeRefreshToken(key: string): void;
+    removeRefreshToken(key: string, correlationId: string): void;
 }

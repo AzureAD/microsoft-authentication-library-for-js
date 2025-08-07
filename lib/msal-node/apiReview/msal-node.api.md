@@ -601,7 +601,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
-    getAllAccounts(): Promise<AccountInfo[]>;
+    getAllAccounts(correlationId?: string): Promise<AccountInfo[]>;
     getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;

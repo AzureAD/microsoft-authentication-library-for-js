@@ -1557,7 +1557,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expiresOn: response && response.expiresOn, // Steal the expires on from the response as this is variable
                 account: TEST_ACCOUNT_INFO,
                 tokenType: Constants.AuthenticationScheme.BEARER,
-                fromNativeBroker: true,
+                fromPlatformBroker: true,
             };
             expect(response).toEqual(testTokenResponse);
         });
@@ -1609,7 +1609,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expiresOn: response && response.expiresOn, // Steal the expires on from the response as this is variable
                 account: TEST_ACCOUNT_INFO,
                 tokenType: Constants.AuthenticationScheme.BEARER,
-                fromNativeBroker: true,
+                fromPlatformBroker: true,
             };
             expect(response).toEqual(testTokenResponse);
         });

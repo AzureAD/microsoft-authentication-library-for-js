@@ -40,7 +40,7 @@ import { InteractionRequiredAuthError } from "../../src/error/InteractionRequire
 import { ServerError } from "../../src/error/ServerError.js";
 import { CacheError, CacheErrorCodes } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
-import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
+import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
@@ -79,6 +79,7 @@ const testIdTokenClaims: TokenClaims = {
     oid: "00000000-0000-0000-66f3-3332eca7ea81",
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
+    login_hint: "testLoginHint",
 };
 const testAccount: AccountInfo = {
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
@@ -86,6 +87,7 @@ const testAccount: AccountInfo = {
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
     username: testIdTokenClaims.preferred_username || "",
+    loginHint: testIdTokenClaims.login_hint,
 };
 
 const authorityOptions: AuthorityOptions = {
@@ -143,6 +145,7 @@ describe("ResponseHandler.ts", () => {
             environment: "login.windows.net",
             tenantId: "testTenantId",
             username: "test@contoso.com",
+            loginHint: "testLoginHint",
         });
     });
 
@@ -832,7 +835,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(cacheQuotaExceededErrorCode)
+                    getDefaultErrorMessage(cacheQuotaExceeded)
                 );
             }
         });
@@ -878,7 +881,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(cacheQuotaExceededErrorCode)
+                    getDefaultErrorMessage(cacheQuotaExceeded)
                 );
             }
         });
@@ -966,12 +969,10 @@ describe("ResponseHandler.ts", () => {
                 expect(e).toBeInstanceOf(CacheError);
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual(
-                    CacheErrorCodes.cacheUnknownErrorCode
+                    CacheErrorCodes.cacheErrorUnknown
                 );
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(
-                        CacheErrorCodes.cacheUnknownErrorCode
-                    )
+                    getDefaultErrorMessage(CacheErrorCodes.cacheErrorUnknown)
                 );
             }
         });

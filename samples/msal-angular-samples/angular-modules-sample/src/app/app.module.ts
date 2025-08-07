@@ -31,6 +31,7 @@ import {
   MSAL_INSTANCE,
   MSAL_INTERCEPTOR_CONFIG,
   MsalGuardConfiguration,
+  MsalRedirectComponent,
 } from '@azure/msal-angular';
 import { FailedComponent } from './failed/failed.component';
 import { environment } from 'src/environments/environment';
@@ -91,7 +92,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
         ProfileComponent,
         FailedComponent,
     ],
-    bootstrap: [AppComponent], 
+    bootstrap: [AppComponent, MsalRedirectComponent], 
     imports: [
         BrowserModule,
         NoopAnimationsModule, // Animations cause delay which interfere with E2E tests

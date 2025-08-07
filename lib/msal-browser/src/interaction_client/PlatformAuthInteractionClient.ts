@@ -265,9 +265,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
         // fetch the account from browser cache
-        const account = this.browserStorage.getBaseAccountInfo({
-            nativeAccountId,
-        });
+        const account = this.browserStorage.getBaseAccountInfo(
+            {
+                nativeAccountId,
+            },
+            request.correlationId
+        );
 
         if (!account) {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
@@ -457,9 +460,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         const cachedhomeAccountId =
-            this.browserStorage.getAccountInfoFilteredBy({
-                nativeAccountId: request.accountId,
-            })?.homeAccountId;
+            this.browserStorage.getAccountInfoFilteredBy(
+                {
+                    nativeAccountId: request.accountId,
+                },
+                this.correlationId
+            )?.homeAccountId;
 
         // add exception for double brokering, please note this is temporary and will be fortified in future
         if (
@@ -487,13 +493,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             authority,
             homeAccountIdentifier,
             base64Decode,
+            this.correlationId,
             idTokenClaims,
             response.client_info,
             undefined, // environment
             idTokenClaims.tid,
             undefined, // auth code payload
-            response.account.id,
-            this.logger
+            response.account.id
         );
 
         // Ensure expires_in is in number format
@@ -691,7 +697,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             tokenType: tokenType,
             correlationId: this.correlationId,
             state: response.state,
-            fromNativeBroker: true,
+            fromPlatformBroker: true,
         };
 
         return result;

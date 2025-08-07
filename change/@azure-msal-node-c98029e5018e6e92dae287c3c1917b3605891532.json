@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Drop support for Node 18 and below, add support for Node 24",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}
