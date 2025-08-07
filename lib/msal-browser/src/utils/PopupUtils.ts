@@ -4,7 +4,6 @@
  */
 
 import { Constants, Logger } from "@azure/msal-common";
-import { BrowserConfiguration } from "../config/Configuration.js";
 import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
@@ -18,7 +17,8 @@ import {
 export async function monitorPopupForHash(
     popupWindow: Window,
     popupWindowParent: Window,
-    config: BrowserConfiguration,
+    responseMode: Constants.ResponseMode,
+    pollIntervalMilliseconds: number,
     logger: Logger,
     unloadWindow: (e: Event) => void
 ): Promise<string> {
@@ -55,9 +55,8 @@ export async function monitorPopupForHash(
             clearInterval(intervalId);
 
             let responseString = "";
-            const responseType = config.auth.OIDCOptions.responseMode;
             if (popupWindow) {
-                if (responseType === Constants.ResponseMode.QUERY) {
+                if (responseMode === Constants.ResponseMode.QUERY) {
                     responseString = popupWindow.location.search;
                 } else {
                     responseString = popupWindow.location.hash;
@@ -69,7 +68,7 @@ export async function monitorPopupForHash(
             );
 
             resolve(responseString);
-        }, config.system.pollIntervalMilliseconds);
+        }, pollIntervalMilliseconds);
     }).finally(() => {
         cleanPopup(popupWindow, popupWindowParent, unloadWindow);
     });

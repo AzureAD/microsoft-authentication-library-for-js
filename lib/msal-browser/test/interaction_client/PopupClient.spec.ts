@@ -1792,7 +1792,8 @@ describe("PopupClient", () => {
             PopupUtils.monitorPopupForHash(
                 popup,
                 window,
-                clientImpl.config,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
                 clientImpl.unloadWindow
             ).catch((error) => {
@@ -1820,7 +1821,8 @@ describe("PopupClient", () => {
             PopupUtils.monitorPopupForHash(
                 popup,
                 window,
-                clientImpl.config,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
                 clientImpl.unloadWindow
             ).then((hash) => {
@@ -1882,7 +1884,8 @@ describe("PopupClient", () => {
             const result = await PopupUtils.monitorPopupForHash(
                 popup as Window,
                 window,
-                clientImpl.config,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
                 clientImpl.unloadWindow
             ).catch((e) => {
@@ -1910,7 +1913,8 @@ describe("PopupClient", () => {
             PopupUtils.monitorPopupForHash(
                 popup as unknown as Window,
                 window,
-                clientImpl.config,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
                 clientImpl.unloadWindow
             ).then((hash: string) => {
@@ -1973,7 +1977,8 @@ describe("PopupClient", () => {
             const result = await PopupUtils.monitorPopupForHash(
                 popup as unknown as Window,
                 window,
-                clientImpl.config,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
                 clientImpl.unloadWindow
             );
@@ -1994,7 +1999,8 @@ describe("PopupClient", () => {
             PopupUtils.monitorPopupForHash(
                 popup as unknown as Window,
                 window,
-                clientImpl.config,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
                 clientImpl.unloadWindow
             ).catch((error: AuthError) => {

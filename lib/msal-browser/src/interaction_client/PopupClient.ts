@@ -343,7 +343,8 @@ export class PopupClient extends StandardInteractionClient {
             const responseString = await monitorPopupForHash(
                 popupWindow,
                 popupParams.popupWindowParent,
-                this.config,
+                this.config.auth.OIDCOptions.responseMode,
+                this.config.system.pollIntervalMilliseconds,
                 this.logger,
                 this.unloadWindow
             );
@@ -448,7 +449,7 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            monitorPopupForHash.bind(this),
+            monitorPopupForHash,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
@@ -456,7 +457,8 @@ export class PopupClient extends StandardInteractionClient {
         )(
             popupWindow,
             popupParams.popupWindowParent,
-            this.config,
+            this.config.auth.OIDCOptions.responseMode,
+            this.config.system.pollIntervalMilliseconds,
             this.logger,
             this.unloadWindow
         );
@@ -610,7 +612,8 @@ export class PopupClient extends StandardInteractionClient {
             await monitorPopupForHash(
                 popupWindow,
                 popupParams.popupWindowParent,
-                this.config,
+                this.config.auth.OIDCOptions.responseMode,
+                this.config.system.pollIntervalMilliseconds,
                 this.logger,
                 this.unloadWindow
             ).catch(() => {
