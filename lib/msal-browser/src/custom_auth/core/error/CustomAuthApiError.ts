@@ -14,7 +14,7 @@ export class RedirectError extends CustomAuthError {
         super(
             "redirect",
             redirectReason ||
-                "No required authentication method by Microsoft Entra is supported, a fallback to the web-based authentication flow is needed.",
+                "Redirect Error, a fallback to the browser-delegated authentication is needed. Use loginPopup instead.",
             correlationId
         );
         Object.setPrototypeOf(this, RedirectError.prototype);
