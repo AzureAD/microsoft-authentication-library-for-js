@@ -5,21 +5,20 @@
 
 import {
     AccountInfo,
-    AuthenticationScheme,
+    Constants,
     CredentialEntity,
-    CredentialType,
 } from "@azure/msal-common/node";
 import { CACHE } from "../utils/Constants.js";
 
 export function generateCredentialKey(credential: CredentialEntity): string {
     const familyId =
-        (credential.credentialType === CredentialType.REFRESH_TOKEN &&
+        (credential.credentialType === Constants.CredentialType.REFRESH_TOKEN &&
             credential.familyId) ||
         credential.clientId;
     const scheme =
         credential.tokenType &&
         credential.tokenType.toLowerCase() !==
-            AuthenticationScheme.BEARER.toLowerCase()
+            Constants.AuthenticationScheme.BEARER.toLowerCase()
             ? credential.tokenType.toLowerCase()
             : "";
     const credentialKey = [

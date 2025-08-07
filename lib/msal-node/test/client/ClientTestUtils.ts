@@ -80,7 +80,9 @@ export class MockStorageClass extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = this.generateAccountKey(AccountEntityUtils.getAccountInfo(value));
+        const key = this.generateAccountKey(
+            AccountEntityUtils.getAccountInfo(value)
+        );
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
