@@ -285,6 +285,15 @@ export abstract class CacheManager implements ICacheManager {
         accountFilter: AccountFilter,
         correlationId: string
     ): AccountInfo | null {
+        if (
+            Object.keys(accountFilter).length === 0 ||
+            Object.values(accountFilter).every((value) => !value)
+        ) {
+            this.commonLogger.warning(
+                "getAccountInfoFilteredBy: Account filter is empty or invalid, returning null"
+            );
+            return null;
+        }
         const allAccounts = this.getAllAccounts(accountFilter, correlationId);
         if (allAccounts.length > 1) {
             // If one or more accounts are found, prioritize accounts that have an ID token

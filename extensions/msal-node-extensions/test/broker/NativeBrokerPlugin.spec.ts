@@ -1,6 +1,9 @@
 jest.mock("@azure/msal-node-runtime", () => {
+    const actual = jest.requireActual("@azure/msal-node-runtime");
     return {
+        ...actual,
         msalNodeRuntime: {
+            ...actual.msalNodeRuntime,
             SignInSilentlyAsync: jest.fn(),
             SignInAsync: jest.fn(),
             AcquireTokenSilentlyAsync: jest.fn(),
@@ -19,18 +22,6 @@ jest.mock("@azure/msal-node-runtime", () => {
                 SetPopParams: jest.fn(),
                 SetAdditionalParameter: jest.fn(),
             })),
-        },
-        ErrorStatus: {
-            Unexpected: 0,
-            InteractionRequired: 1,
-            AccountUnusable: 2,
-            NoNetwork: 3,
-            NetworkTemporarilyUnavailable: 4,
-            ServerTemporarilyUnavailable: 5,
-            UserCanceled: 6,
-            AuthorityUntrusted: 7,
-            UserSwitched: 8,
-            AccountNotFound: 9,
         },
     };
 });
@@ -95,9 +86,12 @@ function createMockAuthResult(
 
 if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
+        const enhancedErrorContext = msalRuntimeExampleError.errorContext
+            ? `${msalRuntimeExampleError.errorContext} (Error Code: ${msalRuntimeExampleError.errorCode}, Tag: ${msalRuntimeExampleError.errorTag})`
+            : `(Error Code: ${msalRuntimeExampleError.errorCode}, Tag: ${msalRuntimeExampleError.errorTag})`;
         const testNativeAuthError = new NativeAuthError(
             ErrorStatus[msalRuntimeExampleError.errorStatus],
-            msalRuntimeExampleError.errorContext,
+            enhancedErrorContext,
             msalRuntimeExampleError.errorCode,
             msalRuntimeExampleError.errorTag
         );
