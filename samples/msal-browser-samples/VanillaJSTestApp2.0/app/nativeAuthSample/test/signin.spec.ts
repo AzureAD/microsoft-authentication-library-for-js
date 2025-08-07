@@ -18,13 +18,13 @@ import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(
-    __dirname,
-    "./screenshots/signin"
-);
-const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45; // Standard timeout for operations
-const AUTH_TIMEOUT = ONE_SECOND_IN_MS * 60; // Extended timeout for auth operations
-const TEST_TIMEOUT = ONE_SECOND_IN_MS * 120; // Test suite timeout
+import { testConfig, getTenantInfo, getProxyPort } from "./testConfig";
+
+// Use configuration instead of hardcoded values
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/signin");
+const STANDARD_TIMEOUT = testConfig.timeouts.standard;
+const AUTH_TIMEOUT = testConfig.timeouts.auth;
+const TEST_TIMEOUT = testConfig.timeouts.test;
 let sampleHomeUrl = "";
 
 describe("Native Auth Sample - Sign In Tests", () => {
@@ -38,24 +38,27 @@ describe("Native Auth Sample - Sign In Tests", () => {
     let corsProcess: ChildProcess;
 
     beforeAll(async () => {
-        // Start the CORS proxy server using the utility function
+        // Start the CORS proxy server using configuration values
+        const tenantInfo = getTenantInfo();
         corsProcess = await startCorsProxy(
-            "MSIDLABCIAM6", 
-            "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
-            30001
+            tenantInfo.name,
+            tenantInfo.id,
+            getProxyPort()
         );
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        if (testConfig.screenshots.enabled) {
+            createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        }
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
 
         const labClient = new LabClient();
 
-        signInEmailWithPwd = "nativeauthuser1@1secmail.org";
-        const accountCredential = await labClient.getSecret("MSIDLABCIAM6");
+        // Use configuration for test user emails
+        signInEmailWithPwd = testConfig.testUsers.signInEmailWithPwd;
+        const accountCredential = await labClient.getSecret(testConfig.testUsers.labSecretName);
         accountPwd = accountCredential.value;
-        signInEmailWithOtp = "nativeauthuser5@chefalicious.com";
-        console.log("Test setup complete");
+        signInEmailWithOtp = testConfig.testUsers.signInEmailWithOtp;
     });
 
     afterAll(async () => {
@@ -72,7 +75,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
         BrowserCache = new BrowserCacheUtils(
             page,
             "sessionStorage" // Based on Native Auth Sample configuration
-        ); // Navigate to the Native Auth Sample home page and wait for network idle to ensure full page load
+        );
     });
 
     afterEach(async () => {
@@ -91,7 +94,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
             await page.goto(sampleHomeUrl + `?usePwdConfig=true`);
 
             // Wait for the application to initialize
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
             // Verify that no user signed in initially
             const authStatusBanner = await page.$eval(
@@ -125,89 +128,97 @@ describe("Native Auth Sample - Sign In Tests", () => {
             expect(isSignInCardVisible).toBe(true);
         });
 
-        it(
-            "User enters username and correct password",
-            async () => {
-                const testName = "signInFormDisplay";
-                const screenshot = new Screenshot(
-                    `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-                );
+        it("User enters username and correct password", async () => {
+            const testName = "signInFormDisplay";
+            let screenshot: Screenshot | undefined;
+            
+            if (testConfig.screenshots.enabled) {
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            }
 
-                // Enter username in the sign-in form and click sign-in button
-                await page.waitForSelector("#username", { visible: true });
-                await page.type("#username", signInEmailWithPwd);
+            // Enter username in the sign-in form and click sign-in button
+            await page.waitForSelector("#username", { visible: true });
+            await page.type("#username", signInEmailWithPwd);
 
-                // Make sure sign-in button is visible and clickable
-                await page.waitForSelector("#signInBtn", { visible: true });
+            // Make sure sign-in button is visible and clickable
+            await page.waitForSelector("#signInBtn", { visible: true });
 
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const signInButton = document.getElementById("signInBtn");
-                    if (signInButton) {
-                        signInButton.click();
-                    } else {
-                        throw new Error("Sign in button not found in the DOM");
-                    }
-                });
+            // Use evaluate to click to avoid potential click issues
+            await page.evaluate(() => {
+                const signInButton = document.getElementById("signInBtn");
+                if (signInButton) {
+                    signInButton.click();
+                } else {
+                    throw new Error("Sign in button not found in the DOM");
+                }
+            });
+            if (screenshot) {
                 await screenshot.takeScreenshot(page, "signInButtonClicked");
+            }
 
-                // Wait for password input card to appear
-                await page.waitForSelector("#passwordInputCard");
+            // Wait for password input card to appear
+            await page.waitForSelector("#passwordInputCard");
+            if (screenshot) {
                 await screenshot.takeScreenshot(page, "passwordInputDisplayed");
+            }
 
-                // Enter password and submit - ensure password field is fully visible first
-                await page.waitForSelector("#signInPassword", {
-                    visible: true,
-                });
-                await page.type("#signInPassword", accountPwd);
+            // Enter password and submit - ensure password field is fully visible first
+            await page.waitForSelector("#signInPassword", {
+                visible: true,
+            });
+            await page.type("#signInPassword", accountPwd);
+            if (screenshot) {
                 await screenshot.takeScreenshot(page, "passwordInputEntered");
+            }
 
-                // Wait for the submit button to be visible and enabled
-                await page.waitForSelector("#submitPasswordBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                // Use evaluate to ensure a clean click operation rather than direct page.click()
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitPasswordBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error("Submit button not found in the DOM");
-                    }
-                });
+            // Wait for the submit button to be visible and enabled
+            await page.waitForSelector("#submitPasswordBtn:enabled", {
+                visible: true,
+                timeout: 15000,
+            });
+            // Use evaluate to ensure a clean click operation rather than direct page.click()
+            await page.evaluate(() => {
+                const submitButton =
+                    document.getElementById("submitPasswordBtn");
+                if (submitButton) {
+                    submitButton.click();
+                } else {
+                    throw new Error("Submit button not found in the DOM");
+                }
+            });
+            if (screenshot) {
                 await screenshot.takeScreenshot(page, "passwordSubmitted");
+            }
 
-                // Wait for successful sign-in (check for both auth status banner and account info)
-                // Use a more reliable indicator with longer timeout since authentication can take time
-                await page.waitForFunction(
-                    () => {
-                        // Check auth status banner
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        const isSignedIn =
-                            authStatusBanner &&
-                            authStatusBanner.textContent?.includes("Signed in");
-                        return isSignedIn;
-                    },
-                    { timeout: 30000 } // Increase timeout for more reliability
-                );
-                const tokenStore = await BrowserCache.getTokens();
-                expect(tokenStore.idTokens).toHaveLength(1);
-                expect(tokenStore.accessTokens).toHaveLength(1);
-                expect(tokenStore.refreshTokens).toHaveLength(1);
-                expect(await BrowserCache.getAccountFromCache()).toBeDefined();
-                expect(
-                    await BrowserCache.accessTokenForScopesExists(
-                        tokenStore.accessTokens,
-                        ["openid", "profile", "user.read"]
-                    )
-                ).toBeTruthy();
+            // Wait for successful sign-in (check for both auth status banner and account info)
+            // Use a more reliable indicator with longer timeout since authentication can take time
+            await page.waitForFunction(
+                () => {
+                    // Check auth status banner
+                    const authStatusBanner =
+                        document.getElementById("authStatusBanner");
+                    const isSignedIn =
+                        authStatusBanner &&
+                        authStatusBanner.textContent?.includes("Signed in");
+                    return isSignedIn;
+                },
+                { timeout: 30000 } // Increase timeout for more reliability
+            );
+            const tokenStore = await BrowserCache.getTokens();
+            expect(tokenStore.idTokens).toHaveLength(1);
+            expect(tokenStore.accessTokens).toHaveLength(1);
+            expect(tokenStore.refreshTokens).toHaveLength(1);
+            expect(await BrowserCache.getAccountFromCache()).toBeDefined();
+            expect(
+                await BrowserCache.accessTokenForScopesExists(
+                    tokenStore.accessTokens,
+                    ["openid", "profile", "user.read"]
+                )
+            ).toBeTruthy();
+            if (screenshot) {
                 await screenshot.takeScreenshot(page, "signInSuccessful");
-            },
-            AUTH_TIMEOUT
-        );
+            }
+        }, AUTH_TIMEOUT);
 
         it(
             "User enters username and incorrect password",
@@ -409,7 +420,6 @@ describe("Native Auth Sample - Sign In Tests", () => {
                     "#errorMessage",
                     (el) => el.textContent
                 );
-                console.log("Error message:", errorMessage);
                 expect(errorMessage).toContain(
                     "Error: user_already_signed_in:"
                 );
@@ -674,11 +684,8 @@ describe("Native Auth Sample - Sign In Tests", () => {
             await page.goto(
                 sampleHomeUrl + `?useOtpConfig=true&useRedirectConfig=true`
             );
-            console.log("Navigated to URL with redirect config");
-
             // Wait for the application to initialize with a longer timeout
             await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            console.log("Application initialized");
 
             // Verify that no user signed in initially
             const authStatusBanner = await page.$eval(
@@ -696,40 +703,19 @@ describe("Native Auth Sample - Sign In Tests", () => {
             // Verify sign-in button is visible on the navigation bar
             const showSignInBtn = await page.$("#showSignInBtn");
             expect(showSignInBtn).toBeTruthy();
-            console.log("Sign-in button found");
 
             // Click sign-in button on the navigation bar
             await page.click("#showSignInBtn");
-            console.log("Clicked sign-in button");
 
             // Verify sign-in card is visible
             const signInCard = await page.$("#signInCard");
             expect(signInCard).toBeTruthy();
-            console.log("Sign-in card is visible");
 
             // Verify sign-in form elements are present
             const usernameInput = await page.$("#username");
             const signInButton = await page.$("#signInBtn");
             expect(usernameInput).toBeTruthy();
             expect(signInButton).toBeTruthy();
-            console.log("Sign-in form elements are present");
-
-            // Log the challenge types currently configured
-            await page.evaluate(() => {
-                // Use type casting for TypeScript
-                const customWindow = window as any;
-                if (
-                    customWindow.msalConfig &&
-                    customWindow.msalConfig.customAuth
-                ) {
-                    console.log(
-                        "Current challenge types:",
-                        JSON.stringify(
-                            customWindow.msalConfig.customAuth.challengeTypes
-                        )
-                    );
-                }
-            });
         });
 
         it(

@@ -12,19 +12,22 @@ import {
     BrowserCacheUtils,
     ONE_SECOND_IN_MS,
     LabClient,
-    getHomeUrl
+    getHomeUrl,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "./screenshots/reserpassword");
-const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45; // Standard timeout for operations
-const AUTH_TIMEOUT = ONE_SECOND_IN_MS * 60; // Extended timeout for auth operations
-const TEST_TIMEOUT = ONE_SECOND_IN_MS * 120; // Test suite timeout
+import { testConfig, getTenantInfo, getProxyPort } from "./testConfig";
+
+// Use configuration instead of hardcoded values
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/resetpassword");
+const STANDARD_TIMEOUT = testConfig.timeouts.standard;
+const AUTH_TIMEOUT = testConfig.timeouts.auth;
+const TEST_TIMEOUT = testConfig.timeouts.test;
 let sampleHomeUrl = "";
 
-describe("Native Auth Sample - Reser Password Tests", () => {
+describe("Native Auth Sample - Reset Password Tests", () => {
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
@@ -35,22 +38,25 @@ describe("Native Auth Sample - Reser Password Tests", () => {
     
 
     beforeAll(async () => {
-        // Start the CORS proxy server using the utility function
+        // Start the CORS proxy server using configuration values
+        const tenantInfo = getTenantInfo();
         corsProcess = await startCorsProxy(
-            "MSIDLABCIAM6", 
-            "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
-            30001
+            tenantInfo.name,
+            tenantInfo.id,
+            getProxyPort()
         );
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        if (testConfig.screenshots.enabled) {
+            createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        }
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
 
-        let labClient = new LabClient();
+        const labClient = new LabClient();
 
-        // this will be replaced with the actual email and password used for testing
-        resetPasswordEmailWithPwd = 'nativeauthuser1@1secmail.org';
-        resetPasswordEmailWithOtp = 'nativeauthuser5@chefalicious.com';
+        // Use configuration for test user emails
+        resetPasswordEmailWithPwd = testConfig.testUsers.signInEmailWithPwd;
+        resetPasswordEmailWithOtp = testConfig.testUsers.signInEmailWithOtp;
     });
 
     afterAll(async () => {
@@ -115,9 +121,11 @@ describe("Native Auth Sample - Reser Password Tests", () => {
 
         it("User reset password with incorrect otp", async () => {
             const testName = "resetPasswordFormDisplay";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+            let screenshot: Screenshot | undefined;
+            
+            if (testConfig.screenshots.enabled) {
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            }
 
             // Enter username in the reset password form and click reset password button
             await page.waitForSelector("#resetPasswordEmail", { visible: true });
@@ -230,11 +238,9 @@ describe("Native Auth Sample - Reser Password Tests", () => {
         beforeEach(async () => {
             // Use useRedirectConfig=true to ensure the app initializes with redirect-only challenge types
             await page.goto(sampleHomeUrl + `?usePwdConfig=true&useRedirectConfig=true`);
-            console.log("Navigated to URL with redirect config");
 
             // Wait for the application to initialize with a longer timeout
             await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            console.log("Application initialized");
 
             // Verify reset password button is visible on the navigation bar
             const showResetPasswordButton = await page.$("#showResetPasswordBtn");

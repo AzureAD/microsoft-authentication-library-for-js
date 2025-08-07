@@ -12,16 +12,19 @@ import {
     BrowserCacheUtils,
     ONE_SECOND_IN_MS,
     LabClient,
-    getHomeUrl
+    getHomeUrl,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "./screenshots/signup");
-const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45; // Standard timeout for operations
-const AUTH_TIMEOUT = ONE_SECOND_IN_MS * 60; // Extended timeout for auth operations
-const TEST_TIMEOUT = ONE_SECOND_IN_MS * 120; // Test suite timeout
+import { testConfig, getTenantInfo, getProxyPort } from "./testConfig";
+
+// Use configuration instead of hardcoded values
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/signup");
+const STANDARD_TIMEOUT = testConfig.timeouts.standard;
+const AUTH_TIMEOUT = testConfig.timeouts.auth;
+const TEST_TIMEOUT = testConfig.timeouts.test;
 let sampleHomeUrl = "";
 
 describe("Native Auth Sample - Sign Up Tests", () => {
@@ -38,27 +41,31 @@ describe("Native Auth Sample - Sign Up Tests", () => {
     let corsProcess: ChildProcess;
 
     beforeAll(async () => {
-        // Start the CORS proxy server using the utility function
+        // Start the CORS proxy server using configuration values
+        const tenantInfo = getTenantInfo();
         corsProcess = await startCorsProxy(
-            "MSIDLABCIAM6", 
-            "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
-            30001
+            tenantInfo.name,
+            tenantInfo.id,
+            getProxyPort()
         );
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        if (testConfig.screenshots.enabled) {
+            createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        }
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
 
-        let labClient = new LabClient();
+        const labClient = new LabClient();
 
-        // this will be replaced with the actual email and password used for testing
+        // Use configuration for test user emails
         signUpEmailWithPwd = "test-pwd@test.com"
         signUpEmailWithOtp = "test-otp@test.com"
-        existingPwdEmail = 'nativeauthuser1@1secmail.org';
+        existingPwdEmail = testConfig.testUsers.signInEmailWithPwd;
 
         testFirstName = "TestFirstName";
         testLastName = "TestLastName";
-        accountPwd = "Password123!";
+        const accountCredential = await labClient.getSecret(testConfig.testUsers.labSecretName);
+        accountPwd = accountCredential.value;
     });
 
     afterAll(async () => {
@@ -123,9 +130,11 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
         it("User enters username, attributes to start sign-up flow, and enter the incorrect otp", async () => {
             const testName = "signUpFormDisplay";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+            let screenshot: Screenshot | undefined;
+            
+            if (testConfig.screenshots.enabled) {
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            }
 
             // Enter username in the sign-up form and click sign-up button
             await page.waitForSelector("#signUpFirstName", { visible: true });
@@ -148,22 +157,32 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     throw new Error("Sign up button not found in the DOM");
                 }
             });
-            await screenshot.takeScreenshot(page, "signUpButtonClicked");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "signUpButtonClicked");
+            }
 
             // Wait for code input card to appear
             await page.waitForSelector("#codeVerificationCard");
-            await screenshot.takeScreenshot(page, "codeVerificationCardDisplayed");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "codeVerificationCardDisplayed");
+            }
 
             // Enter code and submit - ensure code field is fully visible first
             await page.waitForSelector("#verificationCode", { visible: true });
             await page.type("#verificationCode", "12345678"); // Enter incorrect code
-            await screenshot.takeScreenshot(page, "verificationCodeEntered");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "verificationCodeEntered");
+            }
             await page.click("#submitCodeBtn");
-            await screenshot.takeScreenshot(page, "submitCodeButtonClicked");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "submitCodeButtonClicked");
+            }
             // Wait for error message to appear
             // Wait for the error banner to appear with increased timeout
             await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "errorBannerDisplayed");
+            }
 
             // Verify error banner content
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
@@ -172,9 +191,11 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
         it("User sign up with existing username", async () => {
             const testName = "signUpWithExistingUsername";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+            let screenshot: Screenshot | undefined;
+            
+            if (testConfig.screenshots.enabled) {
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            }
 
             // Enter username in the sign-up form and click sign-up button
             await page.waitForSelector("#signUpFirstName", { visible: true });
@@ -197,16 +218,22 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     throw new Error("Sign up button not found in the DOM");
                 }
             });
-            await screenshot.takeScreenshot(page, "signUpButtonClicked");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "signUpButtonClicked");
+            }
 
             // Wait for code input card to appear
             await page.waitForSelector("#codeVerificationCard");
-            await screenshot.takeScreenshot(page, "codeVerificationCardDisplayed");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "codeVerificationCardDisplayed");
+            }
 
             // Wait for error message to appear
             // Wait for the error banner to appear with increased timeout
             await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "errorBannerDisplayed");
+            }
 
             // Verify error banner content
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
@@ -218,59 +245,47 @@ describe("Native Auth Sample - Sign Up Tests", () => {
         beforeEach(async () => {
             // Use useRedirectConfig=true to ensure the app initializes with redirect-only challenge types
             await page.goto(sampleHomeUrl + `?useOtpConfig=true&useRedirectConfig=true`);
-            console.log("Navigated to URL with redirect config");
 
             // Wait for the application to initialize with a longer timeout
             await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            console.log("Application initialized");
 
             // Verify that no user signed in initially
             const authStatusBanner = await page.$eval("#authStatusBanner", (el) => el.textContent);
             expect(authStatusBanner).toContain("No user signed in");
             
             // Take a screenshot of the initialized state
-            const setupScreenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/setup`
-            );
-            await setupScreenshot.takeScreenshot(page, "appInitialized");
+            if (testConfig.screenshots.enabled) {
+                const setupScreenshot = new Screenshot(
+                    `${SCREENSHOT_BASE_FOLDER_NAME}/setup`
+                );
+                await setupScreenshot.takeScreenshot(page, "appInitialized");
+            }
             
             // Verify sign-up button is visible on the navigation bar
             const showSignUpBtn = await page.$("#showSignUpBtn");
             expect(showSignUpBtn).toBeTruthy();
-            console.log("Sign-up button found");
 
             // Click sign-up button on the navigation bar
             await page.click("#showSignUpBtn");
-            console.log("Clicked sign-up button");
 
             // Verify sign-up card is visible
             const signUpCard = await page.$("#signUpCard");
             expect(signUpCard).toBeTruthy();
-            console.log("Sign-up card is visible");
 
             // Verify sign-up form elements are present
             const usernameInput = await page.$("#signUpUsername");
             const signUpButton = await page.$("#signUpBtn");
             expect(usernameInput).toBeTruthy();
             expect(signUpButton).toBeTruthy();
-            console.log("Sign-up form elements are present");
-            
-            // Log the challenge types currently configured
-            await page.evaluate(() => {
-                // Use type casting for TypeScript
-                const customWindow = window as any;
-                if (customWindow.msalConfig && customWindow.msalConfig.customAuth) {
-                    console.log("Current challenge types:", 
-                        JSON.stringify(customWindow.msalConfig.customAuth.challengeTypes));
-                }
-            });
         });
 
         it("User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)", async () => {
             const testName = "emailOtpSignUpRedirect";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
+            let screenshot: Screenshot | undefined;
+            
+            if (testConfig.screenshots.enabled) {
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            }
 
             // Enter email in the sign-up form and click sign-up button
             await page.waitForSelector("#signUpUsername", { visible: true });
@@ -288,11 +303,15 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     throw new Error("Sign up button not found in the DOM");
                 }
             });
-            await screenshot.takeScreenshot(page, "signUpButtonClicked");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "signUpButtonClicked");
+            }
 
             // Wait for the error banner to appear with increased timeout
             await page.waitForSelector("#errorBanner", { visible: true, timeout: 15000 });
-            await screenshot.takeScreenshot(page, "errorBannerDisplayed");
+            if (screenshot) {
+                await screenshot.takeScreenshot(page, "errorBannerDisplayed");
+            }
 
             // Verify error banner content
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);

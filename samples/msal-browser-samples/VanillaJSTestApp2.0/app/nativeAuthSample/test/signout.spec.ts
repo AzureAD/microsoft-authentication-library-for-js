@@ -12,16 +12,19 @@ import {
     BrowserCacheUtils,
     ONE_SECOND_IN_MS,
     LabClient,
-    getHomeUrl
+    getHomeUrl,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "./screenshots/signout");
-const STANDARD_TIMEOUT = ONE_SECOND_IN_MS * 45; // Standard timeout for operations
-const AUTH_TIMEOUT = ONE_SECOND_IN_MS * 60; // Extended timeout for auth operations
-const TEST_TIMEOUT = ONE_SECOND_IN_MS * 120; // Test suite timeout
+import { testConfig, getTenantInfo, getProxyPort } from "./testConfig";
+
+// Use configuration instead of hardcoded values
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/signout");
+const STANDARD_TIMEOUT = testConfig.timeouts.standard;
+const AUTH_TIMEOUT = testConfig.timeouts.auth;
+const TEST_TIMEOUT = testConfig.timeouts.test;
 let sampleHomeUrl = "";
 
 describe("Native Auth Sample - Sign Out Tests", () => {
@@ -34,23 +37,26 @@ describe("Native Auth Sample - Sign Out Tests", () => {
     let corsProcess: ChildProcess;
 
     beforeAll(async () => {
-        // Start the CORS proxy server using the utility function
+        // Start the CORS proxy server using configuration values
+        const tenantInfo = getTenantInfo();
         corsProcess = await startCorsProxy(
-            "MSIDLABCIAM6", 
-            "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
-            30001
+            tenantInfo.name,
+            tenantInfo.id,
+            getProxyPort()
         );
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        if (testConfig.screenshots.enabled) {
+            createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        }
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
         
-        let labClient = new LabClient();
+        const labClient = new LabClient();
 
-        signInEmailWithPwd = 'nativeauthuser1@1secmail.org';
-        const accountCredential = await labClient.getSecret('MSIDLABCIAM6');
+        // Use configuration for test user emails
+        signInEmailWithPwd = testConfig.testUsers.signInEmailWithPwd;
+        const accountCredential = await labClient.getSecret(testConfig.testUsers.labSecretName);
         accountPwd = accountCredential.value;
-        console.log("Test setup complete");
     });
 
     afterAll(async () => {
