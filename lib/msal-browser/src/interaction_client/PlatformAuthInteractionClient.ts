@@ -33,7 +33,6 @@ import {
     updateAccountTenantProfileData,
     CacheHelpers,
     buildAccountToCache,
-    InProgressPerformanceEvent,
     ServerTelemetryManager,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
