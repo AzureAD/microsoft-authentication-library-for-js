@@ -360,6 +360,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -487,6 +488,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -595,6 +597,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1286,6 +1289,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 
@@ -1376,6 +1380,7 @@ describe("PopupClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 idTokenClaims: testIdTokenClaims,
+                loginHint: testIdTokenClaims.login_hint,
             };
 
             const testAccount: AccountEntity = {
@@ -1480,6 +1485,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
 
             const testAccount: AccountEntity = {
@@ -2012,6 +2018,7 @@ describe("PopupClient", () => {
                 environment: "environment",
                 tenantId: "tenant",
                 username: "user",
+                loginHint: "loginHint",
             };
             const popupName = popupClient.generateLogoutPopupName({
                 account: testAccount,

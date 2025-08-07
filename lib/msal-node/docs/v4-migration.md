@@ -1,5 +1,8 @@
 # Migrating from MSAL Node v3 to v4
 
+## Dropped support for Node 16 and 18
+MSAL Node v4 no longer supports Node.js 16 or 18; you must use Node.js 20 or greater.
+
 ## Configuration Changes
 
 The `protocolMode` parameter is no longer an auth config option and is instead a system config option.

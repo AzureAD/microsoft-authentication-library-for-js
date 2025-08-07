@@ -46,6 +46,7 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
         tenantId: accountEntity.realm,
         username: accountEntity.username,
         localAccountId: accountEntity.localAccountId,
+        loginHint: accountEntity.loginHint,
         name: accountEntity.name,
         nativeAccountId: accountEntity.nativeAccountId,
         authorityType: accountEntity.authorityType,
@@ -122,6 +123,8 @@ export function createAccountEntity(
 
     const username = preferredUsername || email || "";
 
+    const loginHint = accountDetails.idTokenClaims?.login_hint;
+
     const realm =
         clientInfo?.utid ||
         getTenantIdFromIdTokenClaims(accountDetails.idTokenClaims) ||
@@ -152,6 +155,7 @@ export function createAccountEntity(
         localAccountId: localAccountId,
         username: username,
         authorityType: authorityType,
+        loginHint: loginHint,
         clientInfo: accountDetails.clientInfo,
         name: accountDetails.idTokenClaims?.name || "",
         lastModificationTime: undefined,
@@ -184,6 +188,7 @@ export function createAccountEntityFromAccountInfo(
         realm: accountInfo.tenantId,
         environment: accountInfo.environment,
         username: accountInfo.username,
+        loginHint: accountInfo.loginHint,
         name: accountInfo.name,
         cloudGraphHostName: cloudGraphHostName,
         msGraphHost: msGraphHost,
