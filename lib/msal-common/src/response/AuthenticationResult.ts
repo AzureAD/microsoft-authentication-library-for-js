@@ -43,5 +43,5 @@ export type AuthenticationResult = {
     cloudGraphHostName?: string;
     msGraphHost?: string;
     code?: string;
-    fromNativeBroker?: boolean;
+    fromPlatformBroker?: boolean;
 };

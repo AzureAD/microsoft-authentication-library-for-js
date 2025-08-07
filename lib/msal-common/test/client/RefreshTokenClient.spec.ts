@@ -19,6 +19,7 @@ import {
     CORS_RESPONSE_HEADERS,
     TEST_SSH_VALUES,
     BAD_TOKEN_ERROR_RESPONSE,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
 import * as Constants from "../../src/utils/Constants.js";
@@ -356,7 +357,10 @@ describe("RefreshTokenClient unit tests", () => {
                 testFamilyRefreshTokenEntity,
                 TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -1100,7 +1104,10 @@ describe("RefreshTokenClient unit tests", () => {
                 testFamilyRefreshTokenEntity,
                 TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -1284,6 +1291,7 @@ describe("RefreshTokenClient unit tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "testname@contoso.com",
+                loginHint: "testLoginHint",
             };
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = {
@@ -1409,7 +1417,10 @@ describe("RefreshTokenClient unit tests", () => {
                 rtEntity,
                 TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             const mockPerfClient = new MockPerformanceClient();
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "test-measurement",
@@ -1453,7 +1464,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(rtEntity);
 
@@ -1463,7 +1475,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(null);
 

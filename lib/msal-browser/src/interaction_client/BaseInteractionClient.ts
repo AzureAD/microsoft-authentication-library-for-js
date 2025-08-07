@@ -224,12 +224,12 @@ export async function clearCacheOnLogout(
         if (
             AccountEntityUtils.accountInfoIsEqual(
                 account,
-                browserStorage.getActiveAccount(),
+                browserStorage.getActiveAccount(correlationId),
                 false
             )
         ) {
             logger.verbose("Setting active account to null");
-            browserStorage.setActiveAccount(null);
+            browserStorage.setActiveAccount(null, correlationId);
         }
         // Clear given account.
         try {
@@ -252,7 +252,7 @@ export async function clearCacheOnLogout(
                 correlationId
             );
             // Clear all accounts and tokens
-            await browserStorage.clear(correlationId);
+            browserStorage.clear(correlationId);
             // Clear any stray keys from IndexedDB
             await browserCrypto.clearKeystore();
         } catch (e) {

@@ -336,7 +336,8 @@ export async function initializeAuthorizationRequest(
         return validatedRequest;
     }
 
-    const account = request.account || browserStorage.getActiveAccount();
+    const account =
+        request.account || browserStorage.getActiveAccount(correlationId);
     if (account) {
         logger.verbose("Setting validated request account", correlationId);
         logger.verbosePii(

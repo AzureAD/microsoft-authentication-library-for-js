@@ -208,6 +208,7 @@ async function loadAccount(
         authority,
         homeAccountId,
         base64Decode,
+        correlationId,
         idTokenClaims,
         clientInfo,
         authority.hostnameAndPort,
@@ -413,6 +414,6 @@ function generateAuthenticationResult(
         state: request.state || "",
         cloudGraphHostName: accountEntity.cloudGraphHostName || "",
         msGraphHost: accountEntity.msGraphHost || "",
-        fromNativeBroker: false,
+        fromPlatformBroker: false,
     };
 }

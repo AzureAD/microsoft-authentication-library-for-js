@@ -8,7 +8,6 @@ import {
     AuthenticationResult,
     Constants as CommonConstants,
     createClientAuthError,
-    ClientAuthErrorCodes,
     AccountEntity,
     AccountInfo,
     createInteractionRequiredAuthError,
@@ -50,6 +49,7 @@ import jwt from "jsonwebtoken";
 import { NodeAuthError } from "../../src/error/NodeAuthError.js";
 import { INetworkModule } from "../../../msal-common/lib/types/exports-common.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
+import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 
 jest.mock("jsonwebtoken");
 
@@ -494,7 +494,9 @@ describe("ConfidentialClientApplication", () => {
             await expect(
                 client.acquireTokenByClientCredential(request)
             ).rejects.toMatchObject(
-                createClientAuthError(ClientAuthErrorCodes.missingTenantIdError)
+                createClientAuthError(
+                    NodeClientAuthErrorCodes.missingTenantIdError
+                )
             );
         });
 

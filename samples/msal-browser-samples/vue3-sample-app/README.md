@@ -10,14 +10,14 @@ This sample demonstrates one way you can integrate the `@azure/msal-browser` pac
 
 ### Pre-requisites
 
-- Ensure [all pre-requisites](../../../lib/msal-browser/README.md#prerequisites) have been completed to run `@azure/msal-browser`.
-- Install node.js if needed (<https://nodejs.org/en/>).
+-   Ensure [all pre-requisites](../../../lib/msal-browser/README.md#prerequisites) have been completed to run `@azure/msal-browser`.
+-   Install node.js if needed (<https://nodejs.org/en/>).
 
 ### Configure the application
 
-- Open `./src/authConfig.js` in an editor.
-- Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration.
-  - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
+-   Open `./src/authConfig.js` in an editor.
+-   Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+    -   Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
 
 ### Install npm dependencies for sample
 
@@ -36,8 +36,8 @@ npm start
 The page will reload if you make edits.
 You will also see any lint errors in the console.
 
-- In the web page, hover over the "Sign In" button and select either `Sign in using Popup` or `Sign in using Redirect` to begin the auth flow.
-- Navigate directly to one of the example pages (/profile or /profilenoguard) to invoke a login on page load and see your profile information using the Microsoft Graph API
+-   In the web page, hover over the "Sign In" button and select either `Sign in using Popup` or `Sign in using Redirect` to begin the auth flow.
+-   Navigate directly to one of the example pages (/profile or /profilenoguard) to invoke a login on page load and see your profile information using the Microsoft Graph API
 
 ## How this sample works
 
@@ -47,24 +47,25 @@ This sample demonstrates how you can integrate `@azure/msal-browser` into your V
 
 You'll find the MSAL configuration and `PublicClientApplication` instantiation in `authConfig.ts`. It's very important that `PublicClientApplication` is initialized only once per pageload and as such should not be initialized inside any Vue components, but rather outside the context of Vue and passed in.
 
-- The `clientId` is the most important, and only required parameter, as it maps to your app registration in the Microsoft Entra admin center.
-- The `authority` represents the Microsoft Entra ID instance and tenant that MSAL.js will use the sign users in. This parameter controls the audience of your app.
+-   The `clientId` is the most important, and only required parameter, as it maps to your app registration in the Microsoft Entra admin center.
+-   The `authority` represents the Microsoft Entra ID instance and tenant that MSAL.js will use the sign users in. This parameter controls the audience of your app.
     > :information_source: If you need to sign users in with Azure Active Directory B2C, this parameter should be set to the [B2C tenanted authority](../../../lib/msal-common/docs/authority.md#azure-ad-b2c) with the default user-flow/custom policy that will be used for sign-ins and token acquisitions. To learn more about how to handle B2C user-flows and/or custom policies with MSAL.js, please refer to [react-b2c-sample](../../msal-react-samples/b2c-sample/) and/or [angular-b2c-sample](../../msal-angular-v2-samples/angular-b2c-sample-app/).
-- The `redirectUri` and `postLogoutRedirectUri` represent where Microsoft Entra ID will redirect you back to after logging in and must be registered on your app registration as type "SPA". If you do not provide these, MSAL.js will use the current page by default.
+-   The `redirectUri` and `postLogoutRedirectUri` represent where Microsoft Entra ID will redirect you back to after logging in and must be registered on your app registration as type "SPA". If you do not provide these, MSAL.js will use the current page by default.
 
 The `cacheLocation` configures where you want your tokens to be stored. SessionStorage is the default, if this option is not provided.
 
 ```javascript
 const msalConfig = {
-  auth: {
-    clientId: 'ENTER_YOUR_CLIENT_ID_HERE',
-    authority: 'https://login.microsoftonline.com/ENTER_YOUR_TENANT_ID_HERE',
-    redirectUri: '/', // Must be registered as a SPA redirectURI on your app registration
-    postLogoutRedirectUri: '/' // Must be registered as a SPA redirectURI on your app registrationregistration
-  },
-  cache: {
-    cacheLocation: 'localStorage' // Options are localStorage, sessionStorage, memoryStorage
-  },
+    auth: {
+        clientId: "ENTER_YOUR_CLIENT_ID_HERE",
+        authority:
+            "https://login.microsoftonline.com/ENTER_YOUR_TENANT_ID_HERE",
+        redirectUri: "/", // Must be registered as a SPA redirectURI on your app registration
+        postLogoutRedirectUri: "/", // Must be registered as a SPA redirectURI on your app registrationregistration
+    },
+    cache: {
+        cacheLocation: "localStorage", // Options are localStorage, sessionStorage, memoryStorage
+    },
 };
 
 export const msalInstance = new PublicClientApplication(msalConfig);
@@ -79,14 +80,14 @@ MSAL.js integration with Vue all starts with the `msalPlugin` defined in `src/pl
 In `main.ts` you'll find the instantiation of the Vue app and installation of plugins. The most important part, with regards to MSAL.js, is to instruct Vue to "use" the `msalPlugin`.
 
 ```javascript
-import { createApp } from 'vue';
-import App from './App.vue'; // Your root component
+import { createApp } from "vue";
+import App from "./App.vue"; // Your root component
 import { msalPlugin } from "./plugins/msalPlugin";
 import { msalInstance } from "./authConfig";
 
 const app = createApp(App);
 app.use(msalPlugin, msalInstance);
-app.mount('#app');
+app.mount("#app");
 ```
 
 ### Composition APIs
@@ -99,9 +100,9 @@ This API will call `handleRedirectPromise` if it has not yet been called. This i
 
 This API also returns:
 
-- The `PublicClientApplication` instance which you can use to call any of the [MSAL APIs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_browser.ipublicclientapplication.html)
-- A `ref` indicating what type of interaction is currently in progress.
-- A `ref` of the array of accounts currently signed in
+-   The `PublicClientApplication` instance which you can use to call any of the [MSAL APIs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_browser.IPublicClientApplication.html)
+-   A `ref` indicating what type of interaction is currently in progress.
+-   A `ref` of the array of accounts currently signed in
 
 Basic examples of how this can be used can be found in each of the vue components located in `src/components`
 
@@ -113,12 +114,12 @@ One example of how this could be used can be found in `src/components/NavBar.vue
 
 ```vue
 <template>
-    <SignOutButton v-if="isAuthenticated"/>
+    <SignOutButton v-if="isAuthenticated" />
     <SignInButton v-else />
 </template>
 
 <script setup lang="ts">
-import { useIsAuthenticated } from '../composition-api/useIsAuthenticated';
+import { useIsAuthenticated } from "../composition-api/useIsAuthenticated";
 import SignInButton from "./SignInButton.vue";
 import SignOutButton from "./SignOutButton.vue";
 
@@ -132,36 +133,41 @@ Will attempt to silently acquire a token and fallback to interaction if no user 
 
 You must provide:
 
-- Your preferred interaction type (Popup or Redirect) to be used in case the request cannot be completed silently
-- The auth request that will be used to acquire the token. You can find the request/response types [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
+-   Your preferred interaction type (Popup or Redirect) to be used in case the request cannot be completed silently
+-   The auth request that will be used to acquire the token. You can find the request/response types [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
 
 Returns:
 
-- A `ref` of the `AuthenticationResult` object containing the accessToken and idToken, among other things. The full response object can be found [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#authenticationresult)
-- An `acquireToken` function that can be called from your Vue component when a new token is needed or to recover from an error. The other return values will be updated when this function is invoked.
-- A `ref` of the error object if the token request failed for any reason
-- An `ref` indicating if this instance of `useMsalAuthentication` is currently acquiring a token. (Note this is different from the inProgress value returned by `useMsal` which represents only interaction and is global)
+-   A `ref` of the `AuthenticationResult` object containing the accessToken and idToken, among other things. The full response object can be found [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#authenticationresult)
+-   An `acquireToken` function that can be called from your Vue component when a new token is needed or to recover from an error. The other return values will be updated when this function is invoked.
+-   A `ref` of the error object if the token request failed for any reason
+-   An `ref` indicating if this instance of `useMsalAuthentication` is currently acquiring a token. (Note this is different from the inProgress value returned by `useMsal` which represents only interaction and is global)
 
 Usage of this is demonstrated on the `/profilenoguard` route located in `src/views/ProfileNoGuard.vue`. A generic example can be seen below:
 
 ```vue
 <template>
-  <span>{{data}}</span>
+    <span>{{ data }}</span>
 </template>
 
 <script setup lang="ts">
 import { useMsalAuthentication } from "../composition-api/useMsalAuthentication";
 import { InteractionType } from "@azure/msal-browser";
-import { reactive, watch } from 'vue'
+import { reactive, watch } from "vue";
 import { loginRequest } from "../authConfig";
 
-const { result, acquireToken } = useMsalAuthentication(InteractionType.Redirect, loginRequest);
+const { result, acquireToken } = useMsalAuthentication(
+    InteractionType.Redirect,
+    loginRequest
+);
 
 const data = ref(null);
 
 async function updateData() {
     if (result.value.accessToken) {
-        const apiResult = await callAPI(result.value.accessToken).catch(() => acquireToken());
+        const apiResult = await callAPI(result.value.accessToken).catch(() =>
+            acquireToken()
+        );
         data.value = apiResult;
     }
 }
@@ -198,14 +204,14 @@ In the router configuration, located in `src/router/router.ts`, we register the 
 
 ```javascript
 const routes = [
-  {
-    path: '/profile',
-    name: 'Profile',
-    component: Profile,
-    meta: {
-        requiresAuth: true
-    }
-  }
+    {
+        path: "/profile",
+        name: "Profile",
+        component: Profile,
+        meta: {
+            requiresAuth: true,
+        },
+    },
 ];
 ```
 

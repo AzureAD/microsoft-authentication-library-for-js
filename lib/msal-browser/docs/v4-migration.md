@@ -58,6 +58,46 @@ await loadExternalTokens(
 );
 ```
 
+### `handleRedirectPromise` API signature has changed
+
+Previously, `PublicClientApplication.handleRedirectPromise` took in an optional hash parameter. A new options type called `HandleRedirectPromiseOptions` has been introduced. As of MSAL Browser v5, an optional object with type `HandleRedirectPromiseOptions` is the only parameter `handleRedirectPromise()` accepts.
+
+```javascript
+// BEFORE
+const hash = window.location.hash; // Arbitrary example value
+pca.handleRedirectPromise(hash)
+
+
+// AFTER
+pca.handleRedirectPromise({
+    hash: window.location.hash, // Option nested inside a `HandleRedirectPromiseOptions` object
+    navigateToLoginRequestUrl: true // Additional option
+})
+```
+
+### Removal of some functions in `PublicClientApplication` 
+
+The following functions in `PublicClientApplication` have been removed:
+1. `enableAccountStorageEvents()` and `disableAccountStorageEvents()`: account storage events are now always enabled. These function calls are no longer necessary.
+1. `getAccountByHomeId()`, `getAccountByLocalId()`, and `getAccountByUsername()`: use `getAccount()` instead.
+
+    ```typescript
+    // BEFORE
+    const account1 = accountManager.getAccountByHomeId(yourHomeAccountId);
+    const account2 = accountManager.getAccountByLocalId(yourLocalAccountId);
+    const account3 = accountManager.getAccountByUsername(yourUsername);
+
+    // AFTER
+    const account1 = accountManager.getAccount({ homeAccountId: yourHomeAccountId });
+    const account2 = accountManager.getAccount({ localAccountId: yourLocalAccountId });
+    const account3 = accountManager.getAccount({ username: yourUsername });
+    ```
+1. `logout()`: use `logoutRedirect()` or `logoutPopup()` instead.
+
+### Removal of `startPerformanceMeasurement()`
+
+`startPerformanceMeasurement()` has been removed. Please use `startMeasurement()` instead.
+
 ## Configuration changes
 
 ### BrowserAuthOptions changes
@@ -65,6 +105,32 @@ await loadExternalTokens(
 1. The `skipAuthorityMetadataCache` parameter has been removed from BrowserAuthOptions in Configuration.
 1. The `protocolMode` parameter has been moved to SystemOptions instead of BrowserAuthOptions in Configuration.
 1. The `supportsNestedAppAuth` parameter has been removed. Use the `createNestablePublicClientApplication` API for Nested Apps instead. Read more about Nested Apps [here](./initialization.md#nested-app-configuration).
+1. The `navigateTologinRequestUrl` parameter has been removed from BrowserAuthOptions in Configuration and can instead now be provided inside an options object as a parameter on the call to `handleRedirectPromise`:
+
+    ```typescript
+      pca.handleRedirectPromise({ navigateToLoginRequestUrl: false })
+    ```
+1. The `encodeExtraQueryParams` parameter has been removed. All extra query params will be encoded.
+1. The `supportsNestedAppAuth` parameter has been removed. Use `createNestablePublicClientApplication()` instead.
+    ```typescript
+        // BEFORE
+        const pca = new PublicClientApplication({
+            auth: {
+                clientId: "your-client-id",
+                authority: "https://login.microsoftonline.com/common"
+                supportsNestedAppAuth: true
+            },
+        });
+
+        // AFTER
+        const pca = await createNestablePublicClientApplication({
+            auth: {
+                clientId: "your-client-id",
+                authority: "https://login.microsoftonline.com/common"
+            }
+        });
+    ```
+1. The `OIDCOptions` parameter now takes in a `ResponseMode` instead of a `ServerResponseType`. Please use `ResponseMode.QUERY` in place of `ServerResponseType.QUERY` and `ResponseMode.FRAGMENT` instead of `ServerResponseType.FRAGMENT`.
 
 ### CacheOptions changes
 
@@ -79,6 +145,7 @@ The following parameters were deprecated in MSAL Browser v4 and have been remove
 ### SystemOptions
 
 1. The `protocolMode` parameter has been moved to `SystemOptions` from `BrowserAuthOptions` in Configuration. There are no changes to its options or functionality.
+1. The `navigateFrameWait` parameter has been removed. This was previously needed by older browsers which are no longer supported by MSAL.js.
 
 #### `asyncPopups`
 
@@ -90,7 +157,9 @@ See the [Configuration doc](./configuration.md#system-config-options) for more d
 
 ## Changes on request
 
-[TBD]
+### Removal of `onRedirectNavigate` parameter
+
+The `onRedirectNavigate` parameter has been removed from the `RedirectRequest` object. It has *not* been removed from the `Configuration` object and can continue to be set there.
 
 ## Behavioral Breaking Changes
 

@@ -297,16 +297,19 @@ describe("Authorize Protocol Tests", () => {
                 sid: "testSid",
             };
 
+            const accountInfoNoLoginHint = {
+                ...testAccount,
+                loginHint: undefined,
+                idTokenClaims: testTokenClaims,
+            };
+
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
-                account: {
-                    ...testAccount,
-                    idTokenClaims: testTokenClaims,
-                },
+                account: accountInfoNoLoginHint,
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 prompt: Constants.PromptValue.NONE,
@@ -347,7 +350,10 @@ describe("Authorize Protocol Tests", () => {
             mockPerfClient.addPerformanceCallback((events) => {
                 resEvents = events;
             });
-            const testAccount = TEST_ACCOUNT_INFO;
+            const testAccount = {
+                ...TEST_ACCOUNT_INFO,
+                loginHint: "opaque-login-hint-claim",
+            };
             // @ts-ignore
             const testTokenClaims: Required<
                 Omit<
@@ -783,7 +789,7 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
-                account: TEST_ACCOUNT_INFO,
+                account: { ...TEST_ACCOUNT_INFO, loginHint: undefined },
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
@@ -816,8 +822,8 @@ describe("Authorize Protocol Tests", () => {
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
         });
 
-        it("Uses sid from account if not provided in request and prompt=None, overrides login_hint", async () => {
-            const testAccount = TEST_ACCOUNT_INFO;
+        it("Uses sid from account if not provided in request and prompt=None, overrides login_hint parameter", async () => {
+            const testAccount = { ...TEST_ACCOUNT_INFO, loginHint: undefined };
             // @ts-ignore
             const testTokenClaims: Required<
                 Omit<
@@ -882,8 +888,8 @@ describe("Authorize Protocol Tests", () => {
             );
         });
 
-        it("Uses loginHint instead of sid from account prompt!=None", async () => {
-            const testAccount = TEST_ACCOUNT_INFO;
+        it("Uses loginHint param instead of sid from account prompt!=None when account does not include loginHint", async () => {
+            const testAccount = { ...TEST_ACCOUNT_INFO, loginHint: undefined };
             const testTokenClaims: Required<
                 Omit<
                     TokenClaims,
@@ -963,8 +969,8 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
         });
 
-        it("Uses login_hint instead of username if sid is not present in token claims for account or request", async () => {
-            const testAccount = TEST_ACCOUNT_INFO;
+        it("Uses login_hint param instead of username if sid is not present in token claims for account or request and account does not have loginHint", async () => {
+            const testAccount = { ...TEST_ACCOUNT_INFO, loginHint: undefined };
             const testTokenClaims: Required<
                 Omit<
                     TokenClaims,
@@ -1052,7 +1058,7 @@ describe("Authorize Protocol Tests", () => {
                 ],
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
-                account: TEST_ACCOUNT_INFO,
+                account: { ...TEST_ACCOUNT_INFO, loginHint: undefined },
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,

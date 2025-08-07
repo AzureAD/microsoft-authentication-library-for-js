@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Create eslint rule to check all error codes are documented #7860",
+  "packageName": "@azure/msal-node",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

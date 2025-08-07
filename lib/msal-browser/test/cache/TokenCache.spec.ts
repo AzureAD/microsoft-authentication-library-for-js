@@ -180,6 +180,7 @@ describe("TokenCache tests", () => {
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
                     localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                    loginHint: "login_hint",
                 },
             };
             const response: ExternalTokenResponse = {
@@ -204,9 +205,12 @@ describe("TokenCache tests", () => {
                 CacheHelpers.generateCredentialKey(testIdTokenEntity);
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getIdTokenCredential(testIdTokenKey)).toEqual(
-                testIdTokenEntity
-            );
+            expect(
+                browserStorage.getIdTokenCredential(
+                    testIdTokenKey,
+                    RANDOM_TEST_GUID
+                )
+            ).toEqual(testIdTokenEntity);
         });
 
         it("loads id token with request authority and client info provided in options", async () => {
@@ -229,9 +233,12 @@ describe("TokenCache tests", () => {
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
-            );
+            expect(
+                browserStorage.getIdTokenCredential(
+                    idTokenKey,
+                    RANDOM_TEST_GUID
+                )
+            ).toEqual(idTokenEntity);
         });
 
         it("sets account when id token is loaded", async () => {
@@ -262,11 +269,15 @@ describe("TokenCache tests", () => {
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(result.account).toEqual(testAccountInfo);
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
-            );
             expect(
-                browserStorage.getAccount(testAccountKey)?.homeAccountId
+                browserStorage.getIdTokenCredential(
+                    idTokenKey,
+                    RANDOM_TEST_GUID
+                )
+            ).toEqual(idTokenEntity);
+            expect(
+                browserStorage.getAccount(testAccountKey, RANDOM_TEST_GUID)
+                    ?.homeAccountId
             ).toEqual(testAccountInfo.homeAccountId);
         });
 
@@ -288,9 +299,12 @@ describe("TokenCache tests", () => {
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
-            );
+            expect(
+                browserStorage.getIdTokenCredential(
+                    idTokenKey,
+                    RANDOM_TEST_GUID
+                )
+            ).toEqual(idTokenEntity);
         });
 
         it("throws error if request does not have account and authority", (done) => {
@@ -343,8 +357,9 @@ describe("TokenCache tests", () => {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: testEnvironment,
                     tenantId: ID_TOKEN_CLAIMS.tid,
-                    username: "username",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
                     localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -361,12 +376,18 @@ describe("TokenCache tests", () => {
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
-            );
+            expect(
+                browserStorage.getIdTokenCredential(
+                    idTokenKey,
+                    RANDOM_TEST_GUID
+                )
+            ).toEqual(idTokenEntity);
             expect(result.accessToken).toEqual("");
             expect(
-                browserStorage.getAccessTokenCredential(accessTokenKey)
+                browserStorage.getAccessTokenCredential(
+                    accessTokenKey,
+                    RANDOM_TEST_GUID
+                )
             ).toEqual(null);
         });
 
@@ -377,8 +398,9 @@ describe("TokenCache tests", () => {
                     homeAccountId: testHomeAccountId,
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
-                    username: "username",
-                    localAccountId: "localAccountId",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -402,7 +424,10 @@ describe("TokenCache tests", () => {
             );
             expect(result.accessToken).toEqual(accessTokenEntity.secret);
             expect(
-                browserStorage.getAccessTokenCredential(accessTokenKey)
+                browserStorage.getAccessTokenCredential(
+                    accessTokenKey,
+                    RANDOM_TEST_GUID
+                )
             ).toEqual(accessTokenEntity);
         });
 
@@ -418,8 +443,9 @@ describe("TokenCache tests", () => {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
-                    username: "username",
-                    localAccountId: "localAccountId",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -448,7 +474,10 @@ describe("TokenCache tests", () => {
             await loadExternalTokens(configuration, request, response, options);
 
             expect(
-                browserStorage.getRefreshTokenCredential(refreshTokenKey)
+                browserStorage.getRefreshTokenCredential(
+                    refreshTokenKey,
+                    RANDOM_TEST_GUID
+                )
             ).toEqual(refreshTokenEntity);
         });
 
@@ -485,7 +514,10 @@ describe("TokenCache tests", () => {
 
             // Validate tokens can be retrieved
             expect(
-                browserStorage.getRefreshTokenCredential(refreshTokenKey)
+                browserStorage.getRefreshTokenCredential(
+                    refreshTokenKey,
+                    RANDOM_TEST_GUID
+                )
             ).toEqual(refreshTokenEntity);
         });
 
@@ -533,12 +565,14 @@ describe("TokenCache tests", () => {
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(
                 browserStorage.getIdTokenCredential(
-                    CacheHelpers.generateCredentialKey(idTokenEntity)
+                    CacheHelpers.generateCredentialKey(idTokenEntity),
+                    RANDOM_TEST_GUID
                 )
             ).toEqual(idTokenEntity);
             expect(
                 browserStorage.getRefreshTokenCredential(
-                    CacheHelpers.generateCredentialKey(refreshTokenEntity)
+                    CacheHelpers.generateCredentialKey(refreshTokenEntity),
+                    RANDOM_TEST_GUID
                 )
             ).toEqual(refreshTokenEntity);
         });

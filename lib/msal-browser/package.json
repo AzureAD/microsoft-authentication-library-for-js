@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "4.13.0",
+  "version": "4.13.1",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -27,6 +27,16 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
+    "./custom-auth": {
+      "import": {
+        "types": "./dist/custom-auth-path/custom_auth/index.d.ts",
+        "default": "./dist/custom-auth-path/custom_auth/index.mjs"
+      },
+      "require": {
+        "types": "./lib/custom-auth-path/types/custom_auth/index.d.ts",
+        "default": "./lib/custom-auth-path/msal-custom-auth.cjs"
+      }
+    },
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
