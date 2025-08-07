@@ -530,6 +530,8 @@ const testTenantProfilesMap = new Map();
 testTenantProfilesMap.set(ID_TOKEN_CLAIMS.tid, {
     isHomeTenant: true,
     localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    loginHint: ID_TOKEN_CLAIMS.login_hint,
     name: ID_TOKEN_CLAIMS.name,
     tenantId: ID_TOKEN_CLAIMS.tid,
 });
@@ -541,6 +543,7 @@ export const TEST_ACCOUNT_INFO: AccountInfo = {
     environment: "login.windows.net",
     tenantId: ID_TOKEN_CLAIMS.tid,
     username: ID_TOKEN_CLAIMS.preferred_username,
+    loginHint: ID_TOKEN_CLAIMS.login_hint,
     idToken: TEST_TOKENS.IDTOKEN_V2,
     idTokenClaims: ID_TOKEN_CLAIMS,
     name: ID_TOKEN_CLAIMS.name,
@@ -622,4 +625,8 @@ export const PlatformDOMTestErrorResponseObject = {
         status: "PERSISTENT_ERROR",
         protocolError: "",
     },
+};
+
+export const TEST_AUTHORIZE_BODY_PARAMS = {
+    assertionName: "testAssertionName",
 };

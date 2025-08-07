@@ -3,15 +3,16 @@ import { InvalidArgumentError } from "../../../../../src/custom_auth/core/error/
 import { ResetPasswordSubmitPasswordError } from "../../../../../src/custom_auth/reset_password/auth_flow/error_type/ResetPasswordError.js";
 import { ResetPasswordSubmitPasswordResult } from "../../../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordSubmitPasswordResult.js";
 import { ResetPasswordClient } from "../../../../../src/custom_auth/reset_password/interaction_client/ResetPasswordClient.js";
-import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { ResetPasswordPasswordRequiredState } from "../../../../../src/custom_auth/reset_password/auth_flow/state/ResetPasswordPasswordRequiredState.js";
 import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
+import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("ResetPasswordPasswordRequiredState", () => {
+    const clientId = "test-client-id";
     const mockConfig = {
-        auth: { clientId: "test-client-id" },
+        auth: { clientId: clientId },
         customAuth: { challengeTypes: ["password"] },
     } as unknown as jest.Mocked<CustomAuthBrowserConfiguration>;
 
@@ -20,13 +21,6 @@ describe("ResetPasswordPasswordRequiredState", () => {
     } as unknown as jest.Mocked<ResetPasswordClient>;
 
     const mockSignInClient = {} as unknown as jest.Mocked<SignInClient>;
-
-    const mockLogger = {
-        info: jest.fn(),
-        verbose: jest.fn(),
-        error: jest.fn(),
-        errorPii: jest.fn(),
-    } as unknown as jest.Mocked<Logger>;
 
     const username = "testuser";
     const correlationId = "test-correlation-id";
@@ -37,7 +31,7 @@ describe("ResetPasswordPasswordRequiredState", () => {
     beforeEach(() => {
         state = new ResetPasswordPasswordRequiredState({
             correlationId: correlationId,
-            logger: mockLogger,
+            logger: getDefaultLogger(),
             continuationToken: continuationToken,
             config: mockConfig,
             resetPasswordClient: mockResetPasswordClient,
@@ -83,7 +77,7 @@ describe("ResetPasswordPasswordRequiredState", () => {
             expect(
                 mockResetPasswordClient.submitNewPassword
             ).toHaveBeenCalledWith({
-                clientId: "test-client-id",
+                clientId: clientId,
                 correlationId: correlationId,
                 challengeType: ["password"],
                 continuationToken: continuationToken,
@@ -115,7 +109,7 @@ describe("ResetPasswordPasswordRequiredState", () => {
             expect(
                 mockResetPasswordClient.submitNewPassword
             ).toHaveBeenCalledWith({
-                clientId: "test-client-id",
+                clientId: clientId,
                 correlationId: correlationId,
                 challengeType: ["password"],
                 continuationToken: continuationToken,

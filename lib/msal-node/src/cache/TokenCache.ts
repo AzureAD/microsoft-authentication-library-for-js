@@ -5,7 +5,6 @@
 
 import { NodeStorage } from "./NodeStorage.js";
 import {
-    AccountEntity,
     AccountInfo,
     Logger,
     ISerializableTokenCache,
@@ -207,7 +206,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
             this.storage.removeAccount(
-                AccountEntity.generateAccountCacheKey(account),
+                account,
                 correlationId || new GuidGenerator().generateGuid()
             );
         } finally {

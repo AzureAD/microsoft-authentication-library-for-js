@@ -47,6 +47,7 @@ import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
 import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
+import { CredentialEntity } from '@azure/msal-common/node';
 import { DeviceCodeResponse } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
@@ -631,7 +632,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.6.1";
+export const version = "3.7.0";
 
 // Warnings were encountered during analysis:
 //

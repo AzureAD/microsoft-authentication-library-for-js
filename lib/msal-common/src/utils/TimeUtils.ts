@@ -49,6 +49,21 @@ export function isTokenExpired(expiresOn: string, offset: number): boolean {
 }
 
 /**
+ * Checks if a cache entry is expired based on the last updated time and cache retention days.
+ * @param lastUpdatedAt
+ * @param cacheRetentionDays
+ * @returns
+ */
+export function isCacheExpired(
+    lastUpdatedAt: string,
+    cacheRetentionDays: number
+): boolean {
+    const cacheExpirationTimestamp =
+        Number(lastUpdatedAt) + cacheRetentionDays * 24 * 60 * 60 * 1000;
+    return Date.now() > cacheExpirationTimestamp;
+}
+
+/**
  * If the current time is earlier than the time that a token was cached at, we must discard the token
  * i.e. The system clock was turned back after acquiring the cached token
  * @param cachedAt

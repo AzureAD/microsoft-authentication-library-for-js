@@ -15,6 +15,7 @@ export type SignInInputs = CustomAuthActionInputs & {
     username: string;
     password?: string;
     scopes?: Array<string>;
+    claims?: string;
 };
 
 export type SignUpInputs = CustomAuthActionInputs & {
@@ -30,8 +31,10 @@ export type ResetPasswordInputs = CustomAuthActionInputs & {
 export type AccessTokenRetrievalInputs = {
     forceRefresh: boolean;
     scopes?: Array<string>;
+    claims?: string;
 };
 
 export type SignInWithContinuationTokenInputs = {
     scopes?: Array<string>;
+    claims?: string;
 };

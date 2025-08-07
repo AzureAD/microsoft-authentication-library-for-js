@@ -9,16 +9,25 @@ import {
     SignInCodeSendResult,
 } from "../../../../src/custom_auth/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInScenario } from "../../../../src/custom_auth/sign_in/auth_flow/SignInScenario.js";
+import { StubbedNetworkModule } from "@azure/msal-common/browser";
+import { buildConfiguration } from "../../../../src/config/Configuration.js";
 import {
-    ICrypto,
-    INetworkModule,
-    IPerformanceClient,
-    Logger,
-} from "@azure/msal-common/browser";
-import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
-import { BrowserCacheManager } from "../../../../src/cache/BrowserCacheManager.js";
-import { EventHandler } from "../../../../src/event/EventHandler.js";
-import { INavigationClient } from "../../../../src/navigation/INavigationClient.js";
+    getDefaultBrowserCacheManager,
+    getDefaultCrypto,
+    getDefaultEventHandler,
+    getDefaultLogger,
+    getDefaultNavigationClient,
+    getDefaultPerformanceClient,
+} from "../../test_resources/TestModules.js";
+import {
+    TestServerTokenResponse,
+    TestTenantId,
+} from "../../test_resources/TestConstants.js";
+import {
+    SignInContinuationTokenParams,
+    SignInSubmitCodeParams,
+    SignInSubmitPasswordParams,
+} from "../../../../src/custom_auth/sign_in/interaction_client/parameter/SignInParams.js";
 
 jest.mock(
     "../../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js",
@@ -65,72 +74,37 @@ jest.mock(
 describe("SignInClient", () => {
     let client: SignInClient;
     let authority: CustomAuthAuthority;
-    const {
-        mockedApiClient,
-        signInApiClient,
-        signUpApiClient,
-        resetPasswordApiClient,
-    } = jest.requireMock(
+    const { mockedApiClient, signInApiClient } = jest.requireMock(
         "../../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js"
     );
 
     beforeEach(() => {
-        jest.resetAllMocks();
-        const mockBrowserConfiguration = {
-            system: {
-                networkClient: {
-                    sendGetRequestAsync: jest.fn(),
-                    sendPostRequestAsync: jest.fn(),
-                } as unknown as jest.Mocked<INetworkModule>,
-            },
-            auth: {
-                clientId: customAuthConfig.auth.clientId,
-            },
-        } as unknown as jest.Mocked<BrowserConfiguration>;
-
-        const mockCacheManager = {
-            getWrapperMetadata: jest.fn(),
-            getServerTelemetry: jest.fn(),
-            generateAuthorityMetadataCacheKey: jest.fn(),
-            setAuthorityMetadata: jest.fn(),
-        } as unknown as jest.Mocked<BrowserCacheManager>;
-        mockCacheManager.getWrapperMetadata.mockReturnValue(["", ""]);
-        mockCacheManager.getServerTelemetry.mockReturnValue(null);
-        const mockNetworkModule = {} as unknown as jest.Mocked<INetworkModule>;
-
-        const mockCrypto = {
-            createNewGuid: jest.fn(),
-        } as unknown as jest.Mocked<ICrypto>;
-
-        const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
-        const mockNavigationClient =
-            {} as unknown as jest.Mocked<INavigationClient>;
-        const mockPerformanceClient =
-            {} as unknown as jest.Mocked<IPerformanceClient>;
-
-        const mockLogger = {
-            clone: jest.fn(),
-            verbose: jest.fn(),
-            info: jest.fn(),
-            errorPii: jest.fn(),
-        } as unknown as jest.Mocked<Logger>;
-        mockLogger.clone.mockReturnValue(mockLogger);
-
-        const mockConfig = {
-            auth: {
-                protocolMode: "",
-                OIDCOptions: {},
-                knownAuthorities: [],
-                cloudDiscoveryMetadata: "",
-                authorityMetadata: "",
-                skipAuthorityMetadataCache: false,
-            },
-        } as unknown as jest.Mocked<BrowserConfiguration>;
+        const clientId = customAuthConfig.auth.clientId;
+        const mockBrowserConfiguration = buildConfiguration(
+            { auth: { clientId: clientId } },
+            false
+        );
+        const mockLogger = getDefaultLogger();
+        const mockPerformanceClient = getDefaultPerformanceClient(clientId);
+        const mockEventHandler = getDefaultEventHandler();
+        const mockCrypto = getDefaultCrypto(
+            clientId,
+            mockLogger,
+            mockPerformanceClient
+        );
+        const mockCacheManager = getDefaultBrowserCacheManager(
+            clientId,
+            mockLogger,
+            mockPerformanceClient,
+            mockEventHandler,
+            undefined,
+            mockBrowserConfiguration.cache
+        );
 
         authority = new CustomAuthAuthority(
             customAuthConfig.auth.authority ?? "",
-            mockConfig,
-            mockNetworkModule,
+            mockBrowserConfiguration,
+            StubbedNetworkModule,
             mockCacheManager,
             mockLogger,
             customAuthConfig.customAuth.authApiProxyUrl
@@ -142,34 +116,11 @@ describe("SignInClient", () => {
             mockCrypto,
             mockLogger,
             mockEventHandler,
-            mockNavigationClient,
+            getDefaultNavigationClient(),
             mockPerformanceClient,
             mockedApiClient,
             authority
         );
-
-        (client as any).tokenResponseHandler = {
-            handleServerTokenResponse: jest.fn().mockResolvedValue({
-                uniqueId: "test-unique-id",
-                tenantId: "test-tenant-id",
-                scopes: ["test-scope"],
-                account: {
-                    homeAccountId: "test-home-account-id",
-                    environment: "test-environment",
-                    tenantId: "test-tenant-id",
-                    username: "abc@abc.com",
-                },
-                idToken: "test-id-token",
-                idTokenClaims: {},
-                accessToken: "test-access-token",
-                refreshToken: "test-refresh-token",
-                expiresOn: new Date(),
-                extExpiresOn: new Date(),
-                tokenType: "Bearer",
-                authority:
-                    "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/",
-            }),
-        } as any;
     });
 
     afterEach(() => {
@@ -243,20 +194,17 @@ describe("SignInClient", () => {
     });
 
     describe("submitCode", () => {
-        it("should return SignInCompleteResult for valid code", async () => {
-            signInApiClient.requestTokensWithOob.mockResolvedValue({
-                correlation_id: "test-correlation-id",
-                access_token: "test-access-token",
-                refresh_token: "test-refresh-token",
-                id_token: "test-id-token",
-                expires_in: 3600,
-                token_type: "Bearer",
-            });
+        let signInSubmitCodeParams: SignInSubmitCodeParams;
 
-            const result = await client.submitCode({
+        beforeEach(() => {
+            signInApiClient.requestTokensWithOob.mockResolvedValue(
+                TestServerTokenResponse
+            );
+
+            signInSubmitCodeParams = {
                 code: "123456",
                 continuationToken: "continuation_token_1",
-                username: "abc@abc.com",
+                username: "abc@test.com",
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [
                     ChallengeType.OOB,
@@ -265,43 +213,71 @@ describe("SignInClient", () => {
                 ],
                 correlationId: "corr123",
                 scopes: [],
-            });
+            };
+        });
+
+        it("should return SignInCompleteResult for valid code", async () => {
+            const result = await client.submitCode(signInSubmitCodeParams);
 
             expect(result.type).toStrictEqual(SIGN_IN_COMPLETED_RESULT_TYPE);
-            expect(result.correlationId).toBe("test-correlation-id");
+            expect(result.correlationId).toBe(
+                TestServerTokenResponse.correlation_id
+            );
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(
-                "test-access-token"
+                TestServerTokenResponse.access_token
             );
-            expect(result.authenticationResult.idToken).toBe("test-id-token");
+            expect(result.authenticationResult.idToken).toBe(
+                TestServerTokenResponse.id_token
+            );
             expect(result.authenticationResult.expiresOn).toBeDefined();
-            expect(result.authenticationResult.tokenType).toBe("Bearer");
+            expect(result.authenticationResult.tokenType).toBe(
+                TestServerTokenResponse.token_type
+            );
             expect(result.authenticationResult.authority).toBe(
                 authority.canonicalAuthority
             );
-            expect(result.authenticationResult.tenantId).toBe("test-tenant-id");
+            expect(result.authenticationResult.tenantId).toBe(TestTenantId);
             expect(result.authenticationResult.account).toBeDefined();
             expect(result.authenticationResult.account.username).toBe(
-                "abc@abc.com"
+                "abc@test.com"
+            );
+        });
+
+        it("should include claims in password token request", async () => {
+            const claims = JSON.stringify({
+                access_token: {
+                    acrs: {
+                        essential: true,
+                        value: "c1",
+                    },
+                },
+            });
+
+            signInSubmitCodeParams.claims = claims;
+            await client.submitCode(signInSubmitCodeParams);
+
+            // Verify that the API was called with claims
+            expect(signInApiClient.requestTokensWithOob).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    claims: claims,
+                })
             );
         });
     });
 
     describe("submitPassword", () => {
-        it("should return SignInCompleteResult for valid password", async () => {
-            signInApiClient.requestTokensWithPassword.mockResolvedValue({
-                correlation_id: "test-correlation-id",
-                access_token: "test-access-token",
-                refresh_token: "test-refresh-token",
-                id_token: "test-id-token",
-                expires_in: 3600,
-                token_type: "Bearer",
-            });
+        let signInSubmitPasswordParams: SignInSubmitPasswordParams;
 
-            const result = await client.submitPassword({
+        beforeEach(() => {
+            signInApiClient.requestTokensWithPassword.mockResolvedValue(
+                TestServerTokenResponse
+            );
+
+            signInSubmitPasswordParams = {
                 password: "123456",
                 continuationToken: "continuation_token_1",
-                username: "abc@abc.com",
+                username: "abc@test.com",
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [
                     ChallengeType.OOB,
@@ -310,24 +286,59 @@ describe("SignInClient", () => {
                 ],
                 correlationId: "corr123",
                 scopes: [],
-            });
+            };
+        });
+
+        it("should return SignInCompleteResult for valid password", async () => {
+            const result = await client.submitPassword(
+                signInSubmitPasswordParams
+            );
 
             expect(result.type).toStrictEqual(SIGN_IN_COMPLETED_RESULT_TYPE);
-            expect(result.correlationId).toBe("test-correlation-id");
+            expect(result.correlationId).toBe(
+                TestServerTokenResponse.correlation_id
+            );
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(
-                "test-access-token"
+                TestServerTokenResponse.access_token
             );
-            expect(result.authenticationResult.idToken).toBe("test-id-token");
+            expect(result.authenticationResult.idToken).toBe(
+                TestServerTokenResponse.id_token
+            );
             expect(result.authenticationResult.expiresOn).toBeDefined();
-            expect(result.authenticationResult.tokenType).toBe("Bearer");
+            expect(result.authenticationResult.tokenType).toBe(
+                TestServerTokenResponse.token_type
+            );
             expect(result.authenticationResult.authority).toBe(
                 authority.canonicalAuthority
             );
-            expect(result.authenticationResult.tenantId).toBe("test-tenant-id");
+            expect(result.authenticationResult.tenantId).toBe(TestTenantId);
             expect(result.authenticationResult.account).toBeDefined();
             expect(result.authenticationResult.account.username).toBe(
-                "abc@abc.com"
+                "abc@test.com"
+            );
+        });
+
+        it("should include claims in password token request", async () => {
+            const claims = JSON.stringify({
+                access_token: {
+                    acrs: {
+                        essential: true,
+                        value: "c1",
+                    },
+                },
+            });
+
+            signInSubmitPasswordParams.claims = claims;
+            await client.submitPassword(signInSubmitPasswordParams);
+
+            // Verify that the API was called with claims
+            expect(
+                signInApiClient.requestTokensWithPassword
+            ).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    claims: claims,
+                })
             );
         });
     });
@@ -364,21 +375,16 @@ describe("SignInClient", () => {
     });
 
     describe("signInWithContinuationToken", () => {
-        it("should return SignInCompleteResult", async () => {
+        let signInContinuationTokenParams: SignInContinuationTokenParams;
+
+        beforeEach(() => {
             signInApiClient.requestTokenWithContinuationToken.mockResolvedValue(
-                {
-                    correlation_id: "test-correlation-id",
-                    access_token: "test-access-token",
-                    refresh_token: "test-refresh-token",
-                    id_token: "test-id-token",
-                    expires_in: 3600,
-                    token_type: "Bearer",
-                }
+                TestServerTokenResponse
             );
 
-            const result = await client.signInWithContinuationToken({
+            signInContinuationTokenParams = {
                 continuationToken: "continuation_token_1",
-                username: "abc@abc.com",
+                username: "abc@test.com",
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [
                     ChallengeType.OOB,
@@ -388,23 +394,60 @@ describe("SignInClient", () => {
                 correlationId: "corr123",
                 scopes: [],
                 signInScenario: SignInScenario.SignInAfterSignUp,
-            });
+            };
+        });
 
-            expect(result.correlationId).toBe("test-correlation-id");
+        it("should return SignInCompleteResult", async () => {
+            const result = await client.signInWithContinuationToken(
+                signInContinuationTokenParams
+            );
+
+            expect(result.correlationId).toBe(
+                TestServerTokenResponse.correlation_id
+            );
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(
-                "test-access-token"
+                TestServerTokenResponse.access_token
             );
-            expect(result.authenticationResult.idToken).toBe("test-id-token");
+            expect(result.authenticationResult.idToken).toBe(
+                TestServerTokenResponse.id_token
+            );
             expect(result.authenticationResult.expiresOn).toBeDefined();
-            expect(result.authenticationResult.tokenType).toBe("Bearer");
+            expect(result.authenticationResult.tokenType).toBe(
+                TestServerTokenResponse.token_type
+            );
             expect(result.authenticationResult.authority).toBe(
                 authority.canonicalAuthority
             );
-            expect(result.authenticationResult.tenantId).toBe("test-tenant-id");
+            expect(result.authenticationResult.tenantId).toBe(TestTenantId);
             expect(result.authenticationResult.account).toBeDefined();
             expect(result.authenticationResult.account.username).toBe(
-                "abc@abc.com"
+                "abc@test.com"
+            );
+        });
+
+        it("should include claims in password token request", async () => {
+            const claims = JSON.stringify({
+                access_token: {
+                    acrs: {
+                        essential: true,
+                        value: "c1",
+                    },
+                },
+            });
+
+            signInContinuationTokenParams.claims = claims;
+            await client.signInWithContinuationToken(
+                signInContinuationTokenParams
+            );
+
+            // Verify that the API was called with claims
+            expect(
+                signInApiClient.requestTokenWithContinuationToken
+            ).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    claims: claims,
+                })
             );
         });
     });
