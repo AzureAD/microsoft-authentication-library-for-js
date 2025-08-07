@@ -276,6 +276,7 @@ export const TEST_ACCOUNT_INFO: AccountInfo = {
     tenantId: ID_TOKEN_CLAIMS.tid,
     environment: "login.windows.net",
     username: ID_TOKEN_CLAIMS.preferred_username,
+    loginHint: ID_TOKEN_CLAIMS.login_hint,
     localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
 };
 
@@ -745,6 +746,7 @@ export const CACHE_MOCKS = {
         environment: "login.microsoftonline.com",
         tenantId: ID_TOKEN_CLAIMS.tid,
         username: "John Doe",
+        loginHint: "testLoginHint",
     },
     MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID: {
         homeAccountId: "uid.utid2",

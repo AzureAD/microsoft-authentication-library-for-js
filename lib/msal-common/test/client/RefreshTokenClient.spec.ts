@@ -1291,6 +1291,7 @@ describe("RefreshTokenClient unit tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "testname@contoso.com",
+                loginHint: "testLoginHint",
             };
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = {

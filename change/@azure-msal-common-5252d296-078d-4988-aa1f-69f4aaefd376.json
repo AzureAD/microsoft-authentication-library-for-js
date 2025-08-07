@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update AccountInfo construction to include tenant-specific claims #7978",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
