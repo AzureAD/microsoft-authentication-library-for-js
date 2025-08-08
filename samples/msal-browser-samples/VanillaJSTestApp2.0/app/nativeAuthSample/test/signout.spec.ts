@@ -32,7 +32,7 @@ describe("Native Auth Sample - Sign Out Tests", () => {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     let browser: puppeteer.Browser;
-    let signInEmailWithPwd: string = "";
+    let signInEmailUsername: string = "";
     let accountPwd: string = "";
     let corsProcess: ChildProcess;
 
@@ -54,7 +54,7 @@ describe("Native Auth Sample - Sign Out Tests", () => {
         const labClient = new LabClient();
 
         // Use configuration for test user emails
-        signInEmailWithPwd = testConfig.testUsers.signInEmailWithPwd;
+        signInEmailUsername = testConfig.testUsers.signInEmailUsername;
         const accountCredential = await labClient.getSecret(testConfig.testUsers.labSecretName);
         accountPwd = accountCredential.value;
     });
@@ -131,7 +131,7 @@ describe("Native Auth Sample - Sign Out Tests", () => {
 
             // Enter username in the sign-in form and click sign-in button
             await page.waitForSelector("#username", { visible: true });
-            await page.type("#username", signInEmailWithPwd);
+            await page.type("#username", signInEmailUsername);
 
             // Make sure sign-in button is visible and clickable
             await page.waitForSelector("#signInBtn", { visible: true });

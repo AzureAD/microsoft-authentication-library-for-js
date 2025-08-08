@@ -32,9 +32,9 @@ describe("Native Auth Sample - Sign In Tests", () => {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     let browser: puppeteer.Browser;
-    let signInEmailWithPwd: string = "";
+    let signInEmailUsername: string = "";
     let accountPwd: string = "";
-    let signInEmailWithOtp: string = "";
+    let signInEmailOtpUsername: string = "";
     let corsProcess: ChildProcess;
 
     beforeAll(async () => {
@@ -55,10 +55,10 @@ describe("Native Auth Sample - Sign In Tests", () => {
         const labClient = new LabClient();
 
         // Use configuration for test user emails
-        signInEmailWithPwd = testConfig.testUsers.signInEmailWithPwd;
+        signInEmailUsername = testConfig.testUsers.signInEmailUsername;
         const accountCredential = await labClient.getSecret(testConfig.testUsers.labSecretName);
         accountPwd = accountCredential.value;
-        signInEmailWithOtp = testConfig.testUsers.signInEmailWithOtp;
+        signInEmailOtpUsername = testConfig.testUsers.signInEmailOtpUsername;
     });
 
     afterAll(async () => {
@@ -79,13 +79,13 @@ describe("Native Auth Sample - Sign In Tests", () => {
     });
 
     afterEach(async () => {
-        // Clear storage after each test
-        await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
-        });
+        // // Clear storage after each test
+        // await page.evaluate(() => {
+        //     Object.assign({}, window.sessionStorage.clear());
+        // });
+        // await page.evaluate(() => {
+        //     Object.assign({}, window.localStorage.clear());
+        // });
         await page.close();
     });
 
@@ -138,7 +138,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
 
             // Enter username in the sign-in form and click sign-in button
             await page.waitForSelector("#username", { visible: true });
-            await page.type("#username", signInEmailWithPwd);
+            await page.type("#username", signInEmailUsername);
 
             // Make sure sign-in button is visible and clickable
             await page.waitForSelector("#signInBtn", { visible: true });
@@ -229,7 +229,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 );
 
                 // Enter username in the sign-in form and click sign-in button
-                await page.type("#username", signInEmailWithPwd);
+                await page.type("#username", signInEmailUsername);
                 await page.click("#signInBtn");
                 await screenshot.takeScreenshot(page, "signInButtonClicked");
 
@@ -316,7 +316,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
 
                 // Enter username in the sign-in form and click sign-in button
                 await page.waitForSelector("#username", { visible: true });
-                await page.type("#username", signInEmailWithPwd);
+                await page.type("#username", signInEmailUsername);
 
                 // Make sure sign-in button is visible and clickable
                 await page.waitForSelector("#signInBtn", { visible: true });
@@ -394,7 +394,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 expect(signInCard).toBeTruthy();
                 // Enter account B username in the sign-in form
                 await page.waitForSelector("#username", { visible: true });
-                await page.type("#username", signInEmailWithPwd); // Using account B email
+                await page.type("#username", signInEmailUsername); // Using account B email
                 // Make sure sign-in button is visible and clickable
                 await page.waitForSelector("#signInBtn", { visible: true });
                 // Use evaluate to click to avoid potential click issues
@@ -437,7 +437,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
 
                 // Enter username in the sign-in form and click sign-in button
                 await page.waitForSelector("#username", { visible: true });
-                await page.type("#username", signInEmailWithPwd);
+                await page.type("#username", signInEmailUsername);
 
                 // Make sure sign-in button is visible and clickable
                 await page.waitForSelector("#signInBtn", { visible: true });
@@ -637,7 +637,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
 
                 // Enter email in the sign-in form and click sign-in button
                 await page.waitForSelector("#username", { visible: true });
-                await page.type("#username", signInEmailWithOtp); // Using signInEmailWithOtp instead of username
+                await page.type("#username", signInEmailOtpUsername); // Using signInEmailOtpUsername instead of username
 
                 // Make sure sign-in button is visible and clickable
                 await page.waitForSelector("#signInBtn", { visible: true });
@@ -728,7 +728,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
 
                 // Enter email in the sign-in form and click sign-in button
                 await page.waitForSelector("#username", { visible: true });
-                await page.type("#username", signInEmailWithOtp); // Using signInEmailWithOtp instead of username
+                await page.type("#username", signInEmailOtpUsername); // Using signInEmailOtpUsername instead of username
 
                 // Make sure sign-in button is visible and clickable
                 await page.waitForSelector("#signInBtn", { visible: true });

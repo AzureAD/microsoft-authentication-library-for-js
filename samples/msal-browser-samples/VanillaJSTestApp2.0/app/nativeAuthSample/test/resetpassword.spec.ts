@@ -55,8 +55,8 @@ describe("Native Auth Sample - Reset Password Tests", () => {
         const labClient = new LabClient();
 
         // Use configuration for test user emails
-        resetPasswordEmailWithPwd = testConfig.testUsers.signInEmailWithPwd;
-        resetPasswordEmailWithOtp = testConfig.testUsers.signInEmailWithOtp;
+        resetPasswordEmailWithPwd = testConfig.testUsers.signInEmailUsername;
+        resetPasswordEmailWithOtp = testConfig.testUsers.signInEmailOtpUsername;
     });
 
     afterAll(async () => {

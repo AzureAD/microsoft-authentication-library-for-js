@@ -60,7 +60,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
         // Use configuration for test user emails
         signUpEmailWithPwd = "test-pwd@test.com"
         signUpEmailWithOtp = "test-otp@test.com"
-        existingPwdEmail = testConfig.testUsers.signInEmailWithPwd;
+        existingPwdEmail = testConfig.testUsers.signInEmailUsername;
 
         testFirstName = "TestFirstName";
         testLastName = "TestLastName";
