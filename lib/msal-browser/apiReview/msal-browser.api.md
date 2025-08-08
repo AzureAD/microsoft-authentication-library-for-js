@@ -623,6 +623,7 @@ export const EventType: {
     readonly LOGIN_FAILURE: "msal:loginFailure";
     readonly ACQUIRE_TOKEN_START: "msal:acquireTokenStart";
     readonly ACQUIRE_TOKEN_SUCCESS: "msal:acquireTokenSuccess";
+    readonly BROKERED_REQUEST_SUCCESS: "msal:brokeredRequestSuccess";
     readonly ACQUIRE_TOKEN_FAILURE: "msal:acquireTokenFailure";
     readonly ACQUIRE_TOKEN_NETWORK_START: "msal:acquireTokenFromNetworkStart";
     readonly SSO_SILENT_START: "msal:ssoSilentStart";
