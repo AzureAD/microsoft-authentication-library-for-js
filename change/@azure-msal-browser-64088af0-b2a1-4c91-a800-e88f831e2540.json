@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "add brokered_request_success event type",
+  "packageName": "@azure/msal-browser",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
