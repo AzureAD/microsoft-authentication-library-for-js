@@ -80,12 +80,12 @@ describe("Native Auth Sample - Sign In Tests", () => {
 
     afterEach(async () => {
         // // Clear storage after each test
-        // await page.evaluate(() => {
-        //     Object.assign({}, window.sessionStorage.clear());
-        // });
-        // await page.evaluate(() => {
-        //     Object.assign({}, window.localStorage.clear());
-        // });
+        await page.evaluate(() => {
+            Object.assign({}, window.sessionStorage.clear());
+        });
+        await page.evaluate(() => {
+            Object.assign({}, window.localStorage.clear());
+        });
         await page.close();
     });
 
@@ -241,8 +241,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 await page.waitForSelector("#signInPassword", {
                     visible: true,
                 });
-                // await page.type("#signInPassword", "ARamdomString!");
-                await page.locator("#signInPassword").fill("A Ramdom String!");
+                await page.type("#signInPassword", signInEmailUsername);
                 await screenshot.takeScreenshot(
                     page,
                     "incorrectPasswordEntered"
