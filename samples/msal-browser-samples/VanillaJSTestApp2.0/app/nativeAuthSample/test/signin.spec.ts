@@ -241,7 +241,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 await page.waitForSelector("#signInPassword", {
                     visible: true,
                 });
-                await page.type("#signInPassword", "WrongPassword123!");
+                await page.type("#signInPassword", "ARamdomString!");
                 await screenshot.takeScreenshot(
                     page,
                     "incorrectPasswordEntered"
