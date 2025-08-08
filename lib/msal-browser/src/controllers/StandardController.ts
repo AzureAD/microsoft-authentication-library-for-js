@@ -758,7 +758,7 @@ export class StandardController implements IController {
             this.browserStorage.resetRequestCache();
             /*
              * Pre-redirect event completes before navigation occurs.
-             * Timed out navigation needs to be instrumented separately as a port-redirect event.
+             * Timed out navigation needs to be instrumented separately as a post-redirect event.
              */
             if (atrMeasurement.event.status === 2) {
                 this.performanceClient
