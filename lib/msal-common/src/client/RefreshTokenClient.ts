@@ -42,7 +42,6 @@ import {
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
-import { generateCredentialKey } from "../cache/utils/CacheHelpers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
@@ -248,7 +247,7 @@ export class RefreshTokenClient extends BaseClient {
                         "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
                     );
                     const badRefreshTokenKey =
-                        generateCredentialKey(refreshToken);
+                        this.cacheManager.generateCredentialKey(refreshToken);
                     this.cacheManager.removeRefreshToken(
                         badRefreshTokenKey,
                         request.correlationId
