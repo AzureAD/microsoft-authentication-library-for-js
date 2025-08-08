@@ -241,7 +241,8 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 await page.waitForSelector("#signInPassword", {
                     visible: true,
                 });
-                await page.type("#signInPassword", "ARamdomString!");
+                // await page.type("#signInPassword", "ARamdomString!");
+                await page.locator("#signInPassword").fill("A Ramdom String!");
                 await screenshot.takeScreenshot(
                     page,
                     "incorrectPasswordEntered"
