@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754520874704,
+  "lastUpdate": 1754678199683,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16476,6 +16476,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.75%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3a927b06d57e9780d4628ea3304ebfc14654c794",
+          "message": "Fix Typedoc Workflow (#7985)\n\nThis pull request updates the build and deployment workflow for\ngenerating TypeDoc documentation, with improvements to the build process\nand platform compatibility. The changes mainly focus on refining the CI\nworkflow and splitting build steps for better clarity and\nmaintainability.\n\n**Workflow and build process improvements:**\n\n* Changed the deployment job in `.github/workflows/typedoc.yml` to run\non `windows-latest` instead of `ubuntu-latest`, and updated the trigger\ncondition to match branches starting with `release-staging` instead of\nthose containing `post-release`.\n* Updated Node.js version in the workflow from 18 to 24 for\ncompatibility with newer dependencies and features.\n\n**Build step restructuring:**\n\n* Split the build process in the workflow: now builds the `lib`\nworkspace separately and uses a dedicated build step (`build:js`) for\nthe `@azure/msal-node-extensions` package.\n* Refactored the `build` script in\n`extensions/msal-node-extensions/package.json` to run `build:js` and\n`build:binaries` separately, improving clarity and maintainability.\nAdded new scripts for `build:js` and `build:binaries`.",
+          "timestamp": "2025-08-08T11:30:01-07:00",
+          "tree_id": "714e2360aa4c670e79c07a35d84a066702e645ef",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3a927b06d57e9780d4628ea3304ebfc14654c794"
+        },
+        "date": 1754678198035,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 244239,
+            "range": "±0.69%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 247085,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
