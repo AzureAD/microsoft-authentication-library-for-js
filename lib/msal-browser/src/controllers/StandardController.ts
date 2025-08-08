@@ -658,11 +658,12 @@ export class StandardController implements IController {
                     typeof onRedirectNavigateCb === "function"
                         ? onRedirectNavigateCb(url)
                         : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
+                atrMeasurement.add({
+                    navigateCallbackResult: navigate !== false,
+                });
+                atrMeasurement.event =
+                    atrMeasurement.end({ success: true }) ||
+                    atrMeasurement.event;
                 return navigate;
             };
         } else {
@@ -673,11 +674,12 @@ export class StandardController implements IController {
                     typeof configOnRedirectNavigateCb === "function"
                         ? configOnRedirectNavigateCb(url)
                         : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
+                atrMeasurement.add({
+                    navigateCallbackResult: navigate !== false,
+                });
+                atrMeasurement.event =
+                    atrMeasurement.end({ success: true }) ||
+                    atrMeasurement.event;
                 return navigate;
             };
         }
@@ -754,7 +756,21 @@ export class StandardController implements IController {
             return await result;
         } catch (e) {
             this.browserStorage.resetRequestCache();
-            atrMeasurement.end({ success: false }, e);
+            /*
+             * Pre-redirect event completes before navigation occurs.
+             * Timed out navigation needs to be instrumented separately as a post-redirect event.
+             */
+            if (atrMeasurement.event.status === 2) {
+                this.performanceClient
+                    .startMeasurement(
+                        PerformanceEvents.AcquireTokenRedirect,
+                        correlationId
+                    )
+                    .end({ success: false }, e);
+            } else {
+                atrMeasurement.end({ success: false }, e);
+            }
+
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
