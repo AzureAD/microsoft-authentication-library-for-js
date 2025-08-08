@@ -109,6 +109,10 @@ export type CacheOptions = {
      * Used to specify the cacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     cacheLocation?: BrowserCacheLocation | string;
+    /**
+     * Used to specify the number of days cache entries written by previous versions of MSAL.js should be retained in the browser. Defaults to 5 days.
+     */
+    cacheRetentionDays?: number;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -257,6 +261,7 @@ export function buildConfiguration(
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
+        cacheRetentionDays: 5,
     };
 
     // Default logger options for browser

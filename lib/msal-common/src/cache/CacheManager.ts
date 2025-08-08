@@ -15,7 +15,6 @@ import {
 import { CacheRecord } from "./entities/CacheRecord.js";
 import * as Constants from "../utils/Constants.js";
 import { CredentialEntity } from "./entities/CredentialEntity.js";
-import { generateCredentialKey } from "./utils/CacheHelpers.js";
 import { ScopeSet } from "../request/ScopeSet.js";
 import { AccountEntity } from "./entities/AccountEntity.js";
 import { AccessTokenEntity } from "./entities/AccessTokenEntity.js";
@@ -245,6 +244,18 @@ export abstract class CacheManager implements ICacheManager {
      * Function which retrieves all token keys from the cache
      */
     abstract getTokenKeys(): TokenKeys;
+
+    /**
+     * Returns credential cache key from the entity
+     * @param credential
+     */
+    abstract generateCredentialKey(credential: CredentialEntity): string;
+
+    /**
+     * Returns the account cache key from the account info
+     * @param account
+     */
+    abstract generateAccountKey(account: AccountInfo): string;
 
     /**
      * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
@@ -629,11 +640,6 @@ export abstract class CacheManager implements ICacheManager {
         const allAccountKeys = this.getAccountKeys();
         const matchingAccounts: AccountEntity[] = [];
         allAccountKeys.forEach((cacheKey) => {
-            if (!this.isAccountKey(cacheKey, accountFilter.homeAccountId)) {
-                // Don't parse value if the key doesn't match the account filters
-                return;
-            }
-
             const entity: AccountEntity | null = this.getAccount(
                 cacheKey,
                 correlationId
@@ -714,90 +720,6 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         return matchingAccounts;
-    }
-
-    /**
-     * Returns true if the given key matches our account key schema. Also matches homeAccountId and/or tenantId if provided
-     * @param key
-     * @param homeAccountId
-     * @param tenantId
-     * @returns
-     */
-    isAccountKey(
-        key: string,
-        homeAccountId?: string,
-        tenantId?: string
-    ): boolean {
-        if (key.split(Constants.CACHE_KEY_SEPARATOR).length < 3) {
-            // Account cache keys contain 3 items separated by '-' (each item may also contain '-')
-            return false;
-        }
-
-        if (
-            homeAccountId &&
-            !key.toLowerCase().includes(homeAccountId.toLowerCase())
-        ) {
-            return false;
-        }
-
-        if (tenantId && !key.toLowerCase().includes(tenantId.toLowerCase())) {
-            return false;
-        }
-
-        // Do not check environment as aliasing can cause false negatives
-
-        return true;
-    }
-
-    /**
-     * Returns true if the given key matches our credential key schema.
-     * @param key
-     */
-    isCredentialKey(key: string): boolean {
-        if (key.split(Constants.CACHE_KEY_SEPARATOR).length < 6) {
-            // Credential cache keys contain 6 items separated by '-' (each item may also contain '-')
-            return false;
-        }
-
-        const lowerCaseKey = key.toLowerCase();
-        // Credential keys must indicate what credential type they represent
-        if (
-            lowerCaseKey.indexOf(
-                Constants.CredentialType.ID_TOKEN.toLowerCase()
-            ) === -1 &&
-            lowerCaseKey.indexOf(
-                Constants.CredentialType.ACCESS_TOKEN.toLowerCase()
-            ) === -1 &&
-            lowerCaseKey.indexOf(
-                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
-            ) === -1 &&
-            lowerCaseKey.indexOf(
-                Constants.CredentialType.REFRESH_TOKEN.toLowerCase()
-            ) === -1
-        ) {
-            return false;
-        }
-
-        if (
-            lowerCaseKey.indexOf(
-                Constants.CredentialType.REFRESH_TOKEN.toLowerCase()
-            ) > -1
-        ) {
-            // Refresh tokens must contain the client id or family id
-            const clientIdValidation = `${Constants.CredentialType.REFRESH_TOKEN}${Constants.CACHE_KEY_SEPARATOR}${this.clientId}${Constants.CACHE_KEY_SEPARATOR}`;
-            const familyIdValidation = `${Constants.CredentialType.REFRESH_TOKEN}${Constants.CACHE_KEY_SEPARATOR}${Constants.THE_FAMILY_ID}${Constants.CACHE_KEY_SEPARATOR}`;
-            if (
-                lowerCaseKey.indexOf(clientIdValidation.toLowerCase()) === -1 &&
-                lowerCaseKey.indexOf(familyIdValidation.toLowerCase()) === -1
-            ) {
-                return false;
-            }
-        } else if (lowerCaseKey.indexOf(this.clientId.toLowerCase()) === -1) {
-            // Tokens must contain the clientId
-            return false;
-        }
-
-        return true;
     }
 
     /**
@@ -972,10 +894,9 @@ export abstract class CacheManager implements ICacheManager {
      * Removes all accounts and related tokens from cache.
      */
     removeAllAccounts(correlationId: string): void {
-        const allAccountKeys = this.getAccountKeys();
-
-        allAccountKeys.forEach((cacheKey) => {
-            this.removeAccount(cacheKey, correlationId);
+        const accounts = this.getAllAccounts({}, correlationId);
+        accounts.forEach((account) => {
+            this.removeAccount(account, correlationId);
         });
     }
 
@@ -983,39 +904,47 @@ export abstract class CacheManager implements ICacheManager {
      * Removes the account and related tokens for a given account key
      * @param account
      */
-    removeAccount(accountKey: string, correlationId: string): void {
-        const account = this.getAccount(accountKey, correlationId);
-        if (!account) {
-            return;
-        }
+    removeAccount(account: AccountInfo, correlationId: string): void {
         this.removeAccountContext(account, correlationId);
-        this.removeItem(accountKey, correlationId);
+        const accountKeys = this.getAccountKeys();
+        const keyFilter = (key: string): boolean => {
+            return (
+                key.includes(account.homeAccountId) &&
+                key.includes(account.environment)
+            );
+        };
+        accountKeys.filter(keyFilter).forEach((key) => {
+            this.removeItem(key, correlationId);
+            this.performanceClient.incrementFields(
+                { accountsRemoved: 1 },
+                correlationId
+            );
+        });
     }
 
     /**
      * Removes credentials associated with the provided account
      * @param account
      */
-    removeAccountContext(account: AccountEntity, correlationId: string): void {
+    removeAccountContext(account: AccountInfo, correlationId: string): void {
         const allTokenKeys = this.getTokenKeys();
-        const accountId = AccountEntityUtils.generateAccountId(account);
+        const keyFilter = (key: string): boolean => {
+            return (
+                key.includes(account.homeAccountId) &&
+                key.includes(account.environment)
+            );
+        };
 
-        allTokenKeys.idToken.forEach((key) => {
-            if (key.indexOf(accountId) === 0) {
-                this.removeIdToken(key, correlationId);
-            }
+        allTokenKeys.idToken.filter(keyFilter).forEach((key) => {
+            this.removeIdToken(key, correlationId);
         });
 
-        allTokenKeys.accessToken.forEach((key) => {
-            if (key.indexOf(accountId) === 0) {
-                this.removeAccessToken(key, correlationId);
-            }
+        allTokenKeys.accessToken.filter(keyFilter).forEach((key) => {
+            this.removeAccessToken(key, correlationId);
         });
 
-        allTokenKeys.refreshToken.forEach((key) => {
-            if (key.indexOf(accountId) === 0) {
-                this.removeRefreshToken(key, correlationId);
-            }
+        allTokenKeys.refreshToken.filter(keyFilter).forEach((key) => {
+            this.removeRefreshToken(key, correlationId);
         });
     }
 
@@ -1075,19 +1004,6 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         return true;
-    }
-
-    /**
-     * Retrieve AccountEntity from cache
-     * @param account
-     */
-    readAccountFromCache(
-        account: AccountInfo,
-        correlationId: string
-    ): AccountEntity | null {
-        const accountKey: string =
-            AccountEntityUtils.generateAccountCacheKey(account);
-        return this.getAccount(accountKey, correlationId);
     }
 
     /**
@@ -1334,7 +1250,7 @@ export abstract class CacheManager implements ICacheManager {
             );
             accessTokens.forEach((accessToken) => {
                 this.removeAccessToken(
-                    generateCredentialKey(accessToken),
+                    this.generateCredentialKey(accessToken),
                     correlationId
                 );
             });
@@ -1956,6 +1872,12 @@ export class DefaultStorageClass extends CacheManager {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getTokenKeys(): TokenKeys {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    }
+    generateCredentialKey(): string {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    }
+    generateAccountKey(): string {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
 }

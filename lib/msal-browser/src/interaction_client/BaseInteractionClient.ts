@@ -20,7 +20,6 @@ import {
     AzureCloudOptions,
     invokeAsync,
     StringDict,
-    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -221,44 +220,31 @@ export async function clearCacheOnLogout(
     account?: AccountInfo | null
 ): Promise<void> {
     if (account) {
-        if (
-            AccountEntityUtils.accountInfoIsEqual(
-                account,
-                browserStorage.getActiveAccount(correlationId),
-                false
-            )
-        ) {
-            logger.verbose("Setting active account to null");
-            browserStorage.setActiveAccount(null, correlationId);
+            // Clear given account.
+            try {
+                browserStorage.removeAccount(account, correlationId);
+                logger.verbose(
+                    "Cleared cache items belonging to the account provided in the logout request."
+                );
+            } catch (error) {
+                logger.error(
+                    "Account provided in logout request was not found. Local cache unchanged."
+                );
+            }
+        } else {
+            try {
+                logger.verbose(
+                    "No account provided in logout request, clearing all cache items.",
+                    correlationId
+                );
+                // Clear all accounts and tokens
+                browserStorage.clear(correlationId);
+                // Clear any stray keys from IndexedDB
+                await browserCrypto.clearKeystore();
+            } catch (e) {
+                logger.error(
+                    "Attempted to clear all MSAL cache items and failed. Local cache unchanged."
+                );
+            }
         }
-        // Clear given account.
-        try {
-            browserStorage.removeAccount(
-                AccountEntityUtils.generateAccountCacheKey(account),
-                correlationId
-            );
-            logger.verbose(
-                "Cleared cache items belonging to the account provided in the logout request."
-            );
-        } catch (error) {
-            logger.error(
-                "Account provided in logout request was not found. Local cache unchanged."
-            );
-        }
-    } else {
-        try {
-            logger.verbose(
-                "No account provided in logout request, clearing all cache items.",
-                correlationId
-            );
-            // Clear all accounts and tokens
-            browserStorage.clear(correlationId);
-            // Clear any stray keys from IndexedDB
-            await browserCrypto.clearKeystore();
-        } catch (e) {
-            logger.error(
-                "Attempted to clear all MSAL cache items and failed. Local cache unchanged."
-            );
-        }
-    }
 }

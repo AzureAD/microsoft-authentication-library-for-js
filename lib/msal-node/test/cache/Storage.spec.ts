@@ -27,6 +27,7 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONSTANTS,
 } from "../utils/TestConstants.js";
+import { generateAccountKey } from "../../src/cache/CacheHelpers.js";
 
 const cacheJson = require("./serializer/cache.json");
 const clientId = TEST_CONSTANTS.CLIENT_ID;
@@ -186,7 +187,9 @@ describe("Storage tests for msal-node: ", () => {
         await nodeStorage.setAccount(mockAccountEntity);
         expect(
             nodeStorage.getAccount(
-                AccountEntityUtils.generateAccountKey(mockAccountEntity)
+                generateAccountKey(
+                    AccountEntityUtils.getAccountInfo(mockAccountEntity)
+                )
             )
         ).toEqual(mockAccountEntity);
     });
@@ -211,6 +214,7 @@ describe("Storage tests for msal-node: ", () => {
             cachedAt: "1000",
             expiresOn: "4600",
             extendedExpiresOn: "4600",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         const cache = {
@@ -244,6 +248,7 @@ describe("Storage tests for msal-node: ", () => {
             cachedAt: "1000",
             expiresOn: "4600",
             extendedExpiresOn: "4600",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         await nodeStorage.setAccessTokenCredential(accessToken);
@@ -275,6 +280,7 @@ describe("Storage tests for msal-node: ", () => {
             clientId: "mock_client_id",
             secret: "an access token",
             realm: "samplerealm",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         await nodeStorage.setIdTokenCredential(idToken);
@@ -305,6 +311,7 @@ describe("Storage tests for msal-node: ", () => {
             clientId: "mock_client_id",
             secret: "a refresh token",
             realm: "samplerealm",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         await nodeStorage.setRefreshTokenCredential(refreshToken);

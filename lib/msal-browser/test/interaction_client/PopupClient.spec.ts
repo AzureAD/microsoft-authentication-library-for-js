@@ -41,7 +41,6 @@ import {
     TemporaryCacheKeys,
     ApiId,
     BrowserConstants,
-    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
@@ -67,6 +66,7 @@ import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
 import { version } from "../../src/packageMetadata.js";
+import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -810,7 +810,7 @@ describe("PopupClient", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(2);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
@@ -1286,6 +1286,7 @@ describe("PopupClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             // @ts-ignore
@@ -1375,6 +1376,7 @@ describe("PopupClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             // @ts-ignore
@@ -1473,6 +1475,7 @@ describe("PopupClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
@@ -1490,7 +1493,7 @@ describe("PopupClient", () => {
             );
             jest.spyOn(PopupUtils, "cleanPopup").mockImplementation((popup) => {
                 window.sessionStorage.removeItem(
-                    `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
+                    `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
                 );
             });
             jest.spyOn(
