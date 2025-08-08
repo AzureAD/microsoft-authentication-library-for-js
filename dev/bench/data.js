@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754678199683,
+  "lastUpdate": 1754680730755,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16514,6 +16514,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.77%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1c05d6c980d950ef3111ca369c161eecd09b08b9",
+          "message": "Instrument timed out or cancelled pre-redirect requests (#7984)\n\n- Instrument timed out or cancelled pre-redirect requests",
+          "timestamp": "2025-08-08T15:12:26-04:00",
+          "tree_id": "1149e8d2d40a405543c10340467cdd2ecb60f894",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1c05d6c980d950ef3111ca369c161eecd09b08b9"
+        },
+        "date": 1754680729202,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 254750,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 249668,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
