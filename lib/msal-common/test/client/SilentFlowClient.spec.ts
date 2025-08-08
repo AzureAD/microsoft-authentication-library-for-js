@@ -63,6 +63,7 @@ const testIdToken: IdTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.id_token,
     credentialType: CredentialType.ID_TOKEN,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 const testAccessTokenEntity: AccessTokenEntity = {
@@ -81,6 +82,7 @@ const testAccessTokenEntity: AccessTokenEntity = {
         TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
     ).toString(),
     tokenType: AuthenticationScheme.BEARER,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 const testRefreshTokenEntity: RefreshTokenEntity = {
@@ -90,6 +92,7 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.refresh_token,
     credentialType: CredentialType.REFRESH_TOKEN,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 describe("SilentFlowClient unit tests", () => {
@@ -132,8 +135,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -189,8 +192,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -240,8 +243,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -282,8 +285,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -329,8 +332,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -376,8 +379,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -450,8 +453,8 @@ describe("SilentFlowClient unit tests", () => {
                 idTokenClaimsWithAuthTime
             );
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -580,8 +583,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -621,8 +624,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -661,8 +664,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -703,8 +706,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -754,8 +757,8 @@ describe("SilentFlowClient unit tests", () => {
                 <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -783,7 +786,8 @@ describe("SilentFlowClient unit tests", () => {
                 new MockStorageClass(
                     TEST_CONFIG.MSAL_CLIENT_ID,
                     mockCrypto,
-                    logger
+                    logger,
+                    new StubPerformanceClient()
                 )
             );
             client = new SilentFlowClient(config, stubPerformanceClient);

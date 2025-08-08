@@ -6,8 +6,6 @@
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
-    // Prefix for all library cache entries
-    CACHE_PREFIX: "msal",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
@@ -70,6 +68,7 @@ export const HttpStatus = {
     UNAUTHORIZED: 401,
     NOT_FOUND: 404,
     REQUEST_TIMEOUT: 408,
+    GONE: 410,
     TOO_MANY_REQUESTS: 429,
     CLIENT_ERROR_RANGE_END: 499,
     SERVER_ERROR: 500,
@@ -80,6 +79,12 @@ export const HttpStatus = {
     MULTI_SIDED_ERROR: 600,
 } as const;
 export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
+
+export const HttpMethod = {
+    GET: "GET",
+    POST: "POST",
+} as const;
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,
@@ -326,15 +331,6 @@ export type PasswordGrantConstants =
     (typeof PasswordGrantConstants)[keyof typeof PasswordGrantConstants];
 
 /**
- * Response codes
- */
-export const ResponseCodes = {
-    httpSuccess: 200,
-    httpBadRequest: 400,
-} as const;
-export type ResponseCodes = (typeof ResponseCodes)[keyof typeof ResponseCodes];
-
-/**
  * Region Discovery Sources
  */
 export const RegionDiscoverySources = {
@@ -388,3 +384,10 @@ export const ONE_DAY_IN_MS = 86400000;
 
 // Token renewal offset default in seconds
 export const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
+
+export const EncodingTypes = {
+    BASE64: "base64",
+    HEX: "hex",
+    UTF8: "utf-8",
+} as const;
+export type EncodingTypes = (typeof EncodingTypes)[keyof typeof EncodingTypes];

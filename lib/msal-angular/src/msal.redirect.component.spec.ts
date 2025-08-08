@@ -27,6 +27,7 @@ function initializeMsal() {
     declarations: [MsalRedirectComponent],
     imports: [MsalModule.forRoot(MSALInstanceFactory(), null, null)],
     providers: [],
+    teardown: { destroyAfterEach: false },
   });
 
   authService = TestBed.inject(MsalService);
@@ -34,7 +35,7 @@ function initializeMsal() {
 }
 
 describe("MsalRedirectComponent", () => {
-  beforeAll(initializeMsal);
+  beforeEach(initializeMsal);
 
   it("calls handleRedirectObservable on ngInit", (done) => {
     const sampleAccessToken = {

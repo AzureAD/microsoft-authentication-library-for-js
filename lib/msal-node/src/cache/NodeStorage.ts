@@ -20,6 +20,8 @@ import {
     ValidCredentialType,
     StaticAuthorityOptions,
     CacheHelpers,
+    CredentialEntity,
+    AccountInfo,
 } from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -29,6 +31,8 @@ import {
     JsonCache,
     CacheKVStore,
 } from "./serializer/SerializerTypes.js";
+import { StubPerformanceClient } from "@azure/msal-common";
+import { generateAccountKey, generateCredentialKey } from "./CacheHelpers.js";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -46,7 +50,13 @@ export class NodeStorage extends CacheManager {
         cryptoImpl: ICrypto,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            new StubPerformanceClient(),
+            staticAuthorityOptions
+        );
         this.logger = logger;
     }
 
@@ -195,6 +205,14 @@ export class NodeStorage extends CacheManager {
         this.setCache(cache);
     }
 
+    generateCredentialKey(credential: CredentialEntity): string {
+        return generateCredentialKey(credential);
+    }
+
+    generateAccountKey(account: AccountInfo): string {
+        return generateAccountKey(account);
+    }
+
     getAccountKeys(): string[] {
         const inMemoryCache = this.getInMemoryCache();
         const accountKeys = Object.keys(inMemoryCache.accounts);
@@ -230,7 +248,7 @@ export class NodeStorage extends CacheManager {
      * @param account - cache value to be set of type AccountEntity
      */
     async setAccount(account: AccountEntity): Promise<void> {
-        const accountKey = account.generateAccountKey();
+        const accountKey = this.generateAccountKey(account.getAccountInfo());
         this.setItem(accountKey, account);
     }
 
@@ -251,7 +269,7 @@ export class NodeStorage extends CacheManager {
      * @param idToken - cache value to be set of type IdTokenEntity
      */
     async setIdTokenCredential(idToken: IdTokenEntity): Promise<void> {
-        const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
+        const idTokenKey = this.generateCredentialKey(idToken);
         this.setItem(idTokenKey, idToken);
     }
 
@@ -274,7 +292,7 @@ export class NodeStorage extends CacheManager {
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity
     ): Promise<void> {
-        const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
+        const accessTokenKey = this.generateCredentialKey(accessToken);
         this.setItem(accessTokenKey, accessToken);
     }
 
@@ -301,8 +319,7 @@ export class NodeStorage extends CacheManager {
     async setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity
     ): Promise<void> {
-        const refreshTokenKey =
-            CacheHelpers.generateCredentialKey(refreshToken);
+        const refreshTokenKey = this.generateCredentialKey(refreshToken);
         this.setItem(refreshTokenKey, refreshToken);
     }
 
@@ -520,7 +537,7 @@ export class NodeStorage extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
+        const updatedCacheKey = this.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.getItem(currentCacheKey);

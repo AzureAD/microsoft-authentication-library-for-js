@@ -7,8 +7,8 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
-import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest.js";
+import type { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import type { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest.js";
 
 /**
  * The PkceCodes type describes the structure
@@ -70,7 +70,7 @@ export interface ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
      */
-    removeTokenBindingKey(kid: string): Promise<boolean>;
+    removeTokenBindingKey(kid: string): Promise<void>;
     /**
      * Removes all cryptographic keys from IndexedDB storage
      */
@@ -111,7 +111,7 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
-    async removeTokenBindingKey(): Promise<boolean> {
+    async removeTokenBindingKey(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async clearKeystore(): Promise<boolean> {

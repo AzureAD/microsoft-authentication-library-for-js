@@ -71,11 +71,39 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
 
 ## Warning :warning:
+
+**NOTE: `temporaryCacheLocation` is deprecated will be removed in the next major version.**
+
 Overriding `temporaryCacheLocation` should be done with caution. Specifically when choosing `localStorage`. Interaction in more than one tab/window will not be supported and you may receive `interaction_in_progress` errors unexpectedly. This is an escape hatch, not a fully supported feature.
 
 When using MSAL.js with the default configuration in a scenario where the user is redirected after successful authentication in a new window or tab, the OAuth 2.0 Authorization Code with PKCE flow will be interrupted. In this case, the original window or tab where the authentication state (code verifier and challenge) are stored, will be lost, and the authentication flow will fail.
 
 To handle this scenario, you can configure MSAL to use `localStorage` as the cache location by overriding the `temporaryCacheLocation` configuration property. This allows the code verifier and challenge to be stored in the browser's `localStorage,` which is persistent across multiple tabs and windows.
+
+## Cache persistence during MSAL.js upgrades and rollbacks
+
+Occasionally MSAL.js needs to make changes to the shape of the cached artifacts to support new requirements, features or bug fixes. As often as possible these changes will be made in a backwards compatible way so as to ensure that when an application upgrades to a new version or rolls back to an older one the cache present in a user's browser can still be used. However, this is not always possible and you may end up in a state where multiple copies of the cache exist concurrently, one used by the current version of MSAL.js running and another that was written by the version used prior to the upgrade. This is done to allow applications to gracefully rollback, if needed. In the vast majority of upgrades, MSAL.js will migrate any existing cache into the new format for a seamless upgrade experience. In rare cases, such as the upgrade from v3 to v4, this may not be possible due to security or privacy requirements and this will always result in a major version bump. 
+
+When a breaking cache change is made the older cache will be kept for 5 days, by default, to allow for a rollback if needed. The length of time old cache is kept can be configured using the `cacheRetentionDays` cache configuration on `PublicClientApplication`. If the cache has not been actively used within that time it will be cleared the next time MSAL.js is initialized. Additionally, if you do not anticipate needing to rollback you may set this value to `0` to indicate that old cache should always be removed immediately upon upgrading to a new version of MSAL.js. Conversely, if you have a longer rollout window for upgrades you may choose to set this to a longer value.
+
+> [!NOTE]
+> Access and Refresh tokens will be removed once they have expired, even if the configured `cacheRetentionDays` has not yet been reached.
+> Valid access tokens may also be removed at any time if browser storage reaches its storage quota. When storage quotas are reached access tokens will be removed on a First In First Out basis, starting with entries written by a previous version of MSAL.js and then moving on to entries written by the current version of MSAL.js.
+
+```javascript
+const config = {
+    auth: {
+        clientId: "<your-client-id>"
+    },
+    cache: {
+        cacheLocation: "localStorage",
+        cacheRetentionDays: 0 // Set this to the number of days you want old cache to be preserved in the event a rollback is needed (Default 5 days)
+    }
+}
+
+const pca = new PublicClientApplication(config);
+await pca.initialize();
+```
 
 ## Remarks
 

@@ -47,6 +47,7 @@ import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
 import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
+import { CredentialEntity } from '@azure/msal-common/node';
 import { DeviceCodeResponse } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
@@ -230,7 +231,7 @@ export class CryptoProvider implements ICrypto {
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<boolean>;
+    removeTokenBindingKey(): Promise<void>;
     signJwt(): Promise<string>;
 }
 
@@ -397,6 +398,7 @@ export class ManagedIdentityApplication {
 
 // @public (undocumented)
 export type ManagedIdentityConfiguration = {
+    clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
@@ -452,6 +454,7 @@ export type NodeAuthOptions = {
     protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
+    encodeExtraQueryParams?: boolean;
 };
 
 // @public
@@ -598,14 +601,14 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
-    getAllAccounts(): Promise<AccountInfo[]>;
+    getAllAccounts(correlationId?: string): Promise<AccountInfo[]>;
     getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
     overwriteCache(): Promise<void>;
     // (undocumented)
     readonly persistence: ICachePlugin;
-    removeAccount(account: AccountInfo): Promise<void>;
+    removeAccount(account: AccountInfo, correlationId?: string): Promise<void>;
     serialize(): string;
 }
 
@@ -629,7 +632,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.4.1";
+export const version = "3.7.0";
 
 // Warnings were encountered during analysis:
 //

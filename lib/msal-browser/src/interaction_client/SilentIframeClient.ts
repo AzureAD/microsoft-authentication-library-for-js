@@ -15,6 +15,7 @@ import {
     invoke,
     ProtocolMode,
     CommonAuthorizationUrlRequest,
+    HttpMethod,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -32,17 +33,19 @@ import {
 } from "../utils/BrowserConstants.js";
 import {
     initiateCodeRequest,
+    initiateCodeFlowWithPost,
     initiateEarRequest,
     monitorIframeForHash,
 } from "../interaction_handler/SilentHandler.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -58,7 +61,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthProvider?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         super(
@@ -69,7 +72,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthProvider,
             correlationId
         );
         this.apiId = apiId;
@@ -122,13 +125,12 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             request.correlationId
         )(inputRequest, InteractionType.Silent);
-        silentRequest.platformBroker =
-            NativeMessageHandler.isPlatformBrokerAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                silentRequest.authenticationScheme
-            );
+        silentRequest.platformBroker = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            this.platformAuthProvider,
+            silentRequest.authenticationScheme
+        );
         BrowserUtils.preconnect(silentRequest.authority);
 
         if (this.config.auth.protocolMode === ProtocolMode.EAR) {
@@ -294,7 +296,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.nativeMessageHandler
+            this.platformAuthProvider
         );
     }
 
@@ -337,35 +339,54 @@ export class SilentIframeClient extends StandardInteractionClient {
             ...request,
             codeChallenge: pkceCodes.challenge,
         };
-        // Create authorize request url
-        const navigateUrl = await invokeAsync(
-            Authorize.getAuthCodeRequestUrl,
-            PerformanceEvents.GetAuthCodeUrl,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            this.config,
-            authClient.authority,
-            silentRequest,
-            this.logger,
-            this.performanceClient
-        );
 
-        // Get the frame handle for the silent request
-        const msalFrame = await invokeAsync(
-            initiateCodeRequest,
-            PerformanceEvents.SilentHandlerInitiateAuthRequest,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            navigateUrl,
-            this.performanceClient,
-            this.logger,
-            correlationId,
-            this.config.system.navigateFrameWait
-        );
+        let msalFrame: HTMLIFrameElement;
+
+        if (request.httpMethod === HttpMethod.POST) {
+            msalFrame = await invokeAsync(
+                initiateCodeFlowWithPost,
+                PerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                this.config,
+                authClient.authority,
+                silentRequest,
+                this.logger,
+                this.performanceClient
+            );
+        } else {
+            // Create authorize request url
+            const navigateUrl = await invokeAsync(
+                Authorize.getAuthCodeRequestUrl,
+                PerformanceEvents.GetAuthCodeUrl,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                this.config,
+                authClient.authority,
+                silentRequest,
+                this.logger,
+                this.performanceClient
+            );
+
+            // Get the frame handle for the silent request
+            msalFrame = await invokeAsync(
+                initiateCodeRequest,
+                PerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                navigateUrl,
+                this.performanceClient,
+                this.logger,
+                correlationId,
+                this.config.system.navigateFrameWait
+            );
+        }
 
         const responseType = this.config.auth.OIDCOptions.serverResponseType;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -410,7 +431,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.nativeMessageHandler
+            this.platformAuthProvider
         );
     }
 }

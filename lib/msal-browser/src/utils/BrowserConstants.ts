@@ -41,10 +41,15 @@ export const BrowserConstants = {
     MSAL_SKU: "msal.js.browser",
 };
 
-export const NativeConstants = {
+export const PlatformAuthConstants = {
     CHANNEL_ID: "53ee284d-920a-4b59-9d30-a60315b26836",
     PREFERRED_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji",
     MATS_TELEMETRY: "MATS",
+    MICROSOFT_ENTRA_BROKERID: "MicrosoftEntra",
+    DOM_API_NAME: "DOM API",
+    PLATFORM_DOM_APIS: "get-token-and-sign-out",
+    PLATFORM_DOM_PROVIDER: "PlatformAuthDOMHandler",
+    PLATFORM_EXTENSION_PROVIDER: "PlatformAuthExtensionHandler",
 };
 
 export const NativeExtensionMethod = {
@@ -74,6 +79,13 @@ export const HTTP_REQUEST_TYPE = {
 export type HTTP_REQUEST_TYPE =
     (typeof HTTP_REQUEST_TYPE)[keyof typeof HTTP_REQUEST_TYPE];
 
+export const INTERACTION_TYPE = {
+    SIGNIN: "signin",
+    SIGNOUT: "signout",
+} as const;
+export type INTERACTION_TYPE =
+    (typeof INTERACTION_TYPE)[keyof typeof INTERACTION_TYPE];
+
 /**
  * Temporary cache keys for MSAL, deleted after any request.
  */
@@ -87,13 +99,6 @@ export const TemporaryCacheKeys = {
 } as const;
 export type TemporaryCacheKeys =
     (typeof TemporaryCacheKeys)[keyof typeof TemporaryCacheKeys];
-
-export const StaticCacheKeys = {
-    ACCOUNT_KEYS: "msal.account.keys",
-    TOKEN_KEYS: "msal.token.keys",
-} as const;
-export type StaticCacheKeys =
-    (typeof StaticCacheKeys)[keyof typeof StaticCacheKeys];
 
 /**
  * Cache keys stored in-memory
@@ -236,8 +241,3 @@ export const iFrameRenewalPolicies: CacheLookupPolicy[] = [
     CacheLookupPolicy.Skip,
     CacheLookupPolicy.RefreshTokenAndNetwork,
 ];
-
-export const LOG_LEVEL_CACHE_KEY = "msal.browser.log.level";
-export const LOG_PII_CACHE_KEY = "msal.browser.log.pii";
-
-export const BROWSER_PERF_ENABLED_KEY = "msal.browser.performance.enabled";

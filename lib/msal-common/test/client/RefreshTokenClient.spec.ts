@@ -19,6 +19,7 @@ import {
     CORS_RESPONSE_HEADERS,
     TEST_SSH_VALUES,
     BAD_TOKEN_ERROR_RESPONSE,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
 import {
@@ -29,7 +30,11 @@ import {
     ThrottlingConstants,
 } from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
-import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils.js";
+import {
+    ClientTestUtils,
+    generateCredentialKey,
+    MockStorageClass,
+} from "./ClientTestUtils.js";
 import { Authority } from "../../src/authority/Authority.js";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient.js";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest.js";
@@ -60,7 +65,6 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
-import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
@@ -84,6 +88,7 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.refresh_token,
     credentialType: CredentialType.REFRESH_TOKEN,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
@@ -94,6 +99,7 @@ const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
     secret: AUTHENTICATION_RESULT.body.refresh_token,
     credentialType: CredentialType.REFRESH_TOKEN,
     familyId: TEST_CONFIG.THE_FAMILY_ID,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 describe("RefreshTokenClient unit tests", () => {
@@ -359,7 +365,10 @@ describe("RefreshTokenClient unit tests", () => {
                 testFamilyRefreshTokenEntity,
                 TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -1104,7 +1113,10 @@ describe("RefreshTokenClient unit tests", () => {
                 testFamilyRefreshTokenEntity,
                 TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -1288,6 +1300,7 @@ describe("RefreshTokenClient unit tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "testname@contoso.com",
+                loginHint: "testLoginHint",
             };
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = new AccountEntity();
@@ -1412,7 +1425,10 @@ describe("RefreshTokenClient unit tests", () => {
                 rtEntity,
                 TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             const mockPerfClient = new MockPerformanceClient();
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "test-measurement",
@@ -1455,7 +1471,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(rtEntity);
 
@@ -1465,7 +1482,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(null);
 

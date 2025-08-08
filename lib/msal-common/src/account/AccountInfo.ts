@@ -23,6 +23,7 @@ export type AccountInfo = {
     tenantId: string;
     username: string;
     localAccountId: string;
+    loginHint?: string;
     name?: string;
     idToken?: string;
     idTokenClaims?: TokenClaims & {
@@ -44,7 +45,7 @@ export type AccountInfo = {
  */
 export type TenantProfile = Pick<
     AccountInfo,
-    "tenantId" | "localAccountId" | "name"
+    "tenantId" | "localAccountId" | "name" | "username" | "loginHint"
 > & {
     /**
      * - isHomeTenant           - True if this is the home tenant profile of the account, false if it's a guest tenant profile
@@ -56,6 +57,7 @@ export type ActiveAccountFilters = {
     homeAccountId: string;
     localAccountId: string;
     tenantId?: string;
+    lastUpdatedAt?: string;
 };
 
 /**
@@ -90,7 +92,17 @@ export function buildTenantProfile(
     idTokenClaims?: TokenClaims
 ): TenantProfile {
     if (idTokenClaims) {
-        const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
+        const {
+            oid,
+            sub,
+            tid,
+            name,
+            tfp,
+            acr,
+            preferred_username,
+            upn,
+            login_hint,
+        } = idTokenClaims;
 
         /**
          * Since there is no way to determine if the authority is AAD or B2C, we exhaust all the possible claims that can serve as tenant ID with the following precedence:
@@ -104,12 +116,15 @@ export function buildTenantProfile(
             tenantId: tenantId,
             localAccountId: oid || sub || "",
             name: name,
+            username: preferred_username || upn || "",
+            loginHint: login_hint,
             isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
         };
     } else {
         return {
             tenantId,
             localAccountId,
+            username: "",
             isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
         };
     }

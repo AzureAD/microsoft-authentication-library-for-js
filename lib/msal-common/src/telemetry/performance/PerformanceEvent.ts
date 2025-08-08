@@ -704,6 +704,11 @@ export type PerformanceEvent = {
     libraryVersion: string;
 
     /**
+     * Version of the library used last. Used to track upgrades and downgrades
+     */
+    previousLibraryVersion?: string;
+
+    /**
      * Whether the response is from a native component (e.g., WAM)
      *
      * @type {?boolean}
@@ -854,6 +859,10 @@ export type PerformanceEvent = {
     // Event context as JSON string
     context?: string;
 
+    // Cache Data
+    cacheLocation?: string;
+    cacheRetentionDays?: number;
+
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
     cacheIdCount?: number;
@@ -888,6 +897,11 @@ export type PerformanceEvent = {
     prompt?: string;
 
     usePreGeneratedPkce?: boolean;
+
+    // Number of MSAL JS instances in the frame
+    msalInstanceCount?: number;
+    // Number of MSAL JS instances using the same client id in the frame
+    sameClientIdInstanceCount?: number;
 };
 
 export type PerformanceEventContext = {
@@ -917,4 +931,14 @@ export const IntFields: ReadonlySet<string> = new Set([
     "multiMatchedRT",
     "unencryptedCacheCount",
     "encryptedCacheExpiredCount",
+    "oldAccountCount",
+    "oldAccessCount",
+    "oldIdCount",
+    "oldRefreshCount",
+    "currAccountCount",
+    "currAccessCount",
+    "currIdCount",
+    "currRefreshCount",
+    "expiredCacheRemovedCount",
+    "upgradedCacheCount",
 ]);

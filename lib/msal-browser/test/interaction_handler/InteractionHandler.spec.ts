@@ -139,8 +139,8 @@ const cryptoInterface = {
     signJwt: async (): Promise<string> => {
         return "signedJwt";
     },
-    removeTokenBindingKey: async (): Promise<boolean> => {
-        return Promise.resolve(true);
+    removeTokenBindingKey: async (): Promise<void> => {
+        return Promise.resolve();
     },
     clearKeystore: async (): Promise<boolean> => {
         return Promise.resolve(true);
@@ -222,7 +222,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             storageInterface: new TestStorageManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cryptoInterface,
-                logger
+                logger,
+                new StubPerformanceClient()
             ),
             networkInterface: {
                 sendGetRequestAsync: async (
@@ -269,6 +270,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testCodeResponse: AuthorizationCodePayload = {
                 code: "authcode",
@@ -281,6 +283,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 username: idTokenClaims.preferred_username,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                loginHint: idTokenClaims.login_hint,
             };
             const testCcsCred: CcsCredential = {
                 credential: idTokenClaims.preferred_username || "",
@@ -349,6 +352,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testCodeResponse: AuthorizationCodePayload = {
                 code: "authcode",
@@ -362,6 +366,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 username: idTokenClaims.preferred_username,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                loginHint: idTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: authorityInstance.canonicalAuthority,
@@ -427,6 +432,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
+                login_hint: "testLoginHint",
             };
             const testCodeResponse: AuthorizationCodePayload = {
                 code: "authcode",
@@ -439,6 +445,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tenantId: idTokenClaims.tid,
                 username: idTokenClaims.preferred_username,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                loginHint: idTokenClaims.login_hint,
             };
             const testCcsCred: CcsCredential = {
                 credential: idTokenClaims.preferred_username || "",

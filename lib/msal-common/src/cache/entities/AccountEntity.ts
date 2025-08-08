@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { CacheAccountType, Separators } from "../../utils/Constants.js";
-import { Authority } from "../../authority/Authority.js";
+import { CacheAccountType } from "../../utils/Constants.js";
+import type { Authority } from "../../authority/Authority.js";
 import { ICrypto } from "../../crypto/ICrypto.js";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
 import {
@@ -54,6 +54,7 @@ export class AccountEntity {
     localAccountId: string;
     username: string;
     authorityType: string;
+    loginHint?: string;
     clientInfo?: string;
     name?: string;
     lastModificationTime?: string;
@@ -62,27 +63,7 @@ export class AccountEntity {
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
-
-    /**
-     * Generate Account Id key component as per the schema: <home_account_id>-<environment>
-     */
-    generateAccountId(): string {
-        const accountId: Array<string> = [this.homeAccountId, this.environment];
-        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-    }
-
-    /**
-     * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
-     */
-    generateAccountKey(): string {
-        return AccountEntity.generateAccountCacheKey({
-            homeAccountId: this.homeAccountId,
-            environment: this.environment,
-            tenantId: this.realm,
-            username: this.username,
-            localAccountId: this.localAccountId,
-        });
-    }
+    lastUpdatedAt: string;
 
     /**
      * Returns the AccountInfo interface for this account.
@@ -94,6 +75,7 @@ export class AccountEntity {
             tenantId: this.realm,
             username: this.username,
             localAccountId: this.localAccountId,
+            loginHint: this.loginHint,
             name: this.name,
             nativeAccountId: this.nativeAccountId,
             authorityType: this.authorityType,
@@ -111,21 +93,6 @@ export class AccountEntity {
      */
     isSingleTenant(): boolean {
         return !this.tenantProfiles;
-    }
-
-    /**
-     * Generates account key from interface
-     * @param accountInterface
-     */
-    static generateAccountCacheKey(accountInterface: AccountInfo): string {
-        const homeTenantId = accountInterface.homeAccountId.split(".")[1];
-        const accountKey = [
-            accountInterface.homeAccountId,
-            accountInterface.environment || "",
-            homeTenantId || accountInterface.tenantId || "",
-        ];
-
-        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**
@@ -206,6 +173,7 @@ export class AccountEntity {
             : null;
 
         account.username = preferredUsername || email || "";
+        account.loginHint = accountDetails.idTokenClaims?.login_hint;
         account.name = accountDetails.idTokenClaims?.name || "";
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
@@ -251,6 +219,7 @@ export class AccountEntity {
 
         account.username = accountInfo.username;
         account.name = accountInfo.name;
+        account.loginHint = accountInfo.loginHint;
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;
@@ -352,6 +321,7 @@ export class AccountEntity {
             accountA.localAccountId === accountB.localAccountId &&
             accountA.username === accountB.username &&
             accountA.tenantId === accountB.tenantId &&
+            accountA.loginHint === accountB.loginHint &&
             accountA.environment === accountB.environment &&
             accountA.nativeAccountId === accountB.nativeAccountId &&
             claimsMatch

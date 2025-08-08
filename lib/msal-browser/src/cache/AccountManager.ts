@@ -15,10 +15,13 @@ export function getAllAccounts(
     logger: Logger,
     browserStorage: BrowserCacheManager,
     isInBrowser: boolean,
+    correlationId: string,
     accountFilter?: AccountFilter
 ): AccountInfo[] {
     logger.verbose("getAllAccounts called");
-    return isInBrowser ? browserStorage.getAllAccounts(accountFilter) : [];
+    return isInBrowser
+        ? browserStorage.getAllAccounts(accountFilter || {}, correlationId)
+        : [];
 }
 
 /**
@@ -29,16 +32,13 @@ export function getAllAccounts(
 export function getAccount(
     accountFilter: AccountFilter,
     logger: Logger,
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): AccountInfo | null {
-    logger.trace("getAccount called");
-    if (Object.keys(accountFilter).length === 0) {
-        logger.warning("getAccount: No accountFilter provided");
-        return null;
-    }
-
-    const account: AccountInfo | null =
-        browserStorage.getAccountInfoFilteredBy(accountFilter);
+    const account: AccountInfo | null = browserStorage.getAccountInfoFilteredBy(
+        accountFilter,
+        correlationId
+    );
 
     if (account) {
         logger.verbose(
@@ -62,7 +62,8 @@ export function getAccount(
 export function getAccountByUsername(
     username: string,
     logger: Logger,
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): AccountInfo | null {
     logger.trace("getAccountByUsername called");
     if (!username) {
@@ -70,9 +71,12 @@ export function getAccountByUsername(
         return null;
     }
 
-    const account = browserStorage.getAccountInfoFilteredBy({
-        username,
-    });
+    const account = browserStorage.getAccountInfoFilteredBy(
+        {
+            username,
+        },
+        correlationId
+    );
     if (account) {
         logger.verbose(
             "getAccountByUsername: Account matching username found, returning"
@@ -99,7 +103,8 @@ export function getAccountByUsername(
 export function getAccountByHomeId(
     homeAccountId: string,
     logger: Logger,
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): AccountInfo | null {
     logger.trace("getAccountByHomeId called");
     if (!homeAccountId) {
@@ -107,9 +112,12 @@ export function getAccountByHomeId(
         return null;
     }
 
-    const account = browserStorage.getAccountInfoFilteredBy({
-        homeAccountId,
-    });
+    const account = browserStorage.getAccountInfoFilteredBy(
+        {
+            homeAccountId,
+        },
+        correlationId
+    );
     if (account) {
         logger.verbose(
             "getAccountByHomeId: Account matching homeAccountId found, returning"
@@ -136,7 +144,8 @@ export function getAccountByHomeId(
 export function getAccountByLocalId(
     localAccountId: string,
     logger: Logger,
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): AccountInfo | null {
     logger.trace("getAccountByLocalId called");
     if (!localAccountId) {
@@ -144,9 +153,12 @@ export function getAccountByLocalId(
         return null;
     }
 
-    const account = browserStorage.getAccountInfoFilteredBy({
-        localAccountId,
-    });
+    const account = browserStorage.getAccountInfoFilteredBy(
+        {
+            localAccountId,
+        },
+        correlationId
+    );
     if (account) {
         logger.verbose(
             "getAccountByLocalId: Account matching localAccountId found, returning"
@@ -169,16 +181,18 @@ export function getAccountByLocalId(
  */
 export function setActiveAccount(
     account: AccountInfo | null,
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): void {
-    browserStorage.setActiveAccount(account);
+    browserStorage.setActiveAccount(account, correlationId);
 }
 
 /**
  * Gets the currently active account
  */
 export function getActiveAccount(
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): AccountInfo | null {
-    return browserStorage.getActiveAccount();
+    return browserStorage.getActiveAccount(correlationId);
 }

@@ -230,6 +230,231 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
+    it("Doesn't encode extra params by default", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addResponseType(
+            parameters,
+            OAuthResponseType.CODE
+        );
+        RequestParameterBuilder.addResponseMode(
+            parameters,
+            ResponseMode.FORM_POST
+        );
+        RequestParameterBuilder.addScopes(
+            parameters,
+            TEST_CONFIG.DEFAULT_SCOPES
+        );
+        RequestParameterBuilder.addClientId(
+            parameters,
+            TEST_CONFIG.MSAL_CLIENT_ID
+        );
+        RequestParameterBuilder.addRedirectUri(
+            parameters,
+            TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+        );
+        RequestParameterBuilder.addDomainHint(
+            parameters,
+            TEST_CONFIG.DOMAIN_HINT
+        );
+        RequestParameterBuilder.addLoginHint(
+            parameters,
+            TEST_CONFIG.LOGIN_HINT
+        );
+        RequestParameterBuilder.addClaims(parameters, TEST_CONFIG.CLAIMS, []);
+        RequestParameterBuilder.addCorrelationId(
+            parameters,
+            TEST_CONFIG.CORRELATION_ID
+        );
+        RequestParameterBuilder.addPrompt(
+            parameters,
+            PromptValue.SELECT_ACCOUNT
+        );
+        RequestParameterBuilder.addState(parameters, TEST_CONFIG.STATE);
+        RequestParameterBuilder.addNonce(parameters, TEST_CONFIG.NONCE);
+        RequestParameterBuilder.addCodeChallengeParams(
+            parameters,
+            TEST_CONFIG.TEST_CHALLENGE,
+            TEST_CONFIG.CODE_CHALLENGE_METHOD
+        );
+        RequestParameterBuilder.addAuthorizationCode(
+            parameters,
+            TEST_TOKENS.AUTHORIZATION_CODE
+        );
+        RequestParameterBuilder.addDeviceCode(
+            parameters,
+            DEVICE_CODE_RESPONSE.deviceCode
+        );
+        RequestParameterBuilder.addCodeVerifier(
+            parameters,
+            TEST_CONFIG.TEST_VERIFIER
+        );
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            GrantType.DEVICE_CODE_GRANT
+        );
+        RequestParameterBuilder.addSid(parameters, TEST_CONFIG.SID);
+        RequestParameterBuilder.addLogoutHint(
+            parameters,
+            TEST_CONFIG.LOGIN_HINT
+        );
+        RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            extra_params: "param1,param2",
+        });
+
+        const requestQueryString = UrlUtils.mapToQueryString(
+            parameters,
+            false,
+            {
+                extra_params: "param1,param2",
+            }
+        );
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.RESPONSE_TYPE}=${OAuthResponseType.CODE}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
+                    ResponseMode.FORM_POST
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(
+                    TEST_URIS.TEST_REDIRECT_URI_LOCALHOST
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.DOMAIN_HINT}=${encodeURIComponent(
+                    TEST_CONFIG.DOMAIN_HINT
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.LOGIN_HINT}=${encodeURIComponent(
+                    TEST_CONFIG.LOGIN_HINT
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
+                    TEST_CONFIG.CLAIMS
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(
+                    TEST_CONFIG.CORRELATION_ID
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.PROMPT}=${PromptValue.SELECT_ACCOUNT}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.STATE}=${encodeURIComponent(
+                    TEST_CONFIG.STATE
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.NONCE}=${encodeURIComponent(
+                    TEST_CONFIG.NONCE
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(
+                    TEST_CONFIG.TEST_CHALLENGE
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${
+                    AADServerParamKeys.CODE_CHALLENGE_METHOD
+                }=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.CODE}=${encodeURIComponent(
+                    TEST_TOKENS.AUTHORIZATION_CODE
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(
+                    DEVICE_CODE_RESPONSE.deviceCode
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(
+                    TEST_CONFIG.TEST_VERIFIER
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.SID}=${encodeURIComponent(
+                    TEST_CONFIG.SID
+                )}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.LOGOUT_HINT}=${encodeURIComponent(
+                    TEST_CONFIG.LOGIN_HINT
+                )}`
+            )
+        ).toBe(true);
+        expect(requestQueryString.includes(`extra_params=param1,param2`)).toBe(
+            true
+        );
+    });
+
+    it("Encodes extra params if encodeParams is true and extra params are passed in", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            extra_params: "param1,param2",
+        });
+
+        const requestQueryString = UrlUtils.mapToQueryString(parameters, true, {
+            extra_params: "param1,param2",
+        });
+
+        expect(
+            requestQueryString.includes(
+                `extra_params=${encodeURIComponent("param1,param2")}`
+            )
+        ).toBe(true);
+    });
+
     it("Adds token type and req_cnf correctly for proof-of-possession tokens", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addPopToken(

@@ -142,7 +142,11 @@ export {
 } from "./error/AuthError.js";
 export { ServerError } from "./error/ServerError.js";
 export { NetworkError, createNetworkError } from "./error/NetworkError.js";
-export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
+export {
+    CacheError,
+    CacheErrorCodes,
+    createCacheError,
+} from "./error/CacheError.js";
 export {
     ClientAuthError,
     ClientAuthErrorMessage,
@@ -179,8 +183,10 @@ export {
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    HttpMethod,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     JsonWebTokenTypes,
+    EncodingTypes,
 } from "./utils/Constants.js";
 export { StringUtils } from "./utils/StringUtils.js";
 export { StringDict } from "./utils/MsalTypes.js";

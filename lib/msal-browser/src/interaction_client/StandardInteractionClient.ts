@@ -34,7 +34,10 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import { initializeBaseRequest } from "../request/RequestHelpers.js";
+import {
+    initializeBaseRequest,
+    validateRequestMethod,
+} from "../request/RequestHelpers.js";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -319,7 +322,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger
         );
 
-        const validatedRequest: CommonAuthorizationUrlRequest = {
+        const interactionRequest: CommonAuthorizationUrlRequest = {
             ...baseRequest,
             redirectUri: redirectUri,
             state: state,
@@ -328,13 +331,22 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 .serverResponseType as ResponseMode,
         };
 
+        const validatedRequest = {
+            ...interactionRequest,
+            httpMethod: validateRequestMethod(
+                interactionRequest,
+                this.config.auth.protocolMode
+            ),
+        };
+
         // Skip active account lookup if either login hint or session id is set
         if (request.loginHint || request.sid) {
             return validatedRequest;
         }
 
         const account =
-            request.account || this.browserStorage.getActiveAccount();
+            request.account ||
+            this.browserStorage.getActiveAccount(this.correlationId);
         if (account) {
             this.logger.verbose(
                 "Setting validated request account",

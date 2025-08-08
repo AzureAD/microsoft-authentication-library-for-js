@@ -20,10 +20,12 @@ import {
     UrlUtils,
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
+    HttpMethod,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,
+    INTERACTION_TYPE,
     InteractionType,
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
@@ -36,7 +38,6 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -46,7 +47,9 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -76,7 +79,7 @@ export class RedirectClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthHandler?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         super(
@@ -87,7 +90,7 @@ export class RedirectClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthHandler,
             correlationId
         );
         this.nativeStorage = nativeStorageImpl;
@@ -106,13 +109,12 @@ export class RedirectClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Redirect);
 
-        validRequest.platformBroker =
-            NativeMessageHandler.isPlatformBrokerAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                request.authenticationScheme
-            );
+        validRequest.platformBroker = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            this.platformAuthProvider,
+            request.authenticationScheme
+        );
 
         const handleBackButton = (event: PageTransitionEvent) => {
             // Clear temporary cache if the back button is clicked during the redirect flow.
@@ -193,41 +195,45 @@ export class RedirectClient extends StandardInteractionClient {
         );
 
         try {
-            // Initialize the client
-            const authClient: AuthorizationCodeClient = await invokeAsync(
-                this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )({
-                serverTelemetryManager,
-                requestAuthority: redirectRequest.authority,
-                requestAzureCloudOptions: redirectRequest.azureCloudOptions,
-                requestExtraQueryParameters:
-                    redirectRequest.extraQueryParameters,
-                account: redirectRequest.account,
-            });
+            if (redirectRequest.httpMethod === HttpMethod.POST) {
+                return await this.executeCodeFlowWithPost(redirectRequest);
+            } else {
+                // Initialize the client
+                const authClient: AuthorizationCodeClient = await invokeAsync(
+                    this.createAuthCodeClient.bind(this),
+                    PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                    this.logger,
+                    this.performanceClient,
+                    this.correlationId
+                )({
+                    serverTelemetryManager,
+                    requestAuthority: redirectRequest.authority,
+                    requestAzureCloudOptions: redirectRequest.azureCloudOptions,
+                    requestExtraQueryParameters:
+                        redirectRequest.extraQueryParameters,
+                    account: redirectRequest.account,
+                });
 
-            // Create acquire token url.
-            const navigateUrl = await invokeAsync(
-                Authorize.getAuthCodeRequestUrl,
-                PerformanceEvents.GetAuthCodeUrl,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(
-                this.config,
-                authClient.authority,
-                redirectRequest,
-                this.logger,
-                this.performanceClient
-            );
-            // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return await this.initiateAuthRequest(
-                navigateUrl,
-                onRedirectNavigate
-            );
+                // Create acquire token url.
+                const navigateUrl = await invokeAsync(
+                    Authorize.getAuthCodeRequestUrl,
+                    PerformanceEvents.GetAuthCodeUrl,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(
+                    this.config,
+                    authClient.authority,
+                    redirectRequest,
+                    this.logger,
+                    this.performanceClient
+                );
+                // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
+                return await this.initiateAuthRequest(
+                    navigateUrl,
+                    onRedirectNavigate
+                );
+            }
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
@@ -281,6 +287,62 @@ export class RedirectClient extends StandardInteractionClient {
             this.performanceClient
         );
         form.submit();
+        return new Promise<void>((resolve, reject) => {
+            setTimeout(() => {
+                reject(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.timedOut,
+                        "failed_to_redirect"
+                    )
+                );
+            }, this.config.system.redirectNavigationTimeout);
+        });
+    }
+
+    /**
+     * Executes classic Authorization Code flow with a POST request.
+     * @param request
+     */
+    async executeCodeFlowWithPost(
+        request: CommonAuthorizationUrlRequest
+    ): Promise<void> {
+        const correlationId = request.correlationId;
+        // Get the frame handle for the silent request
+        const discoveredAuthority = await invokeAsync(
+            this.getDiscoveredAuthority.bind(this),
+            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )({
+            requestAuthority: request.authority,
+            requestAzureCloudOptions: request.azureCloudOptions,
+            requestExtraQueryParameters: request.extraQueryParameters,
+            account: request.account,
+        });
+
+        this.browserStorage.cacheAuthorizeRequest(request);
+
+        const form = await Authorize.getCodeForm(
+            document,
+            this.config,
+            discoveredAuthority,
+            request,
+            this.logger,
+            this.performanceClient
+        );
+
+        form.submit();
+        return new Promise<void>((resolve, reject) => {
+            setTimeout(() => {
+                reject(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.timedOut,
+                        "failed_to_redirect"
+                    )
+                );
+            }, this.config.system.redirectNavigationTimeout);
+        });
     }
 
     /**
@@ -553,7 +615,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.nativeMessageHandler
+                this.platformAuthProvider
             );
         }
 
@@ -582,7 +644,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.nativeMessageHandler
+            this.platformAuthProvider
         );
     }
 
@@ -676,7 +738,10 @@ export class RedirectClient extends StandardInteractionClient {
             );
 
             // Clear cache on logout
-            await this.clearCacheOnLogout(validLogoutRequest.account);
+            await this.clearCacheOnLogout(
+                this.correlationId,
+                validLogoutRequest.account
+            );
 
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
@@ -703,10 +768,6 @@ export class RedirectClient extends StandardInteractionClient {
                     authClient.authority.endSessionEndpoint;
                 } catch {
                     if (validLogoutRequest.account?.homeAccountId) {
-                        void this.browserStorage.removeAccount(
-                            validLogoutRequest.account?.homeAccountId
-                        );
-
                         this.eventHandler.emitEvent(
                             EventType.LOGOUT_SUCCESS,
                             InteractionType.Redirect,
@@ -740,7 +801,10 @@ export class RedirectClient extends StandardInteractionClient {
                     );
                     // Ensure interaction is in progress
                     if (!this.browserStorage.getInteractionInProgress()) {
-                        this.browserStorage.setInteractionInProgress(true);
+                        this.browserStorage.setInteractionInProgress(
+                            true,
+                            INTERACTION_TYPE.SIGNOUT
+                        );
                     }
                     await this.navigationClient.navigateExternal(
                         logoutUri,
@@ -757,7 +821,10 @@ export class RedirectClient extends StandardInteractionClient {
             } else {
                 // Ensure interaction is in progress
                 if (!this.browserStorage.getInteractionInProgress()) {
-                    this.browserStorage.setInteractionInProgress(true);
+                    this.browserStorage.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNOUT
+                    );
                 }
                 await this.navigationClient.navigateExternal(
                     logoutUri,

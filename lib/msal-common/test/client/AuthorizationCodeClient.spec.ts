@@ -1975,7 +1975,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .find((value) => value.indexOf("accesstoken") >= 0);
             const accessTokenCacheItem = accessTokenKey
                 ? config.storageInterface?.getAccessTokenCredential(
-                      accessTokenKey
+                      accessTokenKey,
+                      RANDOM_TEST_GUID
                   )
                 : null;
 

@@ -146,6 +146,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 environment: NAA_APP_CONSTANTS.environment,
                 tenantId: NAA_APP_CONSTANTS.tenantId,
                 username: NAA_APP_CONSTANTS.username,
+                loginHint: NAA_APP_CONSTANTS.loginHint,
             };
 
             testTokenResponse = {

@@ -1,8 +1,119 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Tue, 25 Mar 2025 22:29:34 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 05 Aug 2025 20:00:24 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.5.19
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.10.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.18
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Patches
+
+- Add handling for redirect URI based on platform #7908 (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v15.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.17
+
+Tue, 08 Jul 2025 14:21:12 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.8.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.16
+
+Tue, 01 Jul 2025 14:23:25 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.8.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.15
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.14
+
+Fri, 30 May 2025 22:36:45 GMT
+
+### Patches
+
+- update common version (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.13
+
+Tue, 06 May 2025 22:47:43 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.6.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.12
+
+Tue, 29 Apr 2025 20:25:48 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.5.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.11
+
+Tue, 15 Apr 2025 23:34:14 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.5.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.10
+
+Tue, 08 Apr 2025 16:56:06 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 1.5.9
 

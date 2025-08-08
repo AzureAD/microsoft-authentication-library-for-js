@@ -5,7 +5,7 @@
     const msalInstance = new Msal.UserAgentApplication({
         auth: {
             clientId: "{{clientId}}",
-            redirectUri: "https://localhost:3000/auth/implicit-redirect",
+            redirectUri: "http://localhost:3000/auth/implicit-redirect",
             authority: "{{authority}}"
         }
     })
