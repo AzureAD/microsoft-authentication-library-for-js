@@ -286,9 +286,17 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 }
 
 /**
- * Helper to initialize required request parameters for interactive APIs and ssoSilent()
- * @param request
- * @param interactionType
+ * Helper to initialize required request parameters for interactive APIs and ssoSilent().
+ *
+ * @param request - The authentication request object (RedirectRequest, PopupRequest, or SsoSilentRequest).
+ * @param interactionType - The type of interaction (e.g., redirect, popup, silent).
+ * @param config - The browser configuration object.
+ * @param browserCrypto - The cryptographic interface for browser operations.
+ * @param browserStorage - The browser storage manager instance.
+ * @param logger - The logger instance for logging messages.
+ * @param performanceClient - The performance client for telemetry.
+ * @param correlationId - The correlation ID for the request.
+ * @returns A promise that resolves to a CommonAuthorizationUrlRequest object with initialized parameters.
  */
 export async function initializeAuthorizationRequest(
     request: RedirectRequest | PopupRequest | SsoSilentRequest,

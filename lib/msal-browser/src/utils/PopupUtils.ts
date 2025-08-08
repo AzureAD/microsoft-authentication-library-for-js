@@ -10,9 +10,24 @@ import {
 } from "../error/BrowserAuthError.js";
 
 /**
- * Monitors a window until it loads a url with the same origin.
- * @param popupWindow - window that is being monitored
- * @param timeout - timeout for processing hash once popup is redirected back to application
+ * Monitors a popup window for a URL change to the same origin as the parent application.
+ * Polls the popup at a specified interval until it is redirected back to the application,
+ * closed by the user, or a navigation to a same-origin URL is detected. Once a same-origin
+ * URL is detected, extracts the response string (query or hash) and resolves the promise.
+ * Performs cleanup by closing the popup and removing event listeners when done.
+ *
+ * @param popupWindow - The popup window to monitor for navigation.
+ * @param popupWindowParent - The parent window that opened the popup.
+ * @param responseMode - The response mode to use when extracting the response string (query or hash).
+ * @param pollIntervalMilliseconds - The interval, in milliseconds, at which to poll the popup window.
+ * @param logger - Logger instance for logging monitoring events.
+ * @param unloadWindow - Event handler to remove from the parent window on cleanup.
+ * @returns Promise<string> - Resolves with the response string (query or hash) from the popup window,
+ * or rejects if the popup is closed before a response is received.
+ *
+ * Monitoring behavior: Polls the popup window at the specified interval to detect navigation to a same-origin URL.
+ * Timeout handling: If the popup is closed before a response is detected, the promise is rejected with a user cancellation error.
+ * Cleanup process: On completion (success or failure), closes the popup and removes the unload event listener from the parent window.
  */
 export async function monitorPopupForHash(
     popupWindow: Window,
@@ -75,8 +90,12 @@ export async function monitorPopupForHash(
 }
 
 /**
- * Closes popup, removes any state vars created during popup calls.
- * @param popupWindow
+ * Performs cleanup operations after popup authentication.
+ * Closes the popup window and removes the 'beforeunload' event listener from the parent window.
+ *
+ * @param popupWindow - The popup window to be closed.
+ * @param popupWindowParent - The parent window from which the event listener will be removed.
+ * @param unloadWindow - The event handler function to remove from the parent window's 'beforeunload' event.
  */
 export function cleanPopup(
     popupWindow: Window,

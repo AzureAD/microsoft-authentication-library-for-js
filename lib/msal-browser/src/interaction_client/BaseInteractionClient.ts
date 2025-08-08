@@ -87,11 +87,11 @@ export abstract class BaseInteractionClient {
 }
 
 /**
- *
- * Use to get the redirect uri configured in MSAL or null.
- * @param requestRedirectUri
- * @returns Redirect URL
- *
+ * Use to get the redirect URI configured in MSAL or construct one from the current page.
+ * @param requestRedirectUri - Optional redirect URI from the request
+ * @param clientConfig - Optional browser configuration containing auth settings
+ * @param logger - Optional logger instance for verbose logging
+ * @returns Absolute redirect URL constructed from the provided URI, config, or current page
  */
 export function getRedirectUri(
     requestRedirectUri?: string,
@@ -105,10 +105,14 @@ export function getRedirectUri(
 }
 
 /**
- *
- * @param apiId
- * @param correlationId
- * @param forceRefresh
+ * Initializes and returns a ServerTelemetryManager with the provided telemetry configuration.
+ * @param apiId - The API identifier for telemetry tracking
+ * @param clientId - The client application identifier
+ * @param correlationId - Unique identifier for correlating requests
+ * @param browserStorage - Browser cache manager instance for storing telemetry data
+ * @param logger - Optional logger instance for verbose logging
+ * @param forceRefresh - Optional flag to force refresh of telemetry data
+ * @returns Configured ServerTelemetryManager instance
  */
 export function initializeServerTelemetryManager(
     apiId: number,
@@ -133,12 +137,17 @@ export function initializeServerTelemetryManager(
 
 /**
  * Used to get a discovered version of the default authority.
- * @param params {
- *         requestAuthority?: string;
- *         requestAzureCloudOptions?: AzureCloudOptions;
- *         requestExtraQueryParameters?: StringDict;
- *         account?: AccountInfo;
- *        }
+ * @param params - Configuration object containing authority and cloud options
+ * @param params.requestAuthority - Optional specific authority URL to use
+ * @param params.requestAzureCloudOptions - Optional Azure cloud configuration options
+ * @param params.requestExtraQueryParameters - Optional additional query parameters
+ * @param params.account - Optional account info for instance-aware scenarios
+ * @param config - Browser configuration containing auth settings
+ * @param correlationId - Unique identifier for correlating requests
+ * @param performanceClient - Performance monitoring client instance
+ * @param browserStorage - Browser cache manager instance
+ * @param logger - Logger instance for tracking operations
+ * @returns Promise that resolves to a discovered Authority instance
  */
 export async function getDiscoveredAuthority(
     params: {
@@ -212,6 +221,19 @@ export async function getDiscoveredAuthority(
     return discoveredAuthority;
 }
 
+/**
+ * Clears cache and account information during logout.
+ *
+ * If an account is provided, removes the account from cache and, if it is the active account, sets the active account to null.
+ * If no account is provided, clears all accounts and tokens from cache.
+ *
+ * @param browserStorage - The browser cache manager instance used to manage cache.
+ * @param browserCrypto - The crypto interface for cache operations.
+ * @param logger - Logger instance for logging operations.
+ * @param correlationId - Correlation ID for the logout operation.
+ * @param account - (Optional) The account to clear from cache. If not provided, all accounts are cleared.
+ * @returns A promise that resolves when the cache has been cleared.
+ */
 export async function clearCacheOnLogout(
     browserStorage: BrowserCacheManager,
     browserCrypto: ICrypto,
@@ -220,31 +242,31 @@ export async function clearCacheOnLogout(
     account?: AccountInfo | null
 ): Promise<void> {
     if (account) {
-            // Clear given account.
-            try {
-                browserStorage.removeAccount(account, correlationId);
-                logger.verbose(
-                    "Cleared cache items belonging to the account provided in the logout request."
-                );
-            } catch (error) {
-                logger.error(
-                    "Account provided in logout request was not found. Local cache unchanged."
-                );
-            }
-        } else {
-            try {
-                logger.verbose(
-                    "No account provided in logout request, clearing all cache items.",
-                    correlationId
-                );
-                // Clear all accounts and tokens
-                browserStorage.clear(correlationId);
-                // Clear any stray keys from IndexedDB
-                await browserCrypto.clearKeystore();
-            } catch (e) {
-                logger.error(
-                    "Attempted to clear all MSAL cache items and failed. Local cache unchanged."
-                );
-            }
+        // Clear given account.
+        try {
+            browserStorage.removeAccount(account, correlationId);
+            logger.verbose(
+                "Cleared cache items belonging to the account provided in the logout request."
+            );
+        } catch (error) {
+            logger.error(
+                "Account provided in logout request was not found. Local cache unchanged."
+            );
         }
+    } else {
+        try {
+            logger.verbose(
+                "No account provided in logout request, clearing all cache items.",
+                correlationId
+            );
+            // Clear all accounts and tokens
+            browserStorage.clear(correlationId);
+            // Clear any stray keys from IndexedDB
+            await browserCrypto.clearKeystore();
+        } catch (e) {
+            logger.error(
+                "Attempted to clear all MSAL cache items and failed. Local cache unchanged."
+            );
+        }
+    }
 }
