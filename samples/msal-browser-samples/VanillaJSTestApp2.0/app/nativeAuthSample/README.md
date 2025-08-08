@@ -298,6 +298,34 @@ Each authentication flow requires specific query parameters to configure the cor
 
 * When SSPR requires a challenge type not supported by the client, redirect to web-fallback
 
-#### 4. Sign Out Tests
+### 4. Sign Out Tests
 
 * User sign in with either email + OTP or email + password flow, click sign out, cache cleared.
+
+### 5. JIT
+
+#### Email + Password Authentication only
+
+##### Positive Cases
+
+* JIT is triggered in continue sign in after sign up - preverified, same email as strong auth method
+* JIT is triggered in continue sign in after sign up - use a second email as strong auth method, and use code validation
+* JIT is triggered in continue sign in after sign up - use a second email as strong auth method, resend code
+* JIT is triggered in sign in flow
+
+##### Negative Cases
+
+* Do not send registration_required capability and receive browserRequired
+
+### 6. MFA
+
+#### Email + Password Authentication only
+
+##### Positive Cases
+
+* Sign in using password with MFA Get Auth Methods then complete successfully
+* Sign in Authentication Context Claim Flow is Triggered and access token contains claims
+
+##### Negative Cases
+
+* Do not send mfa_required capability and receive browserRequired
