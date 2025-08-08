@@ -27,7 +27,7 @@ jobs:
           node-version: 24
 
       - name: Install
-        run: npm ci
+        run: npm i --workspace=lib/** --workspace=@azure/msal-node-extensions --include-workspace-root
 
       - name: Build
         run: npm run build --workspace=lib/**
