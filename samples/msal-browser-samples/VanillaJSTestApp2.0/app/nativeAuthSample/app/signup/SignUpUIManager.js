@@ -233,6 +233,8 @@ export class SignUpUIManager {
             const username = formData.get('username');
             const firstName = formData.get('firstName');
             const lastName = formData.get('lastName');
+            const city = formData.get('city');
+            const country = formData.get('country');
 
             if (!username) {
                 throw new Error("Username is required");
@@ -242,10 +244,12 @@ export class SignUpUIManager {
                 throw new Error("Sign-up service not available");
             }
 
-            // Prepare attributes if first name and last name are provided
+            // Prepare attributes if any user attributes are provided
             const attributes = {};
             if (firstName) attributes.firstName = firstName;
             if (lastName) attributes.lastName = lastName;
+            if (city) attributes.city = city;
+            if (country) attributes.country = country;
 
             Utilities.logMessage("Processing sign-up form submission...", "info");
 

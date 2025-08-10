@@ -55,8 +55,8 @@ class NativeAuthApp {
                 msalConfig.auth.clientId = "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16";
                 msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
             } else if (usePwdConfig === 'true') {
-                // Default to password
-                msalConfig.auth.clientId = "456cf138-cb77-48e6-8a82-74f869d77e74";
+                // Default to password with attributes
+                msalConfig.auth.clientId = "dad09d10-2f54-4f88-88ff-768b7485983d";
                 msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
             } else {
                 // Default to whatever is set in authConfig.js

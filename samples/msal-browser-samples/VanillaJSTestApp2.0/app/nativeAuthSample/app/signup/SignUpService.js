@@ -7,7 +7,6 @@
  */
 
 import { Utilities } from '../utilities.js';
-import { UserAccountAttributes } from '../UserAccountAttributes.js';
 
 export class SignUpService {
     constructor(msalInstance) {
@@ -52,15 +51,21 @@ export class SignUpService {
             };
 
             // If attributes are provided, add them to the sign-up call
-            if (attributes && (attributes.firstName || attributes.lastName)) {
-                // Create UserAccountAttributes object from our implementation
-                const userAttributes = new UserAccountAttributes();
+            if (attributes && (attributes.firstName || attributes.lastName || attributes.city || attributes.country)) {
+                // Create attributes object as key-value pairs
+                const userAttributes = {};
                 
                 if (attributes.firstName) {
-                    userAttributes.setGivenName(attributes.firstName);
+                    userAttributes.givenName = attributes.firstName;
                 }
                 if (attributes.lastName) {
-                    userAttributes.setSurname(attributes.lastName);
+                    userAttributes.surname = attributes.lastName;
+                }
+                if (attributes.city) {
+                    userAttributes.city = attributes.city;
+                }
+                if (attributes.country) {
+                    userAttributes.country = attributes.country;
                 }
                 
                 signUpParams.attributes = userAttributes;
