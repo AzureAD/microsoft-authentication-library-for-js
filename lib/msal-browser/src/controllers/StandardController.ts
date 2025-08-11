@@ -645,8 +645,7 @@ export class StandardController implements IController {
                 navigateCallbackResult: navigate !== false,
             });
             atrMeasurement.event =
-                atrMeasurement.end({ success: true }) ||
-                atrMeasurement.event;
+                atrMeasurement.end({ success: true }) || atrMeasurement.event;
             return navigate;
         };
 

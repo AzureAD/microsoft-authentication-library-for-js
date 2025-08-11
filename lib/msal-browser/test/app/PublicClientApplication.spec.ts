@@ -2217,13 +2217,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             let eventCounter = 0;
             const callbackId = pca.addPerformanceCallback((events) => {
                 if (
-                    events[0].name === BrowserRootPerformanceEvents.AcquireTokenPreRedirect
+                    events[0].name ===
+                    BrowserRootPerformanceEvents.AcquireTokenPreRedirect
                 ) {
                     expect(events[0].success).toBe(true);
                     eventCounter++;
                 }
 
-                if (events[0].name === BrowserRootPerformanceEvents.AcquireTokenRedirect) {
+                if (
+                    events[0].name ===
+                    BrowserRootPerformanceEvents.AcquireTokenRedirect
+                ) {
                     expect(events[0].success).toBe(false);
                     expect(events[0].errorCode).toEqual("timed_out");
                     eventCounter++;
@@ -2257,8 +2261,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             pca.acquireTokenRedirect(loginRequest).catch((e) => {});
         });
-
-
 
         it("emits pre-redirect telemetry event when onRedirectNavigate callback is not set", (done) => {
             const callbackId = pca.addPerformanceCallback((events) => {
@@ -2373,7 +2375,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "navigateExternal"
                 ).mockResolvedValue(true);
 
-                jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER,
                 });
