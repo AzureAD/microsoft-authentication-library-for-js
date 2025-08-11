@@ -729,7 +729,7 @@ export class StandardController implements IController {
             if (atrMeasurement.event.status === 2) {
                 this.performanceClient
                     .startMeasurement(
-                        PerformanceEvents.AcquireTokenRedirect,
+                        BrowserRootPerformanceEvents.AcquireTokenRedirect,
                         correlationId
                     )
                     .end({ success: false }, e);
