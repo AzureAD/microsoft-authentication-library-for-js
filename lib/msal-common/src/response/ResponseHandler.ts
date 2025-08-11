@@ -266,8 +266,8 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = AccountEntityUtils.generateAccountKey(
-                    cacheRecord.account
+                const key = this.cacheStorage.generateAccountKey(
+                    AccountEntityUtils.getAccountInfo(cacheRecord.account)
                 );
                 const account = this.cacheStorage.getAccount(
                     key,

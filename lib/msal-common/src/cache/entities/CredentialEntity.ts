@@ -31,4 +31,6 @@ export type CredentialEntity = {
     tokenType?: AuthenticationScheme;
     /** KeyId for PoP and SSH tokens stored in the kid claim */
     keyId?: string;
+    /** Timestamp when the entry was last updated */
+    lastUpdatedAt: string;
 };

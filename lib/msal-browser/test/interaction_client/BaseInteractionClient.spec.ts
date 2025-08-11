@@ -112,6 +112,7 @@ describe("BaseInteractionClient", () => {
                 secret: TEST_TOKENS.IDTOKEN_V2,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo1.homeAccountId,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testAccount1: AccountEntity = {
@@ -124,6 +125,7 @@ describe("BaseInteractionClient", () => {
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
                 tenantProfiles: [tenantProfile1],
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testIdTokenClaims2: TokenClaims = ID_TOKEN_ALT_CLAIMS;
@@ -155,6 +157,7 @@ describe("BaseInteractionClient", () => {
                 secret: TEST_TOKENS.IDTOKEN_V2_ALT,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo2.homeAccountId,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testAccount2: AccountEntity = {
@@ -167,6 +170,7 @@ describe("BaseInteractionClient", () => {
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
                 tenantProfiles: [tenantProfile2],
+                lastUpdatedAt: Date.now().toString(),
             };
 
             pca.setActiveAccount(testAccountInfo1);

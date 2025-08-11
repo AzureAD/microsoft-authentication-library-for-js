@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { EncryptedData } from "./EncryptedData.js";
+
 export interface IWindowStorage<T> {
     /**
      * Async initializer
@@ -29,7 +31,12 @@ export interface IWindowStorage<T> {
     /**
      * Setter for sensitive data that may contain PII.
      */
-    setUserData(key: string, value: T, correlationId: string): Promise<void>;
+    setUserData(
+        key: string,
+        value: T,
+        correlationId: string,
+        timestamp: string
+    ): Promise<void>;
 
     /**
      * Removes the item in the window storage object matching the given key.
@@ -47,4 +54,10 @@ export interface IWindowStorage<T> {
      * @param key
      */
     containsKey(key: string): boolean;
+
+    decryptData(
+        key: string,
+        data: EncryptedData,
+        correlationId: string
+    ): Promise<object | null>;
 }

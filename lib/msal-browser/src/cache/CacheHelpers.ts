@@ -4,16 +4,21 @@
  */
 
 import { TokenKeys } from "@azure/msal-common/browser";
-import { StaticCacheKeys } from "../utils/BrowserConstants.js";
 import { IWindowStorage } from "./IWindowStorage.js";
+import * as CacheKeys from "./CacheKeys.js";
 
 /**
  * Returns a list of cache keys for all known accounts
  * @param storage
  * @returns
  */
-export function getAccountKeys(storage: IWindowStorage<string>): Array<string> {
-    const accountKeys = storage.getItem(StaticCacheKeys.ACCOUNT_KEYS);
+export function getAccountKeys(
+    storage: IWindowStorage<string>,
+    schemaVersion?: number
+): Array<string> {
+    const accountKeys = storage.getItem(
+        CacheKeys.getAccountKeysCacheKey(schemaVersion)
+    );
     if (accountKeys) {
         return JSON.parse(accountKeys);
     }
@@ -29,9 +34,12 @@ export function getAccountKeys(storage: IWindowStorage<string>): Array<string> {
  */
 export function getTokenKeys(
     clientId: string,
-    storage: IWindowStorage<string>
+    storage: IWindowStorage<string>,
+    schemaVersion?: number
 ): TokenKeys {
-    const item = storage.getItem(`${StaticCacheKeys.TOKEN_KEYS}.${clientId}`);
+    const item = storage.getItem(
+        CacheKeys.getTokenKeysCacheKey(clientId, schemaVersion)
+    );
     if (item) {
         const tokenKeys = JSON.parse(item);
         if (

@@ -14,6 +14,7 @@ export const EventType = {
     LOGIN_FAILURE: "msal:loginFailure",
     ACQUIRE_TOKEN_START: "msal:acquireTokenStart",
     ACQUIRE_TOKEN_SUCCESS: "msal:acquireTokenSuccess",
+    BROKERED_REQUEST_SUCCESS: "msal:brokeredRequestSuccess",
     ACQUIRE_TOKEN_FAILURE: "msal:acquireTokenFailure",
     ACQUIRE_TOKEN_NETWORK_START: "msal:acquireTokenFromNetworkStart",
     SSO_SILENT_START: "msal:ssoSilentStart",

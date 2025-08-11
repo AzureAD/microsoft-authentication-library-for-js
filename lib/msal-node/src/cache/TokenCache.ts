@@ -10,7 +10,6 @@ import {
     ISerializableTokenCache,
     ICachePlugin,
     TokenCacheContext,
-    AccountEntityUtils,
 } from "@azure/msal-common/node";
 import {
     InMemoryCache,
@@ -207,7 +206,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
             this.storage.removeAccount(
-                AccountEntityUtils.generateAccountCacheKey(account),
+                account,
                 correlationId || new GuidGenerator().generateGuid()
             );
         } finally {
