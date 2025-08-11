@@ -7,7 +7,6 @@ import {
     AADServerParamKeys,
     AccountInfo,
     AuthenticationResult,
-    AuthenticationScheme,
     ClientAuthErrorCodes,
     ClientConfigurationErrorCodes,
     Constants,
@@ -20,7 +19,6 @@ import {
     LoggerOptions,
     NativeRequest,
     NativeSignOutRequest,
-    PromptValue,
     ServerError,
     ServerTelemetryManager,
     TimeUtils,
@@ -278,16 +276,16 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
                 try {
                     switch (platformRequest.prompt) {
-                        case PromptValue.LOGIN:
-                        case PromptValue.SELECT_ACCOUNT:
-                        case PromptValue.CREATE:
+                        case Constants.PromptValue.LOGIN:
+                        case Constants.PromptValue.SELECT_ACCOUNT:
+                        case Constants.PromptValue.CREATE:
                             this.logger.info(
                                 "Calling native interop SignInInteractively API",
                                 platformRequest.correlationId
                             );
                             const loginHint =
                                 platformRequest.loginHint ||
-                                Constants.EMPTY_STRING;
+                                "";
                             msalNodeRuntime.SignInInteractivelyAsync(
                                 windowHandle,
                                 authParams,
@@ -296,7 +294,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                 resultCallback
                             );
                             break;
-                        case PromptValue.NONE:
+                        case Constants.PromptValue.NONE:
                             if (account) {
                                 this.logger.info(
                                     "Calling native interop AcquireTokenSilently API",
@@ -340,7 +338,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                 );
                                 const loginHint =
                                     platformRequest.loginHint ||
-                                    Constants.EMPTY_STRING;
+                                    "";
                                 msalNodeRuntime.SignInAsync(
                                     windowHandle,
                                     authParams,
@@ -475,7 +473,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 authParams.SetDecodedClaims(request.claims);
             }
 
-            if (request.authenticationScheme === AuthenticationScheme.POP) {
+            if (request.authenticationScheme === Constants.AuthenticationScheme.POP) {
                 if (
                     !request.resourceRequestMethod ||
                     !request.resourceRequestUri
@@ -584,10 +582,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         if (authResult.isPopAuthorization) {
             // Header includes 'pop ' prefix
             accessToken = authResult.authorizationHeader.split(" ")[1];
-            tokenType = AuthenticationScheme.POP;
+            tokenType = Constants.AuthenticationScheme.POP;
         } else {
             accessToken = authResult.accessToken;
-            tokenType = AuthenticationScheme.BEARER;
+            tokenType = Constants.AuthenticationScheme.BEARER;
         }
 
         const result: AuthenticationResult = {
