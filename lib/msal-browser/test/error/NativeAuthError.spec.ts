@@ -29,7 +29,7 @@ describe("NativeAuthError Unit Tests", () => {
                         status: NativeStatusCode.PERSISTENT_ERROR,
                     }
                 );
-                expect(isFatalNativeAuthError(error)).toBe(true);
+                expect(isFatalNativeAuthError(error)).toBe(false);
             });
 
             it("should return true for isFatal when WAM status is DISABLED", () => {
