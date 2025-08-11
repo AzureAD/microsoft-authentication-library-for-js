@@ -2225,7 +2225,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.acquireTokenRedirect(loginRequest);
         });
 
-        it("emits pre-redirect telemetry event when onRedirectNavigate callback is set in configuration", async () => {
+        it("emits pre-redirect telemetry event when onRedirectNavigate callback is set in configuration", (done) => {
             const onRedirectNavigate = (url: string) => {
                 expect(url).toBeDefined();
             };
@@ -2244,48 +2244,58 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             pca = (pca as any).controller;
-            await pca.initialize();
+
+            pca.initialize().then(() => {
+                const callbackId = pca.addPerformanceCallback((events) => {
+                    expect(events[0].success).toBe(true);
+                    expect(events[0].name).toBe(
+                        PerformanceEvents.AcquireTokenPreRedirect
+                    );
+                    expect(events[0].navigateCallbackResult).toBeTruthy();
+                    pca.removePerformanceCallback(callbackId);
+                    done();
+                });
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(() => Promise.resolve(true));
+
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                const loginRequest: RedirectRequest = {
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: ["user.read", "openid", "profile"],
+                    state: TEST_STATE_VALUES.USER_STATE,
+                };
+                pca.acquireTokenRedirect(loginRequest);
+            });
+        });
+
+        it("instruments pre-redirect telemetry event when onRedirectNavigate callback returns false", (done) => {
+            const onRedirectNavigate = (url: string) => {
+                return false;
+            };
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].success).toBe(true);
                 expect(events[0].name).toBe(
                     PerformanceEvents.AcquireTokenPreRedirect
                 );
+                expect(events[0].navigateCallbackResult).toBeFalsy();
                 pca.removePerformanceCallback(callbackId);
+                done();
             });
-
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(() => Promise.resolve(true));
-
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            const loginRequest: RedirectRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: ["user.read", "openid", "profile"],
-                state: TEST_STATE_VALUES.USER_STATE,
-            };
-            await pca.acquireTokenRedirect(loginRequest);
-        });
-
-        it("discards pre-redirect telemetry event when onRedirectNavigate callback returns false", async () => {
-            const onRedirectNavigate = (url: string) => {
-                return false;
-            };
-
-            const measurementDiscardSpy = jest.spyOn(
-                PerformanceClient.prototype,
-                "discardMeasurements"
-            );
 
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
             ).mockResolvedValue(true);
-
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -2296,8 +2306,52 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 onRedirectNavigate,
             };
-            await pca.acquireTokenRedirect(loginRequest);
-            expect(measurementDiscardSpy).toHaveBeenCalledTimes(1);
+            pca.acquireTokenRedirect(loginRequest);
+        });
+
+        it("instruments pre-redirect telemetry event when navigation times out", (done) => {
+            let eventCounter = 0;
+            const callbackId = pca.addPerformanceCallback((events) => {
+                if (
+                    events[0].name === PerformanceEvents.AcquireTokenPreRedirect
+                ) {
+                    expect(events[0].success).toBe(true);
+                    eventCounter++;
+                }
+
+                if (events[0].name === PerformanceEvents.AcquireTokenRedirect) {
+                    expect(events[0].success).toBe(false);
+                    expect(events[0].errorCode).toEqual("timed_out");
+                    eventCounter++;
+                }
+
+                if (eventCounter === 2) {
+                    pca.removePerformanceCallback(callbackId);
+                    done();
+                }
+            });
+
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockRejectedValue(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "failed_to_redirect"
+                )
+            );
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const loginRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read", "openid", "profile"],
+                state: TEST_STATE_VALUES.USER_STATE,
+            };
+
+            pca.acquireTokenRedirect(loginRequest).catch((e) => {});
         });
 
         it("instruments initialization error", (done) => {
