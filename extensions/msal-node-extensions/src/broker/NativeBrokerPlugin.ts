@@ -283,9 +283,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                 "Calling native interop SignInInteractively API",
                                 platformRequest.correlationId
                             );
-                            const loginHint =
-                                platformRequest.loginHint ||
-                                "";
+                            const loginHint = platformRequest.loginHint || "";
                             msalNodeRuntime.SignInInteractivelyAsync(
                                 windowHandle,
                                 authParams,
@@ -337,8 +335,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                     platformRequest.correlationId
                                 );
                                 const loginHint =
-                                    platformRequest.loginHint ||
-                                    "";
+                                    platformRequest.loginHint || "";
                                 msalNodeRuntime.SignInAsync(
                                     windowHandle,
                                     authParams,
@@ -473,7 +470,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 authParams.SetDecodedClaims(request.claims);
             }
 
-            if (request.authenticationScheme === Constants.AuthenticationScheme.POP) {
+            if (
+                request.authenticationScheme ===
+                Constants.AuthenticationScheme.POP
+            ) {
                 if (
                     !request.resourceRequestMethod ||
                     !request.resourceRequestUri
