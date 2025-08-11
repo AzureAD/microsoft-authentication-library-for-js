@@ -850,10 +850,24 @@ export class StandardController implements IController {
                         isFatalNativeAuthError(e)
                     ) {
                         this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        this.performanceClient.addFields(
+                            {
+                                brokerErrorCode: e.errorCode,
+                                brokerErrorMessage: e.message,
+                            },
+                            correlationId
+                        );
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
                     } else if (e instanceof InteractionRequiredAuthError) {
+                        this.performanceClient.addFields(
+                            {
+                                brokerErrorCode: e.errorCode,
+                                brokerErrorMessage: e.message,
+                            },
+                            correlationId
+                        );
                         this.logger.verbose(
                             "acquireTokenPopup - Resolving interaction required error thrown by native broker by falling back to web flow"
                         );
@@ -1116,7 +1130,6 @@ export class StandardController implements IController {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.end({
                                 success: true,
-                                isNativeBroker: result.fromNativeBroker,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                                 accountType: getAccountType(result.account),
@@ -1234,7 +1247,6 @@ export class StandardController implements IController {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
-                    isNativeBroker: response.fromNativeBroker,
                 });
                 return response;
             })
@@ -2043,7 +2055,6 @@ export class StandardController implements IController {
                 atsMeasurement.end({
                     success: true,
                     fromCache: result.fromCache,
-                    isNativeBroker: result.fromNativeBroker,
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
                 });
@@ -2282,7 +2293,6 @@ export class StandardController implements IController {
                     this.performanceClient.addFields(
                         {
                             fromCache: response.fromCache,
-                            isNativeBroker: response.fromNativeBroker,
                         },
                         request.correlationId
                     );

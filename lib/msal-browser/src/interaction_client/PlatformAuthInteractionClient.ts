@@ -157,6 +157,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             PerformanceEvents.NativeInteractionClientAcquireToken,
             request.correlationId
         );
+        this.performanceClient.addFields(
+            {
+                isPlatformBrokerRequest: true,
+            },
+            this.correlationId
+        );
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement
@@ -210,7 +216,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 .then((result: AuthenticationResult) => {
                     nativeATMeasurement.end({
                         success: true,
-                        isNativeBroker: true,
                         requestId: result.requestId,
                     });
                     serverTelemetryManager.clearNativeBrokerErrorCode();
@@ -221,7 +226,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                         success: false,
                         errorCode: error.errorCode,
                         subErrorCode: error.subError,
-                        isNativeBroker: true,
                     });
                     throw error;
                 });
@@ -318,9 +322,20 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             "NativeInteractionClient - acquireTokenRedirect called."
         );
 
+        this.performanceClient.addFields(
+            {
+                isPlatformBrokerRequest: true,
+            },
+            this.correlationId
+        );
         const { ...remainingParameters } = request;
         delete remainingParameters.onRedirectNavigate;
 
+        // start the perf measurement
+        const nativeATMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.NativeInteractionClientAcquireToken,
+            request.correlationId
+        );
         const nativeRequest = await this.initializeNativeRequest(
             remainingParameters
         );
@@ -352,6 +367,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const redirectUri = this.config.auth.navigateToLoginRequestUrl
             ? window.location.href
             : this.getRedirectUri(request.redirectUri);
+        nativeATMeasurement.end({
+            success: true,
+        });
         rootMeasurement.end({ success: true });
         await this.navigationClient.navigateExternal(
             redirectUri,
@@ -532,7 +550,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             result.tenantId,
             reqTimestamp
         );
-
+        this.performanceClient.addFields(
+            {
+                isNativeBroker: true,
+            },
+            this.correlationId
+        );
         return result;
     }
 

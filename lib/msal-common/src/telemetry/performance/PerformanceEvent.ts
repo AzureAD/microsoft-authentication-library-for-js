@@ -109,6 +109,7 @@ export const PerformanceEvents = {
      * Used to acquire a token from Native component when native brokering is enabled.
      */
     NativeInteractionClientAcquireToken: "nativeInteractionClientAcquireToken",
+
     /**
      * Time spent creating default headers for requests to token endpoint
      */
@@ -709,6 +710,22 @@ export type PerformanceEvent = {
     previousLibraryVersion?: string;
 
     /**
+     * Whether the request attempts requesting tokens via platform brokers through STS (e.g., WAM, MacOS Broker, Android or iOS Broker).
+     * This is set to true when the request to eSTS is made with native brokering enabled.
+     *
+     * @type {?boolean}
+     */
+    isPlatformAuthorizeRequest?: boolean;
+
+    /**
+     * Whether the request attempts requesting tokens directly platform brokers (e.g., WAM, MacOS Broker, Android or iOS Broker).
+     * This is set to true when the request to eSTS is made with native brokering enabled.
+     *
+     * @type {?boolean}
+     */
+    isPlatformBrokerRequest?: boolean;
+
+    /**
      * Whether the response is from a native component (e.g., WAM)
      *
      * @type {?boolean}
@@ -853,8 +870,13 @@ export type PerformanceEvent = {
     multiMatchedID?: number;
     multiMatchedRT?: number;
 
+    /**
+     * Error information
+     */
     errorName?: string;
     errorStack?: string[];
+    brokerErrorCode?: string;
+    brokerErrorMessage?: string;
 
     // Event context as JSON string
     context?: string;

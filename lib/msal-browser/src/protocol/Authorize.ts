@@ -81,9 +81,15 @@ async function getStandardParameters(
     }
 
     if (request.platformBroker) {
-        // signal ests that this is a WAM call
+        // signal ests that this is a Platform Broker call
         RequestParameterBuilder.addNativeBroker(parameters);
 
+        performanceClient.addFields(
+            {
+                isPlatformAuthorizeRequest: true,
+            },
+            request.correlationId
+        );
         // pass the req_cnf for POP
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const cryptoOps = new CryptoOps(logger, performanceClient);

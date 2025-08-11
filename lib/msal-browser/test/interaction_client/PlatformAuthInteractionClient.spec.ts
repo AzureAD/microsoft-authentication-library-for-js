@@ -267,6 +267,28 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
+        it("Captures platform events correctly", (done) => {
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(MOCK_WAM_RESPONSE);
+            });
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                console.log(
+                    "Platform events captured:",
+                    JSON.stringify(events, null, 2)
+                );
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+        });
+
         it("Extension: token request contains user input extra params", async () => {
             const sendMessageSpy = jest
                 .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
