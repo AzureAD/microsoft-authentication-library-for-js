@@ -88,19 +88,18 @@ export abstract class BaseInteractionClient {
 
 /**
  * Use to get the redirect URI configured in MSAL or construct one from the current page.
- * @param requestRedirectUri - Optional redirect URI from the request
- * @param clientConfig - Optional browser configuration containing auth settings
- * @param logger - Optional logger instance for verbose logging
+ * @param requestRedirectUri - Redirect URI from the request or undefined if not configured
+ * @param clientConfigRedirectUri - Redirect URI from the client configuration or undefined if not configured
+ * @param logger - Logger instance from the calling client
  * @returns Absolute redirect URL constructed from the provided URI, config, or current page
  */
 export function getRedirectUri(
-    requestRedirectUri?: string,
-    clientConfig?: BrowserConfiguration,
-    logger?: Logger
+    requestRedirectUri: string | undefined,
+    clientConfigRedirectUri: string | undefined,
+    logger: Logger
 ): string {
-    logger?.verbose("getRedirectUri called");
-    const redirectUri =
-        requestRedirectUri || clientConfig?.auth.redirectUri || "";
+    logger.verbose("getRedirectUri called");
+    const redirectUri = requestRedirectUri || clientConfigRedirectUri || "";
     return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
 }
 
@@ -119,10 +118,10 @@ export function initializeServerTelemetryManager(
     clientId: string,
     correlationId: string,
     browserStorage: BrowserCacheManager,
-    logger?: Logger,
+    logger: Logger,
     forceRefresh?: boolean
 ): ServerTelemetryManager {
-    logger?.verbose("initializeServerTelemetryManager called");
+    logger.verbose("initializeServerTelemetryManager called");
     const telemetryPayload: ServerTelemetryRequest = {
         clientId: clientId,
         correlationId: correlationId,
@@ -150,23 +149,20 @@ export function initializeServerTelemetryManager(
  * @returns Promise that resolves to a discovered Authority instance
  */
 export async function getDiscoveredAuthority(
-    params: {
-        requestAuthority?: string;
-        requestAzureCloudOptions?: AzureCloudOptions;
-        requestExtraQueryParameters?: StringDict;
-        account?: AccountInfo;
-    },
     config: BrowserConfiguration,
     correlationId: string,
     performanceClient: IPerformanceClient,
     browserStorage: BrowserCacheManager,
-    logger: Logger
+    logger: Logger,
+    requestAuthority?: string,
+    requestAzureCloudOptions?: AzureCloudOptions,
+    requestExtraQueryParameters?: StringDict,
+    account?: AccountInfo
 ): Promise<Authority> {
-    const { account } = params;
     const instanceAwareEQ =
-        params.requestExtraQueryParameters &&
-        params.requestExtraQueryParameters.hasOwnProperty("instance_aware")
-            ? params.requestExtraQueryParameters["instance_aware"]
+        requestExtraQueryParameters &&
+        requestExtraQueryParameters.hasOwnProperty("instance_aware")
+            ? requestExtraQueryParameters["instance_aware"]
             : undefined;
 
     const authorityOptions: AuthorityOptions = {
@@ -178,7 +174,7 @@ export async function getDiscoveredAuthority(
     };
 
     // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
-    const resolvedAuthority = params.requestAuthority || config.auth.authority;
+    const resolvedAuthority = requestAuthority || config.auth.authority;
     const resolvedInstanceAware = instanceAwareEQ?.length
         ? instanceAwareEQ === "true"
         : config.auth.instanceAware;
@@ -194,7 +190,7 @@ export async function getDiscoveredAuthority(
     // fall back to the authority from config
     const builtAuthority = Authority.generateAuthority(
         userAuthority,
-        params.requestAzureCloudOptions || config.auth.azureCloudOptions
+        requestAzureCloudOptions || config.auth.azureCloudOptions
     );
     const discoveredAuthority = await invokeAsync(
         AuthorityFactory.createDiscoveredInstance,
