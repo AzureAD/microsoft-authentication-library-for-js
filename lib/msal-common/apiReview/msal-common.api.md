@@ -3406,6 +3406,7 @@ export type PerformanceEvent = {
     usePreGeneratedPkce?: boolean;
     msalInstanceCount?: number;
     sameClientIdInstanceCount?: number;
+    navigateCallbackResult?: boolean;
 };
 
 declare namespace PerformanceEvents {
