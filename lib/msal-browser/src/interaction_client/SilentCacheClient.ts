@@ -17,6 +17,10 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import {
+    clearCacheOnLogout,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -27,8 +31,12 @@ export class SilentCacheClient extends StandardInteractionClient {
         silentRequest: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
         // Telemetry manager only used to increment cacheHits here
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenSilent_silentFlow
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenSilent_silentFlow,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const clientConfig = await invokeAsync(
@@ -86,6 +94,12 @@ export class SilentCacheClient extends StandardInteractionClient {
     logout(logoutRequest?: ClearCacheRequest): Promise<void> {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        return this.clearCacheOnLogout(validLogoutRequest?.account);
+        return clearCacheOnLogout(
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.correlationId,
+            validLogoutRequest.account
+        );
     }
 }

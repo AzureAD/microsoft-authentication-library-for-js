@@ -34,8 +34,13 @@ import {
     Constants,
     PerformanceEvents,
 } from "@azure/msal-common/browser";
+import {
+    BaseInteractionClient,
+    getDiscoveredAuthority,
+    getRedirectUri,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
-import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -162,8 +167,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            this.apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {
@@ -325,8 +334,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
-                const serverTelemetryManager =
-                    this.initializeServerTelemetryManager(this.apiId);
+                const serverTelemetryManager = initializeServerTelemetryManager(
+                    this.apiId,
+                    this.config.auth.clientId,
+                    this.correlationId,
+                    this.browserStorage,
+                    this.logger
+                );
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
                     throw e;
@@ -346,7 +360,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         };
         const redirectUri = navigateToLoginRequestUrl
             ? window.location.href
-            : this.getRedirectUri(request.redirectUri);
+            : getRedirectUri(request.redirectUri, this.config, this.logger);
         rootMeasurement.end({ success: true });
         await this.navigationClient.navigateExternal(
             redirectUri,
@@ -415,8 +429,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 reqTimestamp
             );
 
-            const serverTelemetryManager =
-                this.initializeServerTelemetryManager(this.apiId);
+            const serverTelemetryManager = initializeServerTelemetryManager(
+                this.apiId,
+                this.config.auth.clientId,
+                this.correlationId,
+                this.browserStorage,
+                this.logger
+            );
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return authResult;
         } catch (e) {
@@ -484,9 +503,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         // Get the preferred_cache domain for the given authority
-        const authority = await this.getDiscoveredAuthority({
-            requestAuthority: request.authority,
-        });
+        const authority = await getDiscoveredAuthority(
+            {
+                requestAuthority: request.authority,
+            },
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger
+        );
 
         const baseAccount = buildAccountToCache(
             this.browserStorage,
@@ -891,7 +917,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scope: scopeSet.printScopes(),
-            redirectUri: this.getRedirectUri(request.redirectUri),
+            redirectUri: getRedirectUri(
+                request.redirectUri,
+                this.config,
+                this.logger
+            ),
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
             tokenType: request.authenticationScheme,
@@ -966,11 +996,18 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (request.account) {
             // validate authority
-            await this.getDiscoveredAuthority({
-                requestAuthority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                account: request.account,
-            });
+            await getDiscoveredAuthority(
+                {
+                    requestAuthority,
+                    requestAzureCloudOptions: request.azureCloudOptions,
+                    account: request.account,
+                },
+                this.config,
+                this.correlationId,
+                this.performanceClient,
+                this.browserStorage,
+                this.logger
+            );
         }
 
         const canonicalAuthority = new UrlString(requestAuthority);
