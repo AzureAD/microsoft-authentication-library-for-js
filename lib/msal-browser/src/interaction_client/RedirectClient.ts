@@ -20,8 +20,11 @@ import {
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import {
+    initializeAuthorizationRequest,
+    StandardInteractionClient,
+} from "./StandardInteractionClient.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
-import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,
     INTERACTION_TYPE,
@@ -49,6 +52,11 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import {
+    clearCacheOnLogout,
+    getDiscoveredAuthority,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
@@ -102,12 +110,21 @@ export class RedirectClient extends StandardInteractionClient {
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
         const validRequest = await invokeAsync(
-            this.initializeAuthorizationRequest.bind(this),
+            initializeAuthorizationRequest,
             BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request, InteractionType.Redirect);
+        )(
+            request,
+            InteractionType.Redirect,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        );
 
         validRequest.platformBroker = isPlatformAuthAllowed(
             this.config,
@@ -168,8 +185,12 @@ export class RedirectClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest
     ): Promise<void> {
         const correlationId = request.correlationId;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenRedirect
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenRedirect,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const pkceCodes = await invokeAsync(
@@ -242,17 +263,24 @@ export class RedirectClient extends StandardInteractionClient {
         const correlationId = request.correlationId;
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
-            this.getDiscoveredAuthority.bind(this),
+            getDiscoveredAuthority,
             BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             correlationId
-        )({
-            requestAuthority: request.authority,
-            requestAzureCloudOptions: request.azureCloudOptions,
-            requestExtraQueryParameters: request.extraQueryParameters,
-            account: request.account,
-        });
+        )(
+            {
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+            },
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger
+        );
 
         const earJwk = await invokeAsync(
             generateEarKey,
@@ -304,8 +332,12 @@ export class RedirectClient extends StandardInteractionClient {
         parentMeasurement: InProgressPerformanceEvent,
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.handleRedirectPromise
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.handleRedirectPromise,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const navigateToLoginRequestUrl =
@@ -536,17 +568,24 @@ export class RedirectClient extends StandardInteractionClient {
 
         if (serverParams.ear_jwe) {
             const discoveredAuthority = await invokeAsync(
-                this.getDiscoveredAuthority.bind(this),
+                getDiscoveredAuthority,
                 BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )({
-                requestAuthority: request.authority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                requestExtraQueryParameters: request.extraQueryParameters,
-                account: request.account,
-            });
+            )(
+                {
+                    requestAuthority: request.authority,
+                    requestAzureCloudOptions: request.azureCloudOptions,
+                    requestExtraQueryParameters: request.extraQueryParameters,
+                    account: request.account,
+                },
+                this.config,
+                this.correlationId,
+                this.performanceClient,
+                this.browserStorage,
+                this.logger
+            );
             return invokeAsync(
                 Authorize.handleResponseEAR,
                 BrowserPerformanceEvents.HandleResponseEar,
@@ -670,8 +709,12 @@ export class RedirectClient extends StandardInteractionClient {
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.logout
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.logout,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {
@@ -682,7 +725,13 @@ export class RedirectClient extends StandardInteractionClient {
             );
 
             // Clear cache on logout
-            await this.clearCacheOnLogout(validLogoutRequest.account);
+            await clearCacheOnLogout(
+                this.browserStorage,
+                this.browserCrypto,
+                this.logger,
+                this.correlationId,
+                validLogoutRequest.account
+            );
 
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,

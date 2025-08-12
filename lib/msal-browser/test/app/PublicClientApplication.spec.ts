@@ -83,6 +83,7 @@ import {
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
+import * as PopupUtils from "../../src/utils/PopupUtils.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
@@ -3195,10 +3196,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
-            jest.spyOn(
-                PopupClient.prototype,
-                "monitorPopupForHash"
-            ).mockRejectedValue("Not important for this test");
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockRejectedValue(
+                "Not important for this test"
+            );
 
             try {
                 await testPca.acquireTokenPopup(request);
@@ -3253,10 +3253,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
-            jest.spyOn(
-                PopupClient.prototype,
-                "monitorPopupForHash"
-            ).mockRejectedValue("Not important for this test");
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockRejectedValue(
+                "Not important for this test"
+            );
             try {
                 await testPca.acquireTokenPopup(request);
             } catch (e) {}
@@ -6453,10 +6452,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     PopupClient.prototype,
                     "openSizedPopup"
                 ).mockReturnValue(popupWindow);
-                jest.spyOn(
-                    PopupClient.prototype,
-                    "cleanPopup"
-                ).mockImplementation();
+                jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {

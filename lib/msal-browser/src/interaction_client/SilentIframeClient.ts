@@ -16,8 +16,11 @@ import {
     ProtocolMode,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import {
+    initializeAuthorizationRequest,
+    StandardInteractionClient,
+} from "./StandardInteractionClient.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
-import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -45,6 +48,10 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import {
+    getDiscoveredAuthority,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -114,12 +121,21 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         // Create silent request
         const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
-            this.initializeAuthorizationRequest.bind(this),
+            initializeAuthorizationRequest,
             BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(inputRequest, InteractionType.Silent);
+        )(
+            inputRequest,
+            InteractionType.Silent,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        );
         silentRequest.platformBroker = isPlatformAuthAllowed(
             this.config,
             this.logger,
@@ -144,8 +160,12 @@ export class SilentIframeClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         let authClient: AuthorizationCodeClient | undefined;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            this.apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {
@@ -211,17 +231,24 @@ export class SilentIframeClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         const correlationId = request.correlationId;
         const discoveredAuthority = await invokeAsync(
-            this.getDiscoveredAuthority.bind(this),
+            getDiscoveredAuthority,
             BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             correlationId
-        )({
-            requestAuthority: request.authority,
-            requestAzureCloudOptions: request.azureCloudOptions,
-            requestExtraQueryParameters: request.extraQueryParameters,
-            account: request.account,
-        });
+        )(
+            {
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+            },
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger
+        );
 
         const earJwk = await invokeAsync(
             generateEarKey,

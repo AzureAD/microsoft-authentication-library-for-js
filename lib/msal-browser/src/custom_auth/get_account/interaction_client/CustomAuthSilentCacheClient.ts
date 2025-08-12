@@ -22,6 +22,10 @@ import { AuthenticationResult } from "../../../response/AuthenticationResult.js"
 import { ClearCacheRequest } from "../../../request/ClearCacheRequest.js";
 import { ApiId } from "../../../utils/BrowserConstants.js";
 import { getCurrentUri } from "../../../utils/BrowserUtils.js";
+import {
+    clearCacheOnLogout,
+    initializeServerTelemetryManager,
+} from "../../../interaction_client/BaseInteractionClient.js";
 
 export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase {
     /**
@@ -37,8 +41,13 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
     override async acquireToken(
         silentRequest: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        const telemetryManager = this.initializeServerTelemetryManager(
-            PublicApiId.ACCOUNT_GET_ACCESS_TOKEN
+        const telemetryManager = initializeServerTelemetryManager(
+            PublicApiId.ACCOUNT_GET_ACCESS_TOKEN,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger,
+            silentRequest.forceRefresh
         );
         const clientConfig = this.getCustomAuthClientConfiguration(
             telemetryManager,
@@ -110,7 +119,13 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
             "Start to clear the cache",
             logoutRequest?.correlationId
         );
-        await this.clearCacheOnLogout(validLogoutRequest?.account);
+        await clearCacheOnLogout(
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.correlationId,
+            validLogoutRequest?.account
+        );
         this.logger.verbose("Cache cleared", logoutRequest?.correlationId);
 
         const postLogoutRedirectUri = this.config.auth.postLogoutRedirectUri;
