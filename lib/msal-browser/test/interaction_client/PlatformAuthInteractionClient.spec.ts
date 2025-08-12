@@ -16,16 +16,21 @@ import {
     CacheManager,
     IPerformanceClient,
     InProgressPerformanceEvent,
+    CacheHelpers,
 } from "@azure/msal-common";
+import { OpenIdConfigResponse } from "../../../msal-common/src/authority/OpenIdConfigResponse.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { ApiId } from "../../src/utils/BrowserConstants.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
+    TEST_HASHES,
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
@@ -40,6 +45,7 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import {
     BrowserPerformanceClient,
+    PerformanceEvents,
     PopupRequest,
     SsoSilentRequest,
 } from "../../src/index.js";
@@ -49,6 +55,8 @@ import { BrowserConstants } from "../../src/utils/BrowserConstants.js";
 import * as NativeStatusCodes from "../../src/broker/nativeBroker/NativeStatusCodes.js";
 import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
+import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
+import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
 
 const MOCK_WAM_RESPONSE: PlatformAuthResponse = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
@@ -190,7 +198,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
         ); // source property not set by jsdom window messaging APIs
         perfMeasurement = perfClient.startMeasurement(
             "test-measurement",
-            "test-correlation-id"
+            RANDOM_TEST_GUID
         );
     });
 
@@ -265,6 +273,59 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+
+        xit("Extension: measures token acquisition correctly", (done) => {
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(MOCK_WAM_RESPONSE);
+            });
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAuthorityMetadataByAlias"
+            ).mockImplementation((host: string) => {
+                const metadata =
+                    DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0];
+                const openIdConfigResponse =
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body as OpenIdConfigResponse;
+                return {
+                    aliases: [],
+                    preferred_cache: metadata.preferred_cache,
+                    preferred_network: metadata.preferred_network,
+                    canonical_authority: host,
+                    authorization_endpoint:
+                        openIdConfigResponse.authorization_endpoint,
+                    token_endpoint: openIdConfigResponse.token_endpoint,
+                    end_session_endpoint:
+                        openIdConfigResponse.end_session_endpoint,
+                    issuer: openIdConfigResponse.issuer,
+                    aliasesFromNetwork: true,
+                    endpointsFromNetwork: true,
+                    expiresAt:
+                        CacheHelpers.generateAuthorityMetadataExpiresAt(),
+                    jwks_uri: openIdConfigResponse.jwks_uri,
+                };
+            });
+
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
+            );
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                console.log(JSON.stringify(events, null, 2));
+                expect(events[0].isPlatformBrokerRequest).toBeTruthy();
+                expect(events[0].isNativeBroker).toBeTruthy();
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                correlationId: RANDOM_TEST_GUID,
+            });
         });
 
         it("Extension: token request contains user input extra params", async () => {

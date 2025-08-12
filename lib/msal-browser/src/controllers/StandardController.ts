@@ -571,6 +571,7 @@ export class StandardController implements IController {
                     }
                     rootMeasurement.end({
                         success: true,
+                        isNativeBroker: result.fromNativeBroker,
                         accountType: getAccountType(result.account),
                     });
                 } else {
@@ -734,7 +735,10 @@ export class StandardController implements IController {
                             e instanceof NativeAuthError &&
                             isFatalNativeAuthError(e)
                         ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to
+                            atrMeasurement.add({
+                                brokerErrorName: e.name,
+                            });
                             const redirectClient =
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
@@ -865,7 +869,10 @@ export class StandardController implements IController {
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
                     ) {
-                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to
+                        atPopupMeasurement.add({
+                            brokerErrorName: e.name,
+                        });
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
@@ -1028,6 +1035,9 @@ export class StandardController implements IController {
                     const silentIframeClient = this.createSilentIframeClient(
                         validRequest.correlationId
                     );
+                    this.ssoSilentMeasurement?.add({
+                        brokerErrorName: e.name,
+                    });
                     return silentIframeClient.acquireToken(validRequest);
                 }
                 throw e;
@@ -1183,6 +1193,9 @@ export class StandardController implements IController {
                         ) {
                             this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
+                        atbcMeasurement.add({
+                            brokerErrorName: e.name,
+                        });
                         throw e;
                     });
                     atbcMeasurement.end({
@@ -2356,6 +2369,12 @@ export class StandardController implements IController {
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.logger.verbose(
                         "acquireTokenSilent - native platform unavailable, falling back to web flow"
+                    );
+                    this.performanceClient.addFields(
+                        {
+                            brokerErrorName: e.name,
+                        },
+                        silentRequest.correlationId
                     );
                     this.platformAuthProvider = undefined; // Prevent future requests from continuing to attempt
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal

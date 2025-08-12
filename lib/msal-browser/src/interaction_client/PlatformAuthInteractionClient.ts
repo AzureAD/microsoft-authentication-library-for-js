@@ -164,6 +164,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             PerformanceEvents.NativeInteractionClientAcquireToken,
             request.correlationId
         );
+        nativeATMeasurement.add({
+            isPlatformBrokerRequest: true,
+        });
         const reqTimestamp = TimeUtils.nowSeconds();
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -191,6 +194,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     this.logger.info(
                         "MSAL internal Cache does not contain tokens, return error as per cache policy"
                     );
+                    nativeATMeasurement.end({
+                        success: false,
+                        errorCode: "cache request failed",
+                    });
                     throw e;
                 }
                 // continue with a native call for any and all errors
@@ -245,7 +252,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): CommonSilentFlowRequest {
         return {
             authority: request.authority,
-            correlationId: this.correlationId,
+            correlationId: request.correlationId,
             scopes: ScopeSet.fromString(request.scope).asArray(),
             account: cachedAccount,
             forceRefresh: false,
@@ -273,7 +280,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             {
                 nativeAccountId,
             },
-            this.correlationId
+            request.correlationId
         );
 
         if (!account) {
@@ -324,6 +331,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const nativeRequest = await this.initializeNativeRequest(
             remainingParameters
         );
+        rootMeasurement.add({
+            isPlatformBrokerRequest: true,
+        });
 
         try {
             await this.platformAuthProvider.sendMessage(nativeRequest);
@@ -423,6 +433,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const serverTelemetryManager =
                 this.initializeServerTelemetryManager(this.apiId);
             serverTelemetryManager.clearNativeBrokerErrorCode();
+            if (performanceClient && correlationId) {
+                this.performanceClient.addFields(
+                    { isNativeBroker: true },
+                    correlationId
+                );
+            }
             return authResult;
         } catch (e) {
             throw e;
@@ -469,7 +485,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 {
                     nativeAccountId: request.accountId,
                 },
-                this.correlationId
+                request.correlationId
             )?.homeAccountId;
 
         // add exception for double brokering, please note this is temporary and will be fortified in future
@@ -498,7 +514,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             authority,
             homeAccountIdentifier,
             base64Decode,
-            this.correlationId,
+            request.correlationId,
             idTokenClaims,
             response.client_info,
             undefined, // environment
@@ -522,7 +538,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount, this.correlationId);
+        await this.cacheAccount(baseAccount, request.correlationId);
         await this.cacheNativeTokens(
             response,
             request,
@@ -704,7 +720,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 reqTimestamp + response.expires_in
             ),
             tokenType: tokenType,
-            correlationId: this.correlationId,
+            correlationId: request.correlationId,
             state: response.state,
             fromNativeBroker: true,
         };
@@ -721,7 +737,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         correlationId: string
     ): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
-        await this.browserStorage.setAccount(accountEntity, this.correlationId);
+        await this.browserStorage.setAccount(accountEntity, correlationId);
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(
             accountEntity.getAccountInfo(),
@@ -794,7 +810,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         return this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
-            this.correlationId,
+            request.correlationId,
             request.storeInCache
         );
     }
@@ -905,7 +921,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             scope: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             prompt: this.getPrompt(request.prompt),
-            correlationId: this.correlationId,
+            correlationId: request.correlationId || this.correlationId,
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
