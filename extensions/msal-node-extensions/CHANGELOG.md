@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Tue, 05 Aug 2025 20:00:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 12 Aug 2025 21:24:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.5.20
+
+Tue, 12 Aug 2025 21:24:31 GMT
+
+### Patches
+
+- Surface Errors from MsalRuntime with Interaction Required #7961 (akaliugonna@microsoft.com)
+- Bump msal-node-runtime to v0.19.0 (akaliugonna@microsoft.com)
+- Bump @azure/msal-common to v15.11.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 1.5.19
 

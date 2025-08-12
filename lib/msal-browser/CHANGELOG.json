@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 12 Aug 2025 21:24:30 GMT",
+      "version": "4.20.0",
+      "tag": "@azure/msal-browser_v4.20.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ebcfec14bc4f20e5dad40ba38d491492948cefee",
+            "comment": "Instrument timed out or cancelled pre-redirect requests #7984"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.11.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ebcfec14bc4f20e5dad40ba38d491492948cefee",
+            "comment": "fixed getNativeAccountId API bug to correctly return current active account if loginhint or sid is not provided #7960"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Aug 2025 20:00:24 GMT",
       "version": "4.19.0",
       "tag": "@azure/msal-browser_v4.19.0",
