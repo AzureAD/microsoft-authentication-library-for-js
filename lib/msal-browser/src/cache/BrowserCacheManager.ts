@@ -1401,38 +1401,6 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Clears all access tokes that have claims prior to saving the current one
-     * @param performanceClient {IPerformanceClient}
-     * @param correlationId {string} correlation id
-     * @returns
-     */
-    clearTokensAndKeysWithClaims(correlationId: string): void {
-        const tokenKeys = this.getTokenKeys();
-        let removedAccessTokens = 0;
-        tokenKeys.accessToken.forEach((key: string) => {
-            // if the access token has claims in its key, remove the token key and the token
-            const credential = this.getAccessTokenCredential(
-                key,
-                correlationId
-            );
-            if (
-                credential?.requestedClaimsHash &&
-                key.includes(credential.requestedClaimsHash.toLowerCase())
-            ) {
-                this.removeAccessToken(key, correlationId);
-                removedAccessTokens++;
-            }
-        });
-
-        // warn if any access tokens are removed
-        if (removedAccessTokens > 0) {
-            this.logger.warning(
-                `${removedAccessTokens} access tokens with claims in the cache keys have been removed from the cache.`
-            );
-        }
-    }
-
-    /**
      * Prepend msal.<client-id> to each key
      * @param key
      * @param addInstanceId
@@ -1472,7 +1440,6 @@ export class BrowserCacheManager extends CacheManager {
             familyId,
             credential.realm || "",
             credential.target || "",
-            credential.requestedClaimsHash || "",
             scheme,
         ];
 
@@ -1691,11 +1658,6 @@ export class BrowserCacheManager extends CacheManager {
             result.tenantId
         );
 
-        let claimsHash;
-        if (request.claims) {
-            claimsHash = await this.cryptoImpl.hashString(request.claims);
-        }
-
         /**
          * meta data for cache stores time in seconds from epoch
          * AuthenticationResult returns expiresOn and extExpiresOn in milliseconds (as a Date object which is in ms)
@@ -1722,9 +1684,7 @@ export class BrowserCacheManager extends CacheManager {
             undefined, // refreshOn
             result.tokenType as Constants.AuthenticationScheme,
             undefined, // userAssertionHash
-            request.sshKid,
-            request.claims,
-            claimsHash
+            request.sshKid
         );
 
         const cacheRecord = {

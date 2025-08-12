@@ -72,7 +72,6 @@ function signOut(interactionType) {
 }
 
 async function getTokenPopup(request, account) {
-    request.redirectUri = "/redirect"
     return await myMSALObj
         .acquireTokenSilent(request)
         .catch(async (error) => {

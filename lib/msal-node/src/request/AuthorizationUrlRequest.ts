@@ -41,7 +41,6 @@ export type AuthorizationUrlRequest = Partial<
         | "resourceRequestMethod"
         | "resourceRequestUri"
         | "authenticationScheme"
-        | "requestedClaimsHash"
         | "storeInCache"
     >
 > & {

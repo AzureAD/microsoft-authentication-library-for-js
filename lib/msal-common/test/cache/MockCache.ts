@@ -15,7 +15,6 @@ import {
 import { MockStorageClass } from "../client/ClientTestUtils.js";
 import {
     TEST_TOKENS,
-    TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
@@ -137,8 +136,6 @@ export class MockCache {
             extendedExpiresOn: "4600",
             expiresOn: "4600",
             tokenType: AuthenticationScheme.BEARER,
-            requestedClaims: JSON.stringify({ claim: "claim" }),
-            requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
             lastUpdatedAt: Date.now().toString(),
         };
 

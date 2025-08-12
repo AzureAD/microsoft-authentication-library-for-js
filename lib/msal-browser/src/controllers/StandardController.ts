@@ -19,7 +19,6 @@ import {
     InProgressPerformanceEvent,
     getRequestThumbprint,
     invokeAsync,
-    invoke,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountFilter,
@@ -358,16 +357,6 @@ export class StandardController implements IController {
                 this.logger.verbose(e as string);
             }
         }
-
-        invoke(
-            this.browserStorage.clearTokensAndKeysWithClaims.bind(
-                this.browserStorage
-            ),
-            BrowserPerformanceEvents.ClearTokensAndKeysWithClaims,
-            this.logger,
-            this.performanceClient,
-            initCorrelationId
-        )(initCorrelationId);
 
         if (
             this.config.cache.cacheLocation ===

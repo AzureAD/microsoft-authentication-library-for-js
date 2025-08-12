@@ -24,7 +24,6 @@ import { ShrOptions } from "../crypto/SignedHttpRequest.js";
  * - sshJwk                  - A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
  * - sshKid                  - Key ID that uniquely identifies the SSH public key mentioned above.
  * - azureCloudOptions       - Convenience string enums for users to provide public/sovereign cloud ids
- * - requestedClaimsHash     - SHA 256 hash string of the requested claims string, used as part of an access token cache key so tokens can be filtered by requested claims
  * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  * - tokenBodyParameters     - String to string map of custom parameters added to the body of the /token call
  * - storeInCache            - Object containing boolean values indicating whether to store tokens in the cache or not (default is true)
@@ -46,7 +45,6 @@ export type BaseAuthRequest = {
     sshJwk?: string;
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
-    requestedClaimsHash?: string;
     maxAge?: number;
     tokenBodyParameters?: StringDict;
     tokenQueryParameters?: StringDict;

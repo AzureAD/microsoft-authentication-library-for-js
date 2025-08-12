@@ -65,7 +65,6 @@ export function generateCredentialKey(credential: CredentialEntity): string {
         familyId,
         credential.realm || "",
         credential.target || "",
-        credential.requestedClaimsHash || "",
         scheme,
     ];
 
