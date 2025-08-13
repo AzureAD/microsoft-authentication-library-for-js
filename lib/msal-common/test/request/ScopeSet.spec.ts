@@ -439,7 +439,7 @@ describe("ScopeSet.ts", () => {
             expect(nullScopes).toContain(Constants.OPENID_SCOPE);
             expect(nullScopes).toContain(Constants.PROFILE_SCOPE);
 
-            // Test undefined input  
+            // Test undefined input
             // @ts-ignore - intentionally testing undefined input
             const resultUndefined = ScopeSet.createSearchScopes(undefined);
             const undefinedScopes = resultUndefined.asArray();
@@ -460,7 +460,11 @@ describe("ScopeSet.ts", () => {
         });
 
         it("handles scopes with only OIDC scopes by removing offline_access", () => {
-            const oidcScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
+            const oidcScopes = [
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                Constants.OFFLINE_ACCESS_SCOPE,
+            ];
             const result = ScopeSet.createSearchScopes(oidcScopes);
             const resultScopes = result.asArray();
             expect(resultScopes).toContain(Constants.OPENID_SCOPE);
