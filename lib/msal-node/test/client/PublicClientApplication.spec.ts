@@ -256,6 +256,7 @@ describe("PublicClientApplication", () => {
             realm: ID_TOKEN_CLAIMS.tid,
             secret: AUTHENTICATION_RESULT.body.id_token,
             credentialType: CredentialType.ID_TOKEN,
+            lastUpdatedAt: Date.now().toString(),
         };
         const testAccessTokenEntity: AccessTokenEntity = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -273,6 +274,7 @@ describe("PublicClientApplication", () => {
                 TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
             ).toString(),
             tokenType: AuthenticationScheme.BEARER,
+            lastUpdatedAt: Date.now().toString(),
         };
         const testRefreshTokenEntity: RefreshTokenEntity = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -281,6 +283,7 @@ describe("PublicClientApplication", () => {
             realm: ID_TOKEN_CLAIMS.tid,
             secret: AUTHENTICATION_RESULT.body.refresh_token,
             credentialType: CredentialType.REFRESH_TOKEN,
+            lastUpdatedAt: Date.now().toString(),
         };
         testAccessTokenEntity.refreshOn = `${
             Number(testAccessTokenEntity.cachedAt) - 1
@@ -452,10 +455,6 @@ describe("PublicClientApplication", () => {
                 RefreshTokenClient.prototype,
                 <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
-            jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
-            ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
             );
@@ -583,10 +582,6 @@ describe("PublicClientApplication", () => {
                 Number(testAccessTokenEntity.cachedAt) +
                 AUTHENTICATION_RESULT.body.expires_in
             }`;
-            jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
-            ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
             );

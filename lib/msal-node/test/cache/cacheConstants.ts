@@ -11,6 +11,10 @@ import {
     AppMetadataEntity,
     CacheHelpers,
 } from "@azure/msal-common";
+import {
+    generateAccountKey,
+    generateCredentialKey,
+} from "../../src/cache/CacheHelpers.js";
 
 // mock tokens
 export const mockAccessTokenEntity_1: AccessTokenEntity = {
@@ -25,6 +29,7 @@ export const mockAccessTokenEntity_1: AccessTokenEntity = {
     expiresOn: "4600",
     extendedExpiresOn: "4600",
     userAssertionHash: "mock_hash_string",
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const mockAccessTokenEntity_2: AccessTokenEntity = {
@@ -38,6 +43,7 @@ export const mockAccessTokenEntity_2: AccessTokenEntity = {
     cachedAt: "1000",
     expiresOn: "4600",
     extendedExpiresOn: "4600",
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const mockIdTokenEntity: IdTokenEntity = {
@@ -47,6 +53,7 @@ export const mockIdTokenEntity: IdTokenEntity = {
     clientId: "mock_client_id",
     secret: "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
     realm: "utid",
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const mockRefreshTokenEntity: RefreshTokenEntity = {
@@ -55,6 +62,7 @@ export const mockRefreshTokenEntity: RefreshTokenEntity = {
     credentialType: "RefreshToken",
     clientId: "mock_client_id",
     secret: "a refresh token",
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const mockRefreshTokenEntityWithFamilyId: RefreshTokenEntity = {
@@ -64,6 +72,7 @@ export const mockRefreshTokenEntityWithFamilyId: RefreshTokenEntity = {
     clientId: "mock_client_id",
     secret: "a refresh token",
     familyId: "1",
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const mockAccountEntity = {
@@ -126,19 +135,17 @@ export class mockCache {
 
 export const MockCache = {
     atOne: mockCache.createMockATOne(),
-    atOneKey: CacheHelpers.generateCredentialKey(mockCache.createMockATOne()),
+    atOneKey: generateCredentialKey(mockCache.createMockATOne()),
     atTwo: mockCache.createMockATTwo(),
-    atTwoKey: CacheHelpers.generateCredentialKey(mockCache.createMockATTwo()),
+    atTwoKey: generateCredentialKey(mockCache.createMockATTwo()),
     idT: mockCache.createMockIdT(),
-    idTKey: CacheHelpers.generateCredentialKey(mockCache.createMockIdT()),
+    idTKey: generateCredentialKey(mockCache.createMockIdT()),
     rt: mockCache.createMockRT(),
-    rtKey: CacheHelpers.generateCredentialKey(mockCache.createMockRT()),
+    rtKey: generateCredentialKey(mockCache.createMockRT()),
     rtF: mockCache.createMockRTWithFamilyId(),
-    rtFKey: CacheHelpers.generateCredentialKey(
-        mockCache.createMockRTWithFamilyId()
-    ),
+    rtFKey: generateCredentialKey(mockCache.createMockRTWithFamilyId()),
     acc: mockCache.createMockAcc(),
-    accKey: mockCache.createMockAcc().generateAccountKey(),
+    accKey: generateAccountKey(mockCache.createMockAcc().getAccountInfo()),
     amdt: mockCache.createMockAmdt(),
     amdtKey: CacheHelpers.generateAppMetadataKey(mockCache.createMockAmdt()),
 };

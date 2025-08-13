@@ -49,6 +49,10 @@ export const ClientConfigurationErrorMessages = {
         "Cannot set allowPlatformBroker parameter to true when not in AAD protocol mode.",
     [ClientConfigurationErrorCodes.authorityMismatch]:
         "Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.",
+    [ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters]:
+        "Invalid authorize post body parameters provided. If you are using authorizePostBodyParameters, the request method must be POST. Please check the request method and parameters.",
+    [ClientConfigurationErrorCodes.invalidRequestMethodForEAR]:
+        "Invalid request method for EAR protocol mode. The request method cannot be GET when using EAR protocol mode. Please change the request method to POST.",
 };
 
 /**
@@ -180,6 +184,18 @@ export const ClientConfigurationErrorMessage = {
         code: ClientConfigurationErrorCodes.authorityMismatch,
         desc: ClientConfigurationErrorMessages[
             ClientConfigurationErrorCodes.authorityMismatch
+        ],
+    },
+    invalidAuthorizePostBodyParameters: {
+        code: ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters,
+        desc: ClientConfigurationErrorMessages[
+            ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
+        ],
+    },
+    invalidRequestMethodForEAR: {
+        code: ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+        desc: ClientConfigurationErrorMessages[
+            ClientConfigurationErrorCodes.invalidRequestMethodForEAR
         ],
     },
 };

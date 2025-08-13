@@ -1,0 +1,30 @@
+{
+  "name": "express-sample",
+  "version": "1.0.0",
+  "description": "Express sample app demonstrating MSAL.js authentication with routing",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build:package": "npm run build:all --workspace=lib/msal-browser"
+  },
+  "dependencies": {
+    "@azure/msal-browser": "^4.0.0",
+    "express": "^4.18.2",
+    "express-handlebars": "^7.0.7",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "keywords": [
+    "msal",
+    "azure",
+    "authentication",
+    "express",
+    "spa"
+  ],
+  "author": "Microsoft",
+  "license": "MIT"
+}

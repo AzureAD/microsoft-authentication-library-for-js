@@ -92,6 +92,11 @@ export class CookieStorage implements IWindowStorage<string> {
     containsKey(key: string): boolean {
         return this.getKeys().includes(key);
     }
+
+    decryptData(): Promise<object | null> {
+        // Cookie storage does not support encryption, so this method is a no-op
+        return Promise.resolve(null);
+    }
 }
 
 /**

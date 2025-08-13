@@ -51,4 +51,9 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     clear(): void {
         this.cache.clear();
     }
+
+    decryptData(): Promise<object | null> {
+        // Memory storage does not support encryption, so this method is a no-op
+        return Promise.resolve(null);
+    }
 }
