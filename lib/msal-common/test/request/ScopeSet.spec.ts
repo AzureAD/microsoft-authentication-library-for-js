@@ -420,6 +420,24 @@ describe("ScopeSet.ts", () => {
         });
     });
 
+    describe("createSearchScopes static method", () => {
+        it("throws error when given empty scopes array (current behavior)", () => {
+            expect(() => ScopeSet.createSearchScopes([])).toThrowError(
+                ClientConfigurationErrorMessage.emptyScopesError.desc
+            );
+            expect(() => ScopeSet.createSearchScopes([])).toThrowError(
+                ClientConfigurationError
+            );
+        });
+
+        it("creates ScopeSet with provided scopes", () => {
+            const scopes = ["testscope1", "testscope2"];
+            const result = ScopeSet.createSearchScopes(scopes);
+            expect(result.asArray()).toContain("testscope1");
+            expect(result.asArray()).toContain("testscope2");
+        });
+    });
+
     describe("Getters and Setters", () => {
         let requiredScopeSet: ScopeSet;
         let nonRequiredScopeSet: ScopeSet;
