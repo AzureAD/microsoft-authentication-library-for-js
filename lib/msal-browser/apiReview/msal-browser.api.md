@@ -636,6 +636,7 @@ export type CacheLookupPolicy = (typeof CacheLookupPolicy)[keyof typeof CacheLoo
 // @public
 export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
+    cacheRetentionDays?: number;
     temporaryCacheLocation?: BrowserCacheLocation | string;
     storeAuthStateInCookie?: boolean;
     secureCookies?: boolean;
@@ -1172,6 +1173,10 @@ export interface ITokenCache {
 export interface IWindowStorage<T> {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     containsKey(key: string): boolean;
+    // Warning: (ae-forgotten-export) The symbol "EncryptedData" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    decryptData(key: string, data: EncryptedData, correlationId: string): Promise<object | null>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getItem(key: string): T | null;
     getKeys(): string[];
@@ -1205,6 +1210,8 @@ export class LocalStorage implements IWindowStorage<string> {
     // (undocumented)
     containsKey(key: string): boolean;
     // (undocumented)
+    decryptData(key: string, data: EncryptedData, correlationId: string): Promise<object | null>;
+    // (undocumented)
     getItem(key: string): string | null;
     // (undocumented)
     getKeys(): string[];
@@ -1233,6 +1240,8 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     clear(): void;
     // (undocumented)
     containsKey(key: string): boolean;
+    // (undocumented)
+    decryptData(): Promise<object | null>;
     // (undocumented)
     getItem(key: string): T | null;
     // (undocumented)
@@ -1642,6 +1651,8 @@ export class SessionStorage implements IWindowStorage<string> {
     // (undocumented)
     containsKey(key: string): boolean;
     // (undocumented)
+    decryptData(): Promise<object | null>;
+    // (undocumented)
     getItem(key: string): string | null;
     // (undocumented)
     getKeys(): string[];
@@ -1779,7 +1790,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "4.13.2";
+export const version = "4.20.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1806,10 +1817,10 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/app/PublicClientNext.ts:85:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/app/PublicClientNext.ts:88:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/app/PublicClientNext.ts:89:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:299:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:357:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:388:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:256:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/cache/LocalStorage.ts:355:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:413:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:444:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/config/Configuration.ts:260:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

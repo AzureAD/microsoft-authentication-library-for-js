@@ -13,7 +13,8 @@ export function buildAccountFromIdTokenClaims(
     guestIdTokenClaimsList?: TokenClaims[],
     options?: Partial<AccountInfo>
 ): AccountEntity {
-    const { oid, tid, preferred_username, emails, name } = idTokenClaims;
+    const { oid, tid, preferred_username, emails, name, login_hint } =
+        idTokenClaims;
     const tenantId = tid || "";
     const email = emails ? emails[0] : null;
 
@@ -27,6 +28,7 @@ export function buildAccountFromIdTokenClaims(
         environment: "login.windows.net",
         authorityType: "MSSTS",
         name: name,
+        loginHint: login_hint,
         tenantProfiles: new Map<string, TenantProfile>([
             [
                 tenantId,
@@ -68,6 +70,7 @@ export function buildIdToken(
         secret: idTokenSecret,
         clientId: "mock_client_id",
         homeAccountId: homeAccountId,
+        lastUpdatedAt: Date.now().toString()
     };
 
     return { ...idToken, ...options };

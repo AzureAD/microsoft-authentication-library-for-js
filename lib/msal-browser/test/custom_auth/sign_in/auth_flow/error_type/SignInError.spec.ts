@@ -3,6 +3,7 @@ import {
     RedirectError,
 } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { InvalidArgumentError } from "../../../../../src/custom_auth/index.js";
+import { INVALID_REQUEST } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
 import {
     SignInError,
     SignInSubmitCodeError,
@@ -85,6 +86,26 @@ describe("SignInError", () => {
         );
         const signInError = new SignInError(errorData as any);
         expect(signInError.isTokenExpired()).toBe(true);
+    });
+
+    it("should return true for isPasswordResetRequired when error is PASSWORD_RESET_REQUIRED", () => {
+        const errorData = new CustomAuthApiError(
+            INVALID_REQUEST,
+            "error-message",
+            "correlation-id",
+            [50142]
+        );
+        const signInError = new SignInError(errorData);
+        expect(signInError.isPasswordResetRequired()).toBe(true);
+    });
+
+    it("should return false for isPasswordResetRequired when errorData is not CustomAuthApiError", () => {
+        const errorData = {
+            error: INVALID_REQUEST,
+            errorDescription: "error-message",
+        };
+        const signInError = new SignInError(errorData as any);
+        expect(signInError.isPasswordResetRequired()).toBe(false);
     });
 });
 

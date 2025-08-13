@@ -12,32 +12,7 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { SignInCodeRequiredState } from "../../../src/custom_auth/sign_in/auth_flow/state/SignInCodeRequiredState.js";
 import { SignInPasswordRequiredState } from "../../../src/custom_auth/sign_in/auth_flow/state/SignInPasswordRequiredState.js";
-
-jest.mock("@azure/msal-common/browser", () => {
-    const actualModule = jest.requireActual("@azure/msal-common/browser");
-    return {
-        ...actualModule,
-        ResponseHandler: jest.fn().mockImplementation(() => ({
-            handleServerTokenResponse: jest.fn().mockResolvedValue({
-                uniqueId: "test-unique-id",
-                tenantId: "test-tenant-id",
-                scopes: ["test-scope"],
-                account: {
-                    homeAccountId: "test-home-account-id",
-                    environment: "test-environment",
-                    tenantId: "test-tenant-id",
-                    username: "test-username",
-                },
-                idToken: "test-id-token",
-                idTokenClaims: {},
-                accessToken: "test-access-token",
-                refreshToken: "test-refresh-token",
-                expiresOn: new Date(),
-                extExpiresOn: new Date(),
-            }),
-        })),
-    };
-});
+import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 
 describe("Sign in", () => {
     let app: CustomAuthPublicClientApplication;
@@ -52,6 +27,11 @@ describe("Sign in", () => {
     });
 
     afterEach(() => {
+        const activeUser = app.getAllAccounts();
+        if (activeUser.length > 0) {
+            app.clearCache();
+        }
+
         const controller = app[
             "customAuthController"
         ] as CustomAuthStandardController;
@@ -94,16 +74,7 @@ describe("Sign in", () => {
         (fetch as jest.Mock).mockResolvedValueOnce({
             status: 200,
             json: async () => {
-                return {
-                    correlation_id: correlationId,
-                    token_type: "Bearer",
-                    scopes: "test-scope",
-                    expires_in: 3600,
-                    id_token: "test-id-token",
-                    access_token: "test-access-token",
-                    refresh_token: "test-refresh-token",
-                    client_info: "test-client-info",
-                };
+                return TestServerTokenResponse;
             },
             headers: new Headers({ "content-type": "application/json" }),
             ok: true,
@@ -122,6 +93,9 @@ describe("Sign in", () => {
         expect(result.isCompleted()).toBe(true);
         expect(result.data).toBeDefined();
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+
+        // Sign out the user for clean up the state for the other tests.
+        result.data?.signOut();
     });
 
     it("should sign in successfully if the challenge type is oob", async () => {
@@ -155,16 +129,7 @@ describe("Sign in", () => {
         (fetch as jest.Mock).mockResolvedValueOnce({
             status: 200,
             json: async () => {
-                return {
-                    correlation_id: correlationId,
-                    token_type: "Bearer",
-                    scopes: "test-scope",
-                    expires_in: 3600,
-                    id_token: "test-id-token",
-                    access_token: "test-access-token",
-                    refresh_token: "test-refresh-token",
-                    client_info: "test-client-info",
-                };
+                return TestServerTokenResponse;
             },
             headers: new Headers({ "content-type": "application/json" }),
             ok: true,
@@ -187,6 +152,9 @@ describe("Sign in", () => {
         expect(submitCodeResult).toBeDefined();
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitCodeResult);
         expect(submitCodeResult.data).toBeInstanceOf(CustomAuthAccountData);
+
+        // Sign out the user for clean up the state for the other tests.
+        submitCodeResult.data?.signOut();
     });
 
     it("should sign in successfully if the challenge type is password", async () => {
@@ -219,16 +187,7 @@ describe("Sign in", () => {
         (fetch as jest.Mock).mockResolvedValueOnce({
             status: 200,
             json: async () => {
-                return {
-                    correlation_id: correlationId,
-                    token_type: "Bearer",
-                    scopes: "test-scope",
-                    expires_in: 3600,
-                    id_token: "test-id-token",
-                    access_token: "test-access-token",
-                    refresh_token: "test-refresh-token",
-                    client_info: "test-client-info",
-                };
+                return TestServerTokenResponse;
             },
             headers: new Headers({ "content-type": "application/json" }),
             ok: true,
@@ -252,6 +211,9 @@ describe("Sign in", () => {
         expect(submitCodeResult).toBeDefined();
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitPasswordResult);
         expect(submitCodeResult.data).toBeInstanceOf(CustomAuthAccountData);
+
+        // Sign out the user for clean up the state for the other tests.
+        submitCodeResult.data?.signOut();
     });
 
     it("should sign in failed with error if the challenge type is redirect", async () => {
@@ -434,5 +396,64 @@ describe("Sign in", () => {
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitCodeResult);
         expect(submitCodeResult.error).toBeDefined();
         expect(submitCodeResult.error?.isInvalidCode()).toBe(true);
+    });
+
+    it("should sign in successfully if giving custom claims with password as the challenge type", async () => {
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return {
+                    continuation_token: "test-continuation-token-1",
+                    challenge_type: "oob password redirect",
+                };
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return {
+                    continuation_token: "test-continuation-token-2",
+                    challenge_type: "password",
+                };
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => {
+                return TestServerTokenResponse;
+            },
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        const claims = JSON.stringify({
+            access_token: {
+                acrs: {
+                    essential: true,
+                    value: "c1",
+                },
+            },
+        });
+
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+            claims: claims,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isCompleted()).toBe(true);
+        expect(result.data).toBeDefined();
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 });

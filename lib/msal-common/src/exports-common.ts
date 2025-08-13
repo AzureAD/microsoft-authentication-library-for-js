@@ -183,6 +183,7 @@ export {
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    HttpMethod,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     JsonWebTokenTypes,
     EncodingTypes,

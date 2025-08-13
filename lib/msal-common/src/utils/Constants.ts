@@ -6,8 +6,6 @@
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
-    // Prefix for all library cache entries
-    CACHE_PREFIX: "msal",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
@@ -81,6 +79,12 @@ export const HttpStatus = {
     MULTI_SIDED_ERROR: 600,
 } as const;
 export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
+
+export const HttpMethod = {
+    GET: "GET",
+    POST: "POST",
+} as const;
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,

@@ -229,7 +229,15 @@ export class NestedAppAuthController implements IController {
             };
 
             // cache the tokens in the response
-            await this.hydrateCache(result, request);
+            try {
+                // cache hydration can fail in JS Runtime scenario that doesn't support full crypto API
+                await this.hydrateCache(result, request);
+            } catch (error) {
+                this.logger.warningPii(
+                    `Failed to hydrate cache. Error: ${error}`,
+                    validRequest.correlationId
+                );
+            }
 
             // cache the account context in memory after successful token fetch
             this.currentAccountContext = {
@@ -332,7 +340,15 @@ export class NestedAppAuthController implements IController {
                 );
 
             // cache the tokens in the response
-            await this.hydrateCache(result, request);
+            try {
+                // cache hydration can fail in JS Runtime scenario that doesn't support full crypto API
+                await this.hydrateCache(result, request);
+            } catch (error) {
+                this.logger.warningPii(
+                    `Failed to hydrate cache. Error: ${error}`,
+                    validRequest.correlationId
+                );
+            }
 
             // cache the account context in memory after successful token fetch
             this.currentAccountContext = {

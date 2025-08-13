@@ -1,47 +1,41 @@
-import { INetworkModule, Logger } from "@azure/msal-common/browser";
-import { BrowserCacheManager } from "../../../src/cache/BrowserCacheManager.js";
-import { BrowserConfiguration } from "../../../src/config/Configuration.js";
+import { StubbedNetworkModule } from "@azure/msal-common/browser";
+import { buildConfiguration } from "../../../src/config/Configuration.js";
 import { CustomAuthAuthority } from "../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
+import {
+    getDefaultBrowserCacheManager,
+    getDefaultLogger,
+} from "../test_resources/TestModules.js";
 
 describe("CustomAuthAuthority", () => {
     const authorityUrl = customAuthConfig.auth.authority;
     const customAuthProxyDomain = customAuthConfig.customAuth.authApiProxyUrl;
-    const mockMemoryStorage = new Map<string, object>();
     const authorityHostname =
         authorityUrl && authorityUrl.startsWith("https")
             ? authorityUrl.split("/")[2]
             : authorityUrl;
-    const authorityMetadataEntityKey = `authority-metadata-${customAuthConfig.auth.clientId}-${authorityHostname}`;
-    const mockCacheManager = {
-        generateAuthorityMetadataCacheKey: jest.fn().mockImplementation(() => {
-            return authorityMetadataEntityKey;
-        }),
-        setAuthorityMetadata: jest.fn().mockImplementation((key, metadata) => {
-            mockMemoryStorage.set(key, metadata);
-        }),
-    } as unknown as BrowserCacheManager;
-    const mockNetworkModule = {} as unknown as jest.Mocked<INetworkModule>;
-    const mockLogger = {} as unknown as jest.Mocked<Logger>;
-    const mockConfig = {
-        auth: {
-            protocolMode: "",
-            OIDCOptions: {},
-            knownAuthorities: [],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-            skipAuthorityMetadataCache: false,
-        },
-    } as unknown as jest.Mocked<BrowserConfiguration>;
+    const clientId = customAuthConfig.auth.clientId;
+    const authorityMetadataEntityKey = `authority-metadata-${clientId}-${authorityHostname}`;
+
+    const config = buildConfiguration({ auth: { clientId: clientId } }, true);
+    const logger = getDefaultLogger();
+    const browserStorage = getDefaultBrowserCacheManager(
+        clientId,
+        logger,
+        undefined,
+        undefined,
+        undefined,
+        config.cache
+    );
 
     describe("constructor", () => {
         it("should correctly parse and store the authority URL", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger
             );
             expect(customAuthAuthority.canonicalAuthority).toBe(
                 "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
@@ -51,10 +45,10 @@ describe("CustomAuthAuthority", () => {
         it("should correctly store the customAuthProxyDomain when provided", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger,
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority["customAuthProxyDomain"]).toBe(
@@ -65,10 +59,10 @@ describe("CustomAuthAuthority", () => {
         it("should correctly store the customAuthProxyDomain when provided", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 "https://login.microsoftonline.com/",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger,
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority["customAuthProxyDomain"]).toBe(
@@ -79,10 +73,10 @@ describe("CustomAuthAuthority", () => {
         it("should save authority metadata entity into cache", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger
             );
             expect(customAuthAuthority.canonicalAuthority).toBe(
                 "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
@@ -91,14 +85,15 @@ describe("CustomAuthAuthority", () => {
             const authorityHostname =
                 customAuthAuthority.canonicalAuthorityUrlComponents
                     .HostNameAndPort;
-            const authorityMetadataCacheKey =
-                "authority-metadata-d5e97fb9-24bb-418d-8e7a-4e1918303c92-spasamples.ciamlogin.com";
-            const metadataEntity = mockMemoryStorage.get(
-                authorityMetadataCacheKey
-            );
 
-            expect(mockMemoryStorage.has(authorityMetadataCacheKey)).toBe(true);
-            expect(metadataEntity).toMatchObject({
+            expect(
+                browserStorage
+                    .getAuthorityMetadataKeys()
+                    .includes(authorityMetadataEntityKey)
+            ).toBe(true);
+            expect(
+                browserStorage.getAuthorityMetadata(authorityMetadataEntityKey)
+            ).toMatchObject({
                 aliases: [authorityHostname],
                 preferred_cache: authorityHostname,
             });
@@ -109,10 +104,10 @@ describe("CustomAuthAuthority", () => {
         it("should extract the tenant from the authority URL hostname", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger
             );
             expect(customAuthAuthority.tenant).toBe(
                 "spasamples.onmicrosoft.com"
@@ -124,10 +119,10 @@ describe("CustomAuthAuthority", () => {
         it("should return the customAuthProxyDomain when provided", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger,
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority.getCustomAuthApiDomain()).toBe(
@@ -138,10 +133,10 @@ describe("CustomAuthAuthority", () => {
         it("should generate the auth API domain based on the authority URL when customAuthProxyDomain is not provided", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger
             );
             expect(customAuthAuthority.getCustomAuthApiDomain()).toBe(
                 "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
@@ -153,10 +148,10 @@ describe("CustomAuthAuthority", () => {
         it("should return the host of authority as preferred cache", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger,
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority.getPreferredCache()).toBe(
@@ -169,10 +164,10 @@ describe("CustomAuthAuthority", () => {
         it("should return the correct token endpoint", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
-                mockConfig,
-                mockNetworkModule,
-                mockCacheManager,
-                mockLogger,
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority.tokenEndpoint).toBe(

@@ -21,6 +21,7 @@ import * as CustomAuthApiSuberror from "../../../src/custom_auth/core/network_cl
 import { ResetPasswordError } from "../../../src/custom_auth/reset_password/auth_flow/error_type/ResetPasswordError.js";
 import { ResetPasswordCodeRequiredState } from "../../../src/custom_auth/reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
 import { ResetPasswordStartResult } from "../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
+import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 
 jest.mock(
     "../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js",
@@ -62,32 +63,6 @@ jest.mock(
     }
 );
 
-jest.mock("@azure/msal-common/browser", () => {
-    const actualModule = jest.requireActual("@azure/msal-common/browser");
-    return {
-        ...actualModule,
-        ResponseHandler: jest.fn().mockImplementation(() => ({
-            handleServerTokenResponse: jest.fn().mockResolvedValue({
-                uniqueId: "test-unique-id",
-                tenantId: "test-tenant-id",
-                scopes: ["test-scope"],
-                account: {
-                    homeAccountId: "test-home-account-id",
-                    environment: "test-environment",
-                    tenantId: "test-tenant-id",
-                    username: "test-username",
-                },
-                idToken: "test-id-token",
-                idTokenClaims: {},
-                accessToken: "test-access-token",
-                refreshToken: "test-refresh-token",
-                expiresOn: new Date(),
-                extExpiresOn: new Date(),
-            }),
-        })),
-    };
-});
-
 describe("CustomAuthStandardController", () => {
     let controller: CustomAuthStandardController;
     const { signInApiClient, signUpApiClient, resetPasswordApiClient } =
@@ -112,10 +87,6 @@ describe("CustomAuthStandardController", () => {
         ) {
             controller["eventHandler"]["broadcastChannel"].close();
         }
-    });
-
-    test("Check if BroadcastChannel exists in JSDOM", () => {
-        expect(typeof BroadcastChannel).toBe("function");
     });
 
     describe("signIn", () => {
@@ -189,14 +160,9 @@ describe("CustomAuthStandardController", () => {
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
             });
-            signInApiClient.requestTokensWithPassword.mockResolvedValue({
-                correlation_id: "test-correlation-id",
-                access_token: "test-access-token",
-                refresh_token: "test-refresh-token",
-                id_token: "test-id-token",
-                expires_in: 3600,
-                token_type: "Bearer",
-            });
+            signInApiClient.requestTokensWithPassword.mockResolvedValue(
+                TestServerTokenResponse
+            );
 
             const signInInputs: SignInInputs = {
                 correlationId: "correlation-id",
@@ -211,6 +177,9 @@ describe("CustomAuthStandardController", () => {
             expect(result.isCompleted()).toBe(true);
             expect(result.data).toBeDefined();
             expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+
+            // Sign out for the other tests.
+            await result.data?.signOut();
         });
 
         it("should return failed result if the challenge type is redirect", async () => {
