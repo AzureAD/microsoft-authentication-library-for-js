@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add support for authorize call using method POST #7920",
+  "comment": "Add support for authorize call using method POST#7997",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
