@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755008917351,
+  "lastUpdate": 1755056705703,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16590,6 +16590,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.92%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2e357d620c1c9425e54286ecaac1fb4839d83fa5",
+          "message": "Release PR: official (#7994)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>",
+          "timestamp": "2025-08-12T20:38:35-07:00",
+          "tree_id": "829d23e74dc718d9a0b6227be3067db40613f21c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2e357d620c1c9425e54286ecaac1fb4839d83fa5"
+        },
+        "date": 1755056702339,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 248439,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 250836,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
