@@ -268,16 +268,15 @@ describe("BaseInteractionClient", () => {
             let clientInst = testClient as any;
 
             await getDiscoveredAuthority(
-                {
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                    account: testAccount,
-                },
                 clientInst.config,
                 clientInst.correlationId,
                 clientInst.performanceClient,
                 clientInst.browserStorage,
-                clientInst.logger
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
             )
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
@@ -304,16 +303,15 @@ describe("BaseInteractionClient", () => {
             const clientInst = testClient as any;
 
             getDiscoveredAuthority(
-                {
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                    account: testAccount,
-                },
                 clientInst.config,
                 clientInst.correlationId,
                 clientInst.performanceClient,
                 clientInst.browserStorage,
-                clientInst.logger
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
             )
                 .then(() => {
                     done();
@@ -355,14 +353,15 @@ describe("BaseInteractionClient", () => {
 
             const clientInst = interactionClient as any;
             getDiscoveredAuthority(
-                {
-                    account: testAccount,
-                },
                 clientInst.config,
                 clientInst.correlationId,
                 clientInst.performanceClient,
                 clientInst.browserStorage,
-                clientInst.logger
+                clientInst.logger,
+                undefined,
+                undefined,
+                undefined,
+                testAccount
             )
                 .then(() => {
                     done();
@@ -404,16 +403,15 @@ describe("BaseInteractionClient", () => {
 
             const clientInst = interactionClient as any;
             getDiscoveredAuthority(
-                {
-                    account: testAccount,
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                },
                 clientInst.config,
                 clientInst.correlationId,
                 clientInst.performanceClient,
                 clientInst.browserStorage,
-                clientInst.logger
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
             )
                 .then(() => {
                     done();
