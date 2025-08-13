@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fixed bug in getAccountFilteredBy API to return null if account filter passed in does not have truthy values #7960",
-  "packageName": "@azure/msal-common",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}
