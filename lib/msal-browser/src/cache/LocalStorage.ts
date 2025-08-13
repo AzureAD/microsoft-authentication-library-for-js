@@ -138,6 +138,15 @@ export class LocalStorage implements IWindowStorage<string> {
                 true, // Secure flag
                 SameSiteOptions.None // SameSite must be None to support iframed apps
             );
+
+            const encryptionKeySet = !!cookies.getItem(ENCRYPTION_KEY);
+            this.performanceClient.addFields(
+                {
+                    encryptionKeySet: encryptionKeySet
+                },
+                correlationId
+            );
+            this.logger.warning(`${encryptionKeySet ? "Successfully" : "Failed to"} set encryption key cookie`);
         }
 
         await invokeAsync(
