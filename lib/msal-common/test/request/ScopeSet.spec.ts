@@ -423,7 +423,7 @@ describe("ScopeSet.ts", () => {
     describe("createSearchScopes static method", () => {
         it("handles empty scopes array by using default OIDC scopes", () => {
             const result = ScopeSet.createSearchScopes([]);
-            // After processing, it should have OIDC scopes except offline_access (which gets removed in line 70)
+            // After processing, it should have OIDC scopes except offline_access (which gets removed by the removeScope logic)
             const resultScopes = result.asArray();
             expect(resultScopes).toContain(Constants.OPENID_SCOPE);
             expect(resultScopes).toContain(Constants.PROFILE_SCOPE);
