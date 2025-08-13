@@ -133,6 +133,7 @@ export const CharSet = {
 export const CACHE = {
     FILE_CACHE: "fileCache",
     EXTENSION_LIB: "extenstion_library",
+    KEY_SEPARATOR: "-",
 };
 
 /**

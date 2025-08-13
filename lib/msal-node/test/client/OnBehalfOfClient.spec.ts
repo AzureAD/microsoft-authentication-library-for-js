@@ -29,6 +29,7 @@ import {
     checkMockedNetworkRequest,
     ClientTestUtils,
     getClientAssertionCallback,
+    MockStorageClass,
 } from "./ClientTestUtils.js";
 import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
@@ -328,6 +329,7 @@ describe("OnBehalfOf unit tests", () => {
                 expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
                 tokenType: AuthenticationScheme.BEARER,
                 userAssertionHash: "user_assertion_hash",
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testIdToken: IdTokenEntity = {
@@ -337,6 +339,7 @@ describe("OnBehalfOf unit tests", () => {
                 realm: "this_is_tid_id_token",
                 secret: TEST_TOKENS.IDTOKEN_V2,
                 credentialType: CredentialType.ID_TOKEN,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const idTokenClaims = AuthToken.extractTokenClaims(
@@ -370,8 +373,8 @@ describe("OnBehalfOf unit tests", () => {
             };
 
             jest.spyOn(
-                CacheManager.prototype,
-                <any>"readAccountFromCache"
+                MockStorageClass.prototype,
+                "getAccount"
             ).mockReturnValueOnce(expectedAccountEntity);
             jest.spyOn(
                 CacheManager.prototype,

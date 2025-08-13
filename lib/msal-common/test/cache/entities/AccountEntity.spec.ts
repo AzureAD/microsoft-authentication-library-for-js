@@ -16,7 +16,11 @@ import {
     GUEST_ID_TOKEN_CLAIMS,
     TEST_CONFIG,
 } from "../../test_kit/StringConstants.js";
-import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils.js";
+import {
+    MockStorageClass,
+    generateAccountKey,
+    mockCrypto,
+} from "../../client/ClientTestUtils.js";
 import {
     AccountInfo,
     TenantProfile,
@@ -90,7 +94,7 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("generate an AccountEntityKey", () => {
         const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
-        expect(ac.generateAccountKey()).toEqual(
+        expect(generateAccountKey(ac.getAccountInfo())).toEqual(
             "uid.utid-login.microsoftonline.com-utid"
         );
     });
@@ -125,7 +129,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -164,7 +168,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -202,7 +206,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             },
             authority
         );
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -255,7 +259,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -313,7 +317,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-login.windows.net-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -432,6 +436,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     iat: 100,
@@ -443,6 +448,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     iat: undefined,
@@ -477,6 +483,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     nonce: "56789",
@@ -488,6 +495,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     nonce: undefined,
@@ -646,7 +654,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -706,7 +714,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);

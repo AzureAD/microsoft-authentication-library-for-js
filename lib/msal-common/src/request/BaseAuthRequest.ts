@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme } from "../utils/Constants.js";
+import { AuthenticationScheme, HttpMethod } from "../utils/Constants.js";
 import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { StringDict } from "../utils/MsalTypes.js";
 import { StoreInCache } from "./StoreInCache.js";
@@ -31,6 +31,8 @@ import { ShrOptions } from "../crypto/SignedHttpRequest.js";
  * - scenarioId              - Scenario id to track custom user prompts
  * - popKid                  - Key ID to identify the public key for PoP token request
  * - embeddedClientId        - Embedded client id. When specified, broker client id (brk_client_id) and redirect uri (brk_redirect_uri) params are set with values from the config, overriding the corresponding extra parameters, if present.
+ * - httpMethod              - HTTP method to use for the /authorize request. Defaults to GET, but can be set to POST if the request requires body parameters
+ * - authorizePostBodyParameters - String to string map of custom parameters added to the body of the /authorize call when httpMethod is set to POST
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -54,4 +56,6 @@ export type BaseAuthRequest = {
     scenarioId?: string;
     popKid?: string;
     embeddedClientId?: string;
+    httpMethod?: HttpMethod;
+    authorizePostBodyParameters?: StringDict;
 };
