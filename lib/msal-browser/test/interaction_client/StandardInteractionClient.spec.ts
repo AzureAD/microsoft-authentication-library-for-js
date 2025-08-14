@@ -67,12 +67,13 @@ class testStandardInteractionClient extends StandardInteractionClient {
         requestAzureCloudOptions?: AzureCloudOptions;
     }) {
         return await getDiscoveredAuthority(
-            params,
             this.config,
             this.correlationId,
             this.performanceClient,
             this.browserStorage,
-            this.logger
+            this.logger,
+            params.requestAuthority,
+            params.requestAzureCloudOptions
         );
     }
 

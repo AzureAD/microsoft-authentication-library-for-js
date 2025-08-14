@@ -264,7 +264,13 @@ export class RedirectClient extends StandardInteractionClient {
     async executeEarFlow(
         request: CommonAuthorizationUrlRequest
     ): Promise<void> {
-        const correlationId = request.correlationId;
+        const {
+            correlationId,
+            authority,
+            azureCloudOptions,
+            extraQueryParameters,
+            account,
+        } = request;
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
             getDiscoveredAuthority,
@@ -273,17 +279,15 @@ export class RedirectClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            {
-                requestAuthority: request.authority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                requestExtraQueryParameters: request.extraQueryParameters,
-                account: request.account,
-            },
             this.config,
             this.correlationId,
             this.performanceClient,
             this.browserStorage,
-            this.logger
+            this.logger,
+            authority,
+            azureCloudOptions,
+            extraQueryParameters,
+            account
         );
 
         const earJwk = await invokeAsync(
@@ -623,6 +627,9 @@ export class RedirectClient extends StandardInteractionClient {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
         }
 
+        const { authority, azureCloudOptions, extraQueryParameters, account } =
+            request;
+
         if (serverParams.ear_jwe) {
             const discoveredAuthority = await invokeAsync(
                 getDiscoveredAuthority,
@@ -631,17 +638,15 @@ export class RedirectClient extends StandardInteractionClient {
                 this.performanceClient,
                 request.correlationId
             )(
-                {
-                    requestAuthority: request.authority,
-                    requestAzureCloudOptions: request.azureCloudOptions,
-                    requestExtraQueryParameters: request.extraQueryParameters,
-                    account: request.account,
-                },
                 this.config,
                 this.correlationId,
                 this.performanceClient,
                 this.browserStorage,
-                this.logger
+                this.logger,
+                authority,
+                azureCloudOptions,
+                extraQueryParameters,
+                account
             );
             return invokeAsync(
                 Authorize.handleResponseEAR,

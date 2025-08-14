@@ -242,17 +242,15 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.performanceClient,
             this.correlationId
         )(
-            {
-                requestAuthority,
-                requestAzureCloudOptions,
-                requestExtraQueryParameters,
-                account,
-            },
             this.config,
             this.correlationId,
             this.performanceClient,
             this.browserStorage,
-            this.logger
+            this.logger,
+            requestAuthority,
+            requestAzureCloudOptions,
+            requestExtraQueryParameters,
+            account
         );
         const logger = this.config.system.loggerOptions;
 
@@ -312,7 +310,11 @@ export async function initializeAuthorizationRequest(
     performanceClient: IPerformanceClient,
     correlationId: string
 ): Promise<CommonAuthorizationUrlRequest> {
-    const redirectUri = getRedirectUri(request.redirectUri, config, logger);
+    const redirectUri = getRedirectUri(
+        request.redirectUri,
+        config.auth.redirectUri,
+        logger
+    );
     const browserState: BrowserStateObject = {
         interactionType: interactionType,
     };

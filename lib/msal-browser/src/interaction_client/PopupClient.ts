@@ -422,7 +422,13 @@ export class PopupClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest,
         popupParams: PopupParams
     ): Promise<AuthenticationResult> {
-        const correlationId = request.correlationId;
+        const {
+            correlationId,
+            authority,
+            azureCloudOptions,
+            extraQueryParameters,
+            account,
+        } = request;
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
             getDiscoveredAuthority,
@@ -431,17 +437,15 @@ export class PopupClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            {
-                requestAuthority: request.authority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                requestExtraQueryParameters: request.extraQueryParameters,
-                account: request.account,
-            },
             this.config,
             this.correlationId,
             this.performanceClient,
             this.browserStorage,
-            this.logger
+            this.logger,
+            authority,
+            azureCloudOptions,
+            extraQueryParameters,
+            account
         );
 
         const earJwk = await invokeAsync(
