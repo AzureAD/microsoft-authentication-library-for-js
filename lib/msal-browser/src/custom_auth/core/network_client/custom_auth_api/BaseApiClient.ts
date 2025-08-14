@@ -10,11 +10,7 @@ import {
 } from "../../../CustomAuthConstants.js";
 import { IHttpClient } from "../http_client/IHttpClient.js";
 import * as CustomAuthApiErrorCode from "./types/ApiErrorCodes.js";
-import {
-    addQueryParametersToUrl,
-    buildUrl,
-    parseUrl,
-} from "../../utils/UrlUtils.js";
+import { buildUrl, parseUrl } from "../../utils/UrlUtils.js";
 import {
     CustomAuthApiError,
     RedirectError,
@@ -32,7 +28,7 @@ export abstract class BaseApiClient {
         baseUrl: string,
         private readonly clientId: string,
         private httpClient: IHttpClient,
-        private extraQueryParameters?: Record<string, string>
+        private customAuthApiQueryParams?: Record<string, string>
     ) {
         this.baseRequestUrl = parseUrl(
             !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl
@@ -50,10 +46,11 @@ export abstract class BaseApiClient {
             ...data,
         });
         const headers = this.getCommonHeaders(correlationId, telemetryManager);
-        const url = buildUrl(this.baseRequestUrl.href, endpoint);
-
-        // Add extra query parameters to the URL
-        addQueryParametersToUrl(url, this.extraQueryParameters);
+        const url = buildUrl(
+            this.baseRequestUrl.href,
+            endpoint,
+            this.customAuthApiQueryParams
+        );
 
         let response: Response;
 

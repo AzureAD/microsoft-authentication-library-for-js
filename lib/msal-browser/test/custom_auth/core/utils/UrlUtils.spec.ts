@@ -1,6 +1,5 @@
 import { ParsedUrlError } from "../../../../src/custom_auth/core/error/ParsedUrlError.js";
 import {
-    addQueryParametersToUrl,
     buildUrl,
     parseUrl,
 } from "../../../../src/custom_auth/core/utils/UrlUtils.js";
@@ -72,83 +71,106 @@ describe("UrlUtils", () => {
         );
     });
 
-    describe("addQueryParametersToUrl", () => {
+    describe("buildUrl with customAuthApiQueryParams", () => {
         it("should add dc query parameter to URL", () => {
-            const url = new URL("https://example.com/path");
-            const queryParams = { dc: "datacenter1" };
+            const customAuthApiQueryParams = { dc: "datacenter1" };
+            const result = buildUrl(
+                "https://example.com",
+                "path",
+                customAuthApiQueryParams
+            );
 
-            addQueryParametersToUrl(url, queryParams);
-
-            expect(url.searchParams.get("dc")).toBe("datacenter1");
-            expect(url.toString()).toBe(
+            expect(result.searchParams.get("dc")).toBe("datacenter1");
+            expect(result.toString()).toBe(
                 "https://example.com/path?dc=datacenter1"
             );
         });
 
         it("should add slice query parameter to URL", () => {
-            const url = new URL("https://example.com/path");
-            const queryParams = { slice: "slice2" };
+            const customAuthApiQueryParams = { slice: "slice2" };
+            const result = buildUrl(
+                "https://example.com",
+                "path",
+                customAuthApiQueryParams
+            );
 
-            addQueryParametersToUrl(url, queryParams);
-
-            expect(url.searchParams.get("slice")).toBe("slice2");
-            expect(url.toString()).toBe(
+            expect(result.searchParams.get("slice")).toBe("slice2");
+            expect(result.toString()).toBe(
                 "https://example.com/path?slice=slice2"
             );
         });
 
         it("should add both dc and slice query parameters to URL", () => {
-            const url = new URL("https://example.com/path");
-            const queryParams = { dc: "datacenter1", slice: "slice2" };
+            const customAuthApiQueryParams = {
+                dc: "datacenter1",
+                slice: "slice2",
+            };
+            const result = buildUrl(
+                "https://example.com",
+                "path",
+                customAuthApiQueryParams
+            );
 
-            addQueryParametersToUrl(url, queryParams);
-
-            expect(url.searchParams.get("dc")).toBe("datacenter1");
-            expect(url.searchParams.get("slice")).toBe("slice2");
-            expect(url.toString()).toBe(
+            expect(result.searchParams.get("dc")).toBe("datacenter1");
+            expect(result.searchParams.get("slice")).toBe("slice2");
+            expect(result.toString()).toBe(
                 "https://example.com/path?dc=datacenter1&slice=slice2"
             );
         });
 
-        it("should not modify URL when extraQueryParameters is undefined", () => {
-            const url = new URL("https://example.com/path");
-            const originalUrl = url.toString();
+        it("should not add query parameters when customAuthApiQueryParams is undefined", () => {
+            const result = buildUrl("https://example.com", "path", undefined);
 
-            addQueryParametersToUrl(url, undefined);
-
-            expect(url.toString()).toBe(originalUrl);
+            expect(result.toString()).toBe("https://example.com/path");
         });
 
-        it("should handle empty extraQueryParameters object", () => {
-            const url = new URL("https://example.com/path");
-            const originalUrl = url.toString();
+        it("should handle empty customAuthApiQueryParams object", () => {
+            const result = buildUrl("https://example.com", "path", {});
 
-            addQueryParametersToUrl(url, {});
-
-            expect(url.toString()).toBe(originalUrl);
+            expect(result.toString()).toBe("https://example.com/path");
         });
 
-        it("should preserve existing query parameters", () => {
-            const url = new URL("https://example.com/path?existing=value");
-            const queryParams = { dc: "datacenter1" };
+        it("should preserve existing query parameters in path", () => {
+            const customAuthApiQueryParams = { dc: "datacenter1" };
+            const result = buildUrl(
+                "https://example.com",
+                "path?existing=value",
+                customAuthApiQueryParams
+            );
 
-            addQueryParametersToUrl(url, queryParams);
-
-            expect(url.searchParams.get("existing")).toBe("value");
-            expect(url.searchParams.get("dc")).toBe("datacenter1");
-            expect(url.toString()).toBe(
+            expect(result.searchParams.get("existing")).toBe("value");
+            expect(result.searchParams.get("dc")).toBe("datacenter1");
+            expect(result.toString()).toBe(
                 "https://example.com/path?existing=value&dc=datacenter1"
             );
         });
 
         it("should overwrite existing query parameters with same key", () => {
-            const url = new URL("https://example.com/path?dc=old");
-            const queryParams = { dc: "new" };
+            const customAuthApiQueryParams = { dc: "new" };
+            const result = buildUrl(
+                "https://example.com",
+                "path?dc=old",
+                customAuthApiQueryParams
+            );
 
-            addQueryParametersToUrl(url, queryParams);
+            expect(result.searchParams.get("dc")).toBe("new");
+            expect(result.toString()).toBe("https://example.com/path?dc=new");
+        });
 
-            expect(url.searchParams.get("dc")).toBe("new");
-            expect(url.toString()).toBe("https://example.com/path?dc=new");
+        it("should handle null and undefined values in customAuthApiQueryParams", () => {
+            const customAuthApiQueryParams = {
+                dc: null as any,
+                slice: undefined as any,
+            };
+            const result = buildUrl(
+                "https://example.com",
+                "path",
+                customAuthApiQueryParams
+            );
+
+            expect(result.searchParams.get("dc")).toBeNull();
+            expect(result.searchParams.get("slice")).toBeNull();
+            expect(result.toString()).toBe("https://example.com/path");
         });
     });
 });
