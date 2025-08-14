@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755056705703,
+  "lastUpdate": 1755214755810,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16628,6 +16628,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.73%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9d145af127405369a5318ea30c79b9072460a9a4",
+          "message": "Fix E2E Tests (#7998)\n\nAddresses an MSA UX change that broke E2E tests",
+          "timestamp": "2025-08-14T16:32:28-07:00",
+          "tree_id": "e448b313a7839cd55ef67abd7705f9ca4123c4e3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9d145af127405369a5318ea30c79b9072460a9a4"
+        },
+        "date": 1755214753548,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 247472,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245079,
+            "range": "±0.82%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
