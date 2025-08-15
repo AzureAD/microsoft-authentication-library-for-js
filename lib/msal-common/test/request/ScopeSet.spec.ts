@@ -384,6 +384,60 @@ describe("ScopeSet.ts", () => {
         });
     });
 
+    describe("createSearchScopes static method", () => {
+        it("handles empty scopes array by using default OIDC scopes", () => {
+            const result = ScopeSet.createSearchScopes([]);
+            // After processing, it should have OIDC scopes except offline_access (which gets removed by the removeScope logic)
+            const resultScopes = result.asArray();
+            expect(resultScopes).toContain(Constants.OPENID_SCOPE);
+            expect(resultScopes).toContain(Constants.PROFILE_SCOPE);
+            // offline_access should be removed per the logic in createSearchScopes
+            expect(resultScopes).not.toContain(Constants.OFFLINE_ACCESS_SCOPE);
+        });
+
+        it("handles null or undefined scopes array by using default OIDC scopes", () => {
+            // Test null input
+            // @ts-ignore - intentionally testing null input
+            const resultNull = ScopeSet.createSearchScopes(null);
+            const nullScopes = resultNull.asArray();
+            expect(nullScopes).toContain(Constants.OPENID_SCOPE);
+            expect(nullScopes).toContain(Constants.PROFILE_SCOPE);
+
+            // Test undefined input
+            // @ts-ignore - intentionally testing undefined input
+            const resultUndefined = ScopeSet.createSearchScopes(undefined);
+            const undefinedScopes = resultUndefined.asArray();
+            expect(undefinedScopes).toContain(Constants.OPENID_SCOPE);
+            expect(undefinedScopes).toContain(Constants.PROFILE_SCOPE);
+        });
+
+        it("creates ScopeSet with provided scopes and processes them correctly", () => {
+            const scopes = ["testscope1", "testscope2"];
+            const result = ScopeSet.createSearchScopes(scopes);
+            const resultScopes = result.asArray();
+            expect(resultScopes).toContain("testscope1");
+            expect(resultScopes).toContain("testscope2");
+            // When non-OIDC scopes are present, OIDC scopes should be removed
+            expect(resultScopes).not.toContain(Constants.OPENID_SCOPE);
+            expect(resultScopes).not.toContain(Constants.PROFILE_SCOPE);
+            expect(resultScopes).not.toContain(Constants.OFFLINE_ACCESS_SCOPE);
+        });
+
+        it("handles scopes with only OIDC scopes by removing offline_access", () => {
+            const oidcScopes = [
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                Constants.OFFLINE_ACCESS_SCOPE,
+            ];
+            const result = ScopeSet.createSearchScopes(oidcScopes);
+            const resultScopes = result.asArray();
+            expect(resultScopes).toContain(Constants.OPENID_SCOPE);
+            expect(resultScopes).toContain(Constants.PROFILE_SCOPE);
+            // offline_access should be removed when only OIDC scopes are present
+            expect(resultScopes).not.toContain(Constants.OFFLINE_ACCESS_SCOPE);
+        });
+    });
+
     describe("Getters and Setters", () => {
         let requiredScopeSet: ScopeSet;
         let nonRequiredScopeSet: ScopeSet;
