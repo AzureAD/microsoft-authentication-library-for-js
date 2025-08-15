@@ -331,6 +331,8 @@ export type PerformanceEvent = {
     sameClientIdInstanceCount?: number;
 
     navigateCallbackResult?: boolean;
+
+    logs?: string[];
 };
 
 export type PerformanceEventContext = {

@@ -484,6 +484,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
             context,
+            logs: this.logger.getCachedLogHashesAndFlush(event.correlationId).map((log) => log.hash)
         };
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);

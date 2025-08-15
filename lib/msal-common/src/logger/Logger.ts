@@ -4,6 +4,7 @@
  */
 
 import type { LoggerOptions } from "../config/ClientConfiguration.js";
+import { createHash } from "crypto";
 
 /**
  * Options for logger messages.
@@ -33,6 +34,131 @@ export interface ILoggerCallback {
     (level: LogLevel, message: string, containsPii: boolean): void;
 }
 
+/**
+ * Represents a single logged message with metadata
+ */
+export interface LoggedMessage {
+    hash: string;
+    level: LogLevel;
+    containsPii: boolean;
+    timestamp: number;
+}
+
+/**
+ * LRU cache node for correlation ID management
+ */
+interface CorrelationLogData {
+    logs: LoggedMessage[];
+}
+
+// Shared cache state for better minification - using Map's insertion order for LRU
+const CACHE_CAPACITY = 3;
+const MAX_LOGS_PER_CORRELATION = 1000;
+const correlationCache = new Map<string, CorrelationLogData>();
+
+/**
+ * Mark correlation ID as recently used by moving it to end of Map
+ */
+function markAsRecentlyUsed(correlationId: string, data: CorrelationLogData): void {
+    correlationCache.delete(correlationId);
+    correlationCache.set(correlationId, data);
+}
+
+/**
+ * Add log message to cache for specific correlation ID
+ */
+function addLogToCache(correlationId: string, loggedMessage: LoggedMessage): void {
+    const normalizedCorrelationId = correlationId || "default";
+
+    let data = correlationCache.get(normalizedCorrelationId);
+
+    if (data) {
+        // Mark as recently used
+        markAsRecentlyUsed(normalizedCorrelationId, data);
+    } else {
+        // Create new entry
+        data = { logs: [] };
+        correlationCache.set(normalizedCorrelationId, data);
+
+        // Remove LRU (first entry) if capacity exceeded
+        if (correlationCache.size > CACHE_CAPACITY) {
+            const firstKey = correlationCache.keys().next().value;
+            if (firstKey) {
+                correlationCache.delete(firstKey);
+            }
+        }
+    }
+
+    // Add log to the data, maintaining max logs per correlation
+    data.logs.push(loggedMessage);
+    if (data.logs.length > MAX_LOGS_PER_CORRELATION) {
+        data.logs.shift(); // Remove oldest log
+    }
+}
+
+/**
+ * Get all logs for specific correlation ID
+ */
+function getLogsFromCache(correlationId: string): LoggedMessage[] {
+    const normalizedCorrelationId = correlationId || "default";
+    const data = correlationCache.get(normalizedCorrelationId);
+    if (data) {
+        markAsRecentlyUsed(normalizedCorrelationId, data);
+        return [...data.logs]; // Return copy
+    }
+    return [];
+}
+
+/**
+ * Get logs for correlation ID and flush them from cache
+ */
+function getAndFlushLogsFromCache(correlationId: string): LoggedMessage[] {
+    const normalizedCorrelationId = correlationId || "default";
+    const data = correlationCache.get(normalizedCorrelationId);
+    if (data) {
+        const logs = [...data.logs];
+        data.logs = []; // Clear the logs
+        return logs;
+    }
+    return [];
+}
+
+/**
+ * Get all correlation IDs that have logs
+ */
+function getCachedCorrelationIds(): string[] {
+    return Array.from(correlationCache.keys());
+}
+
+/**
+ * Creates a consistent hash for a given string using the same algorithm as the minifier
+ */
+function createStringHash(str: string): string {
+    return createHash('md5').update(str).digest('hex').substring(0, 8);
+}
+
+/**
+ * Checks if a string is already a hashed logging string (8 hex characters)
+ */
+function isHashedString(str: string): boolean {
+    return /^[a-f0-9]{8}$/i.test(str);
+}
+
+/**
+ * Normalizes a message for consistent hashing between minified and runtime versions
+ */
+function normalizeMessageForHashing(message: string): string {
+    // Handle template literals with variable normalization
+    return message.replace(/\$\{[^}]*\}/g, (match) => {
+        const content = match.slice(2, -1).trim();
+        // Simple variable vs complex expression
+        if (/^[a-zA-Z_$][a-zA-Z0-9_$.]*$/.test(content)) {
+            return '${VAR}';
+        } else {
+            return '${EXPR}';
+        }
+    });
+}
 /**
  * Class which facilitates logging of messages to a specific place.
  */
@@ -121,15 +247,30 @@ export class Logger {
             return;
         }
         const timestamp = new Date().toUTCString();
+        const correlationId = options.correlationId || this.correlationId || "";
 
         // Add correlationId to logs if set, correlationId provided on log messages take precedence
-        const logHeader = `[${timestamp}] : [${
-            options.correlationId || this.correlationId || ""
-        }]`;
+        const logHeader = `[${timestamp}] : [${correlationId}]`;
 
         const log = `${logHeader} : ${this.packageName}@${
             this.packageVersion
         } : ${LogLevel[options.logLevel]} - ${logMessage}`;
+
+        /*
+         * Input is already a hashed string (from minified version) OR
+         * Input is a regular string, need to hash it
+         */
+        const hash: string = isHashedString(logMessage) ? logMessage : createStringHash(normalizeMessageForHashing(logMessage));
+
+        const loggedMessage: LoggedMessage = {
+            hash,
+            level: options.logLevel,
+            containsPii: options.containsPii || false,
+            timestamp: Date.now()
+        };
+
+        addLogToCache(correlationId, loggedMessage);
+
         // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": Constants.""}${options.context ? `:${options.context}` : Constants.""}`)(logMessage);
         this.executeCallback(
             options.logLevel,
@@ -149,6 +290,27 @@ export class Logger {
         if (this.localCallback) {
             this.localCallback(level, message, containsPii);
         }
+    }
+
+    /**
+     * Get cached logs for a specific correlation ID
+     */
+    public getCachedLogHashes(correlationId?: string): LoggedMessage[] {
+        return getLogsFromCache(correlationId || "");
+    }
+
+    /**
+     * Get cached logs for a correlation ID and flush them from cache
+     */
+    public getCachedLogHashesAndFlush(correlationId?: string): LoggedMessage[] {
+        return getAndFlushLogsFromCache(correlationId || "");
+    }
+
+    /**
+     * Get all correlation IDs that have cached logs
+     */
+    public getCachedCorrelationIds(): string[] {
+        return getCachedCorrelationIds();
     }
 
     /**
