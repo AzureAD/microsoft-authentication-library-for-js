@@ -470,7 +470,7 @@ export class LocalStorage implements IWindowStorage<string> {
 
         if (context && context !== this.clientId) {
             this.logger.trace(
-                `Ignoring broadcast event from clientId: ${context}`
+                `Ignoring broadcast event from clientId: '${context}'`
             );
             perfMeasurement.end({
                 success: false,

@@ -150,7 +150,7 @@ export class RedirectClient extends StandardInteractionClient {
         const redirectStartPage = this.getRedirectStartPage(
             request.redirectStartPage
         );
-        this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
+        this.logger.verbosePii(`Redirect start page: '${redirectStartPage}'`);
         // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
         this.browserStorage.setTemporaryCache(
             TemporaryCacheKeys.ORIGIN_URI,
@@ -457,7 +457,7 @@ export class RedirectClient extends StandardInteractionClient {
                 } else {
                     // Navigate to page that initiated the redirect request
                     this.logger.verbose(
-                        `Navigating to loginRequestUrl: ${loginRequestUrl}`
+                        `Navigating to loginRequestUrl: '${loginRequestUrl}'`
                     );
                     processHashOnRedirect =
                         await this.navigationClient.navigateInternal(
@@ -520,7 +520,7 @@ export class RedirectClient extends StandardInteractionClient {
             } catch (e) {
                 if (e instanceof AuthError) {
                     this.logger.error(
-                        `Interaction type validation failed due to ${e.errorCode}: ${e.errorMessage}`
+                        `Interaction type validation failed due to '${e.errorCode}': '${e.errorMessage}'`
                     );
                 }
                 return [null, ""];
@@ -651,7 +651,7 @@ export class RedirectClient extends StandardInteractionClient {
         // Navigate if valid URL
         if (requestUrl) {
             this.logger.infoPii(
-                `RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`
+                `RedirectHandler.initiateAuthRequest: Navigate to: '${requestUrl}'`
             );
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.acquireTokenRedirect,

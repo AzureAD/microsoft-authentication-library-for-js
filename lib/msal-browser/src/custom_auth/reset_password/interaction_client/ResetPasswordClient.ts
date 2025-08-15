@@ -314,7 +314,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             }
 
             this.logger.verbose(
-                `Poll completion endpoint for password reset is not started or in progress, waiting ${pollInterval} seconds for next check.`,
+                `Poll completion endpoint for password reset is not started or in progress, waiting '${pollInterval}' seconds for next check.`,
                 correlationId
             );
 

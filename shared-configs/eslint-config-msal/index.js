@@ -74,6 +74,7 @@ module.exports = {
             }
         ],
         "custom-msal/no-string-concatenation-in-logging": 2,
+        "custom-msal/quote-logging-variables": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [

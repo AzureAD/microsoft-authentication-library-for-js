@@ -178,7 +178,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 };
             } catch (e) {
                 this.logger.verbose(
-                    `Could not parse client info for CCS Header: ${e}`
+                    `Could not parse client info for CCS Header: '${e}'`
                 );
             }
         }
@@ -364,7 +364,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 };
             } catch (e) {
                 this.logger.verbose(
-                    `Could not parse client info for CCS Header: ${e}`
+                    `Could not parse client info for CCS Header: '${e}'`
                 );
             }
         } else {
@@ -385,7 +385,7 @@ export class AuthorizationCodeClient extends BaseClient {
                         );
                     } catch (e) {
                         this.logger.verbose(
-                            `Could not parse home account ID for CCS Header: ${e}`
+                            `Could not parse home account ID for CCS Header: '${e}'`
                         );
                     }
                     break;

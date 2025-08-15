@@ -351,7 +351,7 @@ export async function initializeAuthorizationRequest(
     if (account) {
         logger.verbose("Setting validated request account", correlationId);
         logger.verbosePii(
-            `Setting validated request account: ${account.homeAccountId}`,
+            `Setting validated request account: '${account.homeAccountId}'`,
             correlationId
         );
         validatedRequest.account = account;

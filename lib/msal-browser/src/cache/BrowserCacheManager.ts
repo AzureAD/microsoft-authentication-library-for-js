@@ -346,7 +346,7 @@ export class BrowserCacheManager extends CacheManager {
         );
         if (previousVersion) {
             this.logger.info(
-                `MSAL.js was last initialized by version: ${previousVersion}`
+                `MSAL.js was last initialized by version: '${previousVersion}'`
             );
             this.performanceClient.addFields(
                 { previousLibraryVersion: previousVersion },
@@ -615,7 +615,7 @@ export class BrowserCacheManager extends CacheManager {
     addAccountKeyToMap(key: string, correlationId: string): boolean {
         this.logger.trace("BrowserCacheManager.addAccountKeyToMap called");
         this.logger.tracePii(
-            `BrowserCacheManager.addAccountKeyToMap called with key: ${key}`
+            `BrowserCacheManager.addAccountKeyToMap called with key: '${key}'`
         );
         const accountKeys = this.getAccountKeys();
         if (accountKeys.indexOf(key) === -1) {
@@ -645,7 +645,7 @@ export class BrowserCacheManager extends CacheManager {
     removeAccountKeyFromMap(key: string, correlationId: string): void {
         this.logger.trace("BrowserCacheManager.removeAccountKeyFromMap called");
         this.logger.tracePii(
-            `BrowserCacheManager.removeAccountKeyFromMap called with key: ${key}`
+            `BrowserCacheManager.removeAccountKeyFromMap called with key: '${key}'`
         );
         const accountKeys = this.getAccountKeys();
         const removalIndex = accountKeys.indexOf(key);
@@ -767,7 +767,7 @@ export class BrowserCacheManager extends CacheManager {
 
         if (keysRemoved > 0) {
             this.logger.info(
-                `removed ${keysRemoved} accessToken keys from tokenKeys map`
+                `removed '${keysRemoved}' accessToken keys from tokenKeys map`
             );
             this.setTokenKeys(tokenKeys, correlationId, schemaVersion);
             return;
@@ -951,7 +951,7 @@ export class BrowserCacheManager extends CacheManager {
             tokenKeys.accessToken.splice(index, 1); // Remove existing key before pushing to the end
         }
         this.logger.trace(
-            `access token ${index === -1 ? "added to" : "updated in"} map`
+            `access token '${index === -1 ? "added to" : "updated in"}' map`
         );
         tokenKeys.accessToken.push(accessTokenKey);
         this.setTokenKeys(tokenKeys, correlationId);
@@ -1539,9 +1539,11 @@ export class BrowserCacheManager extends CacheManager {
                 verifier = base64Decode(encodedVerifier);
             }
         } catch (e) {
-            this.logger.errorPii(`Attempted to parse: ${encodedTokenRequest}`);
+            this.logger.errorPii(
+                `Attempted to parse: '${encodedTokenRequest}'`
+            );
             this.logger.error(
-                `Parsing cached token request threw with error: ${e}`
+                `Parsing cached token request threw with error: '${e}'`
             );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToParseTokenRequestCacheError

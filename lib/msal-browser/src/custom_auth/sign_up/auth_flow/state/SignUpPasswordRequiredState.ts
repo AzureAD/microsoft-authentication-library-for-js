@@ -102,7 +102,7 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to submit password for sign up. Error: ${error}.`,
+                `Failed to submit password for sign up. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 
