@@ -18,7 +18,6 @@ export interface SignInResendCodeParams extends SignInParamsBase {
 
 export interface SignInStartParams extends SignInParamsBase {
     password?: string;
-    capabilities?: Array<string>;
 }
 
 export interface SignInSubmitCodeParams extends SignInParamsBase {

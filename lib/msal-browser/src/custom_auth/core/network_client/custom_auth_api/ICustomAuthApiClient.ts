@@ -10,4 +10,5 @@ export interface ICustomAuthApiClient {
     signInApi: SignInApiClient;
     signUpApi: SignupApiClient;
     resetPasswordApi: ResetPasswordApiClient;
+    capabilities?: string[];
 }

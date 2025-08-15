@@ -59,6 +59,7 @@ jest.mock(
             signInApi: signInApiClient,
             signUpApi: signUpApiClient,
             resetPasswordApi: resetPasswordApiClient,
+            capabilities: undefined,
         }));
 
         const mockedApiClient = new CustomAuthApiClient();
@@ -453,7 +454,13 @@ describe("SignInClient", () => {
     });
 
     describe("capabilities handling", () => {
-        it("should include capabilities in start request when provided in parameters", async () => {
+        it("should include capabilities in start request when provided in API client", async () => {
+            // Set up API client with capabilities
+            mockedApiClient.capabilities = [
+                "mfa_required",
+                "registration_required",
+            ];
+
             signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
@@ -463,10 +470,9 @@ describe("SignInClient", () => {
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [ChallengeType.PASSWORD],
                 correlationId: "corr123",
-                capabilities: ["mfa_required", "registration_required"],
             });
 
-            // Verify that the API was called with capabilities
+            // Verify that the API was called with capabilities from API client
             expect(signInApiClient.initiate).toHaveBeenCalledWith(
                 expect.objectContaining({
                     capabilities: "mfa_required registration_required",
@@ -474,7 +480,10 @@ describe("SignInClient", () => {
             );
         });
 
-        it("should not include capabilities in start request when not provided", async () => {
+        it("should not include capabilities in start request when API client has none", async () => {
+            // Ensure API client has no capabilities
+            mockedApiClient.capabilities = undefined;
+
             signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
@@ -494,7 +503,10 @@ describe("SignInClient", () => {
             );
         });
 
-        it("should not include capabilities when empty array is provided", async () => {
+        it("should not include capabilities when API client has empty array", async () => {
+            // Set API client with empty capabilities array
+            mockedApiClient.capabilities = [];
+
             signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
@@ -504,7 +516,6 @@ describe("SignInClient", () => {
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [ChallengeType.PASSWORD],
                 correlationId: "corr123",
-                capabilities: [],
             });
 
             // Verify that the API was called without capabilities
@@ -515,7 +526,10 @@ describe("SignInClient", () => {
             );
         });
 
-        it("should format single capability correctly", async () => {
+        it("should format single capability correctly from API client", async () => {
+            // Set API client with single capability
+            mockedApiClient.capabilities = ["mfa_required"];
+
             signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
@@ -525,7 +539,6 @@ describe("SignInClient", () => {
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [ChallengeType.PASSWORD],
                 correlationId: "corr123",
-                capabilities: ["mfa_required"],
             });
 
             // Verify that the API was called with single capability

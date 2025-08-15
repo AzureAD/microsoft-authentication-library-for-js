@@ -25,4 +25,21 @@ describe("CustomAuthApiClient", () => {
     it("should initialize resetPasswordApiClient correctly", () => {
         expect(customAuthApiClient.resetPasswordApi).toBeDefined();
     });
+
+    it("should store capabilities when provided", () => {
+        const logger = getDefaultLogger();
+        const capabilities = ["custom_capability_1", "custom_capability_2"];
+        const apiClient = new CustomAuthApiClient(
+            "https://test.com",
+            "client_id",
+            new FetchHttpClient(logger),
+            capabilities
+        );
+
+        expect(apiClient.capabilities).toEqual(capabilities);
+    });
+
+    it("should have undefined capabilities when not provided", () => {
+        expect(customAuthApiClient.capabilities).toBeUndefined();
+    });
 });

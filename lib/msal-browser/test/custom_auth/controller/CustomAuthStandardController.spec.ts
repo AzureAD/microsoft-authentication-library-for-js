@@ -52,6 +52,7 @@ jest.mock(
             signInApi: signInApiClient,
             signUpApi: signUpApiClient,
             resetPasswordApi: resetPasswordApiClient,
+            capabilities: undefined,
         }));
 
         return {

@@ -58,7 +58,9 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             : PublicApiId.SIGN_UP_WITH_PASSWORD_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
-        const capabilities = this.getCapabilities(parameters.capabilities);
+        const capabilities = this.getCapabilities(
+            this.customAuthApiClient.capabilities
+        );
 
         const startRequest: SignUpStartRequest = {
             username: parameters.username,

@@ -45,7 +45,7 @@ export const ResetPasswordPollStatus = {
     NOT_STARTED: "not_started",
 } as const;
 
-export const NATIVE_AUTH_CAPABILITIES = {
+export const CustomAuthCapabilities = {
     MFA_REQUIRED: "mfa_required",
     REGISTRATION_REQUIRED: "registration_required",
 } as const;

@@ -6,3 +6,4 @@
 export const MissingConfiguration = "missing_configuration";
 export const InvalidAuthority = "invalid_authority";
 export const InvalidChallengeType = "invalid_challenge_type";
+export const InvalidCapabilities = "invalid_capabilities";

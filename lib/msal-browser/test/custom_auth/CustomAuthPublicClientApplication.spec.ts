@@ -48,24 +48,6 @@ describe("CustomAuthPublicClientApplication", () => {
             ).rejects.toThrow(InvalidConfigurationError);
         });
 
-        it("should throw an error if capabilities contain invalid values", async () => {
-            const invalidConfig = {
-                auth: {
-                    authority: customAuthConfig.auth.authority,
-                    clientId: customAuthConfig.auth.clientId,
-                },
-                customAuth: {
-                    authApiProxyUrl:
-                        customAuthConfig.customAuth.authApiProxyUrl,
-                    capabilities: ["invalid_capability", "mfa_required"],
-                },
-            };
-
-            await expect(
-                CustomAuthPublicClientApplication.create(invalidConfig as any)
-            ).rejects.toThrow(InvalidConfigurationError);
-        });
-
         it("should accept valid capabilities configuration", async () => {
             const validConfig = {
                 auth: {

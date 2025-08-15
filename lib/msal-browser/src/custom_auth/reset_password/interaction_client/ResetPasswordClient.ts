@@ -47,7 +47,9 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
-        const capabilities = this.getCapabilities(parameters.capabilities);
+        const capabilities = this.getCapabilities(
+            this.customAuthApiClient.capabilities
+        );
 
         const startRequest: ResetPasswordStartRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),

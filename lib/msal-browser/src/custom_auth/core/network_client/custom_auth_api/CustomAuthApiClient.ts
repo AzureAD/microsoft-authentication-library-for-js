@@ -13,11 +13,13 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
     signInApi: SignInApiClient;
     signUpApi: SignupApiClient;
     resetPasswordApi: ResetPasswordApiClient;
+    capabilities?: string[];
 
     constructor(
         customAuthApiBaseUrl: string,
         clientId: string,
-        httpClient: IHttpClient
+        httpClient: IHttpClient,
+        capabilities?: string[]
     ) {
         this.signInApi = new SignInApiClient(
             customAuthApiBaseUrl,
@@ -34,5 +36,6 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
             clientId,
             httpClient
         );
+        this.capabilities = capabilities;
     }
 }
