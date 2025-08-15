@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755276198152,
+  "lastUpdate": 1755277665559,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16780,6 +16780,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.78%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "919a7b43833b1c57c0bb256e6a156f1aa0817ee0",
+          "message": "[Documentation] Add missing \"Implicit Flow vs Authorization Code Flow with PKCE\" section to MSAL Browser README (#7903)\n\nThis PR fixes a missing documentation section in the MSAL Browser README\nthat was referenced in the table of contents but didn't exist in the\ndocument.\n\n## Issue\nThe MSAL Browser README.md had:\n- A table of contents entry for \"Authorization Code vs Implicit\" linking\nto `#implicit-flow-vs-authorization-code-flow-with-pkce`\n- An inline reference in the \"About\" section pointing to the same anchor\n- But no actual section with that heading existed, causing broken links\n\n## Solution\nAdded the missing section \"## Implicit Flow vs Authorization Code Flow\nwith PKCE\" that includes:\n\n### Content Added\n- **Authorization Code Flow with PKCE explanation**: Details about the\ncurrent OAuth 2.0 flow used by MSAL.js 2.x and its security benefits\n- **Implicit Flow (Deprecated) explanation**: Information about the\nprevious flow used in MSAL.js 1.x and why it's deprecated\n- **Migration Considerations**: Guidance for developers migrating from\nv1.x to v2.x\n- **References to additional documentation**: Links to migration guides\nand Microsoft identity platform docs\n\n### Section Structure\n```markdown\n## Implicit Flow vs Authorization Code Flow with PKCE\n\n### Authorization Code Flow with PKCE\n- Enhanced Security\n- No Tokens in URLs\n- Refresh Token Support\n- OIDC Compliance\n\n### Implicit Flow (Deprecated)\n- Security concerns outlined\n- Reasons for deprecation\n\n### Migration Considerations\n- Configuration requirements\n- Migration guidance\n```\n\nThe section is properly positioned between \"Build and Test\" and\n\"Framework Wrappers\" as indicated by the table of contents order.\n\nFixes #7347.\n\n<!-- START COPILOT CODING AGENT TIPS -->\n---\n\n💡 You can make Copilot smarter by setting up custom instructions,\ncustomizing its development environment and configuring Model Context\nProtocol (MCP) servers. Learn more [Copilot coding agent\ntips](https://gh.io/copilot-coding-agent-tips) in the docs.\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2025-08-15T10:01:25-07:00",
+          "tree_id": "4b1d1048be26ec9e8c524e800b829c049218414f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/919a7b43833b1c57c0bb256e6a156f1aa0817ee0"
+        },
+        "date": 1755277663507,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 244183,
+            "range": "±0.90%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241959,
+            "range": "±0.82%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
