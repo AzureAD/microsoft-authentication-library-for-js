@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755277665559,
+  "lastUpdate": 1755280441118,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16818,6 +16818,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.82%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7fe97cf91a66df288edee99624e1dc5d32496977",
+          "message": "Fix redirect loop when URLs contain encoded apostrophes in MSAL Angular standalone components (#7878)\n\n## Problem\n\nWhen using MSAL Angular standalone components, users experience infinite\nredirect loops after authentication when the URL contains encoded\napostrophes (`%27`) in query parameters. For example:\n\n```\nhttps://localhost:4200/profile?comments=blah%27blah\n```\n\nAfter authentication, the app gets stuck in a redirect loop instead of\ndisplaying the intended page.\n\n## Root Cause\n\nThe issue occurs in `RedirectClient.handleRedirectPromise()` during URL\ncomparison. The method compares the stored login request URL with the\ncurrent URL to determine if navigation is needed. However, the\ncomparison doesn't handle URL encoding consistently:\n\n- **Stored URL**: `https://localhost:4200/profile?comments=blah%27blah`\n(encoded apostrophe)\n- **Current URL**: `https://localhost:4200/profile?comments=blah'blah`\n(decoded apostrophe)\n\nSince `%27` ≠ `'` after normalization, MSAL thinks it's not on the\ncorrect page and attempts to navigate back, causing an infinite loop.\n\n## Solution\n\nAdded a new `normalizeUrlForComparison()` method in `RedirectClient`\nthat:\n\n1. Uses the native `URL` constructor to handle encoding consistently\n2. Ensures both URLs are normalized to the same encoding format\n3. Preserves existing canonicalization logic\n4. Includes graceful error handling with fallback\n\n```typescript\nprivate normalizeUrlForComparison(url: string): string {\n    if (!url) return url;\n    \n    const urlWithoutHash = url.split(\"#\")[0];\n    try {\n        const urlObj = new URL(urlWithoutHash);\n        const normalizedUrl = urlObj.origin + urlObj.pathname + urlObj.search;\n        return UrlString.canonicalizeUri(normalizedUrl);\n    } catch (e) {\n        // Fallback to original logic\n        return UrlString.canonicalizeUri(urlWithoutHash);\n    }\n}\n```\n\n## Testing\n\nAdded comprehensive test case covering:\n- ✅ Encoded vs decoded apostrophe scenario (the original issue)\n- ✅ Multiple encoded characters\n- ✅ Hash handling in redirect scenarios\n- ✅ Edge cases and error conditions\n\n## Impact\n\n- **Fixes redirect loops** for URLs with encoded special characters\n- **Zero breaking changes** - maintains backward compatibility\n- **Minimal performance impact** - only affects URL comparison logic\n- **Robust solution** - handles all URL-encoded characters consistently\n\n## Before/After\n\n**Before (broken):**\n```\nStored:  https://localhost:4200/profile?comments=blah%27blah\nCurrent: https://localhost:4200/profile?comments=blah'blah\nMatch: false → Redirect loop\n```\n\n**After (fixed):**\n```  \nStored:  https://localhost:4200/profile?comments=blah%27blah\nCurrent: https://localhost:4200/profile?comments=blah'blah  \nMatch: true → Normal flow continues\n```\n\nFixes #7636.\n\n> [!WARNING]\n>\n> <details>\n> <summary>Firewall rules blocked me from connecting to one or more\naddresses</summary>\n>\n> #### I tried to connect to the following addresses, but was blocked by\nfirewall rules:\n>\n> - `googlechromelabs.github.io`\n>   - Triggering command: `node install.mjs ` (dns block)\n> -\n`https://storage.googleapis.com/chrome-for-testing-public/132.0.6834.110/linux64/chrome-linux64.zip`\n>   - Triggering command: `node install.mjs ` (http block)\n>\n> If you need me to access, download, or install something from one of\nthese locations, you can either:\n>\n> - Configure [Actions setup\nsteps](https://gh.io/copilot/actions-setup-steps) to set up my\nenvironment, which run before the firewall is enabled\n> - Add the appropriate URLs or hosts to my [firewall allow\nlist](https://gh.io/copilot/firewall-config)\n>\n> </details>\n\n\n\n<!-- START COPILOT CODING AGENT TIPS -->\n---\n\n💬 Share your feedback on Copilot coding agent for the chance to win a\n$200 gift card! Click\n[here](https://survey.alchemer.com/s3/8343779/Copilot-Coding-agent) to\nstart the survey.\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2025-08-15T10:47:31-07:00",
+          "tree_id": "40cf3753e0c23a798ec0a67d5ef80b6e147d47b6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7fe97cf91a66df288edee99624e1dc5d32496977"
+        },
+        "date": 1755280439268,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 249787,
+            "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 243264,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
