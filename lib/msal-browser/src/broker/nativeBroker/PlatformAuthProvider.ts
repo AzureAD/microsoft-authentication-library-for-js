@@ -62,8 +62,7 @@ export async function getPlatformAuthProvider(
     const enablePlatformBrokerDOMSupport = isDomEnabledForPlatformAuth();
 
     logger.trace(
-        "Has client allowed platform auth via DOM API: " +
-            enablePlatformBrokerDOMSupport
+        `Has client allowed platform auth via DOM API: ${enablePlatformBrokerDOMSupport}`
     );
     let platformAuthProvider: IPlatformAuthHandler | undefined;
     try {

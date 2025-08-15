@@ -738,7 +738,7 @@ export class PopupClient extends StandardInteractionClient {
             return popupWindow;
         } catch (e) {
             this.logger.error(
-                "error opening popup " + (e as AuthError).message
+                `error opening popup ${(e as AuthError).message}`
             );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.popupWindowError

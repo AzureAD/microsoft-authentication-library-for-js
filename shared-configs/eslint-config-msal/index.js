@@ -73,6 +73,7 @@ module.exports = {
                 "ignoreModules": ["msal-node"]
             }
         ],
+        "custom-msal/no-string-concatenation-in-logging": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [

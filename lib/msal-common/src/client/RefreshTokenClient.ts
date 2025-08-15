@@ -448,8 +448,7 @@ export class RefreshTokenClient extends BaseClient {
                         );
                     } catch (e) {
                         this.logger.verbose(
-                            "Could not parse home account ID for CCS Header: " +
-                                e
+                            `Could not parse home account ID for CCS Header: ${e}`
                         );
                     }
                     break;
