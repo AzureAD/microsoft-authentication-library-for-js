@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755280441118,
+  "lastUpdate": 1755294872024,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16856,6 +16856,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.77%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "81f41cb452dd85e1107036c226dbb0fa08caafaf",
+          "message": "Fix cache not used for getting token if scopes are empty (#7995)\n\nThe issue occurs when `acquireTokenSilent` is called with empty scopes\n(`scopes: []`). Instead of using cached tokens, the library throws a\n`ClientConfigurationError` during cache lookup and makes unnecessary API\nrequests to Azure AD.\n\n## Root Cause\nThe problem is in `ScopeSet.createSearchScopes()` which is called from\n`CacheManager.getAccessToken()` during cache lookup. When empty scopes\nare passed, the `ScopeSet` constructor throws an error because it\ndoesn't allow empty scope arrays, preventing cache lookup from\ncompleting.\n\n## Solution\nModified `ScopeSet.createSearchScopes()` to handle empty, null, or\nundefined scopes by providing default OIDC scopes (`openid`, `profile`,\n`offline_access`) before calling the constructor. This approach:\n\n- Follows the same pattern as `RequestParameterBuilder.addScopes()`\nwhich already handles empty scopes\n- Allows cache lookup to proceed with reasonable default scopes when no\nspecific scopes are requested\n- Maintains all existing behavior for non-empty scopes\n- Eliminates unnecessary network requests when tokens are already cached\n\n## Example\n```javascript\nconst { instance, accounts } = useMsal();\nconst account = useAccount(accounts[0]);\n\n// This now works and uses cache instead of making API calls\nconst response = await instance.acquireTokenSilent({\n    scopes: [], // Empty scopes now supported\n    account\n});\n```\n\nThe fix enables `acquireTokenSilent` to properly utilize cached tokens\nwhen called with empty scopes, improving performance and user\nexperience.\n\nFixes #6969.\n\n<!-- START COPILOT CODING AGENT TIPS -->\n---\n\n💬 Share your feedback on Copilot coding agent for the chance to win a\n$200 gift card! Click\n[here](https://survey.alchemer.com/s3/8343779/Copilot-Coding-agent) to\nstart the survey.\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2025-08-15T14:48:04-07:00",
+          "tree_id": "044e5d8d5a56afd50221f7c681f742d18d1d43f3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/81f41cb452dd85e1107036c226dbb0fa08caafaf"
+        },
+        "date": 1755294870003,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 247296,
+            "range": "±0.63%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 244626,
+            "range": "±0.84%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
