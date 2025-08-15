@@ -2,6 +2,47 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 12 Aug 2025 22:53:32 GMT",
+      "version": "15.11.0",
+      "tag": "@azure/msal-common_v15.11.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ebcfec14bc4f20e5dad40ba38d491492948cefee",
+            "comment": "Instrument timed out or cancelled pre-redirect requests #7984"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ebcfec14bc4f20e5dad40ba38d491492948cefee",
+            "comment": "fixed bug in getAccountFilteredBy API to return null if account filter passed in does not have truthy values #7960"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Aug 2025 20:00:24 GMT",
       "version": "15.10.0",
       "tag": "@azure/msal-common_v15.10.0",
