@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755265456894,
+  "lastUpdate": 1755276198152,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16742,6 +16742,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.96%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7f86b6972ebb14dd41972208df18ad64baca847c",
+          "message": "Fix broken msal-angular redirect documentation link (#7880)\n\nFixed a broken link in the msal-browser initialization documentation\nthat was pointing to a non-existent path.\n\n**Problem:**\nThe link to the msal-angular redirect documentation in\n`lib/msal-browser/docs/initialization.md` was pointing to:\n```\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md\n```\n\nHowever, the `v2-docs` directory does not exist in the msal-angular\ndocumentation structure.\n\n**Solution:**\nUpdated the link to point to the correct path:\n```\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md\n```\n\n**Changes:**\n- Removed the erroneous `/v2-docs` segment from the URL path\n- Verified that the corrected path points to the existing `redirects.md`\nfile in the msal-angular docs\n\nThis ensures users can properly access the msal-angular redirect\ndocumentation when following the link from the msal-browser\ninitialization guide.\n\nFixes #7519.\n\n<!-- START COPILOT CODING AGENT TIPS -->\n---\n\n💡 You can make Copilot smarter by setting up custom instructions,\ncustomizing its development environment and configuring Model Context\nProtocol (MCP) servers. Learn more [Copilot coding agent\ntips](https://gh.io/copilot-coding-agent-tips) in the docs.\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2025-08-15T09:36:41-07:00",
+          "tree_id": "0dd95406ecb72d427cb7a06cd5849df1738f1db4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7f86b6972ebb14dd41972208df18ad64baca847c"
+        },
+        "date": 1755276196256,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252239,
+            "range": "±0.97%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 251618,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
