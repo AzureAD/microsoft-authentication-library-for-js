@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755217343371,
+  "lastUpdate": 1755265456894,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16704,6 +16704,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.94%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e50a9c142ac7ef147eac0119619bbab7b235bbc4",
+          "message": "Add bundle minification practices to copilot instructions (#7963)\n\n- Add bundle minification practices to copilot instructions",
+          "timestamp": "2025-08-15T06:37:42-07:00",
+          "tree_id": "63de82085254668d8cb1e4e7ab2100590b06796e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e50a9c142ac7ef147eac0119619bbab7b235bbc4"
+        },
+        "date": 1755265454902,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 245119,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242870,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
