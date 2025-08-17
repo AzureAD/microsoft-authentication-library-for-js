@@ -38,18 +38,18 @@ type ResponseResolvers<T> = {
 };
 
 export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
-    private extensionId: string | undefined;
-    private extensionVersion: string | undefined;
-    private logger: Logger;
-    private readonly handshakeTimeoutMs: number;
-    private timeoutId: number | undefined;
-    private resolvers: Map<string, ResponseResolvers<object>>;
-    private handshakeResolvers: Map<string, ResponseResolvers<void>>;
-    private messageChannel: MessageChannel;
-    private readonly windowListener: (event: MessageEvent) => void;
-    private readonly performanceClient: IPerformanceClient;
-    private readonly handshakeEvent: InProgressPerformanceEvent;
-    platformAuthType: string;
+    private eId: string | undefined;
+    private eVer: string | undefined;
+    private l: Logger;
+    private readonly hsTO: number;
+    private tId: number | undefined;
+    private res: Map<string, ResponseResolvers<object>>;
+    private hsRes: Map<string, ResponseResolvers<void>>;
+    private mc: MessageChannel;
+    private readonly wl: (event: MessageEvent) => void;
+    private readonly pc: IPerformanceClient;
+    private readonly he: InProgressPerformanceEvent;
+    patType: string;
 
     constructor(
         logger: Logger,
@@ -57,18 +57,18 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         performanceClient: IPerformanceClient,
         extensionId?: string
     ) {
-        this.logger = logger;
-        this.handshakeTimeoutMs = handshakeTimeoutMs;
-        this.extensionId = extensionId;
-        this.resolvers = new Map(); // Used for non-handshake messages
-        this.handshakeResolvers = new Map(); // Used for handshake messages
-        this.messageChannel = new MessageChannel();
-        this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
-        this.performanceClient = performanceClient;
-        this.handshakeEvent = performanceClient.startMeasurement(
+        this.l = logger;
+        this.hsTO = handshakeTimeoutMs;
+        this.eId = extensionId;
+        this.res = new Map(); // Used for non-handshake messages
+        this.hsRes = new Map(); // Used for handshake messages
+        this.mc = new MessageChannel();
+        this.wl = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
+        this.pc = performanceClient;
+        this.he = performanceClient.startMeasurement(
             BrowserPerformanceEvents.NativeMessageHandlerHandshake
         );
-        this.platformAuthType =
+        this.patType =
             PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER;
     }
 
@@ -79,7 +79,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     async sendMessage(
         request: PlatformAuthRequest
     ): Promise<PlatformAuthResponse> {
-        this.logger.trace(this.platformAuthType + " - sendMessage called.");
+        this.l.trace(this.patType + " - sendMessage called.");
 
         // fall back to native calls
         const messageBody: NativeExtensionRequestBody = {
@@ -89,24 +89,24 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
         const req: NativeExtensionRequest = {
             channel: PlatformAuthConstants.CHANNEL_ID,
-            extensionId: this.extensionId,
+            extensionId: this.eId,
             responseId: createNewGuid(),
             body: messageBody,
         };
 
-        this.logger.trace(
-            this.platformAuthType + " - Sending request to browser extension"
+        this.l.trace(
+            this.patType + " - Sending request to browser extension"
         );
-        this.logger.tracePii(
-            this.platformAuthType +
+        this.l.tracePii(
+            this.patType +
                 ` - Sending request to browser extension: ${JSON.stringify(
                     req
                 )}`
         );
-        this.messageChannel.port1.postMessage(req);
+        this.mc.port1.postMessage(req);
 
         const response: object = await new Promise((resolve, reject) => {
-            this.resolvers.set(req.responseId, { resolve, reject });
+            this.res.set(req.responseId, { resolve, reject });
         });
 
         const validatedResponse: PlatformAuthResponse =
@@ -154,46 +154,46 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * Send handshake request helper.
      */
     private async sendHandshakeRequest(): Promise<void> {
-        this.logger.trace(
-            this.platformAuthType + " - sendHandshakeRequest called."
+        this.l.trace(
+            this.patType + " - sendHandshakeRequest called."
         );
         // Register this event listener before sending handshake
-        window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
+        window.addEventListener("message", this.wl, false); // false is important, because content script message processing should work first
 
         const req: NativeExtensionRequest = {
             channel: PlatformAuthConstants.CHANNEL_ID,
-            extensionId: this.extensionId,
+            extensionId: this.eId,
             responseId: createNewGuid(),
             body: {
                 method: NativeExtensionMethod.HandshakeRequest,
             },
         };
-        this.handshakeEvent.add({
-            extensionId: this.extensionId,
-            extensionHandshakeTimeoutMs: this.handshakeTimeoutMs,
+        this.he.add({
+            extensionId: this.eId,
+            extensionHandshakeTimeoutMs: this.hsTO,
         });
 
-        this.messageChannel.port1.onmessage = (event) => {
+        this.mc.port1.onmessage = (event) => {
             this.onChannelMessage(event);
         };
 
-        window.postMessage(req, window.origin, [this.messageChannel.port2]);
+        window.postMessage(req, window.origin, [this.mc.port2]);
 
         return new Promise((resolve, reject) => {
-            this.handshakeResolvers.set(req.responseId, { resolve, reject });
-            this.timeoutId = window.setTimeout(() => {
+            this.hsRes.set(req.responseId, { resolve, reject });
+            this.tId = window.setTimeout(() => {
                 /*
                  * Throw an error if neither HandshakeResponse nor original Handshake request are received in a reasonable timeframe.
                  * This typically suggests an event handler stopped propagation of the Handshake request but did not respond to it on the MessageChannel port
                  */
                 window.removeEventListener(
                     "message",
-                    this.windowListener,
+                    this.wl,
                     false
                 );
-                this.messageChannel.port1.close();
-                this.messageChannel.port2.close();
-                this.handshakeEvent.end({
+                this.mc.port1.close();
+                this.mc.port2.close();
+                this.he.end({
                     extensionHandshakeTimedOut: true,
                     success: false,
                 });
@@ -202,8 +202,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                         BrowserAuthErrorCodes.nativeHandshakeTimeout
                     )
                 );
-                this.handshakeResolvers.delete(req.responseId);
-            }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
+                this.hsRes.delete(req.responseId);
+            }, this.hsTO); // Use a reasonable timeout in milliseconds here
         });
     }
 
@@ -212,7 +212,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param event
      */
     private onWindowMessage(event: MessageEvent): void {
-        this.logger.trace(this.platformAuthType + " - onWindowMessage called");
+        this.l.trace(this.patType + " - onWindowMessage called");
         // We only accept messages from ourselves
         if (event.source !== window) {
             return;
@@ -227,12 +227,12 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             return;
         }
 
-        if (request.extensionId && request.extensionId !== this.extensionId) {
+        if (request.extensionId && request.extensionId !== this.eId) {
             return;
         }
 
         if (request.body.method === NativeExtensionMethod.HandshakeRequest) {
-            const handshakeResolver = this.handshakeResolvers.get(
+            const handshakeResolver = this.hsRes.get(
                 request.responseId
             );
             /*
@@ -240,24 +240,24 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
              * the proper response.
              */
             if (!handshakeResolver) {
-                this.logger.trace(
-                    this.platformAuthType +
+                this.l.trace(
+                    this.patType +
                         `.onWindowMessage - resolver can't be found for request ${request.responseId}`
                 );
                 return;
             }
 
             // If we receive this message back it means no extension intercepted the request, meaning no extension supporting handshake protocol is installed
-            this.logger.verbose(
+            this.l.verbose(
                 request.extensionId
                     ? `Extension with id: ${request.extensionId} not installed`
                     : "No extension installed"
             );
-            clearTimeout(this.timeoutId);
-            this.messageChannel.port1.close();
-            this.messageChannel.port2.close();
-            window.removeEventListener("message", this.windowListener, false);
-            this.handshakeEvent.end({
+            clearTimeout(this.tId);
+            this.mc.port1.close();
+            this.mc.port2.close();
+            window.removeEventListener("message", this.wl, false);
+            this.he.end({
                 success: false,
                 extensionInstalled: false,
             });
@@ -274,13 +274,13 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param event
      */
     private onChannelMessage(event: MessageEvent): void {
-        this.logger.trace(
-            this.platformAuthType + " - onChannelMessage called."
+        this.l.trace(
+            this.patType + " - onChannelMessage called."
         );
         const request = event.data;
 
-        const resolver = this.resolvers.get(request.responseId);
-        const handshakeResolver = this.handshakeResolvers.get(
+        const resolver = this.res.get(request.responseId);
+        const handshakeResolver = this.hsRes.get(
             request.responseId
         );
 
@@ -292,12 +292,12 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     return;
                 }
                 const response = request.body.response;
-                this.logger.trace(
-                    this.platformAuthType +
+                this.l.trace(
+                    this.patType +
                         " - Received response from browser extension"
                 );
-                this.logger.tracePii(
-                    this.platformAuthType +
+                this.l.tracePii(
+                    this.patType +
                         ` - Received response from browser extension: ${JSON.stringify(
                             response
                         )}`
@@ -331,42 +331,42 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                         "Event does not contain result."
                     );
                 }
-                this.resolvers.delete(request.responseId);
+                this.res.delete(request.responseId);
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 if (!handshakeResolver) {
-                    this.logger.trace(
-                        this.platformAuthType +
+                    this.l.trace(
+                        this.patType +
                             `.onChannelMessage - resolver can't be found for request ${request.responseId}`
                     );
                     return;
                 }
-                clearTimeout(this.timeoutId); // Clear setTimeout
+                clearTimeout(this.tId); // Clear setTimeout
                 window.removeEventListener(
                     "message",
-                    this.windowListener,
+                    this.wl,
                     false
                 ); // Remove 'No extension' listener
-                this.extensionId = request.extensionId;
-                this.extensionVersion = request.body.version;
-                this.logger.verbose(
-                    this.platformAuthType +
-                        ` - Received HandshakeResponse from extension: ${this.extensionId}`
+                this.eId = request.extensionId;
+                this.eVer = request.body.version;
+                this.l.verbose(
+                    this.patType +
+                        ` - Received HandshakeResponse from extension: ${this.eId}`
                 );
-                this.handshakeEvent.end({
+                this.he.end({
                     extensionInstalled: true,
                     success: true,
                 });
 
                 handshakeResolver.resolve();
-                this.handshakeResolvers.delete(request.responseId);
+                this.hsRes.delete(request.responseId);
             }
             // Do nothing if method is not Response or HandshakeResponse
         } catch (err) {
-            this.logger.error("Error parsing response from WAM Extension");
-            this.logger.errorPii(
+            this.l.error("Error parsing response from WAM Extension");
+            this.l.errorPii(
                 `Error parsing response from WAM Extension: ${err as string}`
             );
-            this.logger.errorPii(`Unable to parse ${event}`);
+            this.l.errorPii(`Unable to parse ${event}`);
 
             if (resolver) {
                 resolver.reject(err as AuthError);
@@ -405,7 +405,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @returns
      */
     getExtensionId(): string | undefined {
-        return this.extensionId;
+        return this.eId;
     }
 
     /**
@@ -413,7 +413,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @returns
      */
     getExtensionVersion(): string | undefined {
-        return this.extensionVersion;
+        return this.eVer;
     }
 
     getExtensionName(): string | undefined {

@@ -62,8 +62,8 @@ export class SilentFlowClient extends BaseClient {
         const requestTenantId =
             request.account.tenantId ||
             getTenantFromAuthorityString(request.authority);
-        const tokenKeys = this.cacheManager.getTokenKeys();
-        const cachedAccessToken = this.cacheManager.getAccessToken(
+        const tokenKeys = this.cm.getTokenKeys();
+        const cachedAccessToken = this.cm.getAccessToken(
             request.account,
             request,
             tokenKeys,
@@ -83,7 +83,7 @@ export class SilentFlowClient extends BaseClient {
             TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
-                this.config.systemOptions.tokenRenewalOffsetSeconds
+                this.cfg.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
             // must refresh due to the expires_in value
@@ -105,14 +105,14 @@ export class SilentFlowClient extends BaseClient {
         }
 
         const environment =
-            request.authority || this.authority.getPreferredCache();
+            request.authority || this.auth.getPreferredCache();
         const cacheRecord: CacheRecord = {
-            account: this.cacheManager.getAccount(
-                this.cacheManager.generateAccountKey(request.account),
+            account: this.cm.getAccount(
+                this.cm.generateAccountKey(request.account),
                 request.correlationId
             ),
             accessToken: cachedAccessToken,
-            idToken: this.cacheManager.getIdToken(
+            idToken: this.cm.getIdToken(
                 request.account,
                 request.correlationId,
                 tokenKeys,
@@ -120,21 +120,21 @@ export class SilentFlowClient extends BaseClient {
             ),
             refreshToken: null,
             appMetadata:
-                this.cacheManager.readAppMetadataFromCache(environment),
+                this.cm.readAppMetadataFromCache(environment),
         };
 
         this.setCacheOutcome(lastCacheOutcome, request.correlationId);
 
-        if (this.config.serverTelemetryManager) {
-            this.config.serverTelemetryManager.incrementCacheHits();
+        if (this.cfg.serverTelemetryManager) {
+            this.cfg.serverTelemetryManager.incrementCacheHits();
         }
 
         return [
             await invokeAsync(
                 this.generateResultFromCacheRecord.bind(this),
                 PerformanceEvents.SilentFlowClientGenerateResultFromCacheRecord,
-                this.logger,
-                this.performanceClient,
+                this.l,
+                this.pc,
                 request.correlationId
             )(cacheRecord, request),
             lastCacheOutcome,
@@ -145,15 +145,15 @@ export class SilentFlowClient extends BaseClient {
         cacheOutcome: CacheOutcome,
         correlationId: string
     ): void {
-        this.serverTelemetryManager?.setCacheOutcome(cacheOutcome);
-        this.performanceClient?.addFields(
+        this.stm?.setCacheOutcome(cacheOutcome);
+        this.pc?.addFields(
             {
                 cacheOutcome: cacheOutcome,
             },
             correlationId
         );
         if (cacheOutcome !== CacheOutcome.NOT_APPLICABLE) {
-            this.logger.info(
+            this.l.info(
                 `Token refresh is required due to cache outcome: ${cacheOutcome}`
             );
         }
@@ -171,7 +171,7 @@ export class SilentFlowClient extends BaseClient {
         if (cacheRecord.idToken) {
             idTokenClaims = extractTokenClaims(
                 cacheRecord.idToken.secret,
-                this.config.cryptoInterface.base64Decode
+                this.cfg.cryptoInterface.base64Decode
             );
         }
 
@@ -188,8 +188,8 @@ export class SilentFlowClient extends BaseClient {
         }
 
         return ResponseHandler.generateAuthenticationResult(
-            this.cryptoUtils,
-            this.authority,
+            this.cry,
+            this.auth,
             cacheRecord,
             true,
             request,

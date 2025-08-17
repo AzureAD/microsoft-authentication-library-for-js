@@ -30,11 +30,11 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
  * Abstract class which defines operations for a browser interaction handling class.
  */
 export class InteractionHandler {
-    protected authModule: AuthorizationCodeClient;
-    protected browserStorage: BrowserCacheManager;
-    protected authCodeRequest: CommonAuthorizationCodeRequest;
-    protected logger: Logger;
-    protected performanceClient: IPerformanceClient;
+    protected am: AuthorizationCodeClient;
+    protected bs: BrowserCacheManager;
+    protected acr: CommonAuthorizationCodeRequest;
+    protected l: Logger;
+    protected pc: IPerformanceClient;
 
     constructor(
         authCodeModule: AuthorizationCodeClient,
@@ -43,11 +43,11 @@ export class InteractionHandler {
         logger: Logger,
         performanceClient: IPerformanceClient
     ) {
-        this.authModule = authCodeModule;
-        this.browserStorage = storageImpl;
-        this.authCodeRequest = authCodeRequest;
-        this.logger = logger;
-        this.performanceClient = performanceClient;
+        this.am = authCodeModule;
+        this.bs = storageImpl;
+        this.acr = authCodeRequest;
+        this.l = logger;
+        this.pc = performanceClient;
     }
 
     /**
@@ -81,8 +81,8 @@ export class InteractionHandler {
         return invokeAsync(
             this.handleCodeResponseFromServer.bind(this),
             PerformanceEvents.HandleCodeResponseFromServer,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             request.correlationId
         )(authCodeResponse, request);
     }
@@ -100,20 +100,20 @@ export class InteractionHandler {
         request: CommonAuthorizationUrlRequest,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
-        this.logger.trace(
+        this.l.trace(
             "InteractionHandler.handleCodeResponseFromServer called"
         );
 
         // Assign code to request
-        this.authCodeRequest.code = authCodeResponse.code;
+        this.acr.code = authCodeResponse.code;
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
             await invokeAsync(
-                this.authModule.updateAuthority.bind(this.authModule),
+                this.am.updateAuthority.bind(this.am),
                 BrowserPerformanceEvents.UpdateTokenEndpointAuthority,
-                this.logger,
-                this.performanceClient,
+                this.l,
+                this.pc,
                 request.correlationId
             )(authCodeResponse.cloud_instance_host_name, request.correlationId);
         }
@@ -128,22 +128,22 @@ export class InteractionHandler {
 
         // Add CCS parameters if available
         if (authCodeResponse.client_info) {
-            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
+            this.acr.clientInfo = authCodeResponse.client_info;
         } else {
             const ccsCred = this.createCcsCredentials(request);
             if (ccsCred) {
-                this.authCodeRequest.ccsCredential = ccsCred;
+                this.acr.ccsCredential = ccsCred;
             }
         }
 
         // Acquire token with retrieved code.
         const tokenResponse = (await invokeAsync(
-            this.authModule.acquireToken.bind(this.authModule),
+            this.am.acquireToken.bind(this.am),
             BrowserPerformanceEvents.AuthClientAcquireToken,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             request.correlationId
-        )(this.authCodeRequest, authCodeResponse)) as AuthenticationResult;
+        )(this.acr, authCodeResponse)) as AuthenticationResult;
         return tokenResponse;
     }
 

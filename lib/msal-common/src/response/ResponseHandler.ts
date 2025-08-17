@@ -52,13 +52,13 @@ import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
  * @internal
  */
 export class ResponseHandler {
-    private clientId: string;
-    private cacheStorage: CacheManager;
-    private cryptoObj: ICrypto;
-    private logger: Logger;
-    private homeAccountIdentifier: string;
-    private serializableCache: ISerializableTokenCache | null;
-    private persistencePlugin: ICachePlugin | null;
+    private cId: string;
+    private cs: CacheManager;
+    private co: ICrypto;
+    private l: Logger;
+    private hai: string;
+    private sc: ISerializableTokenCache | null;
+    private pp: ICachePlugin | null;
 
     constructor(
         clientId: string,
@@ -68,12 +68,12 @@ export class ResponseHandler {
         serializableCache: ISerializableTokenCache | null,
         persistencePlugin: ICachePlugin | null
     ) {
-        this.clientId = clientId;
-        this.cacheStorage = cacheStorage;
-        this.cryptoObj = cryptoObj;
-        this.logger = logger;
-        this.serializableCache = serializableCache;
-        this.persistencePlugin = persistencePlugin;
+        this.cId = clientId;
+        this.cs = cacheStorage;
+        this.co = cryptoObj;
+        this.l = logger;
+        this.sc = serializableCache;
+        this.pp = persistencePlugin;
     }
 
     /**
@@ -121,7 +121,7 @@ export class ResponseHandler {
                     Constants.HTTP_SERVER_ERROR_RANGE_START &&
                 serverResponse.status <= Constants.HTTP_SERVER_ERROR_RANGE_END
             ) {
-                this.logger.warning(
+                this.l.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
                 );
 
@@ -135,7 +135,7 @@ export class ResponseHandler {
                     Constants.HTTP_CLIENT_ERROR_RANGE_START &&
                 serverResponse.status <= Constants.HTTP_CLIENT_ERROR_RANGE_END
             ) {
-                this.logger.warning(
+                this.l.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
                 );
 
@@ -187,7 +187,7 @@ export class ResponseHandler {
         if (serverTokenResponse.id_token) {
             idTokenClaims = extractTokenClaims(
                 serverTokenResponse.id_token || "",
-                this.cryptoObj.base64Decode
+                this.co.base64Decode
             );
 
             // token nonce check (TODO: Add a warning if no nonce is given?)
@@ -213,11 +213,11 @@ export class ResponseHandler {
         }
 
         // generate homeAccountId
-        this.homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
+        this.hai = AccountEntityUtils.generateHomeAccountId(
             serverTokenResponse.client_info || "",
             authority.authorityType,
-            this.logger,
-            this.cryptoObj,
+            this.l,
+            this.co,
             idTokenClaims
         );
 
@@ -225,7 +225,7 @@ export class ResponseHandler {
         let requestStateObj: RequestStateObject | undefined;
         if (!!authCodePayload && !!authCodePayload.state) {
             requestStateObj = ProtocolUtils.parseRequestState(
-                this.cryptoObj,
+                this.co,
                 authCodePayload.state
             );
         }
@@ -245,15 +245,15 @@ export class ResponseHandler {
         );
         let cacheContext;
         try {
-            if (this.persistencePlugin && this.serializableCache) {
-                this.logger.verbose(
+            if (this.pp && this.sc) {
+                this.l.verbose(
                     "Persistence enabled, calling beforeCacheAccess"
                 );
                 cacheContext = new TokenCacheContext(
-                    this.serializableCache,
+                    this.sc,
                     true
                 );
-                await this.persistencePlugin.beforeCacheAccess(cacheContext);
+                await this.pp.beforeCacheAccess(cacheContext);
             }
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
@@ -266,19 +266,19 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = this.cacheStorage.generateAccountKey(
+                const key = this.cs.generateAccountKey(
                     AccountEntityUtils.getAccountInfo(cacheRecord.account)
                 );
-                const account = this.cacheStorage.getAccount(
+                const account = this.cs.getAccount(
                     key,
                     request.correlationId
                 );
                 if (!account) {
-                    this.logger.warning(
+                    this.l.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
                     );
                     return await ResponseHandler.generateAuthenticationResult(
-                        this.cryptoObj,
+                        this.co,
                         authority,
                         cacheRecord,
                         false,
@@ -290,26 +290,26 @@ export class ResponseHandler {
                     );
                 }
             }
-            await this.cacheStorage.saveCacheRecord(
+            await this.cs.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
                 request.storeInCache
             );
         } finally {
             if (
-                this.persistencePlugin &&
-                this.serializableCache &&
+                this.pp &&
+                this.sc &&
                 cacheContext
             ) {
-                this.logger.verbose(
+                this.l.verbose(
                     "Persistence enabled, calling afterCacheAccess"
                 );
-                await this.persistencePlugin.afterCacheAccess(cacheContext);
+                await this.pp.afterCacheAccess(cacheContext);
             }
         }
 
         return ResponseHandler.generateAuthenticationResult(
-            this.cryptoObj,
+            this.co,
             authority,
             cacheRecord,
             false,
@@ -350,18 +350,18 @@ export class ResponseHandler {
         let cachedAccount: AccountEntity | undefined;
         if (serverTokenResponse.id_token && !!idTokenClaims) {
             cachedIdToken = CacheHelpers.createIdTokenEntity(
-                this.homeAccountIdentifier,
+                this.hai,
                 env,
                 serverTokenResponse.id_token,
-                this.clientId,
+                this.cId,
                 claimsTenantId || ""
             );
 
             cachedAccount = buildAccountToCache(
-                this.cacheStorage,
+                this.cs,
                 authority,
-                this.homeAccountIdentifier,
-                this.cryptoObj.base64Decode,
+                this.hai,
+                this.co.base64Decode,
                 request.correlationId,
                 idTokenClaims,
                 serverTokenResponse.client_info,
@@ -369,7 +369,7 @@ export class ResponseHandler {
                 claimsTenantId,
                 authCodePayload,
                 undefined, // nativeAccountId
-                this.logger
+                this.l
             );
         }
 
@@ -407,15 +407,15 @@ export class ResponseHandler {
 
             // non AAD scenarios can have empty realm
             cachedAccessToken = CacheHelpers.createAccessTokenEntity(
-                this.homeAccountIdentifier,
+                this.hai,
                 env,
                 serverTokenResponse.access_token,
-                this.clientId,
+                this.cId,
                 claimsTenantId || authority.tenant || "",
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
-                this.cryptoObj.base64Decode,
+                this.co.base64Decode,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
@@ -439,10 +439,10 @@ export class ResponseHandler {
                 rtExpiresOn = reqTimestamp + rtExpiresIn;
             }
             cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
-                this.homeAccountIdentifier,
+                this.hai,
                 env,
                 serverTokenResponse.refresh_token,
-                this.clientId,
+                this.cId,
                 serverTokenResponse.foci,
                 userAssertionHash,
                 rtExpiresOn
@@ -453,7 +453,7 @@ export class ResponseHandler {
         let cachedAppMetadata: AppMetadataEntity | null = null;
         if (serverTokenResponse.foci) {
             cachedAppMetadata = {
-                clientId: this.clientId,
+                clientId: this.cId,
                 environment: env,
                 familyId: serverTokenResponse.foci,
             };

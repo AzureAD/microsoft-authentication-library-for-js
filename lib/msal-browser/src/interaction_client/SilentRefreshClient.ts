@@ -38,10 +38,10 @@ export class SilentRefreshClient extends StandardInteractionClient {
         const baseRequest = await invokeAsync(
             initializeBaseRequest,
             BrowserPerformanceEvents.InitializeBaseRequest,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             request.correlationId
-        )(request, this.config, this.performanceClient, this.logger);
+        )(request, this.cfg, this.pc, this.l);
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...baseRequest,
@@ -51,17 +51,17 @@ export class SilentRefreshClient extends StandardInteractionClient {
             // Make sure any passed redirectUri is converted to an absolute URL - redirectUri is not a required parameter for refresh token redemption so only include if explicitly provided
             silentRequest.redirectUri = getRedirectUri(
                 request.redirectUri,
-                this.config.auth.redirectUri,
-                this.logger
+                this.cfg.auth.redirectUri,
+                this.l
             );
         }
 
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const refreshTokenClient = await this.createRefreshTokenClient({
@@ -76,11 +76,11 @@ export class SilentRefreshClient extends StandardInteractionClient {
                 refreshTokenClient
             ),
             BrowserPerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             request.correlationId
         )(silentRequest).catch((e: AuthError) => {
-            (e as AuthError).setCorrelationId(this.correlationId);
+            (e as AuthError).setCorrelationId(this.cId);
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }) as Promise<AuthenticationResult>;
@@ -119,9 +119,9 @@ export class SilentRefreshClient extends StandardInteractionClient {
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
             BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
+            this.l,
+            this.pc,
+            this.cId
         )({
             serverTelemetryManager: params.serverTelemetryManager,
             requestAuthority: params.authorityUrl,
@@ -129,6 +129,6 @@ export class SilentRefreshClient extends StandardInteractionClient {
             requestExtraQueryParameters: params.extraQueryParameters,
             account: params.account,
         });
-        return new RefreshTokenClient(clientConfig, this.performanceClient);
+        return new RefreshTokenClient(clientConfig, this.pc);
     }
 }

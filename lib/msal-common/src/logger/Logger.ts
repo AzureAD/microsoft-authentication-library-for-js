@@ -38,22 +38,22 @@ export interface ILoggerCallback {
  */
 export class Logger {
     // Correlation ID for request, usually set by user.
-    private correlationId: string;
+    private cId: string;
 
     // Current log level, defaults to info.
-    private level: LogLevel = LogLevel.Info;
+    private lvl: LogLevel = LogLevel.Info;
 
     // Boolean describing whether PII logging is allowed.
-    private piiLoggingEnabled: boolean;
+    private piiEnabled: boolean;
 
     // Callback to send messages to.
-    private localCallback: ILoggerCallback;
+    private lcb: ILoggerCallback;
 
     // Package name implementing this logger
-    private packageName: string;
+    private pkgName: string;
 
     // Package version implementing this logger
-    private packageVersion: string;
+    private pkgVer: string;
 
     constructor(
         loggerOptions: LoggerOptions,
@@ -65,16 +65,16 @@ export class Logger {
         };
         const setLoggerOptions =
             loggerOptions || Logger.createDefaultLoggerOptions();
-        this.localCallback =
+        this.lcb =
             setLoggerOptions.loggerCallback || defaultLoggerCallback;
-        this.piiLoggingEnabled = setLoggerOptions.piiLoggingEnabled || false;
-        this.level =
+        this.piiEnabled = setLoggerOptions.piiLoggingEnabled || false;
+        this.lvl =
             typeof setLoggerOptions.logLevel === "number"
                 ? setLoggerOptions.logLevel
                 : LogLevel.Info;
-        this.correlationId = setLoggerOptions.correlationId || "";
-        this.packageName = packageName || "";
-        this.packageVersion = packageVersion || "";
+        this.cId = setLoggerOptions.correlationId || "";
+        this.pkgName = packageName || "";
+        this.pkgVer = packageVersion || "";
     }
 
     private static createDefaultLoggerOptions(): LoggerOptions {
@@ -97,10 +97,10 @@ export class Logger {
     ): Logger {
         return new Logger(
             {
-                loggerCallback: this.localCallback,
-                piiLoggingEnabled: this.piiLoggingEnabled,
-                logLevel: this.level,
-                correlationId: correlationId || this.correlationId,
+                loggerCallback: this.lcb,
+                piiLoggingEnabled: this.piiEnabled,
+                logLevel: this.lvl,
+                correlationId: correlationId || this.cId,
             },
             packageName,
             packageVersion
@@ -115,8 +115,8 @@ export class Logger {
         options: LoggerMessageOptions
     ): void {
         if (
-            options.logLevel > this.level ||
-            (!this.piiLoggingEnabled && options.containsPii)
+            options.logLevel > this.lvl ||
+            (!this.piiEnabled && options.containsPii)
         ) {
             return;
         }
@@ -124,11 +124,11 @@ export class Logger {
 
         // Add correlationId to logs if set, correlationId provided on log messages take precedence
         const logHeader = `[${timestamp}] : [${
-            options.correlationId || this.correlationId || ""
+            options.correlationId || this.cId || ""
         }]`;
 
-        const log = `${logHeader} : ${this.packageName}@${
-            this.packageVersion
+        const log = `${logHeader} : ${this.pkgName}@${
+            this.pkgVer
         } : ${LogLevel[options.logLevel]} - ${logMessage}`;
         // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": Constants.""}${options.context ? `:${options.context}` : Constants.""}`)(logMessage);
         this.executeCallback(
@@ -146,8 +146,8 @@ export class Logger {
         message: string,
         containsPii: boolean
     ): void {
-        if (this.localCallback) {
-            this.localCallback(level, message, containsPii);
+        if (this.lcb) {
+            this.lcb(level, message, containsPii);
         }
     }
 
@@ -265,6 +265,6 @@ export class Logger {
      * Returns whether PII Logging is enabled or not.
      */
     isPiiLoggingEnabled(): boolean {
-        return this.piiLoggingEnabled || false;
+        return this.piiEnabled || false;
     }
 }

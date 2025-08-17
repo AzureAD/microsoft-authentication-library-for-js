@@ -16,14 +16,14 @@ import * as Constants from "../utils/Constants.js";
  */
 export class UrlString {
     // internal url string field
-    private _urlString: string;
+    private _u: string;
     public get urlString(): string {
-        return this._urlString;
+        return this._u;
     }
 
     constructor(url: string) {
-        this._urlString = url;
-        if (!this._urlString) {
+        this._u = url;
+        if (!this._u) {
             // Throws error if url is empty
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.urlEmptyError
@@ -31,7 +31,7 @@ export class UrlString {
         }
 
         if (!url.includes("#")) {
-            this._urlString = UrlString.canonicalizeUri(url);
+            this._u = UrlString.canonicalizeUri(url);
         }
     }
 

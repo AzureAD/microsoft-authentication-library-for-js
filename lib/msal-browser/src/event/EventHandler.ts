@@ -18,18 +18,18 @@ const BROADCAST_CHANNEL_NAME = "msal.broadcast.event";
 
 export class EventHandler {
     // Callback for subscribing to events
-    private eventCallbacks: Map<
+    private ec: Map<
         string,
         [EventCallbackFunction, Array<EventType>]
     >;
-    private logger: Logger;
-    private broadcastChannel?: BroadcastChannel;
+    private l: Logger;
+    private bc?: BroadcastChannel;
 
     constructor(logger?: Logger) {
-        this.eventCallbacks = new Map();
-        this.logger = logger || new Logger({});
+        this.ec = new Map();
+        this.l = logger || new Logger({});
         if (typeof BroadcastChannel !== "undefined") {
-            this.broadcastChannel = new BroadcastChannel(
+            this.bc = new BroadcastChannel(
                 BROADCAST_CHANNEL_NAME
             );
         }
@@ -49,14 +49,14 @@ export class EventHandler {
     ): string | null {
         if (typeof window !== "undefined") {
             const id = callbackId || createGuid();
-            if (this.eventCallbacks.has(id)) {
-                this.logger.error(
+            if (this.ec.has(id)) {
+                this.l.error(
                     `Event callback with id: ${id} is already registered. Please provide a unique id or remove the existing callback and try again.`
                 );
                 return null;
             }
-            this.eventCallbacks.set(id, [callback, eventTypes || []]);
-            this.logger.verbose(`Event callback registered with id: ${id}`);
+            this.ec.set(id, [callback, eventTypes || []]);
+            this.l.verbose(`Event callback registered with id: ${id}`);
 
             return id;
         }
@@ -69,8 +69,8 @@ export class EventHandler {
      * @param callbackId
      */
     removeEventCallback(callbackId: string): void {
-        this.eventCallbacks.delete(callbackId);
-        this.logger.verbose(`Event callback ${callbackId} removed.`);
+        this.ec.delete(callbackId);
+        this.l.verbose(`Event callback ${callbackId} removed.`);
     }
 
     /**
@@ -99,7 +99,7 @@ export class EventHandler {
             case EventType.ACCOUNT_REMOVED:
             case EventType.ACTIVE_ACCOUNT_CHANGED:
                 // Send event to other open tabs / MSAL instances on same domain
-                this.broadcastChannel?.postMessage(message);
+                this.bc?.postMessage(message);
                 break;
             default:
                 // Emit event to callbacks registered in this instance
@@ -113,7 +113,7 @@ export class EventHandler {
      * @param message
      */
     private invokeCallbacks(message: EventMessage): void {
-        this.eventCallbacks.forEach(
+        this.ec.forEach(
             (
                 [callback, eventTypes]: [
                     EventCallbackFunction,
@@ -125,7 +125,7 @@ export class EventHandler {
                     eventTypes.length === 0 ||
                     eventTypes.includes(message.eventType)
                 ) {
-                    this.logger.verbose(
+                    this.l.verbose(
                         `Emitting event to callback ${callbackId}: ${message.eventType}`
                     );
                     callback.apply(null, [message]);
@@ -147,7 +147,7 @@ export class EventHandler {
      * Listen for events broadcasted from other tabs/instances
      */
     subscribeCrossTab(): void {
-        this.broadcastChannel?.addEventListener(
+        this.bc?.addEventListener(
             "message",
             this.invokeCrossTabCallbacks
         );
@@ -157,7 +157,7 @@ export class EventHandler {
      * Unsubscribe from broadcast events
      */
     unsubscribeCrossTab(): void {
-        this.broadcastChannel?.removeEventListener(
+        this.bc?.removeEventListener(
             "message",
             this.invokeCrossTabCallbacks
         );

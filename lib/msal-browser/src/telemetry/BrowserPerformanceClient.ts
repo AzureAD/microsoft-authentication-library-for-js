@@ -96,7 +96,7 @@ export class BrowserPerformanceClient
         inProgressEvent: InProgressPerformanceEvent
     ): void {
         void getPerfMeasurementModule()?.then((module) => {
-            const rootEvent = this.eventsByCorrelationId.get(
+            const rootEvent = this.evtsByCorr.get(
                 inProgressEvent.event.correlationId
             );
             const isRootEvent =

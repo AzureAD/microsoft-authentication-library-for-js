@@ -121,65 +121,65 @@ function preflightCheck(
 
 export class StandardController implements IController {
     // OperatingContext
-    protected readonly operatingContext: StandardOperatingContext;
+    protected readonly oc: StandardOperatingContext;
 
     // Crypto interface implementation
-    protected readonly browserCrypto: ICrypto;
+    protected readonly bc: ICrypto;
 
     // Storage interface implementation
-    protected readonly browserStorage: BrowserCacheManager;
+    protected readonly bs: BrowserCacheManager;
 
     // Native Cache in memory storage implementation
-    protected readonly nativeInternalStorage: BrowserCacheManager;
+    protected readonly nis: BrowserCacheManager;
 
     // Network interface implementation
-    protected readonly networkClient: INetworkModule;
+    protected readonly nc: INetworkModule;
 
     // Navigation interface implementation
-    protected navigationClient: INavigationClient;
+    protected navClient: INavigationClient;
 
     // Input configuration by developer/user
-    protected readonly config: BrowserConfiguration;
+    protected readonly cfg: BrowserConfiguration;
 
     // Logger
-    protected logger: Logger;
+    protected l: Logger;
 
     // Flag to indicate if in browser environment
-    protected isBrowserEnvironment: boolean;
+    protected isBrowserFlag: boolean;
 
-    protected readonly eventHandler: EventHandler;
+    protected readonly eh: EventHandler;
 
     // Redirect Response Object
-    protected readonly redirectResponse: Map<
+    protected readonly rr: Map<
         string,
         Promise<AuthenticationResult | null>
     >;
 
     // Native Extension Provider
-    protected platformAuthProvider: IPlatformAuthHandler | undefined;
+    protected pap: IPlatformAuthHandler | undefined;
 
     // Hybrid auth code responses
-    private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
+    private hacr: Map<string, Promise<AuthenticationResult>>;
 
     // Performance telemetry client
-    protected readonly performanceClient: IPerformanceClient;
+    protected readonly pc: IPerformanceClient;
 
     // Flag representing whether or not the initialize API has been called and completed
-    protected initialized: boolean;
+    protected init: boolean;
 
     // Active requests
-    private activeSilentTokenRequests: Map<
+    private astr: Map<
         string,
         Promise<AuthenticationResult>
     >;
 
     // Active Iframe request
-    private activeIframeRequest: [Promise<boolean>, string] | undefined;
+    private air: [Promise<boolean>, string] | undefined;
 
-    private ssoSilentMeasurement?: InProgressPerformanceEvent;
-    private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
+    private ssm?: InProgressPerformanceEvent;
+    private atbcam?: InProgressPerformanceEvent;
 
-    private pkceCode: PkceCodes | undefined;
+    private pkce: PkceCodes | undefined;
 
     /**
      * @constructor
@@ -203,54 +203,54 @@ export class StandardController implements IController {
      * @param configuration Object for the MSAL PublicClientApplication instance
      */
     constructor(operatingContext: StandardOperatingContext) {
-        this.operatingContext = operatingContext;
-        this.isBrowserEnvironment =
-            this.operatingContext.isBrowserEnvironment();
+        this.oc = operatingContext;
+        this.isBrowserFlag =
+            this.oc.isBrowserEnvironment();
         // Set the configuration.
-        this.config = operatingContext.getConfig();
-        this.initialized = false;
+        this.cfg = operatingContext.getConfig();
+        this.init = false;
 
         // Initialize logger
-        this.logger = this.operatingContext.getLogger();
+        this.l = this.oc.getLogger();
 
         // Initialize the network module class.
-        this.networkClient = this.config.system.networkClient;
+        this.nc = this.cfg.system.networkClient;
 
         // Initialize the navigation client class.
-        this.navigationClient = this.config.system.navigationClient;
+        this.navClient = this.cfg.system.navigationClient;
 
         // Initialize redirectResponse Map
-        this.redirectResponse = new Map();
+        this.rr = new Map();
 
         // Initial hybrid spa map
-        this.hybridAuthCodeResponses = new Map();
+        this.hacr = new Map();
 
         // Initialize performance client
-        this.performanceClient = this.config.telemetry.client;
+        this.pc = this.cfg.telemetry.client;
 
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment
-            ? new CryptoOps(this.logger, this.performanceClient)
+        this.bc = this.isBrowserFlag
+            ? new CryptoOps(this.l, this.pc)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
-        this.eventHandler = new EventHandler(this.logger);
+        this.eh = new EventHandler(this.l);
 
         // Initialize the browser storage class.
-        this.browserStorage = this.isBrowserEnvironment
+        this.bs = this.isBrowserFlag
             ? new BrowserCacheManager(
-                  this.config.auth.clientId,
-                  this.config.cache,
-                  this.browserCrypto,
-                  this.logger,
-                  this.performanceClient,
-                  this.eventHandler,
-                  buildStaticAuthorityOptions(this.config.auth)
+                  this.cfg.auth.clientId,
+                  this.cfg.cache,
+                  this.bc,
+                  this.l,
+                  this.pc,
+                  this.eh,
+                  buildStaticAuthorityOptions(this.cfg.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
-                  this.config.auth.clientId,
-                  this.logger,
-                  this.performanceClient,
-                  this.eventHandler
+                  this.cfg.auth.clientId,
+                  this.l,
+                  this.pc,
+                  this.eh
               );
 
         // initialize in memory storage for native flows
@@ -258,16 +258,16 @@ export class StandardController implements IController {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
             cacheRetentionDays: 5,
         };
-        this.nativeInternalStorage = new BrowserCacheManager(
-            this.config.auth.clientId,
+        this.nis = new BrowserCacheManager(
+            this.cfg.auth.clientId,
             nativeCacheOptions,
-            this.browserCrypto,
-            this.logger,
-            this.performanceClient,
-            this.eventHandler
+            this.bc,
+            this.l,
+            this.pc,
+            this.eh
         );
 
-        this.activeSilentTokenRequests = new Map();
+        this.astr = new Map();
 
         // Register listener functions
         this.trackPageVisibility = this.trackPageVisibility.bind(this);
@@ -290,8 +290,8 @@ export class StandardController implements IController {
         if (!correlationId) {
             return;
         }
-        this.logger.info("Perf: Visibility change detected");
-        this.performanceClient.incrementFields(
+        this.l.info("Perf: Visibility change detected");
+        this.pc.incrementFields(
             { visibilityChangeCount: 1 },
             correlationId
         );
@@ -305,29 +305,29 @@ export class StandardController implements IController {
         request?: InitializeApplicationRequest,
         isBroker?: boolean
     ): Promise<void> {
-        this.logger.trace("initialize called");
-        if (this.initialized) {
-            this.logger.info(
+        this.l.trace("initialize called");
+        if (this.init) {
+            this.l.info(
                 "initialize has already been called, exiting early."
             );
             return;
         }
 
-        if (!this.isBrowserEnvironment) {
-            this.logger.info("in non-browser environment, exiting early.");
-            this.initialized = true;
-            this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+        if (!this.isBrowserFlag) {
+            this.l.info("in non-browser environment, exiting early.");
+            this.init = true;
+            this.eh.emitEvent(EventType.INITIALIZE_END);
             return;
         }
 
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
-        const allowPlatformBroker = this.config.system.allowPlatformBroker;
-        const initMeasurement = this.performanceClient.startMeasurement(
+        const allowPlatformBroker = this.cfg.system.allowPlatformBroker;
+        const initMeasurement = this.pc.startMeasurement(
             BrowserRootPerformanceEvents.InitializeClientApplication,
             initCorrelationId
         );
-        this.eventHandler.emitEvent(EventType.INITIALIZE_START);
+        this.eh.emitEvent(EventType.INITIALIZE_START);
 
         // Broker applications are initialized twice, so we avoid double-counting it
         if (!isBroker) {
@@ -337,38 +337,38 @@ export class StandardController implements IController {
         }
 
         await invokeAsync(
-            this.browserStorage.initialize.bind(this.browserStorage),
+            this.bs.initialize.bind(this.bs),
             BrowserPerformanceEvents.InitializeCache,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             initCorrelationId
         )(initCorrelationId);
 
         if (allowPlatformBroker) {
             try {
                 // check if platform authentication is available via DOM or browser extension and create relevant handlers
-                this.platformAuthProvider = await getPlatformAuthProvider(
-                    this.logger,
-                    this.performanceClient,
+                this.pap = await getPlatformAuthProvider(
+                    this.l,
+                    this.pc,
                     initCorrelationId,
-                    this.config.system.nativeBrokerHandshakeTimeout
+                    this.cfg.system.nativeBrokerHandshakeTimeout
                 );
             } catch (e) {
-                this.logger.verbose(e as string);
+                this.l.verbose(e as string);
             }
         }
 
         if (
-            this.config.cache.cacheLocation ===
+            this.cfg.cache.cacheLocation ===
             BrowserCacheLocation.LocalStorage
         ) {
-            this.eventHandler.subscribeCrossTab();
+            this.eh.subscribeCrossTab();
         }
 
-        !this.config.system.navigatePopups &&
+        !this.cfg.system.navigatePopups &&
             (await this.preGeneratePkceCodes(initCorrelationId));
-        this.initialized = true;
-        this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+        this.init = true;
+        this.eh.emitEvent(EventType.INITIALIZE_END);
         initMeasurement.end({
             allowPlatformBroker: allowPlatformBroker,
             success: true,
@@ -388,32 +388,32 @@ export class StandardController implements IController {
     async handleRedirectPromise(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        this.logger.verbose("handleRedirectPromise called");
+        this.l.verbose("handleRedirectPromise called");
         // Block token acquisition before initialize has been called
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        if (this.isBrowserEnvironment) {
+        BrowserUtils.blockAPICallsBeforeInitialize(this.init);
+        if (this.isBrowserFlag) {
             /**
              * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
             const redirectResponseKey = options?.hash || "";
-            let response = this.redirectResponse.get(redirectResponseKey);
+            let response = this.rr.get(redirectResponseKey);
             if (typeof response === "undefined") {
                 response = this.handleRedirectPromiseInternal(options);
-                this.redirectResponse.set(redirectResponseKey, response);
-                this.logger.verbose(
+                this.rr.set(redirectResponseKey, response);
+                this.l.verbose(
                     "handleRedirectPromise has been called for the first time, storing the promise"
                 );
             } else {
-                this.logger.verbose(
+                this.l.verbose(
                     "handleRedirectPromise has been called previously, returning the result from the first call"
                 );
             }
 
             return response;
         }
-        this.logger.verbose(
+        this.l.verbose(
             "handleRedirectPromise returns null, not browser environment"
         );
         return null;
@@ -427,119 +427,119 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        if (!this.browserStorage.isInteractionInProgress(true)) {
-            this.logger.info(
+        if (!this.bs.isInteractionInProgress(true)) {
+            this.l.info(
                 "handleRedirectPromise called but there is no interaction in progress, returning null."
             );
             return null;
         }
 
         const interactionType =
-            this.browserStorage.getInteractionInProgress()?.type;
+            this.bs.getInteractionInProgress()?.type;
         if (interactionType === INTERACTION_TYPE.SIGNOUT) {
-            this.logger.verbose(
+            this.l.verbose(
                 "handleRedirectPromise removing interaction_in_progress flag and returning null after sign-out"
             );
-            this.browserStorage.setInteractionInProgress(false);
+            this.bs.setInteractionInProgress(false);
             return Promise.resolve(null);
         }
 
         const loggedInAccounts = this.getAllAccounts();
         const platformBrokerRequest: PlatformAuthRequest | null =
-            this.browserStorage.getCachedNativeRequest();
+            this.bs.getCachedNativeRequest();
         const useNative =
             platformBrokerRequest &&
-            this.platformAuthProvider &&
+            this.pap &&
             !options?.hash;
 
         let rootMeasurement: InProgressPerformanceEvent;
 
-        this.eventHandler.emitEvent(
+        this.eh.emitEvent(
             EventType.HANDLE_REDIRECT_START,
             InteractionType.Redirect
         );
 
         let redirectResponse: Promise<AuthenticationResult | null>;
         try {
-            if (useNative && this.platformAuthProvider) {
-                rootMeasurement = this.performanceClient.startMeasurement(
+            if (useNative && this.pap) {
+                rootMeasurement = this.pc.startMeasurement(
                     BrowserRootPerformanceEvents.AcquireTokenRedirect,
                     platformBrokerRequest?.correlationId || ""
                 );
-                this.logger.trace(
+                this.l.trace(
                     "handleRedirectPromise - acquiring token from native platform"
                 );
                 const nativeClient = new PlatformAuthInteractionClient(
-                    this.config,
-                    this.browserStorage,
-                    this.browserCrypto,
-                    this.logger,
-                    this.eventHandler,
-                    this.navigationClient,
+                    this.cfg,
+                    this.bs,
+                    this.bc,
+                    this.l,
+                    this.eh,
+                    this.navClient,
                     ApiId.handleRedirectPromise,
-                    this.performanceClient,
-                    this.platformAuthProvider,
+                    this.pc,
+                    this.pap,
                     platformBrokerRequest.accountId,
-                    this.nativeInternalStorage,
+                    this.nis,
                     platformBrokerRequest.correlationId
                 );
 
                 redirectResponse = invokeAsync(
                     nativeClient.handleRedirectPromise.bind(nativeClient),
                     BrowserPerformanceEvents.HandleNativeRedirectPromiseMeasurement,
-                    this.logger,
-                    this.performanceClient,
+                    this.l,
+                    this.pc,
                     rootMeasurement.event.correlationId
-                )(this.performanceClient, rootMeasurement.event.correlationId);
+                )(this.pc, rootMeasurement.event.correlationId);
             } else {
                 const [standardRequest, codeVerifier] =
-                    this.browserStorage.getCachedRequest();
+                    this.bs.getCachedRequest();
                 const correlationId = standardRequest.correlationId;
                 // Reset rootMeasurement now that we have correlationId
-                rootMeasurement = this.performanceClient.startMeasurement(
+                rootMeasurement = this.pc.startMeasurement(
                     BrowserRootPerformanceEvents.AcquireTokenRedirect,
                     correlationId
                 );
-                this.logger.trace(
+                this.l.trace(
                     "handleRedirectPromise - acquiring token from web flow"
                 );
                 const redirectClient = this.createRedirectClient(correlationId);
                 redirectResponse = invokeAsync(
                     redirectClient.handleRedirectPromise.bind(redirectClient),
                     BrowserPerformanceEvents.HandleRedirectPromiseMeasurement,
-                    this.logger,
-                    this.performanceClient,
+                    this.l,
+                    this.pc,
                     rootMeasurement.event.correlationId
                 )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
-            this.browserStorage.resetRequestCache();
+            this.bs.resetRequestCache();
             throw e;
         }
 
         return redirectResponse
             .then((result: AuthenticationResult | null) => {
                 if (result) {
-                    this.browserStorage.resetRequestCache();
+                    this.bs.resetRequestCache();
                     // Emit login event if number of accounts change
                     const isLoggingIn =
                         loggedInAccounts.length < this.getAllAccounts().length;
                     if (isLoggingIn) {
-                        this.eventHandler.emitEvent(
+                        this.eh.emitEvent(
                             EventType.LOGIN_SUCCESS,
                             InteractionType.Redirect,
                             result
                         );
-                        this.logger.verbose(
+                        this.l.verbose(
                             "handleRedirectResponse returned result, login success"
                         );
                     } else {
-                        this.eventHandler.emitEvent(
+                        this.eh.emitEvent(
                             EventType.ACQUIRE_TOKEN_SUCCESS,
                             InteractionType.Redirect,
                             result
                         );
-                        this.logger.verbose(
+                        this.l.verbose(
                             "handleRedirectResponse returned result, acquire token success"
                         );
                     }
@@ -559,7 +559,7 @@ export class StandardController implements IController {
                     }
                 }
 
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.HANDLE_REDIRECT_END,
                     InteractionType.Redirect
                 );
@@ -567,25 +567,25 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
-                this.browserStorage.resetRequestCache();
+                this.bs.resetRequestCache();
                 const eventError = e as EventError;
                 // Emit login event if there is an account
                 if (loggedInAccounts.length > 0) {
-                    this.eventHandler.emitEvent(
+                    this.eh.emitEvent(
                         EventType.ACQUIRE_TOKEN_FAILURE,
                         InteractionType.Redirect,
                         null,
                         eventError
                     );
                 } else {
-                    this.eventHandler.emitEvent(
+                    this.eh.emitEvent(
                         EventType.LOGIN_FAILURE,
                         InteractionType.Redirect,
                         null,
                         eventError
                     );
                 }
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.HANDLE_REDIRECT_END,
                     InteractionType.Redirect
                 );
@@ -613,9 +613,9 @@ export class StandardController implements IController {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
         const correlationId = this.getRequestCorrelationId(request);
-        this.logger.verbose("acquireTokenRedirect called", correlationId);
+        this.l.verbose("acquireTokenRedirect called", correlationId);
 
-        const atrMeasurement = this.performanceClient.startMeasurement(
+        const atrMeasurement = this.pc.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenPreRedirect,
             correlationId
         );
@@ -624,8 +624,8 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        const configOnRedirectNavigateCb = this.config.auth.onRedirectNavigate;
-        this.config.auth.onRedirectNavigate = (url: string) => {
+        const configOnRedirectNavigateCb = this.cfg.auth.onRedirectNavigate;
+        this.cfg.auth.onRedirectNavigate = (url: string) => {
             const navigate =
                 typeof configOnRedirectNavigateCb === "function"
                     ? configOnRedirectNavigateCb(url)
@@ -641,20 +641,20 @@ export class StandardController implements IController {
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
         try {
-            BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-            this.browserStorage.setInteractionInProgress(
+            BrowserUtils.redirectPreflightCheck(this.init, this.cfg);
+            this.bs.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN
             );
 
             if (isLoggedIn) {
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.ACQUIRE_TOKEN_START,
                     InteractionType.Redirect,
                     request
                 );
             } else {
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.LOGIN_START,
                     InteractionType.Redirect,
                     request
@@ -664,21 +664,21 @@ export class StandardController implements IController {
             let result: Promise<void>;
 
             if (
-                this.platformAuthProvider &&
+                this.pap &&
                 this.canUsePlatformBroker(request)
             ) {
                 const nativeClient = new PlatformAuthInteractionClient(
-                    this.config,
-                    this.browserStorage,
-                    this.browserCrypto,
-                    this.logger,
-                    this.eventHandler,
-                    this.navigationClient,
+                    this.cfg,
+                    this.bs,
+                    this.bc,
+                    this.l,
+                    this.eh,
+                    this.navClient,
                     ApiId.acquireTokenRedirect,
-                    this.performanceClient,
-                    this.platformAuthProvider,
+                    this.pc,
+                    this.pap,
                     this.getNativeAccountId(request),
-                    this.nativeInternalStorage,
+                    this.nis,
                     correlationId
                 );
                 result = nativeClient
@@ -688,12 +688,12 @@ export class StandardController implements IController {
                             e instanceof NativeAuthError &&
                             isFatalNativeAuthError(e)
                         ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            this.pap = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                             const redirectClient =
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
                         } else if (e instanceof InteractionRequiredAuthError) {
-                            this.logger.verbose(
+                            this.l.verbose(
                                 "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow"
                             );
                             const redirectClient =
@@ -709,13 +709,13 @@ export class StandardController implements IController {
 
             return await result;
         } catch (e) {
-            this.browserStorage.resetRequestCache();
+            this.bs.resetRequestCache();
             /*
              * Pre-redirect event completes before navigation occurs.
              * Timed out navigation needs to be instrumented separately as a post-redirect event.
              */
             if (atrMeasurement.event.status === 2) {
-                this.performanceClient
+                this.pc
                     .startMeasurement(
                         BrowserRootPerformanceEvents.AcquireTokenRedirect,
                         correlationId
@@ -726,14 +726,14 @@ export class StandardController implements IController {
             }
 
             if (isLoggedIn) {
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
                     InteractionType.Redirect,
                     null,
                     e as EventError
                 );
             } else {
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.LOGIN_FAILURE,
                     InteractionType.Redirect,
                     null,
@@ -757,7 +757,7 @@ export class StandardController implements IController {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
-        const atPopupMeasurement = this.performanceClient.startMeasurement(
+        const atPopupMeasurement = this.pc.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenPopup,
             correlationId
         );
@@ -768,9 +768,9 @@ export class StandardController implements IController {
         });
 
         try {
-            this.logger.verbose("acquireTokenPopup called", correlationId);
-            preflightCheck(this.initialized, atPopupMeasurement);
-            this.browserStorage.setInteractionInProgress(
+            this.l.verbose("acquireTokenPopup called", correlationId);
+            preflightCheck(this.init, atPopupMeasurement);
+            this.bs.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN
             );
@@ -782,13 +782,13 @@ export class StandardController implements IController {
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
         if (loggedInAccounts.length > 0) {
-            this.eventHandler.emitEvent(
+            this.eh.emitEvent(
                 EventType.ACQUIRE_TOKEN_START,
                 InteractionType.Popup,
                 request
             );
         } else {
-            this.eventHandler.emitEvent(
+            this.eh.emitEvent(
                 EventType.LOGIN_START,
                 InteractionType.Popup,
                 request
@@ -819,12 +819,12 @@ export class StandardController implements IController {
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
                     ) {
-                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        this.pap = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
                     } else if (e instanceof InteractionRequiredAuthError) {
-                        this.logger.verbose(
+                        this.l.verbose(
                             "acquireTokenPopup - Resolving interaction required error thrown by native broker by falling back to web flow"
                         );
                         const popupClient =
@@ -846,13 +846,13 @@ export class StandardController implements IController {
                 const isLoggingIn =
                     loggedInAccounts.length < this.getAllAccounts().length;
                 if (isLoggingIn) {
-                    this.eventHandler.emitEvent(
+                    this.eh.emitEvent(
                         EventType.LOGIN_SUCCESS,
                         InteractionType.Popup,
                         result
                     );
                 } else {
-                    this.eventHandler.emitEvent(
+                    this.eh.emitEvent(
                         EventType.ACQUIRE_TOKEN_SUCCESS,
                         InteractionType.Popup,
                         result
@@ -869,14 +869,14 @@ export class StandardController implements IController {
             })
             .catch((e: Error) => {
                 if (loggedInAccounts.length > 0) {
-                    this.eventHandler.emitEvent(
+                    this.eh.emitEvent(
                         EventType.ACQUIRE_TOKEN_FAILURE,
                         InteractionType.Popup,
                         null,
                         e
                     );
                 } else {
-                    this.eventHandler.emitEvent(
+                    this.eh.emitEvent(
                         EventType.LOGIN_FAILURE,
                         InteractionType.Popup,
                         null,
@@ -895,8 +895,8 @@ export class StandardController implements IController {
                 return Promise.reject(e);
             })
             .finally(async () => {
-                this.browserStorage.setInteractionInProgress(false);
-                if (!this.config.system.navigatePopups) {
+                this.bs.setInteractionInProgress(false);
+                if (!this.cfg.system.navigatePopups) {
                     await this.preGeneratePkceCodes(correlationId);
                 }
             });
@@ -904,13 +904,13 @@ export class StandardController implements IController {
 
     private trackPageVisibilityWithMeasurement(): void {
         const measurement =
-            this.ssoSilentMeasurement ||
-            this.acquireTokenByCodeAsyncMeasurement;
+            this.ssm ||
+            this.atbcam;
         if (!measurement) {
             return;
         }
 
-        this.logger.info(
+        this.l.info(
             "Perf: Visibility change detected in ",
             measurement.event.name
         );
@@ -945,16 +945,16 @@ export class StandardController implements IController {
             prompt: request.prompt,
             correlationId: correlationId,
         };
-        this.ssoSilentMeasurement = this.performanceClient.startMeasurement(
+        this.ssm = this.pc.startMeasurement(
             BrowserRootPerformanceEvents.SsoSilent,
             correlationId
         );
-        this.ssoSilentMeasurement?.add({
+        this.ssm?.add({
             scenarioId: request.scenarioId,
             accountType: getAccountType(request.account),
         });
-        preflightCheck(this.initialized, this.ssoSilentMeasurement);
-        this.ssoSilentMeasurement?.increment({
+        preflightCheck(this.init, this.ssm);
+        this.ssm?.increment({
             visibilityChangeCount: 0,
         });
 
@@ -962,8 +962,8 @@ export class StandardController implements IController {
             "visibilitychange",
             this.trackPageVisibilityWithMeasurement
         );
-        this.logger.verbose("ssoSilent called", correlationId);
-        this.eventHandler.emitEvent(
+        this.l.verbose("ssoSilent called", correlationId);
+        this.eh.emitEvent(
             EventType.SSO_SILENT_START,
             InteractionType.Silent,
             validRequest
@@ -978,7 +978,7 @@ export class StandardController implements IController {
             ).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                    this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                    this.pap = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                     const silentIframeClient = this.createSilentIframeClient(
                         validRequest.correlationId
                     );
@@ -995,12 +995,12 @@ export class StandardController implements IController {
 
         return result
             .then((response) => {
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.SSO_SILENT_SUCCESS,
                     InteractionType.Silent,
                     response
                 );
-                this.ssoSilentMeasurement?.end({
+                this.ssm?.end({
                     success: true,
                     isNativeBroker: response.fromPlatformBroker,
                     accessTokenSize: response.accessToken.length,
@@ -1010,13 +1010,13 @@ export class StandardController implements IController {
                 return response;
             })
             .catch((e: Error) => {
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.SSO_SILENT_FAILURE,
                     InteractionType.Silent,
                     null,
                     e
                 );
-                this.ssoSilentMeasurement?.end(
+                this.ssm?.end(
                     {
                         success: false,
                     },
@@ -1046,13 +1046,13 @@ export class StandardController implements IController {
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
-        this.logger.trace("acquireTokenByCode called", correlationId);
-        const atbcMeasurement = this.performanceClient.startMeasurement(
+        this.l.trace("acquireTokenByCode called", correlationId);
+        const atbcMeasurement = this.pc.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenByCode,
             correlationId
         );
-        preflightCheck(this.initialized, atbcMeasurement);
-        this.eventHandler.emitEvent(
+        preflightCheck(this.init, atbcMeasurement);
+        this.eh.emitEvent(
             EventType.ACQUIRE_TOKEN_BY_CODE_START,
             InteractionType.Silent,
             request
@@ -1067,9 +1067,9 @@ export class StandardController implements IController {
                 );
             } else if (request.code) {
                 const hybridAuthCode = request.code;
-                let response = this.hybridAuthCodeResponses.get(hybridAuthCode);
+                let response = this.hacr.get(hybridAuthCode);
                 if (!response) {
-                    this.logger.verbose(
+                    this.l.verbose(
                         "Initiating new acquireTokenByCode request",
                         correlationId
                     );
@@ -1078,12 +1078,12 @@ export class StandardController implements IController {
                         correlationId,
                     })
                         .then((result: AuthenticationResult) => {
-                            this.eventHandler.emitEvent(
+                            this.eh.emitEvent(
                                 EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS,
                                 InteractionType.Silent,
                                 result
                             );
-                            this.hybridAuthCodeResponses.delete(hybridAuthCode);
+                            this.hacr.delete(hybridAuthCode);
                             atbcMeasurement.end({
                                 success: true,
                                 isNativeBroker: result.fromPlatformBroker,
@@ -1094,8 +1094,8 @@ export class StandardController implements IController {
                             return result;
                         })
                         .catch((error: Error) => {
-                            this.hybridAuthCodeResponses.delete(hybridAuthCode);
-                            this.eventHandler.emitEvent(
+                            this.hacr.delete(hybridAuthCode);
+                            this.eh.emitEvent(
                                 EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE,
                                 InteractionType.Silent,
                                 null,
@@ -1109,9 +1109,9 @@ export class StandardController implements IController {
                             );
                             throw error;
                         });
-                    this.hybridAuthCodeResponses.set(hybridAuthCode, response);
+                    this.hacr.set(hybridAuthCode, response);
                 } else {
-                    this.logger.verbose(
+                    this.l.verbose(
                         "Existing acquireTokenByCode request found",
                         correlationId
                     );
@@ -1135,7 +1135,7 @@ export class StandardController implements IController {
                             e instanceof NativeAuthError &&
                             isFatalNativeAuthError(e)
                         ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            this.pap = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
                         throw e;
                     });
@@ -1155,7 +1155,7 @@ export class StandardController implements IController {
                 );
             }
         } catch (e) {
-            this.eventHandler.emitEvent(
+            this.eh.emitEvent(
                 EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE,
                 InteractionType.Silent,
                 null,
@@ -1179,16 +1179,16 @@ export class StandardController implements IController {
     private async acquireTokenByCodeAsync(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
-        this.logger.trace(
+        this.l.trace(
             "acquireTokenByCodeAsync called",
             request.correlationId
         );
-        this.acquireTokenByCodeAsyncMeasurement =
-            this.performanceClient.startMeasurement(
+        this.atbcam =
+            this.pc.startMeasurement(
                 BrowserPerformanceEvents.AcquireTokenByCodeAsync,
                 request.correlationId
             );
-        this.acquireTokenByCodeAsyncMeasurement?.increment({
+        this.atbcam?.increment({
             visibilityChangeCount: 0,
         });
         document.addEventListener(
@@ -1201,7 +1201,7 @@ export class StandardController implements IController {
         const silentTokenResult = await silentAuthCodeClient
             .acquireToken(request)
             .then((response) => {
-                this.acquireTokenByCodeAsyncMeasurement?.end({
+                this.atbcam?.end({
                     success: true,
                     fromCache: response.fromCache,
                     isNativeBroker: response.fromPlatformBroker,
@@ -1209,7 +1209,7 @@ export class StandardController implements IController {
                 return response;
             })
             .catch((tokenRenewalError: Error) => {
-                this.acquireTokenByCodeAsyncMeasurement?.end(
+                this.atbcam?.end(
                     {
                         success: false,
                     },
@@ -1247,8 +1247,8 @@ export class StandardController implements IController {
                 return invokeAsync(
                     silentCacheClient.acquireToken.bind(silentCacheClient),
                     BrowserPerformanceEvents.SilentCacheClientAcquireToken,
-                    this.logger,
-                    this.performanceClient,
+                    this.l,
+                    this.pc,
                     commonRequest.correlationId
                 )(commonRequest);
             default:
@@ -1280,8 +1280,8 @@ export class StandardController implements IController {
                 return invokeAsync(
                     silentRefreshClient.acquireToken.bind(silentRefreshClient),
                     BrowserPerformanceEvents.SilentRefreshClientAcquireToken,
-                    this.logger,
-                    this.performanceClient,
+                    this.l,
+                    this.pc,
                     commonRequest.correlationId
                 )(commonRequest);
             default:
@@ -1306,8 +1306,8 @@ export class StandardController implements IController {
         return invokeAsync(
             silentIframeClient.acquireToken.bind(silentIframeClient),
             BrowserPerformanceEvents.SilentIframeClientAcquireToken,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             request.correlationId
         )(request);
     }
@@ -1323,8 +1323,8 @@ export class StandardController implements IController {
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         const correlationId = this.getRequestCorrelationId(logoutRequest);
-        BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-        this.browserStorage.setInteractionInProgress(
+        BrowserUtils.redirectPreflightCheck(this.init, this.cfg);
+        this.bs.setInteractionInProgress(
             true,
             INTERACTION_TYPE.SIGNOUT
         );
@@ -1340,15 +1340,15 @@ export class StandardController implements IController {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try {
             const correlationId = this.getRequestCorrelationId(logoutRequest);
-            BrowserUtils.preflightCheck(this.initialized);
-            this.browserStorage.setInteractionInProgress(
+            BrowserUtils.preflightCheck(this.init);
+            this.bs.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNOUT
             );
 
             const popupClient = this.createPopupClient(correlationId);
             return popupClient.logout(logoutRequest).finally(() => {
-                this.browserStorage.setInteractionInProgress(false);
+                this.bs.setInteractionInProgress(false);
             });
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -1361,8 +1361,8 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        if (!this.isBrowserEnvironment) {
-            this.logger.info("in non-browser environment, returning early.");
+        if (!this.isBrowserFlag) {
+            this.l.info("in non-browser environment, returning early.");
             return;
         }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
@@ -1381,9 +1381,9 @@ export class StandardController implements IController {
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
         return AccountManager.getAllAccounts(
-            this.logger,
-            this.browserStorage,
-            this.isBrowserEnvironment,
+            this.l,
+            this.bs,
+            this.isBrowserFlag,
             this.getRequestCorrelationId(),
             accountFilter
         );
@@ -1397,8 +1397,8 @@ export class StandardController implements IController {
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
         return AccountManager.getAccount(
             accountFilter,
-            this.logger,
-            this.browserStorage,
+            this.l,
+            this.bs,
             this.getRequestCorrelationId()
         );
     }
@@ -1414,8 +1414,8 @@ export class StandardController implements IController {
     getAccountByUsername(username: string): AccountInfo | null {
         return AccountManager.getAccountByUsername(
             username,
-            this.logger,
-            this.browserStorage,
+            this.l,
+            this.bs,
             this.getRequestCorrelationId()
         );
     }
@@ -1430,8 +1430,8 @@ export class StandardController implements IController {
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
         return AccountManager.getAccountByHomeId(
             homeAccountId,
-            this.logger,
-            this.browserStorage,
+            this.l,
+            this.bs,
             this.getRequestCorrelationId()
         );
     }
@@ -1446,8 +1446,8 @@ export class StandardController implements IController {
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
         return AccountManager.getAccountByLocalId(
             localAccountId,
-            this.logger,
-            this.browserStorage,
+            this.l,
+            this.bs,
             this.getRequestCorrelationId()
         );
     }
@@ -1459,7 +1459,7 @@ export class StandardController implements IController {
     setActiveAccount(account: AccountInfo | null): void {
         AccountManager.setActiveAccount(
             account,
-            this.browserStorage,
+            this.bs,
             this.getRequestCorrelationId()
         );
     }
@@ -1469,7 +1469,7 @@ export class StandardController implements IController {
      */
     getActiveAccount(): AccountInfo | null {
         return AccountManager.getActiveAccount(
-            this.browserStorage,
+            this.bs,
             this.getRequestCorrelationId()
         );
     }
@@ -1490,7 +1490,7 @@ export class StandardController implements IController {
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
-        this.logger.verbose("hydrateCache called");
+        this.l.verbose("hydrateCache called");
 
         // Account gets saved to browser storage regardless of native or not
         const accountEntity =
@@ -1499,19 +1499,19 @@ export class StandardController implements IController {
                 result.cloudGraphHostName,
                 result.msGraphHost
             );
-        await this.browserStorage.setAccount(
+        await this.bs.setAccount(
             accountEntity,
             result.correlationId
         );
 
         if (result.fromPlatformBroker) {
-            this.logger.verbose(
+            this.l.verbose(
                 "Response was from native broker, storing in-memory"
             );
             // Tokens from native broker are stored in-memory
-            return this.nativeInternalStorage.hydrateCache(result, request);
+            return this.nis.hydrateCache(result, request);
         } else {
-            return this.browserStorage.hydrateCache(result, request);
+            return this.bs.hydrateCache(result, request);
         }
     }
 
@@ -1527,25 +1527,25 @@ export class StandardController implements IController {
         accountId?: string,
         cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        this.logger.trace("acquireTokenNative called");
-        if (!this.platformAuthProvider) {
+        this.l.trace("acquireTokenNative called");
+        if (!this.pap) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.nativeConnectionNotEstablished
             );
         }
 
         const nativeClient = new PlatformAuthInteractionClient(
-            this.config,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.eventHandler,
-            this.navigationClient,
+            this.cfg,
+            this.bs,
+            this.bc,
+            this.l,
+            this.eh,
+            this.navClient,
             apiId,
-            this.performanceClient,
-            this.platformAuthProvider,
+            this.pc,
+            this.pap,
             accountId || this.getNativeAccountId(request),
-            this.nativeInternalStorage,
+            this.nis,
             request.correlationId
         );
 
@@ -1560,9 +1560,9 @@ export class StandardController implements IController {
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         accountId?: string
     ): boolean {
-        this.logger.trace("canUsePlatformBroker called");
-        if (!this.platformAuthProvider) {
-            this.logger.trace(
+        this.l.trace("canUsePlatformBroker called");
+        if (!this.pap) {
+            this.l.trace(
                 "canUsePlatformBroker: platform broker unavilable, returning false"
             );
             return false;
@@ -1570,13 +1570,13 @@ export class StandardController implements IController {
 
         if (
             !isPlatformAuthAllowed(
-                this.config,
-                this.logger,
-                this.platformAuthProvider,
+                this.cfg,
+                this.l,
+                this.pap,
                 request.authenticationScheme
             )
         ) {
-            this.logger.trace(
+            this.l.trace(
                 "canUsePlatformBroker: isBrokerAvailable returned false, returning false"
             );
             return false;
@@ -1587,12 +1587,12 @@ export class StandardController implements IController {
                 case Constants.PromptValue.NONE:
                 case Constants.PromptValue.CONSENT:
                 case Constants.PromptValue.LOGIN:
-                    this.logger.trace(
+                    this.l.trace(
                         "canUsePlatformBroker: prompt is compatible with platform broker flow"
                     );
                     break;
                 default:
-                    this.logger.trace(
+                    this.l.trace(
                         `canUsePlatformBroker: prompt = ${request.prompt} is not compatible with platform broker flow, returning false`
                     );
                     return false;
@@ -1600,7 +1600,7 @@ export class StandardController implements IController {
         }
 
         if (!accountId && !this.getNativeAccountId(request)) {
-            this.logger.trace(
+            this.l.trace(
                 "canUsePlatformBroker: nativeAccountId is not available, returning false"
             );
             return false;
@@ -1634,15 +1634,15 @@ export class StandardController implements IController {
      */
     public createPopupClient(correlationId?: string): PopupClient {
         return new PopupClient(
-            this.config,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.eventHandler,
-            this.navigationClient,
-            this.performanceClient,
-            this.nativeInternalStorage,
-            this.platformAuthProvider,
+            this.cfg,
+            this.bs,
+            this.bc,
+            this.l,
+            this.eh,
+            this.navClient,
+            this.pc,
+            this.nis,
+            this.pap,
             correlationId
         );
     }
@@ -1653,15 +1653,15 @@ export class StandardController implements IController {
      */
     protected createRedirectClient(correlationId?: string): RedirectClient {
         return new RedirectClient(
-            this.config,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.eventHandler,
-            this.navigationClient,
-            this.performanceClient,
-            this.nativeInternalStorage,
-            this.platformAuthProvider,
+            this.cfg,
+            this.bs,
+            this.bc,
+            this.l,
+            this.eh,
+            this.navClient,
+            this.pc,
+            this.nis,
+            this.pap,
             correlationId
         );
     }
@@ -1674,16 +1674,16 @@ export class StandardController implements IController {
         correlationId?: string
     ): SilentIframeClient {
         return new SilentIframeClient(
-            this.config,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.eventHandler,
-            this.navigationClient,
+            this.cfg,
+            this.bs,
+            this.bc,
+            this.l,
+            this.eh,
+            this.navClient,
             ApiId.ssoSilent,
-            this.performanceClient,
-            this.nativeInternalStorage,
-            this.platformAuthProvider,
+            this.pc,
+            this.nis,
+            this.pap,
             correlationId
         );
     }
@@ -1695,14 +1695,14 @@ export class StandardController implements IController {
         correlationId?: string
     ): SilentCacheClient {
         return new SilentCacheClient(
-            this.config,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.eventHandler,
-            this.navigationClient,
-            this.performanceClient,
-            this.platformAuthProvider,
+            this.cfg,
+            this.bs,
+            this.bc,
+            this.l,
+            this.eh,
+            this.navClient,
+            this.pc,
+            this.pap,
             correlationId
         );
     }
@@ -1714,14 +1714,14 @@ export class StandardController implements IController {
         correlationId?: string
     ): SilentRefreshClient {
         return new SilentRefreshClient(
-            this.config,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.eventHandler,
-            this.navigationClient,
-            this.performanceClient,
-            this.platformAuthProvider,
+            this.cfg,
+            this.bs,
+            this.bc,
+            this.l,
+            this.eh,
+            this.navClient,
+            this.pc,
+            this.pap,
             correlationId
         );
     }
@@ -1733,15 +1733,15 @@ export class StandardController implements IController {
         correlationId?: string
     ): SilentAuthCodeClient {
         return new SilentAuthCodeClient(
-            this.config,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.eventHandler,
-            this.navigationClient,
+            this.cfg,
+            this.bs,
+            this.bc,
+            this.l,
+            this.eh,
+            this.navClient,
             ApiId.acquireTokenByCode,
-            this.performanceClient,
-            this.platformAuthProvider,
+            this.pc,
+            this.pap,
             correlationId
         );
     }
@@ -1754,7 +1754,7 @@ export class StandardController implements IController {
         callback: EventCallbackFunction,
         eventTypes?: Array<EventType>
     ): string | null {
-        return this.eventHandler.addEventCallback(callback, eventTypes);
+        return this.eh.addEventCallback(callback, eventTypes);
     }
 
     /**
@@ -1762,7 +1762,7 @@ export class StandardController implements IController {
      * @param callbackId
      */
     removeEventCallback(callbackId: string): void {
-        this.eventHandler.removeEventCallback(callbackId);
+        this.eh.removeEventCallback(callbackId);
     }
 
     /**
@@ -1773,7 +1773,7 @@ export class StandardController implements IController {
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         BrowserUtils.blockNonBrowserEnvironment();
-        return this.performanceClient.addPerformanceCallback(callback);
+        return this.pc.addPerformanceCallback(callback);
     }
 
     /**
@@ -1783,14 +1783,14 @@ export class StandardController implements IController {
      * @returns {boolean}
      */
     removePerformanceCallback(callbackId: string): boolean {
-        return this.performanceClient.removePerformanceCallback(callbackId);
+        return this.pc.removePerformanceCallback(callbackId);
     }
 
     /**
      * Returns the logger instance
      */
     public getLogger(): Logger {
-        return this.logger;
+        return this.l;
     }
 
     /**
@@ -1798,7 +1798,7 @@ export class StandardController implements IController {
      * @param logger Logger instance
      */
     setLogger(logger: Logger): void {
-        this.logger = logger;
+        this.l = logger;
     }
 
     /**
@@ -1808,7 +1808,7 @@ export class StandardController implements IController {
      */
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
         // Validate the SKU passed in is one we expect
-        this.browserStorage.setWrapperMetadata(sku, version);
+        this.bs.setWrapperMetadata(sku, version);
     }
 
     /**
@@ -1816,28 +1816,28 @@ export class StandardController implements IController {
      * @param navigationClient
      */
     setNavigationClient(navigationClient: INavigationClient): void {
-        this.navigationClient = navigationClient;
+        this.navClient = navigationClient;
     }
 
     /**
      * Returns the configuration object
      */
     public getConfiguration(): BrowserConfiguration {
-        return this.config;
+        return this.cfg;
     }
 
     /**
      * Returns the performance client
      */
     public getPerformanceClient(): IPerformanceClient {
-        return this.performanceClient;
+        return this.pc;
     }
 
     /**
      * Returns the browser env indicator
      */
     public isBrowserEnv(): boolean {
-        return this.isBrowserEnvironment;
+        return this.isBrowserFlag;
     }
 
     /**
@@ -1854,7 +1854,7 @@ export class StandardController implements IController {
             return request.correlationId;
         }
 
-        if (this.isBrowserEnvironment) {
+        if (this.isBrowserFlag) {
             return createNewGuid();
         }
 
@@ -1878,7 +1878,7 @@ export class StandardController implements IController {
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
         const correlationId: string = this.getRequestCorrelationId(request);
-        this.logger.verbose("loginRedirect called", correlationId);
+        this.l.verbose("loginRedirect called", correlationId);
         return this.acquireTokenRedirect({
             correlationId,
             ...(request || DEFAULT_REQUEST),
@@ -1894,7 +1894,7 @@ export class StandardController implements IController {
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
         const correlationId: string = this.getRequestCorrelationId(request);
-        this.logger.verbose("loginPopup called", correlationId);
+        this.l.verbose("loginPopup called", correlationId);
         return this.acquireTokenPopup({
             correlationId,
             ...(request || DEFAULT_REQUEST),
@@ -1911,7 +1911,7 @@ export class StandardController implements IController {
         request: SilentRequest
     ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
-        const atsMeasurement = this.performanceClient.startMeasurement(
+        const atsMeasurement = this.pc.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenSilent,
             correlationId
         );
@@ -1920,8 +1920,8 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        preflightCheck(this.initialized, atsMeasurement);
-        this.logger.verbose("acquireTokenSilent called", correlationId);
+        preflightCheck(this.init, atsMeasurement);
+        this.l.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
@@ -1973,10 +1973,10 @@ export class StandardController implements IController {
         correlationId: string
     ): Promise<AuthenticationResult> {
         const thumbprint = getRequestThumbprint(
-            this.config.auth.clientId,
+            this.cfg.auth.clientId,
             {
                 ...request,
-                authority: request.authority || this.config.auth.authority,
+                authority: request.authority || this.cfg.auth.authority,
                 correlationId: correlationId,
             },
             account.homeAccountId
@@ -1984,20 +1984,20 @@ export class StandardController implements IController {
         const silentRequestKey = JSON.stringify(thumbprint);
 
         const inProgressRequest =
-            this.activeSilentTokenRequests.get(silentRequestKey);
+            this.astr.get(silentRequestKey);
 
         if (typeof inProgressRequest === "undefined") {
-            this.logger.verbose(
+            this.l.verbose(
                 "acquireTokenSilent called for the first time, storing active request",
                 correlationId
             );
-            this.performanceClient.addFields({ deduped: false }, correlationId);
+            this.pc.addFields({ deduped: false }, correlationId);
 
             const activeRequest = invokeAsync(
                 this.acquireTokenSilentAsync.bind(this),
                 BrowserPerformanceEvents.AcquireTokenSilentAsync,
-                this.logger,
-                this.performanceClient,
+                this.l,
+                this.pc,
                 correlationId
             )(
                 {
@@ -2006,17 +2006,17 @@ export class StandardController implements IController {
                 },
                 account
             );
-            this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
+            this.astr.set(silentRequestKey, activeRequest);
 
             return activeRequest.finally(() => {
-                this.activeSilentTokenRequests.delete(silentRequestKey);
+                this.astr.delete(silentRequestKey);
             });
         } else {
-            this.logger.verbose(
+            this.l.verbose(
                 "acquireTokenSilent has been called previously, returning the result from the first call",
                 correlationId
             );
-            this.performanceClient.addFields({ deduped: true }, correlationId);
+            this.pc.addFields({ deduped: true }, correlationId);
             return inProgressRequest;
         }
     }
@@ -2033,14 +2033,14 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         const trackPageVisibility = () =>
             this.trackPageVisibility(request.correlationId);
-        this.eventHandler.emitEvent(
+        this.eh.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,
             request
         );
 
         if (request.correlationId) {
-            this.performanceClient.incrementFields(
+            this.pc.incrementFields(
                 { visibilityChangeCount: 0 },
                 request.correlationId
             );
@@ -2051,10 +2051,10 @@ export class StandardController implements IController {
         const silentRequest = await invokeAsync(
             initializeSilentRequest,
             BrowserPerformanceEvents.InitializeSilentRequest,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             request.correlationId
-        )(request, account, this.config, this.performanceClient, this.logger);
+        )(request, account, this.cfg, this.pc, this.l);
         const cacheLookupPolicy =
             request.cacheLookupPolicy || CacheLookupPolicy.Default;
 
@@ -2069,24 +2069,24 @@ export class StandardController implements IController {
                 );
 
             if (shouldTryToResolveSilently) {
-                if (!this.activeIframeRequest) {
+                if (!this.air) {
                     let _resolve: (result: boolean) => void;
                     // Always set the active request tracker immediately after checking it to prevent races
-                    this.activeIframeRequest = [
+                    this.air = [
                         new Promise((resolve) => {
                             _resolve = resolve;
                         }),
                         silentRequest.correlationId,
                     ];
-                    this.logger.verbose(
+                    this.l.verbose(
                         "Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.",
                         silentRequest.correlationId
                     );
                     return invokeAsync(
                         this.acquireTokenBySilentIframe.bind(this),
                         BrowserPerformanceEvents.AcquireTokenBySilentIframe,
-                        this.logger,
-                        this.performanceClient,
+                        this.l,
+                        this.pc,
                         silentRequest.correlationId
                     )(silentRequest)
                         .then((iframeResult) => {
@@ -2098,17 +2098,17 @@ export class StandardController implements IController {
                             throw e;
                         })
                         .finally(() => {
-                            this.activeIframeRequest = undefined;
+                            this.air = undefined;
                         });
                 } else if (cacheLookupPolicy !== CacheLookupPolicy.Skip) {
                     const [activePromise, activeCorrelationId] =
-                        this.activeIframeRequest;
-                    this.logger.verbose(
+                        this.air;
+                    this.l.verbose(
                         `Iframe request is already in progress, awaiting resolution for request with correlationId: ${activeCorrelationId}`,
                         silentRequest.correlationId
                     );
                     const awaitConcurrentIframeMeasure =
-                        this.performanceClient.startMeasurement(
+                        this.pc.startMeasurement(
                             BrowserPerformanceEvents.AwaitConcurrentIframe,
                             silentRequest.correlationId
                         );
@@ -2121,7 +2121,7 @@ export class StandardController implements IController {
                         success: activePromiseResult,
                     });
                     if (activePromiseResult) {
-                        this.logger.verbose(
+                        this.l.verbose(
                             `Parallel iframe request with correlationId: ${activeCorrelationId} succeeded. Retrying cache and/or RT redemption`,
                             silentRequest.correlationId
                         );
@@ -2131,7 +2131,7 @@ export class StandardController implements IController {
                             cacheLookupPolicy
                         );
                     } else {
-                        this.logger.info(
+                        this.l.info(
                             `Iframe request with correlationId: ${activeCorrelationId} failed. Interaction is required.`
                         );
                         // If previous iframe request failed, it's unlikely to succeed this time. Throw original error.
@@ -2139,15 +2139,15 @@ export class StandardController implements IController {
                     }
                 } else {
                     // Cache policy set to skip and another iframe request is already in progress
-                    this.logger.warning(
+                    this.l.warning(
                         "Another iframe request is currently in progress and CacheLookupPolicy is set to Skip. This may result in degraded performance and/or reliability for both calls. Please consider changing the CacheLookupPolicy to take advantage of request queuing and token cache.",
                         silentRequest.correlationId
                     );
                     return invokeAsync(
                         this.acquireTokenBySilentIframe.bind(this),
                         BrowserPerformanceEvents.AcquireTokenBySilentIframe,
-                        this.logger,
-                        this.performanceClient,
+                        this.l,
+                        this.pc,
                         silentRequest.correlationId
                     )(silentRequest);
                 }
@@ -2159,13 +2159,13 @@ export class StandardController implements IController {
 
         return result
             .then((response) => {
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.ACQUIRE_TOKEN_SUCCESS,
                     InteractionType.Silent,
                     response
                 );
                 if (request.correlationId) {
-                    this.performanceClient.addFields(
+                    this.pc.addFields(
                         {
                             fromCache: response.fromCache,
                             isNativeBroker: response.fromPlatformBroker,
@@ -2177,7 +2177,7 @@ export class StandardController implements IController {
                 return response;
             })
             .catch((tokenRenewalError: Error) => {
-                this.eventHandler.emitEvent(
+                this.eh.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
                     InteractionType.Silent,
                     null,
@@ -2206,14 +2206,14 @@ export class StandardController implements IController {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
             isPlatformAuthAllowed(
-                this.config,
-                this.logger,
-                this.platformAuthProvider,
+                this.cfg,
+                this.l,
+                this.pap,
                 silentRequest.authenticationScheme
             ) &&
             silentRequest.account.nativeAccountId
         ) {
-            this.logger.verbose(
+            this.l.verbose(
                 "acquireTokenSilent - attempting to acquire token from native platform"
             );
             return this.acquireTokenNative(
@@ -2224,10 +2224,10 @@ export class StandardController implements IController {
             ).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                    this.logger.verbose(
+                    this.l.verbose(
                         "acquireTokenSilent - native platform unavailable, falling back to web flow"
                     );
-                    this.platformAuthProvider = undefined; // Prevent future requests from continuing to attempt
+                    this.pap = undefined; // Prevent future requests from continuing to attempt
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
                     throw createClientAuthError(
                         ClientAuthErrorCodes.tokenRefreshRequired
@@ -2236,20 +2236,20 @@ export class StandardController implements IController {
                 throw e;
             });
         } else {
-            this.logger.verbose(
+            this.l.verbose(
                 "acquireTokenSilent - attempting to acquire token from web flow"
             );
             // add logs to identify embedded cache retrieval
             if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
-                this.logger.verbose(
+                this.l.verbose(
                     "acquireTokenSilent - cache lookup policy set to AccessToken, attempting to acquire token from local cache"
                 );
             }
             return invokeAsync(
                 this.acquireTokenFromCache.bind(this),
                 BrowserPerformanceEvents.AcquireTokenFromCache,
-                this.logger,
-                this.performanceClient,
+                this.l,
+                this.pc,
                 silentRequest.correlationId
             )(silentRequest, cacheLookupPolicy).catch(
                 (cacheError: AuthError) => {
@@ -2257,7 +2257,7 @@ export class StandardController implements IController {
                         throw cacheError;
                     }
 
-                    this.eventHandler.emitEvent(
+                    this.eh.emitEvent(
                         EventType.ACQUIRE_TOKEN_NETWORK_START,
                         InteractionType.Silent,
                         silentRequest
@@ -2266,8 +2266,8 @@ export class StandardController implements IController {
                     return invokeAsync(
                         this.acquireTokenByRefreshToken.bind(this),
                         BrowserPerformanceEvents.AcquireTokenByRefreshToken,
-                        this.logger,
-                        this.performanceClient,
+                        this.l,
+                        this.pc,
                         silentRequest.correlationId
                     )(silentRequest, cacheLookupPolicy);
                 }
@@ -2280,14 +2280,14 @@ export class StandardController implements IController {
      * @param correlationId
      */
     private async preGeneratePkceCodes(correlationId: string): Promise<void> {
-        this.logger.verbose("Generating new PKCE codes");
-        this.pkceCode = await invokeAsync(
+        this.l.verbose("Generating new PKCE codes");
+        this.pkce = await invokeAsync(
             generatePkceCodes,
             BrowserPerformanceEvents.GeneratePkceCodes,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             correlationId
-        )(this.performanceClient, this.logger, correlationId);
+        )(this.pc, this.l, correlationId);
         return Promise.resolve();
     }
 
@@ -2298,13 +2298,13 @@ export class StandardController implements IController {
     private getPreGeneratedPkceCodes(
         correlationId: string
     ): PkceCodes | undefined {
-        this.logger.verbose("Attempting to pick up pre-generated PKCE codes");
-        const res = this.pkceCode ? { ...this.pkceCode } : undefined;
-        this.pkceCode = undefined;
-        this.logger.verbose(
+        this.l.verbose("Attempting to pick up pre-generated PKCE codes");
+        const res = this.pkce ? { ...this.pkce } : undefined;
+        this.pkce = undefined;
+        this.l.verbose(
             `${res ? "Found" : "Did not find"} pre-generated PKCE codes`
         );
-        this.performanceClient.addFields(
+        this.pc.addFields(
             { usePreGeneratedPkce: !!res },
             correlationId
         );
@@ -2314,7 +2314,7 @@ export class StandardController implements IController {
     private logMultipleInstances(
         performanceEvent: InProgressPerformanceEvent
     ): void {
-        const clientId = this.config.auth.clientId;
+        const clientId = this.cfg.auth.clientId;
 
         if (!window) return;
         // @ts-ignore
@@ -2326,13 +2326,13 @@ export class StandardController implements IController {
         const clientIds: string[] = window.msal.clientIds;
 
         if (clientIds.length > 0) {
-            this.logger.verbose(
+            this.l.verbose(
                 "There is already an instance of MSAL.js in the window."
             );
         }
         // @ts-ignore
         window.msal.clientIds.push(clientId);
-        collectInstanceStats(clientId, performanceEvent, this.logger);
+        collectInstanceStats(clientId, performanceEvent, this.l);
     }
 }
 

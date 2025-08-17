@@ -54,13 +54,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected initializeLogoutRequest(
         logoutRequest?: EndSessionRequest
     ): CommonEndSessionRequest {
-        this.logger.verbose(
+        this.l.verbose(
             "initializeLogoutRequest called",
             logoutRequest?.correlationId
         );
 
         const validLogoutRequest: CommonEndSessionRequest = {
-            correlationId: this.correlationId || createNewGuid(),
+            correlationId: this.cId || createNewGuid(),
             ...logoutRequest,
         };
 
@@ -76,23 +76,23 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                         logoutRequest.account
                     );
                     if (logoutHint) {
-                        this.logger.verbose(
+                        this.l.verbose(
                             "Setting logoutHint to login_hint ID Token Claim value for the account provided"
                         );
                         validLogoutRequest.logoutHint = logoutHint;
                     }
                 } else {
-                    this.logger.verbose(
+                    this.l.verbose(
                         "logoutHint was not set and account was not passed into logout request, logoutHint will not be set"
                     );
                 }
             } else {
-                this.logger.verbose(
+                this.l.verbose(
                     "logoutHint has already been set in logoutRequest"
                 );
             }
         } else {
-            this.logger.verbose(
+            this.l.verbose(
                 "logoutHint will not be set since no logout request was configured"
             );
         }
@@ -103,7 +103,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
          */
         if (!logoutRequest || logoutRequest.postLogoutRedirectUri !== null) {
             if (logoutRequest && logoutRequest.postLogoutRedirectUri) {
-                this.logger.verbose(
+                this.l.verbose(
                     "Setting postLogoutRedirectUri to uri set on logout request",
                     validLogoutRequest.correlationId
                 );
@@ -112,23 +112,23 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                         logoutRequest.postLogoutRedirectUri,
                         BrowserUtils.getCurrentUri()
                     );
-            } else if (this.config.auth.postLogoutRedirectUri === null) {
-                this.logger.verbose(
+            } else if (this.cfg.auth.postLogoutRedirectUri === null) {
+                this.l.verbose(
                     "postLogoutRedirectUri configured as null and no uri set on request, not passing post logout redirect",
                     validLogoutRequest.correlationId
                 );
-            } else if (this.config.auth.postLogoutRedirectUri) {
-                this.logger.verbose(
+            } else if (this.cfg.auth.postLogoutRedirectUri) {
+                this.l.verbose(
                     "Setting postLogoutRedirectUri to configured uri",
                     validLogoutRequest.correlationId
                 );
                 validLogoutRequest.postLogoutRedirectUri =
                     UrlString.getAbsoluteUrl(
-                        this.config.auth.postLogoutRedirectUri,
+                        this.cfg.auth.postLogoutRedirectUri,
                         BrowserUtils.getCurrentUri()
                     );
             } else {
-                this.logger.verbose(
+                this.l.verbose(
                     "Setting postLogoutRedirectUri to current page",
                     validLogoutRequest.correlationId
                 );
@@ -139,7 +139,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                     );
             }
         } else {
-            this.logger.verbose(
+            this.l.verbose(
                 "postLogoutRedirectUri passed as null, not setting post logout redirect uri",
                 validLogoutRequest.correlationId
             );
@@ -161,12 +161,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             if (idTokenClaims.login_hint) {
                 return idTokenClaims.login_hint;
             } else {
-                this.logger.verbose(
+                this.l.verbose(
                     "The ID Token Claims tied to the provided account do not contain a login_hint claim, logoutHint will not be added to logout request"
                 );
             }
         } else {
-            this.logger.verbose(
+            this.l.verbose(
                 "The provided account does not contain ID Token Claims, logoutHint will not be added to logout request"
             );
         }
@@ -195,14 +195,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
             BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
+            this.l,
+            this.pc,
+            this.cId
         )(params);
 
         return new AuthorizationCodeClient(
             clientConfig,
-            this.performanceClient
+            this.pc
         );
     }
 
@@ -234,43 +234,43 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const discoveredAuthority = await invokeAsync(
             getDiscoveredAuthority,
             BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
+            this.l,
+            this.pc,
+            this.cId
         )(
-            this.config,
-            this.correlationId,
-            this.performanceClient,
-            this.browserStorage,
-            this.logger,
+            this.cfg,
+            this.cId,
+            this.pc,
+            this.bs,
+            this.l,
             requestAuthority,
             requestAzureCloudOptions,
             requestExtraQueryParameters,
             account
         );
-        const logger = this.config.system.loggerOptions;
+        const logger = this.cfg.system.loggerOptions;
 
         return {
             authOptions: {
-                clientId: this.config.auth.clientId,
+                clientId: this.cfg.auth.clientId,
                 authority: discoveredAuthority,
-                clientCapabilities: this.config.auth.clientCapabilities,
-                redirectUri: this.config.auth.redirectUri,
+                clientCapabilities: this.cfg.auth.clientCapabilities,
+                redirectUri: this.cfg.auth.redirectUri,
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds:
-                    this.config.system.tokenRenewalOffsetSeconds,
+                    this.cfg.system.tokenRenewalOffsetSeconds,
                 preventCorsPreflight: true,
             },
             loggerOptions: {
                 loggerCallback: logger.loggerCallback,
                 piiLoggingEnabled: logger.piiLoggingEnabled,
                 logLevel: logger.logLevel,
-                correlationId: this.correlationId,
+                correlationId: this.cId,
             },
-            cryptoInterface: this.browserCrypto,
-            networkInterface: this.networkClient,
-            storageInterface: this.browserStorage,
+            cryptoInterface: this.bc,
+            networkInterface: this.nc,
+            storageInterface: this.bs,
             serverTelemetryManager: serverTelemetryManager,
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
@@ -278,7 +278,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 cpu: "",
                 os: "",
             },
-            telemetry: this.config.telemetry,
+            telemetry: this.cfg.telemetry,
         };
     }
 }

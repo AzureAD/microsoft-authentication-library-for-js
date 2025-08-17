@@ -75,29 +75,29 @@ function setSku(params: {
 
 /** @internal */
 export class ServerTelemetryManager {
-    private cacheManager: CacheManager;
-    private apiId: number;
-    private correlationId: string;
-    private telemetryCacheKey: string;
-    private wrapperSKU: String;
-    private wrapperVer: String;
-    private regionUsed: string | undefined;
-    private regionSource: Constants.RegionDiscoverySources | undefined;
-    private regionOutcome: Constants.RegionDiscoveryOutcomes | undefined;
-    private cacheOutcome: Constants.CacheOutcome =
+    private cm: CacheManager;
+    private aId: number;
+    private cId: string;
+    private tck: string;
+    private wSKU: String;
+    private wVer: String;
+    private rUsed: string | undefined;
+    private rSource: Constants.RegionDiscoverySources | undefined;
+    private rOutcome: Constants.RegionDiscoveryOutcomes | undefined;
+    private cOutcome: Constants.CacheOutcome =
         Constants.CacheOutcome.NOT_APPLICABLE;
 
     constructor(
         telemetryRequest: ServerTelemetryRequest,
         cacheManager: CacheManager
     ) {
-        this.cacheManager = cacheManager;
-        this.apiId = telemetryRequest.apiId;
-        this.correlationId = telemetryRequest.correlationId;
-        this.wrapperSKU = telemetryRequest.wrapperSKU || "";
-        this.wrapperVer = telemetryRequest.wrapperVer || "";
+        this.cm = cacheManager;
+        this.aId = telemetryRequest.apiId;
+        this.cId = telemetryRequest.correlationId;
+        this.wSKU = telemetryRequest.wrapperSKU || "";
+        this.wVer = telemetryRequest.wrapperVer || "";
 
-        this.telemetryCacheKey =
+        this.tck =
             Constants.SERVER_TELEM_CACHE_KEY +
             Constants.CACHE_KEY_SEPARATOR +
             telemetryRequest.clientId;
@@ -107,8 +107,8 @@ export class ServerTelemetryManager {
      * API to add MSER Telemetry to request
      */
     generateCurrentRequestHeaderValue(): string {
-        const request = `${this.apiId}${Constants.SERVER_TELEM_VALUE_SEPARATOR}${this.cacheOutcome}`;
-        const platformFieldsArr = [this.wrapperSKU, this.wrapperVer];
+        const request = `${this.aId}${Constants.SERVER_TELEM_VALUE_SEPARATOR}${this.cOutcome}`;
+        const platformFieldsArr = [this.wSKU, this.wVer];
         const nativeBrokerErrorCode = this.getNativeBrokerErrorCode();
         if (nativeBrokerErrorCode?.length) {
             platformFieldsArr.push(`broker_error=${nativeBrokerErrorCode}`);
@@ -178,7 +178,7 @@ export class ServerTelemetryManager {
             lastRequests.errors.shift();
         }
 
-        lastRequests.failedRequests.push(this.apiId, this.correlationId);
+        lastRequests.failedRequests.push(this.aId, this.cId);
 
         if (error instanceof Error && !!error && error.toString()) {
             if (error instanceof AuthError) {
@@ -196,10 +196,10 @@ export class ServerTelemetryManager {
             lastRequests.errors.push(Constants.SERVER_TELEM_UNKNOWN_ERROR);
         }
 
-        this.cacheManager.setServerTelemetry(
-            this.telemetryCacheKey,
+        this.cm.setServerTelemetry(
+            this.tck,
             lastRequests,
-            this.correlationId
+            this.cId
         );
 
         return;
@@ -212,10 +212,10 @@ export class ServerTelemetryManager {
         const lastRequests = this.getLastRequests();
         lastRequests.cacheHits += 1;
 
-        this.cacheManager.setServerTelemetry(
-            this.telemetryCacheKey,
+        this.cm.setServerTelemetry(
+            this.tck,
             lastRequests,
-            this.correlationId
+            this.cId
         );
         return lastRequests.cacheHits;
     }
@@ -229,8 +229,8 @@ export class ServerTelemetryManager {
             errors: [],
             cacheHits: 0,
         };
-        const lastRequests = this.cacheManager.getServerTelemetry(
-            this.telemetryCacheKey
+        const lastRequests = this.cm.getServerTelemetry(
+            this.tck
         ) as ServerTelemetryEntity;
 
         return lastRequests || initialValue;
@@ -246,9 +246,9 @@ export class ServerTelemetryManager {
         const errorCount = lastRequests.errors.length;
         if (numErrorsFlushed === errorCount) {
             // All errors were sent on last request, clear Telemetry cache
-            this.cacheManager.removeItem(
-                this.telemetryCacheKey,
-                this.correlationId
+            this.cm.removeItem(
+                this.tck,
+                this.cId
             );
         } else {
             // Partial data was flushed to server, construct a new telemetry cache item with errors that were not flushed
@@ -260,10 +260,10 @@ export class ServerTelemetryManager {
                 cacheHits: 0,
             };
 
-            this.cacheManager.setServerTelemetry(
-                this.telemetryCacheKey,
+            this.cm.setServerTelemetry(
+                this.tck,
                 serverTelemEntity,
-                this.correlationId
+                this.cId
             );
         }
     }
@@ -312,9 +312,9 @@ export class ServerTelemetryManager {
     getRegionDiscoveryFields(): string {
         const regionDiscoveryFields: string[] = [];
 
-        regionDiscoveryFields.push(this.regionUsed || "");
-        regionDiscoveryFields.push(this.regionSource || "");
-        regionDiscoveryFields.push(this.regionOutcome || "");
+        regionDiscoveryFields.push(this.rUsed || "");
+        regionDiscoveryFields.push(this.rSource || "");
+        regionDiscoveryFields.push(this.rOutcome || "");
 
         return regionDiscoveryFields.join(",");
     }
@@ -328,25 +328,25 @@ export class ServerTelemetryManager {
     updateRegionDiscoveryMetadata(
         regionDiscoveryMetadata: RegionDiscoveryMetadata
     ): void {
-        this.regionUsed = regionDiscoveryMetadata.region_used;
-        this.regionSource = regionDiscoveryMetadata.region_source;
-        this.regionOutcome = regionDiscoveryMetadata.region_outcome;
+        this.rUsed = regionDiscoveryMetadata.region_used;
+        this.rSource = regionDiscoveryMetadata.region_source;
+        this.rOutcome = regionDiscoveryMetadata.region_outcome;
     }
 
     /**
      * Set cache outcome
      */
     setCacheOutcome(cacheOutcome: Constants.CacheOutcome): void {
-        this.cacheOutcome = cacheOutcome;
+        this.cOutcome = cacheOutcome;
     }
 
     setNativeBrokerErrorCode(errorCode: string): void {
         const lastRequests = this.getLastRequests();
         lastRequests.nativeBrokerErrorCode = errorCode;
-        this.cacheManager.setServerTelemetry(
-            this.telemetryCacheKey,
+        this.cm.setServerTelemetry(
+            this.tck,
             lastRequests,
-            this.correlationId
+            this.cId
         );
     }
 
@@ -357,10 +357,10 @@ export class ServerTelemetryManager {
     clearNativeBrokerErrorCode(): void {
         const lastRequests = this.getLastRequests();
         delete lastRequests.nativeBrokerErrorCode;
-        this.cacheManager.setServerTelemetry(
-            this.telemetryCacheKey,
+        this.cm.setServerTelemetry(
+            this.tck,
             lastRequests,
-            this.correlationId
+            this.cId
         );
     }
 

@@ -84,10 +84,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         );
 
         this.tokenResponseHandler = new ResponseHandler(
-            this.config.auth.clientId,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
+            this.cfg.auth.clientId,
+            this.bs,
+            this.bc,
+            this.l,
             null,
             null
         );
@@ -106,13 +106,13 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
-        this.logger.verbose(
+        this.l.verbose(
             "Calling initiate endpoint for sign in.",
             parameters.correlationId
         );
@@ -127,7 +127,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const initiateResponse =
             await this.customAuthApiClient.signInApi.initiate(initReq);
 
-        this.logger.verbose(
+        this.l.verbose(
             "Initiate endpoint called for sign in.",
             parameters.correlationId
         );
@@ -153,10 +153,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const challengeReq: SignInChallengeRequest = {
@@ -169,7 +169,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const result = await this.performChallengeRequest(challengeReq);
 
         if (result.type === SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE) {
-            this.logger.error(
+            this.l.error(
                 "Resend code operation failed due to the challenge type 'password' is not supported.",
                 parameters.correlationId
             );
@@ -201,10 +201,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_IN_SUBMIT_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
         const scopes = this.getScopes(parameters.scopes);
 
@@ -245,10 +245,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_IN_SUBMIT_PASSWORD;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
         const scopes = this.getScopes(parameters.scopes);
 
@@ -286,10 +286,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         );
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
         const scopes = this.getScopes(parameters.scopes);
 
@@ -319,17 +319,17 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
         requestScopes: string[]
     ): Promise<SignInCompletedResult> {
-        this.logger.verbose(
+        this.l.verbose(
             "Calling token endpoint for sign in.",
-            this.correlationId
+            this.cId
         );
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
         const tokenResponse = await tokenEndpointCaller();
 
-        this.logger.verbose(
+        this.l.verbose(
             "Token endpoint called for sign in.",
-            this.correlationId
+            this.cId
         );
 
         // Save tokens and create authentication result.
@@ -359,7 +359,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     private async performChallengeRequest(
         request: SignInChallengeRequest
     ): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
-        this.logger.verbose(
+        this.l.verbose(
             "Calling challenge endpoint for sign in.",
             request.correlationId
         );
@@ -367,14 +367,14 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const challengeResponse =
             await this.customAuthApiClient.signInApi.requestChallenge(request);
 
-        this.logger.verbose(
+        this.l.verbose(
             "Challenge endpoint called for sign in.",
             request.correlationId
         );
 
         if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Code is required
-            this.logger.verbose(
+            this.l.verbose(
                 "Challenge type is oob for sign in.",
                 request.correlationId
             );
@@ -394,7 +394,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
             // Password is required
-            this.logger.verbose(
+            this.l.verbose(
                 "Challenge type is password for sign in.",
                 request.correlationId
             );
@@ -405,7 +405,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             });
         }
 
-        this.logger.error(
+        this.l.error(
             `Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`,
             request.correlationId
         );

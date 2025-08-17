@@ -59,10 +59,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             : PublicApiId.SIGN_UP_WITH_PASSWORD_START;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const startRequest: SignUpStartRequest = {
@@ -74,7 +74,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             correlationId: parameters.correlationId,
         };
 
-        this.logger.verbose(
+        this.l.verbose(
             "Calling start endpoint for sign up.",
             parameters.correlationId
         );
@@ -83,7 +83,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             startRequest
         );
 
-        this.logger.verbose(
+        this.l.verbose(
             "Start endpoint called for sign up.",
             parameters.correlationId
         );
@@ -113,10 +113,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_UP_SUBMIT_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const requestSubmitCode: SignUpContinueWithOobRequest = {
@@ -163,10 +163,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_UP_SUBMIT_PASSWORD;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const requestSubmitPwd: SignUpContinueWithPasswordRequest = {
@@ -213,10 +213,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_UP_SUBMIT_ATTRIBUTES;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
         const reqWithAttr: SignUpContinueWithAttributesRequest = {
             continuation_token: parameter.continuationToken,
@@ -262,10 +262,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.SIGN_UP_RESEND_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const challengeRequest: SignUpChallengeRequest = {
@@ -291,7 +291,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     private async performChallengeRequest(
         request: SignUpChallengeRequest
     ): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
-        this.logger.verbose(
+        this.l.verbose(
             "Calling challenge endpoint for sign up.",
             request.correlationId
         );
@@ -299,14 +299,14 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         const challengeResponse =
             await this.customAuthApiClient.signUpApi.requestChallenge(request);
 
-        this.logger.verbose(
+        this.l.verbose(
             "Challenge endpoint called for sign up.",
             request.correlationId
         );
 
         if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Code is required
-            this.logger.verbose(
+            this.l.verbose(
                 "Challenge type is oob for sign up.",
                 request.correlationId
             );
@@ -329,7 +329,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
             // Password is required
-            this.logger.verbose(
+            this.l.verbose(
                 "Challenge type is password for sign up.",
                 request.correlationId
             );
@@ -340,7 +340,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             });
         }
 
-        this.logger.error(
+        this.l.error(
             `Unsupported challenge type '${challengeResponse.challenge_type}' for sign up.`,
             request.correlationId
         );
@@ -364,7 +364,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpCodeRequiredResult
         | SignUpAttributesRequiredResult
     > {
-        this.logger.verbose(
+        this.l.verbose(
             `${callerName} is calling continue endpoint for sign up.`,
             requestCorrelationId
         );
@@ -372,7 +372,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         try {
             const response = await responseGetter();
 
-            this.logger.verbose(
+            this.l.verbose(
                 `Continue endpoint called by ${callerName} for sign up.`,
                 requestCorrelationId
             );
@@ -390,7 +390,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                     telemetryManager
                 );
             } else {
-                this.logger.errorPii(
+                this.l.errorPii(
                     `${callerName} is failed to call continue endpoint for sign up. Error: ${error}`,
                     requestCorrelationId
                 );
@@ -417,7 +417,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             responseError.errorCodes.includes(55103)
         ) {
             // Credential is required
-            this.logger.verbose(
+            this.l.verbose(
                 "The credential is required in the sign up flow.",
                 correlationId
             );
@@ -469,7 +469,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         if (this.isAttributesRequiredError(responseError, correlationId)) {
             // Attributes are required
-            this.logger.verbose(
+            this.l.verbose(
                 "Attributes are required in the sign up flow.",
                 correlationId
             );

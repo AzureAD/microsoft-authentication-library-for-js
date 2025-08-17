@@ -78,14 +78,14 @@ export class CustomAuthStandardController
     ) {
         super(operatingContext);
 
-        if (!this.isBrowserEnvironment) {
-            this.logger.verbose(
+        if (!this.isBrowserFlag) {
+            this.l.verbose(
                 "The SDK can only be used in a browser environment."
             );
             throw new UnsupportedEnvironmentError();
         }
 
-        this.logger = this.logger.clone(
+        this.l = this.l.clone(
             DefaultPackageInfo.SKU,
             DefaultPackageInfo.VERSION
         );
@@ -94,25 +94,25 @@ export class CustomAuthStandardController
         this.authority = new CustomAuthAuthority(
             this.customAuthConfig.auth.authority,
             this.customAuthConfig,
-            this.networkClient,
-            this.browserStorage,
-            this.logger,
+            this.nc,
+            this.bs,
+            this.l,
             this.customAuthConfig.customAuth?.authApiProxyUrl
         );
 
         const interactionClientFactory = new CustomAuthInterationClientFactory(
             this.customAuthConfig,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.eventHandler,
-            this.navigationClient,
-            this.performanceClient,
+            this.bs,
+            this.bc,
+            this.l,
+            this.eh,
+            this.navClient,
+            this.pc,
             customAuthApiClient ??
                 new CustomAuthApiClient(
                     this.authority.getCustomAuthApiDomain(),
                     this.customAuthConfig.auth.clientId,
-                    new FetchHttpClient(this.logger)
+                    new FetchHttpClient(this.l)
                 ),
             this.authority
         );
@@ -136,19 +136,19 @@ export class CustomAuthStandardController
     ): GetAccountResult {
         const correlationId = this.getCorrelationId(accountRetrievalInputs);
         try {
-            this.logger.verbose("Getting current account data.", correlationId);
+            this.l.verbose("Getting current account data.", correlationId);
 
             const account = this.cacheClient.getCurrentAccount(correlationId);
 
             if (account) {
-                this.logger.verbose("Account data found.", correlationId);
+                this.l.verbose("Account data found.", correlationId);
 
                 return new GetAccountResult(
                     new CustomAuthAccountData(
                         account,
                         this.customAuthConfig,
                         this.cacheClient,
-                        this.logger,
+                        this.l,
                         correlationId
                     )
                 );
@@ -156,7 +156,7 @@ export class CustomAuthStandardController
 
             throw new NoCachedAccountFoundError(correlationId);
         } catch (error) {
-            this.logger.errorPii(
+            this.l.errorPii(
                 `An error occurred during getting current account: ${error}`,
                 correlationId
             );
@@ -205,7 +205,7 @@ export class CustomAuthStandardController
                 password: signInInputs.password,
             };
 
-            this.logger.verbose(
+            this.l.verbose(
                 `Starting sign-in flow ${
                     !!signInInputs.password ? "with" : "without"
                 } password.`,
@@ -216,11 +216,11 @@ export class CustomAuthStandardController
                 signInStartParams
             );
 
-            this.logger.verbose("Sign-in flow started.", correlationId);
+            this.l.verbose("Sign-in flow started.", correlationId);
 
             if (startResult.type === SIGN_IN_CODE_SEND_RESULT_TYPE) {
                 // require code
-                this.logger.verbose(
+                this.l.verbose(
                     "Code required for sign-in.",
                     correlationId
                 );
@@ -229,7 +229,7 @@ export class CustomAuthStandardController
                     new SignInCodeRequiredState({
                         correlationId: startResult.correlationId,
                         continuationToken: startResult.continuationToken,
-                        logger: this.logger,
+                        logger: this.l,
                         config: this.customAuthConfig,
                         signInClient: this.signInClient,
                         cacheClient: this.cacheClient,
@@ -243,13 +243,13 @@ export class CustomAuthStandardController
                 startResult.type === SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE
             ) {
                 // require password
-                this.logger.verbose(
+                this.l.verbose(
                     "Password required for sign-in.",
                     correlationId
                 );
 
                 if (!signInInputs.password) {
-                    this.logger.verbose(
+                    this.l.verbose(
                         "Password required but not provided. Returning password required state.",
                         correlationId
                     );
@@ -258,7 +258,7 @@ export class CustomAuthStandardController
                         new SignInPasswordRequiredState({
                             correlationId: startResult.correlationId,
                             continuationToken: startResult.continuationToken,
-                            logger: this.logger,
+                            logger: this.l,
                             config: this.customAuthConfig,
                             signInClient: this.signInClient,
                             cacheClient: this.cacheClient,
@@ -269,7 +269,7 @@ export class CustomAuthStandardController
                     );
                 }
 
-                this.logger.verbose(
+                this.l.verbose(
                     "Submitting password for sign-in.",
                     correlationId
                 );
@@ -291,13 +291,13 @@ export class CustomAuthStandardController
                     submitPasswordParams
                 );
 
-                this.logger.verbose("Sign-in flow completed.", correlationId);
+                this.l.verbose("Sign-in flow completed.", correlationId);
 
                 const accountInfo = new CustomAuthAccountData(
                     completedResult.authenticationResult.account,
                     this.customAuthConfig,
                     this.cacheClient,
-                    this.logger,
+                    this.l,
                     correlationId
                 );
 
@@ -307,7 +307,7 @@ export class CustomAuthStandardController
                 );
             }
 
-            this.logger.error(
+            this.l.error(
                 "Unexpected sign-in result type. Returning error.",
                 correlationId
             );
@@ -317,7 +317,7 @@ export class CustomAuthStandardController
                 correlationId
             );
         } catch (error) {
-            this.logger.errorPii(
+            this.l.errorPii(
                 `An error occurred during starting sign-in: ${error}`,
                 correlationId
             );
@@ -348,7 +348,7 @@ export class CustomAuthStandardController
             );
             this.ensureUserNotSignedIn(correlationId);
 
-            this.logger.verbose(
+            this.l.verbose(
                 `Starting sign-up flow${
                     !!signUpInputs.password
                         ? ` with ${
@@ -371,11 +371,11 @@ export class CustomAuthStandardController
                 attributes: signUpInputs.attributes,
             });
 
-            this.logger.verbose("Sign-up flow started.", correlationId);
+            this.l.verbose("Sign-up flow started.", correlationId);
 
             if (startResult.type === SIGN_UP_CODE_REQUIRED_RESULT_TYPE) {
                 // Code required
-                this.logger.verbose(
+                this.l.verbose(
                     "Code required for sign-up.",
                     correlationId
                 );
@@ -384,7 +384,7 @@ export class CustomAuthStandardController
                     new SignUpCodeRequiredState({
                         correlationId: startResult.correlationId,
                         continuationToken: startResult.continuationToken,
-                        logger: this.logger,
+                        logger: this.l,
                         config: this.customAuthConfig,
                         signInClient: this.signInClient,
                         signUpClient: this.signUpClient,
@@ -398,7 +398,7 @@ export class CustomAuthStandardController
                 startResult.type === SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE
             ) {
                 // Password required
-                this.logger.verbose(
+                this.l.verbose(
                     "Password required for sign-up.",
                     correlationId
                 );
@@ -407,7 +407,7 @@ export class CustomAuthStandardController
                     new SignUpPasswordRequiredState({
                         correlationId: startResult.correlationId,
                         continuationToken: startResult.continuationToken,
-                        logger: this.logger,
+                        logger: this.l,
                         config: this.customAuthConfig,
                         signInClient: this.signInClient,
                         signUpClient: this.signUpClient,
@@ -417,7 +417,7 @@ export class CustomAuthStandardController
                 );
             }
 
-            this.logger.error(
+            this.l.error(
                 "Unexpected sign-up result type. Returning error.",
                 correlationId
             );
@@ -427,7 +427,7 @@ export class CustomAuthStandardController
                 correlationId
             );
         } catch (error) {
-            this.logger.errorPii(
+            this.l.errorPii(
                 `An error occurred during starting sign-up: ${error}`,
                 correlationId
             );
@@ -460,7 +460,7 @@ export class CustomAuthStandardController
             );
             this.ensureUserNotSignedIn(correlationId);
 
-            this.logger.verbose("Starting password-reset flow.", correlationId);
+            this.l.verbose("Starting password-reset flow.", correlationId);
 
             const startResult = await this.resetPasswordClient.start({
                 clientId: this.customAuthConfig.auth.clientId,
@@ -470,13 +470,13 @@ export class CustomAuthStandardController
                 username: resetPasswordInputs.username,
             });
 
-            this.logger.verbose("Password-reset flow started.", correlationId);
+            this.l.verbose("Password-reset flow started.", correlationId);
 
             return new ResetPasswordStartResult(
                 new ResetPasswordCodeRequiredState({
                     correlationId: startResult.correlationId,
                     continuationToken: startResult.continuationToken,
-                    logger: this.logger,
+                    logger: this.l,
                     config: this.customAuthConfig,
                     signInClient: this.signInClient,
                     resetPasswordClient: this.resetPasswordClient,
@@ -486,7 +486,7 @@ export class CustomAuthStandardController
                 })
             );
         } catch (error) {
-            this.logger.errorPii(
+            this.l.errorPii(
                 `An error occurred during starting reset-password: ${error}`,
                 correlationId
             );
@@ -499,7 +499,7 @@ export class CustomAuthStandardController
         actionInputs: CustomAuthActionInputs | undefined
     ): string {
         return (
-            actionInputs?.correlationId || this.browserCrypto.createNewGuid()
+            actionInputs?.correlationId || this.bc.createNewGuid()
         );
     }
 
@@ -509,7 +509,7 @@ export class CustomAuthStandardController
         });
 
         if (account && !!account.data) {
-            this.logger.error("User has already signed in.", correlationId);
+            this.l.error("User has already signed in.", correlationId);
 
             throw new UserAlreadySignedInError(correlationId);
         }

@@ -39,16 +39,16 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export abstract class BaseInteractionClient {
-    protected config: BrowserConfiguration;
-    protected browserStorage: BrowserCacheManager;
-    protected browserCrypto: ICrypto;
-    protected networkClient: INetworkModule;
-    protected logger: Logger;
-    protected eventHandler: EventHandler;
-    protected navigationClient: INavigationClient;
-    protected platformAuthProvider: IPlatformAuthHandler | undefined;
-    protected correlationId: string;
-    protected performanceClient: IPerformanceClient;
+    protected cfg: BrowserConfiguration;
+    protected bs: BrowserCacheManager;
+    protected bc: ICrypto;
+    protected nc: INetworkModule;
+    protected l: Logger;
+    protected eh: EventHandler;
+    protected navClient: INavigationClient;
+    protected pap: IPlatformAuthHandler | undefined;
+    protected cId: string;
+    protected pc: IPerformanceClient;
 
     constructor(
         config: BrowserConfiguration,
@@ -61,20 +61,20 @@ export abstract class BaseInteractionClient {
         platformAuthProvider?: IPlatformAuthHandler,
         correlationId?: string
     ) {
-        this.config = config;
-        this.browserStorage = storageImpl;
-        this.browserCrypto = browserCrypto;
-        this.networkClient = this.config.system.networkClient;
-        this.eventHandler = eventHandler;
-        this.navigationClient = navigationClient;
-        this.platformAuthProvider = platformAuthProvider;
-        this.correlationId = correlationId || createNewGuid();
-        this.logger = logger.clone(
+        this.cfg = config;
+        this.bs = storageImpl;
+        this.bc = browserCrypto;
+        this.nc = this.cfg.system.networkClient;
+        this.eh = eventHandler;
+        this.navClient = navigationClient;
+        this.pap = platformAuthProvider;
+        this.cId = correlationId || createNewGuid();
+        this.l = logger.clone(
             BrowserConstants.MSAL_SKU,
             version,
-            this.correlationId
+            this.cId
         );
-        this.performanceClient = performanceClient;
+        this.pc = performanceClient;
     }
 
     abstract acquireToken(

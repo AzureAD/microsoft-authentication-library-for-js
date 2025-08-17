@@ -36,12 +36,12 @@ export type KeyLocation = (typeof KeyLocation)[keyof typeof KeyLocation];
 
 /** @internal */
 export class PopTokenGenerator {
-    private cryptoUtils: ICrypto;
-    private performanceClient?: IPerformanceClient;
+    private cu: ICrypto;
+    private pc?: IPerformanceClient;
 
     constructor(cryptoUtils: ICrypto, performanceClient?: IPerformanceClient) {
-        this.cryptoUtils = cryptoUtils;
-        this.performanceClient = performanceClient;
+        this.cu = cryptoUtils;
+        this.pc = performanceClient;
     }
 
     /**
@@ -58,10 +58,10 @@ export class PopTokenGenerator {
             this.generateKid.bind(this),
             PerformanceEvents.PopTokenGenerateCnf,
             logger,
-            this.performanceClient,
+            this.pc,
             request.correlationId
         )(request);
-        const reqCnfString: string = this.cryptoUtils.base64UrlEncode(
+        const reqCnfString: string = this.cu.base64UrlEncode(
             JSON.stringify(reqCnf)
         );
 
@@ -77,7 +77,7 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(
+        const kidThumbprint = await this.cu.getPublicKeyThumbprint(
             request
         );
 
@@ -128,13 +128,13 @@ export class PopTokenGenerator {
             ? new UrlString(resourceRequestUri)
             : undefined;
         const resourceUrlComponents = resourceUrlString?.getUrlComponents();
-        return this.cryptoUtils.signJwt(
+        return this.cu.signJwt(
             {
                 at: payload,
                 ts: TimeUtils.nowSeconds(),
                 m: resourceRequestMethod?.toUpperCase(),
                 u: resourceUrlComponents?.HostNameAndPort,
-                nonce: shrNonce || this.cryptoUtils.createNewGuid(),
+                nonce: shrNonce || this.cu.createNewGuid(),
                 p: resourceUrlComponents?.AbsolutePath,
                 q: resourceUrlComponents?.QueryString
                     ? [[], resourceUrlComponents.QueryString]

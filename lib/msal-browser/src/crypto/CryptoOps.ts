@@ -40,30 +40,30 @@ export type CachedKeyPair = {
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
  */
 export class CryptoOps implements ICrypto {
-    private logger: Logger;
+    private l: Logger;
 
     /**
      * CryptoOps can be used in contexts outside a PCA instance,
      * meaning there won't be a performance manager available.
      */
-    private performanceClient: IPerformanceClient | undefined;
+    private pc: IPerformanceClient | undefined;
 
-    private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
-    private static EXTRACTABLE: boolean = true;
-    private cache: AsyncMemoryStorage<CachedKeyPair>;
+    private static PKU: Array<KeyUsage> = ["sign", "verify"];
+    private static EXT: boolean = true;
+    private c: AsyncMemoryStorage<CachedKeyPair>;
 
     constructor(
         logger: Logger,
         performanceClient?: IPerformanceClient,
         skipValidateSubtleCrypto?: boolean
     ) {
-        this.logger = logger;
+        this.l = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         BrowserCrypto.validateCryptoAvailable(
             skipValidateSubtleCrypto ?? false
         );
-        this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
-        this.performanceClient = performanceClient;
+        this.c = new AsyncMemoryStorage<CachedKeyPair>(this.l);
+        this.pc = performanceClient;
     }
 
     /**
@@ -115,15 +115,15 @@ export class CryptoOps implements ICrypto {
         request: SignedHttpRequestParameters
     ): Promise<string> {
         const publicKeyThumbMeasurement =
-            this.performanceClient?.startMeasurement(
+            this.pc?.startMeasurement(
                 BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
                 request.correlationId
             );
 
         // Generate Keypair
         const keyPair: CryptoKeyPair = await BrowserCrypto.generateKeyPair(
-            CryptoOps.EXTRACTABLE,
-            CryptoOps.POP_KEY_USAGES
+            CryptoOps.EXT,
+            CryptoOps.PKU
         );
 
         // Generate Thumbprint for Public Key
@@ -150,7 +150,7 @@ export class CryptoOps implements ICrypto {
             await BrowserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
-        await this.cache.setItem(publicJwkHash, {
+        await this.c.setItem(publicJwkHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: request.resourceRequestMethod,
@@ -171,8 +171,8 @@ export class CryptoOps implements ICrypto {
      * @param kid
      */
     async removeTokenBindingKey(kid: string): Promise<void> {
-        await this.cache.removeItem(kid);
-        const keyFound = await this.cache.containsKey(kid);
+        await this.c.removeItem(kid);
+        const keyFound = await this.c.containsKey(kid);
         if (keyFound) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.bindingKeyNotRemoved
@@ -185,22 +185,22 @@ export class CryptoOps implements ICrypto {
      */
     async clearKeystore(): Promise<boolean> {
         // Delete in-memory keystores
-        this.cache.clearInMemory();
+        this.c.clearInMemory();
 
         /**
          * There is only one database, so calling clearPersistent on asymmetric keystore takes care of
          * every persistent keystore
          */
         try {
-            await this.cache.clearPersistent();
+            await this.c.clearPersistent();
             return true;
         } catch (e) {
             if (e instanceof Error) {
-                this.logger.error(
+                this.l.error(
                     `Clearing keystore failed with error: ${e.message}`
                 );
             } else {
-                this.logger.error(
+                this.l.error(
                     "Clearing keystore failed with unknown error"
                 );
             }
@@ -220,11 +220,11 @@ export class CryptoOps implements ICrypto {
         shrOptions?: ShrOptions,
         correlationId?: string
     ): Promise<string> {
-        const signJwtMeasurement = this.performanceClient?.startMeasurement(
+        const signJwtMeasurement = this.pc?.startMeasurement(
             BrowserPerformanceEvents.CryptoOptsSignJwt,
             correlationId
         );
-        const cachedKeyPair = await this.cache.getItem(kid);
+        const cachedKeyPair = await this.c.getItem(kid);
 
         if (!cachedKeyPair) {
             throw createBrowserAuthError(

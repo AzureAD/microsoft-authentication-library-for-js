@@ -33,18 +33,18 @@ export class SilentCacheClient extends StandardInteractionClient {
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.acquireTokenSilent_silentFlow,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
             BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
+            this.l,
+            this.pc,
+            this.cId
         )({
             serverTelemetryManager,
             requestAuthority: silentRequest.authority,
@@ -53,21 +53,21 @@ export class SilentCacheClient extends StandardInteractionClient {
         });
         const silentAuthClient = new SilentFlowClient(
             clientConfig,
-            this.performanceClient
+            this.pc
         );
-        this.logger.verbose("Silent auth client created");
+        this.l.verbose("Silent auth client created");
 
         try {
             const response = await invokeAsync(
                 silentAuthClient.acquireCachedToken.bind(silentAuthClient),
                 BrowserPerformanceEvents.SilentFlowClientAcquireCachedToken,
-                this.logger,
-                this.performanceClient,
+                this.l,
+                this.pc,
                 silentRequest.correlationId
             )(silentRequest);
             const authResponse = response[0] as AuthenticationResult;
 
-            this.performanceClient.addFields(
+            this.pc.addFields(
                 {
                     fromCache: true,
                 },
@@ -79,7 +79,7 @@ export class SilentCacheClient extends StandardInteractionClient {
                 error instanceof BrowserAuthError &&
                 error.errorCode === BrowserAuthErrorCodes.cryptoKeyNotFound
             ) {
-                this.logger.verbose(
+                this.l.verbose(
                     "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."
                 );
             }
@@ -92,13 +92,13 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param logoutRequest
      */
     logout(logoutRequest?: ClearCacheRequest): Promise<void> {
-        this.logger.verbose("logoutRedirect called");
+        this.l.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         return clearCacheOnLogout(
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            this.correlationId,
+            this.bs,
+            this.bc,
+            this.l,
+            this.cId,
             validLogoutRequest.account
         );
     }

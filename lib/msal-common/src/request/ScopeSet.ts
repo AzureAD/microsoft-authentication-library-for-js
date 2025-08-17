@@ -21,7 +21,7 @@ import { OFFLINE_ACCESS_SCOPE, OIDC_SCOPES } from "../utils/Constants.js";
  */
 export class ScopeSet {
     // Scopes as a Set of strings
-    private scopes: Set<string>;
+    private s: Set<string>;
 
     constructor(inputScopes: Array<string>) {
         // Filter empty string and null/undefined array items
@@ -39,8 +39,8 @@ export class ScopeSet {
             );
         }
 
-        this.scopes = new Set<string>(); // Iterator in constructor not supported by IE11
-        filteredInput.forEach((scope) => this.scopes.add(scope));
+        this.s = new Set<string>(); // Iterator in constructor not supported by IE11
+        filteredInput.forEach((scope) => this.s.add(scope));
     }
 
     /**
@@ -80,7 +80,7 @@ export class ScopeSet {
         const lowerCaseScopesSet = new ScopeSet(lowerCaseScopes);
         // compare lowercase scopes
         return scope
-            ? lowerCaseScopesSet.scopes.has(scope.toLowerCase())
+            ? lowerCaseScopesSet.s.has(scope.toLowerCase())
             : false;
     }
 
@@ -89,12 +89,12 @@ export class ScopeSet {
      * @param scopeSet
      */
     containsScopeSet(scopeSet: ScopeSet): boolean {
-        if (!scopeSet || scopeSet.scopes.size <= 0) {
+        if (!scopeSet || scopeSet.s.size <= 0) {
             return false;
         }
 
         return (
-            this.scopes.size >= scopeSet.scopes.size &&
+            this.s.size >= scopeSet.s.size &&
             scopeSet.asArray().every((scope) => this.containsScope(scope))
         );
     }
@@ -110,7 +110,7 @@ export class ScopeSet {
             }
         });
 
-        return this.scopes.size === defaultScopeCount;
+        return this.s.size === defaultScopeCount;
     }
 
     /**
@@ -119,7 +119,7 @@ export class ScopeSet {
      */
     appendScope(newScope: string): void {
         if (newScope) {
-            this.scopes.add(newScope.trim());
+            this.s.add(newScope.trim());
         }
     }
 
@@ -147,7 +147,7 @@ export class ScopeSet {
                 ClientAuthErrorCodes.cannotRemoveEmptyScope
             );
         }
-        this.scopes.delete(scope.trim());
+        this.s.delete(scope.trim());
     }
 
     /**
@@ -156,7 +156,7 @@ export class ScopeSet {
      */
     removeOIDCScopes(): void {
         OIDC_SCOPES.forEach((defaultScope: string) => {
-            this.scopes.delete(defaultScope);
+            this.s.delete(defaultScope);
         });
     }
 
@@ -171,10 +171,10 @@ export class ScopeSet {
             );
         }
         const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
-        otherScopes.scopes.forEach((scope) =>
+        otherScopes.s.forEach((scope) =>
             unionScopes.add(scope.toLowerCase())
         );
-        this.scopes.forEach((scope) => unionScopes.add(scope.toLowerCase()));
+        this.s.forEach((scope) => unionScopes.add(scope.toLowerCase()));
         return unionScopes;
     }
 
@@ -204,7 +204,7 @@ export class ScopeSet {
      * Returns size of set of scopes.
      */
     getScopeCount(): number {
-        return this.scopes.size;
+        return this.s.size;
     }
 
     /**
@@ -212,7 +212,7 @@ export class ScopeSet {
      */
     asArray(): Array<string> {
         const array: Array<string> = [];
-        this.scopes.forEach((val) => array.push(val));
+        this.s.forEach((val) => array.push(val));
         return array;
     }
 
@@ -220,7 +220,7 @@ export class ScopeSet {
      * Prints scopes into a space-delimited string
      */
     printScopes(): string {
-        if (this.scopes) {
+        if (this.s) {
             const scopeArr = this.asArray();
             return scopeArr.join(" ");
         }

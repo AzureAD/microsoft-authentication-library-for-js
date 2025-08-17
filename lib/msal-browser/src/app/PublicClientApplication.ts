@@ -43,8 +43,8 @@ import { EventType } from "../event/EventType.js";
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
 export class PublicClientApplication implements IPublicClientApplication {
-    protected controller: IController;
-    protected isBroker: boolean = false;
+    protected ctrl: IController; // controller
+    protected ib: boolean = false; // isBroker
 
     /**
      * Creates StandardController and passes it to the PublicClientApplication
@@ -85,7 +85,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
     public constructor(configuration: Configuration, controller?: IController) {
-        this.controller =
+        this.ctrl =
             controller ||
             new StandardController(new StandardOperatingContext(configuration));
     }
@@ -95,7 +95,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request {?InitializeApplicationRequest}
      */
     async initialize(request?: InitializeApplicationRequest): Promise<void> {
-        return this.controller.initialize(request, this.isBroker);
+        return this.ctrl.initialize(request, this.ib);
     }
 
     /**
@@ -108,7 +108,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenPopup(
         request: PopupRequest
     ): Promise<AuthenticationResult> {
-        return this.controller.acquireTokenPopup(request);
+        return this.ctrl.acquireTokenPopup(request);
     }
 
     /**
@@ -121,7 +121,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request
      */
     acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        return this.controller.acquireTokenRedirect(request);
+        return this.ctrl.acquireTokenRedirect(request);
     }
 
     /**
@@ -133,7 +133,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     acquireTokenSilent(
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        return this.controller.acquireTokenSilent(silentRequest);
+        return this.ctrl.acquireTokenSilent(silentRequest);
     }
 
     /**
@@ -149,7 +149,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     acquireTokenByCode(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
-        return this.controller.acquireTokenByCode(request);
+        return this.ctrl.acquireTokenByCode(request);
     }
 
     /**
@@ -161,7 +161,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         callback: EventCallbackFunction,
         eventTypes?: Array<EventType>
     ): string | null {
-        return this.controller.addEventCallback(callback, eventTypes);
+        return this.ctrl.addEventCallback(callback, eventTypes);
     }
 
     /**
@@ -169,7 +169,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param callbackId
      */
     removeEventCallback(callbackId: string): void {
-        return this.controller.removeEventCallback(callbackId);
+        return this.ctrl.removeEventCallback(callbackId);
     }
 
     /**
@@ -179,7 +179,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
-        return this.controller.addPerformanceCallback(callback);
+        return this.ctrl.addPerformanceCallback(callback);
     }
 
     /**
@@ -189,7 +189,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns {boolean}
      */
     removePerformanceCallback(callbackId: string): boolean {
-        return this.controller.removePerformanceCallback(callbackId);
+        return this.ctrl.removePerformanceCallback(callbackId);
     }
 
     /**
@@ -198,7 +198,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns The first account found in the cache matching the provided filter or null if no account could be found.
      */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
-        return this.controller.getAccount(accountFilter);
+        return this.ctrl.getAccount(accountFilter);
     }
 
     /**
@@ -207,7 +207,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
-        return this.controller.getAllAccounts(accountFilter);
+        return this.ctrl.getAllAccounts(accountFilter);
     }
 
     /**
@@ -221,7 +221,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     handleRedirectPromise(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        return this.controller.handleRedirectPromise(options);
+        return this.ctrl.handleRedirectPromise(options);
     }
 
     /**
@@ -234,7 +234,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     loginPopup(
         request?: PopupRequest | undefined
     ): Promise<AuthenticationResult> {
-        return this.controller.loginPopup(request);
+        return this.ctrl.loginPopup(request);
     }
 
     /**
@@ -247,7 +247,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request
      */
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
-        return this.controller.loginRedirect(request);
+        return this.ctrl.loginRedirect(request);
     }
 
     /**
@@ -256,7 +256,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param logoutRequest
      */
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
-        return this.controller.logoutRedirect(logoutRequest);
+        return this.ctrl.logoutRedirect(logoutRequest);
     }
 
     /**
@@ -264,7 +264,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param logoutRequest
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
-        return this.controller.logoutPopup(logoutRequest);
+        return this.ctrl.logoutPopup(logoutRequest);
     }
 
     /**
@@ -283,14 +283,14 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        return this.controller.ssoSilent(request);
+        return this.ctrl.ssoSilent(request);
     }
 
     /**
      * Returns the logger instance
      */
     getLogger(): Logger {
-        return this.controller.getLogger();
+        return this.ctrl.getLogger();
     }
 
     /**
@@ -298,7 +298,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param logger Logger instance
      */
     setLogger(logger: Logger): void {
-        this.controller.setLogger(logger);
+        this.ctrl.setLogger(logger);
     }
 
     /**
@@ -306,14 +306,14 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        this.controller.setActiveAccount(account);
+        this.ctrl.setActiveAccount(account);
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return this.controller.getActiveAccount();
+        return this.ctrl.getActiveAccount();
     }
 
     /**
@@ -322,7 +322,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param version
      */
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
-        return this.controller.initializeWrapperLibrary(sku, version);
+        return this.ctrl.initializeWrapperLibrary(sku, version);
     }
 
     /**
@@ -330,7 +330,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param navigationClient
      */
     setNavigationClient(navigationClient: INavigationClient): void {
-        this.controller.setNavigationClient(navigationClient);
+        this.ctrl.setNavigationClient(navigationClient);
     }
 
     /**
@@ -338,7 +338,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @internal
      */
     getConfiguration(): BrowserConfiguration {
-        return this.controller.getConfiguration();
+        return this.ctrl.getConfiguration();
     }
 
     /**
@@ -355,7 +355,7 @@ export class PublicClientApplication implements IPublicClientApplication {
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
-        return this.controller.hydrateCache(result, request);
+        return this.ctrl.hydrateCache(result, request);
     }
 
     /**
@@ -363,7 +363,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param logoutRequest
      */
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        return this.controller.clearCache(logoutRequest);
+        return this.ctrl.clearCache(logoutRequest);
     }
 }
 

@@ -45,56 +45,56 @@ import { invokeAsync } from "../utils/FunctionWrappers.js";
  */
 export abstract class BaseClient {
     // Logger object
-    public logger: Logger;
+    public l: Logger;
 
     // Application config
-    protected config: CommonClientConfiguration;
+    protected cfg: CommonClientConfiguration;
 
     // Crypto Interface
-    protected cryptoUtils: ICrypto;
+    protected cry: ICrypto;
 
     // Storage Interface
-    protected cacheManager: CacheManager;
+    protected cm: CacheManager;
 
     // Network Interface
-    protected networkClient: INetworkModule;
+    protected nc: INetworkModule;
 
     // Server Telemetry Manager
-    protected serverTelemetryManager: ServerTelemetryManager | null;
+    protected stm: ServerTelemetryManager | null;
 
     // Default authority object
-    public authority: Authority;
+    public auth: Authority;
 
     // Performance telemetry client
-    protected performanceClient?: IPerformanceClient;
+    protected pc?: IPerformanceClient;
 
     protected constructor(
         configuration: ClientConfiguration,
         performanceClient?: IPerformanceClient
     ) {
         // Set the configuration
-        this.config = buildClientConfiguration(configuration);
+        this.cfg = buildClientConfiguration(configuration);
 
         // Initialize the logger
-        this.logger = new Logger(this.config.loggerOptions, name, version);
+        this.l = new Logger(this.cfg.loggerOptions, name, version);
 
         // Initialize crypto
-        this.cryptoUtils = this.config.cryptoInterface;
+        this.cry = this.cfg.cryptoInterface;
 
         // Initialize storage interface
-        this.cacheManager = this.config.storageInterface;
+        this.cm = this.cfg.storageInterface;
 
         // Set the network interface
-        this.networkClient = this.config.networkInterface;
+        this.nc = this.cfg.networkInterface;
 
         // Set TelemetryManager
-        this.serverTelemetryManager = this.config.serverTelemetryManager;
+        this.stm = this.cfg.serverTelemetryManager;
 
         // set Authority
-        this.authority = this.config.authOptions.authority;
+        this.auth = this.cfg.authOptions.authority;
 
         // set performance telemetry client
-        this.performanceClient = performanceClient;
+        this.pc = performanceClient;
     }
 
     /**
@@ -105,7 +105,7 @@ export abstract class BaseClient {
     ): Record<string, string> {
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = URL_FORM_CONTENT_TYPE;
-        if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
+        if (!this.cfg.systemOptions.preventCorsPreflight && ccsCred) {
             switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
                     try {
@@ -116,7 +116,7 @@ export abstract class BaseClient {
                             HeaderNames.CCS_HEADER
                         ] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
                     } catch (e) {
-                        this.logger.verbose(
+                        this.l.verbose(
                             "Could not parse home account ID for CCS Header: " +
                                 e
                         );
@@ -155,12 +155,12 @@ export abstract class BaseClient {
             );
 
         if (
-            this.config.serverTelemetryManager &&
+            this.cfg.serverTelemetryManager &&
             response.status < 500 &&
             response.status !== 429
         ) {
             // Telemetry data successfully logged by server, clear Telemetry cache
-            this.config.serverTelemetryManager.clearTelemetryCache();
+            this.cfg.serverTelemetryManager.clearTelemetryCache();
         }
 
         return response;
@@ -180,7 +180,7 @@ export abstract class BaseClient {
         correlationId: string
     ): Promise<NetworkResponse<T>> {
         ThrottlingUtils.preProcess(
-            this.cacheManager,
+            this.cm,
             thumbprint,
             correlationId
         );
@@ -188,16 +188,16 @@ export abstract class BaseClient {
         let response;
         try {
             response = await invokeAsync(
-                this.networkClient.sendPostRequestAsync.bind(
-                    this.networkClient
+                this.nc.sendPostRequestAsync.bind(
+                    this.nc
                 )<T>,
                 PerformanceEvents.NetworkClientSendPostRequestAsync,
-                this.logger,
-                this.performanceClient,
+                this.l,
+                this.pc,
                 correlationId
             )(tokenEndpoint, options);
             const responseHeaders = response.headers || {};
-            this.performanceClient?.addFields(
+            this.pc?.addFields(
                 {
                     refreshTokenSize: response.body.refresh_token?.length || 0,
                     httpVerToken:
@@ -211,7 +211,7 @@ export abstract class BaseClient {
             if (e instanceof NetworkError) {
                 const responseHeaders = e.responseHeaders;
                 if (responseHeaders) {
-                    this.performanceClient?.addFields(
+                    this.pc?.addFields(
                         {
                             httpVerToken:
                                 responseHeaders[
@@ -241,7 +241,7 @@ export abstract class BaseClient {
         }
 
         ThrottlingUtils.postProcess(
-            this.cacheManager,
+            this.cm,
             thumbprint,
             response,
             correlationId
@@ -258,17 +258,17 @@ export abstract class BaseClient {
         cloudInstanceHostname: string,
         correlationId: string
     ): Promise<void> {
-        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${this.authority.tenant}/`;
+        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${this.auth.tenant}/`;
         const cloudInstanceAuthority = await createDiscoveredInstance(
             cloudInstanceAuthorityUri,
-            this.networkClient,
-            this.cacheManager,
-            this.authority.options,
-            this.logger,
+            this.nc,
+            this.cm,
+            this.auth.options,
+            this.l,
             correlationId,
-            this.performanceClient
+            this.pc
         );
-        this.authority = cloudInstanceAuthority;
+        this.auth = cloudInstanceAuthority;
     }
 
     /**
@@ -281,8 +281,8 @@ export abstract class BaseClient {
         if (request.embeddedClientId) {
             RequestParameterBuilder.addBrokerParameters(
                 parameters,
-                this.config.authOptions.clientId,
-                this.config.authOptions.redirectUri
+                this.cfg.authOptions.clientId,
+                this.cfg.authOptions.redirectUri
             );
         }
 
@@ -301,7 +301,7 @@ export abstract class BaseClient {
         RequestParameterBuilder.instrumentBrokerParams(
             parameters,
             request.correlationId,
-            this.performanceClient
+            this.pc
         );
         return UrlUtils.mapToQueryString(parameters);
     }

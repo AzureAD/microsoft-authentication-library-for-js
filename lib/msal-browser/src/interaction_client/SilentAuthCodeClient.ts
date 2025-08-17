@@ -81,26 +81,26 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
             initializeAuthorizationRequest,
             BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-            this.logger,
-            this.performanceClient,
+            this.l,
+            this.pc,
             request.correlationId
         )(
             request,
             InteractionType.Silent,
-            this.config,
-            this.browserCrypto,
-            this.browserStorage,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
+            this.cfg,
+            this.bc,
+            this.bs,
+            this.l,
+            this.pc,
+            this.cId
         );
 
         const serverTelemetryManager = initializeServerTelemetryManager(
             this.apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         try {
@@ -114,8 +114,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             const clientConfig = await invokeAsync(
                 this.getClientConfiguration.bind(this),
                 BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
-                this.logger,
-                this.performanceClient,
+                this.l,
+                this.pc,
                 request.correlationId
             )({
                 serverTelemetryManager,
@@ -126,15 +126,15 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             });
             const authClient: HybridSpaAuthorizationCodeClient =
                 new HybridSpaAuthorizationCodeClient(clientConfig);
-            this.logger.verbose("Auth code client created");
+            this.l.verbose("Auth code client created");
 
             // Create silent handler
             const interactionHandler = new InteractionHandler(
                 authClient,
-                this.browserStorage,
+                this.bs,
                 authCodeRequest,
-                this.logger,
-                this.performanceClient
+                this.l,
+                this.pc
             );
 
             // Handle auth code parameters from request
@@ -143,8 +143,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                     interactionHandler
                 ),
                 PerformanceEvents.HandleCodeResponseFromServer,
-                this.logger,
-                this.performanceClient,
+                this.l,
+                this.pc,
                 request.correlationId
             )(
                 {
@@ -158,7 +158,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             );
         } catch (e) {
             if (e instanceof AuthError) {
-                (e as AuthError).setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.cId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;

@@ -48,10 +48,10 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_START;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const startRequest: ResetPasswordStartRequest = {
@@ -61,7 +61,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             telemetryManager: telemetryManager,
         };
 
-        this.logger.verbose(
+        this.l.verbose(
             "Calling start endpoint for password reset flow.",
             correlationId
         );
@@ -69,7 +69,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const startResponse =
             await this.customAuthApiClient.resetPasswordApi.start(startRequest);
 
-        this.logger.verbose(
+        this.l.verbose(
             "Start endpoint for password reset returned successfully.",
             correlationId
         );
@@ -102,10 +102,10 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_SUBMIT_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const continueRequest: ResetPasswordContinueRequest = {
@@ -115,7 +115,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             telemetryManager: telemetryManager,
         };
 
-        this.logger.verbose(
+        this.l.verbose(
             "Calling continue endpoint with code for password reset.",
             correlationId
         );
@@ -125,7 +125,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 continueRequest
             );
 
-        this.logger.verbose(
+        this.l.verbose(
             "Continue endpoint called successfully with code for password reset.",
             response.correlation_id
         );
@@ -147,10 +147,10 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_RESEND_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const challengeRequest: ResetPasswordChallengeRequest = {
@@ -182,10 +182,10 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const apiId = PublicApiId.PASSWORD_RESET_SUBMIT_PASSWORD;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
-            this.config.auth.clientId,
-            this.correlationId,
-            this.browserStorage,
-            this.logger
+            this.cfg.auth.clientId,
+            this.cId,
+            this.bs,
+            this.l
         );
 
         const submitRequest: ResetPasswordSubmitRequest = {
@@ -195,7 +195,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             telemetryManager: telemetryManager,
         };
 
-        this.logger.verbose(
+        this.l.verbose(
             "Calling submit endpoint with new password for password reset.",
             correlationId
         );
@@ -205,7 +205,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 submitRequest
             );
 
-        this.logger.verbose(
+        this.l.verbose(
             "Submit endpoint called successfully with new password for password reset.",
             correlationId
         );
@@ -222,7 +222,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         request: ResetPasswordChallengeRequest
     ): Promise<ResetPasswordCodeRequiredResult> {
         const correlationId = request.correlationId;
-        this.logger.verbose(
+        this.l.verbose(
             "Calling challenge endpoint for password reset flow.",
             correlationId
         );
@@ -232,14 +232,14 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 request
             );
 
-        this.logger.verbose(
+        this.l.verbose(
             "Challenge endpoint for password reset returned successfully.",
             correlationId
         );
 
         if (response.challenge_type === ChallengeType.OOB) {
             // Code is required
-            this.logger.verbose(
+            this.l.verbose(
                 "Code is required for password reset flow.",
                 correlationId
             );
@@ -255,7 +255,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             };
         }
 
-        this.logger.error(
+        this.l.error(
             `Unsupported challenge type '${response.challenge_type}' returned from challenge endpoint for password reset.`,
             correlationId
         );
@@ -285,7 +285,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 telemetryManager: telemetryManager,
             };
 
-            this.logger.verbose(
+            this.l.verbose(
                 "Calling the poll completion endpoint for password reset flow.",
                 correlationId
             );
@@ -295,7 +295,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                     pollRequest
                 );
 
-            this.logger.verbose(
+            this.l.verbose(
                 "Poll completion endpoint for password reset returned successfully.",
                 correlationId
             );
@@ -313,7 +313,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 );
             }
 
-            this.logger.verbose(
+            this.l.verbose(
                 `Poll completion endpoint for password reset is not started or in progress, waiting ${pollInterval} seconds for next check.`,
                 correlationId
             );
@@ -321,7 +321,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             await this.delay(pollInterval * 1000);
         }
 
-        this.logger.error("Password reset flow has timed out.", correlationId);
+        this.l.error("Password reset flow has timed out.", correlationId);
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.PASSWORD_RESET_TIMEOUT,

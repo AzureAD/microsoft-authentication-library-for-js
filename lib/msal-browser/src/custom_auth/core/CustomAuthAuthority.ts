@@ -74,7 +74,7 @@ export class CustomAuthAuthority extends Authority {
             expiresAt: Number.MAX_SAFE_INTEGER,
             jwks_uri: "",
         };
-        const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
+        const cacheKey = this.cm.generateAuthorityMetadataCacheKey(
             metadataEntity.preferred_cache
         );
         cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
