@@ -132,6 +132,36 @@ npm test
 npm run test:coverage
 ```
 
+## Implicit Flow vs Authorization Code Flow with PKCE
+
+`@azure/msal-browser` implements the [OAuth 2.0 Authorization Code Flow with PKCE](https://tools.ietf.org/html/rfc7636) for browser-based applications. This is a significant improvement over the Implicit Flow that was used in `@azure/msal`, `msal` or `adal-angular`.
+
+### Authorization Code Flow with PKCE
+
+The Authorization Code Flow with Proof Key for Code Exchange (PKCE) is the current industry standard for securing OAuth 2.0 authorization in public clients, including single-page applications (SPAs). Key benefits include:
+
+- **Enhanced Security**: PKCE provides protection against authorization code interception attacks
+- **No Tokens in URLs**: Tokens are never exposed in the browser's URL or history
+- **Refresh Token Support**: Enables long-lived sessions through refresh tokens
+- **OIDC Compliance**: Fully compliant with OpenID Connect standards
+
+### Implicit Flow (Deprecated)
+
+The Implicit Flow was the previous standard for SPAs but has been deprecated due to security concerns:
+
+- **Tokens in URLs**: Access tokens are returned in URL fragments, making them visible in browser history and server logs
+- **No Refresh Tokens**: Implicit flow cannot securely deliver refresh tokens to public clients
+- **Increased Attack Surface**: Tokens are more susceptible to token leakage attacks
+
+### Migration Considerations
+
+- **`@azure/msal-browser` only supports Authorization Code Flow with PKCE** - Implicit Flow is not supported
+- If you're migrating from `@azure/msal`, `msal` or `adal-angular`, see our [migration guide](./docs/v1-migration.md)
+- Your Azure AD app registration needs to be configured for the Authorization Code Flow
+- Existing applications using Implicit Flow should migrate to Authorization Code Flow for improved security
+
+For more technical details about these flows, refer to the [Microsoft identity platform documentation](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow).
+
 ## Framework Wrappers
 
 If you are using a framework such as Angular or React you may be interested in using one of our wrapper libraries:
