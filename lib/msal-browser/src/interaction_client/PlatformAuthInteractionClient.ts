@@ -361,9 +361,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const nativeRequest = await this.initializeNativeRequest(
             remainingParameters
         );
-        rootMeasurement.add({
-            isPlatformBrokerRequest: true,
-        });
 
         try {
             await this.platformAuthProvider.sendMessage(nativeRequest);

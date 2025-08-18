@@ -721,6 +721,7 @@ export type PerformanceEvent = {
     isPlatformAuthorizeRequest?: boolean;
     isPlatformBrokerRequest?: boolean;
     brokerErrorName?: string;
+    brokerErrorCode?: string;
 
     /**
      * Request ID returned from the response
