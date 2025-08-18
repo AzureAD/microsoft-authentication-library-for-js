@@ -28,13 +28,13 @@ import {
 } from "./types/ApiResponseTypes.js";
 
 export class ResetPasswordApiClient extends BaseApiClient {
-    private readonly capabilities?: string[];
+    private readonly capabilities?: string;
 
     constructor(
         customAuthApiBaseUrl: string,
         clientId: string,
         httpClient: IHttpClient,
-        capabilities?: string[]
+        capabilities?: string
     ) {
         super(customAuthApiBaseUrl, clientId, httpClient);
         this.capabilities = capabilities;
@@ -51,10 +51,9 @@ export class ResetPasswordApiClient extends BaseApiClient {
             {
                 challenge_type: params.challenge_type,
                 username: params.username,
-                ...(this.capabilities &&
-                    this.capabilities.length > 0 && {
-                        capabilities: this.capabilities.join(" "),
-                    }),
+                ...(this.capabilities && {
+                    capabilities: this.capabilities,
+                }),
             },
             params.telemetryManager,
             params.correlationId

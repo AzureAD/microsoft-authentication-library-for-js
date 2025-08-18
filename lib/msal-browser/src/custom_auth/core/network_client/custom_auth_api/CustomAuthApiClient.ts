@@ -18,7 +18,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         customAuthApiBaseUrl: string,
         clientId: string,
         httpClient: IHttpClient,
-        capabilities?: string[]
+        capabilities?: string
     ) {
         this.signInApi = new SignInApiClient(
             customAuthApiBaseUrl,

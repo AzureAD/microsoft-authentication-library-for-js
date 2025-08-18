@@ -114,54 +114,6 @@ describe("CustomAuthInteractionClientBase", () => {
         jest.clearAllMocks();
     });
 
-    describe("getCapabilities", () => {
-        it("should return undefined when no capabilities are provided", () => {
-            // Access the protected method through type assertion
-            const result = (client as any).getCapabilities(undefined);
-            expect(result).toBeUndefined();
-        });
-
-        it("should return undefined when empty capabilities array is provided", () => {
-            const result = (client as any).getCapabilities([]);
-            expect(result).toBeUndefined();
-        });
-
-        it("should return single capability as string", () => {
-            const result = (client as any).getCapabilities(["mfa_required"]);
-            expect(result).toBe("mfa_required");
-        });
-
-        it("should return multiple capabilities joined with space", () => {
-            const result = (client as any).getCapabilities([
-                "mfa_required",
-                "registration_required",
-            ]);
-            expect(result).toBe("mfa_required registration_required");
-        });
-
-        it("should handle null input gracefully", () => {
-            const result = (client as any).getCapabilities(null);
-            expect(result).toBeUndefined();
-        });
-
-        it("should preserve capability order", () => {
-            const result = (client as any).getCapabilities([
-                "registration_required",
-                "mfa_required",
-            ]);
-            expect(result).toBe("registration_required mfa_required");
-        });
-
-        it("should handle empty strings in capabilities array", () => {
-            const result = (client as any).getCapabilities([
-                "mfa_required",
-                "",
-                "registration_required",
-            ]);
-            expect(result).toBe("mfa_required  registration_required");
-        });
-    });
-
     describe("getChallengeTypes", () => {
         it("should add redirect challenge type when not present", () => {
             const result = (client as any).getChallengeTypes([

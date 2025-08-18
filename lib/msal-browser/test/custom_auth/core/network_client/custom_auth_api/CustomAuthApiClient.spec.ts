@@ -28,7 +28,7 @@ describe("CustomAuthApiClient", () => {
 
     it("should pass capabilities to individual API clients when provided", () => {
         const logger = getDefaultLogger();
-        const capabilities = ["custom_capability_1", "custom_capability_2"];
+        const capabilities = "custom_capability_1 custom_capability_2";
         const apiClient = new CustomAuthApiClient(
             "https://test.com",
             "client_id",
