@@ -1717,6 +1717,27 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it("should use synchronized correlationId in performance measurements", async () => {
             const customCorrelationId = "custom-correlation-123";
 
+            platformAuthInteractionClient = new PlatformAuthInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                wamProvider,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                customCorrelationId
+            );
+
             jest.spyOn(
                 PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
