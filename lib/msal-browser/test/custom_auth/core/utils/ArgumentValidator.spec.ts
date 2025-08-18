@@ -5,7 +5,10 @@ describe("ArgumentValidator", () => {
     describe("ensureArgumentIsNotEmptyString", () => {
         it("should not throw an error if the string is non-empty", () => {
             expect(() => {
-                ArgumentValidator.ensureArgumentIsNotEmptyString("testArg", "validString");
+                ArgumentValidator.ensureArgumentIsNotEmptyString(
+                    "testArg",
+                    "validString"
+                );
             }).not.toThrow();
         });
 
@@ -17,14 +20,21 @@ describe("ArgumentValidator", () => {
 
         it("should throw InvalidArgumentError if the string is only whitespace", () => {
             expect(() => {
-                ArgumentValidator.ensureArgumentIsNotEmptyString("testArg", "   ");
+                ArgumentValidator.ensureArgumentIsNotEmptyString(
+                    "testArg",
+                    "   "
+                );
             }).toThrow(InvalidArgumentError);
         });
 
         it("should pass correlationId to the error when the string is invalid", () => {
             const correlationId = "12345";
             try {
-                ArgumentValidator.ensureArgumentIsNotEmptyString("testArg", "", correlationId);
+                ArgumentValidator.ensureArgumentIsNotEmptyString(
+                    "testArg",
+                    "",
+                    correlationId
+                );
             } catch (error) {
                 if (error instanceof InvalidArgumentError) {
                     expect(error.correlationId).toBe(correlationId);
@@ -38,27 +48,42 @@ describe("ArgumentValidator", () => {
     describe("ensureArgumentIsNotNullOrUndefined", () => {
         it("should not throw an error if the argument is not null or undefined", () => {
             expect(() => {
-                ArgumentValidator.ensureArgumentIsNotNullOrUndefined("testArg", "validValue");
+                ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                    "testArg",
+                    "validValue"
+                );
             }).not.toThrow();
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsNotNullOrUndefined("testArg", 42);
+                ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                    "testArg",
+                    42
+                );
             }).not.toThrow();
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsNotNullOrUndefined("testArg", {});
+                ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                    "testArg",
+                    {}
+                );
             }).not.toThrow();
         });
 
         it("should throw InvalidArgumentError if the argument is null", () => {
             expect(() => {
-                ArgumentValidator.ensureArgumentIsNotNullOrUndefined("testArg", null);
+                ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                    "testArg",
+                    null
+                );
             }).toThrow(InvalidArgumentError);
         });
 
         it("should throw InvalidArgumentError if the argument is undefined", () => {
             expect(() => {
-                ArgumentValidator.ensureArgumentIsNotNullOrUndefined("testArg", undefined);
+                ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                    "testArg",
+                    undefined
+                );
             }).toThrow(InvalidArgumentError);
         });
 
@@ -83,7 +108,10 @@ describe("ArgumentValidator", () => {
     describe("ensureArgumentIsJSONString", () => {
         it("should not throw an error when argValue is a valid JSON object string", () => {
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", '{"key": "value"}');
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    '{"key": "value"}'
+                );
             }).not.toThrow();
 
             expect(() => {
@@ -93,7 +121,10 @@ describe("ArgumentValidator", () => {
 
         it("should not throw an error when argValue is a valid JSON object string with whitespace", () => {
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", '  {"key": "value"}  ');
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    '  {"key": "value"}  '
+                );
             }).not.toThrow();
         });
 
@@ -103,7 +134,10 @@ describe("ArgumentValidator", () => {
             }).toThrow(InvalidArgumentError);
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", '"string"'); // String - not an object
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    '"string"'
+                ); // String - not an object
             }).toThrow(InvalidArgumentError);
 
             expect(() => {
@@ -131,29 +165,47 @@ describe("ArgumentValidator", () => {
             }).toThrow(InvalidArgumentError);
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", "\t\n "); // Whitespace only - not valid JSON
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    "\t\n "
+                ); // Whitespace only - not valid JSON
             }).toThrow(InvalidArgumentError);
         });
 
         it("should throw InvalidArgumentError when argValue is not valid JSON", () => {
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", "invalid json");
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    "invalid json"
+                );
             }).toThrow(InvalidArgumentError);
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", '{"key": value}'); // missing quotes around value
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    '{"key": value}'
+                ); // missing quotes around value
             }).toThrow(InvalidArgumentError);
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", '{key: "value"}'); // missing quotes around key
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    '{key: "value"}'
+                ); // missing quotes around key
             }).toThrow(InvalidArgumentError);
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", '{"key": "value",}'); // trailing comma
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    '{"key": "value",}'
+                ); // trailing comma
             }).toThrow(InvalidArgumentError);
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", "undefined");
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    "undefined"
+                );
             }).toThrow(InvalidArgumentError);
         });
 
@@ -190,7 +242,10 @@ describe("ArgumentValidator", () => {
             });
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", complexJson);
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    complexJson
+                );
             }).not.toThrow();
         });
 
@@ -201,7 +256,10 @@ describe("ArgumentValidator", () => {
             ]);
 
             expect(() => {
-                ArgumentValidator.ensureArgumentIsJSONString("testArg", arrayJson);
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "testArg",
+                    arrayJson
+                );
             }).toThrow(InvalidArgumentError);
         });
     });

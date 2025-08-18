@@ -19,6 +19,10 @@ import { MfaMethodSelectionRequiredState } from "../../../src/custom_auth/core/a
 import { MfaRequestChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaRequestChallengeResult.js";
 import { MfaSubmitChallengeResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaSubmitChallengeResult.js";
 import { MfaGetAuthMethodsResult } from "../../../src/custom_auth/core/auth_flow/mfa/result/MfaGetAuthMethodsResult.js";
+import { AuthMethodRegistrationRequiredState } from "../../../src/custom_auth/core/auth_flow/jit/state/AuthMethodRegistrationState.js";
+import { AuthMethodVerificationRequiredState } from "../../../src/custom_auth/core/auth_flow/jit/state/AuthMethodRegistrationState.js";
+import { AuthMethodRegistrationChallengeMethodResult } from "../../../src/custom_auth/core/auth_flow/jit/result/AuthMethodRegistrationChallengeMethodResult.js";
+import { AuthMethodRegistrationSubmitChallengeResult } from "../../../src/custom_auth/core/auth_flow/jit/result/AuthMethodRegistrationSubmitChallengeResult.js";
 
 describe("Sign in", () => {
     let app: CustomAuthPublicClientApplication;
@@ -1260,6 +1264,521 @@ describe("Sign in", () => {
             resendResult.state as MfaVerificationRequiredState;
         expect(newVerificationState.getChannel()).toBe("email");
         expect(newVerificationState.getSentTo()).toBe("jo**@co***so.com");
+        expect(newVerificationState.getCodeLength()).toBe(6);
+    });
+
+    it("should handle JIT registration required after signIn() and complete flow with email verification", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - JIT registration required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description:
+                    "Strong authentication method registration is required.",
+                suberror: "registration_required",
+                continuation_token: "jit-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /register/v1.0/introspect - available authentication methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "jit-introspect-token",
+                methods: [
+                    {
+                        id: "email",
+                        login_hint: "user@contoso.com",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /register/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "jit-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target: "us**@co***so.com",
+                code_length: 6,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /register/v1.0/continue - verification successful
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "jit-verified-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 7: Mock /oauth2/token - successful completion after JIT registration
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify JIT registration is required
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isAuthMethodRegistrationRequired()).toBe(true);
+        expect(result.state).toBeInstanceOf(
+            AuthMethodRegistrationRequiredState
+        );
+
+        const jitState = result.state as AuthMethodRegistrationRequiredState;
+
+        // Verify available authentication methods
+        const authMethods = jitState.getAuthMethods();
+        expect(authMethods).toHaveLength(1);
+        expect(authMethods[0].id).toBe("email");
+        expect(authMethods[0].login_hint).toBe("user@contoso.com");
+
+        // Challenge the email authentication method
+        const challengeResult = await jitState.challengeAuthMethod({
+            authMethodType: authMethods[0],
+            verificationContact: "user@contoso.com",
+        });
+
+        expect(challengeResult).toBeInstanceOf(
+            AuthMethodRegistrationChallengeMethodResult
+        );
+        expect(challengeResult.error).toBeUndefined();
+        expect(challengeResult.isVerificationRequired()).toBe(true);
+        expect(challengeResult.state).toBeInstanceOf(
+            AuthMethodVerificationRequiredState
+        );
+
+        const verificationState =
+            challengeResult.state as AuthMethodVerificationRequiredState;
+
+        // Verify verification state properties
+        expect(verificationState.getChannel()).toBe("email");
+        expect(verificationState.getSentTo()).toBe("us**@co***so.com");
+        expect(verificationState.getCodeLength()).toBe(6);
+
+        // Submit verification code
+        const submitResult = await verificationState.submitChallenge("123456");
+
+        expect(submitResult).toBeInstanceOf(
+            AuthMethodRegistrationSubmitChallengeResult
+        );
+        expect(submitResult.error).toBeUndefined();
+        expect(submitResult.isCompleted()).toBe(true);
+        expect(submitResult.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
+    it("should handle JIT registration with fast-pass scenario (same email as sign-up)", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - JIT registration required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description:
+                    "Strong authentication method registration is required.",
+                suberror: "registration_required",
+                continuation_token: "jit-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /register/v1.0/introspect - available authentication methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "jit-introspect-token",
+                methods: [
+                    {
+                        id: "email",
+                        login_hint: "user@contoso.com",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /register/v1.0/challenge - fast-pass (preverified)
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "jit-challenge-token",
+                challenge_type: "preverified",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /register/v1.0/continue - fast-pass registration
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "jit-verified-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 7: Mock /oauth2/token - successful completion after fast-pass JIT registration
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => TestServerTokenResponse,
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify JIT registration is required
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeUndefined();
+        expect(result.isAuthMethodRegistrationRequired()).toBe(true);
+
+        const jitState = result.state as AuthMethodRegistrationRequiredState;
+
+        // Challenge the email authentication method (same as sign-up email)
+        const challengeResult = await jitState.challengeAuthMethod({
+            authMethodType: jitState.getAuthMethods()[0],
+            verificationContact: "user@contoso.com",
+        });
+
+        // Fast-pass should complete immediately
+        expect(challengeResult).toBeInstanceOf(
+            AuthMethodRegistrationChallengeMethodResult
+        );
+        expect(challengeResult.error).toBeUndefined();
+        expect(challengeResult.isCompleted()).toBe(true);
+        expect(challengeResult.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
+    it("should handle JIT registration error scenarios", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - JIT registration required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description:
+                    "Strong authentication method registration is required.",
+                suberror: "registration_required",
+                continuation_token: "jit-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /register/v1.0/introspect - available authentication methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "jit-introspect-token",
+                methods: [
+                    {
+                        id: "email",
+                        login_hint: "user@contoso.com",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /register/v1.0/challenge - email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "jit-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target: "us**@co***so.com",
+                code_length: 6,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /register/v1.0/continue - incorrect verification code
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description: "The verification code is incorrect.",
+                suberror: "incorrect_challenge",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify JIT registration is required
+        expect(result.isAuthMethodRegistrationRequired()).toBe(true);
+
+        const jitState = result.state as AuthMethodRegistrationRequiredState;
+
+        // Challenge the email authentication method
+        const challengeResult = await jitState.challengeAuthMethod({
+            authMethodType: jitState.getAuthMethods()[0],
+            verificationContact: "user@contoso.com",
+        });
+
+        expect(challengeResult.isVerificationRequired()).toBe(true);
+
+        const verificationState =
+            challengeResult.state as AuthMethodVerificationRequiredState;
+
+        // Submit incorrect verification code
+        const submitResult = await verificationState.submitChallenge(
+            "wrong-code"
+        );
+
+        expect(submitResult).toBeInstanceOf(
+            AuthMethodRegistrationSubmitChallengeResult
+        );
+        expect(submitResult.error).toBeDefined();
+        expect(submitResult.isFailed()).toBe(true);
+        expect(submitResult.error?.isIncorrectChallenge()).toBe(true);
+    });
+
+    it("should handle resending JIT verification code", async () => {
+        // Step 1: Mock /oauth2/initiate - successful initiate
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-1",
+                challenge_type: "oob password redirect",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 2: Mock /oauth2/challenge - password challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "test-continuation-token-2",
+                challenge_type: "password",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 3: Mock /oauth2/token - JIT registration required response
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 400,
+            json: async () => ({
+                error: "invalid_grant",
+                error_description:
+                    "Strong authentication method registration is required.",
+                suberror: "registration_required",
+                continuation_token: "jit-continuation-token",
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: false,
+        });
+
+        // Step 4: Mock /register/v1.0/introspect - available authentication methods
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                continuation_token: "jit-introspect-token",
+                methods: [
+                    {
+                        id: "email",
+                        login_hint: "user@contoso.com",
+                    },
+                ],
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 5: Mock /register/v1.0/challenge - initial email challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "jit-challenge-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target: "us**@co***so.com",
+                code_length: 6,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Step 6: Mock /register/v1.0/challenge - resend challenge
+        (fetch as jest.Mock).mockResolvedValueOnce({
+            status: 200,
+            json: async () => ({
+                correlation_id: correlationId,
+                continuation_token: "jit-resend-token",
+                challenge_type: "oob",
+                challenge_channel: "email",
+                challenge_target: "us**@co***so.com",
+                code_length: 6,
+            }),
+            headers: new Headers({ "content-type": "application/json" }),
+            ok: true,
+        });
+
+        // Start sign-in with password
+        const signInInputs = {
+            username: "test@test.com",
+            password: "password",
+            correlationId: correlationId,
+        };
+
+        const result = await app.signIn(signInInputs);
+
+        // Verify JIT registration is required
+        expect(result.isAuthMethodRegistrationRequired()).toBe(true);
+
+        const jitState = result.state as AuthMethodRegistrationRequiredState;
+
+        // Challenge the email authentication method
+        const challengeResult = await jitState.challengeAuthMethod({
+            authMethodType: jitState.getAuthMethods()[0],
+            verificationContact: "user@contoso.com",
+        });
+
+        expect(challengeResult.isVerificationRequired()).toBe(true);
+
+        const verificationState =
+            challengeResult.state as AuthMethodVerificationRequiredState;
+
+        // Resend the challenge (equivalent to calling challengeAuthMethod again)
+        const resendResult = await verificationState.challengeAuthMethod({
+            authMethodType: jitState.getAuthMethods()[0],
+            verificationContact: "user@contoso.com",
+        });
+
+        expect(resendResult).toBeInstanceOf(
+            AuthMethodRegistrationChallengeMethodResult
+        );
+        expect(resendResult.error).toBeUndefined();
+        expect(resendResult.isVerificationRequired()).toBe(true);
+        expect(resendResult.state).toBeInstanceOf(
+            AuthMethodVerificationRequiredState
+        );
+
+        const newVerificationState =
+            resendResult.state as AuthMethodVerificationRequiredState;
+        expect(newVerificationState.getChannel()).toBe("email");
+        expect(newVerificationState.getSentTo()).toBe("us**@co***so.com");
         expect(newVerificationState.getCodeLength()).toBe(6);
     });
 });

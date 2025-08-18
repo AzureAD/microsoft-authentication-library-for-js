@@ -60,11 +60,18 @@ jest.mock(
             submitNewPassword: jest.fn(),
             pollCompletion: jest.fn(),
         };
+        let registerApiClient = {
+            introspect: jest.fn(),
+            challenge: jest.fn(),
+            continueWithOob: jest.fn(),
+            continueWithContinuationToken: jest.fn(),
+        };
 
         const CustomAuthApiClient = jest.fn().mockImplementation(() => ({
             signInApi: signInApiClient,
             signUpApi: signUpApiClient,
             resetPasswordApi: resetPasswordApiClient,
+            registerApi: registerApiClient,
         }));
 
         const mockedApiClient = new CustomAuthApiClient();

@@ -12,8 +12,10 @@ import { SignInPasswordRequiredStateParameters } from "./SignInStateParameters.j
 import {
     SIGN_IN_COMPLETED_RESULT_TYPE,
     SIGN_IN_MFA_REQUIRED_RESULT_TYPE,
+    SIGN_IN_JIT_REQUIRED_RESULT_TYPE,
 } from "../../interaction_client/result/SignInActionResult.js";
 import { MfaAwaitingState } from "../../../core/auth_flow/mfa/state/MfaState.js";
+import { AuthMethodRegistrationRequiredState } from "../../../core/auth_flow/jit/state/AuthMethodRegistrationState.js";
 
 /*
  * Sign-in password required state.
@@ -89,6 +91,30 @@ export class SignInPasswordRequiredState extends SignInState<SignInPasswordRequi
                         mfaClient: this.stateParameters.mfaClient,
                         cacheClient: this.stateParameters.cacheClient,
                         scopes: this.stateParameters.scopes ?? [],
+                    })
+                );
+            } else if (
+                submitPasswordResult.type === SIGN_IN_JIT_REQUIRED_RESULT_TYPE
+            ) {
+                // JIT is required - return AuthMethodRegistrationRequiredState
+                this.stateParameters.logger.verbose(
+                    "JIT authentication method registration required after password submission.",
+                    this.stateParameters.correlationId
+                );
+
+                return new SignInSubmitPasswordResult(
+                    new AuthMethodRegistrationRequiredState({
+                        correlationId: this.stateParameters.correlationId,
+                        continuationToken:
+                            submitPasswordResult.continuationToken,
+                        logger: this.stateParameters.logger,
+                        config: this.stateParameters.config,
+                        jitClient: this.stateParameters.jitClient,
+                        cacheClient: this.stateParameters.cacheClient,
+                        authMethods: submitPasswordResult.authMethods,
+                        username: this.stateParameters.username,
+                        scopes: this.stateParameters.scopes ?? [],
+                        claims: this.stateParameters.claims,
                     })
                 );
             } else {

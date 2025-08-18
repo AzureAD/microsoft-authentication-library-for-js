@@ -9,7 +9,10 @@ import {
 } from "../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
 import * as CustomAuthApiErrorCode from "../../core/network_client/custom_auth_api/types/ApiErrorCodes.js";
-import { MFA_REQUIRED } from "../../core/network_client/custom_auth_api/types/ApiSuberrors.js";
+import {
+    MFA_REQUIRED,
+    REGISTRATION_REQUIRED,
+} from "../../core/network_client/custom_auth_api/types/ApiSuberrors.js";
 
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import {
@@ -24,11 +27,13 @@ import {
     createSignInCompleteResult,
     createSignInPasswordRequiredResult,
     createSignInMfaRequiredResult,
+    createSignInJitRequiredResult,
     SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
     SignInCodeSendResult,
     SignInCompletedResult,
     SignInPasswordRequiredResult,
     SignInMfaRequiredResult,
+    SignInJitRequiredResult,
 } from "./result/SignInActionResult.js";
 import * as PublicApiId from "../../core/telemetry/PublicApiId.js";
 import {
@@ -37,6 +42,7 @@ import {
     SignInInitiateRequest,
     SignInOobTokenRequest,
     SignInPasswordTokenRequest,
+    RegisterIntrospectRequest,
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 import {
@@ -45,6 +51,7 @@ import {
 } from "../auth_flow/SignInScenario.js";
 import { UnexpectedError } from "../../core/error/UnexpectedError.js";
 import { ensureArgumentIsNotEmptyString } from "../../core/utils/ArgumentValidator.js";
+import { ServerTelemetryManager } from "@azure/msal-common/browser";
 
 export class SignInClient extends CustomAuthInteractionClientBase {
     /**
@@ -162,7 +169,9 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            false // Don't handle MFA for code submission since email OTP MFA is the only auth method that is currently supported
+            telemetryManager,
+            false, // Don't handle MFA for code submission since email OTP MFA is the only auth method that is currently supported
+            false // Don't handle JIT for code submission
         );
 
         // Since handleMfa is false, this will always return SignInCompletedResult
@@ -176,7 +185,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async submitPassword(
         parameters: SignInSubmitPasswordParams
-    ): Promise<SignInCompletedResult | SignInMfaRequiredResult> {
+    ): Promise<
+        | SignInCompletedResult
+        | SignInMfaRequiredResult
+        | SignInJitRequiredResult
+    > {
         ensureArgumentIsNotEmptyString(
             "parameters.password",
             parameters.password,
@@ -205,7 +218,9 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            true // Handle MFA for password submission
+            telemetryManager,
+            true, // Handle MFA for password submission
+            true // Handle JIT for password submission
         );
     }
 
@@ -216,7 +231,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async signInWithContinuationToken(
         parameters: SignInContinuationTokenParams
-    ): Promise<SignInCompletedResult> {
+    ): Promise<SignInCompletedResult | SignInJitRequiredResult> {
         const apiId = this.getPublicApiIdBySignInScenario(
             parameters.signInScenario,
             parameters.correlationId
@@ -237,18 +252,17 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         };
 
         // Call token endpoint.
-        const result = this.performTokenRequest(
+        return this.performTokenRequest(
             () =>
                 this.customAuthApiClient.signInApi.requestTokenWithContinuationToken(
                     request
                 ),
             scopes,
             parameters.correlationId,
-            false // Don't handle MFA for continuation token sign-in
-        );
-
-        // Since handleMfa is false, this will always return SignInCompletedResult
-        return result as Promise<SignInCompletedResult>;
+            telemetryManager,
+            false, // Don't handle MFA for continuation token sign-in
+            true // Handle JIT for continuation token sign-in (e.g., after sign-up or SSPR)
+        ) as Promise<SignInCompletedResult | SignInJitRequiredResult>;
     }
 
     /**
@@ -263,8 +277,14 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
         scopes: string[],
         correlationId: string,
-        handleMfa: boolean
-    ): Promise<SignInCompletedResult | SignInMfaRequiredResult> {
+        telemetryManager: ServerTelemetryManager,
+        handleMfa: boolean,
+        handleJit: boolean
+    ): Promise<
+        | SignInCompletedResult
+        | SignInMfaRequiredResult
+        | SignInJitRequiredResult
+    > {
         this.logger.verbose(
             "Calling token endpoint for sign in.",
             correlationId
@@ -302,7 +322,38 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 });
             }
 
-            // Re-throw any other errors or MFA errors when handleMfa is false
+            if (
+                handleJit &&
+                error instanceof CustomAuthApiError &&
+                error.subError === REGISTRATION_REQUIRED
+            ) {
+                this.logger.verbose(
+                    "JIT registration required for sign in.",
+                    correlationId
+                );
+
+                // Call register introspect endpoint to get available authentication methods
+                const introspectRequest: RegisterIntrospectRequest = {
+                    continuation_token: error.continuationToken ?? "",
+                    correlationId: error.correlationId ?? correlationId,
+                    telemetryManager,
+                };
+
+                const introspectResponse =
+                    await this.customAuthApiClient.registerApi.introspect(
+                        introspectRequest
+                    );
+
+                return createSignInJitRequiredResult({
+                    correlationId:
+                        introspectResponse.correlation_id ?? correlationId,
+                    continuationToken:
+                        introspectResponse.continuation_token ?? "",
+                    authMethods: introspectResponse.methods,
+                });
+            }
+
+            // Re-throw any other errors or MFA/JIT errors when handleMfa/handleJit is false
             throw error;
         }
     }

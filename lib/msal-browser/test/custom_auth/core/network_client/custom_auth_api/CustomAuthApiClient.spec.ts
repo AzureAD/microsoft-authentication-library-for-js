@@ -25,4 +25,8 @@ describe("CustomAuthApiClient", () => {
     it("should initialize resetPasswordApiClient correctly", () => {
         expect(customAuthApiClient.resetPasswordApi).toBeDefined();
     });
+
+    it("should initialize registerApiClient correctly", () => {
+        expect(customAuthApiClient.registerApi).toBeDefined();
+    });
 });

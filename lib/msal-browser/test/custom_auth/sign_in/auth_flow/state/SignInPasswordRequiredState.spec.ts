@@ -8,6 +8,7 @@ import { createSignInCompleteResult } from "../../../../../src/custom_auth/sign_
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { MfaClient } from "../../../../../src/custom_auth/core/interaction_client/mfa/MfaClient.js";
+import { JitClient } from "../../../../../src/custom_auth/core/interaction_client/jit/JitClient.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("SignInPasswordRequiredState", () => {
@@ -29,6 +30,12 @@ describe("SignInPasswordRequiredState", () => {
         getAuthMethods: jest.fn(),
     } as unknown as jest.Mocked<MfaClient>;
 
+    const mockJitClient = {
+        introspect: jest.fn(),
+        requestChallenge: jest.fn(),
+        continueChallenge: jest.fn(),
+    } as unknown as jest.Mocked<JitClient>;
+
     const username = "testuser";
     const correlationId = "test-correlation-id";
     const continuationToken = "test-continuation-token";
@@ -41,6 +48,7 @@ describe("SignInPasswordRequiredState", () => {
             signInClient: mockSignInClient,
             cacheClient: mockCacheClient,
             mfaClient: mockMfaClient,
+            jitClient: mockJitClient,
             correlationId: correlationId,
             logger: getDefaultLogger(),
             continuationToken: continuationToken,
@@ -138,6 +146,30 @@ describe("SignInPasswordRequiredState", () => {
         // Verify MFA state is returned
         expect(result.state).toBeDefined();
         expect(result.state?.constructor.name).toBe("MfaAwaitingState");
+    });
+
+    it("should handle JIT required scenario after password submission", async () => {
+        const jitContinuationToken = "jit-continuation-token";
+
+        mockSignInClient.submitPassword.mockResolvedValue({
+            type: "SignInJitRequiredResult",
+            continuationToken: jitContinuationToken,
+            correlationId: correlationId,
+            authMethods: ["email", "sms"],
+        } as any);
+
+        const result = await state.submitPassword("valid-password");
+
+        expect(result).toBeDefined();
+        expect(result).toBeInstanceOf(SignInSubmitPasswordResult);
+        expect(result.isFailed()).toBe(false);
+        expect(result.isAuthMethodRegistrationRequired()).toBe(true);
+        expect(result.error).toBeUndefined();
+        // Verify JIT state is returned
+        expect(result.state).toBeDefined();
+        expect(result.state?.constructor.name).toBe(
+            "AuthMethodRegistrationRequiredState"
+        );
     });
 
     it("should handle unexpected result type from submitPassword", async () => {
@@ -282,6 +314,7 @@ describe("SignInPasswordRequiredState", () => {
             signInClient: mockSignInClient,
             cacheClient: mockCacheClient,
             mfaClient: mockMfaClient,
+            jitClient: mockJitClient,
             correlationId: correlationId,
             logger: getDefaultLogger(),
             continuationToken: continuationToken,

@@ -76,3 +76,23 @@ export interface ResetPasswordPollCompletionResponse
     extends ContinuousResponse {
     status: string;
 }
+
+/* Register API response types */
+export interface RegisterIntrospectResponse extends ApiResponseBase {
+    continuation_token: string;
+    methods: AuthenticationMethod[];
+}
+
+export interface RegisterChallengeResponse extends ApiResponseBase {
+    continuation_token: string;
+    challenge_type: string;
+    binding_method: string;
+    challenge_target: string;
+    challenge_channel: string;
+    code_length?: number;
+    interval?: number;
+}
+
+export interface RegisterContinueResponse extends ApiResponseBase {
+    continuation_token: string;
+}

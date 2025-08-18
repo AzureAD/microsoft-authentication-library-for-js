@@ -95,3 +95,21 @@ export interface ResetPasswordSubmitRequest extends ApiRequestBase {
 export interface ResetPasswordPollCompletionRequest extends ApiRequestBase {
     continuation_token: string;
 }
+
+/* Register API request types */
+export interface RegisterIntrospectRequest extends ApiRequestBase {
+    continuation_token: string;
+}
+
+export interface RegisterChallengeRequest extends ApiRequestBase {
+    continuation_token: string;
+    challenge_type: string;
+    challenge_target: string;
+    challenge_channel?: string;
+}
+
+export interface RegisterContinueRequest extends ApiRequestBase {
+    continuation_token: string;
+    grant_type: string;
+    oob?: string;
+}

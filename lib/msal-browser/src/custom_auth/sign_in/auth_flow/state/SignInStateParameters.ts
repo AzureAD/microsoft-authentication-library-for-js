@@ -8,6 +8,7 @@ import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_cl
 import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInScenarioType } from "../SignInScenario.js";
 import { MfaClient } from "../../../core/interaction_client/mfa/MfaClient.js";
+import { JitClient } from "../../../core/interaction_client/jit/JitClient.js";
 
 export interface SignInStateParameters
     extends AuthFlowActionRequiredStateParameters {
@@ -15,6 +16,7 @@ export interface SignInStateParameters
     signInClient: SignInClient;
     cacheClient: CustomAuthSilentCacheClient;
     mfaClient: MfaClient;
+    jitClient: JitClient;
     claims?: string;
 }
 

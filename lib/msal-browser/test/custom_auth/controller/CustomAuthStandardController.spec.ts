@@ -46,12 +46,19 @@ jest.mock(
             submitNewPassword: jest.fn(),
             pollCompletion: jest.fn(),
         };
+        let registerApiClient = {
+            introspect: jest.fn(),
+            challenge: jest.fn(),
+            continueWithOob: jest.fn(),
+            continueWithContinuationToken: jest.fn(),
+        };
 
         // Set up the prototype or instance methods/properties
         const CustomAuthApiClient = jest.fn().mockImplementation(() => ({
             signInApi: signInApiClient,
             signUpApi: signUpApiClient,
             resetPasswordApi: resetPasswordApiClient,
+            registerApi: registerApiClient,
         }));
 
         return {
@@ -59,16 +66,21 @@ jest.mock(
             signInApiClient,
             signUpApiClient,
             resetPasswordApiClient,
+            registerApiClient,
         };
     }
 );
 
 describe("CustomAuthStandardController", () => {
     let controller: CustomAuthStandardController;
-    const { signInApiClient, signUpApiClient, resetPasswordApiClient } =
-        jest.requireMock(
-            "../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js"
-        );
+    const {
+        signInApiClient,
+        signUpApiClient,
+        resetPasswordApiClient,
+        registerApiClient,
+    } = jest.requireMock(
+        "../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js"
+    );
 
     beforeEach(() => {
         const context = new CustomAuthOperatingContext(customAuthConfig);
@@ -368,6 +380,97 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeUndefined();
             expect(result.isMfaRequired()).toBe(true);
             expect(result.state?.constructor.name).toBe("MfaAwaitingState");
+        });
+
+        it("should handle sign-in with JIT required after password submission", async () => {
+            signInApiClient.initiate.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            signInApiClient.requestChallenge.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+            });
+
+            // Mock JIT required error - the API should throw, not return
+            const jitError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
+                "JIT authentication method registration required",
+                "corr123",
+                [50011], // JIT_REQUIRED suberror code
+                undefined,
+                undefined,
+                "jit_continuation_token"
+            );
+            jitError.subError = CustomAuthApiSuberror.REGISTRATION_REQUIRED; // Set the REGISTRATION_REQUIRED suberror
+            signInApiClient.requestTokensWithPassword.mockRejectedValue(
+                jitError
+            );
+
+            // Mock the register introspect call that will be made by SignInClient
+            registerApiClient.introspect.mockResolvedValue({
+                correlation_id: "corr123",
+                continuation_token: "introspect_continuation_token",
+                methods: [
+                    {
+                        id: "email_method",
+                        challenge_type: "email",
+                        challenge_channel: "email",
+                        login_hint: "test@test.com",
+                    },
+                    {
+                        id: "sms_method",
+                        challenge_type: "sms",
+                        challenge_channel: "phone_number",
+                        login_hint: "+1234567890",
+                    },
+                ],
+            });
+
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+                password: "test-password",
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeUndefined();
+            expect(result.isAuthMethodRegistrationRequired()).toBe(true);
+            expect(result.state?.constructor.name).toBe(
+                "AuthMethodRegistrationRequiredState"
+            );
+        });
+
+        it("should handle unexpected result type after password submission", async () => {
+            signInApiClient.initiate.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            signInApiClient.requestChallenge.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+            });
+
+            // Mock an unknown result type
+            signInApiClient.requestTokensWithPassword.mockResolvedValue({
+                type: "unknown_result_type",
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_3",
+            });
+
+            const signInInputs: SignInInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+                password: "test-password",
+            };
+
+            const result = await controller.signIn(signInInputs);
+
+            expect(result).toBeInstanceOf(SignInResult);
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(SignInError);
         });
     });
 

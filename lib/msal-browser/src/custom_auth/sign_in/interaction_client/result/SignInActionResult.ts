@@ -4,6 +4,7 @@
  */
 
 import { AuthenticationResult } from "../../../../response/AuthenticationResult.js";
+import { AuthenticationMethod } from "../../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 
 interface SignInActionResult {
     type: string;
@@ -36,11 +37,17 @@ export interface SignInMfaRequiredResult extends SignInContinuationTokenResult {
     type: typeof SIGN_IN_MFA_REQUIRED_RESULT_TYPE;
 }
 
+export interface SignInJitRequiredResult extends SignInContinuationTokenResult {
+    type: typeof SIGN_IN_JIT_REQUIRED_RESULT_TYPE;
+    authMethods: AuthenticationMethod[];
+}
+
 export const SIGN_IN_CODE_SEND_RESULT_TYPE = "SignInCodeSendResult";
 export const SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE =
     "SignInPasswordRequiredResult";
 export const SIGN_IN_COMPLETED_RESULT_TYPE = "SignInCompletedResult";
 export const SIGN_IN_MFA_REQUIRED_RESULT_TYPE = "SignInMfaRequiredResult";
+export const SIGN_IN_JIT_REQUIRED_RESULT_TYPE = "SignInJitRequiredResult";
 
 export function createSignInCompleteResult(
     input: Omit<SignInCompletedResult, "type">
@@ -74,6 +81,15 @@ export function createSignInMfaRequiredResult(
 ): SignInMfaRequiredResult {
     return {
         type: SIGN_IN_MFA_REQUIRED_RESULT_TYPE,
+        ...input,
+    };
+}
+
+export function createSignInJitRequiredResult(
+    input: Omit<SignInJitRequiredResult, "type">
+): SignInJitRequiredResult {
+    return {
+        type: SIGN_IN_JIT_REQUIRED_RESULT_TYPE,
         ...input,
     };
 }
