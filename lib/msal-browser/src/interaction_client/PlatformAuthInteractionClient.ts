@@ -193,7 +193,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     );
                     nativeATMeasurement.end({
                         success: false,
-                        errorCode: "cache request failed",
+                        brokerErrorCode: "cache_request_failed",
                     });
                     throw e;
                 }
@@ -234,9 +234,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             }
             nativeATMeasurement.end({
                 success: false,
-                errorCode:
-                    e instanceof AuthError ? e.errorCode : "unknown_error",
-                subErrorCode: e instanceof AuthError ? e.subError : undefined,
             });
             throw e;
         }
