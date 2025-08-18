@@ -730,9 +730,7 @@ export class StandardController implements IController {
                     this.nativeInternalStorage,
                     correlationId
                 );
-                atrMeasurement.add({
-                    isPlatformBrokerRequest: true,
-                });
+
                 result = nativeClient
                     .acquireTokenRedirect(request, atrMeasurement)
                     .catch((e: AuthError) => {
