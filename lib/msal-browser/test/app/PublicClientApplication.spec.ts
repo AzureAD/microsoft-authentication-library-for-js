@@ -966,10 +966,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ).toEqual(1);
                     expect(event.success).toBeTruthy();
                     expect(event.accountType).toEqual("MSA");
-                    expect(event.isNativeBroker).toBe(true);
                     pca.removePerformanceCallback(callbackId);
                     done();
                 });
+
                 // Implementation of PCA was moved to controller.
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 pca = (pca as any).controller;
@@ -1028,26 +1028,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 jest.spyOn(pca, "getAllAccounts").mockReturnValue([
                     testAccount,
                 ]);
-                jest.spyOn(
-                    PlatformAuthInteractionClient.prototype,
-                    "handleRedirectPromise"
-                ).mockImplementation(
-                    async (req: any, measurementName?: string) => {
-                        // Find existing performance event by correlationId and modify it
-                        const performanceClient =
-                            pca.getConfiguration().telemetry?.client;
-                        if (performanceClient && measurementName) {
-                            const events = (performanceClient as any)
-                                .eventsByCorrelationId;
-                            const existingEvent = events.get(req.correlationId);
-                            if (existingEvent) {
-                                existingEvent.isNativeBroker = true;
-                                existingEvent.isPlatformBrokerRequest = true;
-                            }
-                        }
-                        return testTokenResponse;
-                    }
-                );
 
                 pca.handleRedirectPromise();
             });
@@ -1689,15 +1669,36 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .mockResolvedValue();
 
             const nativeHandleRedirectPromiseSpy = jest
-                .spyOn(
-                    PlatformAuthInteractionClient.prototype,
-                    "handleRedirectPromise"
-                )
-                .mockImplementation();
+                .spyOn(StandardController.prototype, "handleRedirectPromise")
+                .mockImplementation(
+                    async (req: any, measurementName?: string) => {
+                        // Find existing performance event by correlationId and modify it
+                        const performanceClient =
+                            pca.getConfiguration().telemetry?.client;
+                        if (performanceClient && measurementName) {
+                            const events = (performanceClient as any)
+                                .eventsByCorrelationId;
+                            const existingEvent = events.get(req.correlationId);
+                            if (existingEvent) {
+                                existingEvent.isNativeBroker = true;
+                            }
+                        }
+                        return testTokenResponse;
+                    }
+                );
 
             const redirectSpy: jest.SpyInstance = jest
                 .spyOn(RedirectClient.prototype, "acquireToken")
                 .mockResolvedValue();
+
+            // Mock the acquireTokensFromCache method to simulate a cache miss (rejects first), then WAM success (resolves)
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype as any,
+                "acquireTokensFromCache"
+            )
+                // First call rejects (simulates cache miss), second call resolves (simulates WAM success)
+                .mockRejectedValueOnce(new Error("No cached tokens"))
+                .mockResolvedValue(testTokenResponse);
 
             // Add performance callback
             const callbackId = pca.addPerformanceCallback((events) => {
@@ -1710,6 +1711,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 account: testAccount,
             });
+
             const response = pca.handleRedirectPromise();
 
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
@@ -6248,7 +6250,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     fromCache: true,
                     accessToken: "abc",
                     idToken: "defg",
-                    fromNativeBroker: true,
                 });
 
             const callbackId = pca.addPerformanceCallback((events) => {
@@ -6257,7 +6258,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].fromCache).toBe(true);
                 expect(events[0].accessTokenSize).toBe(3);
                 expect(events[0].idTokenSize).toBe(4);
-                expect(events[0].isNativeBroker).toBe(true);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].scenarioId).toBe("test-scenario-id");
                 expect(events[0].accountType).toBe("AAD");

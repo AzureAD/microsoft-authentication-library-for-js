@@ -495,6 +495,9 @@ export class StandardController implements IController {
                 this.logger.trace(
                     "handleRedirectPromise - acquiring token from native platform"
                 );
+                rootMeasurement.add({
+                    isPlatformBrokerRequest: true,
+                });
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
