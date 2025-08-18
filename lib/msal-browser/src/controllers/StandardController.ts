@@ -145,7 +145,7 @@ export class StandardController implements IController {
     protected l: Logger;
 
     // Flag to indicate if in browser environment
-    protected isBrowserFlag: boolean;
+    protected isBrw: boolean;
 
     protected readonly eh: EventHandler;
 
@@ -204,7 +204,7 @@ export class StandardController implements IController {
      */
     constructor(operatingContext: StandardOperatingContext) {
         this.oc = operatingContext;
-        this.isBrowserFlag =
+        this.isBrw =
             this.oc.isBrowserEnvironment();
         // Set the configuration.
         this.cfg = operatingContext.getConfig();
@@ -229,14 +229,14 @@ export class StandardController implements IController {
         this.pc = this.cfg.telemetry.client;
 
         // Initialize the crypto class.
-        this.bc = this.isBrowserFlag
+        this.bc = this.isBrw
             ? new CryptoOps(this.l, this.pc)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eh = new EventHandler(this.l);
 
         // Initialize the browser storage class.
-        this.bs = this.isBrowserFlag
+        this.bs = this.isBrw
             ? new BrowserCacheManager(
                   this.cfg.auth.clientId,
                   this.cfg.cache,
@@ -313,7 +313,7 @@ export class StandardController implements IController {
             return;
         }
 
-        if (!this.isBrowserFlag) {
+        if (!this.isBrw) {
             this.l.info("in non-browser environment, exiting early.");
             this.init = true;
             this.eh.emitEvent(EventType.INITIALIZE_END);
@@ -391,7 +391,7 @@ export class StandardController implements IController {
         this.l.verbose("handleRedirectPromise called");
         // Block token acquisition before initialize has been called
         BrowserUtils.blockAPICallsBeforeInitialize(this.init);
-        if (this.isBrowserFlag) {
+        if (this.isBrw) {
             /**
              * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
@@ -1361,7 +1361,7 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        if (!this.isBrowserFlag) {
+        if (!this.isBrw) {
             this.l.info("in non-browser environment, returning early.");
             return;
         }
@@ -1383,7 +1383,7 @@ export class StandardController implements IController {
         return AccountManager.getAllAccounts(
             this.l,
             this.bs,
-            this.isBrowserFlag,
+            this.isBrw,
             this.getRequestCorrelationId(),
             accountFilter
         );
@@ -1837,7 +1837,7 @@ export class StandardController implements IController {
      * Returns the browser env indicator
      */
     public isBrowserEnv(): boolean {
-        return this.isBrowserFlag;
+        return this.isBrw;
     }
 
     /**
@@ -1854,7 +1854,7 @@ export class StandardController implements IController {
             return request.correlationId;
         }
 
-        if (this.isBrowserFlag) {
+        if (this.isBrw) {
             return createNewGuid();
         }
 

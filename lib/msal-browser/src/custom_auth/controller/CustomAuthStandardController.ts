@@ -78,7 +78,7 @@ export class CustomAuthStandardController
     ) {
         super(operatingContext);
 
-        if (!this.isBrowserFlag) {
+        if (!this.isBrw) {
             this.l.verbose(
                 "The SDK can only be used in a browser environment."
             );
