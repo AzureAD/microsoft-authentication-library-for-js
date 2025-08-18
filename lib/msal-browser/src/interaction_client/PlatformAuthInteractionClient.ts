@@ -134,28 +134,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Ensures that this.correlationId is synchronized with request.correlationId
-     * @param request - Request object that may contain correlationId
-     * @private
-     */
-    private synchronizeCorrelationId(request: {
-        correlationId?: string;
-    }): void {
-        if (
-            request.correlationId &&
-            request.correlationId !== this.correlationId
-        ) {
-            this.correlationId = request.correlationId;
-            // Update logger with new correlationId for consistent logging
-            this.logger = this.logger.clone(
-                BrowserConstants.MSAL_SKU,
-                version,
-                this.correlationId
-            );
-        }
-    }
-
-    /**
      * Adds SKUs to request extra query parameters
      * @param request {PlatformAuthRequest}
      * @private
@@ -175,19 +153,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: PopupRequest | SilentRequest | SsoSilentRequest,
         cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        // Synchronize correlationId between instance and request
-        this.synchronizeCorrelationId(request);
-
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.NativeInteractionClientAcquireToken,
-            this.correlationId
+            request.correlationId
         );
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.NativeInteractionClientAcquireToken,
-            this.correlationId
+            request.correlationId
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
@@ -279,7 +254,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): CommonSilentFlowRequest {
         return {
             authority: request.authority,
-            correlationId: this.correlationId,
+            correlationId: request.correlationId,
             scopes: ScopeSet.fromString(request.scope).asArray(),
             account: cachedAccount,
             forceRefresh: false,
@@ -307,7 +282,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             {
                 nativeAccountId,
             },
-            this.correlationId
+            request.correlationId
         );
 
         if (!account) {
@@ -348,9 +323,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: RedirectRequest,
         rootMeasurement: InProgressPerformanceEvent
     ): Promise<void> {
-        // Synchronize correlationId between instance and request
-        this.synchronizeCorrelationId(request);
-
         this.logger.trace(
             "NativeInteractionClient - acquireTokenRedirect called."
         );
@@ -405,11 +377,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Promise<AuthenticationResult | null> {
-        // Synchronize correlationId if provided
-        if (correlationId && correlationId !== this.correlationId) {
-            this.synchronizeCorrelationId({ correlationId });
-        }
-
         this.logger.trace(
             "NativeInteractionClient - handleRedirectPromise called."
         );
@@ -426,10 +393,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null."
             );
-            if (performanceClient && this.correlationId) {
+            if (performanceClient && correlationId) {
                 performanceClient?.addFields(
                     { errorCode: "no_cached_request" },
-                    this.correlationId
+                    correlationId
                 );
             }
             return null;
@@ -465,10 +432,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const serverTelemetryManager =
                 this.initializeServerTelemetryManager(this.apiId);
             serverTelemetryManager.clearNativeBrokerErrorCode();
-            if (performanceClient && this.correlationId) {
+            if (performanceClient && request.correlationId) {
                 this.performanceClient.addFields(
                     { isNativeBroker: true },
-                    this.correlationId
+                    request.correlationId
                 );
             }
             return authResult;
@@ -517,7 +484,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 {
                     nativeAccountId: request.accountId,
                 },
-                this.correlationId
+                request.correlationId
             )?.homeAccountId;
 
         // add exception for double brokering, please note this is temporary and will be fortified in future
@@ -546,7 +513,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             authority,
             homeAccountIdentifier,
             base64Decode,
-            this.correlationId,
+            request.correlationId,
             idTokenClaims,
             response.client_info,
             undefined, // environment
@@ -570,7 +537,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount, this.correlationId);
+        await this.cacheAccount(baseAccount, request.correlationId);
         await this.cacheNativeTokens(
             response,
             request,
@@ -692,6 +659,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): Promise<AuthenticationResult> {
         // Add Native Broker fields to Telemetry
         const mats = this.addTelemetryFromNativeResponse(
+            request.correlationId,
             response.properties.MATS
         );
 
@@ -752,7 +720,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 reqTimestamp + response.expires_in
             ),
             tokenType: tokenType,
-            correlationId: this.correlationId,
+            correlationId: request.correlationId,
             state: response.state,
             fromNativeBroker: true,
         };
@@ -842,7 +810,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         return this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
-            this.correlationId,
+            request.correlationId,
             request.storeInCache
         );
     }
@@ -859,6 +827,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     }
 
     protected addTelemetryFromNativeResponse(
+        correlationId: string,
         matsResponse?: string
     ): MATS | null {
         const mats = this.getMATSFromResponse(matsResponse);
@@ -886,7 +855,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 matsHttpStatus: mats.http_status,
                 matsHttpEventCount: mats.http_event_count,
             },
-            this.correlationId
+            correlationId
         );
 
         return mats;
@@ -934,9 +903,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected async initializeNativeRequest(
         request: PopupRequest | SsoSilentRequest
     ): Promise<PlatformAuthRequest> {
-        // Synchronize correlationId between instance and request
-        this.synchronizeCorrelationId(request);
-
         this.logger.trace(
             "NativeInteractionClient - initializeNativeRequest called"
         );
@@ -956,7 +922,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             scope: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             prompt: this.getPrompt(request.prompt),
-            correlationId: this.correlationId,
+            correlationId: request.correlationId
+                ? request.correlationId
+                : this.correlationId,
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
@@ -999,7 +967,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     PerformanceEvents.PopTokenGenerateCnf,
                     this.logger,
                     this.performanceClient,
-                    this.correlationId
+                    request.correlationId
                 )(shrParameters, this.logger);
                 reqCnfData = generatedReqCnfData.reqCnfString;
                 validatedRequest.keyId = generatedReqCnfData.kid;
@@ -1124,7 +1092,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 embeddedClientId: child_client_id,
                 embeddedRedirectUri: child_redirect_uri,
             },
-            this.correlationId
+            request.correlationId
         );
     }
 }
