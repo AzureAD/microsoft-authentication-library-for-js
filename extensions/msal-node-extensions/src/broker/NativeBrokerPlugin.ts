@@ -193,10 +193,15 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             request.correlationId
         );
         const platformRequest = request;
+        if (!platformRequest.redirectUri) {
+            platformRequest.redirectUri =
+                this.chooseRedirectUriByPlatform(platformRequest);
+            this.logger.info(
+                "NativeBrokerPlugin - No Redirect URI provided, using default", platformRequest.redirectUri
+            );
+        }
         const authParams = this.generateRequestParameters(platformRequest);
         const account = await this.getAccount(platformRequest);
-        platformRequest.redirectUri =
-            this.chooseRedirectUriByPlatform(platformRequest);
 
         return new Promise(
             (resolve: (value: AuthenticationResult) => void, reject) => {
@@ -251,9 +256,14 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             request.correlationId
         );
         const platformRequest = request;
+        if (!platformRequest.redirectUri) {
+            platformRequest.redirectUri =
+                this.chooseRedirectUriByPlatform(platformRequest);
+            this.logger.info(
+                "NativeBrokerPlugin - No Redirect URI provided, using default", platformRequest.redirectUri
+            );
+        }
         const authParams = this.generateRequestParameters(platformRequest);
-        platformRequest.redirectUri =
-            this.chooseRedirectUriByPlatform(platformRequest);
         const account = await this.getAccount(platformRequest);
         const windowHandle = providedWindowHandle || Buffer.from([0]);
 
@@ -467,7 +477,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             );
 
             authParams.SetRedirectUri(
-                this.chooseRedirectUriByPlatform(request)
+                request.redirectUri
             );
             authParams.SetRequestedScopes(request.scopes.join(" "));
 

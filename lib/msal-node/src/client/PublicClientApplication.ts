@@ -163,7 +163,7 @@ export class PublicClientApplication
                 ...remainingProperties,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
@@ -200,6 +200,10 @@ export class PublicClientApplication
 
             // Wait for server to be listening
             const redirectUri = await this.waitForRedirectUri(loopbackClient);
+
+            if (request.redirectUri) {
+                this.logger.warning("RedirectUri provided in an unsupported scenario. Falling back to default", redirectUri);
+            }
 
             const validRequest: AuthorizationUrlRequest = {
                 ...remainingProperties,
@@ -258,7 +262,7 @@ export class PublicClientApplication
                 ...request,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
@@ -270,6 +274,11 @@ export class PublicClientApplication
             };
             return this.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
         }
+
+        if (request.redirectUri) {
+                this.logger.warning("RedirectUri provided in an unsupported scenario. Falling back to default");
+                request.redirectUri = `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`;
+            }
 
         return super.acquireTokenSilent(request);
     }

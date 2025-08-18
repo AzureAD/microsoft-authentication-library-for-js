@@ -2287,7 +2287,7 @@ if (process.platform === "win32") {
                 scopes: testAuthenticationResult.scopes,
                 correlationId: testCorrelationId,
                 authority: testAuthenticationResult.authority,
-                redirectUri: TEST_REDIRECTURI,
+                redirectUri: "",
             };
 
             const chooseRedirectUriMock = jest.spyOn(
@@ -2332,7 +2332,7 @@ if (process.platform === "win32") {
                 scopes: testAuthenticationResult.scopes,
                 correlationId: testCorrelationId,
                 authority: testAuthenticationResult.authority,
-                redirectUri: TEST_REDIRECTURI,
+                redirectUri: "",
             };
 
             const chooseRedirectUriMock = jest.spyOn(
