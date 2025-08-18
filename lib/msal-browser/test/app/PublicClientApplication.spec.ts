@@ -3913,7 +3913,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
                 expect(events[0].isPlatformBrokerRequest).toBe(true);
-                expect(events[0].brokerErrorName).toContain("NativeAuthErrror");
+                expect(events[0].brokerErrorName).toContain("NativeAuthError");
                 pca.removePerformanceCallback(callbackId);
             });
 
