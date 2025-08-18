@@ -155,14 +155,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.NativeInteractionClientAcquireToken,
-            request.correlationId
+            this.correlationId
         );
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.NativeInteractionClientAcquireToken,
-            request.correlationId
+            this.correlationId
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
@@ -191,6 +191,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     this.logger.info(
                         "MSAL internal Cache does not contain tokens, return error as per cache policy"
                     );
+                    nativeATMeasurement.end({
+                        success: false,
+                        brokerErrorCode: "cache_request_failed",
+                    });
                     throw e;
                 }
                 // continue with a native call for any and all errors
@@ -221,7 +225,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                         success: false,
                         errorCode: error.errorCode,
                         subErrorCode: error.subError,
-                        isNativeBroker: true,
                     });
                     throw error;
                 });
@@ -229,6 +232,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             if (e instanceof NativeAuthError) {
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
+            nativeATMeasurement.end({
+                success: false,
+            });
             throw e;
         }
     }
@@ -423,6 +429,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const serverTelemetryManager =
                 this.initializeServerTelemetryManager(this.apiId);
             serverTelemetryManager.clearNativeBrokerErrorCode();
+            if (performanceClient && this.correlationId) {
+                this.performanceClient.addFields(
+                    { isNativeBroker: true },
+                    this.correlationId
+                );
+            }
             return authResult;
         } catch (e) {
             throw e;
@@ -948,7 +960,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     PerformanceEvents.PopTokenGenerateCnf,
                     this.logger,
                     this.performanceClient,
-                    request.correlationId
+                    this.correlationId
                 )(shrParameters, this.logger);
                 reqCnfData = generatedReqCnfData.reqCnfString;
                 validatedRequest.keyId = generatedReqCnfData.kid;
@@ -1073,7 +1085,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 embeddedClientId: child_client_id,
                 embeddedRedirectUri: child_redirect_uri,
             },
-            request.correlationId
+            this.correlationId
         );
     }
 }
