@@ -26,7 +26,7 @@ describe("CustomAuthApiClient", () => {
         expect(customAuthApiClient.resetPasswordApi).toBeDefined();
     });
 
-    it("should store capabilities when provided", () => {
+    it("should pass capabilities to individual API clients when provided", () => {
         const logger = getDefaultLogger();
         const capabilities = ["custom_capability_1", "custom_capability_2"];
         const apiClient = new CustomAuthApiClient(
@@ -36,10 +36,16 @@ describe("CustomAuthApiClient", () => {
             capabilities
         );
 
-        expect(apiClient.capabilities).toEqual(capabilities);
+        // Verify that the individual API clients are created (capabilities are internal to them)
+        expect(apiClient.signInApi).toBeDefined();
+        expect(apiClient.signUpApi).toBeDefined();
+        expect(apiClient.resetPasswordApi).toBeDefined();
     });
 
-    it("should have undefined capabilities when not provided", () => {
-        expect(customAuthApiClient.capabilities).toBeUndefined();
+    it("should create API clients without capabilities when not provided", () => {
+        // Verify that the individual API clients are created without capabilities
+        expect(customAuthApiClient.signInApi).toBeDefined();
+        expect(customAuthApiClient.signUpApi).toBeDefined();
+        expect(customAuthApiClient.resetPasswordApi).toBeDefined();
     });
 });

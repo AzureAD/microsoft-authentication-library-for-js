@@ -59,7 +59,6 @@ jest.mock(
             signInApi: signInApiClient,
             signUpApi: signUpApiClient,
             resetPasswordApi: resetPasswordApiClient,
-            capabilities: undefined,
         }));
 
         const mockedApiClient = new CustomAuthApiClient();
@@ -448,103 +447,6 @@ describe("SignInClient", () => {
             ).toHaveBeenCalledWith(
                 expect.objectContaining({
                     claims: claims,
-                })
-            );
-        });
-    });
-
-    describe("capabilities handling", () => {
-        it("should include capabilities in start request when provided in API client", async () => {
-            // Set up API client with capabilities
-            mockedApiClient.capabilities = [
-                "mfa_required",
-                "registration_required",
-            ];
-
-            signInApiClient.initiate.mockResolvedValue({
-                continuation_token: "continuation_token_1",
-            });
-
-            await client.start({
-                username: "abc@abc.com",
-                clientId: customAuthConfig.auth.clientId,
-                challengeType: [ChallengeType.PASSWORD],
-                correlationId: "corr123",
-            });
-
-            // Verify that the API was called with capabilities from API client
-            expect(signInApiClient.initiate).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    capabilities: "mfa_required registration_required",
-                })
-            );
-        });
-
-        it("should not include capabilities in start request when API client has none", async () => {
-            // Ensure API client has no capabilities
-            mockedApiClient.capabilities = undefined;
-
-            signInApiClient.initiate.mockResolvedValue({
-                continuation_token: "continuation_token_1",
-            });
-
-            await client.start({
-                username: "abc@abc.com",
-                clientId: customAuthConfig.auth.clientId,
-                challengeType: [ChallengeType.PASSWORD],
-                correlationId: "corr123",
-            });
-
-            // Verify that the API was called without capabilities
-            expect(signInApiClient.initiate).toHaveBeenCalledWith(
-                expect.not.objectContaining({
-                    capabilities: expect.anything(),
-                })
-            );
-        });
-
-        it("should not include capabilities when API client has empty array", async () => {
-            // Set API client with empty capabilities array
-            mockedApiClient.capabilities = [];
-
-            signInApiClient.initiate.mockResolvedValue({
-                continuation_token: "continuation_token_1",
-            });
-
-            await client.start({
-                username: "abc@abc.com",
-                clientId: customAuthConfig.auth.clientId,
-                challengeType: [ChallengeType.PASSWORD],
-                correlationId: "corr123",
-            });
-
-            // Verify that the API was called without capabilities
-            expect(signInApiClient.initiate).toHaveBeenCalledWith(
-                expect.not.objectContaining({
-                    capabilities: expect.anything(),
-                })
-            );
-        });
-
-        it("should format single capability correctly from API client", async () => {
-            // Set API client with single capability
-            mockedApiClient.capabilities = ["mfa_required"];
-
-            signInApiClient.initiate.mockResolvedValue({
-                continuation_token: "continuation_token_1",
-            });
-
-            await client.start({
-                username: "abc@abc.com",
-                clientId: customAuthConfig.auth.clientId,
-                challengeType: [ChallengeType.PASSWORD],
-                correlationId: "corr123",
-            });
-
-            // Verify that the API was called with single capability
-            expect(signInApiClient.initiate).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    capabilities: "mfa_required",
                 })
             );
         });

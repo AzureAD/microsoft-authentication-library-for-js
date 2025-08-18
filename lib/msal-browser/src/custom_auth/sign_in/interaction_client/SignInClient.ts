@@ -110,16 +110,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             parameters.correlationId
         );
 
-        const capabilities = this.getCapabilities(
-            this.customAuthApiClient.capabilities
-        );
-
         const initReq: SignInInitiateRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             username: parameters.username,
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
-            ...(capabilities && { capabilities }),
         };
 
         const initiateResponse =
