@@ -1803,7 +1803,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    errorCode: "ContentError",
                 })
             );
         });

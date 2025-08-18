@@ -1029,6 +1029,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     testAccount,
                 ]);
 
+                jest.spyOn(
+                    PlatformAuthInteractionClient.prototype,
+                    "handleRedirectPromise"
+                ).mockResolvedValue(testTokenResponse);
+
                 pca.handleRedirectPromise();
             });
         });
