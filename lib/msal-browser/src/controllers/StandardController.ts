@@ -742,7 +742,7 @@ export class StandardController implements IController {
                             e instanceof NativeAuthError &&
                             isFatalNativeAuthError(e)
                         ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to
+                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
                             const redirectClient =
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
@@ -879,7 +879,7 @@ export class StandardController implements IController {
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
                     ) {
-                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to continuing to attempt platform broker calls
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
