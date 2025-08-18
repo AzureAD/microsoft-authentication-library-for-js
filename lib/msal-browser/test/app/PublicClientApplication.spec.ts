@@ -1804,7 +1804,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(redirectSpy).toHaveBeenCalledTimes(1);
         });
 
-        it("falls back to web flow if platform broker call fails due to fatal error and wmits platform telemetry", async () => {
+        it("falls back to web flow if platform broker call fails due to fatal error and emits platform telemetry", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
