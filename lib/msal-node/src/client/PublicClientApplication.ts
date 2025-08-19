@@ -202,7 +202,10 @@ export class PublicClientApplication
             const redirectUri = await this.waitForRedirectUri(loopbackClient);
 
             if (request.redirectUri) {
-                this.logger.warning("RedirectUri provided in an unsupported scenario. Falling back to default", redirectUri);
+                this.logger.warning(
+                    "RedirectUri provided in an unsupported scenario. Falling back to default",
+                    redirectUri
+                );
             }
 
             const validRequest: AuthorizationUrlRequest = {
@@ -276,9 +279,11 @@ export class PublicClientApplication
         }
 
         if (request.redirectUri) {
-                this.logger.warning("RedirectUri provided in an unsupported scenario. Falling back to default");
-                request.redirectUri = `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`;
-            }
+            this.logger.warning(
+                "RedirectUri provided in an unsupported scenario. Falling back to default"
+            );
+            request.redirectUri = `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`;
+        }
 
         return super.acquireTokenSilent(request);
     }
