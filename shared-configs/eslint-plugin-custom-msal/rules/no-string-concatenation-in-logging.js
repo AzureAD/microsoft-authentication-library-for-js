@@ -59,14 +59,13 @@ module.exports = {
                 return false;
             }
 
-            // Check for this.logger.method() or logger.method()
             if (node.callee.type === "MemberExpression") {
                 const methodName = node.callee.property.name;
                 const objectName = node.callee.object.name;
-                const isLoggerObject = objectName === "logger" ||
+                const loggerObjectNames = ["logger", "commonLogger", "log"];
+                const isLoggerObject = loggerObjectNames.includes(objectName) ||
                     (node.callee.object.type === "MemberExpression" &&
-                     node.callee.object.property.name === "logger");
-
+                     loggerObjectNames.includes(node.callee.object.property.name));
                 return loggerMethods.includes(methodName) && isLoggerObject;
             }
 
