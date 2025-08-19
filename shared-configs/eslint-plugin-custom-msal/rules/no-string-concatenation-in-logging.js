@@ -38,7 +38,11 @@ module.exports = {
         
         for (const ignoreModule of ignoreModules) {
             if (fileName.includes(ignoreModule)) {
-                return {};
+        if (ignoreModules) {
+            for (const ignoreModule of ignoreModules) {
+                if (fileName.includes(ignoreModule)) {
+                    return {};
+                }
             }
         }
 
