@@ -6,6 +6,7 @@ module.exports = {
             category: "Best Practices",
             recommended: true,
         },
+        hasSuggestions: true,
         fixable: "code",
         schema: [
             {
@@ -15,6 +16,10 @@ module.exports = {
                         type: "array",
                         items: { type: "string" },
                         default: ["trace", "tracePii", "error", "errorPii", "verbose", "verbosePii", "warn", "warnPii", "info", "infoPii"]
+                    },
+                    ignoreModules: {
+                        type: "array",
+                        items: { type: "string" },
                     },
                 },
                 additionalProperties: false,
@@ -28,6 +33,15 @@ module.exports = {
 
     create(context) {
         const options = context.options[0] || {};
+        const ignoreModules = options.ignoreModules;
+        const fileName = context.getFilename();
+        
+        for (const ignoreModule of ignoreModules) {
+            if (fileName.includes(ignoreModule)) {
+                return {};
+            }
+        }
+
         const loggerMethods = options.loggerMethods || ["trace", "tracePii", "error", "errorPii", "verbose", "verbosePii", "warn", "warnPii", "info", "infoPii"];
         const sourceCode = context.getSourceCode();
 
