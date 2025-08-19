@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 19 Aug 2025 16:36:14 GMT",
+      "version": "4.21.0",
+      "tag": "@azure/msal-browser_v4.21.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "866f2da124aa13700cfe9d14d5a78ddda9d2bf53",
+            "comment": "Add Platform Telemetry (PR #7991)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.12.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "copilot@github.com",
+            "package": "@azure/msal-browser",
+            "commit": "866f2da124aa13700cfe9d14d5a78ddda9d2bf53",
+            "comment": "Fix redirect loop when URLs contain encoded apostrophes in MSAL Angular standalone components (#7636)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Aug 2025 22:53:32 GMT",
       "version": "4.20.0",
       "tag": "@azure/msal-browser_v4.20.0",

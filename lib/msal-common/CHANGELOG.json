@@ -2,6 +2,53 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 19 Aug 2025 16:36:14 GMT",
+      "version": "15.12.0",
+      "tag": "@azure/msal-common_v15.12.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "866f2da124aa13700cfe9d14d5a78ddda9d2bf53",
+            "comment": "Fix cache not used for getting token if scopes are empty (PR #7121)"
+          },
+          {
+            "author": "copilot@github.com",
+            "package": "@azure/msal-common",
+            "commit": "866f2da124aa13700cfe9d14d5a78ddda9d2bf53",
+            "comment": "Add normalizeUrlForComparison utility function to handle URL encoding consistently (#7636)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "866f2da124aa13700cfe9d14d5a78ddda9d2bf53",
+            "comment": "Add Platform Telemetry (PR #7991)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Aug 2025 22:53:32 GMT",
       "version": "15.11.0",
       "tag": "@azure/msal-common_v15.11.0",

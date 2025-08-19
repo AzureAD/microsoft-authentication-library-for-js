@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 12 Aug 2025 22:53:32 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 19 Aug 2025 16:36:14 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.12.0
+
+Tue, 19 Aug 2025 16:36:14 GMT
+
+### Minor changes
+
+- Add Platform Telemetry (PR #7991) (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix cache not used for getting token if scopes are empty (PR #7121) (198982749+Copilot@users.noreply.github.com)
+- Add normalizeUrlForComparison utility function to handle URL encoding consistently (#7636) (copilot@github.com)
 
 ## 15.11.0
 
