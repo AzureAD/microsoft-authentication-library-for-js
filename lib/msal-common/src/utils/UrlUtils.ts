@@ -9,6 +9,33 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { StringDict } from "./MsalTypes.js";
+import { StringUtils } from "./StringUtils.js";
+
+/**
+ * Canonicalizes a URL by making it lowercase and ensuring it ends with /
+ * Inlined version of UrlString.canonicalizeUri to avoid circular dependency
+ * @param url - URL to canonicalize
+ * @returns Canonicalized URL
+ */
+function canonicalizeUrl(url: string): string {
+    if (!url) {
+        return url;
+    }
+
+    let lowerCaseUrl = url.toLowerCase();
+
+    if (StringUtils.endsWith(lowerCaseUrl, "?")) {
+        lowerCaseUrl = lowerCaseUrl.slice(0, -1);
+    } else if (StringUtils.endsWith(lowerCaseUrl, "?/")) {
+        lowerCaseUrl = lowerCaseUrl.slice(0, -2);
+    }
+
+    if (!StringUtils.endsWith(lowerCaseUrl, "/")) {
+        lowerCaseUrl += "/";
+    }
+
+    return lowerCaseUrl;
+}
 
 /**
  * Parses hash string from given string. Returns empty string if no hash symbol is found.
@@ -85,4 +112,37 @@ export function mapToQueryString(
     });
 
     return queryParameterArray.join("&");
+}
+
+/**
+ * Normalizes URLs for comparison by removing hash, canonicalizing,
+ * and ensuring consistent URL encoding in query parameters.
+ * This fixes redirect loops when URLs contain encoded characters like apostrophes (%27).
+ * @param url - URL to normalize
+ * @returns Normalized URL string for comparison
+ */
+export function normalizeUrlForComparison(url: string): string {
+    if (!url) {
+        return url;
+    }
+
+    // Remove hash first
+    const urlWithoutHash = url.split("#")[0];
+
+    try {
+        // Parse the URL to handle encoding consistently
+        const urlObj = new URL(urlWithoutHash);
+
+        /*
+         * Reconstruct the URL with properly decoded query parameters
+         * This ensures that %27 and ' are treated as equivalent
+         */
+        const normalizedUrl = urlObj.origin + urlObj.pathname + urlObj.search;
+
+        // Apply canonicalization logic inline to avoid circular dependency
+        return canonicalizeUrl(normalizedUrl);
+    } catch (e) {
+        // Fallback to original logic if URL parsing fails
+        return canonicalizeUrl(urlWithoutHash);
+    }
 }
