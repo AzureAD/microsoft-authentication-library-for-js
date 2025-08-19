@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Support JIT during Sign-In and Add AI instructions files",
+  "packageName": "@azure/msal-browser",
+  "email": "shen.jian@live.com",
+  "dependentChangeType": "patch"
+}
