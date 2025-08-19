@@ -9,7 +9,6 @@ import { ApiRequestBase } from "./ApiTypesBase.js";
 export interface SignInInitiateRequest extends ApiRequestBase {
     challenge_type: string;
     username: string;
-    capabilities?: string;
 }
 
 export interface SignInChallengeRequest extends ApiRequestBase {
@@ -41,7 +40,6 @@ export interface SignUpStartRequest extends ApiRequestBase {
     challenge_type: string;
     password?: string;
     attributes?: Record<string, string>;
-    capabilities?: string;
 }
 
 export interface SignUpChallengeRequest extends ApiRequestBase {
@@ -72,7 +70,6 @@ export interface SignUpContinueWithAttributesRequest
 export interface ResetPasswordStartRequest extends ApiRequestBase {
     challenge_type: string;
     username: string;
-    capabilities?: string;
 }
 
 export interface ResetPasswordChallengeRequest extends ApiRequestBase {
