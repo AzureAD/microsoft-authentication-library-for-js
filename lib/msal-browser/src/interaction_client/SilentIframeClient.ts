@@ -111,7 +111,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 inputRequest.prompt !== Constants.PromptValue.NO_SESSION
             ) {
                 this.logger.warning(
-                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${Constants.PromptValue.NONE}`
+                    `SilentIframeClient. Replacing invalid prompt '${inputRequest.prompt}' with '${Constants.PromptValue.NONE}'`
                 );
                 inputRequest.prompt = Constants.PromptValue.NONE;
             }

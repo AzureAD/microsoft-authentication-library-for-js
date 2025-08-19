@@ -235,13 +235,13 @@ export function useMsalAuthentication(
             }
         );
         logger.verbose(
-            `useMsalAuthentication - Registered event callback with id: ${callbackId}`
+            `useMsalAuthentication - Registered event callback with id: '${callbackId}'`
         );
 
         return () => {
             if (callbackId) {
                 logger.verbose(
-                    `useMsalAuthentication - Removing event callback ${callbackId}`
+                    `useMsalAuthentication - Removing event callback '${callbackId}'`
                 );
                 instance.removeEventCallback(callbackId);
             }

@@ -634,7 +634,7 @@ export class PopupClient extends StandardInteractionClient {
                     "Redirecting main window to url specified in the request"
                 );
                 this.logger.verbosePii(
-                    `Redirecting main window to: ${absoluteUrl}`
+                    `Redirecting main window to: '${absoluteUrl}'`
                 );
                 await this.navigationClient.navigateInternal(
                     absoluteUrl,
@@ -677,7 +677,7 @@ export class PopupClient extends StandardInteractionClient {
     initiateAuthRequest(requestUrl: string, params: PopupParams): Window {
         // Check that request url is not empty.
         if (requestUrl) {
-            this.logger.infoPii(`Navigate to: ${requestUrl}`);
+            this.logger.infoPii(`Navigate to: '${requestUrl}'`);
             // Open the popup window to requestUrl.
             return this.openPopup(requestUrl, params);
         } else {
@@ -709,13 +709,13 @@ export class PopupClient extends StandardInteractionClient {
             if (popupParams.popup) {
                 popupWindow = popupParams.popup;
                 this.logger.verbosePii(
-                    `Navigating popup window to: ${urlNavigate}`
+                    `Navigating popup window to: '${urlNavigate}'`
                 );
                 popupWindow.location.assign(urlNavigate);
             } else if (typeof popupParams.popup === "undefined") {
                 // Popup will be undefined if it was not passed in
                 this.logger.verbosePii(
-                    `Opening popup window to: ${urlNavigate}`
+                    `Opening popup window to: '${urlNavigate}'`
                 );
                 popupWindow = this.openSizedPopup(urlNavigate, popupParams);
             }
@@ -738,7 +738,7 @@ export class PopupClient extends StandardInteractionClient {
             return popupWindow;
         } catch (e) {
             this.logger.error(
-                "error opening popup " + (e as AuthError).message
+                `error opening popup '${(e as AuthError).message}'`
             );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.popupWindowError

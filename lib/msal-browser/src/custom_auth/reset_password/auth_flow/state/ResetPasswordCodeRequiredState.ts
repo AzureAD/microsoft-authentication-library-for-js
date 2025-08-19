@@ -60,7 +60,7 @@ export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPass
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to submit code for password reset. Error: ${error}.`,
+                `Failed to submit code for password reset. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 
@@ -112,7 +112,7 @@ export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPass
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to resend code for password reset. Error: ${error}.`,
+                `Failed to resend code for password reset. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 

@@ -70,7 +70,19 @@ module.exports = {
             2,
             {
                 "errorDocPath": "../../docs/errors.md",
-                "ignoreModules": ["msal-node"]
+                "ignoreModules": ["msal-node", "msal-node-extensions"]
+            }
+        ],
+        "custom-msal/no-string-concatenation-in-logging": [
+            2,
+            {
+                "ignoreModules": ["msal-node", "msal-node-extensions"]
+            }
+        ],
+        "custom-msal/quote-logging-variables": [
+            2,
+            {
+                "ignoreModules": ["msal-node", "msal-node-extensions"]
             }
         ],
         "eol-last": 2,

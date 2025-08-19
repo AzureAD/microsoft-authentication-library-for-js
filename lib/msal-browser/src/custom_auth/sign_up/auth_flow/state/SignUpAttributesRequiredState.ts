@@ -97,7 +97,7 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to submit attributes for sign up. Error: ${error}.`,
+                `Failed to submit attributes for sign up. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 

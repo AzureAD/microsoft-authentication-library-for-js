@@ -1050,7 +1050,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 return prompt;
             default:
                 this.logger.trace(
-                    `initializeNativeRequest: prompt = ${prompt} is not compatible with native flow`
+                    `initializeNativeRequest: prompt = '${prompt}' is not compatible with native flow`
                 );
                 throw createBrowserAuthError(
                     BrowserAuthErrorCodes.nativePromptNotSupported

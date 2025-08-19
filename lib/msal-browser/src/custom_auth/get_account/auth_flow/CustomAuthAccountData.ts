@@ -70,7 +70,7 @@ export class CustomAuthAccountData {
             return new SignOutResult();
         } catch (error) {
             this.logger.errorPii(
-                `An error occurred during sign out: ${error}`,
+                `An error occurred during sign out: '${error}'`,
                 this.correlationId
             );
 

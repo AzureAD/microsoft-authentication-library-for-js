@@ -156,7 +156,7 @@ export function getAliasesFromMetadata(
     source?: AuthorityMetadataSource,
     logger?: Logger
 ): string[] | null {
-    logger?.trace(`getAliasesFromMetadata called with source: ${source}`);
+    logger?.trace(`getAliasesFromMetadata called with source: '${source}'`);
     if (authorityHost && cloudDiscoveryMetadata) {
         const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
             cloudDiscoveryMetadata,
@@ -165,12 +165,12 @@ export function getAliasesFromMetadata(
 
         if (metadata) {
             logger?.trace(
-                `getAliasesFromMetadata: found cloud discovery metadata in ${source}, returning aliases`
+                `getAliasesFromMetadata: found cloud discovery metadata in '${source}', returning aliases`
             );
             return metadata.aliases;
         } else {
             logger?.trace(
-                `getAliasesFromMetadata: did not find cloud discovery metadata in ${source}`
+                `getAliasesFromMetadata: did not find cloud discovery metadata in '${source}'`
             );
         }
     }
