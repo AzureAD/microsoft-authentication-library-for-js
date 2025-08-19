@@ -10,31 +10,21 @@ import { EventType } from "../../src/event/EventType";
 describe("EventMessage.ts Unit Tests", () => {
     describe("getInteractionStatusFromEvent()", () => {
         let TEST_EVENT_MESSAGE: EventMessage = {
-            eventType: EventType.LOGIN_START,
+            eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
             interactionType: InteractionType.Popup,
             payload: null,
             error: null,
             timestamp: 0,
         };
 
-        it("returns status Login with event type LOGIN_START", () => {
-            TEST_EVENT_MESSAGE.eventType = EventType.LOGIN_START;
+        it("returns status AcquireToken with event type ACQUIRE_TOKEN_START", () => {
+            TEST_EVENT_MESSAGE.eventType = EventType.ACQUIRE_TOKEN_START;
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
                     TEST_EVENT_MESSAGE
                 );
-            expect(result).toBe(InteractionStatus.Login);
-        });
-
-        it("returns status SsoSilent with event type SSO_SILENT_START", () => {
-            TEST_EVENT_MESSAGE.eventType = EventType.SSO_SILENT_START;
-
-            const result =
-                EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
-                );
-            expect(result).toBe(InteractionStatus.SsoSilent);
+            expect(result).toBe(InteractionStatus.AcquireToken);
         });
 
         it("returns status AcquireToken with event type ACQUIRE_TOKEN_START and interaction type Popup", () => {
@@ -48,9 +38,9 @@ describe("EventMessage.ts Unit Tests", () => {
             expect(result).toBe(InteractionStatus.AcquireToken);
         });
 
-        it("returns null with event type ACQUIRE_TOKEN_START and an interaction type that is not Popup or Redirect", () => {
+        it("returns null with event type ACQUIRE_TOKEN_START and a null interaction type", () => {
             TEST_EVENT_MESSAGE.eventType = EventType.ACQUIRE_TOKEN_START;
-            TEST_EVENT_MESSAGE.interactionType = InteractionType.Silent;
+            TEST_EVENT_MESSAGE.interactionType = null;
 
             const result =
                 EventMessageUtils.getInteractionStatusFromEvent(
@@ -100,7 +90,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.Login
+                InteractionStatus.AcquireToken
             );
             expect(test1).toBe(null);
         });
@@ -111,7 +101,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.Login
+                InteractionStatus.AcquireToken
             );
             expect(test1).toBe(InteractionStatus.None);
 
@@ -124,34 +114,6 @@ describe("EventMessage.ts Unit Tests", () => {
 
         it("returns null with event type LOGIN_SUCCESS if current interaction is not login or acquireToken", () => {
             TEST_EVENT_MESSAGE.eventType = EventType.LOGIN_SUCCESS;
-            TEST_EVENT_MESSAGE.interactionType = InteractionType.Redirect;
-
-            const test1 = EventMessageUtils.getInteractionStatusFromEvent(
-                TEST_EVENT_MESSAGE,
-                InteractionStatus.HandleRedirect
-            );
-            expect(test1).toBe(null);
-        });
-
-        it("returns status None with event type LOGIN_FAILURE", () => {
-            TEST_EVENT_MESSAGE.eventType = EventType.LOGIN_FAILURE;
-            TEST_EVENT_MESSAGE.interactionType = InteractionType.Popup;
-
-            const test1 = EventMessageUtils.getInteractionStatusFromEvent(
-                TEST_EVENT_MESSAGE,
-                InteractionStatus.Login
-            );
-            expect(test1).toBe(InteractionStatus.None);
-
-            const test2 =
-                EventMessageUtils.getInteractionStatusFromEvent(
-                    TEST_EVENT_MESSAGE
-                );
-            expect(test2).toBe(InteractionStatus.None);
-        });
-
-        it("returns null with event type LOGIN_FAILURE if current interaction is not login or acquireToken", () => {
-            TEST_EVENT_MESSAGE.eventType = EventType.LOGIN_FAILURE;
             TEST_EVENT_MESSAGE.interactionType = InteractionType.Redirect;
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
@@ -184,7 +146,7 @@ describe("EventMessage.ts Unit Tests", () => {
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,
-                InteractionStatus.Login
+                InteractionStatus.AcquireToken
             );
             expect(test1).toBe(InteractionStatus.None);
 
@@ -206,9 +168,9 @@ describe("EventMessage.ts Unit Tests", () => {
             expect(test1).toBe(null);
         });
 
-        it("returns null with event type ACQUIRE_TOKEN_FAILURE and an interaction type that is not popup or redirect", () => {
+        it("returns null with event type ACQUIRE_TOKEN_FAILURE and a none interaction type", () => {
             TEST_EVENT_MESSAGE.eventType = EventType.ACQUIRE_TOKEN_FAILURE;
-            TEST_EVENT_MESSAGE.interactionType = InteractionType.Silent;
+            TEST_EVENT_MESSAGE.interactionType = InteractionType.None;
 
             const test1 = EventMessageUtils.getInteractionStatusFromEvent(
                 TEST_EVENT_MESSAGE,

@@ -19,7 +19,7 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.msalBroadcastService.msalSubject$
       .pipe(
-        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
+        filter((msg: EventMessage) => msg.eventType === msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
       )
       .subscribe((result: EventMessage) => {
         console.log(result);

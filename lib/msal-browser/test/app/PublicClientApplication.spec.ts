@@ -1125,33 +1125,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(acquireTokenSuccessFired).toBe(true);
         });
 
-        it("Emits login failure event if user was already signed in", (done) => {
-            const redirectClientSpy: jest.SpyInstance = jest
-                .spyOn(RedirectClient.prototype, "handleRedirectPromise")
-                .mockRejectedValue(new Error("Error"));
-            jest.spyOn(
-                BrowserCacheManager.prototype,
-                "isInteractionInProgress"
-            ).mockReturnValue(true);
-            jest.spyOn(
-                BrowserCacheManager.prototype,
-                "getCachedRequest"
-            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
-            let loginFailureFired = false;
-            jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
-                (eventType) => {
-                    if (eventType === EventType.LOGIN_FAILURE) {
-                        loginFailureFired = true;
-                    }
-                }
-            );
-            pca.handleRedirectPromise().catch(() => {
-                expect(redirectClientSpy).toHaveBeenCalledTimes(1);
-                expect(loginFailureFired).toBe(true);
-                done();
-            });
-        });
-
         it("Emits acquireToken failure event if user was already signed in", (done) => {
             const testAccount = BASIC_TEST_ACCOUNT_INFO;
             jest.spyOn(
@@ -2084,30 +2057,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("Emits login Start and Failure events if no user is logged in", async () => {
-            const redirectClientSpy: jest.SpyInstance = jest
-                .spyOn(RedirectClient.prototype, "acquireToken")
-                .mockRejectedValue(new Error("Error"));
-
-            let loginStartEmitted = false;
-            let loginFailureEmitted = false;
-            jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
-                (eventType) => {
-                    if (eventType === EventType.LOGIN_START) {
-                        loginStartEmitted = true;
-                    } else if (eventType === EventType.LOGIN_FAILURE) {
-                        loginFailureEmitted = true;
-                    }
-                }
-            );
-
-            await pca.acquireTokenRedirect({ scopes: ["openid"] }).catch(() => {
-                expect(redirectClientSpy).toHaveBeenCalledTimes(1);
-                expect(loginStartEmitted).toBe(true);
-                expect(loginFailureEmitted).toBe(true);
-            });
-        });
-
         it("emits error performance event", (done) => {
             const config = {
                 auth: {
@@ -2840,7 +2789,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(popupClientSpy).toHaveBeenCalledTimes(1);
         });
 
-        it("Emits Login Start and Success Events if no user is signed in", async () => {
+        it("Emits Login Success Event if no user is signed in", async () => {
             const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -2865,13 +2814,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ).mockReturnValue([testAccount]);
                     return Promise.resolve(testTokenResponse);
                 });
-            let loginStartEmitted = false;
             let loginSuccessEmitted = false;
             jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
                 (eventType) => {
-                    if (eventType === EventType.LOGIN_START) {
-                        loginStartEmitted = true;
-                    } else if (eventType === EventType.LOGIN_SUCCESS) {
+                    if (eventType === EventType.LOGIN_SUCCESS) {
                         loginSuccessEmitted = true;
                     }
                 }
@@ -2882,7 +2828,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             expect(response).toEqual(testTokenResponse);
             expect(popupClientSpy).toHaveBeenCalledTimes(1);
-            expect(loginStartEmitted).toBe(true);
             expect(loginSuccessEmitted).toBe(true);
         });
 
@@ -2956,29 +2901,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(popupClientSpy).toHaveBeenCalledTimes(1);
                 expect(acquireTokenStartEmitted).toBe(true);
                 expect(acquireTokenFailureEmitted).toBe(true);
-            });
-        });
-
-        it("Emits Login Start and Failure events if a user is not logged in", async () => {
-            const popupClientSpy: jest.SpyInstance = jest
-                .spyOn(PopupClient.prototype, "acquireToken")
-                .mockRejectedValue(new Error("Error"));
-            let loginStartEmitted = false;
-            let loginFailureEmitted = false;
-            jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
-                (eventType) => {
-                    if (eventType === EventType.LOGIN_START) {
-                        loginStartEmitted = true;
-                    } else if (eventType === EventType.LOGIN_FAILURE) {
-                        loginFailureEmitted = true;
-                    }
-                }
-            );
-
-            await pca.acquireTokenPopup({ scopes: ["openid"] }).catch(() => {
-                expect(popupClientSpy).toHaveBeenCalledTimes(1);
-                expect(loginStartEmitted).toBe(true);
-                expect(loginFailureEmitted).toBe(true);
             });
         });
 
@@ -3421,7 +3343,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
                 (eventType, interactionType) => {
                     if (
-                        eventType === EventType.SSO_SILENT_START &&
+                        eventType === EventType.ACQUIRE_TOKEN_START &&
                         interactionType === InteractionType.Silent
                     ) {
                         ssoSilentFired = true;
@@ -6411,7 +6333,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Event API tests", () => {
         it("can add an event callback", (done) => {
             const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.LOGIN_START);
+                expect(message.eventType).toEqual(
+                    EventType.ACQUIRE_TOKEN_SUCCESS
+                );
                 expect(message.interactionType).toEqual(InteractionType.Popup);
                 done();
             };
@@ -6848,6 +6772,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const accountInfo: AccountInfo =
             AccountEntityUtils.getAccountInfo(accountEntity);
         let callbackId: string | null;
+        let pca2: PublicClientApplication;
 
         beforeEach(async () => {
             pca = new PublicClientApplication({
@@ -6874,6 +6799,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await secondBrowserStorageInstance.initialize(
                 TEST_CONFIG.CORRELATION_ID
             );
+
+            pca2 = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+            });
+            await pca2.initialize();
         });
 
         afterEach(() => {
@@ -6882,33 +6817,62 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        it("ACCOUNT_ADDED event raised when an account logs in in another tab", (done) => {
+        it("LOGIN_SUCCESS event raised when an account logs in in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.ACCOUNT_ADDED);
-                expect(message.interactionType).toBeNull();
-                const { tenantProfiles, ...payloadAccountInfo } =
-                    message.payload as AccountInfo;
-                const messagePayload = {
-                    ...payloadAccountInfo,
-                    tenantProfiles: new Map(tenantProfiles?.entries()),
-                }; // Original map causes problems due to being a proxy object
-                expect(messagePayload).toEqual(accountInfo);
-                expect(message.error).toBeNull();
-                expect(message.timestamp).not.toBeNull();
-                done();
+                if (message.eventType == EventType.LOGIN_SUCCESS) {
+                    expect(message.interactionType).toBe(InteractionType.Popup);
+                    const { tenantProfiles, ...payloadAccountInfo } =
+                        message.payload as AccountInfo;
+                    const messagePayload = {
+                        ...payloadAccountInfo,
+                        tenantProfiles: new Map(tenantProfiles?.entries()),
+                    }; // Original map causes problems due to being a proxy object
+                    expect(messagePayload).toEqual(accountInfo);
+                    expect(message.error).toBeNull();
+                    expect(message.timestamp).not.toBeNull();
+                    done();
+                }
+            };
+
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: accountInfo.localAccountId,
+                tenantId: accountInfo.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: accountInfo,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             callbackId = pca.addEventCallback(subscriber);
 
-            secondBrowserStorageInstance.setAccount(
-                accountEntity,
-                TEST_CONFIG.CORRELATION_ID
-            );
+            jest.spyOn(
+                PopupClient.prototype,
+                "acquireToken"
+            ).mockImplementation(async (request) => {
+                // Save the account to cache to trigger the event
+                // @ts-ignore
+                await pca2.controller.browserStorage.setAccount(accountEntity);
+
+                // Return the test token response
+                return testTokenResponse;
+            });
+
+            pca2.acquireTokenPopup({
+                scopes: ["User.Read"],
+                account: accountInfo,
+                prompt: "select_account",
+            });
         });
 
-        it("ACCOUNT_REMOVED event raised when an account logs out in another tab", (done) => {
+        it("LOGOUT_SUCCESS event raised when an account logs out in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.ACCOUNT_REMOVED);
+                expect(message.eventType).toEqual(EventType.LOGOUT_SUCCESS);
                 expect(message.interactionType).toBeNull();
                 const { tenantProfiles, ...payloadAccountInfo } =
                     message.payload as AccountInfo;
@@ -6923,7 +6887,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             callbackId = pca.addEventCallback(subscriber, [
-                EventType.ACCOUNT_REMOVED,
+                EventType.LOGOUT_SUCCESS,
             ]);
 
             secondBrowserStorageInstance

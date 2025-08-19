@@ -65,10 +65,6 @@ export class EventMessageUtils {
         currentStatus?: InteractionStatus
     ): InteractionStatus | null {
         switch (message.eventType) {
-            case EventType.LOGIN_START:
-                return InteractionStatus.Login;
-            case EventType.SSO_SILENT_START:
-                return InteractionStatus.SsoSilent;
             case EventType.ACQUIRE_TOKEN_START:
                 if (
                     message.interactionType === InteractionType.Redirect ||
@@ -81,16 +77,6 @@ export class EventMessageUtils {
                 return InteractionStatus.HandleRedirect;
             case EventType.LOGOUT_START:
                 return InteractionStatus.Logout;
-            case EventType.SSO_SILENT_SUCCESS:
-            case EventType.SSO_SILENT_FAILURE:
-                if (
-                    currentStatus &&
-                    currentStatus !== InteractionStatus.SsoSilent
-                ) {
-                    // Prevent this event from clearing any status other than ssoSilent
-                    break;
-                }
-                return InteractionStatus.None;
             case EventType.LOGOUT_END:
                 if (
                     currentStatus &&
@@ -110,7 +96,6 @@ export class EventMessageUtils {
                 }
                 return InteractionStatus.None;
             case EventType.LOGIN_SUCCESS:
-            case EventType.LOGIN_FAILURE:
             case EventType.ACQUIRE_TOKEN_SUCCESS:
             case EventType.ACQUIRE_TOKEN_FAILURE:
             case EventType.RESTORE_FROM_BFCACHE:
@@ -120,10 +105,9 @@ export class EventMessageUtils {
                 ) {
                     if (
                         currentStatus &&
-                        currentStatus !== InteractionStatus.Login &&
                         currentStatus !== InteractionStatus.AcquireToken
                     ) {
-                        // Prevent this event from clearing any status other than login or acquireToken
+                        // Prevent this event from clearing any status other than acquireToken
                         break;
                     }
                     return InteractionStatus.None;

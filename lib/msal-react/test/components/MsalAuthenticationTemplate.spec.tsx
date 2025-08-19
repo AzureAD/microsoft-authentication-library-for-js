@@ -381,7 +381,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                     timestamp: 10000,
                 };
                 const failureMessage: EventMessage = {
-                    eventType: EventType.LOGIN_FAILURE,
+                    eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                     interactionType: InteractionType.Redirect,
                     payload: null,
                     error: error,
@@ -943,7 +943,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .spyOn(pca, "loginPopup")
             .mockImplementation(() => {
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_FAILURE,
+                    eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                     interactionType: InteractionType.Popup,
                     payload: null,
                     error: error,
@@ -995,7 +995,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .spyOn(pca, "loginPopup")
             .mockImplementation(() => {
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_FAILURE,
+                    eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                     interactionType: InteractionType.Popup,
                     payload: null,
                     error: error,
@@ -1057,7 +1057,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .spyOn(pca, "ssoSilent")
             .mockImplementation(() => {
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_FAILURE,
+                    eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                     interactionType: InteractionType.Silent,
                     payload: null,
                     error: error,
@@ -1146,7 +1146,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .spyOn(pca, "loginPopup")
             .mockImplementation(() => {
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_START,
+                    eventType: EventType.ACQUIRE_TOKEN_START,
                     interactionType: InteractionType.Popup,
                     payload: null,
                     error: null,
@@ -1181,7 +1181,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             screen.queryByText("This text will always display.")
         ).toBeInTheDocument();
         expect(
-            await screen.findByText("In Progress: login")
+            await screen.findByText("In Progress: acquireToken")
         ).toBeInTheDocument();
         expect(
             screen.queryByText("A user is authenticated!")

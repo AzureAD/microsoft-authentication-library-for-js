@@ -25,7 +25,7 @@ describe("Event API tests", () => {
 
     it("can add an event callback and broadcast to it", (done) => {
         const subscriber = (message: EventMessage) => {
-            expect(message.eventType).toEqual(EventType.LOGIN_START);
+            expect(message.eventType).toEqual(EventType.ACQUIRE_TOKEN_SUCCESS);
             expect(message.interactionType).toEqual(InteractionType.Popup);
             done();
         };
@@ -33,12 +33,15 @@ describe("Event API tests", () => {
         const eventHandler = new EventHandler(logger);
 
         eventHandler.addEventCallback(subscriber);
-        eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+        eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_SUCCESS,
+            InteractionType.Popup
+        );
     });
 
     it("can remove an event callback", (done) => {
         const subscriber = (message: EventMessage) => {
-            expect(message.eventType).toEqual(EventType.LOGIN_START);
+            expect(message.eventType).toEqual(EventType.ACQUIRE_TOKEN_SUCCESS);
             expect(message.interactionType).toEqual(InteractionType.Popup);
         };
 
@@ -47,9 +50,15 @@ describe("Event API tests", () => {
         const eventHandler = new EventHandler(logger);
 
         const callbackId = eventHandler.addEventCallback(callbackSpy);
-        eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+        eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_SUCCESS,
+            InteractionType.Popup
+        );
         eventHandler.removeEventCallback(callbackId || "");
-        eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+        eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_SUCCESS,
+            InteractionType.Popup
+        );
         expect(callbackSpy).toHaveBeenCalledTimes(1);
         done();
     });
@@ -78,7 +87,7 @@ describe("Event API tests", () => {
 
     it("sets interactionType, payload, and error to null by default", (done) => {
         const subscriber = (message: EventMessage) => {
-            expect(message.eventType).toEqual(EventType.LOGIN_START);
+            expect(message.eventType).toEqual(EventType.ACQUIRE_TOKEN_SUCCESS);
             expect(message.interactionType).toBeNull();
             expect(message.payload).toBeNull();
             expect(message.error).toBeNull();
@@ -89,12 +98,12 @@ describe("Event API tests", () => {
         const eventHandler = new EventHandler(logger);
 
         eventHandler.addEventCallback(subscriber);
-        eventHandler.emitEvent(EventType.LOGIN_START);
+        eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS);
     });
 
     it("sets all expected fields on event", (done) => {
         const subscriber = (message: EventMessage) => {
-            expect(message.eventType).toEqual(EventType.LOGIN_START);
+            expect(message.eventType).toEqual(EventType.ACQUIRE_TOKEN_SUCCESS);
             expect(message.interactionType).toEqual(InteractionType.Silent);
             expect(message.payload).toEqual({ scopes: ["user.read"] });
             expect(message.error).toBeNull();
@@ -106,7 +115,7 @@ describe("Event API tests", () => {
 
         eventHandler.addEventCallback(subscriber);
         eventHandler.emitEvent(
-            EventType.LOGIN_START,
+            EventType.ACQUIRE_TOKEN_SUCCESS,
             InteractionType.Silent,
             { scopes: ["user.read"] },
             null

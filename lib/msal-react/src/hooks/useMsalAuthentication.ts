@@ -217,7 +217,7 @@ export function useMsalAuthentication(
             (message: EventMessage) => {
                 switch (message.eventType) {
                     case EventType.LOGIN_SUCCESS:
-                    case EventType.SSO_SILENT_SUCCESS:
+                    case EventType.ACQUIRE_TOKEN_SUCCESS:
                         if (message.payload) {
                             setResponse([
                                 message.payload as AuthenticationResult,
@@ -225,8 +225,7 @@ export function useMsalAuthentication(
                             ]);
                         }
                         break;
-                    case EventType.LOGIN_FAILURE:
-                    case EventType.SSO_SILENT_FAILURE:
+                    case EventType.ACQUIRE_TOKEN_FAILURE:
                         if (message.error) {
                             setResponse([null, message.error as AuthError]);
                         }

@@ -95,17 +95,14 @@ export class EventHandler {
         };
 
         switch (eventType) {
-            case EventType.ACCOUNT_ADDED:
-            case EventType.ACCOUNT_REMOVED:
+            case EventType.LOGIN_SUCCESS:
+            case EventType.LOGOUT_SUCCESS:
             case EventType.ACTIVE_ACCOUNT_CHANGED:
                 // Send event to other open tabs / MSAL instances on same domain
                 this.broadcastChannel?.postMessage(message);
-                break;
-            default:
-                // Emit event to callbacks registered in this instance
-                this.invokeCallbacks(message);
-                break;
         }
+        // Emit event to callbacks registered in this instance
+        this.invokeCallbacks(message);
     }
 
     /**

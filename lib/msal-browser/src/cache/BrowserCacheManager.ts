@@ -582,22 +582,7 @@ export class BrowserCacheManager extends CacheManager {
             correlationId,
             timestamp
         );
-        const wasAdded = this.addAccountKeyToMap(key, correlationId);
-
-        /**
-         * @deprecated - Remove this in next major version in favor of more consistent LOGIN event
-         */
-        if (
-            this.cacheConfig.cacheLocation ===
-                BrowserCacheLocation.LocalStorage &&
-            wasAdded
-        ) {
-            this.eventHandler.emitEvent(
-                EventType.ACCOUNT_ADDED,
-                undefined,
-                AccountEntityUtils.getAccountInfo(account)
-            );
-        }
+        this.addAccountKeyToMap(key, correlationId);
     }
 
     /**
@@ -708,7 +693,7 @@ export class BrowserCacheManager extends CacheManager {
             this.cacheConfig.cacheLocation === BrowserCacheLocation.LocalStorage
         ) {
             this.eventHandler.emitEvent(
-                EventType.ACCOUNT_REMOVED,
+                EventType.LOGOUT_SUCCESS,
                 undefined,
                 account
             );
