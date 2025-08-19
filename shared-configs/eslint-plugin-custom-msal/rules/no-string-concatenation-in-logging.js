@@ -36,8 +36,6 @@ module.exports = {
         const ignoreModules = options.ignoreModules;
         const fileName = context.getFilename();
         
-        for (const ignoreModule of ignoreModules) {
-            if (fileName.includes(ignoreModule)) {
         if (ignoreModules) {
             for (const ignoreModule of ignoreModules) {
                 if (fileName.includes(ignoreModule)) {
