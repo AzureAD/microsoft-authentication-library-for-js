@@ -188,7 +188,6 @@ export class UnknownOperatingContextController implements IController {
                       | "earJwk"
                       | "codeChallenge"
                       | "codeChallengeMethod"
-                      | "requestedClaimsHash"
                       | "platformBroker"
                   >
               >,
@@ -288,7 +287,6 @@ export class UnknownOperatingContextController implements IController {
                 | "earJwk"
                 | "codeChallenge"
                 | "codeChallengeMethod"
-                | "requestedClaimsHash"
                 | "platformBroker"
             >
         >

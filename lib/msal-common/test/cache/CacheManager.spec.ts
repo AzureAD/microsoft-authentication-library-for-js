@@ -1567,32 +1567,6 @@ describe("CacheManager.ts test cases", () => {
             expect(accessTokens.length).toEqual(0);
         });
 
-        it("requestedClaimsHash filter", () => {
-            // requestedClaimsHash present and matching in request and cache
-            const successFilterWithRCHash = {
-                credentialType: CredentialType.ACCESS_TOKEN,
-                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
-            };
-
-            let accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
-                successFilterWithRCHash,
-                RANDOM_TEST_GUID
-            );
-            expect(accessTokens.length).toEqual(1);
-
-            // requestedClaimsHash present in requeste and cache, not matching
-            const wrongFilterWithRCHash = {
-                ...successFilterWithRCHash,
-                requestedClaimsHash: "wrong_hash",
-            };
-
-            accessTokens = mockCache.cacheManager.getAccessTokensByFilter(
-                wrongFilterWithRCHash,
-                RANDOM_TEST_GUID
-            );
-            expect(accessTokens.length).toEqual(0);
-        });
-
         it("userAssertionHash filter", () => {
             // userAssertionHash present and matching in request and cache
             const successFilterWithRCHash = {

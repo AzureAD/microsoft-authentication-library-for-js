@@ -48,7 +48,6 @@ export class TestStorageManager extends CacheManager {
             familyId,
             credential.realm || "",
             credential.target || "",
-            credential.requestedClaimsHash || "",
             scheme,
         ];
 

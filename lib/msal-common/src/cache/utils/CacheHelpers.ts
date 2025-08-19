@@ -71,9 +71,7 @@ export function createAccessTokenEntity(
     refreshOn?: number,
     tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
-    keyId?: string,
-    requestedClaims?: string,
-    requestedClaimsHash?: string
+    keyId?: string
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -96,11 +94,6 @@ export function createAccessTokenEntity(
 
     if (refreshOn) {
         atEntity.refreshOn = refreshOn.toString();
-    }
-
-    if (requestedClaims) {
-        atEntity.requestedClaims = requestedClaims;
-        atEntity.requestedClaimsHash = requestedClaimsHash;
     }
 
     /*

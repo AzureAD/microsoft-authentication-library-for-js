@@ -43,7 +43,6 @@ export type PopupRequest = Partial<
         | "earJwk"
         | "codeChallenge"
         | "codeChallengeMethod"
-        | "requestedClaimsHash"
         | "platformBroker"
     >
 > & {

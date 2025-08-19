@@ -55,6 +55,7 @@ import { EventHandler } from "../../../event/EventHandler.js";
 import { INavigationClient } from "../../../navigation/INavigationClient.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
 import { ensureArgumentIsNotEmptyString } from "../../core/utils/ArgumentValidator.js";
+import { initializeServerTelemetryManager } from "../../../interaction_client/BaseInteractionClient.js";
 
 export class SignInClient extends CustomAuthInteractionClientBase {
     private readonly tokenResponseHandler: ResponseHandler;
@@ -103,7 +104,13 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const apiId = !parameters.password
             ? PublicApiId.SIGN_IN_WITH_CODE_START
             : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         this.logger.verbose(
             "Calling initiate endpoint for sign in.",
@@ -144,7 +151,13 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         parameters: SignInResendCodeParams
     ): Promise<SignInCodeSendResult> {
         const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const challengeReq: SignInChallengeRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
@@ -186,7 +199,13 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         );
 
         const apiId = PublicApiId.SIGN_IN_SUBMIT_CODE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
         const scopes = this.getScopes(parameters.scopes);
 
         const request: SignInOobTokenRequest = {
@@ -224,7 +243,13 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         );
 
         const apiId = PublicApiId.SIGN_IN_SUBMIT_PASSWORD;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
         const scopes = this.getScopes(parameters.scopes);
 
         const request: SignInPasswordTokenRequest = {
@@ -259,7 +284,13 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             parameters.signInScenario,
             parameters.correlationId
         );
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
         const scopes = this.getScopes(parameters.scopes);
 
         // Create token request.

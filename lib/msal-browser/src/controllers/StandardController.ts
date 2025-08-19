@@ -19,7 +19,6 @@ import {
     InProgressPerformanceEvent,
     getRequestThumbprint,
     invokeAsync,
-    invoke,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountFilter,
@@ -359,16 +358,6 @@ export class StandardController implements IController {
             }
         }
 
-        invoke(
-            this.browserStorage.clearTokensAndKeysWithClaims.bind(
-                this.browserStorage
-            ),
-            BrowserPerformanceEvents.ClearTokensAndKeysWithClaims,
-            this.logger,
-            this.performanceClient,
-            initCorrelationId
-        )(initCorrelationId);
-
         if (
             this.config.cache.cacheLocation ===
             BrowserCacheLocation.LocalStorage
@@ -631,11 +620,11 @@ export class StandardController implements IController {
                 typeof configOnRedirectNavigateCb === "function"
                     ? configOnRedirectNavigateCb(url)
                     : undefined;
-            if (navigate !== false) {
-                atrMeasurement.end({ success: true });
-            } else {
-                atrMeasurement.discard();
-            }
+            atrMeasurement.add({
+                navigateCallbackResult: navigate !== false,
+            });
+            atrMeasurement.event =
+                atrMeasurement.end({ success: true }) || atrMeasurement.event;
             return navigate;
         };
 
@@ -703,7 +692,21 @@ export class StandardController implements IController {
             return await result;
         } catch (e) {
             this.browserStorage.resetRequestCache();
-            atrMeasurement.end({ success: false }, e);
+            /*
+             * Pre-redirect event completes before navigation occurs.
+             * Timed out navigation needs to be instrumented separately as a post-redirect event.
+             */
+            if (atrMeasurement.event.status === 2) {
+                this.performanceClient
+                    .startMeasurement(
+                        BrowserRootPerformanceEvents.AcquireTokenRedirect,
+                        correlationId
+                    )
+                    .end({ success: false }, e);
+            } else {
+                atrMeasurement.end({ success: false }, e);
+            }
+
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Redirect,
@@ -1555,7 +1558,7 @@ export class StandardController implements IController {
                     break;
                 default:
                     this.logger.trace(
-                        `canUsePlatformBroker: prompt = ${request.prompt} is not compatible with platform broker flow, returning false`
+                        `canUsePlatformBroker: prompt = '${request.prompt}' is not compatible with platform broker flow, returning false`
                     );
                     return false;
             }
@@ -2066,7 +2069,7 @@ export class StandardController implements IController {
                     const [activePromise, activeCorrelationId] =
                         this.activeIframeRequest;
                     this.logger.verbose(
-                        `Iframe request is already in progress, awaiting resolution for request with correlationId: ${activeCorrelationId}`,
+                        `Iframe request is already in progress, awaiting resolution for request with correlationId: '${activeCorrelationId}'`,
                         silentRequest.correlationId
                     );
                     const awaitConcurrentIframeMeasure =
@@ -2084,7 +2087,7 @@ export class StandardController implements IController {
                     });
                     if (activePromiseResult) {
                         this.logger.verbose(
-                            `Parallel iframe request with correlationId: ${activeCorrelationId} succeeded. Retrying cache and/or RT redemption`,
+                            `Parallel iframe request with correlationId: '${activeCorrelationId}' succeeded. Retrying cache and/or RT redemption`,
                             silentRequest.correlationId
                         );
                         // Retry cache lookup and/or RT exchange after iframe completes
@@ -2094,7 +2097,7 @@ export class StandardController implements IController {
                         );
                     } else {
                         this.logger.info(
-                            `Iframe request with correlationId: ${activeCorrelationId} failed. Interaction is required.`
+                            `Iframe request with correlationId: '${activeCorrelationId}' failed. Interaction is required.`
                         );
                         // If previous iframe request failed, it's unlikely to succeed this time. Throw original error.
                         throw refreshTokenError;
@@ -2264,7 +2267,7 @@ export class StandardController implements IController {
         const res = this.pkceCode ? { ...this.pkceCode } : undefined;
         this.pkceCode = undefined;
         this.logger.verbose(
-            `${res ? "Found" : "Did not find"} pre-generated PKCE codes`
+            `'${res ? "Found" : "Did not find"}' pre-generated PKCE codes`
         );
         this.performanceClient.addFields(
             { usePreGeneratedPkce: !!res },

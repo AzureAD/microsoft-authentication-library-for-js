@@ -13,14 +13,14 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
         it("Generate AccessTokenEntity key", () => {
             const at = mockCache.createMockATOne();
             expect(generateCredentialKey(at)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--"
+                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3-"
             );
         });
 
         it("Generate AccessTokenEntity key (adfs)", () => {
             const at = mockCache.createMockAdfsAt();
             expect(generateCredentialKey(at)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--"
+                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3-"
             );
         });
 
@@ -44,7 +44,7 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
         it("Generate AccessTokenEntity key", () => {
             const popAT = mockCache.createMockPopAT();
             expect(generateCredentialKey(popAT)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope1 scope2 scope3--pop"
+                "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope1 scope2 scope3-pop"
             );
         });
 

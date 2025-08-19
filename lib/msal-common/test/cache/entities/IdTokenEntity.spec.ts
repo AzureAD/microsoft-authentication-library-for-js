@@ -5,7 +5,7 @@ import { generateCredentialKey } from "../../client/ClientTestUtils.js";
 describe("IdTokenEntity.ts Unit Tests", () => {
     it("Create an IdTokenEntity", () => {
         expect(generateCredentialKey(mockIdTokenEntity)).toEqual(
-            "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---"
+            "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft--"
         );
     });
 

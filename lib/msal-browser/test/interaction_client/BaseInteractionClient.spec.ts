@@ -22,7 +22,11 @@ import {
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
 } from "../utils/StringConstants.js";
-import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient.js";
+import {
+    BaseInteractionClient,
+    clearCacheOnLogout,
+    getDiscoveredAuthority,
+} from "../../src/interaction_client/BaseInteractionClient.js";
 import {
     EndSessionRequest,
     PublicClientApplication,
@@ -36,7 +40,13 @@ class testInteractionClient extends BaseInteractionClient {
     }
 
     logout(request: EndSessionRequest): Promise<void> {
-        return this.clearCacheOnLogout(request.account);
+        return clearCacheOnLogout(
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.correlationId,
+            request.account
+        );
     }
 }
 
@@ -255,13 +265,19 @@ describe("BaseInteractionClient", () => {
                 loginHint: "loginHint",
             };
 
-            await testClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                    account: testAccount,
-                })
+            let clientInst = testClient as any;
+
+            await getDiscoveredAuthority(
+                clientInst.config,
+                clientInst.correlationId,
+                clientInst.performanceClient,
+                clientInst.browserStorage,
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
+            )
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
                 })
@@ -284,13 +300,19 @@ describe("BaseInteractionClient", () => {
                 loginHint: "loginHint",
             };
 
-            testClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                    account: testAccount,
-                })
+            const clientInst = testClient as any;
+
+            getDiscoveredAuthority(
+                clientInst.config,
+                clientInst.correlationId,
+                clientInst.performanceClient,
+                clientInst.browserStorage,
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
+            )
                 .then(() => {
                     done();
                 })
@@ -329,11 +351,18 @@ describe("BaseInteractionClient", () => {
                 pca.performanceClient
             );
 
-            interactionClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
-                    account: testAccount,
-                })
+            const clientInst = interactionClient as any;
+            getDiscoveredAuthority(
+                clientInst.config,
+                clientInst.correlationId,
+                clientInst.performanceClient,
+                clientInst.browserStorage,
+                clientInst.logger,
+                undefined,
+                undefined,
+                undefined,
+                testAccount
+            )
                 .then(() => {
                     done();
                 })
@@ -372,13 +401,18 @@ describe("BaseInteractionClient", () => {
                 pca.performanceClient
             );
 
-            interactionClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
-                    account: testAccount,
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                })
+            const clientInst = interactionClient as any;
+            getDiscoveredAuthority(
+                clientInst.config,
+                clientInst.correlationId,
+                clientInst.performanceClient,
+                clientInst.browserStorage,
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
+            )
                 .then(() => {
                     done();
                 })

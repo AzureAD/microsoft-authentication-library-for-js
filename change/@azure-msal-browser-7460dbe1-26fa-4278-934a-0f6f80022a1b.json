@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Format logging strings for future minification #7999",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -346,7 +346,7 @@ export class BrowserCacheManager extends CacheManager {
         );
         if (previousVersion) {
             this.logger.info(
-                `MSAL.js was last initialized by version: ${previousVersion}`
+                `MSAL.js was last initialized by version: '${previousVersion}'`
             );
             this.performanceClient.addFields(
                 { previousLibraryVersion: previousVersion },
@@ -600,7 +600,7 @@ export class BrowserCacheManager extends CacheManager {
     addAccountKeyToMap(key: string, correlationId: string): boolean {
         this.logger.trace("BrowserCacheManager.addAccountKeyToMap called");
         this.logger.tracePii(
-            `BrowserCacheManager.addAccountKeyToMap called with key: ${key}`
+            `BrowserCacheManager.addAccountKeyToMap called with key: '${key}'`
         );
         const accountKeys = this.getAccountKeys();
         if (accountKeys.indexOf(key) === -1) {
@@ -630,7 +630,7 @@ export class BrowserCacheManager extends CacheManager {
     removeAccountKeyFromMap(key: string, correlationId: string): void {
         this.logger.trace("BrowserCacheManager.removeAccountKeyFromMap called");
         this.logger.tracePii(
-            `BrowserCacheManager.removeAccountKeyFromMap called with key: ${key}`
+            `BrowserCacheManager.removeAccountKeyFromMap called with key: '${key}'`
         );
         const accountKeys = this.getAccountKeys();
         const removalIndex = accountKeys.indexOf(key);
@@ -752,7 +752,7 @@ export class BrowserCacheManager extends CacheManager {
 
         if (keysRemoved > 0) {
             this.logger.info(
-                `removed ${keysRemoved} accessToken keys from tokenKeys map`
+                `removed '${keysRemoved}' accessToken keys from tokenKeys map`
             );
             this.setTokenKeys(tokenKeys, correlationId, schemaVersion);
             return;
@@ -936,7 +936,7 @@ export class BrowserCacheManager extends CacheManager {
             tokenKeys.accessToken.splice(index, 1); // Remove existing key before pushing to the end
         }
         this.logger.trace(
-            `access token ${index === -1 ? "added to" : "updated in"} map`
+            `access token '${index === -1 ? "added to" : "updated in"}' map`
         );
         tokenKeys.accessToken.push(accessTokenKey);
         this.setTokenKeys(tokenKeys, correlationId);
@@ -1386,38 +1386,6 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Clears all access tokes that have claims prior to saving the current one
-     * @param performanceClient {IPerformanceClient}
-     * @param correlationId {string} correlation id
-     * @returns
-     */
-    clearTokensAndKeysWithClaims(correlationId: string): void {
-        const tokenKeys = this.getTokenKeys();
-        let removedAccessTokens = 0;
-        tokenKeys.accessToken.forEach((key: string) => {
-            // if the access token has claims in its key, remove the token key and the token
-            const credential = this.getAccessTokenCredential(
-                key,
-                correlationId
-            );
-            if (
-                credential?.requestedClaimsHash &&
-                key.includes(credential.requestedClaimsHash.toLowerCase())
-            ) {
-                this.removeAccessToken(key, correlationId);
-                removedAccessTokens++;
-            }
-        });
-
-        // warn if any access tokens are removed
-        if (removedAccessTokens > 0) {
-            this.logger.warning(
-                `${removedAccessTokens} access tokens with claims in the cache keys have been removed from the cache.`
-            );
-        }
-    }
-
-    /**
      * Prepend msal.<client-id> to each key
      * @param key
      * @param addInstanceId
@@ -1457,7 +1425,6 @@ export class BrowserCacheManager extends CacheManager {
             familyId,
             credential.realm || "",
             credential.target || "",
-            credential.requestedClaimsHash || "",
             scheme,
         ];
 
@@ -1557,9 +1524,11 @@ export class BrowserCacheManager extends CacheManager {
                 verifier = base64Decode(encodedVerifier);
             }
         } catch (e) {
-            this.logger.errorPii(`Attempted to parse: ${encodedTokenRequest}`);
+            this.logger.errorPii(
+                `Attempted to parse: '${encodedTokenRequest}'`
+            );
             this.logger.error(
-                `Parsing cached token request threw with error: ${e}`
+                `Parsing cached token request threw with error: '${e}'`
             );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
@@ -1676,11 +1645,6 @@ export class BrowserCacheManager extends CacheManager {
             result.tenantId
         );
 
-        let claimsHash;
-        if (request.claims) {
-            claimsHash = await this.cryptoImpl.hashString(request.claims);
-        }
-
         /**
          * meta data for cache stores time in seconds from epoch
          * AuthenticationResult returns expiresOn and extExpiresOn in milliseconds (as a Date object which is in ms)
@@ -1707,9 +1671,7 @@ export class BrowserCacheManager extends CacheManager {
             undefined, // refreshOn
             result.tokenType as Constants.AuthenticationScheme,
             undefined, // userAssertionHash
-            request.sshKid,
-            request.claims,
-            claimsHash
+            request.sshKid
         );
 
         const cacheRecord = {
