@@ -62,6 +62,7 @@ export class SignInApiClient extends BaseApiClient {
             {
                 continuation_token: params.continuation_token,
                 challenge_type: params.challenge_type,
+                ...(params.id && { id: params.id }),
             },
             params.telemetryManager,
             params.correlationId

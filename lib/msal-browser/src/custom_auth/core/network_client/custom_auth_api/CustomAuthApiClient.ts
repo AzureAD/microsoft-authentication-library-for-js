@@ -6,6 +6,7 @@
 import { ResetPasswordApiClient } from "./ResetPasswordApiClient.js";
 import { SignupApiClient } from "./SignupApiClient.js";
 import { SignInApiClient } from "./SignInApiClient.js";
+import { RegisterApiClient } from "./RegisterApiClient.js";
 import { ICustomAuthApiClient } from "./ICustomAuthApiClient.js";
 import { IHttpClient } from "../http_client/IHttpClient.js";
 
@@ -13,6 +14,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
     signInApi: SignInApiClient;
     signUpApi: SignupApiClient;
     resetPasswordApi: ResetPasswordApiClient;
+    registerApi: RegisterApiClient;
 
     constructor(
         customAuthApiBaseUrl: string,
@@ -30,6 +32,11 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
             httpClient
         );
         this.resetPasswordApi = new ResetPasswordApiClient(
+            customAuthApiBaseUrl,
+            clientId,
+            httpClient
+        );
+        this.registerApi = new RegisterApiClient(
             customAuthApiBaseUrl,
             clientId,
             httpClient

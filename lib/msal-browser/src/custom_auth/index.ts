@@ -50,13 +50,18 @@ export {
     SignInResult,
     SignInResultState,
 } from "./sign_in/auth_flow/result/SignInResult.js";
-export { SignInSubmitCodeResult } from "./sign_in/auth_flow/result/SignInSubmitCodeResult.js";
+export {
+    SignInSubmitCodeResult,
+    SignInSubmitCodeResultState,
+} from "./sign_in/auth_flow/result/SignInSubmitCodeResult.js";
 export {
     SignInResendCodeResult,
     SignInResendCodeResultState,
 } from "./sign_in/auth_flow/result/SignInResendCodeResult.js";
-export { SignInSubmitPasswordResult } from "./sign_in/auth_flow/result/SignInSubmitPasswordResult.js";
-export { SignInSubmitCredentialResultState } from "./sign_in/auth_flow/result/SignInSubmitCredentialResult.js";
+export {
+    SignInSubmitPasswordResult,
+    SignInSubmitPasswordResultState,
+} from "./sign_in/auth_flow/result/SignInSubmitPasswordResult.js";
 
 // Sign-in Errors
 export {
@@ -180,6 +185,31 @@ export { UnexpectedError } from "./core/error/UnexpectedError.js";
 export { UnsupportedEnvironmentError } from "./core/error/UnsupportedEnvironmentError.js";
 export { UserAccountAttributeError } from "./core/error/UserAccountAttributeError.js";
 export { UserAlreadySignedInError } from "./core/error/UserAlreadySignedInError.js";
+
+// JIT State
+export { AuthMethodRegistrationRequiredState } from "./core/auth_flow/jit/state/AuthMethodRegistrationState.js";
+export { AuthMethodVerificationRequiredState } from "./core/auth_flow/jit/state/AuthMethodRegistrationState.js";
+export { AuthMethodRegistrationCompletedState } from "./core/auth_flow/jit/state/AuthMethodRegistrationCompletedState.js";
+export { AuthMethodRegistrationFailedState } from "./core/auth_flow/jit/state/AuthMethodRegistrationFailedState.js";
+
+// JIT Results
+export {
+    AuthMethodRegistrationChallengeMethodResult,
+    AuthMethodRegistrationChallengeMethodResultState,
+} from "./core/auth_flow/jit/result/AuthMethodRegistrationChallengeMethodResult.js";
+export {
+    AuthMethodRegistrationSubmitChallengeResult,
+    AuthMethodRegistrationSubmitChallengeResultState,
+} from "./core/auth_flow/jit/result/AuthMethodRegistrationSubmitChallengeResult.js";
+
+// JIT Errors
+export {
+    AuthMethodRegistrationChallengeMethodError,
+    AuthMethodRegistrationSubmitChallengeError,
+} from "./core/auth_flow/jit/error_type/AuthMethodRegistrationError.js";
+
+// JIT Types
+export { AuthMethodDetails } from "./core/auth_flow/jit/AuthMethodDetails.js";
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";
