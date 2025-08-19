@@ -323,7 +323,7 @@ export class CustomAuthStandardController
                 ) {
                     // JIT is required - create AuthMethodRegistrationRequiredState
                     this.logger.verbose(
-                        "JIT authentication method registration required for sign-in.",
+                        "Authentication method registration required for sign-in.",
                         correlationId
                     );
 
