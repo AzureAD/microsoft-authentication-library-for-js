@@ -4,7 +4,6 @@
  */
 
 import type { LoggerOptions } from "../config/ClientConfiguration.js";
-import { createHash } from "crypto";
 
 /**
  * Options for logger messages.
@@ -131,10 +130,30 @@ function getCachedCorrelationIds(): string[] {
 }
 
 /**
- * Creates a consistent hash for a given string using the same algorithm as the minifier
+ * Creates a consistent 6-char hash for a given string
  */
-function createStringHash(str: string): string {
-    return createHash('md5').update(str).digest('hex').substring(0, 8);
+function createStringHash(str: string) {
+    const cyrb64 = (str: string, seed = 0) => {
+        let h1 = 0xdeadbeef ^ seed,
+            h2 = 0x41c6ce57 ^ seed;
+        for (let i = 0, ch; i < str.length; i++) {
+            ch = str.charCodeAt(i);
+            h1 = Math.imul(h1 ^ ch, 2654435761);
+            h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+        h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+        h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        return [h2 >>> 0, h1 >>> 0];
+    }
+
+    const cyrb64Hash = (str: string, seed = 0) => {
+        const [h2, h1] = cyrb64(str, seed);
+        return h2.toString(36).padStart(7, "0") + h1.toString(36).padStart(7, "0");
+    }
+
+    return cyrb64Hash(str).substring(0, 6);
 }
 
 /**

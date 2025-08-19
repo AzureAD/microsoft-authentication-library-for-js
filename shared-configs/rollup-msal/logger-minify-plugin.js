@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const PLUGIN_NAME = "logger-minify-plugin";
 
 // Define which logger methods to target for minification
@@ -9,27 +8,39 @@ const LOGGER_METHODS = [
     'warning', 'warningPii', 'error', 'errorPii'
 ];
 
-// Enhanced pattern to match logger calls with string concatenations
-const CONCAT_PATTERN = new RegExp(
-    `((?:commonLogger|logger)\\.(${LOGGER_METHODS.join('|')})\\s*\\()` +
-    `([^;]*?)` +  // Capture everything inside the parentheses (including concatenations)
-    `(\\);)`,     // Match the closing );
-    'gm'
-);
-
 // Pattern to match simple quoted strings within logger calls
 const SIMPLE_STRING_PATTERN = new RegExp(
-    `((?:commonLogger|logger)\\.(${LOGGER_METHODS.join('|')})\\s*\\([\\s\\S]*?)` +
+    `((?:commonLogger|logger|log)\\.(${LOGGER_METHODS.join('|')})\\s*\\([\\s\\S]*?)` +
     `((?:\\\`[\\s\\S]*?\\\`|"(?:\\\\.|[^"])*"|'(?:\\\\.|[^'])*'))` +
     `([\\s\\S]*?\\);)`,
     'gm'
 );
 
 /**
- * Creates a consistent hash for a given string
+ * Creates a consistent 6-char hash for a given string
  */
 function createStringHash(str) {
-    return crypto.createHash('md5').update(str).digest('hex').substring(0, 8);
+    const cyrb64 = (str, seed = 0) => {
+        let h1 = 0xdeadbeef ^ seed,
+            h2 = 0x41c6ce57 ^ seed;
+        for (let i = 0, ch; i < str.length; i++) {
+            ch = str.charCodeAt(i);
+            h1 = Math.imul(h1 ^ ch, 2654435761);
+            h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+        h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+        h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        return [h2 >>> 0, h1 >>> 0];
+    }
+
+    const cyrb64Hash = (str, seed = 0) => {
+        const [h2, h1] = cyrb64(str, seed);
+        return h2.toString(36).padStart(7, "0") + h1.toString(36).padStart(7, "0");
+    }
+
+    return cyrb64Hash(str).substring(0, 6);
 }
 
 /**
@@ -47,8 +58,7 @@ function cleanMessage(quotedStr) {
         cleaned = cleaned.replace(/\\"/g, '"').replace(/\\'/g, "'");
     }
 
-    return cleaned;
-    //return cleaned.trim();
+    return cleaned.trim();
 }
 
 /**
@@ -64,90 +74,12 @@ function loggerMinifyPlugin(options = {}) {
         name: 'logger-minify',
 
         transform(code, id) {
-            // Only process TypeScript/JavaScript files
-            if (!(/\.(ts|js|mjs)$/.test(id))) {
+            if (!(/\.(ts|js|mjs|cjs)$/.test(id))) {
                 return null;
             }
 
             let transformedCode = code;
             let hasChanges = false;
-
-            // FIRST PASS: Handle concatenated expressions by converting them to template literals
-            // transformedCode = transformedCode.replace(CONCAT_PATTERN, (match, prefix, method, content, suffix) => {
-            //     // Check if this is a concatenation with + operators
-            //     if (content.includes('+')) {
-            //         // Create a normalized template for hashing purposes
-            //         // Parse the concatenation parts more carefully
-            //         const parts = [];
-            //         let currentPart = '';
-            //         let insideString = false;
-            //         let stringChar = '';
-            //         let parenLevel = 0;
-            //         let templateLevel = 0;
-
-            //         for (let i = 0; i < content.length; i++) {
-            //             const char = content[i];
-            //             const prevChar = i > 0 ? content[i - 1] : '';
-
-            //             if (char === '(' && !insideString) parenLevel++;
-            //             if (char === ')' && !insideString) parenLevel--;
-            //             if (char === '{' && !insideString) templateLevel++;
-            //             if (char === '}' && !insideString) templateLevel--;
-
-            //             if ((char === '"' || char === "'" || char === '`') && prevChar !== '\\' && parenLevel === 0 && templateLevel === 0) {
-            //                 if (!insideString) {
-            //                     insideString = true;
-            //                     stringChar = char;
-            //                 } else if (char === stringChar) {
-            //                     insideString = false;
-            //                     stringChar = '';
-            //                 }
-            //             }
-
-            //             if (char === '+' && !insideString && parenLevel === 0 && templateLevel === 0) {
-            //                 parts.push(currentPart.trim());
-            //                 currentPart = '';
-            //             } else {
-            //                 currentPart += char;
-            //             }
-            //         }
-
-            //         if (currentPart.trim()) {
-            //             parts.push(currentPart.trim());
-            //         }
-
-            //         // Build normalized template for hashing
-            //         let normalizedTemplate = '';
-
-            //         for (const part of parts) {
-            //             // Check if this part is a quoted string
-            //             if (/^["'`]/.test(part) && /["'`]$/.test(part)) {
-            //                 // Extract the string content
-            //                 const cleanedString = cleanMessage(part);
-            //                 normalizedTemplate += cleanedString;
-            //             } else {
-            //                 // This is a variable or expression - use placeholder
-            //                 normalizedTemplate += "${";
-            //                 normalizedTemplate += part;
-            //                 normalizedTemplate += "}";
-            //             }
-            //         }
-
-            //         // Create a hash for the normalized template
-            //         //const hash = createStringHash(normalizedTemplate);
-            //         //stringMappings.set(hash, normalizedTemplate);
-            //         const res = `${prefix}"${normalizedTemplate}"${suffix}`;
-
-            //         if (verbose) {
-            //             console.log(`${PLUGIN_NAME}: before concatenation: ${content}`);
-            //             console.log(`${PLUGIN_NAME}: after concatenation: ${res}`);
-            //         }
-
-            //         return `${res}`;
-            //     }
-
-            //     return match;
-            // });
 
             // SECOND PASS: Handle all string hashing (both original strings and normalized concatenations)
             transformedCode = transformedCode.replace(SIMPLE_STRING_PATTERN, (match, prefix, method, quotedString, suffix) => {
