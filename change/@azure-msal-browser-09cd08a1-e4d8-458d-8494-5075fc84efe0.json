@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Instrument timed out or cancelled pre-redirect requests #7984",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
