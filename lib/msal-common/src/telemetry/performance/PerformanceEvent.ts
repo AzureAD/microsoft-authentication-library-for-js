@@ -716,6 +716,14 @@ export type PerformanceEvent = {
     isNativeBroker?: boolean;
 
     /**
+     * Platform-specific fields, when calling STS and/or broker for token requests
+     */
+    isPlatformAuthorizeRequest?: boolean;
+    isPlatformBrokerRequest?: boolean;
+    brokerErrorName?: string;
+    brokerErrorCode?: string;
+
+    /**
      * Request ID returned from the response
      *
      * @type {?string}
