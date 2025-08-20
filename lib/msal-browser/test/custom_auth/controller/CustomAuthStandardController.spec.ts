@@ -619,7 +619,7 @@ describe("CustomAuthStandardController", () => {
             const signUpInputs: SignUpInputs = {
                 correlationId: "correlation-id",
                 username: "test@test.com",
-                password: "TestPassword123!",
+                password: "test-password",
                 attributes: {
                     firstName: "Jane",
                     lastName: "Smith",
