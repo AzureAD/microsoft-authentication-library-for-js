@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Backward compability support",
+    "comment": "Backward compability support, #7962",
     "packageName": "@azure/msal-browser",
     "email": "yongdiwang@microsoft.com",
     "dependentChangeType": "patch"
