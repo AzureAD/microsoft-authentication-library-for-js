@@ -1,5 +1,5 @@
 module.exports = {
-    displayName: "React Router",
+    displayName: "ExpressSample",
     globals: {
         __PORT__: 3000,
         __STARTCMD__: "env-cmd -f .env.e2e npm start",
