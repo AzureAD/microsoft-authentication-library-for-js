@@ -61,6 +61,9 @@ function setupVersionSwitcherUI() {
                 closeVersionDropdown();
             }
         });
+
+        // Show the button now that the click handlers are registered
+        versionButton.style.display = '';
     }
 }
 

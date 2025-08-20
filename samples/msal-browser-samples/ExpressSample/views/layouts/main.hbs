@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +20,7 @@
                         <li><a href="/profile" class="nav-link spa-link" data-auth-required style="display: none;">Profile</a></li>
                         <li>
                             <div class="dropdown version-switcher">
-                                <button id="versionButton" class="btn btn-version dropdown-toggle" title="Switch MSAL Version">
+                                <button id="versionButton" class="btn btn-version dropdown-toggle" title="Switch MSAL Version" style="display: none;">
                                     <span class="version-icon">📦</span>
                                     <span id="currentVersionText">{{envConfig.version.info.name}}</span>
                                     <span class="dropdown-arrow">▼</span>
@@ -39,7 +40,7 @@
                     
                     <div data-unauth-required>
                         <div class="dropdown">
-                            <button id="signInButton" class="btn dropdown-toggle">
+                            <button id="signInButton" class="btn dropdown-toggle" style="display: none;">
                                 Login
                                 <span class="dropdown-arrow">▼</span>
                             </button>

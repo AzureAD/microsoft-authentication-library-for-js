@@ -3,7 +3,6 @@ import {
     Screenshot,
     setupCredentials,
     enterCredentials,
-    RETRY_TIMES,
     LabClient,
     LabApiQueryParams,
     AzureEnvironments,
@@ -14,7 +13,6 @@ import {
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/upgrade-downgrade-tests`;
 
 describe("Upgrade/Downgrade Tests", () => {
-    jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -48,9 +46,9 @@ describe("Upgrade/Downgrade Tests", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(5000);
+        page.setDefaultTimeout(500);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
-        await page.goto(`http://localhost:${port}`);
+        await page.goto(`http://localhost:${port}`, { timeout: 2000 });
     });
 
     afterEach(async () => {
@@ -66,21 +64,23 @@ describe("Upgrade/Downgrade Tests", () => {
             );
             await screenshot.takeScreenshot(page, "Page loaded");
 
-            await page.locator("button#versionButton").setTimeout(100).click();
-            await page.locator('div#latest').setTimeout(100).click();
+            await page.locator("button#versionButton").click();
+            await page.locator('div#latest').click();
+            await page.locator("span#currentVersionText").filter((value) => {return !!value.textContent && value.textContent.startsWith("Latest")}).wait();
             await screenshot.takeScreenshot(page, "Latest published version selected");
 
-            await page.locator("button#signInButton").setTimeout(100).click();
+            await page.locator("button#signInButton").click();
             await screenshot.takeScreenshot(page, "Sign in button clicked");
-            await page.locator("a#signInRedirect").setTimeout(100).click();
+            await page.locator("a#signInRedirect").click();
             await screenshot.takeScreenshot(page, "Sign in redirect clicked");
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.locator("a#viewProfileButton").setTimeout(500).waitHandle();
+            await page.locator("a#viewProfileButton").waitHandle();
             await screenshot.takeScreenshot(page, "Logged In");
 
             // Change to local build
-            await page.locator("button#versionButton").setTimeout(100).click();
-            await page.locator('div#local').setTimeout(100).click();
+            await page.locator("button#versionButton").click();
+            await page.locator('div#local').click();
+            await page.locator("span#currentVersionText").filter((value) => {return !!value.textContent && value.textContent == "Local Build"}).wait();
             await screenshot.takeScreenshot(page, "Local published version selected");
             
             // Track network requests to verify cached tokens are used
@@ -96,17 +96,16 @@ describe("Upgrade/Downgrade Tests", () => {
             
             await page.locator("a#viewProfileButton").click();
             await screenshot.takeScreenshot(page, "Profile button clicked");
-            
-            // Wait a moment for any potential network requests to complete
-            const rawProfileData = await page.locator("pre#profile-json").setTimeout(100).wait();
-            await screenshot.takeScreenshot(page, "Profile data displayed");
-            console.log(rawProfileData);
-            const profileData = JSON.parse(rawProfileData.innerHTML);
-            expect(profileData["userPrincipalName"]).toBe(username);
+
+            // Verify the Raw Authentication Data section is populated
+            const authDataText = await page.locator("pre#auth-json").filter((value) => {console.log(value.textContent); return !!value.textContent && value.textContent !== 'Loading...'}).map(value => value.textContent).wait();
+            await screenshot.takeScreenshot(page, "Authentication data displayed");
+            const authData = JSON.parse(authDataText || "");
+            expect(authData).toHaveProperty('fromCache');
+            expect(authData.fromCache).toBe(true); // Should be from cache after upgrade
 
             // Verify no authentication network requests were made (indicating cached tokens were used)
             expect(networkRequests.length).toBe(0);
-
         });
     });
     
