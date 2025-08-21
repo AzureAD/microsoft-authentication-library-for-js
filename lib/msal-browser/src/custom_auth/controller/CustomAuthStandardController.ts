@@ -112,7 +112,8 @@ export class CustomAuthStandardController
                 new CustomAuthApiClient(
                     this.authority.getCustomAuthApiDomain(),
                     this.customAuthConfig.auth.clientId,
-                    new FetchHttpClient(this.logger)
+                    new FetchHttpClient(this.logger),
+                    this.customAuthConfig.customAuth?.capabilities?.join(" ")
                 ),
             this.authority
         );
