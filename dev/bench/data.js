@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755648008798,
+  "lastUpdate": 1755795955978,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -16970,6 +16970,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.99%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba6655bebb7a25982c03b27c19c84e6ce2ececb4",
+          "message": "Add backward compatibility support (#7962)\n\nThis pull request adds support for client capabilities in the custom\nauthentication flows of `@azure/msal-browser`, enabling the client to\ndeclare which authentication features it supports when interacting with\nthe Microsoft Entra backend. It also refactors how redirect-required\nerrors are handled and simplifies error classes related to sign-in,\nsign-up, and password reset flows.\n\n**Custom Authentication Capabilities Support:**\n\n* Added a `capabilities` field to `CustomAuthOptions`, allowing clients\nto specify supported features (e.g., MFA, registration) in the\nconfiguration\n(`lib/msal-browser/src/custom_auth/configuration/CustomAuthConfiguration.ts`).\n[[1]](diffhunk://#diff-5e18147940e49db10c140f6f1547464c2ca5a6a5e49767b129568bca042d4e68R14)\n[[2]](diffhunk://#diff-f98ffa0d9403f1827bd9bbad2ffe5b540194bc8da456e63d52c2958cb53309bbR48-R52)\n* Propagated the `capabilities` array through the `CustomAuthApiClient`\nand down to the `SignInApiClient`, `SignupApiClient`, and\n`ResetPasswordApiClient` classes, which now include these capabilities\nin their API requests (`CustomAuthApiClient.ts`, `SignInApiClient.ts`,\n`SignupApiClient.ts`, `ResetPasswordApiClient.ts`).\n[[1]](diffhunk://#diff-e4bffa17d39a62bd6d7c57db17850e1f22788b8646f226554c95fd690ee8de75L20-R39)\n[[2]](diffhunk://#diff-e9a2087346a3cd1aba8abd540d01c2d10396a55b66935e8c03b59383251ab4f8L115-R116)\n[[3]](diffhunk://#diff-e7a4d56565aaa98f4c89dc3954e27233d4f5c480f180a86478a3901da6f90ae5R12)\n[[4]](diffhunk://#diff-e7a4d56565aaa98f4c89dc3954e27233d4f5c480f180a86478a3901da6f90ae5R31-R42)\n[[5]](diffhunk://#diff-e7a4d56565aaa98f4c89dc3954e27233d4f5c480f180a86478a3901da6f90ae5R54-R57)\n[[6]](diffhunk://#diff-0f28d0a272570d542dad8bd119415ae0363070a901540fc455e8b16f10e3c1a6R10)\n[[7]](diffhunk://#diff-0f28d0a272570d542dad8bd119415ae0363070a901540fc455e8b16f10e3c1a6R27-R38)\n[[8]](diffhunk://#diff-0f28d0a272570d542dad8bd119415ae0363070a901540fc455e8b16f10e3c1a6R52-R55)\n[[9]](diffhunk://#diff-f074b0fbd643127fd46c37085055bad34adf3b7d1b9d4d4fc7fe0851bef5fe50R8)\n[[10]](diffhunk://#diff-f074b0fbd643127fd46c37085055bad34adf3b7d1b9d4d4fc7fe0851bef5fe50R24-R35)\n[[11]](diffhunk://#diff-f074b0fbd643127fd46c37085055bad34adf3b7d1b9d4d4fc7fe0851bef5fe50R49-R52)\n* Updated API request type definitions to include the optional\n`capabilities` field (`ApiRequestTypes.ts`).\n[[1]](diffhunk://#diff-323a83bb10ebc94100586aadee937c29d77db9714dfed3e923894466976e5214R12)\n[[2]](diffhunk://#diff-323a83bb10ebc94100586aadee937c29d77db9714dfed3e923894466976e5214R44)\n[[3]](diffhunk://#diff-323a83bb10ebc94100586aadee937c29d77db9714dfed3e923894466976e5214R75)\n\n**Error Handling Improvements:**\n\n* Centralized the logic for determining if a redirect is required into\nthe base error class (`AuthFlowErrorBase.ts`), removing redundant\n`isRedirectRequired` methods from specific error subclasses\n(`SignInError.ts`, `SignUpError.ts`, `ResetPasswordError.ts`).\n[[1]](diffhunk://#diff-d258b0a5af2cbf80110d814acf0b7df45e55bb0103bf53138e66020a93700a8bR152-R159)\n[[2]](diffhunk://#diff-9bd88fec8e83fbb9e1d8e770f5ddc0cc395bda13033c70c787b85970f8d80841L34-L41)\n[[3]](diffhunk://#diff-9bd88fec8e83fbb9e1d8e770f5ddc0cc395bda13033c70c787b85970f8d80841L78-R72)\n[[4]](diffhunk://#diff-ddccd76ab42f6c83000ec1e1857a6322d82dbf78b3e9d47c6fa07d4c0e9488bbL49-L56)\n[[5]](diffhunk://#diff-ddccd76ab42f6c83000ec1e1857a6322d82dbf78b3e9d47c6fa07d4c0e9488bbL79-R71)\n[[6]](diffhunk://#diff-6992ffb0801330c7612d8d2fd7b160539d6e05284428a22dbf784b72c651702dL56-L63)\n[[7]](diffhunk://#diff-6992ffb0801330c7612d8d2fd7b160539d6e05284428a22dbf784b72c651702dL76-L83)\n[[8]](diffhunk://#diff-6992ffb0801330c7612d8d2fd7b160539d6e05284428a22dbf784b72c651702dL94-L101)\n[[9]](diffhunk://#diff-6992ffb0801330c7612d8d2fd7b160539d6e05284428a22dbf784b72c651702dL120-R98)\n* Simplified resend code error classes for sign-in, sign-up, and reset\npassword flows by removing unnecessary methods (`SignInResendCodeError`,\n`SignUpResendCodeError`, `ResetPasswordResendCodeError`).\n[[1]](diffhunk://#diff-9bd88fec8e83fbb9e1d8e770f5ddc0cc395bda13033c70c787b85970f8d80841L78-R72)\n[[2]](diffhunk://#diff-ddccd76ab42f6c83000ec1e1857a6322d82dbf78b3e9d47c6fa07d4c0e9488bbL79-R71)\n[[3]](diffhunk://#diff-6992ffb0801330c7612d8d2fd7b160539d6e05284428a22dbf784b72c651702dL120-R98)\n\n**Redirect Error Enhancements:**\n\n* Enhanced the `RedirectError` class to accept and display a more\nspecific redirect reason from the server, improving error messaging\n(`CustomAuthApiError.ts`, `BaseApiClient.ts`).\n[[1]](diffhunk://#diff-2dd77566c3e5ea80a8842413c962e06065c43583c961afb159cda2b07e87c5ebL13-R17)\n[[2]](diffhunk://#diff-3a0d4ccac21db6d650f33cd543d93dd57d0505da0cc82a8cd38cfedbd5b3b55eL131-R134)\n\n**Other:**\n\n* Added a patch change file for backward compatibility support for\n`@azure/msal-browser`.",
+          "timestamp": "2025-08-21T17:59:23+01:00",
+          "tree_id": "13cae8eea0569fc6d1470d371b93f6bdbcb7ae04",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ba6655bebb7a25982c03b27c19c84e6ce2ececb4"
+        },
+        "date": 1755795953349,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 240003,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241356,
+            "range": "±0.80%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
