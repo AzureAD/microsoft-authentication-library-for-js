@@ -4,10 +4,11 @@
  */
 
 import { AuthError } from "@azure/msal-common/node";
+import { StringUtils } from "../utils/StringUtils.js";
 
 export class NativeAuthError extends AuthError {
     public statusCode: number;
-    public tag: number;
+    public tag: string;
 
     constructor(
         errorStatus: string,
@@ -18,7 +19,7 @@ export class NativeAuthError extends AuthError {
         super(errorStatus, errorContext);
         this.name = "NativeAuthError";
         this.statusCode = errorCode;
-        this.tag = errorTag;
+        this.tag =StringUtils.tagToString(errorTag);
         Object.setPrototypeOf(this, NativeAuthError.prototype);
     }
 }
