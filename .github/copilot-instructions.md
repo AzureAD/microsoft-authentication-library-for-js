@@ -107,8 +107,10 @@ npm run beachball:check
 - `Major`: Breaking changes (Never make breaking changes to libraries)
 
 **Change Message:**
-Change message should always include a description of the change followed by the PR number (as a link to the PR). For example: 
-Fix documentation [#7880](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7880)
+Change message should always include a description of the change followed by the PR number (as a link to the PR).
+
+Template: Brief description of change [#XXXX](PR_URL)
+Example: Fix documentation [#7880](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7880)
 
 ### Common Build Issues and Solutions
 
@@ -268,9 +270,7 @@ export const PerformanceEvents = {
 #### Telemetry Best Practices
 
 - **Always include correlationId** for request tracing
-- **Use `startMeasurement/end`** for complex operations where you need to track duration and add custom fields
-- **Add relevant fields** like operation counts, cache hit/miss, error codes using `measurement.add()`
-- **Handle errors properly** by calling `measurement.end()` with error parameter
+- **Add relevant fields** like operation counts, cache hit/miss, error codes using `performanceClient.addFields()`
 - **Use existing PerformanceEvents** when possible rather than creating new ones
 
 ### Working with the Codebase
