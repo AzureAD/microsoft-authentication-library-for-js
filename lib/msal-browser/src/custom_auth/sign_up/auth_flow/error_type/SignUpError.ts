@@ -53,14 +53,6 @@ export class SignUpError extends AuthActionErrorBase {
     isUnsupportedChallengeType(): boolean {
         return this.isUnsupportedChallengeTypeError();
     }
-
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
 }
 
 export class SignUpSubmitPasswordError extends AuthActionErrorBase {
@@ -73,14 +65,6 @@ export class SignUpSubmitPasswordError extends AuthActionErrorBase {
             this.isPasswordIncorrectError() || this.isInvalidNewPasswordError()
         );
     }
-
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
 }
 
 export class SignUpSubmitCodeError extends AuthActionErrorBase {
@@ -90,14 +74,6 @@ export class SignUpSubmitCodeError extends AuthActionErrorBase {
      */
     isInvalidCode(): boolean {
         return this.isInvalidCodeError();
-    }
-
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
     }
 }
 
@@ -117,22 +93,6 @@ export class SignUpSubmitAttributesError extends AuthActionErrorBase {
     isAttributesValidationFailed(): boolean {
         return this.isAttributeValidationFailedError();
     }
-
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
 }
 
-export class SignUpResendCodeError extends AuthActionErrorBase {
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
-}
+export class SignUpResendCodeError extends AuthActionErrorBase {}
