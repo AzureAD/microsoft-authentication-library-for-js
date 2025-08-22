@@ -1,29 +1,69 @@
 jest.mock("@azure/msal-node-runtime", () => {
-    const actual = jest.requireActual("@azure/msal-node-runtime");
-    return {
-        ...actual,
-        msalNodeRuntime: {
-            ...actual.msalNodeRuntime,
-            SignInSilentlyAsync: jest.fn(),
-            SignInAsync: jest.fn(),
-            AcquireTokenSilentlyAsync: jest.fn(),
-            AcquireTokenInteractivelyAsync: jest.fn(),
-            SignInInteractivelyAsync: jest.fn(),
-            ReadAccountByIdAsync: jest.fn(),
-            DiscoverAccountsAsync: jest.fn(),
-            SignOutSilentlyAsync: jest.fn(),
-            RegisterLogger: jest.fn(),
-            StartupError: undefined,
-            AuthParameters: jest.fn().mockImplementation(() => ({
-                CreateAuthParameters: jest.fn(),
-                SetRedirectUri: jest.fn(),
-                SetRequestedScopes: jest.fn(),
-                SetDecodedClaims: jest.fn(),
-                SetPopParams: jest.fn(),
-                SetAdditionalParameter: jest.fn(),
-            })),
-        },
-    };
+    if (process.platform === "win32") {
+        const actual = jest.requireActual("@azure/msal-node-runtime");
+        return {
+            ...actual,
+            msalNodeRuntime: {
+                ...actual.msalNodeRuntime,
+                SignInSilentlyAsync: jest.fn(),
+                SignInAsync: jest.fn(),
+                AcquireTokenSilentlyAsync: jest.fn(),
+                AcquireTokenInteractivelyAsync: jest.fn(),
+                SignInInteractivelyAsync: jest.fn(),
+                ReadAccountByIdAsync: jest.fn(),
+                DiscoverAccountsAsync: jest.fn(),
+                SignOutSilentlyAsync: jest.fn(),
+                RegisterLogger: jest.fn(),
+                StartupError: undefined,
+                AuthParameters: jest.fn().mockImplementation(() => ({
+                    CreateAuthParameters: jest.fn(),
+                    SetRedirectUri: jest.fn(),
+                    SetRequestedScopes: jest.fn(),
+                    SetDecodedClaims: jest.fn(),
+                    SetPopParams: jest.fn(),
+                    SetAdditionalParameter: jest.fn(),
+                })),
+            },
+        };
+    } else {
+        // Mock for non-Windows platforms where msal-node-runtime is not available
+        return {
+            msalNodeRuntime: {
+                SignInSilentlyAsync: jest.fn(),
+                SignInAsync: jest.fn(),
+                AcquireTokenSilentlyAsync: jest.fn(),
+                AcquireTokenInteractivelyAsync: jest.fn(),
+                SignInInteractivelyAsync: jest.fn(),
+                ReadAccountByIdAsync: jest.fn(),
+                DiscoverAccountsAsync: jest.fn(),
+                SignOutSilentlyAsync: jest.fn(),
+                RegisterLogger: jest.fn(),
+                StartupError: undefined,
+                AuthParameters: jest.fn().mockImplementation(() => ({
+                    CreateAuthParameters: jest.fn(),
+                    SetRedirectUri: jest.fn(),
+                    SetRequestedScopes: jest.fn(),
+                    SetDecodedClaims: jest.fn(),
+                    SetPopParams: jest.fn(),
+                    SetAdditionalParameter: jest.fn(),
+                })),
+            },
+            ErrorStatus: {
+                Unexpected: 0,
+                UserCanceled: 1,
+                NetworkError: 2,
+                InvalidRequest: 3,
+                AuthError: 4,
+                InteractionRequired: 5,
+                AccountUnusable: 6,
+                NoNetwork: 7,
+                NetworkTemporarilyUnavailable: 8,
+                ServerTemporarilyUnavailable: 9,
+                AuthorityUntrusted: 10,
+                UserSwitched: 11,
+            },
+        };
+    }
 });
 import { NativeBrokerPlugin } from "../../src/broker/NativeBrokerPlugin";
 import {
