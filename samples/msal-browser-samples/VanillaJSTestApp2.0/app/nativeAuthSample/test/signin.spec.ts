@@ -18,7 +18,14 @@ import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-import { testConfig, getTenantInfo, getProxyPort } from "./testConfig";
+import { 
+    testConfig, 
+    getTenantInfo, 
+    getProxyPort, 
+    getTestUsers, 
+    getTestData, 
+    nativeAuthConfig 
+} from "./testConfig";
 
 // Use configuration instead of hardcoded values
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/signin");
@@ -36,6 +43,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
     let accountPwd: string = "";
     let signInEmailOtpUsername: string = "";
     let corsProcess: ChildProcess;
+    let invalidTestUsers: any; // Store test data for all tests
 
     beforeAll(async () => {
         // Start the CORS proxy server using configuration values
@@ -54,11 +62,14 @@ describe("Native Auth Sample - Sign In Tests", () => {
 
         const labClient = new LabClient();
 
-        // Use configuration for test user emails
-        signInEmailUsername = testConfig.testUsers.signInEmailUsername;
+        // Use configuration for test user emails from JSON config
+        signInEmailUsername = nativeAuthConfig.signInEmailPasswordUsername;
         const accountCredential = await labClient.getSecret(testConfig.testUsers.labSecretName);
         accountPwd = accountCredential.value;
-        signInEmailOtpUsername = testConfig.testUsers.signInEmailOtpUsername;
+        signInEmailOtpUsername = nativeAuthConfig.signInEmailCodeUsername;
+
+        // Fetch test data once for all tests
+        invalidTestUsers = getTestData();
     });
 
     afterAll(async () => {
@@ -241,7 +252,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 await page.waitForSelector("#signInPassword", {
                     visible: true,
                 });
-                await page.type("#signInPassword", signInEmailUsername);
+                await page.type("#signInPassword", invalidTestUsers.incorrectPassword);
                 await screenshot.takeScreenshot(
                     page,
                     "incorrectPasswordEntered"
@@ -508,7 +519,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 ).toBeTruthy();
 
                 // Now sign in with a different account
-                const accountBEmail = "test123@test.com";
+                const accountBEmail = invalidTestUsers.invalidUserEmail;
                 // Click sign-in button again
                 await page.click("#showSignInBtn");
                 // Verify sign-in card is visible
@@ -558,7 +569,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 );
 
                 // Enter username in the sign-in form and click sign-in button
-                const nonRegisteredEmail = "non-registered@test.com";
+                const nonRegisteredEmail = invalidTestUsers.nonRegisteredEmail;
                 await page.type("#username", nonRegisteredEmail);
                 await page.click("#signInBtn");
                 await screenshot.takeScreenshot(page, "signInButtonClicked");

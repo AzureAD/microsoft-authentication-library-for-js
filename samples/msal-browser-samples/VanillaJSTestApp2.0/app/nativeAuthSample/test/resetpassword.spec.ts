@@ -18,7 +18,14 @@ import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-import { testConfig, getTenantInfo, getProxyPort } from "./testConfig";
+import { 
+    testConfig, 
+    getTenantInfo, 
+    getProxyPort, 
+    getTestUsers, 
+    getTestData, 
+    nativeAuthConfig 
+} from "./testConfig";
 
 // Use configuration instead of hardcoded values
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/resetpassword");
@@ -54,9 +61,9 @@ describe("Native Auth Sample - Reset Password Tests", () => {
 
         const labClient = new LabClient();
 
-        // Use configuration for test user emails
-        resetPasswordEmailWithPwd = testConfig.testUsers.signInEmailUsername;
-        resetPasswordEmailWithOtp = testConfig.testUsers.signInEmailOtpUsername;
+        // Use configuration for test user emails from JSON config
+        resetPasswordEmailWithPwd = nativeAuthConfig.signInEmailPasswordUsername;
+        resetPasswordEmailWithOtp = nativeAuthConfig.signInEmailCodeUsername;
     });
 
     afterAll(async () => {

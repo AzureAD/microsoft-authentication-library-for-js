@@ -18,7 +18,14 @@ import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-import { testConfig, getTenantInfo, getProxyPort } from "./testConfig";
+import { 
+    testConfig, 
+    getTenantInfo, 
+    getProxyPort, 
+    getTestUsers, 
+    getTestData, 
+    nativeAuthConfig 
+} from "./testConfig";
 
 // Use configuration instead of hardcoded values
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/signout");
@@ -53,8 +60,8 @@ describe("Native Auth Sample - Sign Out Tests", () => {
         
         const labClient = new LabClient();
 
-        // Use configuration for test user emails
-        signInEmailUsername = testConfig.testUsers.signInEmailUsername;
+        // Use configuration for test user emails from JSON config
+        signInEmailUsername = nativeAuthConfig.signInEmailPasswordUsername;
         const accountCredential = await labClient.getSecret(testConfig.testUsers.labSecretName);
         accountPwd = accountCredential.value;
     });

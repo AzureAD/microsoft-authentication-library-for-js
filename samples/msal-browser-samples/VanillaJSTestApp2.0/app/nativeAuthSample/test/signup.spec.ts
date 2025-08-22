@@ -18,7 +18,14 @@ import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 
-import { testConfig, getTenantInfo, getProxyPort } from "./testConfig";
+import { 
+    testConfig, 
+    getTenantInfo, 
+    getProxyPort, 
+    getTestUsers, 
+    getTestData, 
+    nativeAuthConfig 
+} from "./testConfig";
 
 // Use configuration instead of hardcoded values
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/signup");
@@ -57,10 +64,10 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
         const labClient = new LabClient();
 
-        // Use configuration for test user emails
+        // Use configuration for test user emails from JSON config
         signUpEmailWithPwd = "test-pwd@test.com"
         signUpEmailWithOtp = "test-otp@test.com"
-        existingPwdEmail = testConfig.testUsers.signInEmailUsername;
+        existingPwdEmail = nativeAuthConfig.signInEmailPasswordUsername;
 
         testFirstName = "TestFirstName";
         testLastName = "TestLastName";

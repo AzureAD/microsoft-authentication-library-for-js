@@ -7,7 +7,7 @@ import { Utilities } from './utilities.js';
 import { SignInModule } from './signin/index.js';
 import { SignUpModule } from './signup/index.js';
 import { ResetPasswordModule } from './resetPassword/index.js';
-import { msalConfig } from './authConfig.js';
+import { initMsalConfig } from './authConfig.js';
 
 // Export singleton instance of NativeAuthApp
 let nativeAuthAppInstance = null;
@@ -34,34 +34,8 @@ class NativeAuthApp {
         }
         
         if (this.CustomAuthPublicClientApplication) {
-            // Create a URL object using the current page's URL
-            const url = new URL(window.location.href);
-            Utilities.logMessage("Current URL: " + url.href, "info");
-            // Get a specific parameter
-            const useRedirectConfig = url.searchParams.get('useRedirectConfig');
-            Utilities.logMessage("useRedirectConfig parameter: " + useRedirectConfig, "info");            
-            
-            if (useRedirectConfig === 'true') {
-                msalConfig.customAuth.challengeTypes = ["redirect"];
-            }
-
-            const useOtpConfig = url.searchParams.get('useOtpConfig');
-            const usePwdConfig = url.searchParams.get('usePwdConfig');
-
-            Utilities.logMessage("useOtpConfig parameter: " + useOtpConfig, "info");
-            Utilities.logMessage("usePwdConfig parameter: " + usePwdConfig, "info");
-
-            if (useOtpConfig === 'true') {
-                msalConfig.auth.clientId = "eb5a6da5-79fc-4d81-8d45-0ee1e8d4bd16";
-                msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
-            } else if (usePwdConfig === 'true') {
-                // Default to password with attributes
-                msalConfig.auth.clientId = "dad09d10-2f54-4f88-88ff-768b7485983d";
-                msalConfig.auth.authority = "https://MSIDLABCIAM6.ciamlogin.com";
-            } else {
-                // Default to whatever is set in authConfig.js
-            }
-
+            // Get the MSAL configuration
+            const msalConfig = await initMsalConfig();
             Utilities.logMessage("Creating MSAL instance with config: " + JSON.stringify(msalConfig), "info");
             
             this.msalInstance = await this.CustomAuthPublicClientApplication.create(msalConfig);
