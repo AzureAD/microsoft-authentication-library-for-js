@@ -19,22 +19,26 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
     constructor(
         customAuthApiBaseUrl: string,
         clientId: string,
-        httpClient: IHttpClient
+        httpClient: IHttpClient,
+        capabilities?: string
     ) {
         this.signInApi = new SignInApiClient(
             customAuthApiBaseUrl,
             clientId,
-            httpClient
+            httpClient,
+            capabilities
         );
         this.signUpApi = new SignupApiClient(
             customAuthApiBaseUrl,
             clientId,
-            httpClient
+            httpClient,
+            capabilities
         );
         this.resetPasswordApi = new ResetPasswordApiClient(
             customAuthApiBaseUrl,
             clientId,
-            httpClient
+            httpClient,
+            capabilities
         );
         this.registerApi = new RegisterApiClient(
             customAuthApiBaseUrl,

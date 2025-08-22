@@ -48,6 +48,78 @@ describe("CustomAuthPublicClientApplication", () => {
             ).rejects.toThrow(InvalidConfigurationError);
         });
 
+        it("should accept valid capabilities configuration", async () => {
+            const validConfig = {
+                auth: {
+                    authority: customAuthConfig.auth.authority,
+                    clientId: customAuthConfig.auth.clientId,
+                },
+                customAuth: {
+                    authApiProxyUrl:
+                        customAuthConfig.customAuth.authApiProxyUrl,
+                    capabilities: ["mfa_required", "registration_required"],
+                },
+            };
+
+            const app = await CustomAuthPublicClientApplication.create(
+                validConfig
+            );
+            expect(app).toBeInstanceOf(CustomAuthPublicClientApplication);
+
+            const controller = (app as CustomAuthPublicClientApplication)[
+                "customAuthController"
+            ] as CustomAuthStandardController;
+            controller["eventHandler"]["broadcastChannel"]?.close();
+        });
+
+        it("should accept empty capabilities array", async () => {
+            const validConfig = {
+                auth: {
+                    authority: customAuthConfig.auth.authority,
+                    clientId: customAuthConfig.auth.clientId,
+                },
+                customAuth: {
+                    authApiProxyUrl:
+                        customAuthConfig.customAuth.authApiProxyUrl,
+                    capabilities: [],
+                },
+            };
+
+            const app = await CustomAuthPublicClientApplication.create(
+                validConfig
+            );
+            expect(app).toBeInstanceOf(CustomAuthPublicClientApplication);
+
+            const controller = (app as CustomAuthPublicClientApplication)[
+                "customAuthController"
+            ] as CustomAuthStandardController;
+            controller["eventHandler"]["broadcastChannel"]?.close();
+        });
+
+        it("should accept configuration without capabilities (backward compatibility)", async () => {
+            const validConfig = {
+                auth: {
+                    authority: customAuthConfig.auth.authority,
+                    clientId: customAuthConfig.auth.clientId,
+                },
+                customAuth: {
+                    authApiProxyUrl:
+                        customAuthConfig.customAuth.authApiProxyUrl,
+                    // No capabilities property - should be backward compatible
+                },
+            };
+
+            const app = await CustomAuthPublicClientApplication.create(
+                validConfig
+            );
+            expect(app).toBeInstanceOf(CustomAuthPublicClientApplication);
+
+            const controller = (app as CustomAuthPublicClientApplication)[
+                "customAuthController"
+            ] as CustomAuthStandardController;
+            controller["eventHandler"]["broadcastChannel"]?.close();
+        });
+
         it("should create an instance if the config is valid", async () => {
             const app = await CustomAuthPublicClientApplication.create(
                 customAuthConfig
