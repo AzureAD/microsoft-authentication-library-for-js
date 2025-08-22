@@ -9,6 +9,7 @@ import {
 } from "../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
+import { IHttpClient } from "../http_client/IHttpClient.js";
 import * as CustomAuthApiEndpoint from "./CustomAuthApiEndpoint.js";
 import * as CustomAuthApiErrorCode from "./types/ApiErrorCodes.js";
 import {
@@ -27,6 +28,24 @@ import {
 } from "./types/ApiResponseTypes.js";
 
 export class ResetPasswordApiClient extends BaseApiClient {
+    private readonly capabilities?: string;
+
+    constructor(
+        customAuthApiBaseUrl: string,
+        clientId: string,
+        httpClient: IHttpClient,
+        capabilities?: string,
+        customAuthApiQueryParams?: Record<string, string>
+    ) {
+        super(
+            customAuthApiBaseUrl,
+            clientId,
+            httpClient,
+            customAuthApiQueryParams
+        );
+        this.capabilities = capabilities;
+    }
+
     /**
      * Start the password reset flow
      */
@@ -38,6 +57,9 @@ export class ResetPasswordApiClient extends BaseApiClient {
             {
                 challenge_type: params.challenge_type,
                 username: params.username,
+                ...(this.capabilities && {
+                    capabilities: this.capabilities,
+                }),
             },
             params.telemetryManager,
             params.correlationId

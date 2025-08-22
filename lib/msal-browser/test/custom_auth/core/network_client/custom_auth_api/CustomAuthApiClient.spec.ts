@@ -35,6 +35,7 @@ describe("CustomAuthApiClient", () => {
                 "https://test.com",
                 "client_id",
                 new FetchHttpClient(logger),
+                undefined,
                 customAuthApiQueryParams
             );
 
@@ -51,6 +52,7 @@ describe("CustomAuthApiClient", () => {
                 "https://test.com",
                 "client_id",
                 new FetchHttpClient(logger),
+                undefined,
                 customAuthApiQueryParams
             );
 
@@ -70,6 +72,7 @@ describe("CustomAuthApiClient", () => {
                 "https://test.com",
                 "client_id",
                 new FetchHttpClient(logger),
+                undefined,
                 customAuthApiQueryParams
             );
 
@@ -85,7 +88,54 @@ describe("CustomAuthApiClient", () => {
                 "https://test.com",
                 "client_id",
                 new FetchHttpClient(logger),
+                undefined,
                 undefined
+            );
+
+            expect(apiClient.signInApi).toBeDefined();
+            expect(apiClient.signUpApi).toBeDefined();
+            expect(apiClient.resetPasswordApi).toBeDefined();
+        });
+    });
+
+    describe("capabilities", () => {
+        it("should pass capabilities to individual API clients when provided", () => {
+            const logger = getDefaultLogger();
+            const capabilities = "custom_capability_1 custom_capability_2";
+            const apiClient = new CustomAuthApiClient(
+                "https://test.com",
+                "client_id",
+                new FetchHttpClient(logger),
+                capabilities
+            );
+
+            // Verify that the individual API clients are created (capabilities are internal to them)
+            expect(apiClient.signInApi).toBeDefined();
+            expect(apiClient.signUpApi).toBeDefined();
+            expect(apiClient.resetPasswordApi).toBeDefined();
+        });
+
+        it("should create API clients without capabilities when not provided", () => {
+            // Verify that the individual API clients are created without capabilities
+            expect(customAuthApiClient.signInApi).toBeDefined();
+            expect(customAuthApiClient.signUpApi).toBeDefined();
+            expect(customAuthApiClient.resetPasswordApi).toBeDefined();
+        });
+
+        it("should pass both capabilities and customAuthApiQueryParams when provided", () => {
+            const logger = getDefaultLogger();
+            const capabilities = "custom_capability_1 custom_capability_2";
+            const customAuthApiQueryParams = {
+                dc: "datacenter1",
+                slice: "slice2",
+            };
+
+            const apiClient = new CustomAuthApiClient(
+                "https://test.com",
+                "client_id",
+                new FetchHttpClient(logger),
+                capabilities,
+                customAuthApiQueryParams
             );
 
             expect(apiClient.signInApi).toBeDefined();

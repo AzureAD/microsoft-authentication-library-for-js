@@ -14,6 +14,7 @@ export type CustomAuthOptions = {
     challengeTypes?: Array<string>;
     authApiProxyUrl: string;
     customAuthApiQueryParams?: Partial<Record<QueryKey, string>>;
+    capabilities?: Array<string>;
 };
 
 export type CustomAuthConfiguration = Configuration & {
