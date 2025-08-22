@@ -19,7 +19,7 @@ export class NativeAuthError extends AuthError {
         super(errorStatus, errorContext);
         this.name = "NativeAuthError";
         this.statusCode = errorCode;
-        this.tag =StringUtils.tagToString(errorTag);
+        this.tag = StringUtils.tagToString(errorTag);
         Object.setPrototypeOf(this, NativeAuthError.prototype);
     }
 }
