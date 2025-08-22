@@ -2,6 +2,6 @@
     "type": "patch",
     "comment": "Add extraQueryParams for api calls #7974",
     "packageName": "@azure/msal-browser",
-    "email": "ydi.w127@gmail.com",
+    "email": "yongdiwang@microsoft.com",
     "dependentChangeType": "patch"
 }
