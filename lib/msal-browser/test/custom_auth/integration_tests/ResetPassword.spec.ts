@@ -848,7 +848,7 @@ describe("Reset password", () => {
             .mockResolvedValueOnce({
                 status: 400,
                 json: async () => ({
-                    error: "invalid_grant",
+                    error: "invalid_request",
                     error_description: "The verification contact is incorrect.",
                     error_codes: [901001],
                     timestamp: "yyyy-mm-dd 10:15:00Z",

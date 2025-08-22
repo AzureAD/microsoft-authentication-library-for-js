@@ -20,8 +20,9 @@ export { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApp
 // Configuration
 export { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 
-// Account Data
+// Models
 export { CustomAuthAccountData } from "./get_account/auth_flow/CustomAuthAccountData.js";
+export { AuthenticationMethod } from "./core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 
 // Operation Inputs
 export {

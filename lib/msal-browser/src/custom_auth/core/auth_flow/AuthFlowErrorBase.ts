@@ -143,7 +143,7 @@ export abstract class AuthFlowErrorBase {
     protected isIncorrectVerificationContactError(): boolean {
         return (
             this.errorData instanceof CustomAuthApiError &&
-            this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
+            this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
             this.errorData.errorCodes?.includes(901001) === true
         );
     }

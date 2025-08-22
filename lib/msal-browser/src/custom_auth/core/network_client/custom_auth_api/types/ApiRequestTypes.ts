@@ -32,7 +32,7 @@ export interface SignInOobTokenRequest extends SignInTokenRequestBase {
 }
 
 export interface SignInContinuationTokenRequest extends SignInTokenRequestBase {
-    username: string;
+    username?: string;
 }
 
 /* Sign-up API request types */

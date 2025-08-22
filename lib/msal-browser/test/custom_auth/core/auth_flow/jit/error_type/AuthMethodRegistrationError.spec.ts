@@ -69,7 +69,7 @@ describe("JitError", () => {
 
         it("should return true for isIncorrectVerificationContact when API error with error code 901001", () => {
             const apiError = new CustomAuthApiError(
-                CustomAuthApiErrorCode.INVALID_GRANT,
+                CustomAuthApiErrorCode.INVALID_REQUEST,
                 "Incorrect verification contact",
                 "correlation-id",
                 [901001]

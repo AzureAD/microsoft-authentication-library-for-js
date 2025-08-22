@@ -179,7 +179,6 @@ export class JitClient extends CustomAuthInteractionClientBase {
         const scopes = this.getScopes(parameters.scopes);
         const tokenRequest: SignInContinuationTokenRequest = {
             continuation_token: continueResponse.continuation_token,
-            username: parameters.username || "",
             scope: scopes.join(" "),
             correlationId: continueResponse.correlation_id,
             telemetryManager: telemetryManager,

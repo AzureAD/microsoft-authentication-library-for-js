@@ -157,7 +157,6 @@ describe("JitClient", () => {
             authMethod: mockAuthMethod,
             verificationContact: "user@example.com",
             scopes: ["openid"],
-            username: "testuser",
         };
 
         it("should handle fast-pass scenario and return completed result", async () => {
@@ -206,7 +205,6 @@ describe("JitClient", () => {
                 signInApiClient.requestTokenWithContinuationToken
             ).toHaveBeenCalledWith({
                 continuation_token: "final-continuation-token",
-                username: "testuser",
                 scope: "openid",
                 correlationId: mockCorrelationId,
                 telemetryManager: expect.any(Object),
@@ -294,7 +292,6 @@ describe("JitClient", () => {
                 challenge: "123456",
                 grantType: "oob",
                 scopes: ["openid"],
-                username: "testuser",
             };
 
             const mockContinueResponse = {
@@ -335,7 +332,6 @@ describe("JitClient", () => {
                 challenge: "123456",
                 grantType: "oob",
                 scopes: ["openid"],
-                username: "testuser",
             };
 
             const mockContinueResponse = {

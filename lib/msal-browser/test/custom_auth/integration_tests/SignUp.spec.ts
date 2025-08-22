@@ -1679,7 +1679,7 @@ describe("Sign up", () => {
             .mockResolvedValueOnce({
                 status: 400,
                 json: async () => ({
-                    error: "invalid_grant",
+                    error: "invalid_request",
                     error_description: "The verification contact is incorrect.",
                     error_codes: [901001],
                 }),

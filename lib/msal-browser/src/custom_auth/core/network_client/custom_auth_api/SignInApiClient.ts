@@ -120,11 +120,11 @@ export class SignInApiClient extends BaseApiClient {
         return this.requestTokens(
             {
                 continuation_token: params.continuation_token,
-                username: params.username,
                 scope: params.scope,
                 grant_type: GrantType.CONTINUATION_TOKEN,
                 client_info: true,
                 ...(params.claims && { claims: params.claims }),
+                ...(params.username && { username: params.username }),
             },
             params.telemetryManager,
             params.correlationId
