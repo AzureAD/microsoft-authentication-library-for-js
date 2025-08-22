@@ -46,7 +46,7 @@ export class SignInSubmitPasswordResult extends AuthFlowResultBase<
     }
 
     /**
-     * Checks if the result requires authentication method registration (JIT).
+     * Checks if the result requires authentication method registration.
      */
     isAuthMethodRegistrationRequired(): this is SignInSubmitPasswordResult & {
         state: AuthMethodRegistrationRequiredState;
@@ -60,7 +60,7 @@ export class SignInSubmitPasswordResult extends AuthFlowResultBase<
  * This includes:
  * - SignInCompletedState: The sign-in process has completed successfully.
  * - SignInFailedState: The sign-in process has failed.
- * - AuthMethodRegistrationRequiredState: The sign-in process requires authentication method registration (JIT).
+ * - AuthMethodRegistrationRequiredState: The sign-in process requires authentication method registration.
  */
 export type SignInSubmitPasswordResultState =
     | SignInCompletedState

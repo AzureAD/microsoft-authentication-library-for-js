@@ -5,16 +5,10 @@
 
 import { AuthActionErrorBase } from "../../AuthFlowErrorBase.js";
 
-abstract class AuthMethodRegistrationError extends AuthActionErrorBase {
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
-}
-
 /**
  * Error that occurred during authentication method challenge request.
  */
-export class AuthMethodRegistrationChallengeMethodError extends AuthMethodRegistrationError {
+export class AuthMethodRegistrationChallengeMethodError extends AuthActionErrorBase {
     /**
      * Checks if the verification contact provided is incorrect.
      * @returns true if the verification contact is incorrect, false otherwise.
@@ -27,7 +21,7 @@ export class AuthMethodRegistrationChallengeMethodError extends AuthMethodRegist
 /**
  * Error that occurred during authentication method challenge submission.
  */
-export class AuthMethodRegistrationSubmitChallengeError extends AuthMethodRegistrationError {
+export class AuthMethodRegistrationSubmitChallengeError extends AuthActionErrorBase {
     /**
      * Checks if the submitted challenge code is incorrect.
      * @returns true if the challenge code is incorrect, false otherwise.

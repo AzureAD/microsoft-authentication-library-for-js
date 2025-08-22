@@ -69,7 +69,6 @@ export class AuthMethodRegistrationChallengeMethodResult extends AuthFlowResultB
 
 /**
  * Type definition for possible states in AuthMethodRegistrationChallengeMethodResult.
- * AuthMethodVerificationRequiredState will be defined in JitState.ts
  */
 export type AuthMethodRegistrationChallengeMethodResultState =
     | AuthMethodVerificationRequiredState

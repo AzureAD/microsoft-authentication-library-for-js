@@ -322,7 +322,7 @@ export class CustomAuthStandardController
                     submitPasswordResult.type ===
                     SIGN_IN_JIT_REQUIRED_RESULT_TYPE
                 ) {
-                    // JIT is required - create AuthMethodRegistrationRequiredState
+                    // Authentication method registration is required - create AuthMethodRegistrationRequiredState
                     this.logger.verbose(
                         "Authentication method registration required for sign-in.",
                         correlationId

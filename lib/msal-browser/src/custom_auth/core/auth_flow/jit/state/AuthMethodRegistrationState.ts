@@ -42,7 +42,7 @@ abstract class AuthMethodRegistrationState<
     ): Promise<AuthMethodRegistrationChallengeMethodResult> {
         try {
             this.stateParameters.logger.verbose(
-                `Challenging authentication method - '${authMethodDetails.authMethodType.id}' for JIT registration.`,
+                `Challenging authentication method - '${authMethodDetails.authMethodType.id}' for auth method registration.`,
                 this.stateParameters.correlationId
             );
 
@@ -62,14 +62,14 @@ abstract class AuthMethodRegistrationState<
                 );
 
             this.stateParameters.logger.verbose(
-                "Authentication method challenged successfully for JIT registration.",
+                "Authentication method challenged successfully for auth method registration.",
                 this.stateParameters.correlationId
             );
 
             if (result.type === JIT_VERIFICATION_REQUIRED_RESULT_TYPE) {
                 // Verification required
                 this.stateParameters.logger.verbose(
-                    "JIT verification required.",
+                    "Auth method verification required.",
                     this.stateParameters.correlationId
                 );
 
@@ -92,7 +92,7 @@ abstract class AuthMethodRegistrationState<
             } else if (result.type === JIT_COMPLETED_RESULT_TYPE) {
                 // Registration completed (fast-pass scenario)
                 this.stateParameters.logger.verbose(
-                    "JIT registration completed via fast-pass.",
+                    "Auth method registration completed via fast-pass.",
                     this.stateParameters.correlationId
                 );
 
@@ -111,16 +111,16 @@ abstract class AuthMethodRegistrationState<
             } else {
                 // Handle unexpected result type with proper typing
                 this.stateParameters.logger.error(
-                    "Unexpected result type from JIT challenge method",
+                    "Unexpected result type from auth challenge method",
                     this.stateParameters.correlationId
                 );
                 throw new UnexpectedError(
-                    "Unexpected result type from JIT challenge method"
+                    "Unexpected result type from auth challenge method"
                 );
             }
         } catch (error) {
             this.stateParameters.logger.error(
-                "Failed to challenge authentication method for JIT registration.",
+                "Failed to challenge authentication method for auth method registration.",
                 this.stateParameters.correlationId
             );
             return AuthMethodRegistrationChallengeMethodResult.createWithError(
@@ -194,7 +194,7 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
             this.ensureCodeIsValid(code, this.getCodeLength());
 
             this.stateParameters.logger.verbose(
-                "Submitting JIT challenge.",
+                "Submitting auth method challenge.",
                 this.stateParameters.correlationId
             );
 
@@ -213,7 +213,7 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
             );
 
             this.stateParameters.logger.verbose(
-                "JIT challenge submitted successfully.",
+                "Auth method challenge submitted successfully.",
                 this.stateParameters.correlationId
             );
 
@@ -231,7 +231,7 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
             );
         } catch (error) {
             this.stateParameters.logger.error(
-                "Failed to submit JIT challenge.",
+                "Failed to submit auth method challenge.",
                 this.stateParameters.correlationId
             );
             return AuthMethodRegistrationSubmitChallengeResult.createWithError(

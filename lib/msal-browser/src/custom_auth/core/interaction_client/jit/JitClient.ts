@@ -46,7 +46,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
         this.logger.verbose(
-            "Calling introspect endpoint for JIT auth methods.",
+            "Calling introspect endpoint for getting auth methods.",
             parameters.correlationId
         );
 
@@ -60,7 +60,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
             await this.customAuthApiClient.registerApi.introspect(request);
 
         this.logger.verbose(
-            "Introspect endpoint called for JIT auth methods.",
+            "Introspect endpoint called for getting auth methods.",
             parameters.correlationId
         );
 
@@ -83,7 +83,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
         this.logger.verbose(
-            "Calling challenge endpoint for JIT auth method.",
+            "Calling challenge endpoint for getting auth method.",
             parameters.correlationId
         );
 
@@ -100,7 +100,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
             await this.customAuthApiClient.registerApi.challenge(challengeReq);
 
         this.logger.verbose(
-            "Challenge endpoint called for JIT auth method.",
+            "Challenge endpoint called for auth method registration.",
             parameters.correlationId
         );
 
@@ -152,7 +152,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
         this.logger.verbose(
-            "Calling continue endpoint for JIT challenge submission.",
+            "Calling continue endpoint for auth method challenge submission.",
             parameters.correlationId
         );
 
@@ -171,7 +171,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
             await this.customAuthApiClient.registerApi.continue(continueReq);
 
         this.logger.verbose(
-            "Continue endpoint called for JIT challenge submission.",
+            "Continue endpoint called for auth method challenge submission.",
             parameters.correlationId
         );
 

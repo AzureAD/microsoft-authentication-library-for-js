@@ -297,7 +297,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 error.subError === REGISTRATION_REQUIRED
             ) {
                 this.logger.verbose(
-                    "JIT registration required for sign in.",
+                    "Auth method registration required for sign in.",
                     correlationId
                 );
 

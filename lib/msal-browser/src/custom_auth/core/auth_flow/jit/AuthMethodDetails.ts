@@ -6,7 +6,7 @@
 import { AuthenticationMethod } from "../../network_client/custom_auth_api/types/ApiResponseTypes.js";
 
 /**
- * Details for an authentication method to be registered during JIT flow.
+ * Details for an authentication method to be registered.
  */
 export interface AuthMethodDetails {
     /**

@@ -187,13 +187,13 @@ export { UnsupportedEnvironmentError } from "./core/error/UnsupportedEnvironment
 export { UserAccountAttributeError } from "./core/error/UserAccountAttributeError.js";
 export { UserAlreadySignedInError } from "./core/error/UserAlreadySignedInError.js";
 
-// JIT State
+// Auth Method Registration State
 export { AuthMethodRegistrationRequiredState } from "./core/auth_flow/jit/state/AuthMethodRegistrationState.js";
 export { AuthMethodVerificationRequiredState } from "./core/auth_flow/jit/state/AuthMethodRegistrationState.js";
 export { AuthMethodRegistrationCompletedState } from "./core/auth_flow/jit/state/AuthMethodRegistrationCompletedState.js";
 export { AuthMethodRegistrationFailedState } from "./core/auth_flow/jit/state/AuthMethodRegistrationFailedState.js";
 
-// JIT Results
+// Auth Method Registration Results
 export {
     AuthMethodRegistrationChallengeMethodResult,
     AuthMethodRegistrationChallengeMethodResultState,
@@ -203,13 +203,13 @@ export {
     AuthMethodRegistrationSubmitChallengeResultState,
 } from "./core/auth_flow/jit/result/AuthMethodRegistrationSubmitChallengeResult.js";
 
-// JIT Errors
+// Auth Method Registration Errors
 export {
     AuthMethodRegistrationChallengeMethodError,
     AuthMethodRegistrationSubmitChallengeError,
 } from "./core/auth_flow/jit/error_type/AuthMethodRegistrationError.js";
 
-// JIT Types
+// Auth Method Registration Types
 export { AuthMethodDetails } from "./core/auth_flow/jit/AuthMethodDetails.js";
 
 // Components from msal_browser
