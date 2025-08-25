@@ -179,6 +179,9 @@ export class PublicClientApplication
             );
         }
 
+        if (request.redirectUri) {
+            throw NodeAuthError.createRedirectUriNotSupportedError();
+        }
         const { verifier, challenge } =
             await this.cryptoProvider.generatePkceCodes();
 
@@ -200,13 +203,6 @@ export class PublicClientApplication
 
             // Wait for server to be listening
             const redirectUri = await this.waitForRedirectUri(loopbackClient);
-
-            if (request.redirectUri) {
-                this.logger.warning(
-                    "RedirectUri provided in an unsupported scenario. Falling back to default",
-                    redirectUri
-                );
-            }
 
             const validRequest: AuthorizationUrlRequest = {
                 ...remainingProperties,
@@ -279,10 +275,7 @@ export class PublicClientApplication
         }
 
         if (request.redirectUri) {
-            this.logger.warning(
-                "RedirectUri provided in an unsupported scenario. Falling back to default"
-            );
-            request.redirectUri = `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`;
+            throw NodeAuthError.createRedirectUriNotSupportedError();
         }
 
         return super.acquireTokenSilent(request);
