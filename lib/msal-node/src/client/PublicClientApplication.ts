@@ -161,7 +161,7 @@ export class PublicClientApplication
                 ...remainingProperties,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
@@ -177,6 +177,9 @@ export class PublicClientApplication
             );
         }
 
+        if (request.redirectUri) {
+            throw NodeAuthError.createRedirectUriNotSupportedError();
+        }
         const { verifier, challenge } =
             await this.cryptoProvider.generatePkceCodes();
 
@@ -257,7 +260,7 @@ export class PublicClientApplication
                 ...request,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
@@ -269,6 +272,10 @@ export class PublicClientApplication
                 forceRefresh: request.forceRefresh || false,
             };
             return this.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
+        }
+
+        if (request.redirectUri) {
+            throw NodeAuthError.createRedirectUriNotSupportedError();
         }
 
         return super.acquireTokenSilent(request);
