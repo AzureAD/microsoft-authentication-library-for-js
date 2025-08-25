@@ -11,8 +11,6 @@ import {
     InteractionType,
     AuthenticationResult,
     AuthError,
-    EventMessage,
-    EventType,
     InteractionStatus,
     SilentRequest,
     InteractionRequiredAuthError,
@@ -213,39 +211,12 @@ export function useMsalAuthentication(
     );
 
     useEffect(() => {
-        const callbackId = instance.addEventCallback(
-            (message: EventMessage) => {
-                switch (message.eventType) {
-                    case EventType.LOGIN_SUCCESS:
-                    case EventType.ACQUIRE_TOKEN_SUCCESS:
-                        if (message.payload) {
-                            setResponse([
-                                message.payload as AuthenticationResult,
-                                null,
-                            ]);
-                        }
-                        break;
-                    case EventType.ACQUIRE_TOKEN_FAILURE:
-                        if (message.error) {
-                            setResponse([null, message.error as AuthError]);
-                        }
-                        break;
-                }
-            }
-        );
-        logger.verbose(
-            `useMsalAuthentication - Registered event callback with id: '${callbackId}'`
-        );
-
-        return () => {
-            if (callbackId) {
-                logger.verbose(
-                    `useMsalAuthentication - Removing event callback '${callbackId}'`
-                );
-                instance.removeEventCallback(callbackId);
-            }
-        };
-    }, [instance, logger]);
+        if (account) {
+            acquireToken();
+        } else {
+            setResponse([null, null]);
+        }
+    }, [account, acquireToken]);   
 
     useEffect(() => {
         if (

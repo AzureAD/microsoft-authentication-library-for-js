@@ -9,6 +9,8 @@ import {
     IPublicClientApplication,
     AccountEntityUtils,
     InteractionStatus,
+    EventMessage,
+    EventType,
 } from "@azure/msal-browser";
 import { useMsal } from "./useMsal.js";
 import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
@@ -52,9 +54,9 @@ export function useAccount(
     });
 
     useEffect(() => {
-        if (inProgress !== InteractionStatus.Startup) {
+        const updateAccount = () => {
+            const nextAccount = getAccount(instance, accountIdentifiers);
             setAccount((currentAccount: AccountInfo | null) => {
-                const nextAccount = getAccount(instance, accountIdentifiers);
                 if (
                     !AccountEntityUtils.accountInfoIsEqual(
                         currentAccount,
@@ -65,11 +67,27 @@ export function useAccount(
                     logger.info("useAccount - Updating account");
                     return nextAccount;
                 }
-
                 return currentAccount;
             });
+        };
+
+        if (inProgress !== InteractionStatus.Startup) {
+            updateAccount();
         }
+
+        const callbackId = instance.addEventCallback((message: EventMessage) => {
+            if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                updateAccount();
+            }
+        });
+
+        return () => {
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
+        };
     }, [inProgress, accountIdentifiers, instance, logger]);
+
 
     return account;
 }
