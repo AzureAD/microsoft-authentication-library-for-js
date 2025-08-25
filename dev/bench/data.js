@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756146966507,
+  "lastUpdate": 1756163357780,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -17158,6 +17158,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 252310,
             "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "137432604+Ugonnaak1@users.noreply.github.com",
+            "name": "Ugonna Akali",
+            "username": "Ugonnaak1"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1a521c3e7631d4ed50d3082d26036162a4ef483e",
+          "message": "Enable passing of redirect uri for Nativebroker (#8005)\n\nCurrent PCA requests don't allow the customer to pass in their own\nredirecturi. This is an issue for signed MacOS apps because the customer\nis forced to use the unsigned redirect URI which will hit a redirecturi\nvalidation error in the Apple Broker\n```\n  errorMessage: 'Description: Error Domain=MSALErrorDomain Code=-50000 \"(null)\" UserInfo={MSALErrorDescriptionKey=MSAL redirectUri validation error: redirect uri has incorrect scheme - it must be in the form of msauth.<app_bundle_id>://auth\\n' +\n    'ADAL redirectUri validation error: Source application does not match redirect uri host. Invalid source app., MSALInternalErrorCodeKey=-42000, MSALBrokerVersionKey=5.2508.0}, Domain: MSALErrorDomain.Error was thrown in sourceArea: Broker (Error Code: -42000, Tag: 508638916)',\n\n```\nSolution:\nMake providing a redirecturi optional. If the customer doesn't provide\none, we fallback to the default for each platform in broker scenarios\nFor non-broker scenarios, if redirecturi is provided, we warn them it\nwon't be used and use the default\n\nAlso added a function to convert error tags to their string version to\nmake error lookup quicker.",
+          "timestamp": "2025-08-25T16:02:44-07:00",
+          "tree_id": "fd69ef2495af9050418168f7c14fce9fee97c43b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1a521c3e7631d4ed50d3082d26036162a4ef483e"
+        },
+        "date": 1756163355969,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 246561,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 246856,
+            "range": "±0.78%",
             "unit": "ops/sec",
             "extra": "233 samples"
           }
