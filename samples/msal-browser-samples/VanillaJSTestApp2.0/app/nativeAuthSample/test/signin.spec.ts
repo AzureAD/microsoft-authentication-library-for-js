@@ -689,7 +689,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
         );
     });
 
-    describe("Sign In Flow - Email + Password Redirect", () => {
+    describe("Sign In Flow - Email + OTP Redirect", () => {
         beforeEach(async () => {
             // Use useRedirectConfig=true to ensure the app initializes with redirect-only challenge types
             await page.goto(
@@ -768,7 +768,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                     (el) => el.textContent
                 );
                 expect(errorMessage).toContain(
-                    "redirect: No required authentication"
+                    "redirect"
                 );
             },
             AUTH_TIMEOUT

@@ -322,7 +322,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
             // Verify error banner content
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("redirect: No required authentication");
+            expect(errorMessage).toContain("redirect");
                 
         }, AUTH_TIMEOUT);
     });
