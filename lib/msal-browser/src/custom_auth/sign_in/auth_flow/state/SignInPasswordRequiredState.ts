@@ -66,7 +66,7 @@ export class SignInPasswordRequiredState extends SignInState<SignInPasswordRequi
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to sign in after submitting password. Error: ${error}.`,
+                `Failed to sign in after submitting password. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 

@@ -121,7 +121,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to submit code for sign up. Error: ${error}.`,
+                `Failed to submit code for sign up. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 
@@ -170,7 +170,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to resend code for sign up. Error: ${error}.`,
+                `Failed to resend code for sign up. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 

@@ -144,8 +144,8 @@ export class OnBehalfOfClient extends BaseClient {
                 localAccountId: localAccountId || "",
             };
 
-            cachedAccount = this.cacheManager.readAccountFromCache(
-                accountInfo,
+            cachedAccount = this.cacheManager.getAccount(
+                this.cacheManager.generateAccountKey(accountInfo),
                 request.correlationId
             );
         }
@@ -228,7 +228,6 @@ export class OnBehalfOfClient extends BaseClient {
             target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
             tokenType: authScheme,
             keyId: request.sshKid,
-            requestedClaimsHash: request.requestedClaimsHash,
             userAssertionHash: this.userAssertionHash,
         };
 

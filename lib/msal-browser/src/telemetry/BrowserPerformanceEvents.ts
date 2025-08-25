@@ -160,7 +160,6 @@ export const NativeMessageHandlerHandshake = "nativeMessageHandlerHandshake";
 export const NativeGenerateAuthResult = "nativeGenerateAuthResult";
 export const RemoveHiddenIframe = "removeHiddenIframe";
 
-export const ClearTokensAndKeysWithClaims = "clearTokensAndKeysWithClaims";
 export const ImportExistingCache = "importExistingCache";
 export const SetUserData = "setUserData";
 

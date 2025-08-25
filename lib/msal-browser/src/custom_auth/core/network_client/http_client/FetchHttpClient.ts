@@ -26,23 +26,26 @@ export class FetchHttpClient implements IHttpClient {
             headers?.[AADServerParamKeys.CLIENT_REQUEST_ID] || undefined;
 
         try {
-            this.logger.verbosePii(`Sending request to ${url}`, correlationId);
+            this.logger.verbosePii(
+                `Sending request to '${url}'`,
+                correlationId
+            );
 
             const startTime = performance.now();
             const response = await fetch(url, options);
             const endTime = performance.now();
 
             this.logger.verbosePii(
-                `Request to '${url}' completed in ${
+                `Request to '${url}' completed in '${
                     endTime - startTime
-                }ms with status code ${response.status}`,
+                }'ms with status code '${response.status}'`,
                 correlationId
             );
 
             return response;
         } catch (e) {
             this.logger.errorPii(
-                `Failed to send request to ${url}: ${e}`,
+                `Failed to send request to '${url}': '${e}'`,
                 correlationId
             );
 

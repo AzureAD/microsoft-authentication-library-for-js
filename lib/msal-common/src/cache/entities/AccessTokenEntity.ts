@@ -24,8 +24,4 @@ export type AccessTokenEntity = CredentialEntity & {
     refreshOn?: string;
     /** Matches the authentication scheme for which the token was issued (i.e. Bearer or pop) */
     tokenType?: AuthenticationScheme;
-    /** Stringified claims object */
-    requestedClaims?: string;
-    /** Matches the SHA 256 hash of the claims object included in the token request */
-    requestedClaimsHash?: string;
 };

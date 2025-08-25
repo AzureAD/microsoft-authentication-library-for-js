@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add normalizeUrlForComparison utility function to handle URL encoding consistently (#7636)",
+  "packageName": "@azure/msal-common",
+  "email": "copilot@github.com",
+  "dependentChangeType": "patch"
+}

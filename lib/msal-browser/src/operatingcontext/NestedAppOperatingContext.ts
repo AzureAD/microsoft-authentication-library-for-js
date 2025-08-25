@@ -78,11 +78,13 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
             }
         } catch (ex) {
             this.logger.infoPii(
-                `Could not initialize Nested App Auth bridge (${ex})`
+                `Could not initialize Nested App Auth bridge ('${ex}')`
             );
         }
 
-        this.logger.info(`Nested App Auth Bridge available: ${this.available}`);
+        this.logger.info(
+            `Nested App Auth Bridge available: '${this.available}'`
+        );
         return this.available;
     }
 }

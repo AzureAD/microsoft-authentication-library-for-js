@@ -21,7 +21,6 @@ export type ClientCredentialRequest = Partial<
         CommonClientCredentialRequest,
         | "resourceRequestMethod"
         | "resourceRequestUri"
-        | "requestedClaimsHash"
         | "clientAssertion"
         | "storeInCache"
     >

@@ -43,6 +43,7 @@ import {
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { SignUpContinueResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 import { ServerTelemetryManager } from "@azure/msal-common/browser";
+import { initializeServerTelemetryManager } from "../../../interaction_client/BaseInteractionClient.js";
 
 export class SignUpClient extends CustomAuthInteractionClientBase {
     /**
@@ -56,7 +57,13 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         const apiId = !parameters.password
             ? PublicApiId.SIGN_UP_START
             : PublicApiId.SIGN_UP_WITH_PASSWORD_START;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const startRequest: SignUpStartRequest = {
             username: parameters.username,
@@ -104,7 +111,13 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpAttributesRequiredResult
     > {
         const apiId = PublicApiId.SIGN_UP_SUBMIT_CODE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const requestSubmitCode: SignUpContinueWithOobRequest = {
             continuation_token: parameters.continuationToken,
@@ -148,7 +161,13 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpAttributesRequiredResult
     > {
         const apiId = PublicApiId.SIGN_UP_SUBMIT_PASSWORD;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const requestSubmitPwd: SignUpContinueWithPasswordRequest = {
             continuation_token: parameter.continuationToken,
@@ -192,7 +211,13 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpCodeRequiredResult
     > {
         const apiId = PublicApiId.SIGN_UP_SUBMIT_ATTRIBUTES;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
         const reqWithAttr: SignUpContinueWithAttributesRequest = {
             continuation_token: parameter.continuationToken,
             attributes: parameter.attributes,
@@ -235,7 +260,13 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         parameters: SignUpResendCodeParams
     ): Promise<SignUpCodeRequiredResult> {
         const apiId = PublicApiId.SIGN_UP_RESEND_CODE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const challengeRequest: SignUpChallengeRequest = {
             continuation_token: parameters.continuationToken ?? "",
@@ -334,7 +365,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpAttributesRequiredResult
     > {
         this.logger.verbose(
-            `${callerName} is calling continue endpoint for sign up.`,
+            `'${callerName}' is calling continue endpoint for sign up.`,
             requestCorrelationId
         );
 
@@ -342,7 +373,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             const response = await responseGetter();
 
             this.logger.verbose(
-                `Continue endpoint called by ${callerName} for sign up.`,
+                `Continue endpoint called by '${callerName}' for sign up.`,
                 requestCorrelationId
             );
 
@@ -360,7 +391,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 );
             } else {
                 this.logger.errorPii(
-                    `${callerName} is failed to call continue endpoint for sign up. Error: ${error}`,
+                    `'${callerName}' is failed to call continue endpoint for sign up. Error: '${error}'`,
                     requestCorrelationId
                 );
 

@@ -33,6 +33,7 @@ import {
     ResetPasswordPasswordRequiredResult,
 } from "./result/ResetPasswordActionResult.js";
 import { ensureArgumentIsNotEmptyString } from "../../core/utils/ArgumentValidator.js";
+import { initializeServerTelemetryManager } from "../../../interaction_client/BaseInteractionClient.js";
 
 export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     /**
@@ -45,7 +46,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     ): Promise<ResetPasswordCodeRequiredResult> {
         const correlationId = parameters.correlationId;
         const apiId = PublicApiId.PASSWORD_RESET_START;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const startRequest: ResetPasswordStartRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
@@ -93,7 +100,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         );
 
         const apiId = PublicApiId.PASSWORD_RESET_SUBMIT_CODE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const continueRequest: ResetPasswordContinueRequest = {
             continuation_token: parameters.continuationToken,
@@ -132,7 +145,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         parameters: ResetPasswordResendCodeParams
     ): Promise<ResetPasswordCodeRequiredResult> {
         const apiId = PublicApiId.PASSWORD_RESET_RESEND_CODE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const challengeRequest: ResetPasswordChallengeRequest = {
             continuation_token: parameters.continuationToken,
@@ -161,7 +180,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         );
 
         const apiId = PublicApiId.PASSWORD_RESET_SUBMIT_PASSWORD;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         const submitRequest: ResetPasswordSubmitRequest = {
             continuation_token: parameters.continuationToken,
@@ -289,7 +314,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             }
 
             this.logger.verbose(
-                `Poll completion endpoint for password reset is not started or in progress, waiting ${pollInterval} seconds for next check.`,
+                `Poll completion endpoint for password reset is not started or in progress, waiting '${pollInterval}' seconds for next check.`,
                 correlationId
             );
 

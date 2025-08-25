@@ -3,7 +3,7 @@ const msalConfig = {
     auth: {
         clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
         authority:
-            "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47",
+            "https://login.microsoftonline.com/common",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored

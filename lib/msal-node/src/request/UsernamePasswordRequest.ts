@@ -26,7 +26,6 @@ export type UsernamePasswordRequest = Partial<
         | "resourceRequestUri"
         | "username"
         | "password"
-        | "requestedClaimsHash"
         | "storeInCache"
     >
 > & {
