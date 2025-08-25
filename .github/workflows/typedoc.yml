@@ -2,7 +2,7 @@ name: Typedoc
 
 on:
   workflow_dispatch:
-  
+
   pull_request:
     types: [closed]
     branches:
@@ -10,13 +10,13 @@ on:
 
 jobs:
   deploy:
-    if: ((github.event.pull_request.merged == true && contains(github.head_ref,'post-release')) || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-latest
+    if: ((github.event.pull_request.merged == true && startsWith(github.head_ref,'release-staging')) || github.event_name == 'workflow_dispatch')
+    runs-on: windows-latest
     permissions:
       contents: write
       pages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
@@ -24,13 +24,16 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
 
       - name: Install
-        run: npm ci
+        run: npm i --workspace=lib/** --workspace=@azure/msal-node-extensions --include-workspace-root
 
       - name: Build
-        run: npm run build --workspace=lib/** --workspace=extensions/**
+        run: npm run build --workspace=lib/**
+
+      - name: Build extensions
+        run: npm run build:js --workspace=@azure/msal-node-extensions
 
       - name: Generate
         run: npm run doc:generate

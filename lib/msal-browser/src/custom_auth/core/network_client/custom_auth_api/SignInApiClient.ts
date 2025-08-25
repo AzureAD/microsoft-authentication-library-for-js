@@ -7,6 +7,7 @@ import { ServerTelemetryManager } from "@azure/msal-common/browser";
 import { GrantType } from "../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
+import { IHttpClient } from "../http_client/IHttpClient.js";
 import * as CustomAuthApiEndpoint from "./CustomAuthApiEndpoint.js";
 import * as CustomAuthApiErrorCode from "./types/ApiErrorCodes.js";
 import {
@@ -23,6 +24,18 @@ import {
 } from "./types/ApiResponseTypes.js";
 
 export class SignInApiClient extends BaseApiClient {
+    private readonly capabilities?: string;
+
+    constructor(
+        customAuthApiBaseUrl: string,
+        clientId: string,
+        httpClient: IHttpClient,
+        capabilities?: string
+    ) {
+        super(customAuthApiBaseUrl, clientId, httpClient);
+        this.capabilities = capabilities;
+    }
+
     /**
      * Initiates the sign-in flow
      * @param username User's email
@@ -36,6 +49,9 @@ export class SignInApiClient extends BaseApiClient {
             {
                 username: params.username,
                 challenge_type: params.challenge_type,
+                ...(this.capabilities && {
+                    capabilities: this.capabilities,
+                }),
             },
             params.telemetryManager,
             params.correlationId

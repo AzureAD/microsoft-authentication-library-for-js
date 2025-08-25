@@ -1,8 +1,40 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 05 Aug 2025 20:00:24 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 19 Aug 2025 21:26:21 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.21.0
+
+Tue, 19 Aug 2025 21:26:21 GMT
+
+### Minor changes
+
+- Add Platform Telemetry (PR #7991) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v15.12.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix redirect loop when URLs contain encoded apostrophes in MSAL Angular standalone components (#7636) (copilot@github.com)
+
+## 4.20.0
+
+Tue, 12 Aug 2025 22:53:32 GMT
+
+### Minor changes
+
+- Instrument timed out or cancelled pre-redirect requests #7984 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.11.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- fixed getNativeAccountId API bug to correctly return current active account if loginhint or sid is not provided #7960 (lalimasharda@microsoft.com)
 
 ## 4.19.0
 

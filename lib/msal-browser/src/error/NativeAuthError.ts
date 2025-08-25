@@ -52,8 +52,7 @@ export function isFatalNativeAuthError(error: NativeAuthError): boolean {
     if (
         error.ext &&
         error.ext.status &&
-        (error.ext.status === NativeStatusCodes.PERSISTENT_ERROR ||
-            error.ext.status === NativeStatusCodes.DISABLED)
+        error.ext.status === NativeStatusCodes.DISABLED
     ) {
         return true;
     }
