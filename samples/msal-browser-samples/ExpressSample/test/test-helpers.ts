@@ -21,8 +21,10 @@ export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Scree
         }
     });
     
-    await page.locator("a#viewProfileButton").click();
-    await screenshot.takeScreenshot(page, "Profile button clicked");
+    if (!page.url().endsWith("profile")) {
+        await page.locator("a#viewProfileButton").click();
+        await screenshot.takeScreenshot(page, "Profile button clicked");
+    }
 
     // Verify the Raw Authentication Data section is populated
     const authDataText = await page.locator("pre#auth-json").filter((value) => {console.log(value.textContent); return !!value.textContent && value.textContent !== 'Loading...'}).map(value => value.textContent).wait();
@@ -90,13 +92,21 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
  * @param screenshot 
  * @param username 
  * @param accountPwd 
+ * @param ssoExpected Whether SSO is expected (if true credentials won't be entered)
  */
-export async function signIn(page: puppeteer.Page, screenshot: Screenshot, username: string, accountPwd: string) {
+export async function signIn(
+    page: puppeteer.Page, 
+    screenshot: Screenshot, 
+    username: string, 
+    accountPwd: string,
+    ssoExpected: boolean = false
+) {
     await page.locator("button#signInButton").click();
     await screenshot.takeScreenshot(page, "Sign in button clicked");
     await page.locator("a#signInRedirect").click();
     await screenshot.takeScreenshot(page, "Sign in redirect clicked");
-    await enterCredentials(page, screenshot, username, accountPwd);
+    // Unless sso is expected enter credentials on the sign-in screen
+    !ssoExpected && await enterCredentials(page, screenshot, username, accountPwd);
     await page.locator("a#viewProfileButton").waitHandle();
     await screenshot.takeScreenshot(page, "Logged In");
 }

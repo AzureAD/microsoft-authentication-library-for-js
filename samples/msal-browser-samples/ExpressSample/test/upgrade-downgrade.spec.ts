@@ -129,20 +129,13 @@ describe("Upgrade/Downgrade Tests", () => {
             );
             await screenshot.takeScreenshot(page, "Page loaded");
 
-            // Login Local Version
             await switchToVersion("local", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
+
             await switchToVersion("latest-v3", page, screenshot);
+            // v3 can't read the v4 cache so we need to sign back in via SSO
+            await signIn(page, screenshot, username, accountPwd, true);
 
-            await page.locator("button#signInButton").click();
-            await screenshot.takeScreenshot(page, "Sign in button clicked");
-            await page.locator("a#signInRedirect").click();
-            await screenshot.takeScreenshot(page, "Sign in redirect clicked");
-            // We should get SSO here so credentials don't need to be re-entered
-            await page.locator("a#viewProfileButton").setTimeout(5000).waitHandle();
-            await screenshot.takeScreenshot(page, "Logged In");
-
-            // Change back to local build
             await switchToVersion("local", page, screenshot);
 
             await verifyCacheWasUsed(page, screenshot);
@@ -158,16 +151,57 @@ describe("Upgrade/Downgrade Tests", () => {
      * 4. Verify tokens can be pulled from the cache
      */
     describe("Downgrade tests", () => {
-        test("acquireTokenSilent can return tokens from the cache after downgrading back to the previous version", () => {
+        test("acquireTokenSilent can return tokens from the cache after downgrading back to the previous version", async () => {
+            const testName = "downgradeLocalToLatest";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
 
+            await switchToVersion("latest", page, screenshot);
+            await signIn(page, screenshot, username, accountPwd);
+
+            await switchToVersion("local", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
+
+            await switchToVersion("latest", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
         });
 
-        test("acquireTokenSilent can return tokens from the cache after downgrading back to 4.18.0 (cache schema v0)", () => {
+        test("acquireTokenSilent can return tokens from the cache after downgrading back to 4.18.0 (cache schema v0)", async () => {
+            const testName = "downgradeLatestTo4-18-0";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
 
+            await switchToVersion("4.18.0", page, screenshot);
+            await signIn(page, screenshot, username, accountPwd);
+
+            await switchToVersion("local", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
+
+            await switchToVersion("4.18.0", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
         });
 
-        test("acquireTokenSilent can return tokens from the cache after downgrading back to v3", () => {
+        test("acquireTokenSilent can return tokens from the cache after downgrading back to v3", async () => {
+            const testName = "downgradeLatestToV3";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
 
+            await switchToVersion("latest-v3", page, screenshot);
+            await signIn(page, screenshot, username, accountPwd);
+
+            await switchToVersion("local", page, screenshot);
+            // v4 can't read the v3 cache so we need to sign back in via SSO
+            await signIn(page, screenshot, username, accountPwd, true);
+            await verifyCacheWasUsed(page, screenshot);
+
+            await switchToVersion("latest-v3", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
         });
     });
 });
