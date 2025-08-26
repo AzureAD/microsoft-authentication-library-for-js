@@ -5,6 +5,7 @@
 
 import { GrantType } from "../../../CustomAuthConstants.js";
 import { BaseApiClient } from "./BaseApiClient.js";
+import { IHttpClient } from "../http_client/IHttpClient.js";
 import * as CustomAuthApiEndpoint from "./CustomAuthApiEndpoint.js";
 import {
     SignUpChallengeRequest,
@@ -20,6 +21,18 @@ import {
 } from "./types/ApiResponseTypes.js";
 
 export class SignupApiClient extends BaseApiClient {
+    private readonly capabilities?: string;
+
+    constructor(
+        customAuthApiBaseUrl: string,
+        clientId: string,
+        httpClient: IHttpClient,
+        capabilities?: string
+    ) {
+        super(customAuthApiBaseUrl, clientId, httpClient);
+        this.capabilities = capabilities;
+    }
+
     /**
      * Start the sign-up flow
      */
@@ -33,6 +46,9 @@ export class SignupApiClient extends BaseApiClient {
                     attributes: JSON.stringify(params.attributes),
                 }),
                 challenge_type: params.challenge_type,
+                ...(this.capabilities && {
+                    capabilities: this.capabilities,
+                }),
             },
             params.telemetryManager,
             params.correlationId

@@ -55,6 +55,7 @@ import {
 } from "@azure/msal-common";
 import { randomUUID } from "crypto";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
+import { StringUtils } from "../../src/utils/StringUtils.js";
 import {
     testMsalRuntimeAccount,
     testAccountInfo,
@@ -87,8 +88,16 @@ function createMockAuthResult(
 if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
         const enhancedErrorContext = msalRuntimeExampleError.errorContext
-            ? `${msalRuntimeExampleError.errorContext} (Error Code: ${msalRuntimeExampleError.errorCode}, Tag: ${msalRuntimeExampleError.errorTag})`
-            : `(Error Code: ${msalRuntimeExampleError.errorCode}, Tag: ${msalRuntimeExampleError.errorTag})`;
+            ? `${msalRuntimeExampleError.errorContext} (Error Code: ${
+                  msalRuntimeExampleError.errorCode
+              }, Tag: ${StringUtils.tagToString(
+                  msalRuntimeExampleError.errorTag
+              )})`
+            : `(Error Code: ${
+                  msalRuntimeExampleError.errorCode
+              }, Tag: ${StringUtils.tagToString(
+                  msalRuntimeExampleError.errorTag
+              )})`;
         const testNativeAuthError = new NativeAuthError(
             ErrorStatus[msalRuntimeExampleError.errorStatus],
             enhancedErrorContext,
@@ -672,7 +681,7 @@ if (process.platform === "win32") {
                     scopes: testAuthenticationResult.scopes,
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
-                    redirectUri: TEST_REDIRECTURI,
+                    redirectUri: "",
                 };
 
                 const chooseRedirectUriMock = jest.spyOn(
@@ -1509,7 +1518,7 @@ if (process.platform === "win32") {
                     scopes: testAuthenticationResult.scopes,
                     correlationId: testCorrelationId,
                     authority: testAuthenticationResult.authority,
-                    redirectUri: TEST_REDIRECTURI,
+                    redirectUri: "",
                 };
 
                 const chooseRedirectUriMock = jest.spyOn(
@@ -2287,7 +2296,7 @@ if (process.platform === "win32") {
                 scopes: testAuthenticationResult.scopes,
                 correlationId: testCorrelationId,
                 authority: testAuthenticationResult.authority,
-                redirectUri: TEST_REDIRECTURI,
+                redirectUri: "",
             };
 
             const chooseRedirectUriMock = jest.spyOn(
@@ -2332,7 +2341,7 @@ if (process.platform === "win32") {
                 scopes: testAuthenticationResult.scopes,
                 correlationId: testCorrelationId,
                 authority: testAuthenticationResult.authority,
-                redirectUri: TEST_REDIRECTURI,
+                redirectUri: "",
             };
 
             const chooseRedirectUriMock = jest.spyOn(
@@ -2385,7 +2394,7 @@ if (process.platform === "win32") {
                 scopes: testAuthenticationResult.scopes,
                 correlationId: testCorrelationId,
                 authority: testAuthenticationResult.authority,
-                redirectUri: TEST_REDIRECTURI,
+                redirectUri: "",
             };
 
             const chooseRedirectUriMock = jest.spyOn(
@@ -2430,7 +2439,7 @@ if (process.platform === "win32") {
                 scopes: testAuthenticationResult.scopes,
                 correlationId: testCorrelationId,
                 authority: testAuthenticationResult.authority,
-                redirectUri: TEST_REDIRECTURI,
+                redirectUri: "",
             };
 
             const chooseRedirectUriMock = jest.spyOn(

@@ -616,6 +616,19 @@ describe("PublicClientApplication", () => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
+
+        test("acquireTokenSilent throws error when redirectUri is provided", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                redirectUri: "http://localhost:3000/redirect",
+            };
+
+            await expect(authApp.acquireTokenSilent(request)).rejects.toThrow(
+                "RedirectUri is not supported in this scenario"
+            );
+        });
     });
 
     describe("acquireTokenInteractive tests", () => {
@@ -1023,6 +1036,19 @@ describe("PublicClientApplication", () => {
                 expect(mockCloseServer).toHaveBeenCalled();
                 done();
             });
+        });
+
+        test("acquireTokenInteractive throws error when redirectUri is provided", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: "http://localhost:3000/redirect",
+                openBrowser: jest.fn(),
+            };
+
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toThrow("RedirectUri is not supported in this scenario");
         });
     });
 
