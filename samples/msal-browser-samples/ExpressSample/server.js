@@ -5,7 +5,6 @@
 
 const express = require('express');
 const exphbs = require('express-handlebars');
-const morgan = require('morgan');
 const path = require('path');
 const { exec } = require('child_process');
 const { promisify } = require('util');
@@ -36,8 +35,6 @@ app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Middleware
-app.use(morgan('combined'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json()); // Parse JSON bodies
 
@@ -57,7 +54,7 @@ let availableVersions = {
         path: 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@latest/lib/msal-browser.min.js',
         description: 'Latest stable release from NPM'
     },
-    '3.x': {
+    'latest-v3': {
         name: 'Latest v3.x',
         path: 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js',
         description: 'Latest version of previous major (v3.x)'
@@ -67,14 +64,14 @@ let availableVersions = {
 // Cache for version info to avoid excessive NPM calls
 let versionCache = {
     latest: { version: null, lastFetched: 0 },
-    '3.x': { version: null, lastFetched: 0 }
+    'latest-v3': { version: null, lastFetched: 0 }
 };
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Function to fetch latest version from NPM
 async function fetchLatestVersion(versionRange = 'latest') {
     try {
-        const cacheKey = versionRange === 'latest' ? 'latest' : '3.x';
+        const cacheKey = versionRange === 'latest' ? 'latest' : 'latest-v3';
         const now = Date.now();
 
         // Return cached version if still valid
@@ -104,7 +101,7 @@ async function fetchLatestVersion(versionRange = 'latest') {
                     return aPatch - bPatch;
                 });
 
-            version = v3Versions[v3Versions.length - 1] || '3.28.1'; // fallback
+            version = v3Versions[v3Versions.length - 1] || '3.30.0'; // fallback
         }
 
         // Update cache
@@ -126,7 +123,7 @@ async function updateVersionDescriptions() {
     try {
         const [latestVersion, latest3xVersion] = await Promise.all([
             fetchLatestVersion('latest'),
-            fetchLatestVersion('3.x')
+            fetchLatestVersion('latest-v3')
         ]);
 
         if (latestVersion) {
@@ -138,8 +135,8 @@ async function updateVersionDescriptions() {
         }
 
         if (latest3xVersion) {
-            availableVersions['3.x'] = {
-                ...availableVersions['3.x'],
+            availableVersions['latest-v3'] = {
+                ...availableVersions['latest-v3'],
                 name: `Latest v3.x (v${latest3xVersion})`,
                 description: `Latest version of previous major`
             };
@@ -147,7 +144,7 @@ async function updateVersionDescriptions() {
 
         console.log('Version descriptions updated:', {
             latest: latestVersion,
-            '3.x': latest3xVersion
+            'latest-v3': latest3xVersion
         });
 
     } catch (error) {

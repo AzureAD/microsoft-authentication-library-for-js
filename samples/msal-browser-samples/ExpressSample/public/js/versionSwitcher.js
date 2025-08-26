@@ -89,6 +89,7 @@ function populateVersionDropdown() {
     const customVersionItem = createActionItem('🎯 Custom Version...', 'Specify a custom MSAL version', () => {
         showCustomVersionModal();
     });
+    customVersionItem.id = "custom";
     versionDropdown.appendChild(customVersionItem);
 
     // Add reload action

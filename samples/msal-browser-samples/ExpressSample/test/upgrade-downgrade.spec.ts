@@ -12,6 +12,86 @@ import {
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/upgrade-downgrade-tests`;
 
+/**
+ * Checks that tokens can be retrieved from the cache
+ * @param page 
+ * @param screenshot 
+ */
+async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Screenshot) {
+    // Track network requests to verify cached tokens are used
+    const networkRequests: puppeteer.HTTPRequest[] = [];
+    page.on('request', (request) => {
+        // Track all requests to authentication endpoints
+        if (request.url().includes('login.microsoftonline.com') || 
+            request.url().includes('/token') || 
+            request.url().includes('/authorize')) {
+            networkRequests.push(request);
+        }
+    });
+    
+    await page.locator("a#viewProfileButton").click();
+    await screenshot.takeScreenshot(page, "Profile button clicked");
+
+    // Verify the Raw Authentication Data section is populated
+    const authDataText = await page.locator("pre#auth-json").filter((value) => {console.log(value.textContent); return !!value.textContent && value.textContent !== 'Loading...'}).map(value => value.textContent).wait();
+    await screenshot.takeScreenshot(page, "Authentication data displayed");
+    const authData = JSON.parse(authDataText || "");
+    expect(authData).toHaveProperty('fromCache');
+    expect(authData.fromCache).toBe(true); // Should be from cache after upgrade
+
+    // Verify no authentication network requests were made (indicating cached tokens were used)
+    expect(networkRequests.length).toBe(0);
+}
+
+/**
+ * Helper to switch to a different version
+ * @param version 
+ * @param page 
+ * @param screenshot 
+ */
+async function switchToVersion(version: string, page: puppeteer.Page, screenshot: Screenshot) {
+    let versionSearchText = version;
+    switch (version) {
+        case "local":
+            versionSearchText = "Local Build";
+            break;
+        case "latest":
+            versionSearchText = "Latest (v4";
+            break;
+        case "latest-v3":
+            versionSearchText = "Latest v3.x";
+            break;
+        default:
+            versionSearchText = `MSAL v${version}`;
+    }
+
+    const currentVersion = await page.locator(`span#currentVersionText`).map(value => value.textContent || "").wait();
+    if (currentVersion.startsWith(versionSearchText)) {
+        await screenshot.takeScreenshot(page, `${version} version selected`);
+        return;
+    }
+
+    await page.locator("button#versionButton").click();
+
+    if (["local", "latest", "latest-v3"].includes(version)) {
+        await page.locator(`div#${version}`).click();
+    } else {
+        await page.locator('div#custom').click();
+        await page.locator("input#customVersionInput").fill(version);
+        await screenshot.takeScreenshot(page, "Custom version entered");
+        await page.locator("button#customVersionSubmit").click();
+    }
+
+
+    const selectedVersion = await page.locator(`span#currentVersionText`)
+        .filter((value) => {return !!value.textContent && !value.textContent.startsWith("Switching")})
+        .map(value => value.textContent || "")
+        .setTimeout(2000)
+        .wait();
+    expect(selectedVersion).toContain(versionSearchText);
+    await screenshot.takeScreenshot(page, `${version} version selected`);
+}
+
 describe("Upgrade/Downgrade Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -71,10 +151,7 @@ describe("Upgrade/Downgrade Tests", () => {
         );
         await screenshot.takeScreenshot(page, "Page loaded");
 
-        await page.locator("button#versionButton").click();
-        await page.locator('div#local').click();
-        await page.locator("span#currentVersionText").filter((value) => {return !!value.textContent && value.textContent == "Local Build"}).wait();
-        await screenshot.takeScreenshot(page, "Local published version selected");
+        await switchToVersion("local", page, screenshot);
 
         await page.locator("button#signInButton").click();
         await screenshot.takeScreenshot(page, "Sign in button clicked");
@@ -104,16 +181,13 @@ describe("Upgrade/Downgrade Tests", () => {
      */
     describe("Upgrade tests", () => {
         test("acquireTokenSilent can return tokens from the cache after upgrading from the previous version", async () => {
-            const testName = "upgrade";
+            const testName = "upgradeLatest";
             const screenshot = new Screenshot(
                 `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
             );
             await screenshot.takeScreenshot(page, "Page loaded");
 
-            await page.locator("button#versionButton").click();
-            await page.locator('div#latest').click();
-            await page.locator("span#currentVersionText").filter((value) => {return !!value.textContent && value.textContent.startsWith("Latest")}).wait();
-            await screenshot.takeScreenshot(page, "Latest published version selected");
+            await switchToVersion("latest", page, screenshot);
 
             await page.locator("button#signInButton").click();
             await screenshot.takeScreenshot(page, "Sign in button clicked");
@@ -124,42 +198,67 @@ describe("Upgrade/Downgrade Tests", () => {
             await screenshot.takeScreenshot(page, "Logged In");
 
             // Change to local build
-            await page.locator("button#versionButton").click();
-            await page.locator('div#local').click();
-            await page.locator("span#currentVersionText").filter((value) => {return !!value.textContent && value.textContent == "Local Build"}).wait();
-            await screenshot.takeScreenshot(page, "Local published version selected");
-            
-            // Track network requests to verify cached tokens are used
-            const networkRequests: puppeteer.HTTPRequest[] = [];
-            page.on('request', (request) => {
-                // Track all requests to authentication endpoints
-                if (request.url().includes('login.microsoftonline.com') || 
-                    request.url().includes('/token') || 
-                    request.url().includes('/authorize')) {
-                    networkRequests.push(request);
-                }
-            });
-            
-            await page.locator("a#viewProfileButton").click();
-            await screenshot.takeScreenshot(page, "Profile button clicked");
+            await switchToVersion("local", page, screenshot);
 
-            // Verify the Raw Authentication Data section is populated
-            const authDataText = await page.locator("pre#auth-json").filter((value) => {console.log(value.textContent); return !!value.textContent && value.textContent !== 'Loading...'}).map(value => value.textContent).wait();
-            await screenshot.takeScreenshot(page, "Authentication data displayed");
-            const authData = JSON.parse(authDataText || "");
-            expect(authData).toHaveProperty('fromCache');
-            expect(authData.fromCache).toBe(true); // Should be from cache after upgrade
-
-            // Verify no authentication network requests were made (indicating cached tokens were used)
-            expect(networkRequests.length).toBe(0);
+            await verifyCacheWasUsed(page, screenshot);
         });
 
-        test("acquireTokenSilent can return tokens from the cache after upgrading from 4.18.0 (cache schema v0)", () => {
+        test("acquireTokenSilent can return tokens from the cache after upgrading from 4.18.0 (cache schema v0)", async () => {
+            const testName = "upgradeV4-18-0";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
 
+            await switchToVersion("4.18.0", page, screenshot)
+
+            await page.locator("button#signInButton").click();
+            await screenshot.takeScreenshot(page, "Sign in button clicked");
+            await page.locator("a#signInRedirect").click();
+            await screenshot.takeScreenshot(page, "Sign in redirect clicked");
+            await enterCredentials(page, screenshot, username, accountPwd);
+            await page.locator("a#viewProfileButton").waitHandle();
+            await screenshot.takeScreenshot(page, "Logged In");
+
+            // Change to local build
+            await switchToVersion("local", page, screenshot);
+
+            await verifyCacheWasUsed(page, screenshot);
         });
 
-        test("acquireTokenSilent can return tokens from the cache after downgrading to v3 and then upgrading back to local version", () => {
+        test("acquireTokenSilent can return tokens from the cache after downgrading to v3 and then upgrading back to local version", async () => {
+            const testName = "upgradeV3";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
 
+            // Login Local Version
+            await switchToVersion("local", page, screenshot);
+
+            await page.locator("button#signInButton").click();
+            await screenshot.takeScreenshot(page, "Sign in button clicked");
+            await page.locator("a#signInRedirect").click();
+            await screenshot.takeScreenshot(page, "Sign in redirect clicked");
+            await enterCredentials(page, screenshot, username, accountPwd);
+            await page.locator("a#viewProfileButton").waitHandle();
+            await screenshot.takeScreenshot(page, "Logged In");
+
+            // Login V3 Version
+            await switchToVersion("latest-v3", page, screenshot);
+
+            await page.locator("button#signInButton").click();
+            await screenshot.takeScreenshot(page, "Sign in button clicked");
+            await page.locator("a#signInRedirect").click();
+            await screenshot.takeScreenshot(page, "Sign in redirect clicked");
+            // We should get SSO here so credentials don't need to be re-entered
+            await page.locator("a#viewProfileButton").setTimeout(5000).waitHandle();
+            await screenshot.takeScreenshot(page, "Logged In");
+
+            // Change back to local build
+            await switchToVersion("local", page, screenshot);
+
+            await verifyCacheWasUsed(page, screenshot);
         });
     });
     
@@ -184,4 +283,4 @@ describe("Upgrade/Downgrade Tests", () => {
 
         });
     });
-})
+});
