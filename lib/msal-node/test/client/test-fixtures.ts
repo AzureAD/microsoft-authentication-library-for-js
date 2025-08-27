@@ -33,9 +33,12 @@ const mockServerTelemetryManager: ServerTelemetryManager = {
 export const setupServerTelemetryManagerMock = () => {
     jest.doMock("@azure/msal-common", () => ({
         ...jest.requireActual("@azure/msal-common"),
-        ServerTelemetryManager: jest.fn().mockImplementation(
-            () => mockServerTelemetryManager as unknown as ServerTelemetryManager
-        ),
+        ServerTelemetryManager: jest
+            .fn()
+            .mockImplementation(
+                () =>
+                    mockServerTelemetryManager as unknown as ServerTelemetryManager
+            ),
     }));
 
     return mockServerTelemetryManager;

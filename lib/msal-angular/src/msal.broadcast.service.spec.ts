@@ -393,7 +393,10 @@ describe("MsalBroadcastService", () => {
       EventType.HANDLE_REDIRECT_START,
       InteractionType.Redirect
     );
-    eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.ACQUIRE_TOKEN_SUCCESS,
+      InteractionType.Redirect
+    );
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_END,
       InteractionType.Redirect

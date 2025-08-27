@@ -771,6 +771,7 @@ export class RedirectClient extends StandardInteractionClient {
                             // Create a serializable version of the request for events
                             const {
                                 // @ts-ignore
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                 onRedirectNavigate,
                                 ...serializableLogoutRequest
                             } = validLogoutRequest;
@@ -797,12 +798,13 @@ export class RedirectClient extends StandardInteractionClient {
                 authClient.getLogoutUri(validLogoutRequest);
 
             if (validLogoutRequest.account?.homeAccountId) {
+                // Create a serializable version of the request for events
                 if (
                     // @ts-ignore
                     typeof validLogoutRequest.onRedirectNavigate === "function"
                 ) {
-                    // Create a serializable version of the request for events
                     // @ts-ignore
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const { onRedirectNavigate, ...serializableLogoutRequest } =
                         validLogoutRequest;
 

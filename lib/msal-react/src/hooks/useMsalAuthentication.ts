@@ -113,6 +113,7 @@ export function useMsalAuthentication(
                         logger.verbose(
                             "useMsalAuthentication - Calling loginRedirect"
                         );
+                        await instance.handleRedirectPromise();
                         return instance
                             .loginRedirect(loginRequest as RedirectRequest)
                             .then(() => null);
@@ -137,7 +138,7 @@ export function useMsalAuthentication(
 
             return getToken()
                 .then((response: AuthenticationResult | null) => {
-                   if (loginType !== InteractionType.Redirect) {
+                    if (!!response) {
                         if (mounted.current) {
                             setResponse([response, null]);
                         }
@@ -145,10 +146,8 @@ export function useMsalAuthentication(
                     return response;
                 })
                 .catch((e: AuthError) => {
-                    if (loginType !== InteractionType.Redirect) {
-                        if (mounted.current) {
-                            setResponse([null, e]);
-                        }
+                    if (mounted.current) {
+                        setResponse([null, e]);
                     }
                     throw e;
                 });
@@ -243,10 +242,6 @@ export function useMsalAuthentication(
     );
 
     useEffect(() => {
-        instance.handleRedirectPromise().catch((e) => setResponse([null, e]))
-    }, [instance]);
-
-    useEffect(() => {
         if (
             shouldAcquireToken.current &&
             inProgress === InteractionStatus.None
@@ -270,8 +265,9 @@ export function useMsalAuthentication(
                     return;
                 });
             }
+            // If logging out, set the state to null so the component doesn't display authenticated content for a user that is logged out
         } else if (!account && result) {
-            setResponse([null, new AuthError("logged_out", "User logged out")]);
+            setResponse([null, null]);
         }
     }, [isAuthenticated, account, inProgress, login, acquireToken, logger]);
 

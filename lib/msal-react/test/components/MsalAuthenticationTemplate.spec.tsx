@@ -114,7 +114,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .mockImplementation((request) => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
-                
+
                 const acquireTokenEvent: EventMessage = {
                     eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Popup,
@@ -192,7 +192,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             </MsalProvider>
         );
 
-        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(2));
         await waitFor(() => expect(loginRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
             screen.queryByText("This text will always display.")
@@ -325,7 +325,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             </MsalProvider>
         );
 
-        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(2));
         await waitFor(() => expect(loginRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
             screen.queryByText("This text will always display.")
@@ -436,7 +436,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             </MsalProvider>
         );
 
-        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(2));
         expect(
             screen.queryByText("This text will always display.")
         ).toBeInTheDocument();
@@ -723,7 +723,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             });
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(2)
             );
             await waitFor(() =>
                 expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
