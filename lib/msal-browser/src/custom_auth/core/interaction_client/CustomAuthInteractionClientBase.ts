@@ -64,7 +64,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
 
     protected getScopes(scopes: string[] | undefined): string[] {
         if (!!scopes && scopes.length > 0) {
-            scopes;
+            return scopes;
         }
 
         return [
