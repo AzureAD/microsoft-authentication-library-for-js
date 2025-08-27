@@ -10,7 +10,7 @@ Wed, 27 Aug 2025 00:59:59 GMT
 
 ### Patches
 
-- Backward compability support #7962 (yongdiwang@microsoft.com)
+- Backward compatibility support #7962 (yongdiwang@microsoft.com)
 - Bump eslint-config-msal to v0.0.0
 - Bump msal-test-utils to v0.0.1
 - Bump rollup-msal to v0.0.0
