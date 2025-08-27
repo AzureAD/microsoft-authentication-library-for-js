@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756313011142,
+  "lastUpdate": 1756321025632,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -17236,6 +17236,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.61%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8316ee5f4bf29bdb326bf51b9b621b29731b36dc",
+          "message": "Add extraQueryParams for api calls (#7974)",
+          "timestamp": "2025-08-27T19:50:29+01:00",
+          "tree_id": "f7501b1a73f3c1c1226d4fb37f378613125226ad",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8316ee5f4bf29bdb326bf51b9b621b29731b36dc"
+        },
+        "date": 1756321023521,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 242990,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 240452,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
