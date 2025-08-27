@@ -27,7 +27,7 @@ export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Scree
     }
 
     // Verify the Raw Authentication Data section is populated
-    const authDataText = await page.locator("pre#auth-json").filter((value) => {console.log(value.textContent); return !!value.textContent && value.textContent !== 'Loading...'}).map(value => value.textContent).wait();
+    const authDataText = await page.locator("pre#auth-json").filter((value) => !!value.textContent && value.textContent !== 'Loading...').map(value => value.textContent).wait();
     await screenshot.takeScreenshot(page, "Authentication data displayed");
     const authData = JSON.parse(authDataText || "");
     expect(authData).toHaveProperty('fromCache');

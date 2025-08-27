@@ -115,7 +115,7 @@ describe("Upgrade/Downgrade Tests", () => {
             );
             await screenshot.takeScreenshot(page, "Page loaded");
 
-            await switchToVersion("4.18.0", page, screenshot)
+            await switchToVersion("4.18.0", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
             await switchToVersion("local", page, screenshot);
 
