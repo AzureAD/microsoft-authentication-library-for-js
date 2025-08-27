@@ -93,26 +93,65 @@ export function useMsalAuthentication(
         ): Promise<AuthenticationResult | null> => {
             const loginType = callbackInteractionType || interactionType;
             const loginRequest = callbackRequest || authenticationRequest;
-            switch (loginType) {
-                case InteractionType.Popup:
-                    logger.verbose(
-                        "useMsalAuthentication - Calling loginPopup"
-                    );
-                    return instance.loginPopup(loginRequest as PopupRequest);
-                case InteractionType.Redirect:
-                    // This promise is not expected to resolve due to full frame redirect
-                    logger.verbose(
-                        "useMsalAuthentication - Calling loginRedirect"
-                    );
-                    return instance
-                        .loginRedirect(loginRequest as RedirectRequest)
-                        .then(null);
-                case InteractionType.Silent:
-                    logger.verbose("useMsalAuthentication - Calling ssoSilent");
-                    return instance.ssoSilent(loginRequest as SsoSilentRequest);
-                default:
-                    throw ReactAuthError.createInvalidInteractionTypeError();
-            }
+
+            const getToken = async (): Promise<AuthenticationResult | null> => {
+                logger.verbose(
+                    "useMsalAuthentication - Calling acquireTokenSilent"
+                );
+
+                switch (loginType) {
+                    case InteractionType.Popup:
+                        logger.verbose(
+                            "useMsalAuthentication - Calling loginPopup"
+                        );
+                        return instance.loginPopup(
+                            loginRequest as PopupRequest
+                        );
+
+                    case InteractionType.Redirect:
+                        // This promise is not expected to resolve due to full frame redirect
+                        logger.verbose(
+                            "useMsalAuthentication - Calling loginRedirect"
+                        );
+                        return instance
+                            .loginRedirect(loginRequest as RedirectRequest)
+                            .then(() => null);
+
+                    case InteractionType.Silent:
+                        logger.verbose(
+                            "useMsalAuthentication - Calling ssoSilent"
+                        );
+                        return instance.ssoSilent(
+                            loginRequest as SsoSilentRequest
+                        );
+
+                    default:
+                        const invalidTypeError =
+                            ReactAuthError.createInvalidInteractionTypeError();
+                        if (mounted.current) {
+                            setResponse([null, invalidTypeError]);
+                        }
+                        throw invalidTypeError;
+                }
+            };
+
+            return getToken()
+                .then((response: AuthenticationResult | null) => {
+                   if (loginType !== InteractionType.Redirect) {
+                        if (mounted.current) {
+                            setResponse([response, null]);
+                        }
+                    }
+                    return response;
+                })
+                .catch((e: AuthError) => {
+                    if (loginType !== InteractionType.Redirect) {
+                        if (mounted.current) {
+                            setResponse([null, e]);
+                        }
+                    }
+                    throw e;
+                });
         },
         [instance, interactionType, authenticationRequest, logger]
     );
@@ -158,42 +197,35 @@ export function useMsalAuthentication(
                 tokenRequest.account = account;
             }
 
-            const getToken = async (): Promise<AuthenticationResult | null> => {
-                logger.verbose(
-                    "useMsalAuthentication - Calling acquireTokenSilent"
-                );
-                return instance
-                    .acquireTokenSilent(tokenRequest)
-                    .catch(async (e: AuthError) => {
-                        if (e instanceof InteractionRequiredAuthError) {
-                            if (!interactionInProgress.current) {
-                                logger.error(
-                                    "useMsalAuthentication - Interaction required, falling back to interaction"
-                                );
-                                return login(
-                                    fallbackInteractionType,
-                                    tokenRequest
-                                );
-                            } else {
-                                logger.error(
-                                    "useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes."
-                                );
-                                throw ReactAuthError.createUnableToFallbackToInteractionError();
-                            }
-                        }
-
-                        throw e;
-                    });
-            };
-
-            return getToken()
-                .then((response: AuthenticationResult | null) => {
+            return instance
+                .acquireTokenSilent(tokenRequest)
+                .then((response: AuthenticationResult) => {
                     if (mounted.current) {
                         setResponse([response, null]);
                     }
                     return response;
                 })
-                .catch((e: AuthError) => {
+                .catch(async (e: AuthError) => {
+                    if (e instanceof InteractionRequiredAuthError) {
+                        if (!interactionInProgress.current) {
+                            logger.error(
+                                "useMsalAuthentication - Interaction required, falling back to interaction"
+                            );
+                            return login(fallbackInteractionType, tokenRequest);
+                        } else {
+                            const fallbackError =
+                                ReactAuthError.createUnableToFallbackToInteractionError();
+                            logger.error(
+                                "useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes."
+                            );
+                            if (mounted.current) {
+                                setResponse([null, fallbackError]);
+                            }
+                            throw fallbackError;
+                        }
+                    }
+
+                    // Handle other errors
                     if (mounted.current) {
                         setResponse([null, e]);
                     }
@@ -211,12 +243,8 @@ export function useMsalAuthentication(
     );
 
     useEffect(() => {
-        if (account) {
-            acquireToken();
-        } else {
-            setResponse([null, null]);
-        }
-    }, [account, acquireToken]);   
+        instance.handleRedirectPromise().catch((e) => setResponse([null, e]))
+    }, [instance]);
 
     useEffect(() => {
         if (
@@ -242,6 +270,8 @@ export function useMsalAuthentication(
                     return;
                 });
             }
+        } else if (!account && result) {
+            setResponse([null, new AuthError("logged_out", "User logged out")]);
         }
     }, [isAuthenticated, account, inProgress, login, acquireToken, logger]);
 

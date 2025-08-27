@@ -75,11 +75,13 @@ export function useAccount(
             updateAccount();
         }
 
-        const callbackId = instance.addEventCallback((message: EventMessage) => {
-            if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
-                updateAccount();
+        const callbackId = instance.addEventCallback(
+            (message: EventMessage) => {
+                if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                    updateAccount();
+                }
             }
-        });
+        );
 
         return () => {
             if (callbackId) {
@@ -87,7 +89,6 @@ export function useAccount(
             }
         };
     }, [inProgress, accountIdentifiers, instance, logger]);
-
 
     return account;
 }

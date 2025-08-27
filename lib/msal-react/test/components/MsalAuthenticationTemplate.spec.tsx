@@ -114,15 +114,27 @@ describe("MsalAuthenticationTemplate tests", () => {
             .mockImplementation((request) => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
-                const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                
+                const acquireTokenEvent: EventMessage = {
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Popup,
                     payload: testResult,
                     error: null,
                     timestamp: 10000,
                 };
                 eventCallbacks.forEach((callback) => {
-                    callback(eventMessage);
+                    callback(acquireTokenEvent);
+                });
+
+                const loginEvent: EventMessage = {
+                    eventType: EventType.LOGIN_SUCCESS,
+                    interactionType: InteractionType.Popup,
+                    payload: testAccount,
+                    error: null,
+                    timestamp: 10000,
+                };
+                eventCallbacks.forEach((callback) => {
+                    callback(loginEvent);
                 });
 
                 return Promise.resolve(testResult);
@@ -156,7 +168,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Redirect,
                     payload: testResult,
                     error: null,
@@ -197,7 +209,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Silent,
                     payload: testResult,
                     error: null,
@@ -242,7 +254,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(loginRequest);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Popup,
                     payload: testResult,
                     error: null,
@@ -288,7 +300,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(loginRequest);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Redirect,
                     payload: testResult,
                     error: null,
@@ -333,7 +345,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(loginRequest);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Silent,
                     payload: testResult,
                     error: null,
@@ -1076,7 +1088,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Popup,
                     payload: testResult,
                     error: null,
