@@ -11,7 +11,7 @@
             "author": "yongdiwang@microsoft.com",
             "package": "@azure/msal-browser",
             "commit": "1a521c3e7631d4ed50d3082d26036162a4ef483e",
-            "comment": "Backward compability support #7962"
+            "comment": "Backward compatibility support #7962"
           },
           {
             "author": "beachball",
