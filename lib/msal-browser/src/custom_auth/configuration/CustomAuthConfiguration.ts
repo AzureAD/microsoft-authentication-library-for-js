@@ -8,12 +8,10 @@ import {
     Configuration,
 } from "../../config/Configuration.js";
 
-export type QueryKey = "dc" | "slice";
-
 export type CustomAuthOptions = {
     challengeTypes?: Array<string>;
     authApiProxyUrl: string;
-    customAuthApiQueryParams?: Partial<Record<QueryKey, string>>;
+    customAuthApiQueryParams?: Record<string, string>;
     capabilities?: Array<string>;
 };
 
