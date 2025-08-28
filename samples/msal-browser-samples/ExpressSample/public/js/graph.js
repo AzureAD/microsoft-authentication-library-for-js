@@ -8,13 +8,11 @@ import { getAccessToken } from './auth.js';
 import { graphConfig } from "./authConfig.js";
 
 // MS Graph API call functionality
-export async function callMsGraph(accessToken) {
-    if (!accessToken) {
-        accessToken = await getAccessToken();
-    }
+export async function callMsGraph() {
+    const authResponse = await getAccessToken();
 
     const headers = new Headers();
-    const bearer = `Bearer ${accessToken}`;
+    const bearer = `Bearer ${authResponse.accessToken}`;
 
     headers.append("Authorization", bearer);
 
@@ -28,7 +26,8 @@ export async function callMsGraph(accessToken) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return await response.json();
+        const profileData = await response.json();
+        return { profileData, authResponse };
     } catch (error) {
         console.error('Error calling MS Graph:', error);
         throw error;
@@ -46,14 +45,15 @@ export async function loadProfileData() {
         if (contentElement) contentElement.style.display = 'none';
         if (errorElement) errorElement.style.display = 'none';
 
-        const profileData = await callMsGraph();
+        const { profileData, authResponse } = await callMsGraph();
         displayProfileData(profileData);
+        displayAuthData(authResponse);
 
         if (loadingElement) loadingElement.style.display = 'none';
         if (contentElement) contentElement.style.display = 'block';
     } catch (error) {
         console.error('Failed to load profile data:', error);
-        
+
         if (loadingElement) loadingElement.style.display = 'none';
         if (errorElement) {
             errorElement.textContent = 'Failed to load profile data: ' + error.message;
@@ -89,5 +89,29 @@ export function displayProfileData(profileData) {
     const jsonElement = document.getElementById('profile-json');
     if (jsonElement) {
         jsonElement.textContent = JSON.stringify(profileData, null, 2);
+    }
+}
+
+// Display authentication data in the UI
+export function displayAuthData(authResponse) {
+    const authJsonElement = document.getElementById('auth-json');
+    if (authJsonElement && authResponse) {
+        // Create a sanitized version of the auth response for display
+        const displayData = {
+            accessToken: authResponse.accessToken ? '[REDACTED - Present]' : 'Not available',
+            tokenType: authResponse.tokenType,
+            expiresOn: authResponse.expiresOn,
+            account: authResponse.account,
+            scopes: authResponse.scopes,
+            correlationId: authResponse.correlationId,
+            fromCache: authResponse.fromCache,
+            idToken: authResponse.idToken,
+            idTokenClaims: authResponse.idTokenClaims,
+            uniqueId: authResponse.uniqueId,
+            tenantId: authResponse.tenantId
+        };
+
+        authJsonElement.textContent = JSON.stringify(displayData, null, 2);
+        authJsonElement.style.display = '';
     }
 }
