@@ -70,4 +70,107 @@ describe("UrlUtils", () => {
             }
         );
     });
+
+    describe("buildUrl with customAuthApiQueryParams", () => {
+        it("should add dc query parameter to URL", () => {
+            const customAuthApiQueryParams = { dc: "datacenter1" };
+            const result = buildUrl(
+                "https://example.com",
+                "path",
+                customAuthApiQueryParams
+            );
+
+            expect(result.searchParams.get("dc")).toBe("datacenter1");
+            expect(result.toString()).toBe(
+                "https://example.com/path?dc=datacenter1"
+            );
+        });
+
+        it("should add slice query parameter to URL", () => {
+            const customAuthApiQueryParams = { slice: "slice2" };
+            const result = buildUrl(
+                "https://example.com",
+                "path",
+                customAuthApiQueryParams
+            );
+
+            expect(result.searchParams.get("slice")).toBe("slice2");
+            expect(result.toString()).toBe(
+                "https://example.com/path?slice=slice2"
+            );
+        });
+
+        it("should add both dc and slice query parameters to URL", () => {
+            const customAuthApiQueryParams = {
+                dc: "datacenter1",
+                slice: "slice2",
+            };
+            const result = buildUrl(
+                "https://example.com",
+                "path",
+                customAuthApiQueryParams
+            );
+
+            expect(result.searchParams.get("dc")).toBe("datacenter1");
+            expect(result.searchParams.get("slice")).toBe("slice2");
+            expect(result.toString()).toBe(
+                "https://example.com/path?dc=datacenter1&slice=slice2"
+            );
+        });
+
+        it("should not add query parameters when customAuthApiQueryParams is undefined", () => {
+            const result = buildUrl("https://example.com", "path", undefined);
+
+            expect(result.toString()).toBe("https://example.com/path");
+        });
+
+        it("should handle empty customAuthApiQueryParams object", () => {
+            const result = buildUrl("https://example.com", "path", {});
+
+            expect(result.toString()).toBe("https://example.com/path");
+        });
+
+        it("should preserve existing query parameters in path", () => {
+            const customAuthApiQueryParams = { dc: "datacenter1" };
+            const result = buildUrl(
+                "https://example.com",
+                "path?existing=value",
+                customAuthApiQueryParams
+            );
+
+            expect(result.searchParams.get("existing")).toBe("value");
+            expect(result.searchParams.get("dc")).toBe("datacenter1");
+            expect(result.toString()).toBe(
+                "https://example.com/path?existing=value&dc=datacenter1"
+            );
+        });
+
+        it("should overwrite existing query parameters with same key", () => {
+            const customAuthApiQueryParams = { dc: "new" };
+            const result = buildUrl(
+                "https://example.com",
+                "path?dc=old",
+                customAuthApiQueryParams
+            );
+
+            expect(result.searchParams.get("dc")).toBe("new");
+            expect(result.toString()).toBe("https://example.com/path?dc=new");
+        });
+
+        it("should handle null and undefined values in customAuthApiQueryParams", () => {
+            const customAuthApiQueryParams = {
+                dc: null as any,
+                slice: undefined as any,
+            };
+            const result = buildUrl(
+                "https://example.com",
+                "path",
+                customAuthApiQueryParams
+            );
+
+            expect(result.searchParams.get("dc")).toBeNull();
+            expect(result.searchParams.get("slice")).toBeNull();
+            expect(result.toString()).toBe("https://example.com/path");
+        });
+    });
 });

@@ -17,9 +17,23 @@ export function parseUrl(url: string): URL {
     }
 }
 
-export function buildUrl(baseUrl: string, path: string): URL {
+export function buildUrl(
+    baseUrl: string,
+    path: string,
+    queryParams?: Record<string, string>
+): URL {
     const newBaseUrl = !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl;
     const newPath = path.startsWith("/") ? path.slice(1) : path;
     const url = new URL(newPath, newBaseUrl);
+
+    // Add query parameters if provided
+    if (queryParams) {
+        Object.entries(queryParams).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                url.searchParams.set(key, String(value));
+            }
+        });
+    }
+
     return url;
 }
