@@ -40,7 +40,7 @@ export interface LoggedMessage {
     hash: string;
     level: LogLevel;
     containsPii: boolean;
-    timestamp: number;
+    milliseconds: number;
 }
 
 /**
@@ -48,11 +48,12 @@ export interface LoggedMessage {
  */
 interface CorrelationLogData {
     logs: LoggedMessage[];
+    firstEventTime: number;
 }
 
 // Shared cache state for better minification - using Map's insertion order for LRU
-const CACHE_CAPACITY = 3;
-const MAX_LOGS_PER_CORRELATION = 1000;
+const CACHE_CAPACITY = 10;
+const MAX_LOGS_PER_CORRELATION = 300;
 const correlationCache = new Map<string, CorrelationLogData>();
 
 /**
@@ -67,17 +68,17 @@ function markAsRecentlyUsed(correlationId: string, data: CorrelationLogData): vo
  * Add log message to cache for specific correlation ID
  */
 function addLogToCache(correlationId: string, loggedMessage: LoggedMessage): void {
-    const normalizedCorrelationId = correlationId || "default";
+    const currentTime = Date.now();
 
-    let data = correlationCache.get(normalizedCorrelationId);
+    let data = correlationCache.get(correlationId);
 
     if (data) {
         // Mark as recently used
-        markAsRecentlyUsed(normalizedCorrelationId, data);
+        markAsRecentlyUsed(correlationId, data);
     } else {
         // Create new entry
-        data = { logs: [] };
-        correlationCache.set(normalizedCorrelationId, data);
+        data = { logs: [], firstEventTime: currentTime };
+        correlationCache.set(correlationId, data);
 
         // Remove LRU (first entry) if capacity exceeded
         if (correlationCache.size > CACHE_CAPACITY) {
@@ -89,7 +90,10 @@ function addLogToCache(correlationId: string, loggedMessage: LoggedMessage): voi
     }
 
     // Add log to the data, maintaining max logs per correlation
-    data.logs.push(loggedMessage);
+    data.logs.push({
+        ...loggedMessage,
+        milliseconds: currentTime - data.firstEventTime
+    });
     if (data.logs.length > MAX_LOGS_PER_CORRELATION) {
         data.logs.shift(); // Remove oldest log
     }
@@ -98,11 +102,10 @@ function addLogToCache(correlationId: string, loggedMessage: LoggedMessage): voi
 /**
  * Get all logs for specific correlation ID
  */
-function getLogsFromCache(correlationId: string): LoggedMessage[] {
-    const normalizedCorrelationId = correlationId || "default";
-    const data = correlationCache.get(normalizedCorrelationId);
+export function getLogsFromCache(correlationId: string): LoggedMessage[] {
+    const data = correlationCache.get(correlationId);
     if (data) {
-        markAsRecentlyUsed(normalizedCorrelationId, data);
+        markAsRecentlyUsed(correlationId, data);
         return [...data.logs]; // Return copy
     }
     return [];
@@ -111,12 +114,11 @@ function getLogsFromCache(correlationId: string): LoggedMessage[] {
 /**
  * Get logs for correlation ID and flush them from cache
  */
-function getAndFlushLogsFromCache(correlationId: string): LoggedMessage[] {
-    const normalizedCorrelationId = correlationId || "default";
-    const data = correlationCache.get(normalizedCorrelationId);
+export function getAndFlushLogsFromCache(correlationId: string): LoggedMessage[] {
+    const data = correlationCache.get(correlationId);
     if (data) {
         const logs = [...data.logs];
-        data.logs = []; // Clear the logs
+        correlationCache.delete(correlationId); // Remove the correlation ID completely from cache
         return logs;
     }
     return [];
@@ -125,7 +127,7 @@ function getAndFlushLogsFromCache(correlationId: string): LoggedMessage[] {
 /**
  * Get all correlation IDs that have logs
  */
-function getCachedCorrelationIds(): string[] {
+export function getCachedCorrelationIds(): string[] {
     return Array.from(correlationCache.keys());
 }
 
@@ -153,30 +155,69 @@ function createStringHash(str: string) {
         return h2.toString(36).padStart(7, "0") + h1.toString(36).padStart(7, "0");
     }
 
-    return cyrb64Hash(str).substring(0, 6);
+    const normalized = normalizeMessageForHashing(str);
+    return cyrb64Hash(normalized).substring(0, 6);
 }
 
 /**
- * Checks if a string is already a hashed logging string (8 hex characters)
+ * Checks if a string is already a hashed logging string (6 alphanumeric characters)
  */
 function isHashedString(str: string): boolean {
-    return /^[a-f0-9]{8}$/i.test(str);
+    if (str.length !== 6) {
+        return false;
+    }
+
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        const isAlphaNumeric = (char >= 'a' && char <= 'z') ||
+                              (char >= 'A' && char <= 'Z') ||
+                              (char >= '0' && char <= '9');
+        if (!isAlphaNumeric) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
  * Normalizes a message for consistent hashing between minified and runtime versions
+ * Handles quoted variables and expressions without regex to avoid quadratic time complexity
  */
 function normalizeMessageForHashing(message: string): string {
-    // Handle template literals with variable normalization
-    return message.replace(/\$\{[^}]*\}/g, (match) => {
-        const content = match.slice(2, -1).trim();
-        // Simple variable vs complex expression
-        if (/^[a-zA-Z_$][a-zA-Z0-9_$.]*$/.test(content)) {
-            return '${VAR}';
+    let result = '';
+    let i = 0;
+
+    while (i < message.length) {
+        if (message[i] === "'" && i + 1 < message.length && message.substr(i + 1, 2) === '${') {
+            // Found start of quoted variable: '${
+            let j = i + 3; // Skip past '${
+            let depth = 1;
+
+            // Find the matching closing brace
+            while (j < message.length && depth > 0) {
+                if (message[j] === '{') depth++;
+                else if (message[j] === '}') depth--;
+                j++;
+            }
+
+            // Check if we have the closing quote after the brace
+            if (j < message.length && message[j] === "'") {
+                // Replace the entire quoted variable with {VAR}
+                result += '{VAR}';
+                i = j + 1; // Skip past the closing quote
+            } else {
+                // Not a properly quoted variable, just add the character
+                result += message[i];
+                i++;
+            }
         } else {
-            return '${EXPR}';
+            result += message[i];
+            i++;
         }
-    });
+    }
+
+    return result;
 }
 /**
  * Class which facilitates logging of messages to a specific place.
@@ -259,6 +300,17 @@ export class Logger {
         logMessage: string,
         options: LoggerMessageOptions
     ): void {
+        const correlationId = options.correlationId || this.correlationId || "";
+        const isHashedInput = isHashedString(logMessage);
+        const hash: string = isHashedInput ? logMessage : createStringHash(logMessage);
+        const loggedMessage: LoggedMessage = {
+            hash,
+            level: options.logLevel,
+            containsPii: options.containsPii || false,
+            milliseconds: 0 // Will be calculated in addLogToCache
+        };
+        addLogToCache(correlationId, loggedMessage);
+
         if (
             options.logLevel > this.level ||
             (!this.piiLoggingEnabled && options.containsPii)
@@ -266,7 +318,6 @@ export class Logger {
             return;
         }
         const timestamp = new Date().toUTCString();
-        const correlationId = options.correlationId || this.correlationId || "";
 
         // Add correlationId to logs if set, correlationId provided on log messages take precedence
         const logHeader = `[${timestamp}] : [${correlationId}]`;
@@ -275,23 +326,8 @@ export class Logger {
             this.packageVersion
         } : ${LogLevel[options.logLevel]} - ${logMessage}`;
 
-        /*
-         * Input is already a hashed string (from minified version) OR
-         * Input is a regular string, need to hash it
-         */
-        const hash: string = isHashedString(logMessage) ? logMessage : createStringHash(normalizeMessageForHashing(logMessage));
-
-        const loggedMessage: LoggedMessage = {
-            hash,
-            level: options.logLevel,
-            containsPii: options.containsPii || false,
-            timestamp: Date.now()
-        };
-
-        addLogToCache(correlationId, loggedMessage);
-
-        // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": Constants.""}${options.context ? `:${options.context}` : Constants.""}`)(logMessage);
-        this.executeCallback(
+        // Display log message only if it's not hashed
+        !isHashedInput && this.executeCallback(
             options.logLevel,
             log,
             options.containsPii || false
@@ -309,27 +345,6 @@ export class Logger {
         if (this.localCallback) {
             this.localCallback(level, message, containsPii);
         }
-    }
-
-    /**
-     * Get cached logs for a specific correlation ID
-     */
-    public getCachedLogHashes(correlationId?: string): LoggedMessage[] {
-        return getLogsFromCache(correlationId || "");
-    }
-
-    /**
-     * Get cached logs for a correlation ID and flush them from cache
-     */
-    public getCachedLogHashesAndFlush(correlationId?: string): LoggedMessage[] {
-        return getAndFlushLogsFromCache(correlationId || "");
-    }
-
-    /**
-     * Get all correlation IDs that have cached logs
-     */
-    public getCachedCorrelationIds(): string[] {
-        return getCachedCorrelationIds();
     }
 
     /**

@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const PLUGIN_NAME = "logger-minify-plugin";
 
 // Define which logger methods to target for minification
 const LOGGER_METHODS = [
@@ -8,13 +7,97 @@ const LOGGER_METHODS = [
     'warning', 'warningPii', 'error', 'errorPii'
 ];
 
-// Pattern to match simple quoted strings within logger calls
-const SIMPLE_STRING_PATTERN = new RegExp(
-    `((?:commonLogger|logger|log)\\.(${LOGGER_METHODS.join('|')})\\s*\\([\\s\\S]*?)` +
-    `((?:\\\`[\\s\\S]*?\\\`|"(?:\\\\.|[^"])*"|'(?:\\\\.|[^'])*'))` +
-    `([\\s\\S]*?\\);)`,
-    'gm'
+// Optimized patterns to avoid quadratic backtracking
+const LOGGER_CALL_START = new RegExp(
+    `((?:commonLogger|logger|log)[?!]?\\.(${LOGGER_METHODS.join('|')})\\s*\\()`,
+    'g'
 );
+
+/**
+ * Efficiently find string literals within logger calls using linear parsing
+ * instead of complex regex that can cause quadratic performance
+ */
+function findLoggerStrings(code) {
+    const results = [];
+    let match;
+
+    // Reset regex state
+    LOGGER_CALL_START.lastIndex = 0;
+
+    while ((match = LOGGER_CALL_START.exec(code)) !== null) {
+        const startPos = match.index;
+        const prefixEnd = match.index + match[0].length;
+
+        // Parse from the opening parenthesis to find the string literal
+        const stringInfo = parseLoggerArguments(code, prefixEnd, startPos, match[0]);
+        if (stringInfo) {
+            results.push(stringInfo);
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Linear parser to find string literals in logger arguments
+ * Avoids regex backtracking by using state machine approach
+ */
+function parseLoggerArguments(code, startPos, loggerStartPos, prefix) {
+    let pos = startPos;
+    let depth = 1; // We're already inside the first parenthesis
+    let inString = false;
+    let stringChar = '';
+    let stringStart = -1;
+    let stringEnd = -1;
+
+    // Extract the logger method from the prefix (e.g., "logger.info(" -> "info")
+    const methodMatch = prefix.match(new RegExp(`\\.(${LOGGER_METHODS.join('|')})\\s*\\($`));
+    const logLevel = methodMatch ? methodMatch[1] : 'unknown';
+
+    while (pos < code.length && depth > 0) {
+        const char = code[pos];
+        const prevChar = pos > 0 ? code[pos - 1] : '';
+
+        if (!inString) {
+            if (char === '(' || char === '[' || char === '{') {
+                depth++;
+            } else if (char === ')' || char === ']' || char === '}') {
+                depth--;
+                if (depth === 0 && char === ')') {
+                    // Found the end of the logger call
+                    if (stringStart !== -1 && stringEnd !== -1) {
+                        const quotedString = code.slice(stringStart, stringEnd + 1);
+                        const suffix = code.slice(stringEnd + 1, pos + 1);
+                        return {
+                            startPos: loggerStartPos,
+                            endPos: pos + 1,
+                            prefix,
+                            quotedString,
+                            suffix,
+                            logLevel
+                        };
+                    }
+                    break;
+                }
+            } else if ((char === '"' || char === "'" || char === '`') && prevChar !== '\\') {
+                inString = true;
+                stringChar = char;
+                stringStart = pos;
+            }
+        } else {
+            if (char === stringChar && prevChar !== '\\') {
+                inString = false;
+                stringEnd = pos;
+                // For now, take the first string literal we find
+                // Could be extended to handle multiple strings if needed
+            }
+        }
+
+        pos++;
+    }
+
+    return null;
+}
 
 /**
  * Creates a consistent 6-char hash for a given string
@@ -43,6 +126,25 @@ function createStringHash(str) {
     return cyrb64Hash(str).substring(0, 6);
 }
 
+function getPackageVersion(packageJsonPath) {
+        // Try to read package.json for version
+        let packageVersion;
+        try {
+            if (fs.existsSync(packageJsonPath)) {
+                const pkg = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
+                packageVersion = pkg.version;
+            }
+        } catch (error) {
+            throw Error(`Could not read package version ${error.message}`);
+        }
+
+        if (!packageVersion) {
+            throw Error(`Could not read package version from ${packageJsonPath}`);
+        }
+
+        return packageVersion;
+    }
+
 /**
  * Cleans a quoted string by removing quotes and normalizing whitespace
  */
@@ -52,20 +154,65 @@ function cleanMessage(quotedStr) {
 
     if (quotedStr.startsWith('`') && quotedStr.endsWith('`')) {
         // Template literal - preserve structure but normalize whitespace
-        cleaned = cleaned.replace(/\\\n\s*/g, ''); // Remove line continuations
+        // Use simple string replacement instead of regex to avoid backtracking
+        while (cleaned.includes('\\\n')) {
+            cleaned = cleaned.replace('\\\n', '');
+        }
+        // Remove whitespace after line continuations
+        cleaned = cleaned.split('\n').map(line => line.trim()).join('\n');
     } else {
-        // Regular string - unescape quotes and normalize
-        cleaned = cleaned.replace(/\\"/g, '"').replace(/\\'/g, "'");
+        // Regular string - unescape quotes manually to avoid regex
+        cleaned = cleaned.split('\\"').join('"').split("\\'").join("'");
     }
 
     return cleaned.trim();
 }
 
 /**
+ * Optimized function to replace quoted variables without regex backtracking
+ */
+function normalizeTemplateVariables(str) {
+    let result = '';
+    let i = 0;
+
+    while (i < str.length) {
+        if (str[i] === "'" && i + 1 < str.length && str.substr(i + 1, 2) === '${') {
+            // Found start of quoted variable: '${
+            const varStart = i;
+            let j = i + 3; // Skip past '${
+            let depth = 1;
+
+            // Find the matching closing brace
+            while (j < str.length && depth > 0) {
+                if (str[j] === '{') depth++;
+                else if (str[j] === '}') depth--;
+                j++;
+            }
+
+            // Check if we have the closing quote after the brace
+            if (j < str.length && str[j] === "'") {
+                // Replace the entire quoted variable with {VAR}
+                result += '{VAR}';
+                i = j + 1; // Skip past the closing quote
+            } else {
+                // Not a properly quoted variable, just add the character
+                result += str[i];
+                i++;
+            }
+        } else {
+            result += str[i];
+            i++;
+        }
+    }
+
+    return result;
+}
+
+/**
  * Creates the rollup plugin for logger string minification
  */
 function loggerMinifyPlugin(options = {}) {
-    const { outputFile = 'log-strings-mapping.json', verbose = false } = options;
+    const { outputFile = '', verbose = false, packageJsonPath = '' } = options;
 
     // Simple local mappings for this build
     const stringMappings = new Map();
@@ -78,16 +225,24 @@ function loggerMinifyPlugin(options = {}) {
                 return null;
             }
 
+            // Use optimized linear parsing instead of regex
+            const loggerCalls = findLoggerStrings(code);
+            if (loggerCalls.length === 0) {
+                return null;
+            }
+
             let transformedCode = code;
             let hasChanges = false;
 
-            // SECOND PASS: Handle all string hashing (both original strings and normalized concatenations)
-            transformedCode = transformedCode.replace(SIMPLE_STRING_PATTERN, (match, prefix, method, quotedString, suffix) => {
+            // Process from end to start to maintain string positions
+            for (let i = loggerCalls.length - 1; i >= 0; i--) {
+                const { startPos, endPos, prefix, quotedString, suffix, logLevel } = loggerCalls[i];
+
                 const originalString = cleanMessage(quotedString);
 
-                // Skip if this looks like a hash (8 character hex string)
-                if (/^[a-f0-9]{8}$/.test(originalString)) {
-                    return match;
+                // Skip if this looks like a hash (6 character alphanumeric string)
+                if (/^[a-z0-9]{6}$/.test(originalString)) {
+                    continue;
                 }
 
                 // Handle template literals with variable normalization
@@ -95,44 +250,49 @@ function loggerMinifyPlugin(options = {}) {
                 const isTemplateLiteral = quotedString.startsWith('`') && quotedString.endsWith('`');
 
                 if (isTemplateLiteral) {
-                    // Normalize template variables for consistent hashing
-                    hashableString = originalString
-                        //.replace(/\$\{this\.([^}]*)\}/g, '${$1}') // Remove 'this.' prefix
-                        .replace(/\$\{[^}]*\}/g, (match) => {
-                            const content = match.slice(2, -1).trim();
-                            // Simple variable vs complex expression
-                            if (/^[a-zA-Z_$][a-zA-Z0-9_$.]*$/.test(content)) {
-                                return '${VAR}';
-                            } else {
-                                return '${EXPR}';
-                            }
-                        });
+                    // Use optimized function instead of regex
+                    hashableString = normalizeTemplateVariables(originalString);
                 } else {
                     hashableString = originalString;
                 }
 
                 const hash = createStringHash(hashableString);
-                stringMappings.set(hash, originalString); // Store original for debugging
+
+                // Store both original message and logger method for debugging
+                stringMappings.set(hash, {
+                    message: originalString,
+                    level: logLevel,
+                    //hashableString: hashableString !== originalString ? hashableString : undefined
+                });
                 hasChanges = true;
 
-                return `${prefix}"${hash}"${suffix}`;
-            });
+                // Replace the entire logger call
+                const replacement = `${prefix}"${hash}"${suffix}`;
+                transformedCode = transformedCode.slice(0, startPos) + replacement + transformedCode.slice(endPos);
+            }
 
             return hasChanges ? { code: transformedCode, map: null } : null;
         },
 
         generateBundle() {
             // Write mappings to file if we have any
-            if (stringMappings.size > 0) {
+            if (outputFile && stringMappings.size > 0) {
                 const outputDir = path.dirname(outputFile);
                 if (!fs.existsSync(outputDir)) {
                     fs.mkdirSync(outputDir, { recursive: true });
                 }
 
+                // Convert Map to object with enhanced structure
+                const mappingsObject = {};
+                for (const [hash, data] of stringMappings.entries()) {
+                    mappingsObject[hash] = data;
+                }
+
                 const mappingData = {
                     timestamp: new Date().toISOString(),
+                    packageVersion: getPackageVersion(packageJsonPath),
                     totalStrings: stringMappings.size,
-                    mappings: Object.fromEntries(stringMappings)
+                    mappings: mappingsObject,
                 };
 
                 fs.writeFileSync(outputFile, JSON.stringify(mappingData, null, 2));

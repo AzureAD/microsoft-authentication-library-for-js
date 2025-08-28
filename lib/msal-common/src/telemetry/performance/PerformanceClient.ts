@@ -4,18 +4,14 @@
  */
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration.js";
-import { Logger } from "../../logger/Logger.js";
-import {
-    InProgressPerformanceEvent,
-    IPerformanceClient,
-    PerformanceCallbackFunction,
-} from "./IPerformanceClient.js";
+import { getAndFlushLogsFromCache, Logger, LogLevel } from "../../logger/Logger.js";
+import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient.js";
 import {
     IntFields,
     PerformanceEvent,
     PerformanceEventContext,
     PerformanceEventStackedContext,
-    PerformanceEventStatus,
+    PerformanceEventStatus
 } from "./PerformanceEvent.js";
 import { AuthError } from "../../error/AuthError.js";
 import { CacheError } from "../../error/CacheError.js";
@@ -479,13 +475,19 @@ export abstract class PerformanceClient implements IPerformanceClient {
         });
         finalEvent.incompleteSubMeasurements = undefined;
 
+        const logs = getAndFlushLogsFromCache(event.correlationId);
+        // Format logs: [millis1,hash1;millis2,hash2;...]
+        const formattedLogs = logs.map((logMessage) => `${logMessage.milliseconds},${logMessage.hash}`).join(";");
+
         finalEvent = {
             ...finalEvent,
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
             context,
-            logs: this.logger.getCachedLogHashesAndFlush(event.correlationId).map((log) => log.hash)
+            logs: formattedLogs
         };
+
+        logs.length && this.logger.executeCallback(LogLevel.Info, `Accumulated hashed logs for correlation id '${event.correlationId}', version: ${finalEvent.libraryVersion}: '[${formattedLogs}]'`, false);
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);
 

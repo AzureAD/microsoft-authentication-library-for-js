@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, Logger } from "@azure/msal-common";
+import { Constants, Logger } from "@azure/msal-common/browser";
 import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
