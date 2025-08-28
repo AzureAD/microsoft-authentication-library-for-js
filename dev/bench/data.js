@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756321025632,
+  "lastUpdate": 1756415157788,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -17274,6 +17274,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.79%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6d975bcac88832b21e8e1ac030d3802133640005",
+          "message": "Upgrade/Rollback E2E Tests (#8017)\n\nThis pull request introduces a new end-to-end (E2E) test setup for the\n`ExpressSample` in the MSAL browser samples, along with several\nimprovements to the sample app's authentication flow, version switching,\nand UI. The most significant changes are the addition of E2E test\ninfrastructure, enhancements to how authentication and profile data are\nhandled and displayed, and improvements to the version switching logic\nand UI.\n\n**E2E Test Infrastructure and Configuration:**\n\n* Added E2E test configuration and helpers for `ExpressSample`,\nincluding a new `.env.e2e` file, a `jest.config.cjs` configuration, and\na `test-helpers.ts` utility for Puppeteer-based tests. This enables\nautomated browser testing of authentication scenarios.\n[[1]](diffhunk://#diff-d257013e504cdeb26f2bfad2e809b36492f6fdbfc45ffcbf4bc55b2da4887c74R1-R5)\n[[2]](diffhunk://#diff-b70997a8822f049844c4b3afbe1ab62688a13f909a880256d0c8364fff169c3eR1-R8)\n[[3]](diffhunk://#diff-a45554c7aba0df12b0d4ff639ce1fe74f9e12a2904ecb1d0d2edbe002bc4eefeR1-R112)\n* Updated the pipeline configuration to include `ExpressSample` in E2E\ntest runs.\n* Added necessary devDependencies and scripts for E2E testing in\n`package.json`.\n\n**Authentication and Profile Data Handling:**\n\n* Modified the authentication flow to return the full MSAL\nauthentication response, not just the access token, and updated the MS\nGraph call logic to pass and display this data.\n[[1]](diffhunk://#diff-aedaa17dbc1e25e5997a95b1bea0c9c3b5a9caa6fbbc943c700972966e16b530L115-R115)\n[[2]](diffhunk://#diff-57185e771678ea1756556bb0a2d9f5cba1e5441609c75dc66cebf0106e92ce3bL11-R15)\n[[3]](diffhunk://#diff-57185e771678ea1756556bb0a2d9f5cba1e5441609c75dc66cebf0106e92ce3bL31-R30)\n[[4]](diffhunk://#diff-57185e771678ea1756556bb0a2d9f5cba1e5441609c75dc66cebf0106e92ce3bL49-R50)\n[[5]](diffhunk://#diff-57185e771678ea1756556bb0a2d9f5cba1e5441609c75dc66cebf0106e92ce3bR94-R117)\n* Added UI logic to display both profile data and raw authentication\ndata, with sensitive fields (like the access token) redacted for\ndisplay.\n\n**Version Switching and UI Improvements:**\n\n* Refactored version switching logic to use consistent keys (e.g.,\n`latest-v3` instead of `3.x`) and improved the UI for version selection,\nincluding unique IDs for dropdown items and better feedback when\nswitching versions.\n[[1]](diffhunk://#diff-7bf33d829c4c8178361e7badec48a371762d82042e849f0d2c94a2bb41001c8cL60-R57)\n[[2]](diffhunk://#diff-7bf33d829c4c8178361e7badec48a371762d82042e849f0d2c94a2bb41001c8cL70-R74)\n[[3]](diffhunk://#diff-7bf33d829c4c8178361e7badec48a371762d82042e849f0d2c94a2bb41001c8cL107-R104)\n[[4]](diffhunk://#diff-7bf33d829c4c8178361e7badec48a371762d82042e849f0d2c94a2bb41001c8cL129-R147)\n[[5]](diffhunk://#diff-2d7f351e21c92ea9ff545acdd7d5094e73a972fe350dea4df139f4e760a77d2eR92)\n[[6]](diffhunk://#diff-2d7f351e21c92ea9ff545acdd7d5094e73a972fe350dea4df139f4e760a77d2eR111)\n* Ensured UI elements (such as sign-in and version switcher buttons) are\nonly displayed after event handlers are registered, preventing flicker\nor premature interaction.\n[[1]](diffhunk://#diff-83705d1d56435a3dea7f60a3b8bfeb237387c901e34b0a7990233797b9ad2fbaR47-R48)\n[[2]](diffhunk://#diff-2d7f351e21c92ea9ff545acdd7d5094e73a972fe350dea4df139f4e760a77d2eR64-R66)\n\n**UI and Styling Enhancements:**\n\n* Updated CSS classes and selectors to use `.json-content` for\ndisplaying JSON data, improving clarity and maintainability.\n[[1]](diffhunk://#diff-0587667bae35b440adac264532b10d1e1c50fd1ad1cf003c42cbceb8365bac54L251-R252)\n[[2]](diffhunk://#diff-0587667bae35b440adac264532b10d1e1c50fd1ad1cf003c42cbceb8365bac54L260-R261)\n* Minor CSS and code style cleanups for readability and consistency.\n[[1]](diffhunk://#diff-0587667bae35b440adac264532b10d1e1c50fd1ad1cf003c42cbceb8365bac54L175-R176)\n[[2]](diffhunk://#diff-0587667bae35b440adac264532b10d1e1c50fd1ad1cf003c42cbceb8365bac54L523-R530)\n\n**Other Improvements:**\n\n* Removed unnecessary dependencies (like `morgan`) from the server and\ncleaned up middleware usage.\n[[1]](diffhunk://#diff-7bf33d829c4c8178361e7badec48a371762d82042e849f0d2c94a2bb41001c8cL8)\n[[2]](diffhunk://#diff-7bf33d829c4c8178361e7badec48a371762d82042e849f0d2c94a2bb41001c8cL39-L40)\n* Improved screenshot utility to always capture full-page screenshots\nduring E2E tests.\n\nThese changes collectively improve the testability, usability, and\nmaintainability of the `ExpressSample` app and its E2E testing setup.\n\n---------\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2025-08-28T13:59:16-07:00",
+          "tree_id": "367ae66a96f94bc35add4705a603050c2201265a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/6d975bcac88832b21e8e1ac030d3802133640005"
+        },
+        "date": 1756415155673,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 255702,
+            "range": "±0.66%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 237564,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
