@@ -36,7 +36,7 @@ app.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/l
 
 app.use(express.static('app/', {
     setHeaders: (res) => {
-      res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+      res.set('Cross-Origin-Opener-Policy', 'unsafe-none');
     }
 }));
 
@@ -72,8 +72,8 @@ if (argv.https) {
      * Please see "Certificates and Secrets" (https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets)
      * for more information.
      */
-    const privateKey = fs.readFileSync('<path_to_key>/certs/key.pem', 'utf8');
-    const certificate = fs.readFileSync('<path_to_key>/certs/cert.pem', 'utf8');
+    const privateKey = fs.readFileSync('./key.pem', 'utf8');
+    const certificate = fs.readFileSync('./cert.pem', 'utf8');
     const credentials = { key: privateKey, cert: certificate };
     const httpsServer = https.createServer(credentials, app);
     httpsServer.listen(port);
