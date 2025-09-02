@@ -108,6 +108,20 @@ describe("Upgrade/Downgrade Tests", () => {
             await verifyCacheWasUsed(page, screenshot);
         });
 
+        test("acquireTokenSilent can return tokens from the cache after upgrading from the latest v4 version", async () => {
+            const testName = "upgradeLatestV4";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
+
+            await switchToVersion("latest-v4", page, screenshot);
+            await signIn(page, screenshot, username, accountPwd);
+            await switchToVersion("local", page, screenshot);
+
+            await verifyCacheWasUsed(page, screenshot);
+        });
+
         test("acquireTokenSilent can return tokens from the cache after upgrading from 4.18.0 (cache schema v0)", async () => {
             const testName = "upgradeV4-18-0";
             const screenshot = new Screenshot(
@@ -165,6 +179,23 @@ describe("Upgrade/Downgrade Tests", () => {
             await verifyCacheWasUsed(page, screenshot);
 
             await switchToVersion("latest", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
+        });
+
+        test("acquireTokenSilent can return tokens from the cache after downgrading back to v4", async () => {
+            const testName = "downgradeLocalToLatest";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await screenshot.takeScreenshot(page, "Page loaded");
+
+            await switchToVersion("latest-v4", page, screenshot);
+            await signIn(page, screenshot, username, accountPwd);
+
+            await switchToVersion("local", page, screenshot);
+            await verifyCacheWasUsed(page, screenshot);
+
+            await switchToVersion("latest-v4", page, screenshot);
             await verifyCacheWasUsed(page, screenshot);
         });
 

@@ -50,8 +50,13 @@ let availableVersions = {
         description: 'Locally built version from repository'
     },
     'latest': {
-        name: 'Latest (v4.x)',
+        name: 'Latest',
         path: 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@latest/lib/msal-browser.min.js',
+        description: 'Latest stable release from NPM'
+    },
+    'latest-v4': {
+        name: 'Latest v4.x',
+        path: 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@4/lib/msal-browser.min.js',
         description: 'Latest stable release from NPM'
     },
     'latest-v3': {
@@ -64,6 +69,7 @@ let availableVersions = {
 // Cache for version info to avoid excessive NPM calls
 let versionCache = {
     latest: { version: null, lastFetched: 0 },
+    'latest-v4': { version: null, lastFetched: 0 },
     'latest-v3': { version: null, lastFetched: 0 }
 };
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -71,41 +77,40 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 // Function to fetch latest version from NPM
 async function fetchLatestVersion(versionRange = 'latest') {
     try {
-        const cacheKey = versionRange === 'latest' ? 'latest' : 'latest-v3';
         const now = Date.now();
 
         // Return cached version if still valid
-        if (versionCache[cacheKey].version && (now - versionCache[cacheKey].lastFetched) < CACHE_DURATION) {
-            return versionCache[cacheKey].version;
+        if (versionCache[versionRange].version && (now - versionCache[versionRange].lastFetched) < CACHE_DURATION) {
+            return versionCache[versionRange].version;
         }
 
         let version;
 
-        if (versionRange === 'latest') {
-            const { stdout } = await execAsync('npm view @azure/msal-browser version --silent');
-            version = stdout.trim();
-        } else {
-            // For 3.x, get all versions and filter for the latest 3.x
-            const { stdout } = await execAsync('npm view @azure/msal-browser versions --json --silent');
-            const versions = JSON.parse(stdout);
+        switch (versionRange) {
+            case 'latest':
+                const { stdout } = await execAsync('npm view @azure/msal-browser version --silent');
+                version = stdout.trim();
+                break;
+            case 'latest-v4':
+                const { stdout: stdoutV4 } = await execAsync('npm view @azure/msal-browser@4 version --silent --json');
+                const versions = JSON.parse(stdoutV4);
+                version = versions.pop();
+                break;
+            case 'latest-v3':
+                const { stdout: stdoutV3 } = await execAsync('npm view @azure/msal-browser@3 version --silent --json');
+                const versionsV3 = JSON.parse(stdoutV3);
+                version = versionsV3.pop();
+                break;
+            default:
+                throw "Invalid version range given!";
+        }
 
-            // Filter for 3.x versions (excluding pre-release versions)
-            const v3Versions = versions
-                .filter(v => v.startsWith('3.') && !v.includes('-'))
-                .sort((a, b) => {
-                    const [aMajor, aMinor, aPatch] = a.split('.').map(Number);
-                    const [bMajor, bMinor, bPatch] = b.split('.').map(Number);
-
-                    if (aMajor !== bMajor) return aMajor - bMajor;
-                    if (aMinor !== bMinor) return aMinor - bMinor;
-                    return aPatch - bPatch;
-                });
-
-            version = v3Versions[v3Versions.length - 1] || '3.30.0'; // fallback
+        if (!version) {
+            throw "Unable to determine latest version";
         }
 
         // Update cache
-        versionCache[cacheKey] = {
+        versionCache[versionRange] = {
             version: version,
             lastFetched: now
         };
@@ -113,16 +118,16 @@ async function fetchLatestVersion(versionRange = 'latest') {
         return version;
     } catch (error) {
         console.warn(`Failed to fetch ${versionRange} version:`, error.message);
-        // Return fallback versions
-        return versionRange === 'latest' ? '4.15.0' : '3.28.1';
+        throw new Error(`Failed to fetch ${versionRange} version`);
     }
 }
 
 // Function to update version descriptions with actual version numbers
 async function updateVersionDescriptions() {
     try {
-        const [latestVersion, latest3xVersion] = await Promise.all([
+        const [latestVersion, latest4xVersion, latest3xVersion] = await Promise.all([
             fetchLatestVersion('latest'),
+            fetchLatestVersion('latest-v4'),
             fetchLatestVersion('latest-v3')
         ]);
 
@@ -134,16 +139,25 @@ async function updateVersionDescriptions() {
             };
         }
 
+        if (latest4xVersion) {
+            availableVersions['latest-v4'] = {
+                ...availableVersions['latest-v4'],
+                name: `Latest v4.x (v${latest4xVersion})`,
+                description: `Latest version of v4`
+            };
+        }
+
         if (latest3xVersion) {
             availableVersions['latest-v3'] = {
                 ...availableVersions['latest-v3'],
                 name: `Latest v3.x (v${latest3xVersion})`,
-                description: `Latest version of previous major`
+                description: `Latest version of v3`
             };
         }
 
         console.log('Version descriptions updated:', {
             latest: latestVersion,
+            'latest-v4': latest4xVersion,
             'latest-v3': latest3xVersion
         });
 

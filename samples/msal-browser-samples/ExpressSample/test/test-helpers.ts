@@ -50,7 +50,10 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
             versionSearchText = "Local Build";
             break;
         case "latest":
-            versionSearchText = "Latest (v4";
+            versionSearchText = "Latest (v";
+            break;
+        case "latest-v4":
+            versionSearchText = "Latest v4.x";
             break;
         case "latest-v3":
             versionSearchText = "Latest v3.x";
@@ -67,7 +70,7 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
 
     await page.locator("button#versionButton").click();
 
-    if (["local", "latest", "latest-v3"].includes(version)) {
+    if (["local", "latest", "latest-v4", "latest-v3"].includes(version)) {
         await page.locator(`div#${version}`).click();
     } else {
         await page.locator('div#custom').click();
