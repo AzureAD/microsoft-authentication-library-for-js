@@ -408,6 +408,8 @@ describe("MsalProvider tests", () => {
 
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
 
+            cachedAccounts = [testAccount];
+
             eventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Popup,
@@ -415,7 +417,6 @@ describe("MsalProvider tests", () => {
                 error: null,
                 timestamp: 10000,
             };
-            cachedAccounts = [testAccount];
 
             act(() => {
                 eventCallbacks.forEach((callback) => {

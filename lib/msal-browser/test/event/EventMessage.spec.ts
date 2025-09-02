@@ -95,7 +95,7 @@ describe("EventMessage.ts Unit Tests", () => {
             expect(test1).toBe(null);
         });
 
-        it("returns status None with event type LOGIN_SUCCESS", () => {
+        it("returns null with event type LOGIN_SUCCESS", () => {
             TEST_EVENT_MESSAGE.eventType = EventType.LOGIN_SUCCESS;
             TEST_EVENT_MESSAGE.interactionType = InteractionType.Popup;
 
@@ -103,13 +103,13 @@ describe("EventMessage.ts Unit Tests", () => {
                 TEST_EVENT_MESSAGE,
                 InteractionStatus.AcquireToken
             );
-            expect(test1).toBe(InteractionStatus.None);
+            expect(test1).toBe(null);
 
             const test2 =
                 EventMessageUtils.getInteractionStatusFromEvent(
                     TEST_EVENT_MESSAGE
                 );
-            expect(test2).toBe(InteractionStatus.None);
+            expect(test2).toBe(null);
         });
 
         it("returns null with event type LOGIN_SUCCESS if current interaction is not login or acquireToken", () => {
