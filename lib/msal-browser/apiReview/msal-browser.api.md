@@ -616,23 +616,13 @@ export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | Silent
 export const EventType: {
     readonly INITIALIZE_START: "msal:initializeStart";
     readonly INITIALIZE_END: "msal:initializeEnd";
-    readonly ACCOUNT_ADDED: "msal:accountAdded";
-    readonly ACCOUNT_REMOVED: "msal:accountRemoved";
     readonly ACTIVE_ACCOUNT_CHANGED: "msal:activeAccountChanged";
-    readonly LOGIN_START: "msal:loginStart";
     readonly LOGIN_SUCCESS: "msal:loginSuccess";
-    readonly LOGIN_FAILURE: "msal:loginFailure";
     readonly ACQUIRE_TOKEN_START: "msal:acquireTokenStart";
     readonly ACQUIRE_TOKEN_SUCCESS: "msal:acquireTokenSuccess";
     readonly BROKERED_REQUEST_SUCCESS: "msal:brokeredRequestSuccess";
     readonly ACQUIRE_TOKEN_FAILURE: "msal:acquireTokenFailure";
     readonly ACQUIRE_TOKEN_NETWORK_START: "msal:acquireTokenFromNetworkStart";
-    readonly SSO_SILENT_START: "msal:ssoSilentStart";
-    readonly SSO_SILENT_SUCCESS: "msal:ssoSilentSuccess";
-    readonly SSO_SILENT_FAILURE: "msal:ssoSilentFailure";
-    readonly ACQUIRE_TOKEN_BY_CODE_START: "msal:acquireTokenByCodeStart";
-    readonly ACQUIRE_TOKEN_BY_CODE_SUCCESS: "msal:acquireTokenByCodeSuccess";
-    readonly ACQUIRE_TOKEN_BY_CODE_FAILURE: "msal:acquireTokenByCodeFailure";
     readonly HANDLE_REDIRECT_START: "msal:handleRedirectStart";
     readonly HANDLE_REDIRECT_END: "msal:handleRedirectEnd";
     readonly POPUP_OPENED: "msal:popupOpened";
@@ -824,10 +814,8 @@ export { InteractionRequiredAuthErrorCodes }
 // @public
 export const InteractionStatus: {
     readonly Startup: "startup";
-    readonly Login: "login";
     readonly Logout: "logout";
     readonly AcquireToken: "acquireToken";
-    readonly SsoSilent: "ssoSilent";
     readonly HandleRedirect: "handleRedirect";
     readonly None: "none";
 };
