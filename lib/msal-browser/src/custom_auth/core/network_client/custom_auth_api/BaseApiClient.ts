@@ -27,7 +27,8 @@ export abstract class BaseApiClient {
     constructor(
         baseUrl: string,
         private readonly clientId: string,
-        private httpClient: IHttpClient
+        private httpClient: IHttpClient,
+        private customAuthApiQueryParams?: Record<string, string>
     ) {
         this.baseRequestUrl = parseUrl(
             !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl
@@ -45,7 +46,11 @@ export abstract class BaseApiClient {
             ...data,
         });
         const headers = this.getCommonHeaders(correlationId, telemetryManager);
-        const url = buildUrl(this.baseRequestUrl.href, endpoint);
+        const url = buildUrl(
+            this.baseRequestUrl.href,
+            endpoint,
+            this.customAuthApiQueryParams
+        );
 
         let response: Response;
 
