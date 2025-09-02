@@ -27,6 +27,8 @@ export class Screenshot {
             path: `${this.folderName}/${++this
                 .screenshotNum}_${screenshotName}.png`,
             fullPage: true
+        }).catch((e) => {
+            console.error(`Error taking screenshot ${screenshotName}: ${e}`);
         });
     }
 }
