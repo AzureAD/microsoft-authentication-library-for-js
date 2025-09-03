@@ -37,7 +37,6 @@ export type SsoSilentRequest = Partial<
         | "earJwk"
         | "codeChallenge"
         | "codeChallengeMethod"
-        | "requestedClaimsHash"
         | "platformBroker"
     >
 >;

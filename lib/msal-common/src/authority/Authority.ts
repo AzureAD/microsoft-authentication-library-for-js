@@ -349,7 +349,7 @@ export class Authority {
                  */
                 if (cachedPart !== tenantId) {
                     this.logger.verbose(
-                        `Replacing tenant domain name ${cachedPart} with id ${tenantId}`
+                        `Replacing tenant domain name '${cachedPart}' with id '${tenantId}'`
                     );
                     cachedPart = tenantId;
                 }
@@ -688,7 +688,7 @@ export class Authority {
         const openIdConfigurationEndpoint =
             this.defaultOpenIdConfigurationEndpoint;
         this.logger.verbose(
-            `Authority.getEndpointMetadataFromNetwork: attempting to retrieve OAuth endpoints from ${openIdConfigurationEndpoint}`
+            `Authority.getEndpointMetadataFromNetwork: attempting to retrieve OAuth endpoints from '${openIdConfigurationEndpoint}'`
         );
 
         try {
@@ -708,7 +708,7 @@ export class Authority {
             }
         } catch (e) {
             this.logger.verbose(
-                `Authority.getEndpointMetadataFromNetwork: ${e}`
+                `Authority.getEndpointMetadataFromNetwork: '${e}'`
             );
             return null;
         }
@@ -826,21 +826,21 @@ export class Authority {
             "Attempting to get cloud discovery metadata  from authority configuration"
         );
         this.logger.verbosePii(
-            `Known Authorities: ${
+            `Known Authorities: '${
                 this.authorityOptions.knownAuthorities ||
                 Constants.NOT_APPLICABLE
-            }`
+            }'`
         );
         this.logger.verbosePii(
-            `Authority Metadata: ${
+            `Authority Metadata: '${
                 this.authorityOptions.authorityMetadata ||
                 Constants.NOT_APPLICABLE
-            }`
+            }'`
         );
         this.logger.verbosePii(
-            `Canonical Authority: ${
+            `Canonical Authority: '${
                 metadataEntity.canonical_authority || Constants.NOT_APPLICABLE
-            }`
+            }'`
         );
         const metadata = this.getCloudDiscoveryMetadataFromConfig();
         if (metadata) {
@@ -990,11 +990,11 @@ export class Authority {
                 metadata = typedResponseBody.metadata;
 
                 this.logger.verbosePii(
-                    `tenant_discovery_endpoint is: ${typedResponseBody.tenant_discovery_endpoint}`
+                    `tenant_discovery_endpoint is: '${typedResponseBody.tenant_discovery_endpoint}'`
                 );
             } else if (isCloudInstanceDiscoveryErrorResponse(response.body)) {
                 this.logger.warning(
-                    `A CloudInstanceDiscoveryErrorResponse was returned. The cloud instance discovery network request's status code is: ${response.status}`
+                    `A CloudInstanceDiscoveryErrorResponse was returned. The cloud instance discovery network request's status code is: '${response.status}'`
                 );
 
                 typedResponseBody =
@@ -1007,10 +1007,10 @@ export class Authority {
                 }
 
                 this.logger.warning(
-                    `The CloudInstanceDiscoveryErrorResponse error is ${typedResponseBody.error}`
+                    `The CloudInstanceDiscoveryErrorResponse error is '${typedResponseBody.error}'`
                 );
                 this.logger.warning(
-                    `The CloudInstanceDiscoveryErrorResponse error description is ${typedResponseBody.error_description}`
+                    `The CloudInstanceDiscoveryErrorResponse error description is '${typedResponseBody.error_description}'`
                 );
 
                 this.logger.warning(
@@ -1034,12 +1034,12 @@ export class Authority {
         } catch (error) {
             if (error instanceof AuthError) {
                 this.logger.error(
-                    `There was a network error while attempting to get the cloud discovery instance metadata.\nError: ${error.errorCode}\nError Description: ${error.errorMessage}`
+                    `There was a network error while attempting to get the cloud discovery instance metadata.\nError: '${error.errorCode}'\nError Description: '${error.errorMessage}'`
                 );
             } else {
                 const typedError = error as Error;
                 this.logger.error(
-                    `A non-MSALJS error was thrown while attempting to get the cloud instance discovery metadata.\nError: ${typedError.name}\nError Description: ${typedError.message}`
+                    `A non-MSALJS error was thrown while attempting to get the cloud instance discovery metadata.\nError: '${typedError.name}'\nError Description: '${typedError.message}'`
                 );
             }
 

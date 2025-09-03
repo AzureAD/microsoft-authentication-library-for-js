@@ -15,7 +15,6 @@ import {
 import { MockStorageClass } from "../client/ClientTestUtils.js";
 import {
     TEST_TOKENS,
-    TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
@@ -104,6 +103,7 @@ export class MockCache {
             extendedExpiresOn: "4600",
             expiresOn: "4600",
             tokenType: AuthenticationScheme.BEARER,
+            lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(atOne);
 
@@ -119,6 +119,7 @@ export class MockCache {
             extendedExpiresOn: "4600",
             expiresOn: "4600",
             tokenType: AuthenticationScheme.BEARER,
+            lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(atTwo);
 
@@ -135,8 +136,7 @@ export class MockCache {
             extendedExpiresOn: "4600",
             expiresOn: "4600",
             tokenType: AuthenticationScheme.BEARER,
-            requestedClaims: JSON.stringify({ claim: "claim" }),
-            requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
+            lastUpdatedAt: Date.now().toString(),
         };
 
         await this.cacheManager.setAccessTokenCredential(atThree);
@@ -154,6 +154,7 @@ export class MockCache {
             extendedExpiresOn: "4600",
             expiresOn: "4600",
             tokenType: AuthenticationScheme.BEARER,
+            lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(
             bearerAtWithAuthScheme
@@ -173,6 +174,7 @@ export class MockCache {
             expiresOn: "4600",
             tokenType: AuthenticationScheme.POP,
             keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
+            lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(popAtWithAuthScheme);
 
@@ -190,6 +192,7 @@ export class MockCache {
             expiresOn: "4600",
             tokenType: AuthenticationScheme.SSH,
             keyId: "some_key_id",
+            lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(sshAtWithAuthScheme);
 
@@ -207,6 +210,7 @@ export class MockCache {
             expiresOn: "4600",
             tokenType: AuthenticationScheme.SSH,
             userAssertionHash: "nFDCbX7CudvdluSPGh34Y-VKZIXRG1rquljNBbn7xuE",
+            lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setAccessTokenCredential(
             atWithUserAssertionHash
@@ -221,6 +225,7 @@ export class MockCache {
             secret: "a refresh token",
             clientId: "mock_client_id",
             homeAccountId: "uid.utid",
+            lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setRefreshTokenCredential(rt);
 
@@ -231,6 +236,7 @@ export class MockCache {
             clientId: "mock_client_id",
             homeAccountId: "uid.utid",
             familyId: "1",
+            lastUpdatedAt: Date.now().toString(),
         };
         await this.cacheManager.setRefreshTokenCredential(rtFoci);
     }

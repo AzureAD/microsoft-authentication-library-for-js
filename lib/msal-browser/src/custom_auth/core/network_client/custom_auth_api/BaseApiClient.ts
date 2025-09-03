@@ -128,7 +128,10 @@ export abstract class BaseApiClient {
                 typeof responseData === "object" &&
                 responseData.challenge_type === ChallengeType.REDIRECT
             ) {
-                throw new RedirectError(correlationId);
+                throw new RedirectError(
+                    correlationId,
+                    responseData.redirect_reason
+                );
             }
 
             return {

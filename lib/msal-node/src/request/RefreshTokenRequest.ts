@@ -24,7 +24,6 @@ export type RefreshTokenRequest = Partial<
         | "authenticationScheme"
         | "resourceRequestMethod"
         | "resourceRequestUri"
-        | "requestedClaimsHash"
         | "storeInCache"
     >
 > & {

@@ -286,6 +286,10 @@ export type PerformanceEvent = {
     // Event context as JSON string
     context?: string;
 
+    // Cache Data
+    cacheLocation?: string;
+    cacheRetentionDays?: number;
+
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
     cacheIdCount?: number;
@@ -325,6 +329,8 @@ export type PerformanceEvent = {
     msalInstanceCount?: number;
     // Number of MSAL JS instances using the same client id in the frame
     sameClientIdInstanceCount?: number;
+
+    navigateCallbackResult?: boolean;
 };
 
 export type PerformanceEventContext = {
@@ -353,4 +359,14 @@ export const IntFields: ReadonlySet<string> = new Set([
     "multiMatchedRT",
     "unencryptedCacheCount",
     "encryptedCacheExpiredCount",
+    "oldAccountCount",
+    "oldAccessCount",
+    "oldIdCount",
+    "oldRefreshCount",
+    "currAccountCount",
+    "currAccessCount",
+    "currIdCount",
+    "currRefreshCount",
+    "expiredCacheRemovedCount",
+    "upgradedCacheCount",
 ]);

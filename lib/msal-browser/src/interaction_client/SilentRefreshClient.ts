@@ -22,6 +22,10 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
+import {
+    getRedirectUri,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
@@ -45,13 +49,19 @@ export class SilentRefreshClient extends StandardInteractionClient {
 
         if (request.redirectUri) {
             // Make sure any passed redirectUri is converted to an absolute URL - redirectUri is not a required parameter for refresh token redemption so only include if explicitly provided
-            silentRequest.redirectUri = this.getRedirectUri(
-                request.redirectUri
+            silentRequest.redirectUri = getRedirectUri(
+                request.redirectUri,
+                this.config.auth.redirectUri,
+                this.logger
             );
         }
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenSilent_silentFlow
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenSilent_silentFlow,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const refreshTokenClient = await this.createRefreshTokenClient({

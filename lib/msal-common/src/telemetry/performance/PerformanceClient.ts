@@ -335,13 +335,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const eventCorrelationId = correlationId || this.generateId();
         if (!correlationId) {
             this.logger.info(
-                `PerformanceClient: No correlation id provided for ${measureName}, generating`,
+                `PerformanceClient: No correlation id provided for '${measureName}', generating`,
                 eventCorrelationId
             );
         }
 
         this.logger.trace(
-            `PerformanceClient: Performance measurement started for ${measureName}`,
+            `PerformanceClient: Performance measurement started for '${measureName}'`,
             eventCorrelationId
         );
 
@@ -413,7 +413,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.eventsByCorrelationId.get(event.correlationId);
         if (!rootEvent) {
             this.logger.trace(
-                `PerformanceClient: Measurement not found for ${event.eventId}`,
+                `PerformanceClient: Measurement not found for '${event.eventId}'`,
                 event.correlationId
             );
             return null;
@@ -440,7 +440,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
 
         this.logger.trace(
-            `PerformanceClient: Performance measurement ended for ${event.name}: ${event.durationMs} ms`,
+            `PerformanceClient: Performance measurement ended for '${event.name}': '${event.durationMs}' ms`,
             event.correlationId
         );
 
@@ -460,7 +460,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             (rootEvent.errorCode || rootEvent.subErrorCode)
         ) {
             this.logger.trace(
-                `PerformanceClient: Remove error and sub-error codes for root event ${event.name} as intermediate error was successfully handled`,
+                `PerformanceClient: Remove error and sub-error codes for root event '${event.name}' as intermediate error was successfully handled`,
                 event.correlationId
             );
             rootEvent.errorCode = undefined;
@@ -472,7 +472,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         // Incomplete sub-measurements are discarded. They are likely an instrumentation bug that should be fixed.
         finalEvent.incompleteSubMeasurements?.forEach((subMeasurement) => {
             this.logger.trace(
-                `PerformanceClient: Incomplete submeasurement ${subMeasurement.name} found for ${event.name}`,
+                `PerformanceClient: Incomplete submeasurement '${subMeasurement.name}' found for '${event.name}'`,
                 finalEvent.correlationId
             );
             incompleteSubsCount++;
@@ -556,7 +556,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const rootEvent = this.eventsByCorrelationId.get(event.correlationId);
         if (rootEvent) {
             this.logger.trace(
-                `PerformanceClient: Performance measurement for ${event.name} added/updated`,
+                `PerformanceClient: Performance measurement for '${event.name}' added/updated`,
                 event.correlationId
             );
             rootEvent.incompleteSubMeasurements =
@@ -567,7 +567,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             });
         } else {
             this.logger.trace(
-                `PerformanceClient: Performance measurement for ${event.name} started`,
+                `PerformanceClient: Performance measurement for '${event.name}' started`,
                 event.correlationId
             );
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
@@ -613,7 +613,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const callbackId = this.generateId();
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(
-            `PerformanceClient: Performance callback registered with id: ${callbackId}`
+            `PerformanceClient: Performance callback registered with id: '${callbackId}'`
         );
 
         return callbackId;
@@ -630,11 +630,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         if (result) {
             this.logger.verbose(
-                `PerformanceClient: Performance callback ${callbackId} removed.`
+                `PerformanceClient: Performance callback '${callbackId}' removed.`
             );
         } else {
             this.logger.verbose(
-                `PerformanceClient: Performance callback ${callbackId} not removed.`
+                `PerformanceClient: Performance callback '${callbackId}' not removed.`
             );
         }
 
@@ -656,7 +656,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks.forEach(
             (callback: PerformanceCallbackFunction, callbackId: string) => {
                 this.logger.trace(
-                    `PerformanceClient: Emitting event to callback ${callbackId}`,
+                    `PerformanceClient: Emitting event to callback '${callbackId}'`,
                     correlationId
                 );
                 callback.apply(null, [events]);

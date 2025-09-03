@@ -31,11 +31,7 @@ import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
  */
 export type SilentRequest = Omit<
     CommonSilentFlowRequest,
-    | "authority"
-    | "correlationId"
-    | "forceRefresh"
-    | "account"
-    | "requestedClaimsHash"
+    "authority" | "correlationId" | "forceRefresh" | "account"
 > & {
     redirectUri?: string;
     extraQueryParameters?: StringDict;

@@ -107,6 +107,7 @@ const testAccessTokenEntity: AccessTokenEntity = {
     tokenType: Constants.AuthenticationScheme.BEARER,
     expiresOn: `${TimeUtils.nowSeconds() + TEST_CONFIG.TOKEN_EXPIRY}`,
     cachedAt: `${TimeUtils.nowSeconds()}`,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 describe("PlatformAuthInteractionClient Tests", () => {
@@ -216,8 +217,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "readAppMetadataFromCache"
             ).mockReturnValue(null);
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                BrowserCacheManager.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
         });
 
