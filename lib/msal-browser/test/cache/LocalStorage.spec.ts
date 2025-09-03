@@ -1,6 +1,10 @@
 import { Logger, StubPerformanceClient } from "@azure/msal-common/browser";
 import { LocalStorage } from "../../src/cache/LocalStorage.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
+import {
+    getAccountKeysCacheKey,
+    getTokenKeysCacheKey,
+} from "../../src/cache/CacheKeys.js";
 
 describe("LocalStorage tests", () => {
     const logger = new Logger({});
@@ -25,33 +29,40 @@ describe("LocalStorage tests", () => {
         await localStorageInstance.setUserData(
             idTokenKey,
             idTokenVal,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
         await localStorageInstance.setUserData(
             accessTokenKey,
             accessTokenVal,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
         await localStorageInstance.setUserData(
             refreshTokenKey,
             refreshTokenVal,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
         await localStorageInstance.setUserData(
             accountKey,
             accountVal,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
 
         localStorage.setItem(
-            `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+            getTokenKeysCacheKey(TEST_CONFIG.MSAL_CLIENT_ID),
             JSON.stringify({
                 idToken: [idTokenKey],
                 accessToken: [accessTokenKey],
                 refreshToken: [refreshTokenKey],
             })
         );
-        localStorage.setItem("msal.account.keys", JSON.stringify([accountKey]));
+        localStorage.setItem(
+            getAccountKeysCacheKey(),
+            JSON.stringify([accountKey])
+        );
     });
 
     afterEach(() => {
@@ -61,7 +72,7 @@ describe("LocalStorage tests", () => {
             "msal.cache.encryption=;expires=Thu, 01 Jan 1970 00:00:00 GMT;"; // Clear cookie
     });
 
-    it("initialize creates encryption cookie and clears existing cache", async () => {
+    it("initialize creates encryption cookie and clears existing encrypted cache", async () => {
         document.cookie =
             "msal.cache.encryption=;expires=Thu, 01 Jan 1970 00:00:00 GMT;"; // Clear existing cookie
         expect(document.cookie).not.toContain("msal.cache.encryption");
@@ -157,7 +168,8 @@ describe("LocalStorage tests", () => {
         await localStorageInstance.setUserData(
             "testKey",
             "testVal",
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
         expect(localStorage.getItem("testKey")).toBeTruthy(); // Encrypted
         expect(localStorageInstance.getUserData("testKey")).toBe("testVal"); // From in-memory
@@ -205,7 +217,8 @@ describe("LocalStorage tests", () => {
         await localStorageInstance.setUserData(
             "testKey",
             "testVal",
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
 
         const encrypted = localStorage.getItem("testKey") || "";
@@ -238,7 +251,8 @@ describe("LocalStorage tests", () => {
         await localStorageInstance1.setUserData(
             "testKey",
             "testVal",
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString()
         );
 
         expect(localStorageInstance1.getUserData("testKey")).toBe("testVal");
@@ -280,8 +294,10 @@ describe("LocalStorage tests", () => {
         expect(keys).toContain(accessTokenKey);
         expect(keys).toContain(refreshTokenKey);
         expect(keys).toContain(accountKey);
-        expect(keys).toContain(`msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`);
-        expect(keys).toContain("msal.account.keys");
+        expect(keys).toContain(
+            getTokenKeysCacheKey(TEST_CONFIG.MSAL_CLIENT_ID)
+        );
+        expect(keys).toContain(getAccountKeysCacheKey());
     });
 
     it("containsKey returns true/false if key exists in cache", async () => {

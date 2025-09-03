@@ -88,7 +88,7 @@ export function getAccountByUsername(
             "getAccountByUsername: Account matching username found, returning"
         );
         logger.verbosePii(
-            `getAccountByUsername: Returning signed-in accounts matching username: ${username}`
+            `getAccountByUsername: Returning signed-in accounts matching username: '${username}'`
         );
         return account;
     } else {
@@ -129,7 +129,7 @@ export function getAccountByHomeId(
             "getAccountByHomeId: Account matching homeAccountId found, returning"
         );
         logger.verbosePii(
-            `getAccountByHomeId: Returning signed-in accounts matching homeAccountId: ${homeAccountId}`
+            `getAccountByHomeId: Returning signed-in accounts matching homeAccountId: '${homeAccountId}'`
         );
         return account;
     } else {
@@ -170,7 +170,7 @@ export function getAccountByLocalId(
             "getAccountByLocalId: Account matching localAccountId found, returning"
         );
         logger.verbosePii(
-            `getAccountByLocalId: Returning signed-in accounts matching localAccountId: ${localAccountId}`
+            `getAccountByLocalId: Returning signed-in accounts matching localAccountId: '${localAccountId}'`
         );
         return account;
     } else {

@@ -71,7 +71,7 @@ export class SignInContinuationState extends SignInState<SignInContinuationState
             return new SignInResult(new SignInCompletedState(), accountInfo);
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to sign in with continuation token. Error: ${error}.`,
+                `Failed to sign in with continuation token. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 

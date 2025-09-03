@@ -69,7 +69,7 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to submit code for sign-in. Error: ${error}.`,
+                `Failed to submit code for sign-in. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 

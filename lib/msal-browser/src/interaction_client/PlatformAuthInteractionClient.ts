@@ -34,8 +34,13 @@ import {
     Constants,
     PerformanceEvents,
 } from "@azure/msal-common/browser";
+import {
+    BaseInteractionClient,
+    getDiscoveredAuthority,
+    getRedirectUri,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
-import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -162,8 +167,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            this.apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {
@@ -325,8 +334,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
-                const serverTelemetryManager =
-                    this.initializeServerTelemetryManager(this.apiId);
+                const serverTelemetryManager = initializeServerTelemetryManager(
+                    this.apiId,
+                    this.config.auth.clientId,
+                    this.correlationId,
+                    this.browserStorage,
+                    this.logger
+                );
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
                     throw e;
@@ -346,7 +360,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         };
         const redirectUri = navigateToLoginRequestUrl
             ? window.location.href
-            : this.getRedirectUri(request.redirectUri);
+            : getRedirectUri(
+                  request.redirectUri,
+                  this.config.auth.redirectUri,
+                  this.logger
+              );
         rootMeasurement.end({ success: true });
         await this.navigationClient.navigateExternal(
             redirectUri,
@@ -415,8 +433,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 reqTimestamp
             );
 
-            const serverTelemetryManager =
-                this.initializeServerTelemetryManager(this.apiId);
+            const serverTelemetryManager = initializeServerTelemetryManager(
+                this.apiId,
+                this.config.auth.clientId,
+                this.correlationId,
+                this.browserStorage,
+                this.logger
+            );
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return authResult;
         } catch (e) {
@@ -484,9 +507,14 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         // Get the preferred_cache domain for the given authority
-        const authority = await this.getDiscoveredAuthority({
-            requestAuthority: request.authority,
-        });
+        const authority = await getDiscoveredAuthority(
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger,
+            request.authority
+        );
 
         const baseAccount = buildAccountToCache(
             this.browserStorage,
@@ -710,10 +738,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     async cacheAccount(accountEntity: AccountEntity): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
         await this.browserStorage.setAccount(accountEntity, this.correlationId);
-
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(
-            accountEntity,
+            AccountEntityUtils.getAccountInfo(accountEntity),
             this.correlationId
         );
     }
@@ -892,7 +919,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scope: scopeSet.printScopes(),
-            redirectUri: this.getRedirectUri(request.redirectUri),
+            redirectUri: getRedirectUri(
+                request.redirectUri,
+                this.config.auth.redirectUri,
+                this.logger
+            ),
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
             tokenType: request.authenticationScheme,
@@ -965,13 +996,21 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const requestAuthority =
             request.authority || this.config.auth.authority;
 
-        if (request.account) {
+        const { azureCloudOptions, account } = request;
+
+        if (account) {
             // validate authority
-            await this.getDiscoveredAuthority({
+            await getDiscoveredAuthority(
+                this.config,
+                this.correlationId,
+                this.performanceClient,
+                this.browserStorage,
+                this.logger,
                 requestAuthority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                account: request.account,
-            });
+                azureCloudOptions,
+                undefined, // requestExtraQueryParameters
+                account
+            );
         }
 
         const canonicalAuthority = new UrlString(requestAuthority);
@@ -1011,7 +1050,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 return prompt;
             default:
                 this.logger.trace(
-                    `initializeNativeRequest: prompt = ${prompt} is not compatible with native flow`
+                    `initializeNativeRequest: prompt = '${prompt}' is not compatible with native flow`
                 );
                 throw createBrowserAuthError(
                     BrowserAuthErrorCodes.nativePromptNotSupported

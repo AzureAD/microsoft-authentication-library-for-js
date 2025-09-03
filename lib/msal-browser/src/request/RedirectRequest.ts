@@ -40,7 +40,6 @@ export type RedirectRequest = Partial<
         | "earJwk"
         | "codeChallenge"
         | "codeChallengeMethod"
-        | "requestedClaimsHash"
         | "platformBroker"
     >
 > & {

@@ -122,7 +122,7 @@ describe("CustomAuthAccountData", () => {
             const result = await accountData.signOut();
 
             expect(mockLogger.errorPii).toHaveBeenCalledWith(
-                `An error occurred during sign out: ${error}`,
+                `An error occurred during sign out: '${error}'`,
                 "test-correlation-id"
             );
             expect(result).toBeInstanceOf(SignOutResult);

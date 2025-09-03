@@ -149,4 +149,12 @@ export abstract class AuthActionErrorBase extends AuthFlowErrorBase {
     isTokenExpired(): boolean {
         return this.isTokenExpiredError();
     }
+
+    /**
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
+     */
+    isRedirectRequired(): boolean {
+        return this.isRedirectError();
+    }
 }

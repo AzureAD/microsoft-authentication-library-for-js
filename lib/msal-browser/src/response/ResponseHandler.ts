@@ -27,15 +27,15 @@ export function deserializeResponse(
         if (!UrlUtils.stripLeadingHashOrQuery(responseString)) {
             // Hash or Query string is empty
             logger.error(
-                `The request has returned to the redirectUri but a ${responseLocation} is not present. It's likely that the ${responseLocation} has been removed or the page has been redirected by code running on the redirectUri page.`
+                `The request has returned to the redirectUri but a '${responseLocation}' is not present. It's likely that the '${responseLocation}' has been removed or the page has been redirected by code running on the redirectUri page.`
             );
             throw createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError);
         } else {
             logger.error(
-                `A ${responseLocation} is present in the iframe but it does not contain known properties. It's likely that the ${responseLocation} has been replaced by code running on the redirectUri page.`
+                `A '${responseLocation}' is present in the iframe but it does not contain known properties. It's likely that the '${responseLocation}' has been replaced by code running on the redirectUri page.`
             );
             logger.errorPii(
-                `The ${responseLocation} detected is: ${responseString}`
+                `The '${responseLocation}' detected is: '${responseString}'`
             );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.hashDoesNotContainKnownProperties

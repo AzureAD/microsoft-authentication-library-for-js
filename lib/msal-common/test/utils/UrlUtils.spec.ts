@@ -89,4 +89,67 @@ describe("UrlUtils.ts Class Unit Tests", () => {
             expect(UrlUtils.getDeserializedResponse("?key1=")).toBe(null);
         });
     });
+
+    describe("normalizeUrlForComparison Tests", () => {
+        it("normalizes URLs with encoded vs decoded apostrophes to be equal", () => {
+            const urlWithEncodedApostrophe =
+                "https://localhost:4200/profile?comments=blah%27blah";
+            const urlWithDecodedApostrophe =
+                "https://localhost:4200/profile?comments=blah'blah";
+
+            const normalizedEncoded = UrlUtils.normalizeUrlForComparison(
+                urlWithEncodedApostrophe
+            );
+            const normalizedDecoded = UrlUtils.normalizeUrlForComparison(
+                urlWithDecodedApostrophe
+            );
+
+            expect(normalizedEncoded).toEqual(normalizedDecoded);
+        });
+
+        it("removes hash from URL before comparison", () => {
+            const urlWithHash = "https://example.com/path?param=value#hash";
+            const urlWithoutHash = "https://example.com/path?param=value";
+
+            const normalizedWithHash =
+                UrlUtils.normalizeUrlForComparison(urlWithHash);
+            const normalizedWithoutHash =
+                UrlUtils.normalizeUrlForComparison(urlWithoutHash);
+
+            expect(normalizedWithHash).toEqual(normalizedWithoutHash);
+        });
+
+        it("handles URLs with multiple encoded characters", () => {
+            const urlWithEncoded =
+                "https://example.com/path?name=John%20Doe%27s%20Test&other=value";
+            const urlWithDecoded =
+                "https://example.com/path?name=John Doe's Test&other=value";
+
+            const normalizedEncoded =
+                UrlUtils.normalizeUrlForComparison(urlWithEncoded);
+            const normalizedDecoded =
+                UrlUtils.normalizeUrlForComparison(urlWithDecoded);
+
+            expect(normalizedEncoded).toEqual(normalizedDecoded);
+        });
+
+        it("returns empty string for empty input", () => {
+            expect(UrlUtils.normalizeUrlForComparison("")).toEqual("");
+        });
+
+        it("returns original value for null/undefined input", () => {
+            expect(UrlUtils.normalizeUrlForComparison(null as any)).toBe(null);
+            expect(UrlUtils.normalizeUrlForComparison(undefined as any)).toBe(
+                undefined
+            );
+        });
+
+        it("handles malformed URLs gracefully", () => {
+            const malformedUrl = "not-a-valid-url";
+            // Should not throw and should return a canonicalized version
+            expect(() =>
+                UrlUtils.normalizeUrlForComparison(malformedUrl)
+            ).not.toThrow();
+        });
+    });
 });

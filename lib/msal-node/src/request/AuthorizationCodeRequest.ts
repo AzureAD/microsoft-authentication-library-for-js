@@ -28,7 +28,6 @@ export type AuthorizationCodeRequest = Partial<
         | "authenticationScheme"
         | "resourceRequestMethod"
         | "resourceRequestUri"
-        | "requestedClaimsHash"
         | "storeInCache"
     >
 > & {

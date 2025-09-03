@@ -27,6 +27,7 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONSTANTS,
 } from "../utils/TestConstants.js";
+import { generateAccountKey } from "../../src/cache/CacheHelpers.js";
 
 const cacheJson = require("./serializer/cache.json");
 const clientId = TEST_CONSTANTS.CLIENT_ID;
@@ -186,7 +187,9 @@ describe("Storage tests for msal-node: ", () => {
         await nodeStorage.setAccount(mockAccountEntity);
         expect(
             nodeStorage.getAccount(
-                AccountEntityUtils.generateAccountKey(mockAccountEntity)
+                generateAccountKey(
+                    AccountEntityUtils.getAccountInfo(mockAccountEntity)
+                )
             )
         ).toEqual(mockAccountEntity);
     });
@@ -211,6 +214,7 @@ describe("Storage tests for msal-node: ", () => {
             cachedAt: "1000",
             expiresOn: "4600",
             extendedExpiresOn: "4600",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         const cache = {
@@ -230,7 +234,7 @@ describe("Storage tests for msal-node: ", () => {
         );
 
         const accessTokenKey =
-            "uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite--";
+            "uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite-";
         const invalidAccessTokenKey =
             "uid1.utid1-login.windows.net-accesstoken_invalid-mock_client_id-samplerealm-scoperead scopewrite";
         const accessToken: AccessTokenEntity = {
@@ -244,6 +248,7 @@ describe("Storage tests for msal-node: ", () => {
             cachedAt: "1000",
             expiresOn: "4600",
             extendedExpiresOn: "4600",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         await nodeStorage.setAccessTokenCredential(accessToken);
@@ -265,7 +270,7 @@ describe("Storage tests for msal-node: ", () => {
         );
 
         const idTokenKey =
-            "uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm---";
+            "uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm--";
         const invalidIdTokenKey =
             "uid1.utid1-login.windows.net-idtoken_invalid-mock_client_id-samplerealm-";
         const idToken: IdTokenEntity = {
@@ -275,6 +280,7 @@ describe("Storage tests for msal-node: ", () => {
             clientId: "mock_client_id",
             secret: "an access token",
             realm: "samplerealm",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         await nodeStorage.setIdTokenCredential(idToken);
@@ -295,7 +301,7 @@ describe("Storage tests for msal-node: ", () => {
         );
 
         const refreshTokenKey =
-            "uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm---";
+            "uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm--";
         const invalidRefreshTokenKey =
             "uid1.utid1-login.windows.net-refreshtoken_invalid-mock_client_id-samplerealm-";
         const refreshToken: RefreshTokenEntity = {
@@ -305,6 +311,7 @@ describe("Storage tests for msal-node: ", () => {
             clientId: "mock_client_id",
             secret: "a refresh token",
             realm: "samplerealm",
+            lastUpdatedAt: Date.now().toString(),
         };
 
         await nodeStorage.setRefreshTokenCredential(refreshToken);

@@ -46,14 +46,6 @@ export class SignInError extends AuthActionErrorBase {
     isUnsupportedChallengeType(): boolean {
         return this.isUnsupportedChallengeTypeError();
     }
-
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
 }
 
 export class SignInSubmitPasswordError extends AuthActionErrorBase {
@@ -76,12 +68,4 @@ export class SignInSubmitCodeError extends AuthActionErrorBase {
     }
 }
 
-export class SignInResendCodeError extends AuthActionErrorBase {
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
-}
+export class SignInResendCodeError extends AuthActionErrorBase {}

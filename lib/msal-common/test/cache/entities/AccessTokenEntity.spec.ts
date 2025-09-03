@@ -4,22 +4,23 @@ import {
     mockAccessTokenEntity_2,
     mockRefreshTokenEntity,
     mockAccessTokenWithAuthSchemeEntity,
-} from "./cacheConstants";
-import { CacheHelpers } from "../../../src";
+} from "./cacheConstants.js";
+import * as CacheHelpers from "../../../src/cache/utils/CacheHelpers.js";
+import { generateCredentialKey } from "../../client/ClientTestUtils.js";
 
 describe("AccessTokenEntity.ts Unit Tests", () => {
     describe("AccessToken Credential entity", () => {
         it("Generate AccessTokenEntity key", () => {
             const at = mockCache.createMockATOne();
-            expect(CacheHelpers.generateCredentialKey(at)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--"
+            expect(generateCredentialKey(at)).toEqual(
+                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3-"
             );
         });
 
         it("Generate AccessTokenEntity key (adfs)", () => {
             const at = mockCache.createMockAdfsAt();
-            expect(CacheHelpers.generateCredentialKey(at)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--"
+            expect(generateCredentialKey(at)).toEqual(
+                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3-"
             );
         });
 
@@ -42,8 +43,8 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
     describe("AccessToken_With_AuthScheme credential entity", () => {
         it("Generate AccessTokenEntity key", () => {
             const popAT = mockCache.createMockPopAT();
-            expect(CacheHelpers.generateCredentialKey(popAT)).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope1 scope2 scope3--pop"
+            expect(generateCredentialKey(popAT)).toEqual(
+                "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope1 scope2 scope3-pop"
             );
         });
 

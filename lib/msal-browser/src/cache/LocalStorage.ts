@@ -9,7 +9,6 @@ import {
     invokeAsync,
     Logger,
     invoke,
-    Constants,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -34,7 +33,8 @@ import { CookieStorage, SameSiteOptions } from "./CookieStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
-import { StaticCacheKeys } from "../utils/BrowserConstants.js";
+import * as CacheKeys from "./CacheKeys.js";
+import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 
 const ENCRYPTION_KEY = "msal.cache.encryption";
 const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
@@ -42,12 +42,6 @@ const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
 type EncryptionCookie = {
     id: string;
     key: CryptoKey;
-};
-
-type EncryptedData = {
-    id: string;
-    nonce: string;
-    data: string;
 };
 
 export class LocalStorage implements IWindowStorage<string> {
@@ -105,16 +99,8 @@ export class LocalStorage implements IWindowStorage<string> {
                     correlationId
                 )(baseKey),
             };
-            await invokeAsync(
-                this.importExistingCache.bind(this),
-                BrowserPerformanceEvents.ImportExistingCache,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(correlationId);
         } else {
-            // Encryption key doesn't exist or is invalid, generate a new one and clear existing cache
-            this.clear();
+            // Encryption key doesn't exist or is invalid, generate a new one
             const id = createNewGuid();
             const baseKey = await invokeAsync(
                 generateBaseKey,
@@ -155,6 +141,14 @@ export class LocalStorage implements IWindowStorage<string> {
             );
         }
 
+        await invokeAsync(
+            this.importExistingCache.bind(this),
+            BrowserPerformanceEvents.ImportExistingCache,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(correlationId);
+
         // Register listener for cache updates in other tabs
         this.broadcast.addEventListener("message", this.updateCache.bind(this));
 
@@ -174,6 +168,54 @@ export class LocalStorage implements IWindowStorage<string> {
         return this.memoryStorage.getItem(key);
     }
 
+    async decryptData(
+        key: string,
+        data: EncryptedData,
+        correlationId: string
+    ): Promise<object | null> {
+        if (!this.initialized || !this.encryptionCookie) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication
+            );
+        }
+
+        if (data.id !== this.encryptionCookie.id) {
+            // Data was encrypted with a different key. It must be removed because it is from a previous session.
+            this.performanceClient.incrementFields(
+                { encryptedCacheExpiredCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+
+        const decryptedData = await invokeAsync(
+            decrypt,
+            BrowserPerformanceEvents.Decrypt,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            this.encryptionCookie.key,
+            data.nonce,
+            this.getContext(key),
+            data.data
+        );
+
+        if (!decryptedData) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(decryptedData);
+        } catch (e) {
+            this.performanceClient.incrementFields(
+                { encryptedCacheCorruptionCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+    }
+
     setItem(key: string, value: string): void {
         window.localStorage.setItem(key, value);
     }
@@ -181,7 +223,8 @@ export class LocalStorage implements IWindowStorage<string> {
     async setUserData(
         key: string,
         value: string,
-        correlationId: string
+        correlationId: string,
+        timestamp: string
     ): Promise<void> {
         if (!this.initialized || !this.encryptionCookie) {
             throw createBrowserAuthError(
@@ -200,6 +243,7 @@ export class LocalStorage implements IWindowStorage<string> {
             id: this.encryptionCookie.id,
             nonce: nonce,
             data: data,
+            lastUpdatedAt: timestamp,
         };
 
         this.memoryStorage.setItem(key, value);
@@ -250,7 +294,7 @@ export class LocalStorage implements IWindowStorage<string> {
         // Clean up anything left
         this.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.startsWith(Constants.CACHE_PREFIX) ||
+                cacheKey.startsWith(CacheKeys.PREFIX) ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.removeItem(cacheKey);
@@ -270,7 +314,14 @@ export class LocalStorage implements IWindowStorage<string> {
         let accountKeys = getAccountKeys(this);
         accountKeys = await this.importArray(accountKeys, correlationId);
         // Write valid account keys back to map
-        this.setItem(StaticCacheKeys.ACCOUNT_KEYS, JSON.stringify(accountKeys));
+        if (accountKeys.length) {
+            this.setItem(
+                CacheKeys.getAccountKeysCacheKey(),
+                JSON.stringify(accountKeys)
+            );
+        } else {
+            this.removeItem(CacheKeys.getAccountKeysCacheKey());
+        }
 
         const tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
         tokenKeys.idToken = await this.importArray(
@@ -286,10 +337,18 @@ export class LocalStorage implements IWindowStorage<string> {
             correlationId
         );
         // Write valid token keys back to map
-        this.setItem(
-            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
-            JSON.stringify(tokenKeys)
-        );
+        if (
+            tokenKeys.idToken.length ||
+            tokenKeys.accessToken.length ||
+            tokenKeys.refreshToken.length
+        ) {
+            this.setItem(
+                CacheKeys.getTokenKeysCacheKey(this.clientId),
+                JSON.stringify(tokenKeys)
+            );
+        } else {
+            this.removeItem(CacheKeys.getTokenKeysCacheKey(this.clientId));
+        }
     }
 
     /**
@@ -318,13 +377,13 @@ export class LocalStorage implements IWindowStorage<string> {
             return null;
         }
 
-        if (!encObj.id || !encObj.nonce || !encObj.data) {
-            // Data is not encrypted, likely from old version of MSAL. It must be removed because we don't know how old it is.
+        if (!isEncrypted(encObj)) {
+            // Data is not encrypted
             this.performanceClient.incrementFields(
                 { unencryptedCacheCount: 1 },
                 correlationId
             );
-            return null;
+            return encObj;
         }
 
         if (encObj.id !== this.encryptionCookie.id) {
@@ -411,7 +470,7 @@ export class LocalStorage implements IWindowStorage<string> {
 
         if (context && context !== this.clientId) {
             this.logger.trace(
-                `Ignoring broadcast event from clientId: ${context}`
+                `Ignoring broadcast event from clientId: '${context}'`
             );
             perfMeasurement.end({
                 success: false,

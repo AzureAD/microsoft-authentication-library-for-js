@@ -1,10 +1,11 @@
 import { mockIdTokenEntity, mockAccessTokenEntity_1 } from "./cacheConstants";
 import { CacheHelpers } from "../../../src";
+import { generateCredentialKey } from "../../client/ClientTestUtils.js";
 
 describe("IdTokenEntity.ts Unit Tests", () => {
     it("Create an IdTokenEntity", () => {
-        expect(CacheHelpers.generateCredentialKey(mockIdTokenEntity)).toEqual(
-            "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---"
+        expect(generateCredentialKey(mockIdTokenEntity)).toEqual(
+            "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft--"
         );
     });
 

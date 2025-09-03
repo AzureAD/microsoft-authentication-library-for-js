@@ -266,8 +266,8 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = AccountEntityUtils.generateAccountKey(
-                    cacheRecord.account
+                const key = this.cacheStorage.generateAccountKey(
+                    AccountEntityUtils.getAccountInfo(cacheRecord.account)
                 );
                 const account = this.cacheStorage.getAccount(
                     key,
@@ -419,9 +419,7 @@ export class ResponseHandler {
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
-                serverTokenResponse.key_id,
-                request.claims,
-                request.requestedClaimsHash
+                serverTokenResponse.key_id
             );
         }
 
