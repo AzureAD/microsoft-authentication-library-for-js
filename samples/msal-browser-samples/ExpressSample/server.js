@@ -102,7 +102,7 @@ async function fetchLatestVersion(versionRange = 'latest') {
                 version = versionsV3.pop();
                 break;
             default:
-                throw "Invalid version range given!";
+                throw new Error("Invalid version range given!");
         }
 
         if (!version) {
