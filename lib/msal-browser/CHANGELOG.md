@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 27 Aug 2025 00:59:59 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 03 Sep 2025 20:01:35 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.22.0
+
+Wed, 03 Sep 2025 20:01:35 GMT
+
+### Minor changes
+
+- Add extraQueryParams for api calls #7974 (yongdiwang@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.21.1
 
