@@ -61,9 +61,7 @@
     "url": "https://www.microsoft.com"
   },
   "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
+    "disallowedChangeTypes": []
   },
   "dependencies": {
     "@azure/msal-common": "15.7.0",
