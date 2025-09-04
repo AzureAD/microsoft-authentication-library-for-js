@@ -1,8 +1,8 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
-        authority: "https://login.microsoftonline.com/common"
+        clientId: "14638111-3389-403d-b206-a6a71d9f8f16",
+        authority: "https://login.microsoftonline.com/consumers"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -52,5 +52,17 @@ const tokenRequest = {
 };
 
 const silentRequest = {
-    loginHint: "IDLAB@msidlab0.ccsctp.net"
+    scopes: ["ec242e59-0aa7-46e0-adf0-67f0879906f5/.default"],
+    httpMethod: "POST",
+    // prompt: "none",
+    redirectUri: "https://copilot.microsoft.com",
+    authorizePostBodyParameters: {
+        "ssu": "1",
+        "id_provider": "apple.com",
+        "fidp_idtoken": process.env.TEST_FIDP_IDTOKEN
+    },
+    extraQueryParameters: {
+        "msatestring": "1",
+        // "dc": "ESTS-PUB-NCUS-LZ1-FD000-TEST3"
+    }
 };

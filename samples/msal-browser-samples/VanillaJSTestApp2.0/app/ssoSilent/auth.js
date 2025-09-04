@@ -34,7 +34,7 @@ function handleResponse(resp) {
             showWelcomeMessage(resp.account);
             getTokenRedirect(loginRequest, resp.account);
         } else {
-            myMSALObj.ssoSilent(silentRequest).then(() => {
+            myMSALObj.acquireTokenRedirect(silentRequest).then(() => {
                 const currentAccounts = myMSALObj.getAllAccounts();
                 accountId = currentAccounts[0].homeAccountId;
                 showWelcomeMessage(currentAccounts[0]);
