@@ -52,7 +52,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             const supportedContracts =
                 // @ts-ignore
                 await window.navigator.platformAuthentication.getSupportedContracts(
-                    PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID
+                    {
+                        brokerId:
+                            PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID,
+                    }
                 );
             if (
                 supportedContracts?.includes(
