@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Remove support for old versions of Node and React #8014",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
