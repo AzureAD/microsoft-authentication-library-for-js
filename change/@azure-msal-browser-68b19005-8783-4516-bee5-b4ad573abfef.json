@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "updating input to getSupportedContracts API #8029",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
