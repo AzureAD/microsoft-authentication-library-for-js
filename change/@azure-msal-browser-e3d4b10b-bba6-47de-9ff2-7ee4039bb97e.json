@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Add extraQueryParams for api calls #7974",
-    "packageName": "@azure/msal-browser",
-    "email": "yongdiwang@microsoft.com",
-    "dependentChangeType": "minor"
-}
