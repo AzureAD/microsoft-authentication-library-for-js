@@ -80,11 +80,6 @@ describe("/ (Home Page)", () => {
         await enterCredentials(page, screenshot, username, accountPwd);
         await screenshot.takeScreenshot(page, "Returned to app");
 
-        const requestProfileLink = await page.waitForSelector(
-            "xpath=//a[contains(., 'Request Profile Information')]"
-        );
-        await requestProfileLink.click();
-
         // Verify UI now displays logged in content
         await page.waitForSelector("xpath/.//header[contains(.,'Welcome,')]");
         const profileButton = await page.waitForSelector(
@@ -134,10 +129,6 @@ describe("/ (Home Page)", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        const requestProfileLink = await page.waitForSelector(
-            "xpath=//a[contains(., 'Request Profile Information')]"
-        );
-        await requestProfileLink.click();
         await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 

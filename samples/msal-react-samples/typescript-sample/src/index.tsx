@@ -10,7 +10,6 @@ import {
     PublicClientApplication,
     EventType,
     EventMessage,
-    AuthenticationResult,
 } from "@azure/msal-browser";
 import { msalConfig } from "./authConfig";
 
@@ -25,8 +24,7 @@ msalInstance.initialize().then(() => {
 
     msalInstance.addEventCallback((event: EventMessage) => {
         if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
-            const payload = event.payload as AuthenticationResult;
-            const account = payload.account;
+            const account = event.payload;
             msalInstance.setActiveAccount(account);
         }
     });

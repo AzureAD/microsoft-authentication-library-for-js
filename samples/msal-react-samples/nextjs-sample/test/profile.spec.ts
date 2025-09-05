@@ -87,15 +87,7 @@ describe("/profile", () => {
         await enterCredentials(page, screenshot, username, accountPwd);
         await screenshot.takeScreenshot(page, "Returned to app");
 
-        // need to press request profile link
-        await page.goto(`http://localhost:${port}`);
-        const requestProfileLink = await page.waitForSelector(
-            "xpath=//a[contains(., 'Request Profile Information')]"
-        );
-        await requestProfileLink.click();
-        await page.goto(`http://localhost:${port}/profile`);
-
-        // Wait for Graph data to display (should be on profile page after redirect)
+        // Wait for Graph data to display
         await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
@@ -146,11 +138,6 @@ describe("/profile", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        const requestProfileLink = await page.waitForSelector(
-            "xpath=//a[contains(., 'Request Profile Information')]"
-        );
-        await requestProfileLink.click();
-        await page.goto(`http://localhost:${port}/profile`);
         await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 
@@ -165,6 +152,9 @@ describe("/profile", () => {
         );
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
+
+        // Go to protected page
+        await page.goto(`http://localhost:${port}/profile`);
         
         // Wait for Graph data to display
         await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
