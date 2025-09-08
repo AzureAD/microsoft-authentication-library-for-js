@@ -140,7 +140,7 @@ export abstract class AuthFlowErrorBase {
         );
     }
 
-    protected isIncorrectVerificationContactError(): boolean {
+    protected isInvalidAuthMethodRegistrationInputError(): boolean {
         return (
             this.errorData instanceof CustomAuthApiError &&
             this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&

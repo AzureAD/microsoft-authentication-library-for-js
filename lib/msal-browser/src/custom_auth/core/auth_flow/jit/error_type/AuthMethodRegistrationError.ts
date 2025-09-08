@@ -10,11 +10,11 @@ import { AuthActionErrorBase } from "../../AuthFlowErrorBase.js";
  */
 export class AuthMethodRegistrationChallengeMethodError extends AuthActionErrorBase {
     /**
-     * Checks if the verification contact provided is incorrect.
-     * @returns true if the verification contact is incorrect, false otherwise.
+     * Checks if the input for auth method registration is incorrect.
+     * @returns true if the input is incorrect, false otherwise.
      */
-    isIncorrectVerificationContact(): boolean {
-        return this.isIncorrectVerificationContactError();
+    isInvalidInput(): boolean {
+        return this.isInvalidAuthMethodRegistrationInputError();
     }
 }
 

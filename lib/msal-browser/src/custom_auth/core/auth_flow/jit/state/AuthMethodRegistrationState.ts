@@ -137,6 +137,7 @@ export class AuthMethodRegistrationRequiredState extends AuthMethodRegistrationS
     /**
      * Gets the available authentication methods for registration.
      * @returns Array of available authentication methods.
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     getAuthMethods(): AuthenticationMethod[] {
         return this.stateParameters.authMethods;
@@ -146,6 +147,7 @@ export class AuthMethodRegistrationRequiredState extends AuthMethodRegistrationS
      * Challenges an authentication method for registration.
      * @param authMethodDetails The authentication method details to challenge.
      * @returns Promise that resolves to AuthMethodRegistrationChallengeMethodResult.
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     async challengeAuthMethod(
         authMethodDetails: AuthMethodDetails
@@ -161,6 +163,7 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
     /**
      * Gets the length of the expected verification code.
      * @returns The code length.
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     getCodeLength(): number {
         return this.stateParameters.codeLength;
@@ -169,6 +172,7 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
     /**
      * Gets the channel through which the challenge was sent.
      * @returns The challenge channel (e.g., "email").
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     getChannel(): string {
         return this.stateParameters.challengeChannel;
@@ -177,6 +181,7 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
     /**
      * Gets the target label indicating where the challenge was sent.
      * @returns The challenge target label (e.g., masked email address).
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     getSentTo(): string {
         return this.stateParameters.challengeTargetLabel;
@@ -186,6 +191,7 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
      * Submits the verification challenge to complete the authentication method registration.
      * @param code The verification code entered by the user.
      * @returns Promise that resolves to AuthMethodRegistrationSubmitChallengeResult.
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     async submitChallenge(
         code: string
@@ -244,6 +250,7 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
      * Challenges a different authentication method for registration.
      * @param authMethodDetails The authentication method details to challenge.
      * @returns Promise that resolves to AuthMethodRegistrationChallengeMethodResult.
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     async challengeAuthMethod(
         authMethodDetails: AuthMethodDetails

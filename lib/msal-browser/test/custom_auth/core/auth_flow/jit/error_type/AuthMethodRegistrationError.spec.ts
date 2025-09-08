@@ -64,7 +64,7 @@ describe("JitError", () => {
                 customAuthError
             );
 
-            expect(error.isIncorrectVerificationContact()).toBe(false);
+            expect(error.isInvalidInput()).toBe(false);
         });
 
         it("should return true for isIncorrectVerificationContact when API error with error code 901001", () => {
@@ -78,7 +78,7 @@ describe("JitError", () => {
                 apiError
             );
 
-            expect(error.isIncorrectVerificationContact()).toBe(true);
+            expect(error.isInvalidInput()).toBe(true);
         });
 
         it("should return false for isIncorrectVerificationContact when different error code", () => {
@@ -92,7 +92,7 @@ describe("JitError", () => {
                 apiError
             );
 
-            expect(error.isIncorrectVerificationContact()).toBe(false);
+            expect(error.isInvalidInput()).toBe(false);
         });
     });
 

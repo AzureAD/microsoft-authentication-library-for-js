@@ -1725,8 +1725,6 @@ describe("Sign up", () => {
         );
         expect(challengeResult.error).toBeDefined();
         expect(challengeResult.isFailed()).toBe(true);
-        expect(challengeResult.error?.isIncorrectVerificationContact()).toBe(
-            true
-        );
+        expect(challengeResult.error?.isInvalidInput()).toBe(true);
     });
 });
