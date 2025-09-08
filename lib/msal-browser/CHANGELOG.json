@@ -2,6 +2,72 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 03 Sep 2025 21:47:34 GMT",
+      "version": "4.22.0",
+      "tag": "@azure/msal-browser_v4.22.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "yongdiwang@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5b86b0bdacc0b89a714b5a977dd19c63a80f4248",
+            "comment": "Add extraQueryParams for api calls #7974"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 27 Aug 2025 00:59:59 GMT",
+      "version": "4.21.1",
+      "tag": "@azure/msal-browser_v4.21.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "yongdiwang@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1a521c3e7631d4ed50d3082d26036162a4ef483e",
+            "comment": "Backward compatibility support #7962"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 Aug 2025 21:26:21 GMT",
       "version": "4.21.0",
       "tag": "@azure/msal-browser_v4.21.0",
