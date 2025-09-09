@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, invoke, invokeAsync } from "@azure/msal-common/browser";
+import {
+    UrlString,
+    invoke,
+    invokeAsync,
+    RequestParameterBuilder,
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -211,3 +216,5 @@ export function createGuid(): string {
 
 export { invoke };
 export { invokeAsync };
+export const addClientCapabilitiesToClaims =
+    RequestParameterBuilder.addClientCapabilitiesToClaims;
