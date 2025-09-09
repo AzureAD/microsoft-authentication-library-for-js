@@ -26,7 +26,7 @@ export const invoke = <T extends Array<any>, U>(
     correlationId?: string
 ) => {
     return (...args: T): U => {
-        logger.trace(`Executing function ${eventName}`);
+        logger.trace(`Executing function '${eventName}'`);
         const inProgressEvent = telemetryClient?.startMeasurement(
             eventName,
             correlationId
@@ -44,10 +44,10 @@ export const invoke = <T extends Array<any>, U>(
             inProgressEvent?.end({
                 success: true,
             });
-            logger.trace(`Returning result from ${eventName}`);
+            logger.trace(`Returning result from '${eventName}'`);
             return result;
         } catch (e) {
-            logger.trace(`Error occurred in ${eventName}`);
+            logger.trace(`Error occurred in '${eventName}'`);
             try {
                 logger.trace(JSON.stringify(e));
             } catch (e) {
@@ -85,7 +85,7 @@ export const invokeAsync = <T extends Array<any>, U>(
     correlationId?: string
 ) => {
     return (...args: T): Promise<U> => {
-        logger.trace(`Executing function ${eventName}`);
+        logger.trace(`Executing function '${eventName}'`);
         const inProgressEvent = telemetryClient?.startMeasurement(
             eventName,
             correlationId
@@ -100,14 +100,14 @@ export const invokeAsync = <T extends Array<any>, U>(
         }
         return callback(...args)
             .then((response) => {
-                logger.trace(`Returning result from ${eventName}`);
+                logger.trace(`Returning result from '${eventName}'`);
                 inProgressEvent?.end({
                     success: true,
                 });
                 return response;
             })
             .catch((e) => {
-                logger.trace(`Error occurred in ${eventName}`);
+                logger.trace(`Error occurred in '${eventName}'`);
                 try {
                     logger.trace(JSON.stringify(e));
                 } catch (e) {

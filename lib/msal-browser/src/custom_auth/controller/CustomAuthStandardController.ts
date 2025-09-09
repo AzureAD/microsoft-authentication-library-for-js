@@ -112,7 +112,8 @@ export class CustomAuthStandardController
                 new CustomAuthApiClient(
                     this.authority.getCustomAuthApiDomain(),
                     this.customAuthConfig.auth.clientId,
-                    new FetchHttpClient(this.logger)
+                    new FetchHttpClient(this.logger),
+                    this.customAuthConfig.customAuth?.capabilities?.join(" ")
                 ),
             this.authority
         );
@@ -157,7 +158,7 @@ export class CustomAuthStandardController
             throw new NoCachedAccountFoundError(correlationId);
         } catch (error) {
             this.logger.errorPii(
-                `An error occurred during getting current account: ${error}`,
+                `An error occurred during getting current account: '${error}'`,
                 correlationId
             );
 
@@ -206,9 +207,9 @@ export class CustomAuthStandardController
             };
 
             this.logger.verbose(
-                `Starting sign-in flow ${
+                `Starting sign-in flow '${
                     !!signInInputs.password ? "with" : "without"
-                } password.`,
+                }' password.`,
                 correlationId
             );
 
@@ -318,7 +319,7 @@ export class CustomAuthStandardController
             );
         } catch (error) {
             this.logger.errorPii(
-                `An error occurred during starting sign-in: ${error}`,
+                `An error occurred during starting sign-in: '${error}'`,
                 correlationId
             );
 
@@ -349,7 +350,7 @@ export class CustomAuthStandardController
             this.ensureUserNotSignedIn(correlationId);
 
             this.logger.verbose(
-                `Starting sign-up flow${
+                `Starting sign-up flow'${
                     !!signUpInputs.password
                         ? ` with ${
                               !!signUpInputs.attributes
@@ -357,7 +358,7 @@ export class CustomAuthStandardController
                                   : "password"
                           }`
                         : ""
-                }.`,
+                }'.`,
                 correlationId
             );
 
@@ -428,7 +429,7 @@ export class CustomAuthStandardController
             );
         } catch (error) {
             this.logger.errorPii(
-                `An error occurred during starting sign-up: ${error}`,
+                `An error occurred during starting sign-up: '${error}'`,
                 correlationId
             );
 
@@ -487,7 +488,7 @@ export class CustomAuthStandardController
             );
         } catch (error) {
             this.logger.errorPii(
-                `An error occurred during starting reset-password: ${error}`,
+                `An error occurred during starting reset-password: '${error}'`,
                 correlationId
             );
 

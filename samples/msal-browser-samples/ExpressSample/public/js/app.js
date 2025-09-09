@@ -44,6 +44,8 @@ function setupEventListeners() {
             e.stopPropagation();
             toggleDropdown(signInButton.parentElement);
         });
+
+        signInButton.style.display = '';
     }
     
     // Toggle account dropdown

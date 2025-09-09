@@ -3139,6 +3139,11 @@ const nonceMismatch = "nonce_mismatch";
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
 
+// Warning: (ae-missing-release-tag) "normalizeUrlForComparison" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function normalizeUrlForComparison(url: string): string;
+
 // Warning: (ae-missing-release-tag) "NOT_APPLICABLE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -4495,7 +4500,8 @@ declare namespace UrlUtils {
     export {
         stripLeadingHashOrQuery,
         getDeserializedResponse,
-        mapToQueryString
+        mapToQueryString,
+        normalizeUrlForComparison
     }
 }
 export { UrlUtils }
@@ -4654,7 +4660,7 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/client/AuthorizationCodeClient.ts:147:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:148:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:205:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:440:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:439:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:178:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:264:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:265:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

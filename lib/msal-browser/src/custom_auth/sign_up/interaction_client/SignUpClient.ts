@@ -365,7 +365,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpAttributesRequiredResult
     > {
         this.logger.verbose(
-            `${callerName} is calling continue endpoint for sign up.`,
+            `'${callerName}' is calling continue endpoint for sign up.`,
             requestCorrelationId
         );
 
@@ -373,7 +373,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             const response = await responseGetter();
 
             this.logger.verbose(
-                `Continue endpoint called by ${callerName} for sign up.`,
+                `Continue endpoint called by '${callerName}' for sign up.`,
                 requestCorrelationId
             );
 
@@ -391,7 +391,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 );
             } else {
                 this.logger.errorPii(
-                    `${callerName} is failed to call continue endpoint for sign up. Error: ${error}`,
+                    `'${callerName}' is failed to call continue endpoint for sign up. Error: '${error}'`,
                     requestCorrelationId
                 );
 

@@ -1593,7 +1593,7 @@ export class StandardController implements IController {
                     break;
                 default:
                     this.logger.trace(
-                        `canUsePlatformBroker: prompt = ${request.prompt} is not compatible with platform broker flow, returning false`
+                        `canUsePlatformBroker: prompt = '${request.prompt}' is not compatible with platform broker flow, returning false`
                     );
                     return false;
             }
@@ -2104,7 +2104,7 @@ export class StandardController implements IController {
                     const [activePromise, activeCorrelationId] =
                         this.activeIframeRequest;
                     this.logger.verbose(
-                        `Iframe request is already in progress, awaiting resolution for request with correlationId: ${activeCorrelationId}`,
+                        `Iframe request is already in progress, awaiting resolution for request with correlationId: '${activeCorrelationId}'`,
                         silentRequest.correlationId
                     );
                     const awaitConcurrentIframeMeasure =
@@ -2122,7 +2122,7 @@ export class StandardController implements IController {
                     });
                     if (activePromiseResult) {
                         this.logger.verbose(
-                            `Parallel iframe request with correlationId: ${activeCorrelationId} succeeded. Retrying cache and/or RT redemption`,
+                            `Parallel iframe request with correlationId: '${activeCorrelationId}' succeeded. Retrying cache and/or RT redemption`,
                             silentRequest.correlationId
                         );
                         // Retry cache lookup and/or RT exchange after iframe completes
@@ -2132,7 +2132,7 @@ export class StandardController implements IController {
                         );
                     } else {
                         this.logger.info(
-                            `Iframe request with correlationId: ${activeCorrelationId} failed. Interaction is required.`
+                            `Iframe request with correlationId: '${activeCorrelationId}' failed. Interaction is required.`
                         );
                         // If previous iframe request failed, it's unlikely to succeed this time. Throw original error.
                         throw refreshTokenError;
@@ -2302,7 +2302,7 @@ export class StandardController implements IController {
         const res = this.pkceCode ? { ...this.pkceCode } : undefined;
         this.pkceCode = undefined;
         this.logger.verbose(
-            `${res ? "Found" : "Did not find"} pre-generated PKCE codes`
+            `'${res ? "Found" : "Did not find"}' pre-generated PKCE codes`
         );
         this.performanceClient.addFields(
             { usePreGeneratedPkce: !!res },

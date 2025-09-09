@@ -66,7 +66,7 @@ export async function initializeBaseRequest(
             }
         }
         logger.verbose(
-            `Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`
+            `Authentication Scheme set to "'${validatedRequest.authenticationScheme}'" as configured in Auth request`
         );
     }
 

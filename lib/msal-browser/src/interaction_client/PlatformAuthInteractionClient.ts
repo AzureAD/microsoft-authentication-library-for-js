@@ -360,7 +360,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         };
         const redirectUri = navigateToLoginRequestUrl
             ? window.location.href
-            : getRedirectUri(request.redirectUri, this.config, this.logger);
+            : getRedirectUri(
+                  request.redirectUri,
+                  this.config.auth.redirectUri,
+                  this.logger
+              );
         rootMeasurement.end({ success: true });
         await this.navigationClient.navigateExternal(
             redirectUri,
@@ -504,14 +508,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // Get the preferred_cache domain for the given authority
         const authority = await getDiscoveredAuthority(
-            {
-                requestAuthority: request.authority,
-            },
             this.config,
             this.correlationId,
             this.performanceClient,
             this.browserStorage,
-            this.logger
+            this.logger,
+            request.authority
         );
 
         const baseAccount = buildAccountToCache(
@@ -919,7 +921,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             scope: scopeSet.printScopes(),
             redirectUri: getRedirectUri(
                 request.redirectUri,
-                this.config,
+                this.config.auth.redirectUri,
                 this.logger
             ),
             prompt: this.getPrompt(request.prompt),
@@ -994,19 +996,20 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const requestAuthority =
             request.authority || this.config.auth.authority;
 
-        if (request.account) {
+        const { azureCloudOptions, account } = request;
+
+        if (account) {
             // validate authority
             await getDiscoveredAuthority(
-                {
-                    requestAuthority,
-                    requestAzureCloudOptions: request.azureCloudOptions,
-                    account: request.account,
-                },
                 this.config,
                 this.correlationId,
                 this.performanceClient,
                 this.browserStorage,
-                this.logger
+                this.logger,
+                requestAuthority,
+                azureCloudOptions,
+                undefined, // requestExtraQueryParameters
+                account
             );
         }
 
@@ -1047,7 +1050,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 return prompt;
             default:
                 this.logger.trace(
-                    `initializeNativeRequest: prompt = ${prompt} is not compatible with native flow`
+                    `initializeNativeRequest: prompt = '${prompt}' is not compatible with native flow`
                 );
                 throw createBrowserAuthError(
                     BrowserAuthErrorCodes.nativePromptNotSupported

@@ -23,7 +23,7 @@ header {
     background-color: #0078d4;
     color: white;
     padding: 1rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
@@ -99,7 +99,7 @@ main {
     border-radius: 8px;
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -172,7 +172,8 @@ main {
     border: 1px solid #f5c6cb;
     color: #721c24;
     position: relative;
-    padding-right: 2.5rem; /* Make room for dismiss button */
+    padding-right: 2.5rem;
+    /* Make room for dismiss button */
 }
 
 .error-message a {
@@ -248,7 +249,7 @@ main {
     word-break: break-word;
 }
 
-.profile-json {
+.json-content {
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     border-radius: 4px;
@@ -257,7 +258,7 @@ main {
     overflow-x: auto;
 }
 
-.profile-json pre {
+.json-content pre {
     margin: 0;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 0.9rem;
@@ -322,7 +323,7 @@ main {
     background-color: white;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     min-width: 200px;
     z-index: 1000;
     display: none;
@@ -411,7 +412,7 @@ main {
     background-color: white;
     border: 1px solid #dee2e6;
     border-radius: 6px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     min-width: 280px;
     z-index: 1000;
     display: none;
@@ -520,8 +521,13 @@ main {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Custom Version Modal Styles */
@@ -797,20 +803,20 @@ main {
     .custom-version-form {
         padding: 1rem;
     }
-    
+
     .version-tags {
         gap: 0.25rem;
     }
-    
+
     .version-tag {
         font-size: 0.8rem;
         padding: 0.25rem 0.5rem;
     }
-    
+
     .form-actions {
         flex-direction: column-reverse;
     }
-    
+
     .form-actions .btn {
         width: 100%;
     }
@@ -822,16 +828,16 @@ main {
         width: 95%;
         max-height: 90%;
     }
-    
+
     .modal-header,
     .modal-body {
         padding: 1rem;
     }
-    
+
     .account-item {
         padding: 0.75rem;
     }
-    
+
     .account-avatar {
         width: 35px;
         height: 35px;

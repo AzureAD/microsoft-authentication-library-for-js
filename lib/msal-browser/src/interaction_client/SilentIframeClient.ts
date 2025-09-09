@@ -112,7 +112,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 inputRequest.prompt !== Constants.PromptValue.NO_SESSION
             ) {
                 this.logger.warning(
-                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${Constants.PromptValue.NONE}`
+                    `SilentIframeClient. Replacing invalid prompt '${inputRequest.prompt}' with '${Constants.PromptValue.NONE}'`
                 );
                 inputRequest.prompt = Constants.PromptValue.NONE;
             }
@@ -230,7 +230,13 @@ export class SilentIframeClient extends StandardInteractionClient {
     async executeEarFlow(
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
-        const correlationId = request.correlationId;
+        const {
+            correlationId,
+            authority,
+            azureCloudOptions,
+            extraQueryParameters,
+            account,
+        } = request;
         const discoveredAuthority = await invokeAsync(
             getDiscoveredAuthority,
             BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
@@ -238,17 +244,15 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            {
-                requestAuthority: request.authority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                requestExtraQueryParameters: request.extraQueryParameters,
-                account: request.account,
-            },
             this.config,
             this.correlationId,
             this.performanceClient,
             this.browserStorage,
-            this.logger
+            this.logger,
+            authority,
+            azureCloudOptions,
+            extraQueryParameters,
+            account
         );
 
         const earJwk = await invokeAsync(
