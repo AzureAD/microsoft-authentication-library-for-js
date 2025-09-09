@@ -24,29 +24,31 @@ if (result) {
 
 // AFTER
 const shr = new SignedHttpRequest(shrParameters, shrOptions);
-await shr.removeKeys(thumbprint).then(() => {
-    // do something on success
-}).catch(e => {
-    // do something on failure
-    console.log(e);
-});
+await shr
+    .removeKeys(thumbprint)
+    .then(() => {
+        // do something on success
+    })
+    .catch((e) => {
+        // do something on failure
+        console.log(e);
+    });
 ```
 
 ### TokenCache and loadExternalTokens
 
 MSAL JS API for [loadExternalTokens](../testing.md#the-loadexternaltokens-api) is modified. The changes include:
-* `TokenCache` object and `getTokenCache()` have been removed
-* The `loadExternalTokens()` API is now a separate export and requires `Configuration` as a parameter
+
+-   `TokenCache` object and `getTokenCache()` have been removed
+-   The `loadExternalTokens()` API is now a separate export and requires `Configuration` as a parameter
 
 ```js
 // BEFORE
 
 const pca = new PublicClientApplication(config);
-await pca.getTokenCache().loadExternalTokens(
-    silentRequest,
-    serverResponse,
-    loadTokenOptions
-);
+await pca
+    .getTokenCache()
+    .loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
 
 //AFTER
 
@@ -65,19 +67,19 @@ Previously, `PublicClientApplication.handleRedirectPromise` took in an optional 
 ```javascript
 // BEFORE
 const hash = window.location.hash; // Arbitrary example value
-pca.handleRedirectPromise(hash)
-
+pca.handleRedirectPromise(hash);
 
 // AFTER
 pca.handleRedirectPromise({
     hash: window.location.hash, // Option nested inside a `HandleRedirectPromiseOptions` object
-    navigateToLoginRequestUrl: true // Additional option
-})
+    navigateToLoginRequestUrl: true, // Additional option
+});
 ```
 
-### Removal of some functions in `PublicClientApplication` 
+### Removal of some functions in `PublicClientApplication`
 
 The following functions in `PublicClientApplication` have been removed:
+
 1. `enableAccountStorageEvents()` and `disableAccountStorageEvents()`: account storage events are now always enabled. These function calls are no longer necessary.
 1. `getAccountByHomeId()`, `getAccountByLocalId()`, and `getAccountByUsername()`: use `getAccount()` instead.
 
@@ -88,10 +90,15 @@ The following functions in `PublicClientApplication` have been removed:
     const account3 = accountManager.getAccountByUsername(yourUsername);
 
     // AFTER
-    const account1 = accountManager.getAccount({ homeAccountId: yourHomeAccountId });
-    const account2 = accountManager.getAccount({ localAccountId: yourLocalAccountId });
+    const account1 = accountManager.getAccount({
+        homeAccountId: yourHomeAccountId,
+    });
+    const account2 = accountManager.getAccount({
+        localAccountId: yourLocalAccountId,
+    });
     const account3 = accountManager.getAccount({ username: yourUsername });
     ```
+
 1. `logout()`: use `logoutRedirect()` or `logoutPopup()` instead.
 
 ### Removal of `startPerformanceMeasurement()`
@@ -108,10 +115,12 @@ The following functions in `PublicClientApplication` have been removed:
 1. The `navigateTologinRequestUrl` parameter has been removed from BrowserAuthOptions in Configuration and can instead now be provided inside an options object as a parameter on the call to `handleRedirectPromise`:
 
     ```typescript
-      pca.handleRedirectPromise({ navigateToLoginRequestUrl: false })
+    pca.handleRedirectPromise({ navigateToLoginRequestUrl: false });
     ```
+
 1. The `encodeExtraQueryParams` parameter has been removed. All extra query params will be encoded.
 1. The `supportsNestedAppAuth` parameter has been removed. Use `createNestablePublicClientApplication()` instead.
+
     ```typescript
         // BEFORE
         const pca = new PublicClientApplication({
@@ -130,6 +139,7 @@ The following functions in `PublicClientApplication` have been removed:
             }
         });
     ```
+
 1. The `OIDCOptions` parameter now takes in a `ResponseMode` instead of a `ServerResponseType`. Please use `ResponseMode.QUERY` in place of `ServerResponseType.QUERY` and `ResponseMode.FRAGMENT` instead of `ServerResponseType.FRAGMENT`.
 
 ### CacheOptions changes
@@ -159,7 +169,80 @@ See the [Configuration doc](./configuration.md#system-config-options) for more d
 
 ### Removal of `onRedirectNavigate` parameter
 
-The `onRedirectNavigate` parameter has been removed from the `RedirectRequest` object. It has *not* been removed from the `Configuration` object and can continue to be set there.
+The `onRedirectNavigate` parameter has been removed from the `RedirectRequest` object. It has _not_ been removed from the `Configuration` object and can continue to be set there.
+
+### Consolidation of extra request parameters
+
+The following request parameters have been removed:
+
+-   `authorizePostBodyParams`
+-   `tokenBodyParameters`
+-   `tokenQueryParameters`
+
+In order to simplify extra request parameters, generic extra parameters should go in the new `extraParams` request option. When `extraParams` are set in a request, they will be sent on all token service calls in either the URL query string or the request body, depending on the `httpMethod` configured (default is `GET`) in the request. **To submit extra parameters that MUST go in the URL query string, `extraQueryParameters` is still available.**
+
+#### v4 (previous) request example:
+
+```javascript
+// Example of a GET request with extra parameters
+const authRequest = {
+    scopes: ["SAMPLE_SCOPE"],
+    extraQueryParamters: {
+        "extra_parameter_one": "sample_value" // This was sent on the query string on GET /authorize
+    },
+    tokenBodyParameters: {
+        "extra_parameter_assertion": "assertion_value" // This was sent on the POST body to /token
+    },
+    tokenQueryParamters: {
+        "extra_parameter_one": "sample_value" // This was sent on the query string on POST /token
+    }
+}
+
+// Example of a POST request with extra parameters
+const authRequest = {
+    scopes: ["SAMPLE_SCOPE"],
+    httpMethod: "POST", // default is "GET" -> Determines method for "/authorize" call. Calls to "/token" are always POST
+    extraQueryParamters: {
+        "extra_parameter_one": "sample_value" // This was sent on the query string on POST /authorize
+    },
+    authorizePostBodyParameters: {
+        "extra_parameters_assertion": "assertion_value", // This was sent on the body on POST /authorize
+    }
+    tokenBodyParameters: {
+        "extra_parameter_assertion": "assertion_value" // This was sent on the POST body to /token
+    },
+    tokenQueryParamters: {
+        "extra_parameter_one": "sample_value" // This was sent on the query string on POST /token
+    }
+}
+```
+
+#### v5 Request Example
+
+```javascript
+// Example of a GET request with extra parameters
+const authRequest = {
+    scopes: ["SAMPLE_SCOPE"],
+    extraQueryParamters: {
+        extra_parameter_one: "sample_value", // Will be sent in query string to /authorize and /token
+    },
+    extraParams: {
+        extra_parameter_assertion: "assertion_value", // Will be sent in query stirng to /authorize and in body to /token
+    },
+};
+
+// Example of a POST request with extra parameters
+const authRequest = {
+    scopes: ["SAMPLE_SCOPE"],
+    httpMethod: "POST", // default is "GET" -> Determines method for "/authorize" call. Calls to "/token" are always POST
+    extraQueryParamters: {
+        extra_parameter_one: "sample_value", // Will be sent in query string to /authorize and /token
+    },
+    extraParams: {
+        extra_parameter_assertion: "assertion_value", // Will be sent in post body to /authorize and /token
+    },
+};
+```
 
 ## Behavioral Breaking Changes
 
