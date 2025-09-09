@@ -329,6 +329,7 @@ export class NestedAppAuthController implements IController {
         try {
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
+            naaRequest.forceRefresh = validRequest.forceRefresh;
             const reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.bridgeProxy.getTokenSilent(naaRequest);
 
