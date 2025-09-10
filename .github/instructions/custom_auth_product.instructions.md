@@ -20,6 +20,15 @@ The Native Authentication (Custom Auth) feature in MSAL Browser SDK provides adv
 -   **Password Reset Flow**: Self-service password reset with secure code verification
 -   **Account Management**: Token retrieval, account information access, and sign-out functionality
 
+### Glossary / Definitions
+
+-   Authentication Method: A credential or verification mechanism (password, email OTP; future: SMS OTP, MFA app, passkey).
+-   Challenge: A server-directed verification step required before completion.
+-   Continuation Token: Opaque, short‑lived string from service enabling the next challenge step; treated as a credential and never persisted.
+-   JIT (Just‑In‑Time) Registration/Enrollment: Additional mandatory step injected mid flow (e.g., required MFA setup or profile attribute capture) before completion.
+-   Actionable Error: Error category that can be resolved through user input or alternate flow (e.g., invalid password, user not found).
+-   Terminal State: A completed or failed result; no further actions allowed.
+
 ## User Experience Requirements
 
 ### State Machine Pattern
@@ -63,7 +72,7 @@ The Native Authentication (Custom Auth) feature in MSAL Browser SDK provides adv
 
 ### SDK Integration
 
--   Seamless integration with existing MSAL Browser SDK
+-   Seamless integration with the current `@azure/msal-browser` public APIs.
 -   Compatible with standard MSAL configuration patterns
 -   Support for custom authority configurations
 -   Proper telemetry and logging integration
@@ -74,22 +83,6 @@ The Native Authentication (Custom Auth) feature in MSAL Browser SDK provides adv
 -   Proper handling of network requests and responses
 -   Optimized bundle size with tree shaking support
 -   Dynamic imports for optional features
-
-## Performance Requirements
-
-### Bundle Optimization
-
--   Minimal impact on overall SDK bundle size
--   Tree shaking support for unused features
--   Efficient code splitting and lazy loading
--   Optimized for minification
-
-### Runtime Performance
-
--   Efficient state transitions
--   Minimal memory footprint
--   Fast API response handling
--   Proper caching strategies
 
 ## Extensibility Requirements
 

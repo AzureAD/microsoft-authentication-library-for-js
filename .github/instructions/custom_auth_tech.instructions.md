@@ -145,17 +145,16 @@ Two distinct error categories:
 
 ### Bundle Optimization
 
--   Support tree shaking and dead code elimination
--   Use dynamic imports for large/optional features
--   Minimize method and property names for better minification
--   Avoid patterns that prevent optimization
-
-### Runtime Efficiency
-
--   Efficient state object creation and management
--   Minimal memory allocation in hot paths
--   Proper cleanup of resources and event listeners
--   Optimized network request patterns
+-   Minimal incremental bundle size (only code for actively used flows included)
+-   Full support for tree shaking and dead code elimination (no hidden side effects at module top-level)
+-   Efficient code splitting and lazy loading; use dynamic imports for large or optional flows/components
+-   Dynamic imports for large/optional features (e.g., rarely used flow-specific clients)
+-   Optimized for minification: keep public surface descriptive but prefer short internal identifiers; avoid unnecessary re-exports layers
+-   Avoid patterns that block optimization (e.g., broad dynamic `require`, runtime string-to-symbol property access, leaking `this` across modules)
+-   No new mandatory runtime polyfills beyond current `@azure/msal-browser` baseline
+-   Feature code must tree‑shake away completely if `@azure/msal-browser/custom-auth` entry point is never imported
+-   Consolidate shared utilities to prevent duplication across flow bundles
+-   Avoid duplicating logic already present in `msal-common` or `msal-browser` (reuse instead of copy)
 
 ## Development Workflow
 
@@ -183,10 +182,10 @@ When adding new authentication flows:
 
 ### Dependency Management
 
--   Request approval before adding new dependencies
--   Minimize external dependencies
--   Use existing MSAL Browser infrastructure where possible
--   Document dependency rationale
+-   Get maintainer approval (issue + sign‑off) before adding a dependency.
+-   Only add if the feature can’t be done within ≤200 LOC using current MSAL packages or platform APIs.
+-   Allowed licenses: MIT, Apache-2.0, BSD. State license in PR.
+-   Reuse `msal-browser` and `msal-common` components (config, logging, telemetry, cache, crypto, HTTP). Don’t create parallel versions.
 
 ## Security Standards
 

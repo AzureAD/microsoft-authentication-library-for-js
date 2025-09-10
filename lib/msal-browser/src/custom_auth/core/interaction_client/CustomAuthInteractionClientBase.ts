@@ -103,7 +103,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
 
-        // Save tokens and create authentication result
+        // Save tokens and create authentication result 44s
         const result =
             await this.tokenResponseHandler.handleServerTokenResponse(
                 tokenResponse,
@@ -114,11 +114,6 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
                     correlationId:
                         tokenResponse.correlation_id ?? correlationId,
                     scopes: requestScopes,
-                    storeInCache: {
-                        idToken: true,
-                        accessToken: true,
-                        refreshToken: true,
-                    },
                 }
             );
 
