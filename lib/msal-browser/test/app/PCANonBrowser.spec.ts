@@ -21,7 +21,7 @@ import { TestTimeUtils } from "msal-test-utils";
 import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
 // Set up BroadcastChannel tracking for Node environment
-const { BroadcastChannel } = require('worker_threads');
+const { BroadcastChannel } = require("worker_threads");
 const activeBroadcastChannels = new Set();
 
 class TrackedBroadcastChannel extends BroadcastChannel {
