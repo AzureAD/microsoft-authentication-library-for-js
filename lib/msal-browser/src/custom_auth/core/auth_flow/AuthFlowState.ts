@@ -31,7 +31,7 @@ export abstract class AuthFlowActionRequiredStateBase<
      * Creates a new instance of AuthFlowActionRequiredStateBase.
      * @param stateParameters The parameters for the auth state.
      */
-    protected constructor(protected readonly stateParameters: TParameter) {
+    constructor(protected readonly stateParameters: TParameter) {
         ensureArgumentIsNotEmptyString(
             "correlationId",
             stateParameters.correlationId
