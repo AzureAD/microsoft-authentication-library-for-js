@@ -9,6 +9,7 @@ import {
 } from "../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
 import * as CustomAuthApiErrorCode from "../../core/network_client/custom_auth_api/types/ApiErrorCodes.js";
+import { REGISTRATION_REQUIRED } from "../../core/network_client/custom_auth_api/types/ApiSuberrors.js";
 
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import {
@@ -22,10 +23,12 @@ import {
     createSignInCodeSendResult,
     createSignInCompleteResult,
     createSignInPasswordRequiredResult,
+    createSignInJitRequiredResult,
     SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
     SignInCodeSendResult,
     SignInCompletedResult,
     SignInPasswordRequiredResult,
+    SignInJitRequiredResult,
 } from "./result/SignInActionResult.js";
 import * as PublicApiId from "../../core/telemetry/PublicApiId.js";
 import {
@@ -34,6 +37,7 @@ import {
     SignInInitiateRequest,
     SignInOobTokenRequest,
     SignInPasswordTokenRequest,
+    RegisterIntrospectRequest,
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 import {
@@ -41,57 +45,10 @@ import {
     SignInScenarioType,
 } from "../auth_flow/SignInScenario.js";
 import { UnexpectedError } from "../../core/error/UnexpectedError.js";
-import { ICustomAuthApiClient } from "../../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
-import { CustomAuthAuthority } from "../../core/CustomAuthAuthority.js";
-import {
-    ICrypto,
-    IPerformanceClient,
-    Logger,
-    ResponseHandler,
-} from "@azure/msal-common/browser";
-import { BrowserConfiguration } from "../../../config/Configuration.js";
-import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
-import { EventHandler } from "../../../event/EventHandler.js";
-import { INavigationClient } from "../../../navigation/INavigationClient.js";
-import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
 import { ensureArgumentIsNotEmptyString } from "../../core/utils/ArgumentValidator.js";
+import { ServerTelemetryManager } from "@azure/msal-common/browser";
 
 export class SignInClient extends CustomAuthInteractionClientBase {
-    private readonly tokenResponseHandler: ResponseHandler;
-
-    constructor(
-        config: BrowserConfiguration,
-        storageImpl: BrowserCacheManager,
-        browserCrypto: ICrypto,
-        logger: Logger,
-        eventHandler: EventHandler,
-        navigationClient: INavigationClient,
-        performanceClient: IPerformanceClient,
-        customAuthApiClient: ICustomAuthApiClient,
-        customAuthAuthority: CustomAuthAuthority
-    ) {
-        super(
-            config,
-            storageImpl,
-            browserCrypto,
-            logger,
-            eventHandler,
-            navigationClient,
-            performanceClient,
-            customAuthApiClient,
-            customAuthAuthority
-        );
-
-        this.tokenResponseHandler = new ResponseHandler(
-            this.config.auth.clientId,
-            this.browserStorage,
-            this.browserCrypto,
-            this.logger,
-            null,
-            null
-        );
-    }
-
     /**
      * Starts the signin flow.
      * @param parameters The parameters required to start the sign-in flow.
@@ -200,13 +157,18 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             }),
         };
 
-        return this.performTokenRequest(
+        const result = this.performTokenRequest(
             () =>
                 this.customAuthApiClient.signInApi.requestTokensWithOob(
                     request
                 ),
-            scopes
+            scopes,
+            parameters.correlationId,
+            telemetryManager,
+            false // Don't handle JIT for code submission
         );
+
+        return result as Promise<SignInCompletedResult>;
     }
 
     /**
@@ -216,7 +178,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async submitPassword(
         parameters: SignInSubmitPasswordParams
-    ): Promise<SignInCompletedResult> {
+    ): Promise<SignInCompletedResult | SignInJitRequiredResult> {
         ensureArgumentIsNotEmptyString(
             "parameters.password",
             parameters.password,
@@ -243,7 +205,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 this.customAuthApiClient.signInApi.requestTokensWithPassword(
                     request
                 ),
-            scopes
+            scopes,
+            parameters.correlationId,
+            telemetryManager,
+            true // Handle JIT for password submission
         );
     }
 
@@ -254,7 +219,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async signInWithContinuationToken(
         parameters: SignInContinuationTokenParams
-    ): Promise<SignInCompletedResult> {
+    ): Promise<SignInCompletedResult | SignInJitRequiredResult> {
         const apiId = this.getPublicApiIdBySignInScenario(
             parameters.signInScenario,
             parameters.correlationId
@@ -280,49 +245,86 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 this.customAuthApiClient.signInApi.requestTokenWithContinuationToken(
                     request
                 ),
-            scopes
-        );
+            scopes,
+            parameters.correlationId,
+            telemetryManager,
+            true // Handle JIT for continuation token sign-in (e.g., after sign-up or SSPR)
+        ) as Promise<SignInCompletedResult | SignInJitRequiredResult>;
     }
 
+    /**
+     * Common method to handle token endpoint calls and create sign-in results.
+     * @param tokenEndpointCaller Function that calls the specific token endpoint
+     * @param scopes Scopes for the token request
+     * @param correlationId Correlation ID for logging and result
+     * @param handleJit Whether to handle JIT required errors or throw them
+     * @returns SignInCompletedResult with authentication result
+     */
     private async performTokenRequest(
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
-        requestScopes: string[]
-    ): Promise<SignInCompletedResult> {
+        scopes: string[],
+        correlationId: string,
+        telemetryManager: ServerTelemetryManager,
+        handleJit: boolean
+    ): Promise<SignInCompletedResult | SignInJitRequiredResult> {
         this.logger.verbose(
             "Calling token endpoint for sign in.",
-            this.correlationId
+            correlationId
         );
 
-        const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
-        const tokenResponse = await tokenEndpointCaller();
+        try {
+            const tokenResponse = await tokenEndpointCaller();
 
-        this.logger.verbose(
-            "Token endpoint called for sign in.",
-            this.correlationId
-        );
-
-        // Save tokens and create authentication result.
-        const result =
-            await this.tokenResponseHandler.handleServerTokenResponse(
-                tokenResponse,
-                this.customAuthAuthority,
-                requestTimestamp,
-                {
-                    authority: this.customAuthAuthority.canonicalAuthority,
-                    correlationId: tokenResponse.correlation_id ?? "",
-                    scopes: requestScopes,
-                    storeInCache: {
-                        idToken: true,
-                        accessToken: true,
-                        refreshToken: true,
-                    },
-                }
+            this.logger.verbose(
+                "Token endpoint response received for sign in.",
+                correlationId
             );
 
-        return createSignInCompleteResult({
-            correlationId: tokenResponse.correlation_id ?? "",
-            authenticationResult: result as AuthenticationResult,
-        });
+            const authResult = await this.handleTokenResponse(
+                tokenResponse,
+                scopes,
+                correlationId
+            );
+
+            return createSignInCompleteResult({
+                correlationId: tokenResponse.correlation_id ?? correlationId,
+                authenticationResult: authResult,
+            });
+        } catch (error) {
+            if (
+                handleJit &&
+                error instanceof CustomAuthApiError &&
+                error.subError === REGISTRATION_REQUIRED
+            ) {
+                this.logger.verbose(
+                    "Auth method registration required for sign in.",
+                    correlationId
+                );
+
+                // Call register introspect endpoint to get available authentication methods
+                const introspectRequest: RegisterIntrospectRequest = {
+                    continuation_token: error.continuationToken ?? "",
+                    correlationId: error.correlationId ?? correlationId,
+                    telemetryManager,
+                };
+
+                const introspectResponse =
+                    await this.customAuthApiClient.registerApi.introspect(
+                        introspectRequest
+                    );
+
+                return createSignInJitRequiredResult({
+                    correlationId:
+                        introspectResponse.correlation_id ?? correlationId,
+                    continuationToken:
+                        introspectResponse.continuation_token ?? "",
+                    authMethods: introspectResponse.methods,
+                });
+            }
+
+            // Re-throw any other errors or JIT errors when handleJit is false
+            throw error;
+        }
     }
 
     private async performChallengeRequest(

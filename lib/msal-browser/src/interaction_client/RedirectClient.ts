@@ -391,8 +391,8 @@ export class RedirectClient extends StandardInteractionClient {
                     true
                 ) || Constants.EMPTY_STRING;
             const loginRequestUrlNormalized =
-                UrlString.removeHashFromUrl(loginRequestUrl);
-            const currentUrlNormalized = UrlString.removeHashFromUrl(
+                UrlUtils.normalizeUrlForComparison(loginRequestUrl);
+            const currentUrlNormalized = UrlUtils.normalizeUrlForComparison(
                 window.location.href
             );
 

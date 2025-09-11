@@ -10,6 +10,7 @@ import { SignInCodeRequiredState } from "../state/SignInCodeRequiredState.js";
 import { SignInPasswordRequiredState } from "../state/SignInPasswordRequiredState.js";
 import { SignInFailedState } from "../state/SignInFailedState.js";
 import { SignInCompletedState } from "../state/SignInCompletedState.js";
+import { AuthMethodRegistrationRequiredState } from "../../../core/auth_flow/jit/state/AuthMethodRegistrationState.js";
 
 /*
  * Result of a sign-in operation.
@@ -70,6 +71,16 @@ export class SignInResult extends AuthFlowResultBase<
     isCompleted(): this is SignInResult & { state: SignInCompletedState } {
         return this.state instanceof SignInCompletedState;
     }
+
+    /**
+     * Checks if the result requires authentication method registration.
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     */
+    isAuthMethodRegistrationRequired(): this is SignInResult & {
+        state: AuthMethodRegistrationRequiredState;
+    } {
+        return this.state instanceof AuthMethodRegistrationRequiredState;
+    }
 }
 
 /**
@@ -79,9 +90,11 @@ export class SignInResult extends AuthFlowResultBase<
  * - SignInPasswordRequiredState: The sign-in process requires a password.
  * - SignInFailedState: The sign-in process has failed.
  * - SignInCompletedState: The sign-in process is completed.
+ * - AuthMethodRegistrationRequiredState: The sign-in process requires authentication method registration.
  */
 export type SignInResultState =
     | SignInCodeRequiredState
     | SignInPasswordRequiredState
     | SignInFailedState
-    | SignInCompletedState;
+    | SignInCompletedState
+    | AuthMethodRegistrationRequiredState;

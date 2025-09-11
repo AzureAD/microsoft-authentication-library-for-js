@@ -38,6 +38,7 @@ import {
     LogLevel as MsalRuntimeLogLevel,
 } from "@azure/msal-node-runtime";
 import { ErrorCodes } from "../utils/Constants.js";
+import { StringUtils } from "../utils/StringUtils.js";
 import { NativeAuthError } from "../error/NativeAuthError.js";
 import { version, name } from "../packageMetadata.js";
 
@@ -193,10 +194,16 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             request.correlationId
         );
         const platformRequest = request;
+        if (!platformRequest.redirectUri) {
+            platformRequest.redirectUri =
+                this.chooseRedirectUriByPlatform(platformRequest);
+            this.logger.info(
+                "NativeBrokerPlugin - No Redirect URI provided, using default",
+                platformRequest.redirectUri
+            );
+        }
         const authParams = this.generateRequestParameters(platformRequest);
         const account = await this.getAccount(platformRequest);
-        platformRequest.redirectUri =
-            this.chooseRedirectUriByPlatform(platformRequest);
 
         return new Promise(
             (resolve: (value: AuthenticationResult) => void, reject) => {
@@ -251,9 +258,15 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             request.correlationId
         );
         const platformRequest = request;
+        if (!platformRequest.redirectUri) {
+            platformRequest.redirectUri =
+                this.chooseRedirectUriByPlatform(platformRequest);
+            this.logger.info(
+                "NativeBrokerPlugin - No Redirect URI provided, using default",
+                platformRequest.redirectUri
+            );
+        }
         const authParams = this.generateRequestParameters(platformRequest);
-        platformRequest.redirectUri =
-            this.chooseRedirectUriByPlatform(platformRequest);
         const account = await this.getAccount(platformRequest);
         const windowHandle = providedWindowHandle || Buffer.from([0]);
 
@@ -466,9 +479,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 request.authority
             );
 
-            authParams.SetRedirectUri(
-                this.chooseRedirectUriByPlatform(request)
-            );
+            authParams.SetRedirectUri(request.redirectUri);
             authParams.SetRequestedScopes(request.scopes.join(" "));
 
             if (request.claims) {
@@ -645,12 +656,16 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         ) {
             const { errorCode, errorStatus, errorContext, errorTag } =
                 error as MsalRuntimeError;
+            const tagString = StringUtils.tagToString(errorTag);
+            const enhancedErrorContext = errorContext
+                ? `${errorContext} (Error Code: ${errorCode}, Tag: ${tagString})`
+                : `(Error Code: ${errorCode}, Tag: ${tagString})`;
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
                 case ErrorStatus.AccountUnusable:
                     return new InteractionRequiredAuthError(
                         ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
-                        errorContext
+                        enhancedErrorContext
                     );
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
@@ -680,7 +695,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 default:
                     return new NativeAuthError(
                         ErrorStatus[errorStatus],
-                        errorContext,
+                        enhancedErrorContext,
                         errorCode,
                         errorTag
                     );

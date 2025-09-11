@@ -11,6 +11,8 @@ import {
 export type CustomAuthOptions = {
     challengeTypes?: Array<string>;
     authApiProxyUrl: string;
+    customAuthApiQueryParams?: Record<string, string>;
+    capabilities?: Array<string>;
 };
 
 export type CustomAuthConfiguration = Configuration & {

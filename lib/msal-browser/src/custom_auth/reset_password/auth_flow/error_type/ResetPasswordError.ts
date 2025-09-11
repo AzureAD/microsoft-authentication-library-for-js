@@ -31,14 +31,6 @@ export class ResetPasswordError extends AuthActionErrorBase {
     isUnsupportedChallengeType(): boolean {
         return this.isUnsupportedChallengeTypeError();
     }
-
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
 }
 
 export class ResetPasswordSubmitPasswordError extends AuthActionErrorBase {
@@ -75,22 +67,6 @@ export class ResetPasswordSubmitCodeError extends AuthActionErrorBase {
     isInvalidCode(): boolean {
         return this.isInvalidCodeError();
     }
-
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
 }
 
-export class ResetPasswordResendCodeError extends AuthActionErrorBase {
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
-}
+export class ResetPasswordResendCodeError extends AuthActionErrorBase {}

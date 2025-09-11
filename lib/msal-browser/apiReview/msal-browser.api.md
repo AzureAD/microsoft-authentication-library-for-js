@@ -52,6 +52,7 @@ import { PerformanceEvent } from '@azure/msal-common/browser';
 import { PerformanceEvents } from '@azure/msal-common/browser';
 import { PromptValue } from '@azure/msal-common/browser';
 import { ProtocolMode } from '@azure/msal-common/browser';
+import { RequestParameterBuilder } from '@azure/msal-common/browser';
 import { ServerError } from '@azure/msal-common/browser';
 import { ServerResponseType } from '@azure/msal-common/browser';
 import { SignedHttpRequestParameters } from '@azure/msal-common/browser';
@@ -66,6 +67,11 @@ import { UrlString } from '@azure/msal-common/browser';
 export { AccountEntity }
 
 export { AccountInfo }
+
+// Warning: (ae-missing-release-tag) "addClientCapabilitiesToClaims" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const addClientCapabilitiesToClaims: typeof RequestParameterBuilder.addClientCapabilitiesToClaims;
 
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -610,7 +616,8 @@ declare namespace BrowserUtils {
         preconnect,
         createGuid,
         invoke,
-        invokeAsync
+        invokeAsync,
+        addClientCapabilitiesToClaims
     }
 }
 export { BrowserUtils }
@@ -1790,7 +1797,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "4.19.0";
+export const version = "4.22.1";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

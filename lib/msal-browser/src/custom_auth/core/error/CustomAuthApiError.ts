@@ -10,10 +10,11 @@ import { CustomAuthError } from "./CustomAuthError.js";
  * Error when no required authentication method by Microsoft Entra is supported
  */
 export class RedirectError extends CustomAuthError {
-    constructor(correlationId?: string) {
+    constructor(correlationId?: string, public redirectReason?: string) {
         super(
             "redirect",
-            "No required authentication method by Microsoft Entra is supported, a fallback to the web-based authentication flow is needed.",
+            redirectReason ||
+                "Redirect Error, a fallback to the browser-delegated authentication is needed. Use loginPopup instead.",
             correlationId
         );
         Object.setPrototypeOf(this, RedirectError.prototype);
