@@ -12,3 +12,4 @@ export const PASSWORD_IS_INVALID = "password_is_invalid";
 export const INVALID_OOB_VALUE = "invalid_oob_value";
 export const ATTRIBUTE_VALIATION_FAILED = "attribute_validation_failed";
 export const NATIVEAUTHAPI_DISABLED = "nativeauthapi_disabled";
+export const REGISTRATION_REQUIRED = "registration_required";
