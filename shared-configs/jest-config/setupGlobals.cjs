@@ -6,54 +6,18 @@
 const crypto = require("crypto");
 const { TextDecoder, TextEncoder } = require("util");
 const { BroadcastChannel, MessageChannel } = require("worker_threads");
+const { createBroadcastChannelTracker } = require("./BroadcastChannelTracker");
 
-// Track active BroadcastChannel instances for cleanup
-const activeBroadcastChannels = new Set();
+// Create BroadcastChannel tracker for browser/jsdom environment
+const {
+    TrackedBroadcastChannel,
+    cleanupBroadcastChannels,
+    forceCleanupBroadcastChannels
+} = createBroadcastChannelTracker(() => BroadcastChannel);
 
-// Store the original BroadcastChannel
-const OriginalBroadcastChannel = BroadcastChannel;
-
-// Create a wrapped BroadcastChannel that tracks instances
-class TrackedBroadcastChannel extends OriginalBroadcastChannel {
-    constructor(name) {
-        super(name);
-        activeBroadcastChannels.add(this);
-    }
-
-    close() {
-        super.close();
-        activeBroadcastChannels.delete(this);
-    }
-}
-
-// Add cleanup function to global
-global.cleanupMsalBroadcastChannels = function () {
-    activeBroadcastChannels.forEach((channel) => {
-        try {
-            channel.close();
-        } catch (error) {
-            // Ignore cleanup errors
-        }
-    });
-    activeBroadcastChannels.clear();
-};
-
-// Enhanced cleanup function that also cleans up listeners
-global.forceCleanupMsalBroadcastChannels = function () {
-    // First try graceful cleanup
-    global.cleanupMsalBroadcastChannels();
-
-    // Add more aggressive cleanup if needed
-    if (typeof window !== "undefined" && window.BroadcastChannel) {
-        // Reset to original BroadcastChannel to prevent further leaks
-        window.BroadcastChannel = OriginalBroadcastChannel;
-        // Then restore tracked version
-        window.BroadcastChannel = TrackedBroadcastChannel;
-    }
-
-    // Clear any remaining instances in case some weren't tracked
-    activeBroadcastChannels.clear();
-};
+// Add cleanup functions to global for use in test setup files
+global.cleanupMsalBroadcastChannels = cleanupBroadcastChannels;
+global.forceCleanupMsalBroadcastChannels = forceCleanupBroadcastChannels;
 
 try {
     Object?.defineProperties(global.self, {
