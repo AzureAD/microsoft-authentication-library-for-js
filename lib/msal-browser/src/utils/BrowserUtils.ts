@@ -8,6 +8,7 @@ import {
     invoke,
     invokeAsync,
     UrlUtils,
+    RequestParameterBuilder,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -213,3 +214,5 @@ export function createGuid(): string {
 
 export { invoke };
 export { invokeAsync };
+export const addClientCapabilitiesToClaims =
+    RequestParameterBuilder.addClientCapabilitiesToClaims;
