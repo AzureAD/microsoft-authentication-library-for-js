@@ -21,7 +21,7 @@ import { AuthenticationResult } from "../../src/response/AuthenticationResult.js
 import { TestTimeUtils } from "msal-test-utils";
 
 // Set up BroadcastChannel tracking for Node environment
-const { BroadcastChannel } = require('worker_threads');
+const { BroadcastChannel } = require("worker_threads");
 const activeBroadcastChannels = new Set();
 
 class TrackedBroadcastChannel extends BroadcastChannel {
