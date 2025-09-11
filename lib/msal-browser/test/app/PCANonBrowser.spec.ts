@@ -20,6 +20,36 @@ import { AuthenticationResult } from "../../src/response/AuthenticationResult.js
 import { TestTimeUtils } from "msal-test-utils";
 import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
+// Set up BroadcastChannel tracking for Node environment
+const { BroadcastChannel } = require('worker_threads');
+const activeBroadcastChannels = new Set();
+
+class TrackedBroadcastChannel extends BroadcastChannel {
+    constructor(name: string) {
+        super(name);
+        activeBroadcastChannels.add(this);
+    }
+
+    close() {
+        super.close();
+        activeBroadcastChannels.delete(this);
+    }
+}
+
+// Replace global BroadcastChannel with tracked version
+(global as any).BroadcastChannel = TrackedBroadcastChannel;
+
+function cleanupAllBroadcastChannels() {
+    activeBroadcastChannels.forEach((channel: any) => {
+        try {
+            channel.close();
+        } catch (error) {
+            // Ignore cleanup errors
+        }
+    });
+    activeBroadcastChannels.clear();
+}
+
 /**
  * Tests for PublicClientApplication.ts when run in a non-browser environment
  *
@@ -32,6 +62,11 @@ import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
  */
 
 describe("Non-browser environment", () => {
+    afterEach(() => {
+        // Clean up all BroadcastChannel instances after each test
+        cleanupAllBroadcastChannels();
+    });
+
     it("Constructor doesnt throw if window is undefined", () => {
         new PublicClientApplication({
             auth: {

@@ -23,4 +23,21 @@ beforeAll(() => {
         window.nestedAppAuthBridge = new MockBridge();
     }
 });
-afterAll(() => {});
+
+afterEach(() => {
+    // Clean up BroadcastChannels after each test
+    if ((global as any).forceCleanupMsalBroadcastChannels) {
+        (global as any).forceCleanupMsalBroadcastChannels();
+    } else if ((global as any).cleanupMsalBroadcastChannels) {
+        (global as any).cleanupMsalBroadcastChannels();
+    }
+});
+
+afterAll(() => {
+    // Final aggressive cleanup
+    if ((global as any).forceCleanupMsalBroadcastChannels) {
+        (global as any).forceCleanupMsalBroadcastChannels();
+    } else if ((global as any).cleanupMsalBroadcastChannels) {
+        (global as any).cleanupMsalBroadcastChannels();
+    }
+});
