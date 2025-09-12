@@ -422,7 +422,7 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 -   User cancelled the flow.
 
-This error is thrown when a `loginPopup` or `acquireTokenPopup` are impacted by `Content-Security-Policy` / `X-Frame-Options` / `Cross-Origin-Opener-Policy` headers .
+This error is thrown when a `loginPopup` or `acquireTokenPopup` are impacted by `Content-Security-Policy` / `X-Frame-Options` / `Cross-Origin-Opener-Policy` headers.
 
 Your `Content-Security-Policy` will likely need to look similar to the below:
 
