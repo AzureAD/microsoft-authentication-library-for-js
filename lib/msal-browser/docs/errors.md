@@ -428,7 +428,7 @@ Your `Content-Security-Policy` will likely need to look similar to the below:
 
 `default-src 'self'; script-src 'self'; connect-src 'self' https://login.microsoftonline.com; frame-ancestors 'self'; img-src 'self' data:; style-src 'self'`
 
-Notice the presence of `https://login.microsoftonline.com` which allows the token to be passed. 
+Notice the presence of `https://login.microsoftonline.com`, which allows the token to be passed. 
 
 You may want to consider amending `Cross-Origin-Opener-Policy` to `same-origin-allow-popups` if you use that header.  You may want to consider using `X-Frame-Options` of `SAMEORIGIN` if you use that header.
 
