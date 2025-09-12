@@ -521,6 +521,14 @@ export class StandardController implements IController {
             .then((result: AuthenticationResult | null) => {
                 if (result) {
                     this.browserStorage.resetRequestCache();
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_SUCCESS,
+                        InteractionType.Redirect,
+                        result
+                    );
+                    this.logger.verbose(
+                        "handleRedirectResponse returned result, acquire token success"
+                    );
                     // Emit login event if number of accounts change
                     const isLoggingIn =
                         loggedInAccounts.length < this.getAllAccounts().length;
@@ -529,18 +537,6 @@ export class StandardController implements IController {
                             EventType.LOGIN_SUCCESS,
                             InteractionType.Redirect,
                             result.account
-                        );
-                        this.logger.verbose(
-                            "handleRedirectResponse returned result, login success"
-                        );
-                    } else {
-                        this.eventHandler.emitEvent(
-                            EventType.ACQUIRE_TOKEN_SUCCESS,
-                            InteractionType.Redirect,
-                            result
-                        );
-                        this.logger.verbose(
-                            "handleRedirectResponse returned result, acquire token success"
                         );
                     }
                     rootMeasurement.end({
