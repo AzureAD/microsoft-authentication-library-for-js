@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Clean up BroadcastChannel resources to fix hanging tests #8045",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
