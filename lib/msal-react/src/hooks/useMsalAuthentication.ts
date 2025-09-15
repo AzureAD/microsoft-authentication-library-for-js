@@ -96,7 +96,7 @@ export function useMsalAuthentication(
 
             const getToken = async (): Promise<AuthenticationResult | null> => {
                 logger.verbose(
-                    "useMsalAuthentication - Calling acquireTokenSilent"
+                    "useMsalAuthentication - Calling getToken"
                 );
 
                 switch (loginType) {
