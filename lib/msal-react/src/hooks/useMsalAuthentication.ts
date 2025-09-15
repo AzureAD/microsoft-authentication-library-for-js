@@ -95,9 +95,7 @@ export function useMsalAuthentication(
             const loginRequest = callbackRequest || authenticationRequest;
 
             const getToken = async (): Promise<AuthenticationResult | null> => {
-                logger.verbose(
-                    "useMsalAuthentication - Calling getToken"
-                );
+                logger.verbose("useMsalAuthentication - Calling getToken");
 
                 switch (loginType) {
                     case InteractionType.Popup:
