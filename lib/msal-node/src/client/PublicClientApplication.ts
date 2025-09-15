@@ -180,10 +180,11 @@ export class PublicClientApplication
         }
 
         if (request.redirectUri) {
-            // If a redirect URI is provided for a broker flow but MSAL runtime startup fails, we fall back to the browser flow and will ignore the redirect URI provided for the broker flow
+            // If its not a broker fallback scenario, we throw a error
             if (!this.config.broker.nativeBrokerPlugin) {
                 throw NodeAuthError.createRedirectUriNotSupportedError();
             }
+            // If a redirect URI is provided for a broker flow but MSAL runtime startup failed, we fall back to the browser flow and will ignore the redirect URI provided for the broker flow
             request.redirectUri = "";
         }
 
@@ -280,6 +281,7 @@ export class PublicClientApplication
         }
 
         if (request.redirectUri) {
+            // If its not a broker fallback scenario, we throw a error
             if (!this.config.broker.nativeBrokerPlugin) {
                 throw NodeAuthError.createRedirectUriNotSupportedError();
             }
