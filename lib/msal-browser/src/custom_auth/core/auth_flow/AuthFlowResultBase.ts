@@ -42,10 +42,24 @@ export abstract class AuthFlowResultBase<
         if (error instanceof CustomAuthError) {
             return error;
         } else if (error instanceof AuthError) {
+            const errorCodes: Array<number> = [];
+
+            if ("errorNo" in error) {
+                if (typeof error.errorNo === "string") {
+                    const code = Number(error.errorNo);
+                    if (!isNaN(code)) {
+                        errorCodes.push(code);
+                    }
+                } else if (typeof error.errorNo === "number") {
+                    errorCodes.push(error.errorNo);
+                }
+            }
+
             return new MsalCustomAuthError(
                 error.errorCode,
                 error.errorMessage,
                 error.subError,
+                errorCodes,
                 error.correlationId
             );
         } else {

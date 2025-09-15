@@ -26,6 +26,10 @@ describe("CustomAuthApiClient", () => {
         expect(customAuthApiClient.resetPasswordApi).toBeDefined();
     });
 
+    it("should initialize registerApiClient correctly", () => {
+        expect(customAuthApiClient.registerApi).toBeDefined();
+    });
+
     describe("customAuthApiQueryParams", () => {
         it("should initialize with customAuthApiQueryParams containing dc", () => {
             const logger = getDefaultLogger();

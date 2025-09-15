@@ -67,6 +67,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         signInClient: this.stateParameters.signInClient,
                         signUpClient: this.stateParameters.signUpClient,
                         cacheClient: this.stateParameters.cacheClient,
+                        jitClient: this.stateParameters.jitClient,
                         username: this.stateParameters.username,
                     })
                 );
@@ -88,6 +89,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         signInClient: this.stateParameters.signInClient,
                         signUpClient: this.stateParameters.signUpClient,
                         cacheClient: this.stateParameters.cacheClient,
+                        jitClient: this.stateParameters.jitClient,
                         username: this.stateParameters.username,
                         requiredAttributes: result.requiredAttributes,
                     })
@@ -107,6 +109,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         config: this.stateParameters.config,
                         signInClient: this.stateParameters.signInClient,
                         cacheClient: this.stateParameters.cacheClient,
+                        jitClient: this.stateParameters.jitClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
                     })
@@ -163,6 +166,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                     signInClient: this.stateParameters.signInClient,
                     signUpClient: this.stateParameters.signUpClient,
                     cacheClient: this.stateParameters.cacheClient,
+                    jitClient: this.stateParameters.jitClient,
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
                     codeResendInterval: result.interval,
