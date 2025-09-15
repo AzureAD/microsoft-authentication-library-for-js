@@ -180,8 +180,14 @@ export class PublicClientApplication
         }
 
         if (request.redirectUri) {
-            throw NodeAuthError.createRedirectUriNotSupportedError();
+            // If a redirect URI is provided for a broker flow but MSAL runtime startup fails, we fall back to the browser flow and will ignore the redirect URI provided for the broker flow
+            if (!this.config.broker.nativeBrokerPlugin)
+            {
+               throw NodeAuthError.createRedirectUriNotSupportedError();
+            }
+            request.redirectUri = "";
         }
+
         const { verifier, challenge } =
             await this.cryptoProvider.generatePkceCodes();
 
@@ -275,7 +281,11 @@ export class PublicClientApplication
         }
 
         if (request.redirectUri) {
-            throw NodeAuthError.createRedirectUriNotSupportedError();
+            if (!this.config.broker.nativeBrokerPlugin)
+            {
+               throw NodeAuthError.createRedirectUriNotSupportedError();
+            }
+            request.redirectUri = "";
         }
 
         return super.acquireTokenSilent(request);
