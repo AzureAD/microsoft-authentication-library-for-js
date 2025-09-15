@@ -580,7 +580,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             end: (
                 event?: Partial<PerformanceEvent>,
                 error?: unknown,
-                account?: AccountInfo,
+                account?: AccountInfo
             ): PerformanceEvent | null => {
                 return this.endMeasurement(
                     {
@@ -624,7 +624,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
     endMeasurement(
         event: PerformanceEvent,
         error?: unknown,
-        account?: AccountInfo,
+        account?: AccountInfo
     ): PerformanceEvent | null {
         const rootEvent: PerformanceEvent | undefined =
             this.eventsByCorrelationId.get(event.correlationId);
@@ -712,7 +712,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             incompleteSubsCount,
             context,
             accountType: getAccountType(account),
-            dataBoundary: account?.dataBoundary
+            dataBoundary: account?.dataBoundary,
         };
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);

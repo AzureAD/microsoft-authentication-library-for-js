@@ -431,23 +431,25 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
         beforeEach(async () => {
             jest.clearAllMocks();
-            
+
             // Set up mock bridge
             mockBridge = window.nestedAppAuthBridge as MockBridge;
-            
+
             // Create config with BrowserPerformanceClient like the working tests
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 telemetry: {
-                    client: new (require("../../src/telemetry/BrowserPerformanceClient.js").BrowserPerformanceClient)({
-                        auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
-                        system: { loggerOptions: {} }
-                    }),
+                    client: new (require("../../src/telemetry/BrowserPerformanceClient.js").BrowserPerformanceClient)(
+                        {
+                            auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                            system: { loggerOptions: {} },
+                        }
+                    ),
                 },
             };
-            
+
             localPca = await createNestablePublicClientApplication(config);
             performanceClient = config.telemetry.client;
         });
@@ -481,13 +483,15 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     name: "test-event",
                     startTimeMs: Date.now(),
                     libraryName: "msal-browser",
-                    libraryVersion: "test-version"
+                    libraryVersion: "test-version",
                 },
                 measurement: {},
             };
 
             // Spy on startMeasurement to return our mock measurement
-            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(mockMeasurement as any);
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
 
             // Mock the bridge response for interactive token request
             mockBridge.addAuthResultResponse("GetTokenPopup", {
@@ -550,13 +554,15 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     name: "test-event",
                     startTimeMs: Date.now(),
                     libraryName: "msal-browser",
-                    libraryVersion: "test-version"
+                    libraryVersion: "test-version",
                 },
                 measurement: {},
             };
 
             // Spy on startMeasurement to return our mock measurement
-            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(mockMeasurement as any);
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
 
             // Mock the bridge response for silent token request
             mockBridge.addAuthResultResponse("GetToken", {
@@ -611,13 +617,15 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     name: "test-event",
                     startTimeMs: Date.now(),
                     libraryName: "msal-browser",
-                    libraryVersion: "test-version"
+                    libraryVersion: "test-version",
                 },
                 measurement: {},
             };
 
             // Spy on startMeasurement to return our mock measurement
-            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(mockMeasurement as any);
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
 
             // Mock the bridge response for silent token request without account in request
             mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
@@ -626,13 +634,15 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             // Verify measurement.end was called without account parameter (undefined as third argument)
             // We expect the successful call to have the account as undefined since request.account was undefined
-            const successfulCalls = mockMeasurement.end.mock.calls.filter(call => 
-                call[0] && call[0].success === true
+            const successfulCalls = mockMeasurement.end.mock.calls.filter(
+                (call) => call[0] && call[0].success === true
             );
             expect(successfulCalls.length).toBeGreaterThan(0);
-            
+
             // At least one successful call should have undefined as the third parameter (account)
-            const callWithUndefinedAccount = successfulCalls.find(call => call[2] === undefined);
+            const callWithUndefinedAccount = successfulCalls.find(
+                (call) => call[2] === undefined
+            );
             expect(callWithUndefinedAccount).toBeDefined();
 
             expect(result).toBeDefined();

@@ -13,7 +13,7 @@ export type InProgressPerformanceEvent = {
     end: (
         event?: Partial<PerformanceEvent>,
         error?: unknown,
-        account?: AccountInfo,
+        account?: AccountInfo
     ) => PerformanceEvent | null;
     discard: () => void;
     add: (fields: { [key: string]: {} | undefined }) => void;

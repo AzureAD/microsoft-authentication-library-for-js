@@ -8333,13 +8333,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     name: "test-event",
                     startTimeMs: Date.now(),
                     libraryName: "msal-browser",
-                    libraryVersion: "test-version"
+                    libraryVersion: "test-version",
                 },
                 measurement: {},
             };
 
             // Spy on startMeasurement to return our mock measurement
-            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(mockMeasurement as any);
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
 
             // Mock the cache lookup to return a token directly from cache
             const testCachedAuthResult = {
@@ -8369,7 +8371,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: true,
-                    fromCache: true
+                    fromCache: true,
                 }),
                 undefined,
                 testAccount
@@ -8406,13 +8408,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     name: "test-event",
                     startTimeMs: Date.now(),
                     libraryName: "msal-browser",
-                    libraryVersion: "test-version"
+                    libraryVersion: "test-version",
                 },
                 measurement: {},
             };
 
             // Spy on startMeasurement to return our mock measurement
-            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(mockMeasurement as any);
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
 
             // Mock PopupClient to avoid the actual popup flow
             const testResult = {
@@ -8430,10 +8434,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
 
-            jest.spyOn(
-                PopupClient.prototype,
-                "acquireToken"
-            ).mockResolvedValue(testResult);
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testResult
+            );
 
             await pca.acquireTokenPopup(testRequest);
 
@@ -8475,13 +8478,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     name: "test-event",
                     startTimeMs: Date.now(),
                     libraryName: "msal-browser",
-                    libraryVersion: "test-version"
+                    libraryVersion: "test-version",
                 },
                 measurement: {},
             };
 
             // Spy on startMeasurement to return our mock measurement
-            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(mockMeasurement as any);
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
 
             // Mock SilentCacheClient to simulate successful silent authentication
             jest.spyOn(
@@ -8545,13 +8550,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     name: "test-event",
                     startTimeMs: Date.now(),
                     libraryName: "msal-browser",
-                    libraryVersion: "test-version"
+                    libraryVersion: "test-version",
                 },
                 measurement: {},
             };
 
             // Spy on startMeasurement to return our mock measurement
-            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(mockMeasurement as any);
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
 
             // Mock SilentIframeClient to avoid the actual iframe flow
             const testResult = {
@@ -8606,13 +8613,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     name: "test-event",
                     startTimeMs: Date.now(),
                     libraryName: "msal-browser",
-                    libraryVersion: "test-version"
+                    libraryVersion: "test-version",
                 },
                 measurement: {},
             };
 
             // Spy on startMeasurement to return our mock measurement
-            const startMeasurementSpy = jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(mockMeasurement as any);
+            const startMeasurementSpy = jest
+                .spyOn(performanceClient, "startMeasurement")
+                .mockReturnValue(mockMeasurement as any);
 
             // Mock getActiveAccount to return a valid account so the early account check passes
             const mockActiveAccount = {
@@ -8624,13 +8633,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             // Need to mock at the controller level since that's where getActiveAccount is called
-            jest.spyOn(StandardController.prototype, "getActiveAccount").mockReturnValue(mockActiveAccount);
+            jest.spyOn(
+                StandardController.prototype,
+                "getActiveAccount"
+            ).mockReturnValue(mockActiveAccount);
 
             // Mock SilentCacheClient to reject so we get an error case and trigger measurement.end
-            const silentCacheClientSpy = jest.spyOn(
-                SilentCacheClient.prototype,
-                "acquireToken"
-            ).mockRejectedValue(createBrowserAuthError(BrowserAuthErrorCodes.noAccountError));
+            const silentCacheClientSpy = jest
+                .spyOn(SilentCacheClient.prototype, "acquireToken")
+                .mockRejectedValue(
+                    createBrowserAuthError(BrowserAuthErrorCodes.noAccountError)
+                );
 
             let caughtError: any = null;
             try {
@@ -8641,14 +8654,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // Verify measurement.end was called with request.account (which is undefined)
             // Look for the failure call and verify the account parameter
-            const failureCalls = mockMeasurement.end.mock.calls.filter(call =>
-                call[0] && call[0].success === false
+            const failureCalls = mockMeasurement.end.mock.calls.filter(
+                (call) => call[0] && call[0].success === false
             );
             expect(failureCalls.length).toBeGreaterThan(0);
 
             // Check if any failure call has the account parameter as undefined (request.account)
-            const callWithUndefinedAccount = failureCalls.find(call =>
-                call.length >= 3 && call[2] === undefined
+            const callWithUndefinedAccount = failureCalls.find(
+                (call) => call.length >= 3 && call[2] === undefined
             );
 
             // If no 3-parameter call found, that means the code is still using the old 2-parameter signature
