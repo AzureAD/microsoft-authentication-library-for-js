@@ -38,6 +38,7 @@ import {
     CredentialEntity,
     CredentialType,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    AuthToken,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -296,7 +297,8 @@ export class BrowserCacheManager extends CacheManager {
                             v1Key,
                             JSON.stringify(decryptedData),
                             correlationId,
-                            parsedV0Value.lastUpdatedAt
+                            parsedV0Value.lastUpdatedAt,
+                            false // TODO: Make this dynamic for migrations
                         ).then(() => {
                             v1Keys.push(v1Key);
                             this.performanceClient.incrementFields(
@@ -320,7 +322,8 @@ export class BrowserCacheManager extends CacheManager {
                                 v1Key,
                                 JSON.stringify(decryptedData),
                                 correlationId,
-                                parsedV0Value.lastUpdatedAt
+                                parsedV0Value.lastUpdatedAt,
+                                false // TODO: Make this dynamic for migrations
                             ).then(() => {
                                 this.performanceClient.incrementFields(
                                     { updatedCacheFromV0Count: 1 },
@@ -470,7 +473,8 @@ export class BrowserCacheManager extends CacheManager {
         key: string,
         value: string,
         correlationId: string,
-        timestamp: string
+        timestamp: string,
+        kmsi: boolean
     ): Promise<void> {
         let tokenKeysV0Count = 0;
         let accessTokenKeys: Array<string> = [];
@@ -482,7 +486,7 @@ export class BrowserCacheManager extends CacheManager {
                     PerformanceEvents.SetUserData,
                     this.logger,
                     this.performanceClient
-                )(key, value, correlationId, timestamp);
+                )(key, value, correlationId, timestamp, kmsi);
                 if (i > 0) {
                     // Finally update the token keys array with the tokens removed
                     if (i <= tokenKeysV0Count) {
@@ -569,7 +573,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     async setAccount(
         account: AccountEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
         const key = this.generateAccountKey(account.getAccountInfo());
@@ -579,7 +584,8 @@ export class BrowserCacheManager extends CacheManager {
             key,
             JSON.stringify(account),
             correlationId,
-            timestamp
+            timestamp,
+            kmsi
         );
         const wasAdded = this.addAccountKeyToMap(key, correlationId);
 
@@ -865,7 +871,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     async setIdTokenCredential(
         idToken: IdTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = this.generateCredentialKey(idToken);
@@ -876,7 +883,8 @@ export class BrowserCacheManager extends CacheManager {
             idTokenKey,
             JSON.stringify(idToken),
             correlationId,
-            timestamp
+            timestamp,
+            kmsi
         );
 
         const tokenKeys = this.getTokenKeys();
@@ -928,7 +936,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called"
@@ -941,7 +950,8 @@ export class BrowserCacheManager extends CacheManager {
             accessTokenKey,
             JSON.stringify(accessToken),
             correlationId,
-            timestamp
+            timestamp,
+            kmsi
         );
 
         const tokenKeys = this.getTokenKeys();
@@ -995,7 +1005,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     async setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setRefreshTokenCredential called"
@@ -1008,7 +1019,8 @@ export class BrowserCacheManager extends CacheManager {
             refreshTokenKey,
             JSON.stringify(refreshToken),
             correlationId,
-            timestamp
+            timestamp,
+            kmsi
         );
 
         const tokenKeys = this.getTokenKeys();
@@ -1769,7 +1781,7 @@ export class BrowserCacheManager extends CacheManager {
             idToken: idTokenEntity,
             accessToken: accessTokenEntity,
         };
-        return this.saveCacheRecord(cacheRecord, result.correlationId);
+        return this.saveCacheRecord(cacheRecord, result.correlationId, AuthToken.isKmsi(AuthToken.extractTokenClaims(result.idToken, base64Decode)));
     }
 
     /**
@@ -1781,12 +1793,14 @@ export class BrowserCacheManager extends CacheManager {
     async saveCacheRecord(
         cacheRecord: CacheRecord,
         correlationId: string,
+        kmsi: boolean,
         storeInCache?: StoreInCache
     ): Promise<void> {
         try {
             await super.saveCacheRecord(
                 cacheRecord,
                 correlationId,
+                kmsi,
                 storeInCache
             );
         } catch (e) {

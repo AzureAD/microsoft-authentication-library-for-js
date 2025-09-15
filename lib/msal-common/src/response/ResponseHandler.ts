@@ -40,7 +40,7 @@ import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
+import { checkMaxAge, extractTokenClaims, isKmsi } from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -305,6 +305,7 @@ export class ResponseHandler {
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
+                isKmsi(idTokenClaims || {}),
                 request.storeInCache
             );
         } finally {

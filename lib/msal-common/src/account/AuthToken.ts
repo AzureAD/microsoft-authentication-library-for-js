@@ -31,6 +31,19 @@ export function extractTokenClaims(
 }
 
 /**
+ * Check if the signin_state claim contains "kmsi"
+ * @param idTokenClaims 
+ * @returns 
+ */
+export function isKmsi(idTokenClaims: TokenClaims): boolean {
+    if (!idTokenClaims.signin_state) {
+        return false;
+    }
+    const kmsi = idTokenClaims.signin_state.some((value) => value.trim().toLowerCase() === "kmsi");
+    return kmsi;
+}
+
+/**
  * decode a JWT
  *
  * @param authToken
