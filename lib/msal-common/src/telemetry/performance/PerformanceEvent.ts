@@ -912,6 +912,8 @@ export type PerformanceEvent = {
     sameClientIdInstanceCount?: number;
 
     navigateCallbackResult?: boolean;
+
+    dataBoundary?: string;
 };
 
 export type PerformanceEventContext = {

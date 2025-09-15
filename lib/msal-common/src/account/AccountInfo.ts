@@ -16,6 +16,7 @@ import { TokenClaims } from "./TokenClaims.js";
  * - idTokenClaims          - Object contains claims from ID token
  * - nativeAccountId        - The user's native account ID
  * - tenantProfiles         - Map of tenant profile objects for each tenant that the account has authenticated with in the browser
+ * - dataBoundary           - Data boundary extracted from clientInfo
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -38,6 +39,7 @@ export type AccountInfo = {
     nativeAccountId?: string;
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
+    dataBoundary?: string;
 };
 
 /**

@@ -64,6 +64,7 @@ export class AccountEntity {
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
     lastUpdatedAt: string;
+    dataBoundary?: string;
 
     /**
      * Returns the AccountInfo interface for this account.
@@ -85,6 +86,7 @@ export class AccountEntity {
                     return [tenantProfile.tenantId, tenantProfile];
                 })
             ),
+            dataBoundary: this.dataBoundary,
         };
     }
 
@@ -130,6 +132,9 @@ export class AccountEntity {
                 accountDetails.clientInfo,
                 base64Decode
             );
+            if (clientInfo.xms_tdbr) {
+                account.dataBoundary = clientInfo.xms_tdbr;
+            }
         }
 
         account.clientInfo = accountDetails.clientInfo;
@@ -227,6 +232,7 @@ export class AccountEntity {
         account.tenantProfiles = Array.from(
             accountInfo.tenantProfiles?.values() || []
         );
+        account.dataBoundary = accountInfo.dataBoundary;
 
         return account;
     }
