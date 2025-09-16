@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { DataBoundary } from "../../account/AccountInfo.js";
+
 /**
  * Enumeration of operations that are instrumented by have their performance measured by the PerformanceClient.
  *
@@ -913,7 +915,7 @@ export type PerformanceEvent = {
 
     navigateCallbackResult?: boolean;
 
-    dataBoundary?: "EU" | "WW";
+    dataBoundary?: DataBoundary;
 };
 
 export type PerformanceEventContext = {

@@ -4,6 +4,9 @@
  */
 
 import { TokenClaims } from "./TokenClaims.js";
+
+export type DataBoundary = "EU" | "None";
+
 /**
  * Account object with the following signature:
  * - homeAccountId          - Home account identifier for this account object
@@ -39,7 +42,7 @@ export type AccountInfo = {
     nativeAccountId?: string;
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
-    dataBoundary?: string;
+    dataBoundary?: DataBoundary;
 };
 
 /**

@@ -11,6 +11,7 @@ import {
     AccountInfo,
     TenantProfile,
     buildTenantProfile,
+    DataBoundary,
 } from "../../account/AccountInfo.js";
 import {
     createClientAuthError,
@@ -64,7 +65,7 @@ export class AccountEntity {
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
     lastUpdatedAt: string;
-    dataBoundary?: string;
+    dataBoundary?: DataBoundary;
 
     /**
      * Returns the AccountInfo interface for this account.
@@ -133,7 +134,8 @@ export class AccountEntity {
                 base64Decode
             );
             if (clientInfo.xms_tdbr) {
-                account.dataBoundary = clientInfo.xms_tdbr;
+                account.dataBoundary =
+                    clientInfo.xms_tdbr === "EU" ? "EU" : "None";
             }
         }
 

@@ -21,6 +21,7 @@ import {
 import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient.js";
 import { PerformanceEventAbbreviations } from "../../src/telemetry/performance/PerformanceEvent.js";
 import { AuthError } from "../../src/error/AuthError.js";
+import { DataBoundary } from "../../src/account/AccountInfo.js";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -1392,7 +1393,7 @@ describe("PerformanceClient.spec.ts", () => {
                 idTokenClaims: {
                     tid: "test-tenant-id",
                 },
-                dataBoundary: "EU",
+                dataBoundary: "EU" as DataBoundary,
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
@@ -1410,7 +1411,7 @@ describe("PerformanceClient.spec.ts", () => {
             topLevelEvent.end({ success: true }, undefined, testAccount);
         });
 
-        it("sets accountType and defaults dataBoundary to WW when account is provided without dataBoundary", (done) => {
+        it("sets accountType and defaults dataBoundary to undefined when account is provided without dataBoundary", (done) => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
             const testAccount = {
@@ -1428,7 +1429,7 @@ describe("PerformanceClient.spec.ts", () => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.accountType).toBe("AAD");
-                expect(event.dataBoundary).toBe("WW");
+                expect(event.dataBoundary).toBe(undefined);
                 done();
             });
 
@@ -1470,14 +1471,14 @@ describe("PerformanceClient.spec.ts", () => {
                 idTokenClaims: {
                     tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
                 },
-                dataBoundary: "WW",
+                dataBoundary: "None" as DataBoundary,
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.accountType).toBe("MSA");
-                expect(event.dataBoundary).toBe("WW");
+                expect(event.dataBoundary).toBe("None");
                 done();
             });
 
@@ -1500,14 +1501,14 @@ describe("PerformanceClient.spec.ts", () => {
                 idTokenClaims: {
                     tfp: "B2C_1_SignUpSignIn",
                 },
-                dataBoundary: "US",
+                dataBoundary: "None" as DataBoundary,
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.accountType).toBe("B2C");
-                expect(event.dataBoundary).toBe("WW");
+                expect(event.dataBoundary).toBe("None");
                 done();
             });
 
@@ -1530,14 +1531,13 @@ describe("PerformanceClient.spec.ts", () => {
                 idTokenClaims: {
                     acr: "B2C_1_SignUpSignIn",
                 },
-                dataBoundary: "APAC",
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.accountType).toBe("B2C");
-                expect(event.dataBoundary).toBe("WW");
+                expect(event.dataBoundary).toBe(undefined);
                 done();
             });
 
@@ -1560,14 +1560,14 @@ describe("PerformanceClient.spec.ts", () => {
                 idTokenClaims: {
                     sub: "test-subject",
                 },
-                dataBoundary: "WW",
+                dataBoundary: "None" as DataBoundary,
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.accountType).toBeUndefined();
-                expect(event.dataBoundary).toBe("WW");
+                expect(event.dataBoundary).toBe("None");
                 done();
             });
 
@@ -1590,14 +1590,14 @@ describe("PerformanceClient.spec.ts", () => {
                 idTokenClaims: {
                     tid: "test-tenant-id",
                 },
-                dataBoundary: "",
+                dataBoundary: "None" as DataBoundary,
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.accountType).toBe("AAD");
-                expect(event.dataBoundary).toBe("WW"); // Should default to WW when dataBoundary is empty
+                expect(event.dataBoundary).toBe("None"); // Should default to WW when dataBoundary is empty
                 done();
             });
 
