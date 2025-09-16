@@ -711,9 +711,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
             context,
-            accountType: getAccountType(account),
-            dataBoundary: account?.dataBoundary,
         };
+        if (account) {
+            finalEvent.accountType = getAccountType(account);
+            finalEvent.dataBoundary = account.dataBoundary?.toUpperCase() === "EU" ? "EU" : "WW";
+        }
+
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);
 

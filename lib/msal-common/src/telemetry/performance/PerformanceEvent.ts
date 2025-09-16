@@ -913,7 +913,7 @@ export type PerformanceEvent = {
 
     navigateCallbackResult?: boolean;
 
-    dataBoundary?: string;
+    dataBoundary?: "EU" | "WW";
 };
 
 export type PerformanceEventContext = {
