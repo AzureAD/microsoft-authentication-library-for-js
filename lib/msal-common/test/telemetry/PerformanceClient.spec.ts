@@ -1390,9 +1390,9 @@ describe("PerformanceClient.spec.ts", () => {
                 username: "test@example.com",
                 localAccountId: "test-local-account-id",
                 idTokenClaims: {
-                    tid: "test-tenant-id"
+                    tid: "test-tenant-id",
                 },
-                dataBoundary: "EU"
+                dataBoundary: "EU",
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
@@ -1420,8 +1420,8 @@ describe("PerformanceClient.spec.ts", () => {
                 username: "test@example.com",
                 localAccountId: "test-local-account-id",
                 idTokenClaims: {
-                    tid: "test-tenant-id"
-                }
+                    tid: "test-tenant-id",
+                },
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
@@ -1468,9 +1468,9 @@ describe("PerformanceClient.spec.ts", () => {
                 username: "test@outlook.com",
                 localAccountId: "test-local-account-id",
                 idTokenClaims: {
-                    tid: "9188040d-6c67-4c5b-b112-36a304b66dad"
+                    tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
                 },
-                dataBoundary: "WW"
+                dataBoundary: "WW",
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
@@ -1498,9 +1498,9 @@ describe("PerformanceClient.spec.ts", () => {
                 username: "test@example.com",
                 localAccountId: "test-local-account-id",
                 idTokenClaims: {
-                    tfp: "B2C_1_SignUpSignIn"
+                    tfp: "B2C_1_SignUpSignIn",
                 },
-                dataBoundary: "US"
+                dataBoundary: "US",
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
@@ -1528,9 +1528,9 @@ describe("PerformanceClient.spec.ts", () => {
                 username: "test@example.com",
                 localAccountId: "test-local-account-id",
                 idTokenClaims: {
-                    acr: "B2C_1_SignUpSignIn"
+                    acr: "B2C_1_SignUpSignIn",
                 },
-                dataBoundary: "APAC"
+                dataBoundary: "APAC",
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
@@ -1558,9 +1558,9 @@ describe("PerformanceClient.spec.ts", () => {
                 username: "test@example.com",
                 localAccountId: "test-local-account-id",
                 idTokenClaims: {
-                    sub: "test-subject"
+                    sub: "test-subject",
                 },
-                dataBoundary: "WW"
+                dataBoundary: "WW",
             };
 
             mockPerfClient.addPerformanceCallback((events) => {
@@ -1588,9 +1588,9 @@ describe("PerformanceClient.spec.ts", () => {
                 username: "test@example.com",
                 localAccountId: "test-local-account-id",
                 idTokenClaims: {
-                    tid: "test-tenant-id"
+                    tid: "test-tenant-id",
                 },
-                dataBoundary: ""
+                dataBoundary: "",
             };
 
             mockPerfClient.addPerformanceCallback((events) => {

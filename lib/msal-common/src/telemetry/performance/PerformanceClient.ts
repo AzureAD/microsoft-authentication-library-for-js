@@ -714,7 +714,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         };
         if (account) {
             finalEvent.accountType = getAccountType(account);
-            finalEvent.dataBoundary = account.dataBoundary?.toUpperCase() === "EU" ? "EU" : "WW";
+            finalEvent.dataBoundary =
+                account.dataBoundary?.toUpperCase() === "EU" ? "EU" : "WW";
         }
 
         this.truncateIntegralFields(finalEvent);
