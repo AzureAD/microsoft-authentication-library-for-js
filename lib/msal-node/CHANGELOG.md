@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 27 Aug 2025 00:59:59 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 17 Sep 2025 09:50:42 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.7.4
+
+Wed, 17 Sep 2025 09:50:42 GMT
+
+### Patches
+
+- broker redirect uri changes (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.7.3
 
