@@ -383,6 +383,42 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             );
         });
 
+        it("acquireTokenSilent forwards forceRefresh flag to bridge token params", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                forceRefresh: true,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            await pca.acquireTokenSilent(testRequest);
+
+            const bridgeRequest = JSON.parse(
+                mockBridge.getBridgeRequests().at(-1)!
+            ) as any;
+            expect(bridgeRequest.tokenParams?.forceRefresh).toBe(true);
+        });
+
+        it("acquireTokenSilent does not set forceRefresh on bridge token params when not provided", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                correlationId: NAA_CORRELATION_ID,
+                cacheLookupPolicy: CacheLookupPolicy.Skip,
+            };
+
+            await pca.acquireTokenSilent(testRequest);
+
+            const bridgeRequest = JSON.parse(
+                mockBridge.getBridgeRequests().at(-1)!
+            ) as any;
+            expect(bridgeRequest.tokenParams?.forceRefresh).toBeUndefined();
+        });
+
         afterEach(() => {
             jest.restoreAllMocks();
         });

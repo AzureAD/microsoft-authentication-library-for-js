@@ -20,4 +20,5 @@ export type TokenRequest = {
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
     extraParameters?: Map<string, string>;
+    forceRefresh?: boolean;
 };
