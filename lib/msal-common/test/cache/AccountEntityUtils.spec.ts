@@ -614,6 +614,218 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
         });
     });
+
+    describe("AccountEntity createAccount with dataBoundary", () => {
+        it("creates an account with dataBoundary from clientInfo.xms_tdbr", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            // Create client info with xms_tdbr
+            const clientInfoWithDataBoundary = {
+                uid: "00000000-0000-0000-66f3-3332eca7ea81",
+                utid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                xms_tdbr: "EU",
+            };
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                JSON.stringify(clientInfoWithDataBoundary)
+            );
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                encodedClientInfo,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo: encodedClientInfo,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBe("EU");
+            expect(acc.getAccountInfo().dataBoundary).toBe("EU");
+        });
+
+        it("creates an account without dataBoundary when clientInfo has no xms_tdbr", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo:
+                        TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBeUndefined();
+            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+        });
+
+        it("creates an account without dataBoundary when no clientInfo is provided", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBeUndefined();
+            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+        });
+
+        it("handles empty string xms_tdbr gracefully", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            // Create client info with empty xms_tdbr
+            const clientInfoWithEmptyDataBoundary = {
+                uid: "00000000-0000-0000-66f3-3332eca7ea81",
+                utid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                xms_tdbr: "",
+            };
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                JSON.stringify(clientInfoWithEmptyDataBoundary)
+            );
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                encodedClientInfo,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo: encodedClientInfo,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBeUndefined();
+            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+        });
+
+        it("handles null xms_tdbr gracefully", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            // Create client info with null xms_tdbr
+            const clientInfoWithNullDataBoundary = {
+                uid: "00000000-0000-0000-66f3-3332eca7ea81",
+                utid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                xms_tdbr: null,
+            };
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                JSON.stringify(clientInfoWithNullDataBoundary)
+            );
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                encodedClientInfo,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo: encodedClientInfo,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBeUndefined();
+            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+        });
+    });
 });
 
 describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {

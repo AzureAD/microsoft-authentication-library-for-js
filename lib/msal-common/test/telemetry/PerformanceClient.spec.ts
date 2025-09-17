@@ -11,7 +11,7 @@ import {
     Logger,
     PerformanceEventStatus,
     ServerError,
-} from "../../src";
+} from "../../src/index.js";
 import * as PerformanceEvents from "../../src/telemetry/performance/PerformanceEvents.js";
 import crypto from "crypto";
 import {
@@ -20,6 +20,7 @@ import {
 } from "../../src/telemetry/performance/PerformanceClient.js";
 import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient.js";
 import { AuthError } from "../../src/error/AuthError.js";
+import { DataBoundary } from "../../src/account/AccountInfo.js";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -1258,6 +1259,235 @@ describe("PerformanceClient.spec.ts", () => {
                 // @ts-ignore
                 mockPerfClient.eventStack.has(dummyCorrelationId)
             ).toBeTruthy();
+        });
+    });
+
+    describe("account information handling", () => {
+        it("sets accountType and dataBoundary when account is provided with dataBoundary", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const testAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    tid: "test-tenant-id",
+                },
+                dataBoundary: "EU" as DataBoundary,
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.accountType).toBe("AAD");
+                expect(event.dataBoundary).toBe("EU");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end({ success: true }, undefined, testAccount);
+        });
+
+        it("sets accountType and defaults dataBoundary to undefined when account is provided without dataBoundary", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const testAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    tid: "test-tenant-id",
+                },
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.accountType).toBe("AAD");
+                expect(event.dataBoundary).toBe(undefined);
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end({ success: true }, undefined, testAccount);
+        });
+
+        it("does not set accountType or dataBoundary when account is not provided", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.accountType).toBeUndefined();
+                expect(event.dataBoundary).toBeUndefined();
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end({ success: true });
+        });
+
+        it("sets accountType to MSA for MSA accounts", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const msaAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "9188040d-6c67-4c5b-b112-36a304b66dad",
+                username: "test@outlook.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
+                },
+                dataBoundary: "None" as DataBoundary,
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.accountType).toBe("MSA");
+                expect(event.dataBoundary).toBe("None");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end({ success: true }, undefined, msaAccount);
+        });
+
+        it("sets accountType to B2C for B2C accounts with tfp claim", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const b2cAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "test.b2clogin.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    tfp: "B2C_1_SignUpSignIn",
+                },
+                dataBoundary: "None" as DataBoundary,
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.accountType).toBe("B2C");
+                expect(event.dataBoundary).toBe("None");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end({ success: true }, undefined, b2cAccount);
+        });
+
+        it("sets accountType to B2C for B2C accounts with acr claim", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const b2cAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "test.b2clogin.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    acr: "B2C_1_SignUpSignIn",
+                },
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.accountType).toBe("B2C");
+                expect(event.dataBoundary).toBe(undefined);
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end({ success: true }, undefined, b2cAccount);
+        });
+
+        it("sets accountType to undefined when account has no tid, tfp, or acr claims", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const unknownAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    sub: "test-subject",
+                },
+                dataBoundary: "None" as DataBoundary,
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.accountType).toBeUndefined();
+                expect(event.dataBoundary).toBe("None");
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end({ success: true }, undefined, unknownAccount);
+        });
+
+        it("handles account with empty dataBoundary properly", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const correlationId = "test-correlation-id";
+            const testAccount = {
+                homeAccountId: "test-home-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+                localAccountId: "test-local-account-id",
+                idTokenClaims: {
+                    tid: "test-tenant-id",
+                },
+                dataBoundary: "None" as DataBoundary,
+            };
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.accountType).toBe("AAD");
+                expect(event.dataBoundary).toBe("None"); // Should default to WW when dataBoundary is empty
+                done();
+            });
+
+            const topLevelEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
+            topLevelEvent.end({ success: true }, undefined, testAccount);
         });
     });
 });

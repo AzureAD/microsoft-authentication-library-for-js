@@ -2,14 +2,15 @@ import {
     buildClientInfo,
     buildClientInfoFromHomeAccountId,
     ClientInfo,
-} from "../../src/account/ClientInfo";
-import { TEST_DATA_CLIENT_INFO } from "../test_kit/StringConstants";
-import { ICrypto } from "../../src/crypto/ICrypto";
+} from "../../src/account/ClientInfo.js";
+import { TEST_DATA_CLIENT_INFO } from "../test_kit/StringConstants.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../../src/error/ClientAuthError";
+} from "../../src/error/ClientAuthError.js";
+import { Constants } from "../../src/index.js";
 import { mockCrypto } from "../client/ClientTestUtils.js";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
@@ -57,6 +58,81 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
             expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
             expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+        });
+
+        it("Successfully returns decoded client info with xms_tdbr field", () => {
+            // Create client info with xms_tdbr field
+            const clientInfoWithDataBoundary = JSON.stringify({
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                xms_tdbr: "EU",
+            });
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                clientInfoWithDataBoundary
+            );
+
+            const clientInfo = buildClientInfo(
+                encodedClientInfo,
+                cryptoInterface.base64Decode
+            );
+
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.xms_tdbr).toBe("EU");
+        });
+
+        it("Successfully returns decoded client info without xms_tdbr field", () => {
+            // Client info without xms_tdbr field should not have the property
+            const clientInfo = buildClientInfo(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                cryptoInterface.base64Decode
+            );
+
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.xms_tdbr).toBeUndefined();
+        });
+
+        it("Handles empty xms_tdbr field gracefully", () => {
+            // Create client info with empty xms_tdbr field
+            const clientInfoWithEmptyDataBoundary = JSON.stringify({
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                xms_tdbr: "",
+            });
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                clientInfoWithEmptyDataBoundary
+            );
+
+            const clientInfo = buildClientInfo(
+                encodedClientInfo,
+                cryptoInterface.base64Decode
+            );
+
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.xms_tdbr).toBe("");
+        });
+
+        it("Handles null xms_tdbr field gracefully", () => {
+            // Create client info with null xms_tdbr field
+            const clientInfoWithNullDataBoundary = JSON.stringify({
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                xms_tdbr: null,
+            });
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                clientInfoWithNullDataBoundary
+            );
+
+            const clientInfo = buildClientInfo(
+                encodedClientInfo,
+                cryptoInterface.base64Decode
+            );
+
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.xms_tdbr).toBeNull();
         });
     });
 
