@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 09 Sep 2025 20:27:59 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 17 Sep 2025 04:05:14 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.23.0
+
+Wed, 17 Sep 2025 04:05:14 GMT
+
+### Minor changes
+
+- Support authentication method registration during Sign-In, #8007 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Pass forceRefresh param to NAA bridge #8042 (kshabelko@microsoft.com)
+- Clean up BroadcastChannel resources to fix hanging tests #8044 (kshabelko@microsoft.com)
 
 ## 4.22.1
 
