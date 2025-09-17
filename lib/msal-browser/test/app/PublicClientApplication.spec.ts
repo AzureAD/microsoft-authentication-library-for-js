@@ -6966,14 +6966,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("LOGOUT_SUCCESS event raised when an account logs out in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.LOGOUT_SUCCESS);
-                expect(message.interactionType).toBeNull();
+                expect(message.interactionType).toBe("redirect");
+
+                // @ts-ignore
+                const payloadAccount = message.payload.account as AccountInfo;
+
                 const { tenantProfiles, ...payloadAccountInfo } =
-                    message.payload as AccountInfo;
+                    payloadAccount;
                 const messagePayload = {
                     ...payloadAccountInfo,
                     tenantProfiles: new Map(tenantProfiles?.entries()),
                 }; // Original map causes problems due to being a proxy object
                 expect(messagePayload).toEqual(accountInfo);
+
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
@@ -6985,12 +6990,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             secondBrowserStorageInstance
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
-                .then(() => {
-                    // Ensure account is present in the cache before removing it
-                    secondBrowserStorageInstance.removeAccount(
-                        accountInfo,
-                        RANDOM_TEST_GUID
-                    );
+                .then(async () => {
+                    // Create a second PCA instance to simulate another tab
+                    const pca2 = new PublicClientApplication({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                        cache: {
+                            cacheLocation: BrowserCacheLocation.LocalStorage,
+                        },
+                    });
+                    await pca2.initialize();
+                    
+                    // Set the account as active in the second instance
+                    pca2.setActiveAccount(accountInfo);
+                    
+                    // Perform logout in the second instance (simulating another tab)
+                    await pca2.logoutRedirect({ account: accountInfo });
                 });
         });
 

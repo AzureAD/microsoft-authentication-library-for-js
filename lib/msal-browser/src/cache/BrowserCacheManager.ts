@@ -685,19 +685,6 @@ export class BrowserCacheManager extends CacheManager {
                 this.browserStorage.removeItem(key);
             }
         });
-
-        /**
-         * @deprecated - Remove this in next major version in favor of more consistent LOGOUT event
-         */
-        if (
-            this.cacheConfig.cacheLocation === BrowserCacheLocation.LocalStorage
-        ) {
-            this.eventHandler.emitEvent(
-                EventType.LOGOUT_SUCCESS,
-                undefined,
-                account
-            );
-        }
     }
 
     /**

@@ -96,7 +96,6 @@ export class EventMessageUtils {
                 }
                 return InteractionStatus.None;
             case EventType.ACQUIRE_TOKEN_SUCCESS:
-            case EventType.LOGIN_SUCCESS:
             case EventType.ACQUIRE_TOKEN_FAILURE:
             case EventType.RESTORE_FROM_BFCACHE:
                 if (
