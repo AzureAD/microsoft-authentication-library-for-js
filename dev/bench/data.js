@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1758040402086,
+  "lastUpdate": 1758138817128,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -17729,6 +17729,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.75%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "938496aa336c720ef06771252419b80ecabe421d",
+          "message": "Instrument data boundary claim (#8054)\n\nThis PR adds support for the data boundary claim (xms_tdbr) from\nMicrosoft Identity Platform to the MSAL.js authentication libraries. The\ndata boundary claim indicates the geographic location where user data is\nstored and processed, particularly relevant for non-US tenants that\noperate within specific data residency boundaries.\n\n- Add dataBoundary property to AccountInfo and AccountEntity types\n- Extract data boundary information from the xms_tdbr field in client\ninfo during account creation\n- Instrument data boundary value in performance telemetry for monitoring\npurposes",
+          "timestamp": "2025-09-17T15:47:11-04:00",
+          "tree_id": "ca2f15aeb6be46224ffc388179c75f7aa50fbe74",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/938496aa336c720ef06771252419b80ecabe421d"
+        },
+        "date": 1758138814416,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 255496,
+            "range": "±0.65%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 255054,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
