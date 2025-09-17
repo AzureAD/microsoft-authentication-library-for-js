@@ -7001,10 +7001,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         },
                     });
                     await pca2.initialize();
-                    
+
                     // Set the account as active in the second instance
                     pca2.setActiveAccount(accountInfo);
-                    
+
                     // Perform logout in the second instance (simulating another tab)
                     await pca2.logoutRedirect({ account: accountInfo });
                 });

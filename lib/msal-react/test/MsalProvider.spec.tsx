@@ -409,6 +409,13 @@ describe("MsalProvider tests", () => {
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
 
             eventMessage = {
+                eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
+                interactionType: InteractionType.Popup,
+                payload: null,
+                error: null,
+                timestamp: 10000,
+            };
+            eventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Popup,
                 payload: null,
