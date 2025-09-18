@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { DataBoundary } from "../../account/AccountInfo.js";
+
 /**
  * Enumeration of operations that are instrumented by have their performance measured by the PerformanceClient.
  *
@@ -912,6 +914,8 @@ export type PerformanceEvent = {
     sameClientIdInstanceCount?: number;
 
     navigateCallbackResult?: boolean;
+
+    dataBoundary?: DataBoundary;
 };
 
 export type PerformanceEventContext = {
