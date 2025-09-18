@@ -366,6 +366,7 @@ describe("MsalProvider tests", () => {
 
         test("Login Success", async () => {
             const TestComponent = ({ accounts, inProgress }: IMsalContext) => {
+                console.log(accounts, inProgress);
                 if (
                     accounts.length === 1 &&
                     inProgress === InteractionStatus.None
@@ -415,6 +416,14 @@ describe("MsalProvider tests", () => {
                 error: null,
                 timestamp: 10000,
             };
+            cachedAccounts = [testAccount];
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+            
             eventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Popup,
