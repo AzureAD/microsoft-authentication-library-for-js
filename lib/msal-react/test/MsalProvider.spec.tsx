@@ -423,7 +423,7 @@ describe("MsalProvider tests", () => {
                     callback(eventMessage);
                 });
             });
-            
+
             eventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
                 interactionType: InteractionType.Popup,
