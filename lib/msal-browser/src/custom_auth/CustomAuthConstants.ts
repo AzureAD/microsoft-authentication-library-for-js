@@ -18,6 +18,7 @@ export const ChallengeType = {
     PASSWORD: "password",
     OOB: "oob",
     REDIRECT: "redirect",
+    PREVERIFIED: "preverified",
 } as const;
 
 export const DefaultScopes = [
