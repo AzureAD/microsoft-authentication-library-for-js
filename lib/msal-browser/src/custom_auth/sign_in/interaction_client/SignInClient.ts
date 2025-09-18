@@ -6,10 +6,14 @@
 import {
     ChallengeType,
     DefaultCustomAuthApiCodeLength,
+    GrantType,
 } from "../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
 import * as CustomAuthApiErrorCode from "../../core/network_client/custom_auth_api/types/ApiErrorCodes.js";
-import { REGISTRATION_REQUIRED } from "../../core/network_client/custom_auth_api/types/ApiSuberrors.js";
+import {
+    MFA_REQUIRED,
+    REGISTRATION_REQUIRED,
+} from "../../core/network_client/custom_auth_api/types/ApiSuberrors.js";
 
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import {
@@ -29,6 +33,8 @@ import {
     SignInCompletedResult,
     SignInPasswordRequiredResult,
     SignInJitRequiredResult,
+    SignInMfaRequiredResult,
+    createSignInMfaRequiredResult,
 } from "./result/SignInActionResult.js";
 import * as PublicApiId from "../../core/telemetry/PublicApiId.js";
 import {
@@ -38,6 +44,7 @@ import {
     SignInOobTokenRequest,
     SignInPasswordTokenRequest,
     RegisterIntrospectRequest,
+    SignInIntrospectRequest,
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 import {
@@ -148,7 +155,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async submitCode(
         parameters: SignInSubmitCodeParams
-    ): Promise<SignInCompletedResult> {
+    ): Promise<
+        | SignInCompletedResult
+        | SignInJitRequiredResult
+        | SignInMfaRequiredResult
+    > {
         ensureArgumentIsNotEmptyString(
             "parameters.code",
             parameters.code,
@@ -168,6 +179,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const request: SignInOobTokenRequest = {
             continuation_token: parameters.continuationToken,
             oob: parameters.code,
+            grant_type: GrantType.OOB,
             scope: scopes.join(" "),
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
@@ -176,18 +188,15 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             }),
         };
 
-        const result = this.performTokenRequest(
+        return this.performTokenRequest(
             () =>
                 this.customAuthApiClient.signInApi.requestTokensWithOob(
                     request
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager,
-            false // Don't handle JIT for code submission
+            telemetryManager
         );
-
-        return result as Promise<SignInCompletedResult>;
     }
 
     /**
@@ -197,7 +206,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async submitPassword(
         parameters: SignInSubmitPasswordParams
-    ): Promise<SignInCompletedResult | SignInJitRequiredResult> {
+    ): Promise<
+        | SignInCompletedResult
+        | SignInJitRequiredResult
+        | SignInMfaRequiredResult
+    > {
         ensureArgumentIsNotEmptyString(
             "parameters.password",
             parameters.password,
@@ -232,8 +245,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager,
-            true // Handle JIT for password submission
+            telemetryManager
         );
     }
 
@@ -244,7 +256,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async signInWithContinuationToken(
         parameters: SignInContinuationTokenParams
-    ): Promise<SignInCompletedResult | SignInJitRequiredResult> {
+    ): Promise<
+        | SignInCompletedResult
+        | SignInJitRequiredResult
+        | SignInMfaRequiredResult
+    > {
         const apiId = this.getPublicApiIdBySignInScenario(
             parameters.signInScenario,
             parameters.correlationId
@@ -278,9 +294,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager,
-            true // Handle JIT for continuation token sign-in (e.g., after sign-up or SSPR)
-        ) as Promise<SignInCompletedResult | SignInJitRequiredResult>;
+            telemetryManager
+        );
     }
 
     /**
@@ -288,16 +303,19 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      * @param tokenEndpointCaller Function that calls the specific token endpoint
      * @param scopes Scopes for the token request
      * @param correlationId Correlation ID for logging and result
-     * @param handleJit Whether to handle JIT required errors or throw them
-     * @returns SignInCompletedResult with authentication result
+     * @param telemetryManager Telemetry manager for telemetry logging
+     * @returns SignInCompletedResult | SignInJitRequiredResult with authentication result
      */
     private async performTokenRequest(
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
         scopes: string[],
         correlationId: string,
-        telemetryManager: ServerTelemetryManager,
-        handleJit: boolean
-    ): Promise<SignInCompletedResult | SignInJitRequiredResult> {
+        telemetryManager: ServerTelemetryManager
+    ): Promise<
+        | SignInCompletedResult
+        | SignInJitRequiredResult
+        | SignInMfaRequiredResult
+    > {
         this.logger.verbose(
             "Calling token endpoint for sign in.",
             correlationId
@@ -323,34 +341,23 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             });
         } catch (error) {
             if (
-                handleJit &&
                 error instanceof CustomAuthApiError &&
                 error.subError === REGISTRATION_REQUIRED
             ) {
-                this.logger.verbose(
-                    "Auth method registration required for sign in.",
+                return this.handleJitRequiredError(
+                    error,
+                    telemetryManager,
                     correlationId
                 );
-
-                // Call register introspect endpoint to get available authentication methods
-                const introspectRequest: RegisterIntrospectRequest = {
-                    continuation_token: error.continuationToken ?? "",
-                    correlationId: error.correlationId ?? correlationId,
+            } else if (
+                error instanceof CustomAuthApiError &&
+                error.subError === MFA_REQUIRED
+            ) {
+                return this.handleMfaRequiredError(
+                    error,
                     telemetryManager,
-                };
-
-                const introspectResponse =
-                    await this.customAuthApiClient.registerApi.introspect(
-                        introspectRequest
-                    );
-
-                return createSignInJitRequiredResult({
-                    correlationId:
-                        introspectResponse.correlation_id ?? correlationId,
-                    continuationToken:
-                        introspectResponse.continuation_token ?? "",
-                    authMethods: introspectResponse.methods,
-                });
+                    correlationId
+                );
             }
 
             // Re-throw any other errors or JIT errors when handleJit is false
@@ -434,5 +441,80 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                     correlationId
                 );
         }
+    }
+
+    private async handleJitRequiredError(
+        error: CustomAuthApiError,
+        telemetryManager: ServerTelemetryManager,
+        correlationId: string
+    ): Promise<SignInJitRequiredResult> {
+        this.logger.verbose(
+            "Auth method registration required for sign in.",
+            correlationId
+        );
+
+        // Call register introspect endpoint to get available authentication methods
+        const introspectRequest: RegisterIntrospectRequest = {
+            continuation_token: error.continuationToken ?? "",
+            correlationId: error.correlationId ?? correlationId,
+            telemetryManager,
+        };
+
+        this.logger.verbose(
+            "Calling introspect endpoint for getting auth methods.",
+            correlationId
+        );
+
+        const introspectResponse =
+            await this.customAuthApiClient.registerApi.introspect(
+                introspectRequest
+            );
+
+        this.logger.verbose(
+            "Introspect endpoint called for getting auth methods.",
+            introspectResponse.correlation_id ?? correlationId
+        );
+
+        return createSignInJitRequiredResult({
+            correlationId: introspectResponse.correlation_id ?? correlationId,
+            continuationToken: introspectResponse.continuation_token ?? "",
+            authMethods: introspectResponse.methods,
+        });
+    }
+
+    private async handleMfaRequiredError(
+        error: CustomAuthApiError,
+        telemetryManager: ServerTelemetryManager,
+        correlationId: string
+    ): Promise<SignInMfaRequiredResult> {
+        this.logger.verbose("MFA required for sign in.", correlationId);
+
+        // Call sign-in introspect endpoint to get available MFA methods
+        const introspectRequest: SignInIntrospectRequest = {
+            continuation_token: error.continuationToken ?? "",
+            correlationId: error.correlationId ?? correlationId,
+            telemetryManager,
+        };
+
+        this.logger.verbose(
+            "Calling introspect endpoint for MFA auth methods.",
+            correlationId
+        );
+
+        const introspectResponse =
+            await this.customAuthApiClient.signInApi.requestAuthMethods(
+                introspectRequest
+            );
+
+        this.logger.verbose(
+            "Introspect endpoint called for MFA auth methods.",
+            introspectResponse.correlation_id ?? correlationId
+        );
+
+        return createSignInMfaRequiredResult({
+            correlationId: introspectResponse.correlation_id ?? correlationId,
+            continuationToken: introspectResponse.continuation_token ?? "",
+            authMethods: introspectResponse.methods,
+        });
     }
 }

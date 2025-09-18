@@ -45,6 +45,11 @@ export interface AuthenticationMethod {
     login_hint: string;
 }
 
+export interface SignInIntrospectResponse extends ApiResponseBase {
+    continuation_token: string;
+    methods: AuthenticationMethod[];
+}
+
 /* Sign-up API response types */
 export type SignUpStartResponse = InitiateResponse;
 

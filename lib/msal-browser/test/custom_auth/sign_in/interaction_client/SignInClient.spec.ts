@@ -7,9 +7,11 @@ import {
     SIGN_IN_COMPLETED_RESULT_TYPE,
     SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
     SIGN_IN_JIT_REQUIRED_RESULT_TYPE,
+    SIGN_IN_MFA_REQUIRED_RESULT_TYPE,
     SignInCodeSendResult,
     SignInJitRequiredResult,
     SignInCompletedResult,
+    SignInMfaRequiredResult,
 } from "../../../../src/custom_auth/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInScenario } from "../../../../src/custom_auth/sign_in/auth_flow/SignInScenario.js";
 import { StubbedNetworkModule } from "@azure/msal-common/browser";
@@ -27,7 +29,10 @@ import {
     TestTenantId,
 } from "../../test_resources/TestConstants.js";
 import { CustomAuthApiError } from "../../../../src/custom_auth/core/error/CustomAuthApiError.js";
-import { REGISTRATION_REQUIRED } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiSuberrors.js";
+import {
+    REGISTRATION_REQUIRED,
+    MFA_REQUIRED,
+} from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiSuberrors.js";
 import * as CustomAuthApiErrorCode from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorCodes.js";
 import {
     SignInContinuationTokenParams,
@@ -44,6 +49,7 @@ jest.mock(
             requestTokensWithPassword: jest.fn(),
             requestTokensWithOob: jest.fn(),
             requestTokenWithContinuationToken: jest.fn(),
+            requestAuthMethods: jest.fn(),
         };
         let signUpApiClient = {
             start: jest.fn(),
@@ -267,25 +273,35 @@ describe("SignInClient", () => {
             expect(result.correlationId).toBe(
                 TestServerTokenResponse.correlation_id
             );
-            expect(result.authenticationResult).toBeDefined();
-            expect(result.authenticationResult.accessToken).toBe(
-                TestServerTokenResponse.access_token
-            );
-            expect(result.authenticationResult.idToken).toBe(
-                TestServerTokenResponse.id_token
-            );
-            expect(result.authenticationResult.expiresOn).toBeDefined();
-            expect(result.authenticationResult.tokenType).toBe(
-                TestServerTokenResponse.token_type
-            );
-            expect(result.authenticationResult.authority).toBe(
-                authority.canonicalAuthority
-            );
-            expect(result.authenticationResult.tenantId).toBe(TestTenantId);
-            expect(result.authenticationResult.account).toBeDefined();
-            expect(result.authenticationResult.account.username).toBe(
-                "abc@test.com"
-            );
+
+            if (result.type === SIGN_IN_COMPLETED_RESULT_TYPE) {
+                const completedResult = result as SignInCompletedResult;
+                expect(completedResult.authenticationResult).toBeDefined();
+                expect(completedResult.authenticationResult.accessToken).toBe(
+                    TestServerTokenResponse.access_token
+                );
+                expect(completedResult.authenticationResult.idToken).toBe(
+                    TestServerTokenResponse.id_token
+                );
+                expect(
+                    completedResult.authenticationResult.expiresOn
+                ).toBeDefined();
+                expect(completedResult.authenticationResult.tokenType).toBe(
+                    TestServerTokenResponse.token_type
+                );
+                expect(completedResult.authenticationResult.authority).toBe(
+                    authority.canonicalAuthority
+                );
+                expect(completedResult.authenticationResult.tenantId).toBe(
+                    TestTenantId
+                );
+                expect(
+                    completedResult.authenticationResult.account
+                ).toBeDefined();
+                expect(
+                    completedResult.authenticationResult.account.username
+                ).toBe("abc@test.com");
+            }
         });
 
         it("should include claims in password token request", async () => {
@@ -309,7 +325,7 @@ describe("SignInClient", () => {
             );
         });
 
-        it("should throw JIT error instead of returning JIT result (since submitCode doesn't support JIT)", async () => {
+        it("should return SignInJitRequiredResult when REGISTRATION_REQUIRED error occurs", async () => {
             const jitError = new CustomAuthApiError(
                 CustomAuthApiErrorCode.INVALID_REQUEST,
                 "JIT registration is required",
@@ -318,7 +334,132 @@ describe("SignInClient", () => {
             jitError.subError = REGISTRATION_REQUIRED;
             jitError.continuationToken = "jit_continuation_token";
 
+            const mockIntrospectResponse = {
+                correlation_id: "jit_corr_id",
+                continuation_token: "jit_introspect_continuation_token",
+                methods: [
+                    { id: "email", type: "email" },
+                    { id: "phone", type: "phone" },
+                ],
+            };
+
             signInApiClient.requestTokensWithOob.mockRejectedValue(jitError);
+            registerApiClient.introspect.mockResolvedValue(
+                mockIntrospectResponse
+            );
+
+            const result = await client.submitCode({
+                code: "123456",
+                continuationToken: "continuation_token_1",
+                username: "abc@test.com",
+                clientId: customAuthConfig.auth.clientId,
+                challengeType: [
+                    ChallengeType.OOB,
+                    ChallengeType.PASSWORD,
+                    ChallengeType.REDIRECT,
+                ],
+                correlationId: "corr123",
+                scopes: [],
+            });
+
+            expect(result.type).toStrictEqual(SIGN_IN_JIT_REQUIRED_RESULT_TYPE);
+            expect(result.correlationId).toBe("jit_corr_id");
+
+            if (result.type === SIGN_IN_JIT_REQUIRED_RESULT_TYPE) {
+                const jitResult = result as SignInJitRequiredResult;
+                expect(jitResult.continuationToken).toBe(
+                    "jit_introspect_continuation_token"
+                );
+                expect(jitResult.authMethods).toEqual(
+                    mockIntrospectResponse.methods
+                );
+            }
+
+            // Verify introspect was called with correct parameters
+            expect(registerApiClient.introspect).toHaveBeenCalledWith({
+                continuation_token: "jit_continuation_token",
+                correlationId: "corr123",
+                telemetryManager: expect.any(Object),
+            });
+        });
+
+        it("should return SignInMfaRequiredResult when MFA_REQUIRED error occurs", async () => {
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA is required",
+                "corr123"
+            );
+            mfaError.subError = MFA_REQUIRED;
+            mfaError.continuationToken = "mfa_continuation_token";
+
+            const mockMfaIntrospectResponse = {
+                correlation_id: "mfa_corr_id",
+                continuation_token: "mfa_introspect_continuation_token",
+                methods: [
+                    { id: "sms", type: "sms" },
+                    { id: "email", type: "email" },
+                ],
+            };
+
+            signInApiClient.requestTokensWithOob.mockRejectedValue(mfaError);
+            signInApiClient.requestAuthMethods.mockResolvedValue(
+                mockMfaIntrospectResponse
+            );
+
+            const result = await client.submitCode({
+                code: "123456",
+                continuationToken: "continuation_token_1",
+                username: "abc@test.com",
+                clientId: customAuthConfig.auth.clientId,
+                challengeType: [
+                    ChallengeType.OOB,
+                    ChallengeType.PASSWORD,
+                    ChallengeType.REDIRECT,
+                ],
+                correlationId: "corr123",
+                scopes: [],
+            });
+
+            expect(result.type).toStrictEqual(SIGN_IN_MFA_REQUIRED_RESULT_TYPE);
+            expect(result.correlationId).toBe("mfa_corr_id");
+
+            if (result.type === SIGN_IN_MFA_REQUIRED_RESULT_TYPE) {
+                const mfaResult = result as SignInMfaRequiredResult;
+                expect(mfaResult.continuationToken).toBe(
+                    "mfa_introspect_continuation_token"
+                );
+                expect(mfaResult.authMethods).toEqual(
+                    mockMfaIntrospectResponse.methods
+                );
+            }
+
+            // Verify introspect was called with correct parameters
+            expect(signInApiClient.requestAuthMethods).toHaveBeenCalledWith({
+                continuation_token: "mfa_continuation_token",
+                correlationId: "corr123",
+                telemetryManager: expect.any(Object),
+            });
+        });
+
+        it("should throw error when introspect call fails during MFA", async () => {
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA is required",
+                "corr123"
+            );
+            mfaError.subError = MFA_REQUIRED;
+            mfaError.continuationToken = "mfa_continuation_token";
+
+            const introspectError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA introspect call failed",
+                "corr123"
+            );
+
+            signInApiClient.requestTokensWithOob.mockRejectedValue(mfaError);
+            signInApiClient.requestAuthMethods.mockRejectedValue(
+                introspectError
+            );
 
             await expect(
                 client.submitCode({
@@ -334,7 +475,7 @@ describe("SignInClient", () => {
                     correlationId: "corr123",
                     scopes: [],
                 })
-            ).rejects.toThrow(jitError);
+            ).rejects.toThrow(introspectError);
         });
 
         it("should throw error for any other error", async () => {
@@ -547,6 +688,97 @@ describe("SignInClient", () => {
                 jitError
             );
             registerApiClient.introspect.mockRejectedValue(introspectError);
+
+            await expect(
+                client.submitPassword({
+                    password: "123456",
+                    continuationToken: "continuation_token_1",
+                    username: "abc@test.com",
+                    clientId: customAuthConfig.auth.clientId,
+                    challengeType: [ChallengeType.PASSWORD],
+                    correlationId: "corr123",
+                    scopes: [],
+                })
+            ).rejects.toThrow(introspectError);
+        });
+
+        it("should return SignInMfaRequiredResult when MFA_REQUIRED error occurs", async () => {
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA is required",
+                "corr123"
+            );
+            mfaError.subError = MFA_REQUIRED;
+            mfaError.continuationToken = "mfa_continuation_token";
+
+            const mockMfaIntrospectResponse = {
+                correlation_id: "mfa_corr_id",
+                continuation_token: "mfa_introspect_continuation_token",
+                methods: [
+                    { id: "sms", type: "sms" },
+                    { id: "email", type: "email" },
+                ],
+            };
+
+            signInApiClient.requestTokensWithPassword.mockRejectedValue(
+                mfaError
+            );
+            signInApiClient.requestAuthMethods.mockResolvedValue(
+                mockMfaIntrospectResponse
+            );
+
+            const result = await client.submitPassword({
+                password: "123456",
+                continuationToken: "continuation_token_1",
+                username: "abc@test.com",
+                clientId: customAuthConfig.auth.clientId,
+                challengeType: [ChallengeType.PASSWORD],
+                correlationId: "corr123",
+                scopes: [],
+            });
+
+            expect(result.type).toStrictEqual(SIGN_IN_MFA_REQUIRED_RESULT_TYPE);
+            expect(result.correlationId).toBe("mfa_corr_id");
+
+            if (result.type === SIGN_IN_MFA_REQUIRED_RESULT_TYPE) {
+                const mfaResult = result as SignInMfaRequiredResult;
+                expect(mfaResult.continuationToken).toBe(
+                    "mfa_introspect_continuation_token"
+                );
+                expect(mfaResult.authMethods).toEqual(
+                    mockMfaIntrospectResponse.methods
+                );
+            }
+
+            // Verify introspect was called with correct parameters
+            expect(signInApiClient.requestAuthMethods).toHaveBeenCalledWith({
+                continuation_token: "mfa_continuation_token",
+                correlationId: "corr123",
+                telemetryManager: expect.any(Object),
+            });
+        });
+
+        it("should throw error when introspect call fails during MFA", async () => {
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA is required",
+                "corr123"
+            );
+            mfaError.subError = MFA_REQUIRED;
+            mfaError.continuationToken = "mfa_continuation_token";
+
+            const introspectError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA introspect call failed",
+                "corr123"
+            );
+
+            signInApiClient.requestTokensWithPassword.mockRejectedValue(
+                mfaError
+            );
+            signInApiClient.requestAuthMethods.mockRejectedValue(
+                introspectError
+            );
 
             await expect(
                 client.submitPassword({
@@ -824,6 +1056,105 @@ describe("SignInClient", () => {
                 correlationId: "corr123",
                 telemetryManager: expect.any(Object),
             });
+        });
+
+        it("should return SignInMfaRequiredResult when MFA_REQUIRED error occurs", async () => {
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA is required",
+                "corr123"
+            );
+            mfaError.subError = MFA_REQUIRED;
+            mfaError.continuationToken = "mfa_continuation_token";
+
+            const mockMfaIntrospectResponse = {
+                correlation_id: "mfa_corr_id",
+                continuation_token: "mfa_introspect_continuation_token",
+                methods: [
+                    { id: "sms", type: "sms" },
+                    { id: "email", type: "email" },
+                ],
+            };
+
+            signInApiClient.requestTokenWithContinuationToken.mockRejectedValue(
+                mfaError
+            );
+            signInApiClient.requestAuthMethods.mockResolvedValue(
+                mockMfaIntrospectResponse
+            );
+
+            const result = await client.signInWithContinuationToken({
+                continuationToken: "continuation_token_1",
+                username: "abc@test.com",
+                clientId: customAuthConfig.auth.clientId,
+                challengeType: [
+                    ChallengeType.OOB,
+                    ChallengeType.PASSWORD,
+                    ChallengeType.REDIRECT,
+                ],
+                correlationId: "corr123",
+                scopes: [],
+                signInScenario: SignInScenario.SignInAfterSignUp,
+            });
+
+            expect(result.type).toStrictEqual(SIGN_IN_MFA_REQUIRED_RESULT_TYPE);
+            expect(result.correlationId).toBe("mfa_corr_id");
+
+            if (result.type === SIGN_IN_MFA_REQUIRED_RESULT_TYPE) {
+                const mfaResult = result as SignInMfaRequiredResult;
+                expect(mfaResult.continuationToken).toBe(
+                    "mfa_introspect_continuation_token"
+                );
+                expect(mfaResult.authMethods).toEqual(
+                    mockMfaIntrospectResponse.methods
+                );
+            }
+
+            // Verify introspect was called with correct parameters
+            expect(signInApiClient.requestAuthMethods).toHaveBeenCalledWith({
+                continuation_token: "mfa_continuation_token",
+                correlationId: "corr123",
+                telemetryManager: expect.any(Object),
+            });
+        });
+
+        it("should throw error when MFA introspect call fails", async () => {
+            const mfaError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA is required",
+                "corr123"
+            );
+            mfaError.subError = MFA_REQUIRED;
+            mfaError.continuationToken = "mfa_continuation_token";
+
+            const introspectError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "MFA introspect call failed",
+                "corr123"
+            );
+
+            signInApiClient.requestTokenWithContinuationToken.mockRejectedValue(
+                mfaError
+            );
+            signInApiClient.requestAuthMethods.mockRejectedValue(
+                introspectError
+            );
+
+            await expect(
+                client.signInWithContinuationToken({
+                    continuationToken: "continuation_token_1",
+                    username: "abc@test.com",
+                    clientId: customAuthConfig.auth.clientId,
+                    challengeType: [
+                        ChallengeType.OOB,
+                        ChallengeType.PASSWORD,
+                        ChallengeType.REDIRECT,
+                    ],
+                    correlationId: "corr123",
+                    scopes: [],
+                    signInScenario: SignInScenario.SignInAfterSignUp,
+                })
+            ).rejects.toThrow(introspectError);
         });
     });
 });
