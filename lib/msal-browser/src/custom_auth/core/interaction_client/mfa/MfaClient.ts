@@ -35,7 +35,7 @@ export class MfaClient extends CustomAuthInteractionClientBase {
     /**
      * Requests an MFA challenge to be sent to the user.
      * @param parameters The parameters for requesting the challenge.
-     * @returns Promise that resolves to either MfaVerificationRequiredResult or MfaMethodSelectionRequiredResult.
+     * @returns Promise that resolves to either MfaVerificationRequiredResult.
      */
     async requestChallenge(
         parameters: MfaRequestChallengeParams
