@@ -30,7 +30,6 @@ import { UnexpectedError } from "../../../../../../src/custom_auth/core/error/Un
 
 describe("MfaAwaitingState", () => {
     let mockMfaClient: any;
-    let mockLogger: any;
     let state: MfaAwaitingState;
 
     const mockAuthMethods: AuthenticationMethod[] = [
@@ -86,7 +85,7 @@ describe("MfaAwaitingState", () => {
                 correlationId: "test-correlation-id",
                 continuationToken: "test-continuation-token",
                 config: customAuthConfig as any,
-                logger: mockLogger,
+                logger: getDefaultLogger(),
                 mfaClient: mockMfaClient,
                 cacheClient: {} as any,
                 authMethods: [],
@@ -195,7 +194,6 @@ describe("MfaAwaitingState", () => {
 
 describe("MfaVerificationRequiredState", () => {
     let mockMfaClient: any;
-    let mockLogger: any;
     let mockCacheClient: any;
     let state: MfaVerificationRequiredState;
 
@@ -249,7 +247,7 @@ describe("MfaVerificationRequiredState", () => {
                 correlationId: "test-correlation-id",
                 continuationToken: "test-continuation-token",
                 config: customAuthConfig as any,
-                logger: mockLogger,
+                logger: getDefaultLogger(),
                 mfaClient: mockMfaClient,
                 cacheClient: mockCacheClient,
                 challengeChannel: "sms",

@@ -52,7 +52,6 @@ export class MfaRequestChallengeResult extends AuthFlowResultBase<
  * The possible states for the SignInResult.
  * This includes:
  * - MfaVerificationRequiredState: The user needs to verify their challenge.
- * - MfaMethodSelectionRequiredState: The user needs to select an authentication method.
  * - MfaFailedState: The MFA request failed.
  */
 export type MfaRequestChallengeResultState =
