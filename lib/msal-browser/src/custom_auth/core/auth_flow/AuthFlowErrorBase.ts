@@ -139,6 +139,14 @@ export abstract class AuthFlowErrorBase {
             this.errorData.errorCodes?.includes(50142) === true
         );
     }
+
+    protected isInvalidAuthMethodRegistrationInputError(): boolean {
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
+            this.errorData.errorCodes?.includes(901001) === true
+        );
+    }
 }
 
 export abstract class AuthActionErrorBase extends AuthFlowErrorBase {

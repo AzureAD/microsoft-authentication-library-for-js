@@ -14,12 +14,14 @@ import {
     SignInChallengeRequest,
     SignInContinuationTokenRequest,
     SignInInitiateRequest,
+    SignInIntrospectRequest,
     SignInOobTokenRequest,
     SignInPasswordTokenRequest,
 } from "./types/ApiRequestTypes.js";
 import {
     SignInChallengeResponse,
     SignInInitiateResponse,
+    SignInIntrospectResponse,
     SignInTokenResponse,
 } from "./types/ApiResponseTypes.js";
 
@@ -84,6 +86,7 @@ export class SignInApiClient extends BaseApiClient {
             {
                 continuation_token: params.continuation_token,
                 challenge_type: params.challenge_type,
+                ...(params.id && { id: params.id }),
             },
             params.telemetryManager,
             params.correlationId
@@ -127,7 +130,7 @@ export class SignInApiClient extends BaseApiClient {
                 continuation_token: params.continuation_token,
                 scope: params.scope,
                 oob: params.oob,
-                grant_type: GrantType.OOB,
+                grant_type: params.grant_type,
                 ...(params.claims && { claims: params.claims }),
             },
             params.telemetryManager,
@@ -141,15 +144,39 @@ export class SignInApiClient extends BaseApiClient {
         return this.requestTokens(
             {
                 continuation_token: params.continuation_token,
-                username: params.username,
                 scope: params.scope,
                 grant_type: GrantType.CONTINUATION_TOKEN,
                 client_info: true,
                 ...(params.claims && { claims: params.claims }),
+                ...(params.username && { username: params.username }),
             },
             params.telemetryManager,
             params.correlationId
         );
+    }
+
+    /**
+     * Requests available authentication methods for MFA
+     * @param continuationToken Token from previous response
+     */
+    async requestAuthMethods(
+        params: SignInIntrospectRequest
+    ): Promise<SignInIntrospectResponse> {
+        const result = await this.request<SignInIntrospectResponse>(
+            CustomAuthApiEndpoint.SIGNIN_INTROSPECT,
+            {
+                continuation_token: params.continuation_token,
+            },
+            params.telemetryManager,
+            params.correlationId
+        );
+
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
+
+        return result;
     }
 
     private async requestTokens(

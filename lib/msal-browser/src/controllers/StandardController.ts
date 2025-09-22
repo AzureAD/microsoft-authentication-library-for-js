@@ -95,30 +95,15 @@ import {
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 
-function getAccountType(
-    account?: AccountInfo
-): "AAD" | "MSA" | "B2C" | undefined {
-    const idTokenClaims = account?.idTokenClaims;
-    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
-        return "B2C";
-    }
-
-    if (!idTokenClaims?.tid) {
-        return undefined;
-    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-        return "MSA";
-    }
-    return "AAD";
-}
-
 function preflightCheck(
     initialized: boolean,
-    performanceEvent: InProgressPerformanceEvent
+    performanceEvent: InProgressPerformanceEvent,
+    account?: AccountInfo
 ) {
     try {
         BrowserUtils.preflightCheck(initialized);
     } catch (e) {
-        performanceEvent.end({ success: false }, e);
+        performanceEvent.end({ success: false }, e, account);
         throw e;
     }
 }
@@ -573,17 +558,20 @@ export class StandardController implements IController {
                             "handleRedirectResponse returned result, acquire token success"
                         );
                     }
-                    rootMeasurement.end({
-                        success: true,
-                        accountType: getAccountType(result.account),
-                    });
+                    rootMeasurement.end(
+                        {
+                            success: true,
+                        },
+                        undefined,
+                        result.account
+                    );
                 } else {
                     /*
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
                      * is empty and the error code is missing.
                      */
                     if (rootMeasurement.event.errorCode) {
-                        rootMeasurement.end({ success: false });
+                        rootMeasurement.end({ success: false }, undefined);
                     } else {
                         rootMeasurement.discard();
                     }
@@ -650,7 +638,6 @@ export class StandardController implements IController {
             correlationId
         );
         atrMeasurement.add({
-            accountType: getAccountType(request.account),
             scenarioId: request.scenarioId,
         });
 
@@ -666,8 +653,11 @@ export class StandardController implements IController {
                     navigateCallbackResult: navigate !== false,
                 });
                 atrMeasurement.event =
-                    atrMeasurement.end({ success: true }) ||
-                    atrMeasurement.event;
+                    atrMeasurement.end(
+                        { success: true },
+                        undefined,
+                        request.account
+                    ) || atrMeasurement.event;
                 return navigate;
             };
         } else {
@@ -682,8 +672,11 @@ export class StandardController implements IController {
                     navigateCallbackResult: navigate !== false,
                 });
                 atrMeasurement.event =
-                    atrMeasurement.end({ success: true }) ||
-                    atrMeasurement.event;
+                    atrMeasurement.end(
+                        { success: true },
+                        undefined,
+                        request.account
+                    ) || atrMeasurement.event;
                 return navigate;
             };
         }
@@ -775,9 +768,9 @@ export class StandardController implements IController {
                         PerformanceEvents.AcquireTokenRedirect,
                         correlationId
                     )
-                    .end({ success: false }, e);
+                    .end({ success: false }, e, request.account);
             } else {
-                atrMeasurement.end({ success: false }, e);
+                atrMeasurement.end({ success: false }, e, request.account);
             }
 
             if (isLoggedIn) {
@@ -819,12 +812,15 @@ export class StandardController implements IController {
 
         atPopupMeasurement.add({
             scenarioId: request.scenarioId,
-            accountType: getAccountType(request.account),
         });
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
-            preflightCheck(this.initialized, atPopupMeasurement);
+            preflightCheck(
+                this.initialized,
+                atPopupMeasurement,
+                request.account
+            );
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN
@@ -865,10 +861,13 @@ export class StandardController implements IController {
                 ApiId.acquireTokenPopup
             )
                 .then((response) => {
-                    atPopupMeasurement.end({
-                        success: true,
-                        accountType: getAccountType(response.account),
-                    });
+                    atPopupMeasurement.end(
+                        {
+                            success: true,
+                        },
+                        undefined,
+                        response.account
+                    );
                     return response;
                 })
                 .catch((e: AuthError) => {
@@ -920,12 +919,15 @@ export class StandardController implements IController {
                     );
                 }
 
-                atPopupMeasurement.end({
-                    success: true,
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                    accountType: getAccountType(result.account),
-                });
+                atPopupMeasurement.end(
+                    {
+                        success: true,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
+                    },
+                    undefined,
+                    result.account
+                );
                 return result;
             })
             .catch((e: Error) => {
@@ -949,7 +951,8 @@ export class StandardController implements IController {
                     {
                         success: false,
                     },
-                    e
+                    e,
+                    request.account
                 );
 
                 // Since this function is syncronous we need to reject
@@ -1012,9 +1015,12 @@ export class StandardController implements IController {
         );
         this.ssoSilentMeasurement?.add({
             scenarioId: request.scenarioId,
-            accountType: getAccountType(request.account),
         });
-        preflightCheck(this.initialized, this.ssoSilentMeasurement);
+        preflightCheck(
+            this.initialized,
+            this.ssoSilentMeasurement,
+            request.account
+        );
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
         });
@@ -1068,12 +1074,15 @@ export class StandardController implements IController {
                     InteractionType.Silent,
                     response
                 );
-                this.ssoSilentMeasurement?.end({
-                    success: true,
-                    accessTokenSize: response.accessToken.length,
-                    idTokenSize: response.idToken.length,
-                    accountType: getAccountType(response.account),
-                });
+                this.ssoSilentMeasurement?.end(
+                    {
+                        success: true,
+                        accessTokenSize: response.accessToken.length,
+                        idTokenSize: response.idToken.length,
+                    },
+                    undefined,
+                    response.account
+                );
                 return response;
             })
             .catch((e: Error) => {
@@ -1087,7 +1096,8 @@ export class StandardController implements IController {
                     {
                         success: false,
                     },
-                    e
+                    e,
+                    request.account
                 );
                 throw e;
             })
@@ -1151,12 +1161,15 @@ export class StandardController implements IController {
                                 result
                             );
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
-                            atbcMeasurement.end({
-                                success: true,
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
-                                accountType: getAccountType(result.account),
-                            });
+                            atbcMeasurement.end(
+                                {
+                                    success: true,
+                                    accessTokenSize: result.accessToken.length,
+                                    idTokenSize: result.idToken.length,
+                                },
+                                undefined,
+                                result.account
+                            );
                             return result;
                         })
                         .catch((error: Error) => {
@@ -1212,10 +1225,13 @@ export class StandardController implements IController {
                         });
                         throw e;
                     });
-                    atbcMeasurement.end({
-                        accountType: getAccountType(result.account),
-                        success: true,
-                    });
+                    atbcMeasurement.end(
+                        {
+                            success: true,
+                        },
+                        undefined,
+                        result.account
+                    );
                     return result;
                 } else {
                     throw createBrowserAuthError(
@@ -2071,23 +2087,26 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        preflightCheck(this.initialized, atsMeasurement);
+        preflightCheck(this.initialized, atsMeasurement, request.account);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
-        atsMeasurement.add({ accountType: getAccountType(account) });
 
         return this.acquireTokenSilentDeduped(request, account, correlationId)
             .then((result) => {
-                atsMeasurement.end({
-                    success: true,
-                    fromCache: result.fromCache,
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                });
+                atsMeasurement.end(
+                    {
+                        success: true,
+                        fromCache: result.fromCache,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
+                    },
+                    undefined,
+                    result.account
+                );
                 return {
                     ...result,
                     state: request.state,
@@ -2104,7 +2123,8 @@ export class StandardController implements IController {
                     {
                         success: false,
                     },
-                    error
+                    error,
+                    account
                 );
                 throw error;
             });
@@ -2319,14 +2339,12 @@ export class StandardController implements IController {
                     InteractionType.Silent,
                     response
                 );
-                if (request.correlationId) {
-                    this.performanceClient.addFields(
-                        {
-                            fromCache: response.fromCache,
-                        },
-                        request.correlationId
-                    );
-                }
+                this.performanceClient.addFields(
+                    {
+                        fromCache: response.fromCache,
+                    },
+                    request.correlationId
+                );
 
                 return response;
             })

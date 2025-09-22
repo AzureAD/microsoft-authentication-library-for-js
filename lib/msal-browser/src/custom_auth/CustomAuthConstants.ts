@@ -12,12 +12,14 @@ export const GrantType = {
     CONTINUATION_TOKEN: "continuation_token",
     REDIRECT: "redirect",
     ATTRIBUTES: "attributes",
+    MFA_OOB: "mfa_oob",
 } as const;
 
 export const ChallengeType = {
     PASSWORD: "password",
     OOB: "oob",
     REDIRECT: "redirect",
+    PREVERIFIED: "preverified",
 } as const;
 
 export const DefaultScopes = [

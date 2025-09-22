@@ -13,6 +13,7 @@ import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInCodeRequiredStateParameters } from "./SignInStateParameters.js";
 import { SignInState } from "./SignInState.js";
 import { SignInCompletedState } from "./SignInCompletedState.js";
+import { SIGN_IN_COMPLETED_RESULT_TYPE } from "../../interaction_client/result/SignInActionResult.js";
 
 /*
  * Sign-in code required state.
@@ -45,7 +46,7 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                 this.stateParameters.correlationId
             );
 
-            const completedResult =
+            const submitCodeResult =
                 await this.stateParameters.signInClient.submitCode(
                     submitCodeParams
                 );
@@ -55,18 +56,27 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                 this.stateParameters.correlationId
             );
 
-            const accountInfo = new CustomAuthAccountData(
-                completedResult.authenticationResult.account,
-                this.stateParameters.config,
-                this.stateParameters.cacheClient,
-                this.stateParameters.logger,
-                this.stateParameters.correlationId
-            );
+            if (submitCodeResult.type === SIGN_IN_COMPLETED_RESULT_TYPE) {
+                const accountInfo = new CustomAuthAccountData(
+                    submitCodeResult.authenticationResult.account,
+                    this.stateParameters.config,
+                    this.stateParameters.cacheClient,
+                    this.stateParameters.logger,
+                    this.stateParameters.correlationId
+                );
 
-            return new SignInSubmitCodeResult(
-                new SignInCompletedState(),
-                accountInfo
-            );
+                return new SignInSubmitCodeResult(
+                    new SignInCompletedState(),
+                    accountInfo
+                );
+            } else {
+                // Unexpected result type
+                const result = submitCodeResult as { type: string };
+                const error = new Error(
+                    `Unexpected result type: ${result.type}`
+                );
+                return SignInSubmitCodeResult.createWithError(error);
+            }
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to submit code for sign-in. Error: ${error}.`,
@@ -114,6 +124,7 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                     config: this.stateParameters.config,
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
+                    jitClient: this.stateParameters.jitClient,
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
                     scopes: this.stateParameters.scopes,

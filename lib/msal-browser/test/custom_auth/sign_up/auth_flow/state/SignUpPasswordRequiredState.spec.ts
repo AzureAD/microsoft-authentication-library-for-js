@@ -10,6 +10,7 @@ import {
 import { SignUpClient } from "../../../../../src/custom_auth/sign_up/interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { JitClient } from "../../../../../src/custom_auth/core/interaction_client/jit/JitClient.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("SignUpPasswordRequiredState", () => {
@@ -24,6 +25,12 @@ describe("SignUpPasswordRequiredState", () => {
 
     const mockSignInClient = {} as unknown as jest.Mocked<SignInClient>;
 
+    const mockJitClient = {
+        introspect: jest.fn(),
+        requestChallenge: jest.fn(),
+        continueChallenge: jest.fn(),
+    } as unknown as jest.Mocked<JitClient>;
+
     const username = "testuser";
     const correlationId = "test-correlation-id";
     const continuationToken = "test-continuation-token";
@@ -35,6 +42,7 @@ describe("SignUpPasswordRequiredState", () => {
             username: username,
             signUpClient: mockSignUpClient,
             signInClient: mockSignInClient,
+            jitClient: mockJitClient,
             cacheClient:
                 {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>,
             correlationId: correlationId,

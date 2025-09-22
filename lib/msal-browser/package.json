@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "4.22.1",
+  "version": "4.23.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -70,7 +70,7 @@
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
-    "test": "jest --forceExit",
+    "test": "jest",
     "test:coverage": "jest --coverage",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",

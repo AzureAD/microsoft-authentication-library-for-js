@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { GrantType } from "../../../../CustomAuthConstants.js";
 import { ApiRequestBase } from "./ApiTypesBase.js";
 
 /* Sign-in API request types */
@@ -14,6 +15,7 @@ export interface SignInInitiateRequest extends ApiRequestBase {
 export interface SignInChallengeRequest extends ApiRequestBase {
     challenge_type: string;
     continuation_token: string;
+    id?: string;
 }
 
 interface SignInTokenRequestBase extends ApiRequestBase {
@@ -28,10 +30,15 @@ export interface SignInPasswordTokenRequest extends SignInTokenRequestBase {
 
 export interface SignInOobTokenRequest extends SignInTokenRequestBase {
     oob: string;
+    grant_type: typeof GrantType.OOB | typeof GrantType.MFA_OOB;
 }
 
 export interface SignInContinuationTokenRequest extends SignInTokenRequestBase {
-    username: string;
+    username?: string;
+}
+
+export interface SignInIntrospectRequest extends ApiRequestBase {
+    continuation_token: string;
 }
 
 /* Sign-up API request types */
@@ -89,4 +96,22 @@ export interface ResetPasswordSubmitRequest extends ApiRequestBase {
 
 export interface ResetPasswordPollCompletionRequest extends ApiRequestBase {
     continuation_token: string;
+}
+
+/* Register API request types */
+export interface RegisterIntrospectRequest extends ApiRequestBase {
+    continuation_token: string;
+}
+
+export interface RegisterChallengeRequest extends ApiRequestBase {
+    continuation_token: string;
+    challenge_type: string;
+    challenge_target: string;
+    challenge_channel?: string;
+}
+
+export interface RegisterContinueRequest extends ApiRequestBase {
+    continuation_token: string;
+    grant_type: string;
+    oob?: string;
 }
