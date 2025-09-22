@@ -75,6 +75,8 @@ export class SignInSubmitCodeResult extends AuthFlowResultBase<
  * This includes:
  * - SignInCompletedState: The sign-in process has completed successfully.
  * - SignInFailedState: The sign-in process has failed.
+ * - AuthMethodRegistrationRequiredState: The user needs to register an authentication method.
+ * - MfaAwaitingState: The user is in a multi-factor authentication (MFA) waiting state.
  */
 export type SignInSubmitCodeResultState =
     | SignInCompletedState
