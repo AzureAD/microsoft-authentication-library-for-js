@@ -257,6 +257,7 @@ export const mockAccountInfo: AccountInfo = {
             } as TenantProfile,
         ],
     ]),
+    dataBoundary: undefined,
 };
 
 export const mockNativeAccountInfo: AccountInfo = {

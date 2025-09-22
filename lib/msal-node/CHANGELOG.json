@@ -2,6 +2,33 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 17 Sep 2025 09:50:42 GMT",
+      "version": "3.7.4",
+      "tag": "@azure/msal-node_v3.7.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "aafeda0fe35c196706ce2c6d688eea2d312c4b9a",
+            "comment": "broker redirect uri changes"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 27 Aug 2025 00:59:59 GMT",
       "version": "3.7.3",
       "tag": "@azure/msal-node_v3.7.3",

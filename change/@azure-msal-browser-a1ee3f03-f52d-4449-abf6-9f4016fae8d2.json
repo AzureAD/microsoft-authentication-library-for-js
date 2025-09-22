@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Support authentication method registration during Sign-In, #8007",
+  "comment": "Add changes in network and interaction client layers to support MFA",
   "packageName": "@azure/msal-browser",
   "email": "shen.jian@live.com",
   "dependentChangeType": "patch"

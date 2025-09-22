@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Pass forceRefresh param to NAA bridge #8042",
+  "type": "minor",
+  "comment": "Instrument data boundary claim #8054",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"

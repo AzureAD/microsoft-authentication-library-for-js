@@ -4,25 +4,15 @@
  */
 
 import { AuthenticationResult } from "../../../../../response/AuthenticationResult.js";
-import { AuthenticationMethod } from "../../../network_client/custom_auth_api/types/ApiResponseTypes.js";
 
 interface JitActionResult {
     type: string;
     correlationId: string;
 }
 
-interface JitContinuationTokenResult extends JitActionResult {
-    continuationToken: string;
-}
-
-export interface JitGetAuthMethodsResult extends JitContinuationTokenResult {
-    type: typeof JIT_GET_AUTH_METHODS_RESULT_TYPE;
-    authMethods: AuthenticationMethod[];
-}
-
-export interface JitVerificationRequiredResult
-    extends JitContinuationTokenResult {
+export interface JitVerificationRequiredResult extends JitActionResult {
     type: typeof JIT_VERIFICATION_REQUIRED_RESULT_TYPE;
+    continuationToken: string;
     challengeChannel: string;
     challengeTargetLabel: string;
     codeLength: number;
@@ -34,19 +24,9 @@ export interface JitCompletedResult extends JitActionResult {
 }
 
 // Result type constants
-export const JIT_GET_AUTH_METHODS_RESULT_TYPE = "JitGetAuthMethodsResult";
 export const JIT_VERIFICATION_REQUIRED_RESULT_TYPE =
     "JitVerificationRequiredResult";
 export const JIT_COMPLETED_RESULT_TYPE = "JitCompletedResult";
-
-export function createJitGetAuthMethodsResult(
-    input: Omit<JitGetAuthMethodsResult, "type">
-): JitGetAuthMethodsResult {
-    return {
-        type: JIT_GET_AUTH_METHODS_RESULT_TYPE,
-        ...input,
-    };
-}
 
 export function createJitVerificationRequiredResult(
     input: Omit<JitVerificationRequiredResult, "type">

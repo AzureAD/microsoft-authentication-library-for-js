@@ -37,6 +37,9 @@ export const ACCOUNT_SIGN_OUT = 100062;
 export const ACCOUNT_GET_ACCESS_TOKEN = 100063;
 
 // JIT (Just-In-Time) Auth Method Registration
-export const JIT_GET_AUTH_METHODS = 100081;
-export const JIT_CHALLENGE_AUTH_METHOD = 100082;
-export const JIT_SUBMIT_CHALLENGE = 100083;
+export const JIT_CHALLENGE_AUTH_METHOD = 100081;
+export const JIT_SUBMIT_CHALLENGE = 100082;
+
+// MFA
+export const MFA_REQUEST_CHALLENGE = 100101;
+export const MFA_SUBMIT_CHALLENGE = 100102;
