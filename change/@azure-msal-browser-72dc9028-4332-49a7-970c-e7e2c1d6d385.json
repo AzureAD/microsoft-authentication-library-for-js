@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Pass forceRefresh param to NAA bridge #8042",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
