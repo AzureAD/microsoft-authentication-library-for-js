@@ -771,6 +771,8 @@ export class RedirectClient extends StandardInteractionClient {
                         // @ts-ignore
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         onRedirectNavigate,
+                        // @ts-ignore
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
                         ...serializableLogoutRequest
                     } = validLogoutRequest;
                 }
