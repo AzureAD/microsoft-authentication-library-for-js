@@ -29,6 +29,8 @@ import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
     SIGN_IN_CODE_SEND_RESULT_TYPE,
     SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
+    SIGN_IN_COMPLETED_RESULT_TYPE,
+    SIGN_IN_JIT_REQUIRED_RESULT_TYPE,
 } from "../sign_in/interaction_client/result/SignInActionResult.js";
 import { SignUpClient } from "../sign_up/interaction_client/SignUpClient.js";
 import { CustomAuthInterationClientFactory } from "../core/interaction_client/CustomAuthInterationClientFactory.js";
@@ -40,6 +42,7 @@ import { ICustomAuthApiClient } from "../core/network_client/custom_auth_api/ICu
 import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/CustomAuthApiClient.js";
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 import { ResetPasswordClient } from "../reset_password/interaction_client/ResetPasswordClient.js";
+import { JitClient } from "../core/interaction_client/jit/JitClient.js";
 import { NoCachedAccountFoundError } from "../core/error/NoCachedAccountFoundError.js";
 import * as ArgumentValidator from "../core/utils/ArgumentValidator.js";
 import { UserAlreadySignedInError } from "../core/error/UserAlreadySignedInError.js";
@@ -48,6 +51,7 @@ import { UnsupportedEnvironmentError } from "../core/error/UnsupportedEnvironmen
 import { SignInCodeRequiredState } from "../sign_in/auth_flow/state/SignInCodeRequiredState.js";
 import { SignInPasswordRequiredState } from "../sign_in/auth_flow/state/SignInPasswordRequiredState.js";
 import { SignInCompletedState } from "../sign_in/auth_flow/state/SignInCompletedState.js";
+import { AuthMethodRegistrationRequiredState } from "../core/auth_flow/jit/state/AuthMethodRegistrationState.js";
 import { SignUpCodeRequiredState } from "../sign_up/auth_flow/state/SignUpCodeRequiredState.js";
 import { SignUpPasswordRequiredState } from "../sign_up/auth_flow/state/SignUpPasswordRequiredState.js";
 import { ResetPasswordCodeRequiredState } from "../reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
@@ -63,6 +67,7 @@ export class CustomAuthStandardController
     private readonly signInClient: SignInClient;
     private readonly signUpClient: SignUpClient;
     private readonly resetPasswordClient: ResetPasswordClient;
+    private readonly jitClient: JitClient;
     private readonly cacheClient: CustomAuthSilentCacheClient;
     private readonly customAuthConfig: CustomAuthBrowserConfiguration;
     private readonly authority: CustomAuthAuthority;
@@ -113,7 +118,8 @@ export class CustomAuthStandardController
                     this.authority.getCustomAuthApiDomain(),
                     this.customAuthConfig.auth.clientId,
                     new FetchHttpClient(this.logger),
-                    this.customAuthConfig.customAuth?.capabilities?.join(" ")
+                    this.customAuthConfig.customAuth?.capabilities?.join(" "),
+                    this.customAuthConfig.customAuth?.customAuthApiQueryParams
                 ),
             this.authority
         );
@@ -122,6 +128,7 @@ export class CustomAuthStandardController
         this.signUpClient = interactionClientFactory.create(SignUpClient);
         this.resetPasswordClient =
             interactionClientFactory.create(ResetPasswordClient);
+        this.jitClient = interactionClientFactory.create(JitClient);
         this.cacheClient = interactionClientFactory.create(
             CustomAuthSilentCacheClient
         );
@@ -234,6 +241,7 @@ export class CustomAuthStandardController
                         config: this.customAuthConfig,
                         signInClient: this.signInClient,
                         cacheClient: this.cacheClient,
+                        jitClient: this.jitClient,
                         username: signInInputs.username,
                         codeLength: startResult.codeLength,
                         scopes: signInInputs.scopes ?? [],
@@ -263,6 +271,7 @@ export class CustomAuthStandardController
                             config: this.customAuthConfig,
                             signInClient: this.signInClient,
                             cacheClient: this.cacheClient,
+                            jitClient: this.jitClient,
                             username: signInInputs.username,
                             scopes: signInInputs.scopes ?? [],
                             claims: signInInputs.claims,
@@ -288,24 +297,61 @@ export class CustomAuthStandardController
                     claims: signInInputs.claims,
                 };
 
-                const completedResult = await this.signInClient.submitPassword(
-                    submitPasswordParams
-                );
+                const submitPasswordResult =
+                    await this.signInClient.submitPassword(
+                        submitPasswordParams
+                    );
 
                 this.logger.verbose("Sign-in flow completed.", correlationId);
 
-                const accountInfo = new CustomAuthAccountData(
-                    completedResult.authenticationResult.account,
-                    this.customAuthConfig,
-                    this.cacheClient,
-                    this.logger,
-                    correlationId
-                );
+                if (
+                    submitPasswordResult.type === SIGN_IN_COMPLETED_RESULT_TYPE
+                ) {
+                    const accountInfo = new CustomAuthAccountData(
+                        submitPasswordResult.authenticationResult.account,
+                        this.customAuthConfig,
+                        this.cacheClient,
+                        this.logger,
+                        correlationId
+                    );
 
-                return new SignInResult(
-                    new SignInCompletedState(),
-                    accountInfo
-                );
+                    return new SignInResult(
+                        new SignInCompletedState(),
+                        accountInfo
+                    );
+                } else if (
+                    submitPasswordResult.type ===
+                    SIGN_IN_JIT_REQUIRED_RESULT_TYPE
+                ) {
+                    // Authentication method registration is required - create AuthMethodRegistrationRequiredState
+                    this.logger.verbose(
+                        "Authentication method registration required for sign-in.",
+                        correlationId
+                    );
+
+                    return new SignInResult(
+                        new AuthMethodRegistrationRequiredState({
+                            correlationId: correlationId,
+                            continuationToken:
+                                submitPasswordResult.continuationToken,
+                            logger: this.logger,
+                            config: this.customAuthConfig,
+                            jitClient: this.jitClient,
+                            cacheClient: this.cacheClient,
+                            authMethods: submitPasswordResult.authMethods,
+                            username: signInInputs.username,
+                            scopes: signInInputs.scopes ?? [],
+                            claims: signInInputs.claims,
+                        })
+                    );
+                } else {
+                    // Unexpected result type
+                    const result = submitPasswordResult as { type: string };
+                    const error = new Error(
+                        `Unexpected result type: ${result.type}`
+                    );
+                    return SignInResult.createWithError(error);
+                }
             }
 
             this.logger.error(
@@ -390,6 +436,7 @@ export class CustomAuthStandardController
                         signInClient: this.signInClient,
                         signUpClient: this.signUpClient,
                         cacheClient: this.cacheClient,
+                        jitClient: this.jitClient,
                         username: signUpInputs.username,
                         codeLength: startResult.codeLength,
                         codeResendInterval: startResult.interval,
@@ -413,6 +460,7 @@ export class CustomAuthStandardController
                         signInClient: this.signInClient,
                         signUpClient: this.signUpClient,
                         cacheClient: this.cacheClient,
+                        jitClient: this.jitClient,
                         username: signUpInputs.username,
                     })
                 );
@@ -482,6 +530,7 @@ export class CustomAuthStandardController
                     signInClient: this.signInClient,
                     resetPasswordClient: this.resetPasswordClient,
                     cacheClient: this.cacheClient,
+                    jitClient: this.jitClient,
                     username: resetPasswordInputs.username,
                     codeLength: startResult.codeLength,
                 })

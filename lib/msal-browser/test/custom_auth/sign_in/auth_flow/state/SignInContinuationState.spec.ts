@@ -7,6 +7,7 @@ import { createSignInCompleteResult } from "../../../../../src/custom_auth/sign_
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { SignInScenario } from "../../../../../src/custom_auth/sign_in/auth_flow/SignInScenario.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { JitClient } from "../../../../../src/custom_auth/core/interaction_client/jit/JitClient.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("SignInContinuationState", () => {
@@ -22,6 +23,12 @@ describe("SignInContinuationState", () => {
     const mockCacheClient =
         {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
 
+    const mockJitClient = {
+        introspect: jest.fn(),
+        requestChallenge: jest.fn(),
+        continueChallenge: jest.fn(),
+    } as unknown as jest.Mocked<JitClient>;
+
     const username = "testuser";
     const correlationId = "test-correlation-id";
     const continuationToken = "test-continuation-token";
@@ -33,6 +40,7 @@ describe("SignInContinuationState", () => {
             username: username,
             signInClient: mockSignInClient,
             cacheClient: mockCacheClient,
+            jitClient: mockJitClient,
             correlationId: correlationId,
             logger: getDefaultLogger(),
             continuationToken: continuationToken,
@@ -89,6 +97,42 @@ describe("SignInContinuationState", () => {
             username: username,
             signInScenario: SignInScenario.SignInAfterSignUp,
         });
+    });
+
+    it("should handle JIT required scenario during continuation token sign-in", async () => {
+        const jitContinuationToken = "jit-continuation-token";
+
+        mockSignInClient.signInWithContinuationToken.mockResolvedValue({
+            type: "SignInJitRequiredResult",
+            continuationToken: jitContinuationToken,
+            correlationId: correlationId,
+            authMethods: ["email", "sms"],
+        } as any);
+
+        const result = await state.signIn({ scopes: ["scope1", "scope2"] });
+
+        expect(result).toBeDefined();
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.isAuthMethodRegistrationRequired()).toBe(true);
+        expect(result.error).toBeUndefined();
+        expect(result.state).toBeDefined();
+        expect(result.state?.constructor.name).toBe(
+            "AuthMethodRegistrationRequiredState"
+        );
+    });
+
+    it("should handle unexpected result type during continuation token sign-in", async () => {
+        mockSignInClient.signInWithContinuationToken.mockResolvedValue({
+            type: "unexpected_result_type",
+            correlationId: correlationId,
+        } as any);
+
+        const result = await state.signIn({ scopes: ["scope1", "scope2"] });
+
+        expect(result).toBeDefined();
+        expect(result).toBeInstanceOf(SignInResult);
+        expect(result.error).toBeDefined();
+        expect(result.error).toBeInstanceOf(SignInError);
     });
 
     it("should return an error result if signIn throws an error", async () => {

@@ -6,17 +6,14 @@
 import { CustomAuthError } from "./CustomAuthError.js";
 
 export class MsalCustomAuthError extends CustomAuthError {
-    subError: string | undefined;
-
     constructor(
         error: string,
         errorDescription?: string,
         subError?: string,
+        errorCodes?: Array<number>,
         correlationId?: string
     ) {
-        super(error, errorDescription, correlationId);
+        super(error, errorDescription, correlationId, errorCodes, subError);
         Object.setPrototypeOf(this, MsalCustomAuthError.prototype);
-
-        this.subError = subError || "";
     }
 }

@@ -45,6 +45,7 @@ import { PerformanceCallbackFunction } from '@azure/msal-common/browser';
 import { PerformanceClient } from '@azure/msal-common/browser';
 import { PerformanceEvent } from '@azure/msal-common/browser';
 import { ProtocolMode } from '@azure/msal-common/browser';
+import { RequestParameterBuilder } from '@azure/msal-common/browser';
 import { ServerError } from '@azure/msal-common/browser';
 import { SignedHttpRequestParameters } from '@azure/msal-common/browser';
 import { StringDict } from '@azure/msal-common/browser';
@@ -85,6 +86,11 @@ const AcquireTokenRedirect = "acquireTokenRedirect";
 //
 // @public
 const AcquireTokenSilent = "acquireTokenSilent";
+
+// Warning: (ae-missing-release-tag) "addClientCapabilitiesToClaims" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const addClientCapabilitiesToClaims: typeof RequestParameterBuilder.addClientCapabilitiesToClaims;
 
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -415,7 +421,8 @@ declare namespace BrowserUtils {
         preconnect,
         createGuid,
         invoke,
-        invokeAsync
+        invokeAsync,
+        addClientCapabilitiesToClaims
     }
 }
 export { BrowserUtils }
