@@ -15,7 +15,8 @@ import { BaseAuthRequest } from "@azure/msal-common";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - username               - username of the client
  * - password               - credentials
- * - tokenQueryParameters   - String to string map of custom query parameters added to the /token call
+ * - extraQueryParameters   - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParams            - String to string map of custom query parameters added to outgoing token service requests
  */
 export type CommonUsernamePasswordRequest = BaseAuthRequest & {
     username: string;

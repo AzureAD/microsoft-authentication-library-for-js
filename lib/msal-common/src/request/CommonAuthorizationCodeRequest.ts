@@ -19,7 +19,8 @@ import { CcsCredential } from "../account/CcsCredential.js";
  * - resourceRequestMethod   - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri      - URI that token will be used for. Used for proof-of-possession flows.
  * - enableSpaAuthCode       - Enables the acqusition of a spa authorization code (confidential clients only)
- * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
+ * - extraQueryParameters    - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParams             - String to string map of custom query parameters added to outgoing token service requests
  */
 export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     code: string;

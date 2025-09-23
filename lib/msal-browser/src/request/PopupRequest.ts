@@ -26,9 +26,8 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
  * - loginHint                  - Can be used to pre-fill the username/email address field of the sign-in page for the user, if you know the username/email address ahead of time. Often apps use this parameter during re-authentication, having already extracted the username from a previous sign-in using the login_hint or preferred_username claim.
  * - sid                        - Session ID, unique identifier for the session. Available as an optional claim on ID tokens.
  * - domainHint                 - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant.
- * - extraQueryParameters       - String to string map of custom query parameters added to the /authorize call
- * - tokenBodyParameters        - String to string map of custom token request body parameters added to the /token call. Only used when renewing access tokens.
- * - tokenQueryParameters       - String to string map of custom query parameters added to the /token call
+ * - extraQueryParameters       - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParams                - String to string map of custom query parameters added to outgoing token service requests
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - popupWindowAttributes      - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.

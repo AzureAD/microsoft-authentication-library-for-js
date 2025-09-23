@@ -930,7 +930,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             windowTitleSubstring: document.title,
             extraParameters: {
                 ...request.extraQueryParameters,
-                ...request.tokenQueryParameters,
+                ...request.extraParams,
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
