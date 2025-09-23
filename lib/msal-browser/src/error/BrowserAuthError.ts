@@ -88,8 +88,6 @@ export const BrowserAuthErrorMessages = {
         "Native extension is not installed. If you think this is a mistake call the initialize function.",
     [BrowserAuthErrorCodes.nativeConnectionNotEstablished]: `Connection to native platform has not been established. Please install a compatible browser extension and run initialize().  ${ErrorLink}`,
     [BrowserAuthErrorCodes.uninitializedPublicClientApplication]: `You must call and await the initialize function before attempting to call any other MSAL API.  ${ErrorLink}`,
-    [BrowserAuthErrorCodes.nativePromptNotSupported]:
-        "The provided prompt is not supported by the native platform. This request should be routed to the web based flow.",
     [BrowserAuthErrorCodes.invalidBase64String]:
         "Invalid base64 encoded string.",
     [BrowserAuthErrorCodes.invalidPopTokenRequest]:
@@ -324,12 +322,6 @@ export const BrowserAuthErrorMessage = {
         code: BrowserAuthErrorCodes.uninitializedPublicClientApplication,
         desc: BrowserAuthErrorMessages[
             BrowserAuthErrorCodes.uninitializedPublicClientApplication
-        ],
-    },
-    nativePromptNotSupported: {
-        code: BrowserAuthErrorCodes.nativePromptNotSupported,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.nativePromptNotSupported
         ],
     },
     invalidBase64StringError: {

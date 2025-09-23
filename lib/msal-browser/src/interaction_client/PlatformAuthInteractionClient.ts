@@ -1020,26 +1020,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
             return undefined;
         }
-
-        // If request is interactive, check if prompt provided is allowed to go directly to native broker
-        switch (prompt) {
-            case PromptValue.NONE:
-            case PromptValue.CONSENT:
-            case PromptValue.LOGIN:
-            case PromptValue.CREATE:
-            case PromptValue.SELECT_ACCOUNT:
-                this.logger.trace(
-                    "initializeNativeRequest: prompt is compatible with native flow"
-                );
-                return prompt;
-            default:
-                this.logger.trace(
-                    `initializeNativeRequest: prompt = ${prompt} is not compatible with native flow`
-                );
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativePromptNotSupported
-                );
-        }
     }
 
     /**
