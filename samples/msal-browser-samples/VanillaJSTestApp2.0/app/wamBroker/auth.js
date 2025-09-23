@@ -76,3 +76,74 @@ async function getTokenPopup(request, account) {
         }
     });
 }
+
+async function getTokenPopupCreate(request, account) {
+    request.prompt = "create";
+    const startTime = Date.now();
+    
+    // Acquire token using popup directly
+    console.log("acquiring token using popup with prompt: create");
+    return await myMSALObj.acquireTokenPopup(request).then((response) => {
+        console.log(`Token acquisition time elapsed: ${Date.now() - startTime}ms`);
+        console.log(response);
+        return response;
+    }).catch(error => {
+        console.error(error);
+    });
+}
+
+async function getTokenPopupNone(request, account) {
+    request.prompt = "none";
+    const startTime = Date.now();
+    
+    console.log("acquiring token silently with prompt: none");
+    return await myMSALObj.acquireTokenSilent(request).then((response) => {
+        console.log(`Token acquisition time elapsed: ${Date.now() - startTime}ms`);
+        console.log(response);
+        return response;
+    }).catch(error => {
+        console.error("Silent token acquisition failed:", error);
+    });
+}
+
+async function getTokenPopupLogin(request, account) {
+    request.prompt = "login";
+    const startTime = Date.now();
+    
+    console.log("acquiring token using popup with prompt: login");
+    return await myMSALObj.acquireTokenPopup(request).then((response) => {
+        console.log(`Token acquisition time elapsed: ${Date.now() - startTime}ms`);
+        console.log(response);
+        return response;
+    }).catch(error => {
+        console.error(error);
+    });
+}
+
+async function getTokenPopupConsent(request, account) {
+    request.prompt = "consent";
+    const startTime = Date.now();
+    
+    console.log("acquiring token using popup with prompt: consent");
+    return await myMSALObj.acquireTokenPopup(request).then((response) => {
+        console.log(`Token acquisition time elapsed: ${Date.now() - startTime}ms`);
+        console.log(response);
+        return response;
+    }).catch(error => {
+        console.error(error);
+    });
+}
+
+async function getTokenPopupSelectAccount(request, account) {
+    request.prompt = "select_account";
+    const startTime = Date.now();
+    
+    console.log("acquiring token using popup with prompt: select_account");
+    return await myMSALObj.acquireTokenPopup(request).then((response) => {
+        console.log(`Token acquisition time elapsed: ${Date.now() - startTime}ms`);
+        console.log(response);
+        return response;
+    }).catch(error => {
+        console.error(error);
+    });
+}
