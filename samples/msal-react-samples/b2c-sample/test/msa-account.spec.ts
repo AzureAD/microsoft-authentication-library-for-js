@@ -131,7 +131,7 @@ describe("B2C user-flow tests (msa account)", () => {
             "#idTokenClaims",
             (e) => e.textContent
         );
-        expect(idTokenClaims).toContain("B2C_1_ProfileEditPolicy"); // implies the current active account
+        expect(idTokenClaims).toContain("B2C_1_SISOPolicy"); // implies the current active account
         expect(idTokenClaims).toContain(`${displayName}`);
 
         // Verify tokens are in cache
