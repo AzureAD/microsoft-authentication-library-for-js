@@ -639,7 +639,11 @@ export class StandardController implements IController {
                 navigateCallbackResult: navigate !== false,
             });
             atrMeasurement.event =
-                atrMeasurement.end({ success: true }, undefined, request.account) || atrMeasurement.event;
+                atrMeasurement.end(
+                    { success: true },
+                    undefined,
+                    request.account
+                ) || atrMeasurement.event;
             return navigate;
         };
 
@@ -816,12 +820,14 @@ export class StandardController implements IController {
                 ApiId.acquireTokenPopup
             )
                 .then((response) => {
-                    atPopupMeasurement.end({
-                        success: true,
-                        isNativeBroker: true,
-                    },
+                    atPopupMeasurement.end(
+                        {
+                            success: true,
+                            isNativeBroker: true,
+                        },
                         undefined,
-                        response.account);
+                        response.account
+                    );
                     return response;
                 })
                 .catch((e: AuthError) => {
@@ -1014,14 +1020,16 @@ export class StandardController implements IController {
                     InteractionType.Silent,
                     response
                 );
-                this.ssoSilentMeasurement?.end({
-                    success: true,
-                    isNativeBroker: response.fromPlatformBroker,
-                    accessTokenSize: response.accessToken.length,
-                    idTokenSize: response.idToken.length,
-                },
+                this.ssoSilentMeasurement?.end(
+                    {
+                        success: true,
+                        isNativeBroker: response.fromPlatformBroker,
+                        accessTokenSize: response.accessToken.length,
+                        idTokenSize: response.idToken.length,
+                    },
                     undefined,
-                    response.account);
+                    response.account
+                );
                 return response;
             })
             .catch((e: Error) => {
@@ -1100,14 +1108,16 @@ export class StandardController implements IController {
                                 result
                             );
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
-                            atbcMeasurement.end({
-                                success: true,
-                                isNativeBroker: result.fromPlatformBroker,
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
-                            },
+                            atbcMeasurement.end(
+                                {
+                                    success: true,
+                                    isNativeBroker: result.fromPlatformBroker,
+                                    accessTokenSize: result.accessToken.length,
+                                    idTokenSize: result.idToken.length,
+                                },
                                 undefined,
-                                result.account);
+                                result.account
+                            );
                             return result;
                         })
                         .catch((error: Error) => {

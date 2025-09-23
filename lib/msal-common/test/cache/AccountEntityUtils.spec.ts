@@ -640,15 +640,16 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 JSON.stringify(clientInfoWithDataBoundary)
             );
 
-            const homeAccountId = AccountEntity.generateHomeAccountId(
+            const homeAccountId = AccountEntityUtils.generateHomeAccountId(
                 encodedClientInfo,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
+                TEST_CONFIG.CORRELATION_ID,
                 idTokenClaims
             );
 
-            const acc = AccountEntity.createAccount(
+            const acc = AccountEntityUtils.createAccountEntity(
                 {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
@@ -659,7 +660,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBe("EU");
-            expect(acc.getAccountInfo().dataBoundary).toBe("EU");
+            expect(acc.dataBoundary).toBe("EU");
         });
 
         it("creates an account without dataBoundary when clientInfo has no xms_tdbr", () => {
@@ -676,15 +677,16 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 nonce: "123523",
             };
 
-            const homeAccountId = AccountEntity.generateHomeAccountId(
+            const homeAccountId = AccountEntityUtils.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
+                TEST_CONFIG.CORRELATION_ID,
                 idTokenClaims
             );
 
-            const acc = AccountEntity.createAccount(
+            const acc = AccountEntityUtils.createAccountEntity(
                 {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
@@ -696,7 +698,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+            expect(acc.dataBoundary).toBeUndefined();
         });
 
         it("creates an account without dataBoundary when no clientInfo is provided", () => {
@@ -713,15 +715,16 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 nonce: "123523",
             };
 
-            const homeAccountId = AccountEntity.generateHomeAccountId(
+            const homeAccountId = AccountEntityUtils.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
+                TEST_CONFIG.CORRELATION_ID,
                 idTokenClaims
             );
 
-            const acc = AccountEntity.createAccount(
+            const acc = AccountEntityUtils.createAccountEntity(
                 {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
@@ -731,7 +734,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+            expect(acc.dataBoundary).toBeUndefined();
         });
 
         it("handles empty string xms_tdbr gracefully", () => {
@@ -758,15 +761,16 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 JSON.stringify(clientInfoWithEmptyDataBoundary)
             );
 
-            const homeAccountId = AccountEntity.generateHomeAccountId(
+            const homeAccountId = AccountEntityUtils.generateHomeAccountId(
                 encodedClientInfo,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
+                TEST_CONFIG.CORRELATION_ID,
                 idTokenClaims
             );
 
-            const acc = AccountEntity.createAccount(
+            const acc = AccountEntityUtils.createAccountEntity(
                 {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
@@ -777,7 +781,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+            expect(acc.dataBoundary).toBeUndefined();
         });
 
         it("handles null xms_tdbr gracefully", () => {
@@ -804,15 +808,16 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 JSON.stringify(clientInfoWithNullDataBoundary)
             );
 
-            const homeAccountId = AccountEntity.generateHomeAccountId(
+            const homeAccountId = AccountEntityUtils.generateHomeAccountId(
                 encodedClientInfo,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
+                TEST_CONFIG.CORRELATION_ID,
                 idTokenClaims
             );
 
-            const acc = AccountEntity.createAccount(
+            const acc = AccountEntityUtils.createAccountEntity(
                 {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
@@ -823,7 +828,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+            expect(acc.dataBoundary).toBeUndefined();
         });
     });
 });

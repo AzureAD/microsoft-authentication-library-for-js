@@ -1287,7 +1287,7 @@ describe("PerformanceClient.spec.ts", () => {
             });
 
             const topLevelEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
             topLevelEvent.end({ success: true }, undefined, testAccount);
@@ -1316,7 +1316,7 @@ describe("PerformanceClient.spec.ts", () => {
             });
 
             const topLevelEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
             topLevelEvent.end({ success: true }, undefined, testAccount);
@@ -1335,7 +1335,7 @@ describe("PerformanceClient.spec.ts", () => {
             });
 
             const topLevelEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
             topLevelEvent.end({ success: true });
@@ -1365,7 +1365,7 @@ describe("PerformanceClient.spec.ts", () => {
             });
 
             const topLevelEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
             topLevelEvent.end({ success: true }, undefined, msaAccount);
@@ -1395,7 +1395,7 @@ describe("PerformanceClient.spec.ts", () => {
             });
 
             const topLevelEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
             topLevelEvent.end({ success: true }, undefined, b2cAccount);
@@ -1424,7 +1424,7 @@ describe("PerformanceClient.spec.ts", () => {
             });
 
             const topLevelEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
             topLevelEvent.end({ success: true }, undefined, b2cAccount);
@@ -1454,7 +1454,7 @@ describe("PerformanceClient.spec.ts", () => {
             });
 
             const topLevelEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
             topLevelEvent.end({ success: true }, undefined, unknownAccount);
@@ -1484,7 +1484,7 @@ describe("PerformanceClient.spec.ts", () => {
             });
 
             const topLevelEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
             topLevelEvent.end({ success: true }, undefined, testAccount);

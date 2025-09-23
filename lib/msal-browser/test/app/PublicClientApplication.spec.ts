@@ -7300,7 +7300,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             // Mock the silent cache client to return tokens
@@ -7375,7 +7375,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
@@ -7517,7 +7517,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(

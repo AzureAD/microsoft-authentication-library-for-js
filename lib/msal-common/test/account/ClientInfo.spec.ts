@@ -10,7 +10,6 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../src/error/ClientAuthError.js";
-import { Constants } from "../../src/index.js";
 import { mockCrypto } from "../client/ClientTestUtils.js";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
