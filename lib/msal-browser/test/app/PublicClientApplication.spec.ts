@@ -2735,7 +2735,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(popupSpy).toHaveBeenCalledTimes(0);
         });
 
-        it("falls back to web flow if prompt is select_account and emits platform telemetry", async () => {
+        it("Does not fall back to web flow if prompt is select_account and emits platform telemetry", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
