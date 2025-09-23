@@ -626,9 +626,11 @@ export const EventType: {
     readonly ACTIVE_ACCOUNT_CHANGED: "msal:activeAccountChanged";
     readonly LOGIN_SUCCESS: "msal:loginSuccess";
     readonly ACQUIRE_TOKEN_START: "msal:acquireTokenStart";
+    readonly BROKERED_REQUEST_START: "msal:brokeredRequestStart";
     readonly ACQUIRE_TOKEN_SUCCESS: "msal:acquireTokenSuccess";
     readonly BROKERED_REQUEST_SUCCESS: "msal:brokeredRequestSuccess";
     readonly ACQUIRE_TOKEN_FAILURE: "msal:acquireTokenFailure";
+    readonly BROKERED_REQUEST_FAILURE: "msal:brokeredRequestFailure";
     readonly ACQUIRE_TOKEN_NETWORK_START: "msal:acquireTokenFromNetworkStart";
     readonly HANDLE_REDIRECT_START: "msal:handleRedirectStart";
     readonly HANDLE_REDIRECT_END: "msal:handleRedirectEnd";
