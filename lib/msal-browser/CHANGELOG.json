@@ -2,6 +2,59 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 23 Sep 2025 17:57:41 GMT",
+      "version": "4.23.1-alpha.0",
+      "tag": "@azure/msal-browser_v4.23.1-alpha.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0980a40793644957eda84c10be35cae20a539de1",
+            "comment": "Mark package for prerelease (alpha)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "579f77570d64bd7a81b9986c8de54735edf28921",
+            "comment": "Add changes in network and interaction client layers to support MFA"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "579f77570d64bd7a81b9986c8de54735edf28921",
+            "comment": "Instrument data boundary claim #8054"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.12.1-alpha.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 17 Sep 2025 09:50:42 GMT",
       "version": "4.23.0",
       "tag": "@azure/msal-browser_v4.23.0",

@@ -2,6 +2,47 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 23 Sep 2025 17:57:41 GMT",
+      "version": "15.12.1-alpha.0",
+      "tag": "@azure/msal-common_v15.12.1-alpha.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0980a40793644957eda84c10be35cae20a539de1",
+            "comment": "Mark package for prerelease (alpha)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "579f77570d64bd7a81b9986c8de54735edf28921",
+            "comment": "Instrument data boundary claim #8054"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 Aug 2025 21:26:21 GMT",
       "version": "15.12.0",
       "tag": "@azure/msal-common_v15.12.0",

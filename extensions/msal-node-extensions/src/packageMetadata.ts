@@ -1,3 +1,3 @@
 /* eslint-disable header/header */
 export const name = "@azure/msal-node-extensions";
-export const version = "1.5.22";
+export const version = "1.5.23-alpha.0";
