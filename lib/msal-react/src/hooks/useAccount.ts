@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
     AccountInfo,
     IPublicClientApplication,
@@ -53,24 +53,24 @@ export function useAccount(
         }
     });
 
-    useEffect(() => {
-        const updateAccount = () => {
-            const nextAccount = getAccount(instance, accountIdentifiers);
-            setAccount((currentAccount: AccountInfo | null) => {
-                if (
-                    !AccountEntityUtils.accountInfoIsEqual(
-                        currentAccount,
-                        nextAccount,
-                        true
-                    )
-                ) {
-                    logger.info("useAccount - Updating account");
-                    return nextAccount;
-                }
-                return currentAccount;
-            });
-        };
+    const updateAccount = useCallback(() => {
+        const nextAccount = getAccount(instance, accountIdentifiers);
+        setAccount((currentAccount: AccountInfo | null) => {
+            if (
+                !AccountEntityUtils.accountInfoIsEqual(
+                    currentAccount,
+                    nextAccount,
+                    true
+                )
+            ) {
+                logger.info("useAccount - Updating account");
+                return nextAccount;
+            }
+            return currentAccount;
+        });
+    }, [accountIdentifiers, instance, logger]);
 
+    useEffect(() => {
         if (inProgress !== InteractionStatus.Startup) {
             updateAccount();
         }
@@ -88,7 +88,7 @@ export function useAccount(
                 instance.removeEventCallback(callbackId);
             }
         };
-    }, [inProgress, accountIdentifiers, instance, logger]);
+    }, [updateAccount, inProgress, instance]);
 
     return account;
 }

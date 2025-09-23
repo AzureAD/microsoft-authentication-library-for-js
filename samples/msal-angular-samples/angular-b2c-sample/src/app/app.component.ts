@@ -67,8 +67,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.msalBroadcastService.msalSubject$
             .pipe(
-                filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS 
-                    || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
+                filter((msg: EventMessage) => msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
                 takeUntil(this._destroying$)
             )
             .subscribe((result: EventMessage) => {

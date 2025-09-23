@@ -136,10 +136,8 @@ export function useMsalAuthentication(
 
             return getToken()
                 .then((response: AuthenticationResult | null) => {
-                    if (!!response) {
-                        if (mounted.current) {
-                            setResponse([response, null]);
-                        }
+                    if (response && mounted.current) {
+                        setResponse([response, null]);
                     }
                     return response;
                 })
