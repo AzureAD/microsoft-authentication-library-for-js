@@ -42,7 +42,7 @@ export interface AuthenticationMethod {
     id: string;
     challenge_type: string;
     challenge_channel: string;
-    login_hint: string;
+    login_hint?: string;
 }
 
 export interface SignInIntrospectResponse extends ApiResponseBase {

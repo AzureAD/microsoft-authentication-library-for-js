@@ -58,7 +58,7 @@ describe("JitError", () => {
             expect(error.isRedirectRequired()).toBe(false);
         });
 
-        it("should return false for isIncorrectVerificationContact (placeholder)", () => {
+        it("should return false for isInvalidInput when not invalid input error", () => {
             const customAuthError = new CustomAuthError("test", "test");
             const error = new AuthMethodRegistrationChallengeMethodError(
                 customAuthError
@@ -67,10 +67,10 @@ describe("JitError", () => {
             expect(error.isInvalidInput()).toBe(false);
         });
 
-        it("should return true for isIncorrectVerificationContact when API error with error code 901001", () => {
+        it("should return true for isInvalidInput when API error with error code 901001", () => {
             const apiError = new CustomAuthApiError(
                 CustomAuthApiErrorCode.INVALID_REQUEST,
-                "Incorrect verification contact",
+                "Invalid input provided",
                 "correlation-id",
                 [901001]
             );
@@ -81,7 +81,7 @@ describe("JitError", () => {
             expect(error.isInvalidInput()).toBe(true);
         });
 
-        it("should return false for isIncorrectVerificationContact when different error code", () => {
+        it("should return false for isInvalidInput when different error code", () => {
             const apiError = new CustomAuthApiError(
                 CustomAuthApiErrorCode.INVALID_GRANT,
                 "Other error",
@@ -93,6 +93,57 @@ describe("JitError", () => {
             );
 
             expect(error.isInvalidInput()).toBe(false);
+        });
+
+        it("should return true for isVerificationContactBlocked when API error with error code 550024 and correct description", () => {
+            const apiError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "multi-factor authentication method is blocked",
+                "correlation-id",
+                [550024]
+            );
+            const error = new AuthMethodRegistrationChallengeMethodError(
+                apiError
+            );
+
+            expect(error.isVerificationContactBlocked()).toBe(true);
+        });
+
+        it("should return false for isVerificationContactBlocked when API error with error code 550024 but wrong description", () => {
+            const apiError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "Some other error description",
+                "correlation-id",
+                [550024]
+            );
+            const error = new AuthMethodRegistrationChallengeMethodError(
+                apiError
+            );
+
+            expect(error.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("should return false for isVerificationContactBlocked when different error code", () => {
+            const apiError = new CustomAuthApiError(
+                CustomAuthApiErrorCode.INVALID_GRANT,
+                "multi-factor authentication method is blocked",
+                "correlation-id",
+                [901001]
+            );
+            const error = new AuthMethodRegistrationChallengeMethodError(
+                apiError
+            );
+
+            expect(error.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("should return false for isVerificationContactBlocked when not CustomAuthApiError", () => {
+            const customAuthError = new CustomAuthError("test", "test");
+            const error = new AuthMethodRegistrationChallengeMethodError(
+                customAuthError
+            );
+
+            expect(error.isVerificationContactBlocked()).toBe(false);
         });
     });
 
