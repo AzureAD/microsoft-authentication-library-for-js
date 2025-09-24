@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Wed, 27 Aug 2025 00:59:59 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 24 Sep 2025 21:54:45 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.5.23
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 1.5.22
 
