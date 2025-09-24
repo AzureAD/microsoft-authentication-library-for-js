@@ -561,7 +561,6 @@ export type EndSessionPopupRequest = Partial<Omit<CommonEndSessionRequest, "toke
 // @public
 export type EndSessionRequest = Partial<Omit<CommonEndSessionRequest, "tokenQueryParameters">> & {
     authority?: string;
-    onRedirectNavigate?: (url: string) => boolean | void;
 };
 
 // Warning: (ae-missing-release-tag) "EventCallbackFunction" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

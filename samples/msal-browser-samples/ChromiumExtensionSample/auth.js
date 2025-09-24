@@ -97,13 +97,7 @@ async function getLoginUrl(request, reject) {
  */
 async function getLogoutUrl(request) {
     return new Promise((resolve, reject) => {
-        msalInstance.logout({
-            ...request,
-            onRedirectNavigate: (url) => {
-                resolve(url);
-                return false;
-            }
-        }).catch(reject);
+        msalInstance.logout(request).catch(reject);
     });
 }
 

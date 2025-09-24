@@ -59,21 +59,6 @@ await msalInstance.logoutRedirect({
 });
 ```
 
-### Skipping the server sign-out
-
-**WARNING:** Skipping the server sign-out means the user's session will remain active on the server and can be signed back into your application without providing credentials again.
-
-If you want your application to only perform local logout you can provide a callback to the `onRedirectNavigate` parameter on the request and have the callback return false.
-
-```javascript
-msalInstance.logoutRedirect({
-    onRedirectNavigate: (url) => {
-        // Return false if you would like to stop navigation after local logout
-        return false;
-    }
-});
-```
-
 ## logoutPopup
 
 The `logoutPopup` API will open the server signout page in a popup, allowing your application to maintain its current state. Due to this there are a few additional considerations over `logoutRedirect` when choosing to use popups to logout:
@@ -144,7 +129,6 @@ The page used for front-channel logout should be built as follows:
 
 1. On page load, automatically invoke the MSAL `logoutRedirect` API.
 2. In the `PublicClientApplication` configuration, set `system.allowRedirectInIframe` to `true`.
-3. When invoking `logout`, we recommend preventing the redirect in the iframe to the logout page (see [above](#skipping-the-server-sign-out)).
 
 Example:
 
@@ -159,22 +143,16 @@ const msal = new PublicClientApplication({
 })
 
 // Automatically on page load
-msal.logoutRedirect({
-    onRedirectNavigate: () => {
-        // Return false to stop navigation after local logout
-        return false;
-    }
-});
+msal.logoutRedirect();
 ```
 
-Now when a user logouts out of another application, your application's front-channel logout url will be loaded in a hidden iframe, and MSAL.js will clear its cache to complete single-sign out.
+Now when a user logouts out of another application, your application's front-channel logout url will be loaded, and MSAL.js will clear its cache to complete single-sign out.
 
 
 ### Front-channel logout samples
 
 The following samples demonstrate how to implement front-channel logout using MSAL.js:
 
-- MSAL Angular v2: [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
 - MSAL React: [React Router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
 
 ## Events

@@ -159,7 +159,7 @@ See the [Configuration doc](./configuration.md#system-config-options) for more d
 
 ### Removal of `onRedirectNavigate` parameter
 
-The `onRedirectNavigate` parameter has been removed from the `RedirectRequest` object. It has *not* been removed from the `Configuration` object and can continue to be set there.
+The `onRedirectNavigate` parameter has been removed from the `RedirectRequest` and `EndSessionRequest` object. It has *not* been removed from the `Configuration` object and can continue to be set there.
 
 ## Behavioral Breaking Changes
 

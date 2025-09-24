@@ -81,13 +81,7 @@ async function launchWebAuthFlow(url) {
  */
 async function getLogoutUrl(request) {
     return new Promise((resolve, reject) => {
-        msalInstance.logout({
-            ...request,
-            onRedirectNavigate: (url) => {
-                resolve(url);
-                return false;
-            }
-        }).catch(reject);
+        msalInstance.logout(request).catch(reject);
     });
 }
 
