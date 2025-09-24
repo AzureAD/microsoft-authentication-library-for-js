@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1758556214955,
+  "lastUpdate": 1758715356061,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -17881,6 +17881,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.98%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "45603194+shenj@users.noreply.github.com",
+            "name": "Jian Shen",
+            "username": "shenj"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eb0997dda46442a5bba6bdee512c47abe3b019d0",
+          "message": "[Native Auth] Add MFA related states and results (#8060)",
+          "timestamp": "2025-09-24T12:56:14+01:00",
+          "tree_id": "a5f46998422a93c1f6e03660b99fe09c17493e60",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/eb0997dda46442a5bba6bdee512c47abe3b019d0"
+        },
+        "date": 1758715353852,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 248851,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242819,
+            "range": "±0.89%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
