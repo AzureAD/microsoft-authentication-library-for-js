@@ -1,7 +1,7 @@
 {
-  "type": "patch",
-  "comment": "Add support for \"pageException\" error to fallback to web",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
+    "type": "patch",
+    "comment": "Add support for \"pageException\" error to fallback to web (#8064)",
+    "packageName": "@azure/msal-browser",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
 }
