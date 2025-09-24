@@ -304,7 +304,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      * @param scopes Scopes for the token request
      * @param correlationId Correlation ID for logging and result
      * @param telemetryManager Telemetry manager for telemetry logging
-     * @returns SignInCompletedResult | SignInJitRequiredResult with authentication result
+     * @returns SignInCompletedResult | SignInJitRequiredResult | SignInMfaRequiredResult with authentication result
      */
     private async performTokenRequest(
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
