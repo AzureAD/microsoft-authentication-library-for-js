@@ -4,4 +4,5 @@
  */
 
 export const contentError = "ContentError";
+export const pageException = "PageException";
 export const userSwitch = "user_switch";
