@@ -119,9 +119,6 @@ import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 import { getAccountKeysCacheKey } from "../../src/cache/CacheKeys.js";
-import exp from "constants";
-import { TestTokenResponse } from "../custom_auth/test_resources/TestConstants.js";
-
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -1803,6 +1800,114 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("Does not fall back to web flow if prompt is select_account and emits platform telemetry", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    }),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            };
+            pca = new PublicClientApplication(config);
+
+            stubExtensionProvider(config);
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const nativeAcquireTokenSpy: jest.SpyInstance = jest
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
+                .mockImplementation(async function (
+                    this: PlatformAuthInteractionClient,
+                    request
+                ) {
+                    expect(request.correlationId).toBe(RANDOM_TEST_GUID);
+
+                    // Add isNativeBroker to the measurement that was started by StandardController
+                    // This simulates what the real PlatformAuthInteractionClient does
+                    if (
+                        this.performanceClient &&
+                        (this.performanceClient as any).eventsByCorrelationId
+                    ) {
+                        const eventMap = (this.performanceClient as any)
+                            .eventsByCorrelationId;
+                        const existingEvent = eventMap.get(this.correlationId);
+                        if (existingEvent) {
+                            existingEvent.isNativeBroker = true;
+                        }
+                    }
+
+                    return testTokenResponse;
+                });
+
+            const popupSpy: jest.SpyInstance = jest
+                .spyOn(PopupClient.prototype, "acquireToken")
+                .mockImplementation(function (
+                    this: PopupClient,
+                    request: PopupRequest
+                ): Promise<AuthenticationResult> {
+                    const eventMap = (this.performanceClient as any)
+                        .eventsByCorrelationId;
+                    const existingEvent = eventMap.get(
+                        request.correlationId || RANDOM_TEST_GUID
+                    );
+                    if (existingEvent) {
+                        existingEvent.isPlatformAuthorizeRequest = true;
+                    }
+
+                    return Promise.resolve(testTokenResponse);
+                });
+
+            // Add performance callback
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].isNativeBroker).toBe(true);
+                pca.removePerformanceCallback(callbackId);
+            });
+
+            const response = await pca.acquireTokenPopup({
+                scopes: ["User.Read"],
+                account: testAccount,
+                prompt: "select_account",
+            });
+
+            expect(response).toBe(testTokenResponse);
+            expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
+            expect(popupSpy).toHaveBeenCalledTimes(0);
         });
 
         it("falls back to web flow if platform broker call fails due to fatal error and emits platform telemetry", async () => {
