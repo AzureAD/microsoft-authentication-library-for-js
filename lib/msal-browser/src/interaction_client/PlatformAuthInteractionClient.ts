@@ -1039,8 +1039,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     BrowserAuthErrorCodes.nativePromptNotSupported
                 );
         }
-
-        return undefined;
     }
 
     /**
