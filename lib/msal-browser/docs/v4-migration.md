@@ -171,5 +171,5 @@ We have consolidated event types and InteractionStatus to reflect what happened 
 1. `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` have been replaced with `LOGIN_SUCCESS` and `LOGOUT_SUCCESS`, respectively.
 1. `LOGIN_START` and `LOGIN_FAILURE` have been replaced with `ACQUIRE_TOKEN_START` and `ACQUIRE_TOKEN_FAILURE`, respectively.
 1. The payload for `LOGIN_SUCCESS` is now an `AccountInfo` object.
-1. Any successful login now emits both a `LOGIN_SUCCESS` and `ACQUIRE_TOKEN_SUCCESS` object.
+1. Any successful login now emits both a `LOGIN_SUCCESS` and `ACQUIRE_TOKEN_SUCCESS` event.
 1. For `InteractionStatus`: `Login`, `SsoSilent`, and `AcquireToken` are now consolidated into `AcquireToken`.
