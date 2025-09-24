@@ -2,6 +2,57 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 24 Sep 2025 19:13:09 GMT",
+      "version": "4.24.0",
+      "tag": "@azure/msal-browser_v4.24.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "eb0997dda46442a5bba6bdee512c47abe3b019d0",
+            "comment": "[Native Auth] Add MFA related state and results"
+          },
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "eb0997dda46442a5bba6bdee512c47abe3b019d0",
+            "comment": "Add changes in network and interaction client layers to support MFA"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "eb0997dda46442a5bba6bdee512c47abe3b019d0",
+            "comment": "Instrument data boundary claim #8054"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.13.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 17 Sep 2025 09:50:42 GMT",
       "version": "4.23.0",
       "tag": "@azure/msal-browser_v4.23.0",
