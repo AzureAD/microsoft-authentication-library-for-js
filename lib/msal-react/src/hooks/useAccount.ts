@@ -11,6 +11,7 @@ import {
     InteractionStatus,
     EventMessage,
     EventType,
+    InteractionType,
 } from "@azure/msal-browser";
 import { useMsal } from "./useMsal.js";
 import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
