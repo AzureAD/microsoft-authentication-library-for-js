@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add prompt=select_account support for native flows in msal-v5 (#8062)",
+  "packageName": "@azure/msal-browser",
+  "email": "github-copilot@microsoft.com",
+  "dependentChangeType": "patch"
+}
