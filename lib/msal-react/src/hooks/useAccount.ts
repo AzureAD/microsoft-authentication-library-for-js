@@ -77,7 +77,7 @@ export function useAccount(
 
         const callbackId = instance.addEventCallback(
             (message: EventMessage) => {
-                if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED) {
+                if (message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED || (message.eventType === EventType.LOGIN_SUCCESS && message.interactionType === InteractionType.Silent)) {
                     updateAccount();
                 }
             }
