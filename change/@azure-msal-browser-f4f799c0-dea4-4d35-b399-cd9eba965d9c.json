@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add pageException to native fatal errors",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
