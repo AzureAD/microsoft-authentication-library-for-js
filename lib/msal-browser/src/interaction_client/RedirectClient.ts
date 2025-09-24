@@ -758,44 +758,38 @@ export class RedirectClient extends StandardInteractionClient {
                 account: (logoutRequest && logoutRequest.account) || undefined,
             });
 
-            let serializableLogoutRequest: EndSessionRequest | undefined;
-
-            if (validLogoutRequest.account?.homeAccountId) {
-                if (
-                    // @ts-ignore
-                    typeof validLogoutRequest.onRedirectNavigate ===
-                    "function"
-                ) {
-                    // Create a serializable version of the request for events
-                    const {
-                        // @ts-ignore
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        onRedirectNavigate,
-                        // @ts-ignore
-                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        ...serializableLogoutRequest
-                    } = validLogoutRequest;
-                }
-            }
+            // Create a serializable version of the request for events
+            const {
+                // @ts-ignore
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                onRedirectNavigate,
+                ...serializableLogoutRequest
+            } = validLogoutRequest;
 
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try {
                     authClient.authority.endSessionEndpoint;
                 } catch {
-                    if (serializableLogoutRequest) {
-                        this.eventHandler.emitEvent(
-                            EventType.LOGOUT_SUCCESS,
-                            InteractionType.Redirect,
-                            serializableLogoutRequest
-                        );
-                    } else {
-                        this.eventHandler.emitEvent(
-                            EventType.LOGOUT_SUCCESS,
-                            InteractionType.Redirect,
-                            validLogoutRequest
-                        );
+                    if (validLogoutRequest.account?.homeAccountId) {
+                        if (
+                            // @ts-ignore
+                            typeof validLogoutRequest.onRedirectNavigate ===
+                            "function"
+                        ) {
+                            this.eventHandler.emitEvent(
+                                EventType.LOGOUT_SUCCESS,
+                                InteractionType.Redirect,
+                                serializableLogoutRequest
+                            );
+                        } else {
+                            this.eventHandler.emitEvent(
+                                EventType.LOGOUT_SUCCESS,
+                                InteractionType.Redirect,
+                                validLogoutRequest
+                            );
+                        }
+                        return;
                     }
-                    return;
                 }
             }
 
@@ -803,18 +797,23 @@ export class RedirectClient extends StandardInteractionClient {
             const logoutUri: string =
                 authClient.getLogoutUri(validLogoutRequest);
 
-            if (serializableLogoutRequest) {
-                this.eventHandler.emitEvent(
-                    EventType.LOGOUT_SUCCESS,
-                    InteractionType.Redirect,
-                    serializableLogoutRequest
-                );
-            } else {
-                this.eventHandler.emitEvent(
-                    EventType.LOGOUT_SUCCESS,
-                    InteractionType.Redirect,
-                    validLogoutRequest
-                );
+            if (validLogoutRequest.account?.homeAccountId) {
+                if (
+                    // @ts-ignore
+                    typeof validLogoutRequest.onRedirectNavigate === "function"
+                ) {
+                    this.eventHandler.emitEvent(
+                        EventType.LOGOUT_SUCCESS,
+                        InteractionType.Redirect,
+                        serializableLogoutRequest
+                    );
+                } else {
+                    this.eventHandler.emitEvent(
+                        EventType.LOGOUT_SUCCESS,
+                        InteractionType.Redirect,
+                        validLogoutRequest
+                    );
+                }
             }
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (
