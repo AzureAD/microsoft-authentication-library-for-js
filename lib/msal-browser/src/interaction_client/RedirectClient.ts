@@ -768,7 +768,6 @@ export class RedirectClient extends StandardInteractionClient {
                             InteractionType.Redirect,
                             validLogoutRequest
                         );
-
                         return;
                     }
                 }
@@ -778,55 +777,28 @@ export class RedirectClient extends StandardInteractionClient {
             const logoutUri: string =
                 authClient.getLogoutUri(validLogoutRequest);
 
-            this.eventHandler.emitEvent(
-                EventType.LOGOUT_SUCCESS,
-                InteractionType.Redirect,
-                validLogoutRequest
-            );
-            // Check if onRedirectNavigate is implemented, and invoke it if so
-            if (
-                logoutRequest &&
-                typeof logoutRequest.onRedirectNavigate === "function"
-            ) {
-                const navigate = logoutRequest.onRedirectNavigate(logoutUri);
-
-                if (navigate !== false) {
-                    this.logger.verbose(
-                        "Logout onRedirectNavigate did not return false, navigating"
-                    );
-                    // Ensure interaction is in progress
-                    if (!this.browserStorage.getInteractionInProgress()) {
-                        this.browserStorage.setInteractionInProgress(
-                            true,
-                            INTERACTION_TYPE.SIGNOUT
-                        );
-                    }
-                    await this.navigationClient.navigateExternal(
-                        logoutUri,
-                        navigationOptions
-                    );
-                    return;
-                } else {
-                    // Ensure interaction is not in progress
-                    this.browserStorage.setInteractionInProgress(false);
-                    this.logger.verbose(
-                        "Logout onRedirectNavigate returned false, stopping navigation"
-                    );
-                }
-            } else {
-                // Ensure interaction is in progress
-                if (!this.browserStorage.getInteractionInProgress()) {
-                    this.browserStorage.setInteractionInProgress(
-                        true,
-                        INTERACTION_TYPE.SIGNOUT
-                    );
-                }
-                await this.navigationClient.navigateExternal(
-                    logoutUri,
-                    navigationOptions
+            if (validLogoutRequest.account?.homeAccountId) {
+                this.eventHandler.emitEvent(
+                    EventType.LOGOUT_SUCCESS,
+                    InteractionType.Redirect,
+                    validLogoutRequest
                 );
-                return;
             }
+            // Ensure interaction is in progress
+            if (!this.browserStorage.getInteractionInProgress()) {
+                this.browserStorage.setInteractionInProgress(
+                    true,
+                    INTERACTION_TYPE.SIGNOUT
+                );
+            }
+            await this.navigationClient.navigateExternal(
+                logoutUri,
+                navigationOptions
+            );
+            this.eventHandler.emitEvent(
+                EventType.LOGOUT_END,
+                InteractionType.Redirect
+            );
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
@@ -844,11 +816,6 @@ export class RedirectClient extends StandardInteractionClient {
             );
             throw e;
         }
-
-        this.eventHandler.emitEvent(
-            EventType.LOGOUT_END,
-            InteractionType.Redirect
-        );
     }
 
     /**
