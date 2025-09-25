@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "[Native Auth] Enable the MFA and JIT (SMS) in the public interfaces",
+  "packageName": "@azure/msal-browser",
+  "email": "shen.jian@live.com",
+  "dependentChangeType": "patch"
+}
