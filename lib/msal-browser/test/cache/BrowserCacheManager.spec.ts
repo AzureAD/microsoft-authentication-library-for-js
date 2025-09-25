@@ -85,8 +85,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             // @ts-ignore
             cacheManager.browserStorage.setItem("key", "value");
@@ -106,8 +105,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             // @ts-ignore
             sessionCache.browserStorage.setItem("key", "value");
@@ -126,8 +124,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             // @ts-ignore
             localCache.browserStorage.setItem("key", "value");
@@ -147,8 +144,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
             expect(
@@ -167,8 +163,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
             expect(
@@ -187,8 +182,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             await browserCacheManager1.initialize(TEST_CONFIG.CORRELATION_ID);
             expect(
@@ -205,8 +199,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             await browserCacheManager2.initialize(TEST_CONFIG.CORRELATION_ID);
             expect(
@@ -234,8 +227,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 performanceClient,
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
         });
 
@@ -594,8 +586,7 @@ describe("BrowserCacheManager tests", () => {
                     browserCrypto,
                     logger,
                     performanceClient,
-                    new EventHandler(),
-                    TEST_CONFIG.CORRELATION_ID
+                    new EventHandler()
                 );
 
                 // Create mock localStorage implementation
@@ -979,8 +970,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             authority = new Authority(
@@ -1010,8 +1000,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             cacheVal = "cacheVal";
@@ -1044,8 +1033,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
                 testTempItemValue
@@ -1066,8 +1054,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             // Create a real AccessTokenEntity to be removed
             const accessToken1 = CacheHelpers.createAccessTokenEntity(
@@ -1164,8 +1151,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             // Create a real AccessTokenEntity to be removed
             const accessToken1 = CacheHelpers.createAccessTokenEntity(
@@ -1280,8 +1266,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
 
             const atKeys = [];
@@ -1358,8 +1343,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             // Create a real AccessTokenEntity to be removed
             const accessToken1 = CacheHelpers.createAccessTokenEntity(
@@ -1457,8 +1441,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             const atKeys = [];
             for (let i = 0; i < 25; i++) {
@@ -1534,8 +1517,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             // Create a real AccessTokenEntity to be removed
             const accessToken1 = CacheHelpers.createAccessTokenEntity(
@@ -1652,8 +1634,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
 
             // Create v0 access tokens
@@ -1836,8 +1817,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
 
             // Create one v0 token and multiple v1 tokens
@@ -1965,8 +1945,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
 
             // Create v0 and v1 access tokens
@@ -2075,8 +2054,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
 
             // Create mixed v0 and v1 tokens
@@ -3435,8 +3413,7 @@ describe("BrowserCacheManager tests", () => {
                         browserCrypto,
                         logger,
                         perfClient,
-                        new EventHandler(),
-                        TEST_CONFIG.CORRELATION_ID
+                        new EventHandler()
                     );
 
                     jest.spyOn(
@@ -3511,8 +3488,7 @@ describe("BrowserCacheManager tests", () => {
                         browserCrypto,
                         logger,
                         perfClient,
-                        new EventHandler(),
-                        TEST_CONFIG.CORRELATION_ID
+                        new EventHandler()
                     );
 
                     cacheManager.setInteractionInProgress(true);
@@ -3536,8 +3512,7 @@ describe("BrowserCacheManager tests", () => {
                         browserCrypto,
                         logger,
                         perfClient,
-                        new EventHandler(),
-                        TEST_CONFIG.CORRELATION_ID
+                        new EventHandler()
                     );
 
                     cacheManager.setTemporaryCache(
@@ -3559,8 +3534,7 @@ describe("BrowserCacheManager tests", () => {
                         browserCrypto,
                         logger,
                         perfClient,
-                        new EventHandler(),
-                        TEST_CONFIG.CORRELATION_ID
+                        new EventHandler()
                     );
 
                     cacheManager.setTemporaryCache(
@@ -3595,8 +3569,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             const requestParamsKey = `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`;
             window.sessionStorage.setItem(
@@ -3629,8 +3602,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             const tokenRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
@@ -3662,8 +3634,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
 
             expect(() => browserStorage.getCachedRequest()).toThrow(
@@ -3686,8 +3657,7 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,

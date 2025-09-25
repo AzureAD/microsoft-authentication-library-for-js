@@ -107,6 +107,7 @@ export abstract class BaseOperatingContext {
 
     /**
      * returns a boolean indicating whether this operating context is present
+     * @param correlationId
      */
     abstract initialize(correlationId: string): Promise<boolean>;
 

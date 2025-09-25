@@ -84,7 +84,6 @@ export class UnknownOperatingContextController implements IController {
     protected initialized: boolean = false;
 
     constructor(operatingContext: UnknownOperatingContext) {
-        const correlationId = "";
         this.operatingContext = operatingContext;
 
         this.isBrowserEnvironment =
@@ -112,15 +111,13 @@ export class UnknownOperatingContextController implements IController {
                   this.browserCrypto,
                   this.logger,
                   this.performanceClient,
-                  this.eventHandler,
-                  correlationId
+                  this.eventHandler
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
                   this.performanceClient,
-                  this.eventHandler,
-                  correlationId
+                  this.eventHandler
               );
     }
     getBrowserStorage(): BrowserCacheManager {

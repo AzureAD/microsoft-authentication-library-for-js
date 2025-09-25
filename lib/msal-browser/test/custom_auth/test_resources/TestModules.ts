@@ -72,7 +72,6 @@ export function getDefaultBrowserCacheManager(
         crypto,
         logger,
         performanceClient,
-        eventHandler,
-        TEST_CONFIG.CORRELATION_ID
+        eventHandler
     );
 }

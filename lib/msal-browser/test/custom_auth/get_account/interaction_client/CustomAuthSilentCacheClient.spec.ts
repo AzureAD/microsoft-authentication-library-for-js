@@ -121,8 +121,7 @@ describe("CustomAuthSilentCacheClient", () => {
             mockCrypto,
             mockLogger,
             mockPerformanceClient,
-            mockEventHandler,
-            TEST_CONFIG.CORRELATION_ID
+            mockEventHandler
         );
 
         const authority = new CustomAuthAuthority(

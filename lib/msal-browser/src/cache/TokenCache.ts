@@ -83,7 +83,6 @@ export async function loadExternalTokens(
         logger,
         browserConfig.telemetry.client,
         new EventHandler(logger),
-        correlationId,
         buildStaticAuthorityOptions(browserConfig.auth)
     );
 

@@ -1872,8 +1872,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
             await expect(
@@ -1894,8 +1893,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             const secondInstanceStorage = new BrowserCacheManager(
                 "different-client-id",
@@ -1903,8 +1901,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             secondInstanceStorage.setInteractionInProgress(true);
 
@@ -2882,8 +2879,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -5992,8 +5988,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -6971,8 +6966,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 new CryptoOps(new Logger({})),
                 new Logger({}),
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             await secondBrowserStorageInstance.initialize(
                 TEST_CONFIG.CORRELATION_ID

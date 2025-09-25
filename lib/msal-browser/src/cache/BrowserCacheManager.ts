@@ -95,7 +95,6 @@ export class BrowserCacheManager extends CacheManager {
         logger: Logger,
         performanceClient: IPerformanceClient,
         eventHandler: EventHandler,
-        correlationId: string,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
         super(
@@ -112,15 +111,13 @@ export class BrowserCacheManager extends CacheManager {
             clientId,
             cacheConfig.cacheLocation,
             logger,
-            performanceClient,
-            correlationId
+            performanceClient
         );
         this.temporaryCacheStorage = getStorageImplementation(
             clientId,
             BrowserCacheLocation.SessionStorage,
             logger,
-            performanceClient,
-            correlationId
+            performanceClient
         );
         this.cookieStorage = new CookieStorage();
 
@@ -1862,8 +1859,7 @@ function getStorageImplementation(
     clientId: string,
     cacheLocation: BrowserCacheLocation | string,
     logger: Logger,
-    performanceClient: IPerformanceClient,
-    correlationId: string
+    performanceClient: IPerformanceClient
 ): IWindowStorage<string> {
     try {
         switch (cacheLocation) {
@@ -1876,7 +1872,7 @@ function getStorageImplementation(
                 break;
         }
     } catch (e) {
-        logger.error(e as string, correlationId);
+        logger.error(e as string, "");
     }
 
     return new MemoryStorage();
@@ -1886,8 +1882,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
     clientId: string,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    eventHandler: EventHandler,
-    correlationId: string
+    eventHandler: EventHandler
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -1899,7 +1894,6 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         DEFAULT_CRYPTO_IMPLEMENTATION,
         logger,
         performanceClient,
-        eventHandler,
-        correlationId
+        eventHandler
     );
 };

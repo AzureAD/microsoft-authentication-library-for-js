@@ -81,8 +81,7 @@ describe("TokenCache tests", () => {
             cryptoObj,
             logger,
             new StubPerformanceClient(),
-            new EventHandler(),
-            TEST_CONFIG.CORRELATION_ID
+            new EventHandler()
         );
     });
 

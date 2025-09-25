@@ -56,8 +56,7 @@ describe("Authorize Protocol Tests", () => {
             new CryptoOps(logger, performanceClient),
             logger,
             performanceClient,
-            eventHandler,
-            TEST_CONFIG.CORRELATION_ID
+            eventHandler
         );
         let authority: Authority;
         const validRequest: CommonAuthorizationUrlRequest = {

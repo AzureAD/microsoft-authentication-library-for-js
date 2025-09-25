@@ -88,7 +88,6 @@ export class NestedAppAuthController implements IController {
     protected currentAccountContext: AccountContext | null;
 
     constructor(operatingContext: NestedAppOperatingContext) {
-        const correlationId = "";
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();
         if (proxy !== undefined) {
@@ -121,15 +120,13 @@ export class NestedAppAuthController implements IController {
                   this.logger,
                   this.performanceClient,
                   this.eventHandler,
-                  correlationId,
                   buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
                   this.performanceClient,
-                  this.eventHandler,
-                  correlationId
+                  this.eventHandler
               );
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(

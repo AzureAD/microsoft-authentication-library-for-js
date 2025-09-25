@@ -184,8 +184,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             cryptoOpts,
             logger,
             new StubPerformanceClient(),
-            new EventHandler(),
-            TEST_CONFIG.CORRELATION_ID
+            new EventHandler()
         );
         authorityInstance = new Authority(
             configObj.auth.authority,

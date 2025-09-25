@@ -17,7 +17,7 @@ import {
     SilentRequest,
     InteractionRequiredAuthError,
     OIDC_DEFAULT_SCOPES,
-    BrowserUtils
+    BrowserUtils,
 } from "@azure/msal-browser";
 import { useIsAuthenticated } from "./useIsAuthenticated.js";
 import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
@@ -99,19 +99,24 @@ export function useMsalAuthentication(
             switch (loginType) {
                 case InteractionType.Popup:
                     logger.verbose(
-                        "useMsalAuthentication - Calling loginPopup", callbackRequest?.correlationId || ""
+                        "useMsalAuthentication - Calling loginPopup",
+                        callbackRequest?.correlationId || ""
                     );
                     return instance.loginPopup(loginRequest as PopupRequest);
                 case InteractionType.Redirect:
                     // This promise is not expected to resolve due to full frame redirect
                     logger.verbose(
-                        "useMsalAuthentication - Calling loginRedirect", callbackRequest?.correlationId || ""
+                        "useMsalAuthentication - Calling loginRedirect",
+                        callbackRequest?.correlationId || ""
                     );
                     return instance
                         .loginRedirect(loginRequest as RedirectRequest)
                         .then(null);
                 case InteractionType.Silent:
-                    logger.verbose("useMsalAuthentication - Calling ssoSilent", callbackRequest?.correlationId || "");
+                    logger.verbose(
+                        "useMsalAuthentication - Calling ssoSilent",
+                        callbackRequest?.correlationId || ""
+                    );
                     return instance.ssoSilent(loginRequest as SsoSilentRequest);
                 default:
                     throw ReactAuthError.createInvalidInteractionTypeError();
@@ -132,14 +137,16 @@ export function useMsalAuthentication(
 
             if (callbackRequest) {
                 logger.trace(
-                    "useMsalAuthentication - acquireToken - Using request provided in the callback", callbackRequest.correlationId || ""
+                    "useMsalAuthentication - acquireToken - Using request provided in the callback",
+                    callbackRequest.correlationId || ""
                 );
                 tokenRequest = {
                     ...callbackRequest,
                 };
             } else if (authenticationRequest) {
                 logger.trace(
-                    "useMsalAuthentication - acquireToken - Using request provided in the hook", authenticationRequest.correlationId || ""
+                    "useMsalAuthentication - acquireToken - Using request provided in the hook",
+                    authenticationRequest.correlationId || ""
                 );
                 tokenRequest = {
                     ...authenticationRequest,
@@ -147,26 +154,30 @@ export function useMsalAuthentication(
                 };
             } else {
                 logger.trace(
-                    "useMsalAuthentication - acquireToken - No request object provided, using default request.", ""
+                    "useMsalAuthentication - acquireToken - No request object provided, using default request.",
+                    ""
                 );
                 tokenRequest = {
                     scopes: OIDC_DEFAULT_SCOPES,
                 };
             }
 
-            const correlationId = tokenRequest.correlationId || BrowserUtils.createGuid();
+            const correlationId =
+                tokenRequest.correlationId || BrowserUtils.createGuid();
             tokenRequest.correlationId = correlationId;
 
             if (!tokenRequest.account && account) {
                 logger.trace(
-                    "useMsalAuthentication - acquireToken - Attaching account to request", correlationId
+                    "useMsalAuthentication - acquireToken - Attaching account to request",
+                    correlationId
                 );
                 tokenRequest.account = account;
             }
 
             const getToken = async (): Promise<AuthenticationResult | null> => {
                 logger.verbose(
-                    "useMsalAuthentication - Calling acquireTokenSilent", correlationId
+                    "useMsalAuthentication - Calling acquireTokenSilent",
+                    correlationId
                 );
                 return instance
                     .acquireTokenSilent(tokenRequest)
@@ -174,7 +185,8 @@ export function useMsalAuthentication(
                         if (e instanceof InteractionRequiredAuthError) {
                             if (!interactionInProgress.current) {
                                 logger.error(
-                                    "useMsalAuthentication - Interaction required, falling back to interaction", correlationId
+                                    "useMsalAuthentication - Interaction required, falling back to interaction",
+                                    correlationId
                                 );
                                 return login(
                                     fallbackInteractionType,
@@ -182,7 +194,8 @@ export function useMsalAuthentication(
                                 );
                             } else {
                                 logger.error(
-                                    "useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.", correlationId
+                                    "useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.",
+                                    correlationId
                                 );
                                 throw ReactAuthError.createUnableToFallbackToInteractionError();
                             }
@@ -239,13 +252,15 @@ export function useMsalAuthentication(
             }
         );
         logger.verbose(
-            `useMsalAuthentication - Registered event callback with id: '${callbackId}'`, ""
+            `useMsalAuthentication - Registered event callback with id: '${callbackId}'`,
+            ""
         );
 
         return () => {
             if (callbackId) {
                 logger.verbose(
-                    `useMsalAuthentication - Removing event callback '${callbackId}'`, ""
+                    `useMsalAuthentication - Removing event callback '${callbackId}'`,
+                    ""
                 );
                 instance.removeEventCallback(callbackId);
             }
@@ -260,7 +275,8 @@ export function useMsalAuthentication(
             if (!isAuthenticated) {
                 shouldAcquireToken.current = false;
                 logger.info(
-                    "useMsalAuthentication - No user is authenticated, attempting to login", ""
+                    "useMsalAuthentication - No user is authenticated, attempting to login",
+                    ""
                 );
                 login().catch(() => {
                     // Errors are saved in state above
@@ -269,7 +285,8 @@ export function useMsalAuthentication(
             } else if (account) {
                 shouldAcquireToken.current = false;
                 logger.info(
-                    "useMsalAuthentication - User is authenticated, attempting to acquire token", ""
+                    "useMsalAuthentication - User is authenticated, attempting to acquire token",
+                    ""
                 );
                 acquireToken().catch(() => {
                     // Errors are saved in state above

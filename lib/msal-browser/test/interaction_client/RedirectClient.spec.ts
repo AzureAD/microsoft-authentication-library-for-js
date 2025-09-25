@@ -1240,8 +1240,7 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             secondInstanceStorage.setInteractionInProgress(true);
             browserStorage.setInteractionInProgress(false);
@@ -1899,8 +1898,7 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 testLogger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
 
             jest.spyOn(
@@ -1969,8 +1967,7 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 testLogger,
                 new StubPerformanceClient(),
-                new EventHandler(),
-                TEST_CONFIG.CORRELATION_ID
+                new EventHandler()
             );
             await redirectClient.acquireToken(tokenRequest);
             const [cachedRequest, codeVerifier] =
