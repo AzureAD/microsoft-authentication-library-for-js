@@ -5,11 +5,11 @@
 
 import { CryptoOps } from "./CryptoOps.js";
 import {
-    IPerformanceClient,
     Logger,
     LoggerOptions,
     PopTokenGenerator,
     SignedHttpRequestParameters,
+    StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { version, name } from "../packageMetadata.js";
 
@@ -25,7 +25,6 @@ export class SignedHttpRequest {
 
     constructor(
         shrParameters: SignedHttpRequestParameters,
-        performanceClient: IPerformanceClient,
         shrOptions?: SignedHttpRequestOptions
     ) {
         const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
@@ -33,7 +32,7 @@ export class SignedHttpRequest {
         this.cryptoOps = new CryptoOps(this.logger);
         this.popTokenGenerator = new PopTokenGenerator(
             this.cryptoOps,
-            performanceClient
+            new StubPerformanceClient()
         );
         this.shrParameters = shrParameters;
     }

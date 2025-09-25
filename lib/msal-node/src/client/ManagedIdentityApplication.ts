@@ -17,6 +17,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     Constants,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
@@ -36,7 +37,6 @@ import {
 } from "../utils/Constants.js";
 import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
 import { HashUtils } from "../crypto/HashUtils.js";
-import { StubPerformanceClient } from "@azure/msal-common";
 
 const SOURCES_THAT_SUPPORT_TOKEN_REVOCATION: Array<ManagedIdentitySourceNames> =
     [ManagedIdentitySourceNames.SERVICE_FABRIC];

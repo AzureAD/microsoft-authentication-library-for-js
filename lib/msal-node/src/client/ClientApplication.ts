@@ -32,6 +32,7 @@ import {
     ClientAssertionCallback,
     Constants,
     ClientAuthError,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -53,7 +54,6 @@ import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePassword
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
-import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential

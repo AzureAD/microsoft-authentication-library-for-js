@@ -21,10 +21,10 @@ import {
     createAuthError,
     createClientAuthError,
     Constants,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
-import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * OAuth2.0 Device code client

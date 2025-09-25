@@ -4,7 +4,7 @@
  */
 
 import { IncomingHttpHeaders } from "http";
-import { Logger } from "@azure/msal-common";
+import { Logger } from "@azure/msal-common/node";
 
 export interface IHttpRetryPolicy {
     _isNewRequest?: boolean;

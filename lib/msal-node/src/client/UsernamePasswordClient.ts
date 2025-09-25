@@ -21,9 +21,9 @@ import {
     UrlString,
     UrlUtils,
     getClientAssertion,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
-import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * Oauth2.0 Password grant client

@@ -28,10 +28,10 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
-import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * On-Behalf-Of client

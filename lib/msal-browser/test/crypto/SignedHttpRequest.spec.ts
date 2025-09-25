@@ -3,7 +3,6 @@ import { createHash } from "crypto";
 import { AuthToken } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { base64Decode } from "../../src/encode/Base64Decode";
-import { StubPerformanceClient } from "@azure/msal-common/browser";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 let mockDatabase = {
@@ -56,14 +55,11 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
     });
 
     it("generates expected kid", async () => {
-        const shr: SignedHttpRequest = new SignedHttpRequest(
-            {
-                resourceRequestUri: "https://consoto.com",
-                resourceRequestMethod: "GET",
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-            },
-            new StubPerformanceClient()
-        );
+        const shr: SignedHttpRequest = new SignedHttpRequest({
+            resourceRequestUri: "https://consoto.com",
+            resourceRequestMethod: "GET",
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+        });
         const kid = await shr.generatePublicKeyThumbprint();
         expect(kid).toEqual("oYYABCL-q4VzKcaE6f6RQSsaXbCEEAs3qYz8lbYqqGc");
     });
@@ -73,14 +69,11 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
         const nonce = "test-nonce";
         const ts = 123456;
 
-        const shr: SignedHttpRequest = new SignedHttpRequest(
-            {
-                resourceRequestUri: "https://consoto.com/path",
-                resourceRequestMethod: "GET",
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-            },
-            new StubPerformanceClient()
-        );
+        const shr: SignedHttpRequest = new SignedHttpRequest({
+            resourceRequestUri: "https://consoto.com/path",
+            resourceRequestMethod: "GET",
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+        });
         const kid = await shr.generatePublicKeyThumbprint();
 
         const popToken = await shr.signRequest(payload, kid, {
@@ -102,14 +95,11 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
     });
 
     it("removes keys", async () => {
-        const shr: SignedHttpRequest = new SignedHttpRequest(
-            {
-                resourceRequestUri: "https://consoto.com/path",
-                resourceRequestMethod: "GET",
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-            },
-            new StubPerformanceClient()
-        );
+        const shr: SignedHttpRequest = new SignedHttpRequest({
+            resourceRequestUri: "https://consoto.com/path",
+            resourceRequestMethod: "GET",
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+        });
         const kid = await shr.generatePublicKeyThumbprint();
 
         expect(mockDatabase["TestDB.keys"][kid]).toBeDefined();

@@ -29,13 +29,13 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
-import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * OAuth2.0 client credential grant

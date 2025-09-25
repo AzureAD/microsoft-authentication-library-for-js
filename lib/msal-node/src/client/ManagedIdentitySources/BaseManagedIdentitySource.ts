@@ -18,6 +18,7 @@ import {
     AuthenticationResult,
     UrlString,
     Constants,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -36,7 +37,6 @@ import {
 } from "../../error/ManagedIdentityError.js";
 import { isIso8601 } from "../../utils/TimeUtils.js";
 import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
-import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * Managed Identity User Assigned Id Query Parameter Names

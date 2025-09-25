@@ -23,6 +23,7 @@ import {
     AccountEntityUtils,
     CredentialEntity,
     AccountInfo,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -32,7 +33,6 @@ import {
     JsonCache,
     CacheKVStore,
 } from "./serializer/SerializerTypes.js";
-import { StubPerformanceClient } from "@azure/msal-common";
 import { generateAccountKey, generateCredentialKey } from "./CacheHelpers.js";
 
 /**
