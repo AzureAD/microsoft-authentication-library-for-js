@@ -31,6 +31,7 @@ import {
 } from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * On-Behalf-Of client
@@ -41,7 +42,7 @@ export class OnBehalfOfClient extends BaseClient {
     private userAssertionHash: string;
 
     constructor(configuration: ClientConfiguration) {
-        super(configuration);
+        super(configuration, new StubPerformanceClient());
     }
 
     /**
@@ -100,7 +101,8 @@ export class OnBehalfOfClient extends BaseClient {
                 Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
             this.logger.info(
-                "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties."
+                "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties.",
+                request.correlationId
             );
             throw createClientAuthError(
                 ClientAuthErrorCodes.tokenRefreshRequired
@@ -116,7 +118,8 @@ export class OnBehalfOfClient extends BaseClient {
                 Constants.CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
             this.logger.info(
-                `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`
+                `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`,
+                request.correlationId
             );
             throw createClientAuthError(
                 ClientAuthErrorCodes.tokenRefreshRequired
@@ -167,6 +170,7 @@ export class OnBehalfOfClient extends BaseClient {
             },
             true,
             request,
+            this.performanceClient,
             idTokenClaims
         );
     }
@@ -292,11 +296,15 @@ export class OnBehalfOfClient extends BaseClient {
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
+            this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin
         );
 
-        responseHandler.validateTokenResponse(response.body);
+        responseHandler.validateTokenResponse(
+            response.body,
+            request.correlationId
+        );
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,

@@ -1872,7 +1872,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
             browserStorage.setInteractionInProgress(true);
             await expect(
@@ -1893,7 +1894,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
             const secondInstanceStorage = new BrowserCacheManager(
                 "different-client-id",
@@ -1901,7 +1903,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
             secondInstanceStorage.setInteractionInProgress(true);
 
@@ -2879,7 +2882,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -5988,7 +5992,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -6551,14 +6556,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(pca.getLogger()).toEqual(logger);
 
-            pca.getLogger().info("Message");
+            pca.getLogger().info("Message", TEST_CONFIG.CORRELATION_ID);
         });
 
         test("logger undefined", async () => {
             const authApp = new PublicClientApplication(testAppConfig);
 
             expect(authApp.getLogger()).toBeDefined();
-            expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
+            expect(
+                authApp
+                    .getLogger()
+                    .info("Test logger", TEST_CONFIG.CORRELATION_ID)
+            ).toEqual(undefined);
         });
     });
 
@@ -6716,9 +6725,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(logger, "executeCallback")
                 .mockImplementation();
 
-            logger.info("test info");
-            logger.verbose("test verbose");
-            logger.verbosePii("test pii verbose");
+            logger.info("test info", TEST_CONFIG.CORRELATION_ID);
+            logger.verbose("test verbose", TEST_CONFIG.CORRELATION_ID);
+            logger.verbosePii("test pii verbose", TEST_CONFIG.CORRELATION_ID);
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(2);
             expect(loggerCallbackStub).toHaveBeenCalledWith(
@@ -6762,9 +6771,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(logger, "executeCallback")
                 .mockImplementation();
 
-            logger.info("test info");
-            logger.verbose("test verbose");
-            logger.verbosePii("test pii verbose");
+            logger.info("test info", TEST_CONFIG.CORRELATION_ID);
+            logger.verbose("test verbose", TEST_CONFIG.CORRELATION_ID);
+            logger.verbosePii("test pii verbose", TEST_CONFIG.CORRELATION_ID);
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(1);
             expect(loggerCallbackStub).toHaveBeenCalledWith(
@@ -6805,9 +6814,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(logger, "executeCallback")
                 .mockImplementation();
 
-            logger.info("test info");
-            logger.verbose("test verbose");
-            logger.verbosePii("test pii verbose");
+            logger.info("test info", TEST_CONFIG.CORRELATION_ID);
+            logger.verbose("test verbose", TEST_CONFIG.CORRELATION_ID);
+            logger.verbosePii("test pii verbose", TEST_CONFIG.CORRELATION_ID);
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(3);
             expect(loggerCallbackStub).toHaveBeenCalledWith(
@@ -6859,9 +6868,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(logger, "executeCallback")
                 .mockImplementation();
 
-            logger.info("test info");
-            logger.verbose("test verbose");
-            logger.verbosePii("test pii verbose");
+            logger.info("test info", TEST_CONFIG.CORRELATION_ID);
+            logger.verbose("test verbose", TEST_CONFIG.CORRELATION_ID);
+            logger.verbosePii("test pii verbose", TEST_CONFIG.CORRELATION_ID);
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(2);
             expect(loggerCallbackStub).toHaveBeenCalledWith(
@@ -6911,9 +6920,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(logger, "executeCallback")
                 .mockImplementation();
 
-            logger.info("test info");
-            logger.verbose("test verbose");
-            logger.verbosePii("test pii verbose");
+            logger.info("test info", TEST_CONFIG.CORRELATION_ID);
+            logger.verbose("test verbose", TEST_CONFIG.CORRELATION_ID);
+            logger.verbosePii("test pii verbose", TEST_CONFIG.CORRELATION_ID);
 
             expect(loggerCallbackStub).toHaveBeenCalledTimes(3);
             expect(loggerCallbackStub).toHaveBeenCalledWith(
@@ -6962,7 +6971,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 new CryptoOps(new Logger({})),
                 new Logger({}),
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
             await secondBrowserStorageInstance.initialize(
                 TEST_CONFIG.CORRELATION_ID

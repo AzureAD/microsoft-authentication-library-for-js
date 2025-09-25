@@ -52,7 +52,8 @@ export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {
             logger.verbose(
                 `Retrying request in ${retryAfterDelay}ms (retry attempt: ${
                     currentRetry + 1
-                })`
+                })`,
+                ""
             );
 
             // pause execution for the calculated delay

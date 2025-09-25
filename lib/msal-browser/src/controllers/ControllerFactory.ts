@@ -10,31 +10,38 @@ import { Configuration } from "../config/Configuration.js";
 import { StandardController } from "./StandardController.js";
 import { NestedAppAuthController } from "./NestedAppAuthController.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 export async function createV3Controller(
     config: Configuration,
     request?: InitializeApplicationRequest
 ): Promise<IController> {
+    const correlationId = request?.correlationId || createNewGuid();
     const standard = new StandardOperatingContext(config);
 
-    await standard.initialize();
-    return StandardController.createController(standard, request);
+    await standard.initialize(correlationId);
+    return StandardController.createController(standard, { correlationId });
 }
 
 export async function createController(
-    config: Configuration
+    config: Configuration,
+    request?: InitializeApplicationRequest
 ): Promise<IController | null> {
+    const correlationId = request?.correlationId || createNewGuid();
     const standard = new StandardOperatingContext(config);
     const nestedApp = new NestedAppOperatingContext(config);
 
-    const operatingContexts = [standard.initialize(), nestedApp.initialize()];
+    const operatingContexts = [
+        standard.initialize(correlationId),
+        nestedApp.initialize(correlationId),
+    ];
 
     await Promise.all(operatingContexts);
 
     if (nestedApp.isAvailable()) {
         return NestedAppAuthController.createController(nestedApp);
     } else if (standard.isAvailable()) {
-        return StandardController.createController(standard);
+        return StandardController.createController(standard, { correlationId });
     } else {
         // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
         return null;

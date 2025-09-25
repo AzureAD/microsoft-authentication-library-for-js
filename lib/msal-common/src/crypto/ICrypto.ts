@@ -28,7 +28,7 @@ export type SignedHttpRequestParameters = Pick<
     | "shrNonce"
     | "shrOptions"
 > & {
-    correlationId?: string;
+    correlationId: string;
 };
 
 /**

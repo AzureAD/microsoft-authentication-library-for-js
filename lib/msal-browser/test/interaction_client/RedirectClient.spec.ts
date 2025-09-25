@@ -173,7 +173,8 @@ describe("RedirectClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage
+            pca.nativeInternalStorage,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         rootMeasurement = new BrowserPerformanceClient(
@@ -524,6 +525,7 @@ describe("RedirectClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID,
                 nativeMessageHandler
             );
 
@@ -1238,7 +1240,8 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 logger,
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
             secondInstanceStorage.setInteractionInProgress(true);
             browserStorage.setInteractionInProgress(false);
@@ -1896,7 +1899,8 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 testLogger,
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
 
             jest.spyOn(
@@ -1965,7 +1969,8 @@ describe("RedirectClient", () => {
                 browserCrypto,
                 testLogger,
                 new StubPerformanceClient(),
-                new EventHandler()
+                new EventHandler(),
+                TEST_CONFIG.CORRELATION_ID
             );
             await redirectClient.acquireToken(tokenRequest);
             const [cachedRequest, codeVerifier] =
@@ -2043,7 +2048,8 @@ describe("RedirectClient", () => {
                     //@ts-ignore
                     pca.performanceClient,
                     //@ts-ignore
-                    pca.nativeInternalStorage
+                    pca.nativeInternalStorage,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 let initiateAuthRequestSpy = jest.spyOn(

@@ -27,7 +27,10 @@ import { DefaultScopes } from "../../../../src/custom_auth/CustomAuthConstants.j
 import { BrowserCacheManager } from "../../../../src/cache/BrowserCacheManager.js";
 import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
 import { INavigationClient } from "../../../../src/navigation/INavigationClient.js";
-import { RANDOM_TEST_GUID } from "../../../utils/StringConstants.js";
+import {
+    RANDOM_TEST_GUID,
+    TEST_CONFIG,
+} from "../../../utils/StringConstants.js";
 import {
     getDefaultCrypto,
     getDefaultEventHandler,
@@ -118,7 +121,8 @@ describe("CustomAuthSilentCacheClient", () => {
             mockCrypto,
             mockLogger,
             mockPerformanceClient,
-            mockEventHandler
+            mockEventHandler,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         const authority = new CustomAuthAuthority(

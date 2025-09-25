@@ -36,6 +36,7 @@ import {
 } from "../utils/Constants.js";
 import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
 import { HashUtils } from "../crypto/HashUtils.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 const SOURCES_THAT_SUPPORT_TOKEN_REVOCATION: Array<ManagedIdentitySourceNames> =
     [ManagedIdentitySourceNames.SERVICE_FABRIC];
@@ -102,7 +103,7 @@ export class ManagedIdentityApplication {
             fakeAuthorityOptions,
             this.logger,
             this.cryptoProvider.createNewGuid(), // correlationID
-            undefined,
+            new StubPerformanceClient(),
             true
         );
 
@@ -207,7 +208,8 @@ export class ManagedIdentityApplication {
                 Constants.CacheOutcome.PROACTIVELY_REFRESHED
             ) {
                 this.logger.info(
-                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed.",
+                    managedIdentityRequest.correlationId
                 );
 
                 // force refresh; will run in the background

@@ -33,7 +33,8 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             error.errorCode === BrowserAuthErrorCodes.databaseUnavailable
         ) {
             this.logger.error(
-                "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts."
+                "Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts.",
+                ""
             );
         } else {
             throw error;
@@ -49,7 +50,8 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
         if (!item) {
             try {
                 this.logger.verbose(
-                    "Queried item not found in in-memory cache, now querying persistent storage."
+                    "Queried item not found in in-memory cache, now querying persistent storage.",
+                    ""
                 );
                 return await this.indexedDBCache.getItem(key);
             } catch (e) {
@@ -96,7 +98,8 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
         if (cacheKeys.length === 0) {
             try {
                 this.logger.verbose(
-                    "In-memory cache is empty, now querying persistent storage."
+                    "In-memory cache is empty, now querying persistent storage.",
+                    ""
                 );
                 return await this.indexedDBCache.getKeys();
             } catch (e) {
@@ -115,7 +118,8 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
         if (!containsKey) {
             try {
                 this.logger.verbose(
-                    "Key not found in in-memory cache, now querying persistent storage."
+                    "Key not found in in-memory cache, now querying persistent storage.",
+                    ""
                 );
                 return await this.indexedDBCache.containsKey(key);
             } catch (e) {
@@ -130,9 +134,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     clearInMemory(): void {
         // InMemory cache is a Map instance, clear is straightforward
-        this.logger.verbose(`Deleting in-memory keystore`);
+        this.logger.verbose(`Deleting in-memory keystore`, "");
         this.inMemoryCache.clear();
-        this.logger.verbose(`In-memory keystore deleted`);
+        this.logger.verbose(`In-memory keystore deleted`, "");
     }
 
     /**
@@ -141,10 +145,10 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     async clearPersistent(): Promise<boolean> {
         try {
-            this.logger.verbose("Deleting persistent keystore");
+            this.logger.verbose("Deleting persistent keystore", "");
             const dbDeleted = await this.indexedDBCache.deleteDatabase();
             if (dbDeleted) {
-                this.logger.verbose("Persistent keystore deleted");
+                this.logger.verbose("Persistent keystore deleted", "");
             }
 
             return dbDeleted;

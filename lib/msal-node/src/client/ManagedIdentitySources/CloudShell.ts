@@ -67,7 +67,8 @@ export class CloudShell extends BaseManagedIdentitySource {
         // if the msi endpoint environment variable is undefined, this MSI provider is unavailable.
         if (!msiEndpoint) {
             logger.info(
-                `[Managed Identity] ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity is unavailable because the '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT} environment variable is not defined.`
+                `[Managed Identity] ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity is unavailable because the '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT} environment variable is not defined.`,
+                ""
             );
             return null;
         }
@@ -81,7 +82,8 @@ export class CloudShell extends BaseManagedIdentitySource {
             );
 
         logger.info(
-            `[Managed Identity] Environment variable validation passed for ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity. Endpoint URI: ${validatedMsiEndpoint}. Creating ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity.`
+            `[Managed Identity] Environment variable validation passed for ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity. Endpoint URI: ${validatedMsiEndpoint}. Creating ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity.`,
+            ""
         );
 
         if (

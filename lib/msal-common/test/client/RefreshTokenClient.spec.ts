@@ -228,7 +228,10 @@ describe("RefreshTokenClient unit tests", () => {
                 done();
             });
 
-            const client = new RefreshTokenClient(config);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
 
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -980,21 +983,11 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("includes the http version in Refresh token client(AT) measurement when received in server response", async () => {
-            const performanceClient = {
-                startMeasurement: jest.fn(),
-                endMeasurement: jest.fn(),
-                discardMeasurements: jest.fn(),
-                removePerformanceCallback: jest.fn(),
-                addPerformanceCallback: jest.fn(),
-                emitEvents: jest.fn(),
-                generateId: jest.fn(),
-                calculateQueuedTime: jest.fn(),
-                addQueueMeasurement: jest.fn(),
-                setPreQueueTime: jest.fn(),
-                addFields: jest.fn(),
-                incrementFields: jest.fn(),
-            };
-            const client = new RefreshTokenClient(config, performanceClient);
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
@@ -1011,7 +1004,7 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toHaveBeenCalledWith(
+            expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
                     httpVerToken: "xMsHttpVer",
                     refreshTokenSize:
@@ -1024,21 +1017,11 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
-            const performanceClient = {
-                startMeasurement: jest.fn(),
-                endMeasurement: jest.fn(),
-                discardMeasurements: jest.fn(),
-                removePerformanceCallback: jest.fn(),
-                addPerformanceCallback: jest.fn(),
-                emitEvents: jest.fn(),
-                generateId: jest.fn(),
-                calculateQueuedTime: jest.fn(),
-                addQueueMeasurement: jest.fn(),
-                setPreQueueTime: jest.fn(),
-                addFields: jest.fn(),
-                incrementFields: jest.fn(),
-            };
-            const client = new RefreshTokenClient(config, performanceClient);
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
@@ -1055,7 +1038,7 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toHaveBeenCalledWith(
+            expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
                     httpVerToken: "",
                     refreshTokenSize:
@@ -1565,7 +1548,10 @@ describe("RefreshTokenClient unit tests", () => {
         it("pick up broker params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new RefreshTokenClient(config);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
 
             const queryString =
                 // @ts-ignore
@@ -1587,7 +1573,10 @@ describe("RefreshTokenClient unit tests", () => {
         it("broker params take precedence over token body params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new RefreshTokenClient(config);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
 
             const queryString =
                 // @ts-ignore

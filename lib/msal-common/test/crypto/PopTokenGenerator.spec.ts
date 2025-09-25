@@ -13,6 +13,7 @@ import { AuthenticationScheme } from "../../src/utils/Constants.js";
 import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest.js";
 import { Logger } from "../../src/logger/Logger.js";
 import { mockCrypto } from "../client/ClientTestUtils.js";
+import { StubPerformanceClient } from "../../src/index.js";
 
 describe("PopTokenGenerator Unit Tests", () => {
     afterEach(() => {
@@ -30,7 +31,10 @@ describe("PopTokenGenerator Unit Tests", () => {
             resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
         };
         it("Generates the req_cnf correctly", async () => {
-            const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+            const popTokenGenerator = new PopTokenGenerator(
+                cryptoInterface,
+                new StubPerformanceClient()
+            );
             const reqCnfData = await popTokenGenerator.generateCnf(
                 testRequest,
                 new Logger({})
@@ -57,7 +61,10 @@ describe("PopTokenGenerator Unit Tests", () => {
         });
 
         it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {
-            const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+            const popTokenGenerator = new PopTokenGenerator(
+                cryptoInterface,
+                new StubPerformanceClient()
+            );
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const resourceReqMethod = "POST";
             const resourceUrl = TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS;
@@ -105,7 +112,10 @@ describe("PopTokenGenerator Unit Tests", () => {
         });
 
         it("Signs the proof-of-possession JWT token when PoP parameters are undefined", (done) => {
-            const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+            const popTokenGenerator = new PopTokenGenerator(
+                cryptoInterface,
+                new StubPerformanceClient()
+            );
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const currTime = TimeUtils.nowSeconds();
             cryptoInterface.signJwt = (

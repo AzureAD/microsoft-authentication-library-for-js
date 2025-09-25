@@ -23,6 +23,7 @@ import {
     getClientAssertion,
 } from "@azure/msal-common/node";
 import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * Oauth2.0 Password grant client
@@ -32,7 +33,7 @@ import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePassword
  */
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
-        super(configuration);
+        super(configuration, new StubPerformanceClient());
     }
 
     /**
@@ -43,7 +44,10 @@ export class UsernamePasswordClient extends BaseClient {
     async acquireToken(
         request: CommonUsernamePasswordRequest
     ): Promise<AuthenticationResult | null> {
-        this.logger.info("in acquireToken call in username-password client");
+        this.logger.info(
+            "in acquireToken call in username-password client",
+            request.correlationId
+        );
 
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(
@@ -56,12 +60,16 @@ export class UsernamePasswordClient extends BaseClient {
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
+            this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
-        responseHandler.validateTokenResponse(response.body);
+        responseHandler.validateTokenResponse(
+            response.body,
+            request.correlationId
+        );
         const tokenResponse = responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,

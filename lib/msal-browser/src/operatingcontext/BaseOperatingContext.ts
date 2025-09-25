@@ -108,7 +108,7 @@ export abstract class BaseOperatingContext {
     /**
      * returns a boolean indicating whether this operating context is present
      */
-    abstract initialize(): Promise<boolean>;
+    abstract initialize(correlationId: string): Promise<boolean>;
 
     /**
      * Return the MSAL config

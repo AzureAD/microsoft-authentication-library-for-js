@@ -27,7 +27,7 @@ import { getTenantFromAuthorityString } from "../authority/Authority.js";
 export class SilentFlowClient extends BaseClient {
     constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient: IPerformanceClient
     ) {
         super(configuration, performanceClient);
     }
@@ -119,8 +119,10 @@ export class SilentFlowClient extends BaseClient {
                 requestTenantId
             ),
             refreshToken: null,
-            appMetadata:
-                this.cacheManager.readAppMetadataFromCache(environment),
+            appMetadata: this.cacheManager.readAppMetadataFromCache(
+                environment,
+                request.correlationId
+            ),
         };
 
         this.setCacheOutcome(lastCacheOutcome, request.correlationId);
@@ -154,7 +156,8 @@ export class SilentFlowClient extends BaseClient {
         );
         if (cacheOutcome !== CacheOutcome.NOT_APPLICABLE) {
             this.logger.info(
-                `Token refresh is required due to cache outcome: '${cacheOutcome}'`
+                `Token refresh is required due to cache outcome: '${cacheOutcome}'`,
+                correlationId || ""
             );
         }
     }
@@ -193,6 +196,7 @@ export class SilentFlowClient extends BaseClient {
             cacheRecord,
             true,
             request,
+            this.performanceClient,
             idTokenClaims
         );
     }

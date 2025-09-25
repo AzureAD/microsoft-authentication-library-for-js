@@ -24,6 +24,7 @@ import {
 } from "@azure/msal-common/node";
 import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * OAuth2.0 Device code client
@@ -31,7 +32,7 @@ import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
  */
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
-        super(configuration);
+        super(configuration, new StubPerformanceClient());
     }
 
     /**
@@ -55,12 +56,13 @@ export class DeviceCodeClient extends BaseClient {
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
+            this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
-        responseHandler.validateTokenResponse(response);
+        responseHandler.validateTokenResponse(response, request.correlationId);
         return responseHandler.handleServerTokenResponse(
             response,
             this.authority,
@@ -215,7 +217,8 @@ export class DeviceCodeClient extends BaseClient {
     ): boolean {
         if (userSpecifiedCancelFlag) {
             this.logger.error(
-                "Token request cancelled by setting DeviceCodeRequest.cancel = true"
+                "Token request cancelled by setting DeviceCodeRequest.cancel = true",
+                ""
             );
             throw createClientAuthError(
                 NodeClientAuthErrorCodes.deviceCodePollingCancelled
@@ -226,7 +229,8 @@ export class DeviceCodeClient extends BaseClient {
             TimeUtils.nowSeconds() > userSpecifiedTimeout
         ) {
             this.logger.error(
-                `User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`
+                `User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`,
+                ""
             );
             throw createClientAuthError(
                 NodeClientAuthErrorCodes.userTimeoutReached
@@ -234,11 +238,13 @@ export class DeviceCodeClient extends BaseClient {
         } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
             if (userSpecifiedTimeout) {
                 this.logger.verbose(
-                    `User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`
+                    `User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`,
+                    ""
                 );
             }
             this.logger.error(
-                `Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`
+                `Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`,
+                ""
             );
             throw createClientAuthError(
                 NodeClientAuthErrorCodes.deviceCodeExpired
@@ -309,13 +315,15 @@ export class DeviceCodeClient extends BaseClient {
                 // user authorization is pending. Sleep for polling interval and try again
                 if (response.body.error === Constants.AUTHORIZATION_PENDING) {
                     this.logger.info(
-                        "Authorization pending. Continue polling."
+                        "Authorization pending. Continue polling.",
+                        request.correlationId
                     );
                     await TimeUtils.delay(pollingIntervalMilli);
                 } else {
                     // for any other error, throw
                     this.logger.info(
-                        "Unexpected error in polling from the server"
+                        "Unexpected error in polling from the server",
+                        request.correlationId
                     );
                     throw createAuthError(
                         AuthErrorCodes.postRequestFailed,
@@ -324,7 +332,8 @@ export class DeviceCodeClient extends BaseClient {
                 }
             } else {
                 this.logger.verbose(
-                    "Authorization completed successfully. Polling stopped."
+                    "Authorization completed successfully. Polling stopped.",
+                    request.correlationId
                 );
                 return response.body;
             }
@@ -334,7 +343,10 @@ export class DeviceCodeClient extends BaseClient {
          * The above code should've thrown by this point, but to satisfy TypeScript,
          * and in the rare case the conditionals in continuePolling() may not catch everything...
          */
-        this.logger.error("Polling stopped for unknown reasons.");
+        this.logger.error(
+            "Polling stopped for unknown reasons.",
+            request.correlationId
+        );
         throw createClientAuthError(
             NodeClientAuthErrorCodes.deviceCodeUnknownError
         );

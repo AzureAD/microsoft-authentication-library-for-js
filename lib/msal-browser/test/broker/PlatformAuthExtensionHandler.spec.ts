@@ -81,7 +81,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 await PlatformAuthExtensionHandler.createProvider(
                     new Logger({}),
                     2000,
-                    performanceClient
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
                 );
             expect(wamMessageHandler).toBeInstanceOf(
                 PlatformAuthExtensionHandler
@@ -132,7 +133,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             ).then(() => {
                 window.removeEventListener("message", eventHandler, true);
             });
@@ -170,7 +172,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 await PlatformAuthExtensionHandler.createProvider(
                     new Logger({}),
                     2000,
-                    performanceClient
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
                 );
             expect(wamMessageHandler).toBeInstanceOf(
                 PlatformAuthExtensionHandler
@@ -183,7 +186,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(
@@ -208,7 +212,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             )
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
@@ -248,7 +253,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             ).catch(() => {
                 if (callbackDone) {
                     done();
@@ -315,7 +321,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 await PlatformAuthExtensionHandler.createProvider(
                     new Logger({}),
                     2000,
-                    performanceClient
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
                 );
             expect(wamMessageHandler).toBeInstanceOf(
                 PlatformAuthExtensionHandler
@@ -372,7 +379,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler.sendMessage(TEST_REQUEST).catch((e) => {
@@ -436,7 +444,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler.sendMessage(TEST_REQUEST).catch((e) => {
@@ -496,7 +505,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler.sendMessage(TEST_REQUEST).catch((e) => {

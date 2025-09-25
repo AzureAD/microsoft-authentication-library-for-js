@@ -35,6 +35,7 @@ import {
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 /**
  * OAuth2.0 client credential grant
@@ -47,7 +48,7 @@ export class ClientCredentialClient extends BaseClient {
         configuration: ClientConfiguration,
         appTokenProvider?: IAppTokenProvider
     ) {
-        super(configuration);
+        super(configuration, new StubPerformanceClient());
         this.appTokenProvider = appTokenProvider;
     }
 
@@ -79,7 +80,8 @@ export class ClientCredentialClient extends BaseClient {
                 Constants.CacheOutcome.PROACTIVELY_REFRESHED
             ) {
                 this.logger.info(
-                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed.",
+                    request.correlationId
                 );
 
                 // refresh the access token in the background
@@ -195,7 +197,8 @@ export class ClientCredentialClient extends BaseClient {
                     appMetadata: null,
                 },
                 true,
-                request
+                request,
+                this.performanceClient
             ),
             lastCacheOutcome,
         ];
@@ -249,7 +252,10 @@ export class ClientCredentialClient extends BaseClient {
         let reqTimestamp: number;
 
         if (this.appTokenProvider) {
-            this.logger.info("Using appTokenProvider extensibility.");
+            this.logger.info(
+                "Using appTokenProvider extensibility.",
+                request.correlationId
+            );
 
             const appTokenPropviderParameters = {
                 correlationId: request.correlationId,
@@ -293,7 +299,8 @@ export class ClientCredentialClient extends BaseClient {
             };
 
             this.logger.info(
-                "Sending token request to endpoint: " + authority.tokenEndpoint
+                "Sending token request to endpoint: " + authority.tokenEndpoint,
+                request.correlationId
             );
 
             reqTimestamp = TimeUtils.nowSeconds();
@@ -314,12 +321,14 @@ export class ClientCredentialClient extends BaseClient {
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
+            this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(
             serverTokenResponse,
+            request.correlationId,
             refreshAccessToken
         );
 

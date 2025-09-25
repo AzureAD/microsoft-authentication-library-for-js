@@ -55,7 +55,7 @@ const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 export class RefreshTokenClient extends BaseClient {
     constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient: IPerformanceClient
     ) {
         super(configuration, performanceClient);
     }
@@ -79,10 +79,14 @@ export class RefreshTokenClient extends BaseClient {
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
+            this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin
         );
-        responseHandler.validateTokenResponse(response.body);
+        responseHandler.validateTokenResponse(
+            response.body,
+            request.correlationId
+        );
 
         return invokeAsync(
             responseHandler.handleServerTokenResponse.bind(responseHandler),
@@ -125,7 +129,8 @@ export class RefreshTokenClient extends BaseClient {
 
         // try checking if FOCI is enabled for the given application
         const isFOCI = this.cacheManager.isAppMetadataFOCI(
-            request.account.environment
+            request.account.environment,
+            request.correlationId
         );
 
         // if the app is part of the family, retrive a Family refresh token if present and make a refreshTokenRequest
@@ -244,7 +249,8 @@ export class RefreshTokenClient extends BaseClient {
                 if (e.subError === InteractionRequiredAuthErrorCodes.badToken) {
                     // Remove bad refresh token from cache
                     this.logger.verbose(
-                        "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+                        "acquireTokenWithRefreshToken: bad refresh token, removing from cache",
+                        request.correlationId
                     );
                     const badRefreshTokenKey =
                         this.cacheManager.generateCredentialKey(refreshToken);
@@ -448,7 +454,8 @@ export class RefreshTokenClient extends BaseClient {
                         );
                     } catch (e) {
                         this.logger.verbose(
-                            `Could not parse home account ID for CCS Header: '${e}'`
+                            `Could not parse home account ID for CCS Header: '${e}'`,
+                            request.correlationId
                         );
                     }
                     break;
