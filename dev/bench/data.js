@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1758715356061,
+  "lastUpdate": 1758824503898,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -17919,6 +17919,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.89%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "721c03302ed22a1b2affb3ad8108492e419f321e",
+          "message": "Allow for prompt=select_account in native flows (#8062)\n\nNative flows currently are never called directly if\nprompt=select_account. Add support for the same.\n\nPS: prompt=create is still in discussion, will add a new PR if we need\nto account for the same or *if we can remove the prompt related code\naltogether.",
+          "timestamp": "2025-09-25T11:15:09-07:00",
+          "tree_id": "1852a6c50225b48dcfa3a24a69b2882d93f1bb9d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/721c03302ed22a1b2affb3ad8108492e419f321e"
+        },
+        "date": 1758824501389,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252885,
+            "range": "±0.82%",
+            "unit": "ops/sec",
+            "extra": "210 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 249252,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
