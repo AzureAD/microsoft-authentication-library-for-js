@@ -14,6 +14,7 @@ import {
 
 export type BrowserStateObject = {
     interactionType: InteractionType;
+    broadcastChannelName: string;
 };
 
 /**

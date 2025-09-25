@@ -14,6 +14,8 @@ export const hashDoesNotContainKnownProperties =
     "hash_does_not_contain_known_properties";
 export const unableToParseState = "unable_to_parse_state";
 export const stateInteractionTypeMismatch = "state_interaction_type_mismatch";
+export const noBroadcastChannelNameInState =
+    "no_broadcast_channel_name_in_state";
 export const interactionInProgress = "interaction_in_progress";
 export const popupWindowError = "popup_window_error";
 export const emptyWindowError = "empty_window_error";

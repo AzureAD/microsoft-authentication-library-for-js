@@ -302,6 +302,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
+            broadcastChannelName:
+                interactionType === InteractionType.Popup
+                    ? "msal.broadcast." + this.browserCrypto.createNewGuid()
+                    : "",
         };
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,

@@ -50,6 +50,7 @@ import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvid
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { validateRequestMethod } from "../request/RequestHelpers.js";
+import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -335,7 +336,8 @@ export class PopupClient extends StandardInteractionClient {
                 // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
                 const responseString = await this.monitorPopupForHash(
                     popupWindow,
-                    popupParams.popupWindowParent
+                    popupParams.popupWindowParent,
+                    request.state
                 );
 
                 const serverParams = invoke(
@@ -437,7 +439,7 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(popupWindow, popupParams.popupWindowParent);
+        )(popupWindow, popupParams.popupWindowParent, request.state);
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -514,7 +516,7 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(popupWindow, popupParams.popupWindowParent);
+        )(popupWindow, popupParams.popupWindowParent, request.state);
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -653,7 +655,8 @@ export class PopupClient extends StandardInteractionClient {
 
             await this.monitorPopupForHash(
                 popupWindow,
-                popupParams.popupWindowParent
+                popupParams.popupWindowParent,
+                validRequest.state || ""
             ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
@@ -735,8 +738,29 @@ export class PopupClient extends StandardInteractionClient {
      */
     monitorPopupForHash(
         popupWindow: Window,
-        popupWindowParent: Window
+        popupWindowParent: Window,
+        state: string
     ): Promise<string> {
+        const parsedState = extractBrowserRequestState(
+            this.browserCrypto,
+            state
+        );
+        if (!parsedState) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.unableToParseState
+            );
+        }
+        if (!parsedState.broadcastChannelName) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.noBroadcastChannelNameInState
+            );
+        }
+        const authBroadcastChannel = new BroadcastChannel(
+            parsedState.broadcastChannelName
+        );
+
+        authBroadcastChannel.addEventListener("message");
+
         return new Promise<string>((resolve, reject) => {
             this.logger.verbose(
                 "PopupHandler.monitorPopupForHash - polling started"
