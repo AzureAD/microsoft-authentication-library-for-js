@@ -8,6 +8,7 @@ import {
     IPerformanceClient,
     Logger,
     Constants,
+    StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { name, version } from "../../packageMetadata.js";
 import {
@@ -25,30 +26,27 @@ import { PLATFORM_AUTH_DOM_SUPPORT } from "../../cache/CacheKeys.js";
  * Checks if the platform broker is available in the current environment.
  * @param loggerOptions
  * @param perfClient
+ * @param correlationId
  * @returns
  */
 export async function isPlatformBrokerAvailable(
-    loggerOptions: LoggerOptions = {},
-    perfClient: IPerformanceClient,
-    correlationId: string
+    loggerOptions?: LoggerOptions,
+    perfClient?: IPerformanceClient,
+    correlationId?: string
 ): Promise<boolean> {
-    const logger = new Logger(loggerOptions, name, version);
+    const logger = new Logger(loggerOptions || {}, name, version);
+    const cid = correlationId || "";
 
-    logger.trace("isPlatformBrokerAvailable called", correlationId);
+    logger.trace("isPlatformBrokerAvailable called", cid);
+
+    const performanceClient = perfClient || new StubPerformanceClient();
 
     if (typeof window === "undefined") {
-        logger.trace(
-            "Non-browser environment detected, returning false",
-            correlationId
-        );
+        logger.trace("Non-browser environment detected, returning false", cid);
         return false;
     }
 
-    return !!(await getPlatformAuthProvider(
-        logger,
-        perfClient,
-        correlationId || createNewGuid()
-    ));
+    return !!(await getPlatformAuthProvider(logger, performanceClient, cid));
 }
 
 export async function getPlatformAuthProvider(
