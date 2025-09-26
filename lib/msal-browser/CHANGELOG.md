@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 17 Sep 2025 09:50:42 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 24 Sep 2025 21:54:45 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.24.0
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Minor changes
+
+- [Native Auth] Add MFA related state and results (shen.jian@live.com)
+- Add changes in network and interaction client layers to support MFA (shen.jian@live.com)
+- Instrument data boundary claim #8054 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.23.0
 

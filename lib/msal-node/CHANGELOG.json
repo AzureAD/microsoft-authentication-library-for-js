@@ -2,6 +2,39 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 24 Sep 2025 21:54:45 GMT",
+      "version": "3.8.0",
+      "tag": "@azure/msal-node_v3.8.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "eb0997dda46442a5bba6bdee512c47abe3b019d0",
+            "comment": "Instrument data boundary claim #8054"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.13.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 17 Sep 2025 09:50:42 GMT",
       "version": "3.7.4",
       "tag": "@azure/msal-node_v3.7.4",

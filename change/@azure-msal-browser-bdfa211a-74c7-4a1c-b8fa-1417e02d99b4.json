@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "[Native Auth] Add MFA related state and results",
-  "packageName": "@azure/msal-browser",
-  "email": "shen.jian@live.com",
-  "dependentChangeType": "patch"
-}
