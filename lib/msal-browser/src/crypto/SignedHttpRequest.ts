@@ -72,9 +72,16 @@ export class SignedHttpRequest {
     /**
      * Removes cached keys from browser for given public key thumbprint
      * @param publicKeyThumbprint Public key digest (from generatePublicKeyThumbprint API)
+     * @param correlationId
      * @returns If keys are properly deleted
      */
-    async removeKeys(publicKeyThumbprint: string): Promise<void> {
-        return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
+    async removeKeys(
+        publicKeyThumbprint: string,
+        correlationId: string
+    ): Promise<void> {
+        return this.cryptoOps.removeTokenBindingKey(
+            publicKeyThumbprint,
+            correlationId
+        );
     }
 }

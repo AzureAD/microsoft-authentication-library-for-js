@@ -981,7 +981,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * returns a boolean if the given credential is removed
-     * @param credential
+     * @param key
+     * @param correlationId
      */
     removeAccessToken(key: string, correlationId: string): void {
         const credential = this.getAccessTokenCredential(key, correlationId);
@@ -1007,7 +1008,7 @@ export abstract class CacheManager implements ICacheManager {
 
                 if (kid) {
                     void this.cryptoImpl
-                        .removeTokenBindingKey(kid)
+                        .removeTokenBindingKey(kid, correlationId)
                         .catch(() => {
                             this.commonLogger.error(
                                 `Failed to remove token binding key '${kid}'`,

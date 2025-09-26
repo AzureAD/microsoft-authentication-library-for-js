@@ -1,8 +1,8 @@
-import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
+import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest.js";
 import { createHash } from "crypto";
 import { AuthToken } from "@azure/msal-common";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { base64Decode } from "../../src/encode/Base64Decode";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
+import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 let mockDatabase = {
@@ -103,7 +103,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
         const kid = await shr.generatePublicKeyThumbprint();
 
         expect(mockDatabase["TestDB.keys"][kid]).toBeDefined();
-        await shr.removeKeys(kid);
+        await shr.removeKeys(kid, TEST_CONFIG.CORRELATION_ID);
         expect(mockDatabase["TestDB.keys"][kid]).toBeUndefined();
     });
 });

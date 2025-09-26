@@ -257,7 +257,7 @@ export async function clearCacheOnLogout(
             // Clear all accounts and tokens
             browserStorage.clear(correlationId);
             // Clear any stray keys from IndexedDB
-            await browserCrypto.clearKeystore();
+            await browserCrypto.clearKeystore(correlationId);
         } catch (e) {
             logger.error(
                 "Attempted to clear all MSAL cache items and failed. Local cache unchanged.",
