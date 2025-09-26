@@ -18,7 +18,6 @@ import {
 import { PlatformAuthExtensionHandler } from "./PlatformAuthExtensionHandler.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import { PlatformAuthDOMHandler } from "./PlatformAuthDOMHandler.js";
-import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 import { BrowserCacheLocation } from "../../utils/BrowserConstants.js";
 import { PLATFORM_AUTH_DOM_SUPPORT } from "../../cache/CacheKeys.js";
 
