@@ -141,7 +141,7 @@ export class RedirectClient extends StandardInteractionClient {
                     "Page was restored from back/forward cache. Clearing temporary cache.",
                     this.correlationId
                 );
-                this.browserStorage.resetRequestCache();
+                this.browserStorage.resetRequestCache(this.correlationId);
                 this.eventHandler.emitEvent(
                     EventType.RESTORE_FROM_BFCACHE,
                     InteractionType.Redirect
@@ -366,7 +366,7 @@ export class RedirectClient extends StandardInteractionClient {
                     "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache.",
                     this.correlationId
                 );
-                this.browserStorage.resetRequestCache();
+                this.browserStorage.resetRequestCache(this.correlationId);
 
                 // Do not instrument "no_server_response" if user clicked back button
                 if (getNavigationType() !== "back_forward") {
@@ -384,6 +384,7 @@ export class RedirectClient extends StandardInteractionClient {
             const loginRequestUrl =
                 this.browserStorage.getTemporaryCache(
                     TemporaryCacheKeys.ORIGIN_URI,
+                    this.correlationId,
                     true
                 ) || "";
             const loginRequestUrlNormalized =
@@ -555,6 +556,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         const cachedHash = this.browserStorage.getTemporaryCache(
             TemporaryCacheKeys.URL_HASH,
+            this.correlationId,
             true
         );
         this.browserStorage.removeItem(

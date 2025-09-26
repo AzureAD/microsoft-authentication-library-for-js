@@ -472,13 +472,15 @@ export class StandardController implements IController {
         let redirectResponse: Promise<AuthenticationResult | null>;
         try {
             if (useNative && this.platformAuthProvider) {
+                const correlationId =
+                    platformBrokerRequest?.correlationId || "";
                 rootMeasurement = this.performanceClient.startMeasurement(
                     BrowserRootPerformanceEvents.AcquireTokenRedirect,
-                    platformBrokerRequest?.correlationId || ""
+                    correlationId
                 );
                 this.logger.trace(
                     "handleRedirectPromise - acquiring token from native platform",
-                    ""
+                    correlationId
                 );
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
@@ -504,7 +506,7 @@ export class StandardController implements IController {
                 )(this.performanceClient, rootMeasurement.event.correlationId);
             } else {
                 const [standardRequest, codeVerifier] =
-                    this.browserStorage.getCachedRequest();
+                    this.browserStorage.getCachedRequest("");
                 const correlationId = standardRequest.correlationId;
                 // Reset rootMeasurement now that we have correlationId
                 rootMeasurement = this.performanceClient.startMeasurement(
@@ -525,14 +527,14 @@ export class StandardController implements IController {
                 )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
-            this.browserStorage.resetRequestCache();
+            this.browserStorage.resetRequestCache("");
             throw e;
         }
 
         return redirectResponse
             .then((result: AuthenticationResult | null) => {
                 if (result) {
-                    this.browserStorage.resetRequestCache();
+                    this.browserStorage.resetRequestCache(result.correlationId);
                     // Emit login event if number of accounts change
                     const isLoggingIn =
                         loggedInAccounts.length < this.getAllAccounts().length;
@@ -581,7 +583,9 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
-                this.browserStorage.resetRequestCache();
+                this.browserStorage.resetRequestCache(
+                    rootMeasurement.event.correlationId
+                );
                 const eventError = e as EventError;
                 // Emit login event if there is an account
                 if (loggedInAccounts.length > 0) {
@@ -724,7 +728,7 @@ export class StandardController implements IController {
 
             return await result;
         } catch (e) {
-            this.browserStorage.resetRequestCache();
+            this.browserStorage.resetRequestCache(correlationId);
             /*
              * Pre-redirect event completes before navigation occurs.
              * Timed out navigation needs to be instrumented separately as a post-redirect event.

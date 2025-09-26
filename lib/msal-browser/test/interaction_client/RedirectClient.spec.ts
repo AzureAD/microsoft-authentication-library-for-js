@@ -1971,7 +1971,7 @@ describe("RedirectClient", () => {
             );
             await redirectClient.acquireToken(tokenRequest);
             const [cachedRequest, codeVerifier] =
-                browserStorage.getCachedRequest();
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID);
             expect(cachedRequest.scopes).toEqual([]);
             expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
             expect(cachedRequest.authority).toEqual(

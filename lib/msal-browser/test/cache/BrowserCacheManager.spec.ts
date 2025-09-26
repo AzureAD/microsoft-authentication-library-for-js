@@ -1035,9 +1035,12 @@ describe("BrowserCacheManager tests", () => {
                 new StubPerformanceClient(),
                 new EventHandler()
             );
-            expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
-                testTempItemValue
-            );
+            expect(
+                browserLocalStorage.getTemporaryCache(
+                    testTempItemKey,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(testTempItemValue);
         });
 
         it("setItem", () => {
@@ -2183,10 +2186,18 @@ describe("BrowserCacheManager tests", () => {
             expect(window.sessionStorage.getItem(msalCacheKey)).toBeNull();
             expect(window.localStorage.getItem(msalCacheKey)).toBeNull();
             expect(
-                browserLocalStorage.getTemporaryCache("cacheKey", true)
+                browserLocalStorage.getTemporaryCache(
+                    "cacheKey",
+                    TEST_CONFIG.CORRELATION_ID,
+                    true
+                )
             ).toBeNull();
             expect(
-                browserSessionStorage.getTemporaryCache("cacheKey", true)
+                browserSessionStorage.getTemporaryCache(
+                    "cacheKey",
+                    TEST_CONFIG.CORRELATION_ID,
+                    true
+                )
             ).toBeNull();
         });
 
@@ -3554,7 +3565,10 @@ describe("BrowserCacheManager tests", () => {
                     );
                     expect(cacheManager.getInteractionInProgress()).toBeNull();
                     expect(
-                        cacheManager.getTemporaryCache(requestParamKey)
+                        cacheManager.getTemporaryCache(
+                            requestParamKey,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
             });
@@ -3589,7 +3603,7 @@ describe("BrowserCacheManager tests", () => {
                 TEST_URIS.TEST_REDIR_URI
             );
 
-            browserStorage.resetRequestCache();
+            browserStorage.resetRequestCache(TEST_CONFIG.CORRELATION_ID);
 
             expect(window.sessionStorage[requestParamsKey]).toBeUndefined();
             expect(window.sessionStorage[originUriKey]).toBeUndefined();
@@ -3622,7 +3636,7 @@ describe("BrowserCacheManager tests", () => {
             );
 
             const [cachedRequest, codeVerifier] =
-                browserStorage.getCachedRequest();
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID);
             expect(cachedRequest).toEqual(tokenRequest);
             expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
         });
@@ -3637,7 +3651,9 @@ describe("BrowserCacheManager tests", () => {
                 new EventHandler()
             );
 
-            expect(() => browserStorage.getCachedRequest()).toThrow(
+            expect(() =>
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
+            ).toThrow(
                 new BrowserAuthError(
                     BrowserAuthErrorCodes.noTokenRequestCacheError
                 )
@@ -3674,7 +3690,9 @@ describe("BrowserCacheManager tests", () => {
                 stringifiedRequest.substring(0, stringifiedRequest.length / 2),
                 true
             );
-            expect(() => browserStorage.getCachedRequest()).toThrow(
+            expect(() =>
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
+            ).toThrow(
                 new BrowserAuthError(
                     BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
                 )

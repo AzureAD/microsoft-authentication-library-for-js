@@ -1403,9 +1403,14 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets cache item with given key.
      * @param cacheKey
+     * @param correlationId
      * @param generateKey
      */
-    getTemporaryCache(cacheKey: string, generateKey?: boolean): string | null {
+    getTemporaryCache(
+        cacheKey: string,
+        correlationId: string,
+        generateKey?: boolean
+    ): string | null {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
         const value = this.temporaryCacheStorage.getItem(key);
         if (!value) {
@@ -1418,14 +1423,14 @@ export class BrowserCacheManager extends CacheManager {
                 if (item) {
                     this.logger.trace(
                         "BrowserCacheManager.getTemporaryCache: Temporary cache item found in local storage",
-                        ""
+                        correlationId
                     );
                     return item;
                 }
             }
             this.logger.trace(
                 "BrowserCacheManager.getTemporaryCache: No cache item found in local storage",
-                ""
+                correlationId
             );
             return null;
         }
@@ -1565,9 +1570,13 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Reset all temporary cache items
+     * @param correlationId
      */
-    resetRequestCache(): void {
-        this.logger.trace("BrowserCacheManager.resetRequestCache called", "");
+    resetRequestCache(correlationId: string): void {
+        this.logger.trace(
+            "BrowserCacheManager.resetRequestCache called",
+            correlationId
+        );
 
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS)
@@ -1618,11 +1627,17 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      * @param correlationId
      */
-    getCachedRequest(): [CommonAuthorizationUrlRequest, string] {
-        this.logger.trace("BrowserCacheManager.getCachedRequest called", "");
+    getCachedRequest(
+        correlationId: string
+    ): [CommonAuthorizationUrlRequest, string] {
+        this.logger.trace(
+            "BrowserCacheManager.getCachedRequest called",
+            correlationId
+        );
         // Get token request from cache and parse as TokenExchangeParameters.
         const encodedTokenRequest = this.getTemporaryCache(
             TemporaryCacheKeys.REQUEST_PARAMS,
+            correlationId,
             true
         );
         if (!encodedTokenRequest) {
@@ -1632,6 +1647,7 @@ export class BrowserCacheManager extends CacheManager {
         }
         const encodedVerifier = this.getTemporaryCache(
             TemporaryCacheKeys.VERIFIER,
+            correlationId,
             true
         );
 
@@ -1645,11 +1661,11 @@ export class BrowserCacheManager extends CacheManager {
         } catch (e) {
             this.logger.errorPii(
                 `Attempted to parse: '${encodedTokenRequest}'`,
-                ""
+                correlationId
             );
             this.logger.error(
                 `Parsing cached token request threw with error: '${e}'`,
-                ""
+                correlationId
             );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
@@ -1670,6 +1686,7 @@ export class BrowserCacheManager extends CacheManager {
         );
         const cachedRequest = this.getTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
+            "",
             true
         );
         if (!cachedRequest) {
@@ -1709,7 +1726,7 @@ export class BrowserCacheManager extends CacheManager {
         type: INTERACTION_TYPE;
     } | null {
         const key = `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
-        const value = this.getTemporaryCache(key, false);
+        const value = this.getTemporaryCache(key, "", false);
         try {
             return value ? JSON.parse(value) : null;
         } catch (e) {
@@ -1719,7 +1736,7 @@ export class BrowserCacheManager extends CacheManager {
                 ""
             );
             this.removeTemporaryItem(key);
-            this.resetRequestCache();
+            this.resetRequestCache("");
             clearHash(window);
             return null;
         }
