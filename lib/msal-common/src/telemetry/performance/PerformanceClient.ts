@@ -611,7 +611,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             if (cb.toString() === callback.toString()) {
                 this.logger.warning(
                     `PerformanceClient: Performance callback is already registered with id: ${id}`,
-                    this.generateId()
+                    ""
                 );
                 return id;
             }
@@ -621,7 +621,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(
             `PerformanceClient: Performance callback registered with id: '${callbackId}'`,
-            this.generateId()
+            ""
         );
 
         return callbackId;
@@ -639,12 +639,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (result) {
             this.logger.verbose(
                 `PerformanceClient: Performance callback '${callbackId}' removed.`,
-                this.generateId()
+                ""
             );
         } else {
             this.logger.verbose(
                 `PerformanceClient: Performance callback '${callbackId}' not removed.`,
-                this.generateId()
+                ""
             );
         }
 
