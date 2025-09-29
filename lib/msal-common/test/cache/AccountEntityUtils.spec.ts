@@ -827,7 +827,6 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.dataBoundary).toBeUndefined();
         });
     });
 });
