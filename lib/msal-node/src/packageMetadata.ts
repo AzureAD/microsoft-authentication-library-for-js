@@ -1,3 +1,3 @@
 /* eslint-disable header/header */
 export const name = "@azure/msal-node";
-export const version = "3.7.3";
+export const version = "3.8.0";

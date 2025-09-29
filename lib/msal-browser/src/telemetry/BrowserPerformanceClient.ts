@@ -4,6 +4,7 @@
  */
 
 import {
+    AccountInfo,
     Constants,
     InProgressPerformanceEvent,
     IPerformanceClient,
@@ -163,7 +164,8 @@ export class BrowserPerformanceClient
             ...inProgressEvent,
             end: (
                 event?: Partial<PerformanceEvent>,
-                error?: unknown
+                error?: unknown,
+                account?: AccountInfo
             ): PerformanceEvent | null => {
                 const res = inProgressEvent.end(
                     {
@@ -172,7 +174,8 @@ export class BrowserPerformanceClient
                         endPageVisibility: this.getPageVisibility(),
                         durationMs: getPerfDurationMs(startTime),
                     },
-                    error
+                    error,
+                    account
                 );
                 void browserMeasurement?.then((measurement) =>
                     measurement.endMeasurement()
