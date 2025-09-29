@@ -660,7 +660,6 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBe("EU");
-            expect(acc.dataBoundary).toBe("EU");
         });
 
         it("creates an account without dataBoundary when clientInfo has no xms_tdbr", () => {
