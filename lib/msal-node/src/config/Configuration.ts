@@ -177,7 +177,11 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
-    networkClient: new HttpClient(),
+    networkClient: new HttpClient(
+        Constants.EMPTY_STRING,
+        {},
+        DEFAULT_LOGGER_OPTIONS
+    ),
     proxyUrl: Constants.EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
     disableInternalRetries: false,
@@ -217,13 +221,17 @@ export function buildAppConfiguration({
     system,
     telemetry,
 }: Configuration): NodeConfiguration {
+    const loggerOptions = system?.loggerOptions || DEFAULT_LOGGER_OPTIONS;
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
+            system?.customAgentOptions as
+                | http.AgentOptions
+                | https.AgentOptions,
+            loggerOptions
         ),
-        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
+        loggerOptions: loggerOptions,
         disableInternalRetries: system?.disableInternalRetries || false,
     };
 
@@ -275,7 +283,10 @@ export function buildManagedIdentityConfiguration({
     } else {
         networkClient = new HttpClient(
             system?.proxyUrl,
-            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
+            system?.customAgentOptions as
+                | http.AgentOptions
+                | https.AgentOptions,
+            loggerOptions
         );
     }
 
