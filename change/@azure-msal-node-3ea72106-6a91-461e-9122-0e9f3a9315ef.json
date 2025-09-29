@@ -1,6 +1,6 @@
 {
   "type": "major",
-  "comment": "Refactor event types and InteractionStatus to be more concise",
+  "comment": "Refactor event types and InteractionStatus to be more concise #8009 ",
   "packageName": "@azure/msal-node",
   "email": "shylasummers@microsoft.com",
   "dependentChangeType": "patch"
