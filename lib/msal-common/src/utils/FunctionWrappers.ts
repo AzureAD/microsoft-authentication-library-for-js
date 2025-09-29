@@ -109,6 +109,47 @@ export const invokeAsync = <T extends Array<any>, U>(
             })
             .catch((e) => {
                 logger.trace(`Error occurred in ${eventName}`);
+
+                // Enhanced network error logging
+                logger.error(`Network request failed for ${eventName}:`);
+                logger.error(`Error type: ${e.constructor.name}`);
+                logger.error(`Error code: ${e.code || "unknown"}`);
+                logger.error(
+                    `Error message: ${e.message || "No message provided"}`
+                );
+
+                if (e.response) {
+                    logger.error(
+                        `HTTP Status: ${e.response.status || "unknown"}`
+                    );
+                    logger.error(
+                        `Response headers: ${JSON.stringify(
+                            e.response.headers || {}
+                        )}`
+                    );
+                }
+
+                if (e.config) {
+                    logger.error(`Request URL: ${e.config.url || "unknown"}`);
+                    logger.error(
+                        `Request method: ${e.config.method || "unknown"}`
+                    );
+                    logger.error(
+                        `Request timeout: ${e.config.timeout || "not set"}`
+                    );
+                }
+
+                // Network-specific diagnostics
+                if (
+                    e.code === "ECONNRESET" ||
+                    e.code === "ENOTFOUND" ||
+                    e.code === "ETIMEDOUT"
+                ) {
+                    logger.error(
+                        `Network connectivity issue detected: ${e.code}`
+                    );
+                }
+
                 try {
                     logger.trace(JSON.stringify(e));
                 } catch (e) {

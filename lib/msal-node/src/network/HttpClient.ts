@@ -8,9 +8,12 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
     HttpStatus,
+    Logger,
+    LoggerOptions,
 } from "@azure/msal-common/node";
 import { HttpMethod, Constants, ProxyStatus } from "../utils/Constants.js";
 import { NetworkUtils } from "../utils/NetworkUtils.js";
+import { name, version } from "../packageMetadata.js";
 import http from "http";
 import https from "https";
 
@@ -20,13 +23,16 @@ import https from "https";
 export class HttpClient implements INetworkModule {
     private proxyUrl: string;
     private customAgentOptions: http.AgentOptions | https.AgentOptions;
+    private logger: Logger;
 
     constructor(
         proxyUrl?: string,
-        customAgentOptions?: http.AgentOptions | https.AgentOptions
+        customAgentOptions?: http.AgentOptions | https.AgentOptions,
+        loggerOptions?: LoggerOptions
     ) {
         this.proxyUrl = proxyUrl || "";
         this.customAgentOptions = customAgentOptions || {};
+        this.logger = new Logger(loggerOptions || {}, name, version);
     }
 
     /**
@@ -44,6 +50,7 @@ export class HttpClient implements INetworkModule {
                 url,
                 this.proxyUrl,
                 HttpMethod.GET,
+                this.logger,
                 options,
                 this.customAgentOptions as http.AgentOptions,
                 timeout
@@ -52,6 +59,7 @@ export class HttpClient implements INetworkModule {
             return networkRequestViaHttps(
                 url,
                 HttpMethod.GET,
+                this.logger,
                 options,
                 this.customAgentOptions as https.AgentOptions,
                 timeout
@@ -68,21 +76,59 @@ export class HttpClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
-        if (this.proxyUrl) {
-            return networkRequestViaProxy(
-                url,
-                this.proxyUrl,
-                HttpMethod.POST,
-                options,
-                this.customAgentOptions as http.AgentOptions
+        // Enhanced network request logging
+        this.logger.info(`Starting POST request to: ${url}`);
+        this.logger.verbose(
+            `Headers: ${JSON.stringify(options?.headers || {})}`
+        );
+        this.logger.verbose(
+            `Body length: ${options?.body?.length || 0} characters`
+        );
+        this.logger.verbose(`Using proxy: ${!!this.proxyUrl}`);
+
+        const startTime = Date.now();
+
+        try {
+            const result: NetworkResponse<T> = this.proxyUrl
+                ? await networkRequestViaProxy(
+                      url,
+                      this.proxyUrl,
+                      HttpMethod.POST,
+                      this.logger,
+                      options,
+                      this.customAgentOptions as http.AgentOptions
+                  )
+                : await networkRequestViaHttps(
+                      url,
+                      HttpMethod.POST,
+                      this.logger,
+                      options,
+                      this.customAgentOptions as https.AgentOptions
+                  );
+
+            const duration = Date.now() - startTime;
+            this.logger.info(
+                `POST request completed successfully in ${duration}ms`
             );
-        } else {
-            return networkRequestViaHttps(
-                url,
-                HttpMethod.POST,
-                options,
-                this.customAgentOptions as https.AgentOptions
+            this.logger.verbose(`Response status: ${result.status}`);
+
+            return result;
+        } catch (error: unknown) {
+            const duration = Date.now() - startTime;
+            this.logger.error(`POST request failed after ${duration}ms`);
+            this.logger.error(
+                `Error: ${
+                    error instanceof Error ? error.message : String(error)
+                }`
             );
+            this.logger.error(
+                `Error stack: ${
+                    error instanceof Error && error.stack
+                        ? error.stack
+                        : "No stack available"
+                }`
+            );
+            throw error;
         }
     }
 }
@@ -91,6 +137,7 @@ const networkRequestViaProxy = <T>(
     destinationUrlString: string,
     proxyUrlString: string,
     httpMethod: string,
+    logger: Logger,
     options?: NetworkRequestOptions,
     agentOptions?: http.AgentOptions,
     timeout?: number
@@ -138,8 +185,11 @@ const networkRequestViaProxy = <T>(
 
         if (timeout) {
             request.on("timeout", () => {
+                logger.error(
+                    `[MSAL-Network] Request timeout after ${timeout}ms for URL: ${destinationUrlString}`
+                );
                 request.destroy();
-                reject(new Error("Request time out"));
+                reject(new Error(`Request time out after ${timeout}ms`));
             });
         }
 
@@ -243,8 +293,13 @@ const networkRequestViaProxy = <T>(
                     (httpStatusCode < HttpStatus.SUCCESS_RANGE_START ||
                         httpStatusCode > HttpStatus.SUCCESS_RANGE_END) &&
                     // do not destroy the request for the device code flow
-                    networkResponse.body["error"] !==
-                        Constants.AUTHORIZATION_PENDING
+                    !(
+                        networkResponse.body &&
+                        typeof networkResponse.body === "object" &&
+                        "error" in networkResponse.body &&
+                        (networkResponse.body as { error: string }).error ===
+                            Constants.AUTHORIZATION_PENDING
+                    )
                 ) {
                     request.destroy();
                 }
@@ -259,6 +314,16 @@ const networkRequestViaProxy = <T>(
         });
 
         request.on("error", (chunk) => {
+            logger.error(
+                `[MSAL-Network] Proxy request error: ${chunk.toString()}`
+            );
+            logger.error(
+                `[MSAL-Network] Destination URL: ${destinationUrlString}`
+            );
+            logger.error(`[MSAL-Network] Proxy URL: ${proxyUrlString}`);
+            logger.error(`[MSAL-Network] Method: ${httpMethod}`);
+            logger.error(`[MSAL-Network] Headers: ${JSON.stringify(headers)}`);
+
             request.destroy();
             reject(new Error(chunk.toString()));
         });
@@ -268,6 +333,7 @@ const networkRequestViaProxy = <T>(
 const networkRequestViaHttps = <T>(
     urlString: string,
     httpMethod: string,
+    logger: Logger,
     options?: NetworkRequestOptions,
     agentOptions?: https.AgentOptions,
     timeout?: number
@@ -315,8 +381,11 @@ const networkRequestViaHttps = <T>(
 
         if (timeout) {
             request.on("timeout", () => {
+                logger.error(
+                    `[MSAL-Network] HTTPS request timeout after ${timeout}ms for URL: ${urlString}`
+                );
                 request.destroy();
-                reject(new Error("Request time out"));
+                reject(new Error(`Request time out after ${timeout}ms`));
             });
         }
 
@@ -352,8 +421,13 @@ const networkRequestViaHttps = <T>(
                     (statusCode < HttpStatus.SUCCESS_RANGE_START ||
                         statusCode > HttpStatus.SUCCESS_RANGE_END) &&
                     // do not destroy the request for the device code flow
-                    networkResponse.body["error"] !==
-                        Constants.AUTHORIZATION_PENDING
+                    !(
+                        networkResponse.body &&
+                        typeof networkResponse.body === "object" &&
+                        "error" in networkResponse.body &&
+                        (networkResponse.body as { error: string }).error ===
+                            Constants.AUTHORIZATION_PENDING
+                    )
                 ) {
                     request.destroy();
                 }
@@ -362,6 +436,13 @@ const networkRequestViaHttps = <T>(
         });
 
         request.on("error", (chunk) => {
+            logger.error(
+                `[MSAL-Network] HTTPS request error: ${chunk.toString()}`
+            );
+            logger.error(`[MSAL-Network] URL: ${urlString}`);
+            logger.error(`[MSAL-Network] Method: ${httpMethod}`);
+            logger.error(`[MSAL-Network] Headers: ${JSON.stringify(headers)}`);
+
             request.destroy();
             reject(new Error(chunk.toString()));
         });
