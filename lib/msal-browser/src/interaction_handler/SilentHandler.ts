@@ -10,19 +10,25 @@ import {
     invokeAsync,
     invoke,
     ServerResponseType,
+    Authority,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration.js";
+import {
+    BrowserConfiguration,
+    DEFAULT_IFRAME_TIMEOUT_MS,
+} from "../config/Configuration.js";
+import { getCodeForm, getEARForm } from "../protocol/Authorize.js";
 
 /**
  * Creates a hidden iframe to given URL using user-requested scopes as an id.
  * @param urlNavigate
  * @param userRequestScopes
  */
-export async function initiateAuthRequest(
+export async function initiateCodeRequest(
     requestUrl: string,
     performanceClient: IPerformanceClient,
     logger: Logger,
@@ -55,6 +61,52 @@ export async function initiateAuthRequest(
         performanceClient,
         correlationId
     )(requestUrl);
+}
+
+export async function initiateCodeFlowWithPost(
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLIFrameElement> {
+    const frame = createHiddenIframe();
+    if (!frame.contentDocument) {
+        throw "No document associated with iframe!";
+    }
+    const form = await getCodeForm(
+        frame.contentDocument,
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    form.submit();
+    return frame;
+}
+
+export async function initiateEarRequest(
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLIFrameElement> {
+    const frame = createHiddenIframe();
+    if (!frame.contentDocument) {
+        throw "No document associated with iframe!";
+    }
+    const form = await getEARForm(
+        frame.contentDocument,
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    form.submit();
+    return frame;
 }
 
 /**

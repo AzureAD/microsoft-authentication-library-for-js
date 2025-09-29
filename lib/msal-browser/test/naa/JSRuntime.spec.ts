@@ -17,6 +17,7 @@ import {
     createNestablePublicClientApplication,
 } from "../../src/index.js";
 import { InteractionRequiredAuthError } from "@azure/msal-common";
+import { BridgeRequestEnvelope } from "../../src/naa/BridgeRequestEnvelope.js";
 
 /**
  * Tests Nested App Auth for JS Runtime environment
@@ -103,6 +104,22 @@ describe("JS Runtime Nested App Auth", () => {
             );
             expect(authResult.fromCache).toBe(true);
             expect(authResult.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+        }
+
+        // Validate claims parameter
+        mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+        {
+            const claims = `{"access_token":{"nbf":{"essential":true,"value":"1752302923"}}}`;
+            const authResult = await pca.acquireTokenSilent({
+                scopes: ["User.Read"],
+                claims,
+            });
+            expect(authResult.fromCache).toBe(false);
+            expect(authResult.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+            const bridgeRequest = JSON.parse(
+                mockBridge.getBridgeRequests().at(-1)!
+            ) as BridgeRequestEnvelope;
+            expect(bridgeRequest.tokenParams?.claims).toBe(claims);
         }
 
         // Validate error scenario

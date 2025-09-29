@@ -2,84 +2,23 @@ import {
     buildClientInfo,
     buildClientInfoFromHomeAccountId,
     ClientInfo,
-} from "../../src/account/ClientInfo";
-import {
-    TEST_DATA_CLIENT_INFO,
-    RANDOM_TEST_GUID,
-    TEST_POP_VALUES,
-    TEST_CRYPTO_VALUES,
-} from "../test_kit/StringConstants";
-import { ICrypto } from "../../src/crypto/ICrypto";
+} from "../../src/account/ClientInfo.js";
+import { TEST_DATA_CLIENT_INFO } from "../test_kit/StringConstants.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
     ClientAuthErrorMessage,
     createClientAuthError,
-} from "../../src/error/ClientAuthError";
-import { Constants } from "../../src";
+} from "../../src/error/ClientAuthError.js";
+import { Constants } from "../../src/index.js";
+import { mockCrypto } from "../client/ClientTestUtils.js";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
     describe("buildClientInfo()", () => {
         let cryptoInterface: ICrypto;
         beforeEach(() => {
-            cryptoInterface = {
-                createNewGuid(): string {
-                    return RANDOM_TEST_GUID;
-                },
-                base64Decode(input: string): string {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                },
-                base64Encode(input: string): string {
-                    switch (input) {
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-uid":
-                            return "NDU2LXRlc3QtdWlk";
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        default:
-                            return input;
-                    }
-                },
-                base64UrlEncode(input: string): string {
-                    switch (input) {
-                        case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                            return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                        default:
-                            return input;
-                    }
-                },
-                encodeKid(input: string): string {
-                    switch (input) {
-                        case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                            return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                        default:
-                            return input;
-                    }
-                },
-                async getPublicKeyThumbprint(): Promise<string> {
-                    return TEST_POP_VALUES.KID;
-                },
-                async signJwt(): Promise<string> {
-                    return "";
-                },
-                async removeTokenBindingKey(): Promise<boolean> {
-                    return Promise.resolve(true);
-                },
-                async clearKeystore(): Promise<boolean> {
-                    return Promise.resolve(true);
-                },
-                async hashString(): Promise<string> {
-                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-                },
-            };
+            cryptoInterface = mockCrypto;
         });
 
         afterEach(() => {
@@ -127,6 +66,81 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
             expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
             expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+        });
+
+        it("Successfully returns decoded client info with xms_tdbr field", () => {
+            // Create client info with xms_tdbr field
+            const clientInfoWithDataBoundary = JSON.stringify({
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                xms_tdbr: "EU",
+            });
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                clientInfoWithDataBoundary
+            );
+
+            const clientInfo = buildClientInfo(
+                encodedClientInfo,
+                cryptoInterface.base64Decode
+            );
+
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.xms_tdbr).toBe("EU");
+        });
+
+        it("Successfully returns decoded client info without xms_tdbr field", () => {
+            // Client info without xms_tdbr field should not have the property
+            const clientInfo = buildClientInfo(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                cryptoInterface.base64Decode
+            );
+
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.xms_tdbr).toBeUndefined();
+        });
+
+        it("Handles empty xms_tdbr field gracefully", () => {
+            // Create client info with empty xms_tdbr field
+            const clientInfoWithEmptyDataBoundary = JSON.stringify({
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                xms_tdbr: "",
+            });
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                clientInfoWithEmptyDataBoundary
+            );
+
+            const clientInfo = buildClientInfo(
+                encodedClientInfo,
+                cryptoInterface.base64Decode
+            );
+
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.xms_tdbr).toBe("");
+        });
+
+        it("Handles null xms_tdbr field gracefully", () => {
+            // Create client info with null xms_tdbr field
+            const clientInfoWithNullDataBoundary = JSON.stringify({
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                xms_tdbr: null,
+            });
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                clientInfoWithNullDataBoundary
+            );
+
+            const clientInfo = buildClientInfo(
+                encodedClientInfo,
+                cryptoInterface.base64Decode
+            );
+
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.xms_tdbr).toBeNull();
         });
     });
 

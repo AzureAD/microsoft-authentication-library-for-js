@@ -4,6 +4,8 @@
  */
 
 export const pkceNotCreated = "pkce_not_created";
+export const earJwkEmpty = "ear_jwk_empty";
+export const earJweEmpty = "ear_jwe_empty";
 export const cryptoNonExistent = "crypto_nonexistent";
 export const emptyNavigateUri = "empty_navigate_uri";
 export const hashEmptyError = "hash_empty_error";
@@ -28,7 +30,6 @@ export const silentPromptValueError = "silent_prompt_value_error";
 export const noTokenRequestCacheError = "no_token_request_cache_error";
 export const unableToParseTokenRequestCacheError =
     "unable_to_parse_token_request_cache_error";
-export const noCachedAuthorityError = "no_cached_authority_error";
 export const authRequestNotSetError = "auth_request_not_set_error";
 export const invalidCacheType = "invalid_cache_type";
 export const nonBrowserEnvironment = "non_browser_environment";
@@ -58,3 +59,5 @@ export const invalidBase64String = "invalid_base64_string";
 export const invalidPopTokenRequest = "invalid_pop_token_request";
 export const failedToBuildHeaders = "failed_to_build_headers";
 export const failedToParseHeaders = "failed_to_parse_headers";
+export const failedToDecryptEarResponse = "failed_to_decrypt_ear_response";
+export const timedOut = "timed_out";

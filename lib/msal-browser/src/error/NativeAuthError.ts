@@ -52,8 +52,7 @@ export function isFatalNativeAuthError(error: NativeAuthError): boolean {
     if (
         error.ext &&
         error.ext.status &&
-        (error.ext.status === NativeStatusCodes.PERSISTENT_ERROR ||
-            error.ext.status === NativeStatusCodes.DISABLED)
+        error.ext.status === NativeStatusCodes.DISABLED
     ) {
         return true;
     }
@@ -68,6 +67,7 @@ export function isFatalNativeAuthError(error: NativeAuthError): boolean {
 
     switch (error.errorCode) {
         case NativeAuthErrorCodes.contentError:
+        case NativeAuthErrorCodes.pageException:
             return true;
         default:
             return false;
@@ -101,6 +101,10 @@ export function createNativeAuthError(
             case NativeStatusCodes.NO_NETWORK:
                 return createBrowserAuthError(
                     BrowserAuthErrorCodes.noNetworkConnectivity
+                );
+            case NativeStatusCodes.UX_NOT_ALLOWED:
+                return createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.uxNotAllowed
                 );
         }
     }

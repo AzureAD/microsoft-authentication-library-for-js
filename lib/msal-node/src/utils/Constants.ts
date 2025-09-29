@@ -4,24 +4,44 @@
  */
 
 import { HttpStatus } from "@azure/msal-common/node";
-import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
+import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
+import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
-export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
-export const METADATA_HEADER_NAME: string = "Metadata";
-export const APP_SERVICE_SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
-export const ML_AND_SF_SECRET_HEADER_NAME: string = "secret";
-export const API_VERSION_QUERY_PARAMETER_NAME: string = "api-version";
-export const RESOURCE_BODY_OR_QUERY_PARAMETER_NAME: string = "resource";
 export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
 export const MANAGED_IDENTITY_DEFAULT_TENANT = "managed_identity";
 export const DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY = `https://login.microsoftonline.com/${MANAGED_IDENTITY_DEFAULT_TENANT}/`;
+
+/**
+ * Managed Identity Headers - used in network requests
+ */
+export const ManagedIdentityHeaders = {
+    AUTHORIZATION_HEADER_NAME: "Authorization",
+    METADATA_HEADER_NAME: "Metadata",
+    APP_SERVICE_SECRET_HEADER_NAME: "X-IDENTITY-HEADER",
+    ML_AND_SF_SECRET_HEADER_NAME: "secret",
+} as const;
+export type ManagedIdentityHeaders =
+    (typeof ManagedIdentityHeaders)[keyof typeof ManagedIdentityHeaders];
+
+/**
+ * Managed Identity Query Parameters - used in network requests
+ */
+export const ManagedIdentityQueryParameters = {
+    API_VERSION: "api-version",
+    RESOURCE: "resource",
+    SHA256_TOKEN_TO_REFRESH: "token_sha256_to_refresh",
+    XMS_CC: "xms_cc",
+} as const;
+export type ManagedIdentityQueryParameters =
+    (typeof ManagedIdentityQueryParameters)[keyof typeof ManagedIdentityQueryParameters];
 
 /**
  * Managed Identity Environment Variable Names
  */
 export const ManagedIdentityEnvironmentVariableNames = {
     AZURE_POD_IDENTITY_AUTHORITY_HOST: "AZURE_POD_IDENTITY_AUTHORITY_HOST",
+    DEFAULT_IDENTITY_CLIENT_ID: "DEFAULT_IDENTITY_CLIENT_ID",
     IDENTITY_ENDPOINT: "IDENTITY_ENDPOINT",
     IDENTITY_HEADER: "IDENTITY_HEADER",
     IDENTITY_SERVER_THUMBPRINT: "IDENTITY_SERVER_THUMBPRINT",
@@ -113,6 +133,7 @@ export const CharSet = {
 export const CACHE = {
     FILE_CACHE: "fileCache",
     EXTENSION_LIB: "extenstion_library",
+    KEY_SEPARATOR: "-",
 };
 
 /**
@@ -167,20 +188,6 @@ export const LOOPBACK_SERVER_CONSTANTS = {
     TIMEOUT_MS: 5000,
 };
 
-export const AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES = 4096; // 4 KB
+export const AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES: number = 4096; // 4 KB
 
-export const MANAGED_IDENTITY_MAX_RETRIES = 3;
-export const MANAGED_IDENTITY_RETRY_DELAY = 1000;
-export const MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON = [
-    HttpStatus.NOT_FOUND,
-    HttpStatus.REQUEST_TIMEOUT,
-    HttpStatus.TOO_MANY_REQUESTS,
-    HttpStatus.SERVER_ERROR,
-    HttpStatus.SERVICE_UNAVAILABLE,
-    HttpStatus.GATEWAY_TIMEOUT,
-];
-
-/**
- * Retry Policy Types
- */
-export type RetryPolicies = LinearRetryPolicy;
+export type RetryPolicies = DefaultManagedIdentityRetryPolicy | ImdsRetryPolicy;

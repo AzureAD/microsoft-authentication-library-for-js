@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PkceCodes } from "@azure/msal-common/node";
+import { Constants, EncodingTypes, PkceCodes } from "@azure/msal-common/node";
 import { CharSet, RANDOM_OCTET_SIZE } from "../utils/Constants.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { HashUtils } from "./HashUtils.js";
@@ -56,8 +56,8 @@ export class PkceGenerator {
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
         return EncodingUtils.base64EncodeUrl(
-            this.hashUtils.sha256(codeVerifier).toString("base64"),
-            "base64"
+            this.hashUtils.sha256(codeVerifier).toString(EncodingTypes.BASE64),
+            EncodingTypes.BASE64
         );
     }
 }

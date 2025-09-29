@@ -34,6 +34,7 @@ import {
 } from "../../src/index.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { TestTimeUtils } from "msal-test-utils";
 
 describe("SilentAuthCodeClient", () => {
@@ -119,6 +120,7 @@ describe("SilentAuthCodeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -137,8 +139,8 @@ describe("SilentAuthCodeClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             const handleCodeSpy = jest
                 .spyOn(

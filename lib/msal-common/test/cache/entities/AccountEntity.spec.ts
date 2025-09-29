@@ -8,18 +8,19 @@ import {
 } from "../../../src/network/INetworkModule.js";
 import { ICrypto } from "../../../src/crypto/ICrypto.js";
 import {
-    RANDOM_TEST_GUID,
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
     TEST_URIS,
-    TEST_POP_VALUES,
     PREFERRED_CACHE_ALIAS,
-    TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
     TEST_CONFIG,
 } from "../../test_kit/StringConstants.js";
-import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils.js";
+import {
+    MockStorageClass,
+    generateAccountKey,
+    mockCrypto,
+} from "../../client/ClientTestUtils.js";
 import {
     AccountInfo,
     TenantProfile,
@@ -31,67 +32,9 @@ import { Authority } from "../../../src/authority/Authority.js";
 import { AuthorityType } from "../../../src/authority/AuthorityType.js";
 import { TokenClaims } from "../../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { StubPerformanceClient } from "../../../src/telemetry/performance/StubPerformanceClient.js";
 
-const cryptoInterface: ICrypto = {
-    createNewGuid(): string {
-        return RANDOM_TEST_GUID;
-    },
-    base64Decode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                return TEST_POP_VALUES.DECODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
-            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS;
-            default:
-                return input;
-        }
-    },
-    base64Encode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.DECODED_REQ_CNF:
-                return TEST_POP_VALUES.ENCODED_REQ_CNF;
-            case "uid":
-                return "dWlk";
-            case "utid":
-                return "dXRpZA==";
-            default:
-                return input;
-        }
-    },
-    base64UrlEncode(input: string): string {
-        switch (input) {
-            case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    encodeKid(input: string): string {
-        switch (input) {
-            case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
-    async signJwt(): Promise<string> {
-        return "";
-    },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async clearKeystore(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async hashString(): Promise<string> {
-        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-    },
-};
+const cryptoInterface: ICrypto = mockCrypto;
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -121,11 +64,12 @@ const loggerOptions = {
     logLevel: LogLevel.Verbose,
 };
 const logger = new Logger(loggerOptions);
+const performanceClient = new StubPerformanceClient();
 
 const authority = new Authority(
     Constants.DEFAULT_AUTHORITY,
     networkInterface,
-    new MockStorageClass("client-id", mockCrypto, logger),
+    new MockStorageClass("client-id", mockCrypto, logger, performanceClient),
     authorityOptions,
     logger,
     TEST_CONFIG.CORRELATION_ID
@@ -150,7 +94,7 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("generate an AccountEntityKey", () => {
         const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
-        expect(ac.generateAccountKey()).toEqual(
+        expect(generateAccountKey(ac.getAccountInfo())).toEqual(
             "uid.utid-login.microsoftonline.com-utid"
         );
     });
@@ -185,7 +129,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -224,7 +168,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -262,7 +206,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             },
             authority
         );
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -276,7 +220,12 @@ describe("AccountEntity.ts Unit Tests", () => {
         const authority = new Authority(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -310,7 +259,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -324,7 +273,12 @@ describe("AccountEntity.ts Unit Tests", () => {
         const authority = new Authority(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             {
                 protocolMode: ProtocolMode.OIDC,
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
@@ -363,7 +317,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-login.windows.net-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -482,6 +436,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     iat: 100,
@@ -493,6 +448,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     iat: undefined,
@@ -527,6 +483,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     nonce: "56789",
@@ -538,6 +495,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 localAccountId: acc1.localAccountId,
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
+                loginHint: acc1.loginHint,
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     nonce: undefined,
@@ -638,6 +596,218 @@ describe("AccountEntity.ts Unit Tests", () => {
             expect(AccountEntity.accountInfoIsEqual(acc5, acc6)).toBe(false);
         });
     });
+
+    describe("AccountEntity createAccount with dataBoundary", () => {
+        it("creates an account with dataBoundary from clientInfo.xms_tdbr", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            // Create client info with xms_tdbr
+            const clientInfoWithDataBoundary = {
+                uid: "00000000-0000-0000-66f3-3332eca7ea81",
+                utid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                xms_tdbr: "EU",
+            };
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                JSON.stringify(clientInfoWithDataBoundary)
+            );
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                encodedClientInfo,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo: encodedClientInfo,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBe("EU");
+            expect(acc.getAccountInfo().dataBoundary).toBe("EU");
+        });
+
+        it("creates an account without dataBoundary when clientInfo has no xms_tdbr", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo:
+                        TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBeUndefined();
+            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+        });
+
+        it("creates an account without dataBoundary when no clientInfo is provided", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBeUndefined();
+            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+        });
+
+        it("handles empty string xms_tdbr gracefully", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            // Create client info with empty xms_tdbr
+            const clientInfoWithEmptyDataBoundary = {
+                uid: "00000000-0000-0000-66f3-3332eca7ea81",
+                utid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                xms_tdbr: "",
+            };
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                JSON.stringify(clientInfoWithEmptyDataBoundary)
+            );
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                encodedClientInfo,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo: encodedClientInfo,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBeUndefined();
+            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+        });
+
+        it("handles null xms_tdbr gracefully", () => {
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+
+            // Create client info with null xms_tdbr
+            const clientInfoWithNullDataBoundary = {
+                uid: "00000000-0000-0000-66f3-3332eca7ea81",
+                utid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                xms_tdbr: null,
+            };
+            const encodedClientInfo = cryptoInterface.base64Encode(
+                JSON.stringify(clientInfoWithNullDataBoundary)
+            );
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                encodedClientInfo,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    clientInfo: encodedClientInfo,
+                },
+                authority,
+                cryptoInterface.base64Decode
+            );
+
+            expect(acc.dataBoundary).toBeUndefined();
+            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+        });
+    });
 });
 
 describe("AccountEntity.ts Unit Tests for ADFS", () => {
@@ -657,7 +827,12 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -691,7 +866,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -713,7 +888,12 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const authority = new Authority(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger),
+            new MockStorageClass(
+                "client-id",
+                mockCrypto,
+                logger,
+                performanceClient
+            ),
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
@@ -746,7 +926,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(
+        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);

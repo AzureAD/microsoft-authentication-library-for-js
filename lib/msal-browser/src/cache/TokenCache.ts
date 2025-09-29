@@ -22,14 +22,14 @@ import {
     TimeUtils,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import { SilentRequest } from "../request/SilentRequest.js";
+import type { SilentRequest } from "../request/SilentRequest.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
-import { ITokenCache } from "./ITokenCache.js";
+import type { ITokenCache } from "./ITokenCache.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import type { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 
@@ -210,6 +210,7 @@ export class TokenCache implements ITokenCache {
             authority,
             homeAccountId,
             base64Decode,
+            correlationId,
             idTokenClaims,
             clientInfo,
             authority.hostnameAndPort,

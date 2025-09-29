@@ -105,6 +105,8 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+
+export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export { BaseAuthRequest } from "./request/BaseAuthRequest.js";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest.js";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest.js";
@@ -117,7 +119,7 @@ export { AzureRegion } from "./authority/AzureRegion.js";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration.js";
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js";
-export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse.js";
+export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
     ResponseHandler,
@@ -140,7 +142,11 @@ export {
 } from "./error/AuthError.js";
 export { ServerError } from "./error/ServerError.js";
 export { NetworkError, createNetworkError } from "./error/NetworkError.js";
-export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
+export {
+    CacheError,
+    CacheErrorCodes,
+    createCacheError,
+} from "./error/CacheError.js";
 export {
     ClientAuthError,
     ClientAuthErrorMessage,
@@ -158,6 +164,7 @@ export {
     OIDC_DEFAULT_SCOPES,
     PromptValue,
     PersistentCacheKeys,
+    OAuthResponseType,
     ServerResponseType,
     ResponseMode,
     CacheOutcome,
@@ -176,8 +183,10 @@ export {
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    HttpMethod,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     JsonWebTokenTypes,
+    EncodingTypes,
 } from "./utils/Constants.js";
 export { StringUtils } from "./utils/StringUtils.js";
 export { StringDict } from "./utils/MsalTypes.js";

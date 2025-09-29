@@ -1,8 +1,202 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 11 Mar 2025 18:51:25 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 24 Sep 2025 21:54:45 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.8.0
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Minor changes
+
+- Instrument data boundary claim #8054 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.4
+
+Wed, 17 Sep 2025 09:50:42 GMT
+
+### Patches
+
+- broker redirect uri changes (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.3
+
+Wed, 27 Aug 2025 00:59:59 GMT
+
+### Patches
+
+- enable passing of redirect uri (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.2
+
+Tue, 19 Aug 2025 21:26:21 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.12.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.1
+
+Tue, 12 Aug 2025 22:53:33 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.11.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.0
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Minor changes
+
+- Update internal cache key generation (thomas.norling@microsoft.com)
+- Update AccountInfo construction to include tenant-specific claims #7949 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.10.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.4
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.3
+
+Tue, 08 Jul 2025 14:21:12 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.8.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.2
+
+Tue, 01 Jul 2025 14:23:25 GMT
+
+### Patches
+
+- Add correlationIds to cache APIs #7819 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.8.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.1
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- Added support for DEFAULT_IDENTITY_CLIENT_ID environment variable in Machine Learning Managed Identity #7616 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.0
+
+Fri, 30 May 2025 22:36:44 GMT
+
+### Minor changes
+
+- Added token revocation functionality to Managed Identity's App Service and Service Fabric Sources #7679 (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- update common version (shylasummers@microsoft.com)
+
+## 3.5.3
+
+Tue, 06 May 2025 22:47:43 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.6.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.5.2
+
+Tue, 29 Apr 2025 20:25:48 GMT
+
+### Patches
+
+- Fix circular type imports (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.5.2
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.5.1
+
+Tue, 15 Apr 2025 23:34:14 GMT
+
+### Patches
+
+- Add config option to not encode extra params (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v15.5.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.5.0
+
+Tue, 08 Apr 2025 16:56:06 GMT
+
+### Minor changes
+
+- Implemented a Retry Policy for the IMDS Managed Identity Source #7614 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Machine Learning Managed Identity now correctly uses MSI's 2017 API instead of the 2019 API #7631 (rginsburg@microsoft.com)
+
+## 3.4.1
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Patches
+
+- Move addition of extraQueryParameters during request generation (thomas.norling@microsoft.com)
+- Minor updates to Authorize query string generation (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.4.0
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Minor changes
+
+- Refactor /authorize request generation (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.3.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- refactor RequestParameterBuilder (thomas.norling@microsoft.com)
 
 ## 3.3.0
 

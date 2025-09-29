@@ -295,12 +295,96 @@ describe("AAD-Prod Tests", () => {
                     .startsWith("https://login.microsoftonline.com/common/")
             ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
-            await popupWindow.waitForNavigation();
             const tokenStore = await BrowserCache.getTokens();
 
             expect(tokenStore.idTokens.length).toEqual(0);
             expect(tokenStore.accessTokens.length).toEqual(0);
             expect(tokenStore.refreshTokens.length).toEqual(0);
+        });
+    });
+
+    describe("login-logout-login tests", () => {
+        let testName: string;
+        let screenshot: Screenshot;
+
+        async function loginPopup() {
+            const [popupPage, popupWindowClosed] = await clickLoginPopup(
+                screenshot,
+                page
+            );
+            await enterCredentials(popupPage, screenshot, username, accountPwd);
+            await waitForReturnToApp(
+                screenshot,
+                page,
+                popupPage,
+                popupWindowClosed
+            );
+
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
+        }
+
+        async function loginRedirect() {
+            await clickLoginRedirect(screenshot, page);
+            await enterCredentials(page, screenshot, username, accountPwd);
+            await waitForReturnToApp(screenshot, page);
+        }
+
+        beforeEach(async () => {
+            context = await browser.createBrowserContext();
+            page = await context.newPage();
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(
+                page,
+                aadMsalConfig.cache.cacheLocation
+            );
+            await page.goto(sampleHomeUrl);
+            await pcaInitializedPoller(page, 5000);
+        });
+
+        afterEach(async () => {
+            await page.evaluate(() =>
+                Object.assign({}, window.sessionStorage.clear())
+            );
+            await page.evaluate(() =>
+                Object.assign({}, window.localStorage.clear())
+            );
+            await page.close();
+        });
+
+        it("login-logout-login redirect", async () => {
+            testName = "loginLogoutLoginRedirect";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await loginRedirect();
+
+            await clickLogoutRedirect(screenshot, page);
+            expect(
+                page
+                    .url()
+                    .startsWith("https://login.microsoftonline.com/common/")
+            ).toBeTruthy();
+            expect(page.url()).toContain("logout");
+            await page.waitForFunction(
+                `window.location.href.startsWith("${sampleHomeUrl}")`
+            );
+
+            const tokenStore = await BrowserCache.getTokens();
+            expect(tokenStore.idTokens.length).toEqual(0);
+            expect(tokenStore.accessTokens.length).toEqual(0);
+            expect(tokenStore.refreshTokens.length).toEqual(0);
+
+            await clickLoginRedirect(screenshot, page);
+            await page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"] }).catch(() => {});
+            try {
+                await page.waitForSelector("#loginHeader, div[name='loginHeader']");
+            } catch (e) {
+                await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+                throw e;
+            }
         });
     });
 
@@ -375,6 +459,30 @@ describe("AAD-Prod Tests", () => {
             });
         });
 
+        it("acquireTokenRedirect with httpMethod = POST", async () => {
+            testName = "acquireTokenRedirectUsingPost";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await page.waitForSelector("#acquireTokenRedirectPost");
+
+            // Remove access_tokens from cache so we can verify acquisition
+            const tokenStore = await BrowserCache.getTokens();
+            await BrowserCache.removeTokens(tokenStore.refreshTokens);
+            await BrowserCache.removeTokens(tokenStore.accessTokens);
+            await page.click("#acquireTokenRedirectPost");
+            await page.waitForSelector("#scopes-acquired");
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenRedirectPostGotTokens"
+            );
+
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
+        });
+
         it("acquireTokenPopup", async () => {
             testName = "acquireTokenPopup";
             screenshot = new Screenshot(
@@ -387,6 +495,27 @@ describe("AAD-Prod Tests", () => {
             await BrowserCache.removeTokens(tokenStore.refreshTokens);
             await BrowserCache.removeTokens(tokenStore.accessTokens);
             await page.click("#acquireTokenPopup");
+            await page.waitForSelector("#scopes-acquired");
+            await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
+
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
+        });
+
+        it("acquireTokenPopup with httpMethod = POST", async () => {
+            testName = "acquireTokenPopupUsingPost";
+            screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+            await page.waitForSelector("#acquireTokenPopupPost");
+
+            // Remove access_tokens from cache so we can verify acquisition
+            const tokenStore = await BrowserCache.getTokens();
+            await BrowserCache.removeTokens(tokenStore.refreshTokens);
+            await BrowserCache.removeTokens(tokenStore.accessTokens);
+            await page.click("#acquireTokenPopupPost");
             await page.waitForSelector("#scopes-acquired");
             await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
 

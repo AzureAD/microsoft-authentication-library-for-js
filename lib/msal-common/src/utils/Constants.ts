@@ -6,8 +6,6 @@
 export const Constants = {
     LIBRARY_NAME: "MSAL.JS",
     SKU: "msal.js.common",
-    // Prefix for all library cache entries
-    CACHE_PREFIX: "msal",
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
@@ -34,11 +32,8 @@ export const Constants = {
     PROFILE_SCOPE: "profile",
     OFFLINE_ACCESS_SCOPE: "offline_access",
     EMAIL_SCOPE: "email",
-    // Default response type for authorization code flow
-    CODE_RESPONSE_TYPE: "code",
     CODE_GRANT_TYPE: "authorization_code",
     RT_GRANT_TYPE: "refresh_token",
-    FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
@@ -58,8 +53,6 @@ export const Constants = {
         "login.microsoft.com",
         "sts.windows.net",
     ],
-    TOKEN_RESPONSE_TYPE: "token",
-    ID_TOKEN_RESPONSE_TYPE: "id_token",
     SHR_NONCE_VALIDITY: 240,
     INVALID_INSTANCE: "invalid_instance",
 };
@@ -75,6 +68,7 @@ export const HttpStatus = {
     UNAUTHORIZED: 401,
     NOT_FOUND: 404,
     REQUEST_TIMEOUT: 408,
+    GONE: 410,
     TOO_MANY_REQUESTS: 429,
     CLIENT_ERROR_RANGE_END: 499,
     SERVER_ERROR: 500,
@@ -85,6 +79,12 @@ export const HttpStatus = {
     MULTI_SIDED_ERROR: 600,
 } as const;
 export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
+
+export const HttpMethod = {
+    GET: "GET",
+    POST: "POST",
+} as const;
+export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,
@@ -162,7 +162,19 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
+ * Allowed values for response_type
+ */
+export const OAuthResponseType = {
+    CODE: "code",
+    IDTOKEN_TOKEN: "id_token token",
+    IDTOKEN_TOKEN_REFRESHTOKEN: "id_token token refresh_token",
+} as const;
+export type OAuthResponseType =
+    (typeof OAuthResponseType)[keyof typeof OAuthResponseType];
+
+/**
  * allowed values for server response type
+ * @deprecated Use ResponseMode instead
  */
 export const ServerResponseType = {
     QUERY: "query",
@@ -175,7 +187,8 @@ export type ServerResponseType =
  * allowed values for response_mode
  */
 export const ResponseMode = {
-    ...ServerResponseType,
+    QUERY: "query",
+    FRAGMENT: "fragment",
     FORM_POST: "form_post",
 } as const;
 export type ResponseMode = (typeof ResponseMode)[keyof typeof ResponseMode];
@@ -318,15 +331,6 @@ export type PasswordGrantConstants =
     (typeof PasswordGrantConstants)[keyof typeof PasswordGrantConstants];
 
 /**
- * Response codes
- */
-export const ResponseCodes = {
-    httpSuccess: 200,
-    httpBadRequest: 400,
-} as const;
-export type ResponseCodes = (typeof ResponseCodes)[keyof typeof ResponseCodes];
-
-/**
  * Region Discovery Sources
  */
 export const RegionDiscoverySources = {
@@ -380,3 +384,10 @@ export const ONE_DAY_IN_MS = 86400000;
 
 // Token renewal offset default in seconds
 export const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
+
+export const EncodingTypes = {
+    BASE64: "base64",
+    HEX: "hex",
+    UTF8: "utf-8",
+} as const;
+export type EncodingTypes = (typeof EncodingTypes)[keyof typeof EncodingTypes];

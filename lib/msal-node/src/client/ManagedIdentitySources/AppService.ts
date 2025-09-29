@@ -7,12 +7,11 @@ import { INetworkModule, Logger } from "@azure/msal-common/node";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
-    APP_SERVICE_SECRET_HEADER_NAME,
-    API_VERSION_QUERY_PARAMETER_NAME,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
+    ManagedIdentityHeaders,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -114,11 +113,12 @@ export class AppService extends BaseManagedIdentitySource {
                 this.identityEndpoint
             );
 
-        request.headers[APP_SERVICE_SECRET_HEADER_NAME] = this.identityHeader;
+        request.headers[ManagedIdentityHeaders.APP_SERVICE_SECRET_HEADER_NAME] =
+            this.identityHeader;
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             APP_SERVICE_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (

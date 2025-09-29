@@ -108,6 +108,11 @@ export type BrowserAuthOptions = {
      * Flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
      */
     instanceAware?: boolean;
+    /**
+     * Flag of whether to encode query parameters
+     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
+     */
+    encodeExtraQueryParams?: boolean;
 };
 
 /** @internal */
@@ -128,24 +133,32 @@ export type CacheOptions = {
      */
     cacheLocation?: BrowserCacheLocation | string;
     /**
+     * Used to specify the number of days cache entries written by previous versions of MSAL.js should be retained in the browser. Defaults to 5 days.
+     */
+    cacheRetentionDays?: number;
+    /**
      * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
     /**
      * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     storeAuthStateInCookie?: boolean;
     /**
      * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to true.
-     * @deprecated This option will be removed in a future major version and all cookies set will include the Secure attribute.
+     * @deprecated This option will be removed in the next major version and all cookies set will include the Secure attribute.
      */
     secureCookies?: boolean;
     /**
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     cacheMigrationEnabled?: boolean;
     /**
      * Flag that determines whether access tokens are stored based on requested claims
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     claimsBasedCachingEnabled?: boolean;
 };
@@ -296,11 +309,13 @@ export function buildConfiguration(
         skipAuthorityMetadataCache: false,
         supportsNestedAppAuth: false,
         instanceAware: false,
+        encodeExtraQueryParams: false,
     };
 
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
+        cacheRetentionDays: 5,
         temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
         secureCookies: false,
@@ -377,10 +392,10 @@ export function buildConfiguration(
         );
     }
 
-    // Throw an error if user has set allowPlatformBroker to true without being in AAD protocol mode
+    // Throw an error if user has set allowPlatformBroker to true with OIDC protocol mode
     if (
         userInputAuth?.protocolMode &&
-        userInputAuth.protocolMode !== ProtocolMode.AAD &&
+        userInputAuth.protocolMode === ProtocolMode.OIDC &&
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(

@@ -5,11 +5,23 @@
 
 const crypto = require("crypto");
 const { TextDecoder, TextEncoder } = require("util");
-const { BroadcastChannel } = require("worker_threads");
+const { BroadcastChannel, MessageChannel } = require("worker_threads");
+const { createBroadcastChannelTracker } = require("./BroadcastChannelTracker");
+
+// Create BroadcastChannel tracker for browser/jsdom environment
+const {
+    TrackedBroadcastChannel,
+    cleanupBroadcastChannels,
+    forceCleanupBroadcastChannels
+} = createBroadcastChannelTracker(() => BroadcastChannel);
+
+// Add cleanup functions to global for use in test setup files
+global.cleanupMsalBroadcastChannels = cleanupBroadcastChannels;
+global.forceCleanupMsalBroadcastChannels = forceCleanupBroadcastChannels;
 
 try {
     Object?.defineProperties(global.self, {
-        "crypto": {
+        crypto: {
             value: {
                 subtle: crypto.webcrypto.subtle,
                 getRandomValues(dataBuffer) {
@@ -18,17 +30,20 @@ try {
                 randomUUID() {
                     return crypto.randomUUID();
                 },
-            }
+            },
         },
-        "TextDecoder": {
-            value: TextDecoder
+        TextDecoder: {
+            value: TextDecoder,
         },
-        "TextEncoder": {
-            value: TextEncoder
+        TextEncoder: {
+            value: TextEncoder,
         },
-        "BroadcastChannel": {
-            value: BroadcastChannel
-        }
+        BroadcastChannel: {
+            value: TrackedBroadcastChannel,
+        },
+        MessageChannel: {
+            value: MessageChannel,
+        },
     });
 } catch (e) {
     // catch silently for non-browser tests

@@ -9,9 +9,11 @@ import {
     BaseAuthRequest,
     ClientConfigurationErrorCodes,
     CommonSilentFlowRequest,
+    HttpMethod,
     IPerformanceClient,
     Logger,
     PerformanceEvents,
+    ProtocolMode,
     StringUtils,
     createClientConfigurationError,
     invokeAsync,
@@ -19,6 +21,8 @@ import {
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
 import { hashString } from "../crypto/BrowserCrypto.js";
+import { PopupRequest } from "./PopupRequest.js";
+import { RedirectRequest } from "./RedirectRequest.js";
 
 /**
  * Initializer function for all request APIs
@@ -109,4 +113,45 @@ export async function initializeSilentRequest(
         account: account,
         forceRefresh: request.forceRefresh || false,
     };
+}
+
+/**
+ * Validates that the combination of request method, protocol mode and authorize body parameters is correct.
+ * Returns the validated or defaulted HTTP method or throws if the configured combination is invalid.
+ * @param interactionRequest
+ * @param protocolMode
+ * @returns
+ */
+export function validateRequestMethod(
+    interactionRequest: BaseAuthRequest | PopupRequest | RedirectRequest,
+    protocolMode: ProtocolMode
+): HttpMethod {
+    let httpMethod: HttpMethod | undefined;
+    const requestMethod = interactionRequest.httpMethod;
+
+    if (protocolMode === ProtocolMode.EAR) {
+        // Don't override httpMethod if it is already set, default to POST if not set
+        httpMethod = requestMethod || HttpMethod.POST;
+        // Validate that method is not GET if protocol mode is EAR
+        if (httpMethod !== HttpMethod.POST) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+            );
+        }
+    } else {
+        // For non-EAR protocol modes, default to GET if httpMethod is not set
+        httpMethod = requestMethod || HttpMethod.GET;
+    }
+
+    // Regardless of protocolMode, if there are authorizePostBodyParameters, validate the request method is POST
+    if (
+        interactionRequest.authorizePostBodyParameters &&
+        httpMethod !== HttpMethod.POST
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
+        );
+    }
+
+    return httpMethod;
 }
