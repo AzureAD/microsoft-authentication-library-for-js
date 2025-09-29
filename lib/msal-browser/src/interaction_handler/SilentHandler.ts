@@ -35,7 +35,7 @@ export async function initiateCodeRequest(
 ): Promise<HTMLIFrameElement> {
     if (!requestUrl) {
         // Throw error if request URL is empty.
-        logger.info("Navigate url is empty");
+        logger.info("Navigate url is empty", correlationId);
         throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri);
     }
 
@@ -88,7 +88,8 @@ export async function monitorIframeForHash(
     return new Promise<string>((resolve, reject) => {
         if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
             logger.warning(
-                `system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`
+                `system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`,
+                correlationId
             );
         }
 

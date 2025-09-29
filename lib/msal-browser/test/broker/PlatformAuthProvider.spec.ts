@@ -15,6 +15,7 @@ import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/Plat
 import exp from "constants";
 import { log } from "console";
 import { BrowserAuthError } from "../../src/index.js";
+import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 describe("PlatformAuthProvider tests", () => {
     function stubExtensionProvider() {
@@ -79,8 +80,11 @@ describe("PlatformAuthProvider tests", () => {
 
             const domProviderSpy = stubDOMProvider();
 
-            const result =
-                await PlatformAuthProvider.isPlatformBrokerAvailable();
+            const result = await PlatformAuthProvider.isPlatformBrokerAvailable(
+                {},
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
+            );
             expect(result).toBe(true);
             expect(getItemSpy).toHaveBeenCalled();
             expect(domProviderSpy).toHaveBeenCalled();
@@ -89,8 +93,11 @@ describe("PlatformAuthProvider tests", () => {
         it("should return true if its a browser app and extension handler is available", async () => {
             const extensionProviderSpy = stubExtensionProvider();
 
-            const result =
-                await PlatformAuthProvider.isPlatformBrokerAvailable();
+            const result = await PlatformAuthProvider.isPlatformBrokerAvailable(
+                {},
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
+            );
             expect(result).toBe(true);
             expect(extensionProviderSpy).toHaveBeenCalled();
         });
@@ -110,8 +117,11 @@ describe("PlatformAuthProvider tests", () => {
                 throw new Error("No handler available");
             });
 
-            const result =
-                await PlatformAuthProvider.isPlatformBrokerAvailable();
+            const result = await PlatformAuthProvider.isPlatformBrokerAvailable(
+                {},
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
+            );
             expect(result).toBe(false);
         });
     });
@@ -227,6 +237,7 @@ describe("PlatformAuthProvider tests", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
+                TEST_CONFIG.CORRELATION_ID,
                 new PlatformAuthDOMHandler(
                     logger,
                     performanceClient,
@@ -241,6 +252,7 @@ describe("PlatformAuthProvider tests", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
+                TEST_CONFIG.CORRELATION_ID,
                 undefined,
                 Constants.AuthenticationScheme.BEARER
             );
@@ -250,6 +262,7 @@ describe("PlatformAuthProvider tests", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
+                TEST_CONFIG.CORRELATION_ID,
                 new PlatformAuthDOMHandler(
                     logger,
                     performanceClient,
@@ -264,6 +277,7 @@ describe("PlatformAuthProvider tests", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
+                TEST_CONFIG.CORRELATION_ID,
                 new PlatformAuthDOMHandler(
                     logger,
                     performanceClient,

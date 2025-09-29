@@ -96,7 +96,8 @@ export async function loadExternalTokens(
               storage,
               authorityOptions,
               logger,
-              request.correlationId || BrowserCrypto.createNewGuid()
+              request.correlationId || BrowserCrypto.createNewGuid(),
+              browserConfig.telemetry.client
           )
         : undefined;
 
@@ -177,7 +178,7 @@ async function loadAccount(
     idTokenClaims?: TokenClaims,
     authority?: Authority
 ): Promise<AccountEntity> {
-    logger.verbose("TokenCache - loading account");
+    logger.verbose("TokenCache - loading account", correlationId);
 
     if (request.account) {
         const accountEntity =
@@ -188,7 +189,8 @@ async function loadAccount(
         return accountEntity;
     } else if (!authority || (!clientInfo && !idTokenClaims)) {
         logger.error(
-            "TokenCache - if an account is not provided on the request, authority and either clientInfo or idToken must be provided instead."
+            "TokenCache - if an account is not provided on the request, authority and either clientInfo or idToken must be provided instead.",
+            correlationId
         );
         throw createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken);
     }
@@ -198,6 +200,7 @@ async function loadAccount(
         authority.authorityType,
         logger,
         cryptoObj,
+        correlationId,
         idTokenClaims
     );
 
@@ -241,11 +244,14 @@ async function loadIdToken(
     clientId: string
 ): Promise<IdTokenEntity | null> {
     if (!response.id_token) {
-        logger.verbose("TokenCache - no id token found in response");
+        logger.verbose(
+            "TokenCache - no id token found in response",
+            correlationId
+        );
         return null;
     }
 
-    logger.verbose("TokenCache - loading id token");
+    logger.verbose("TokenCache - loading id token", correlationId);
     const idTokenEntity = CacheHelpers.createIdTokenEntity(
         homeAccountId,
         environment,
@@ -280,21 +286,26 @@ async function loadAccessToken(
     clientId: string
 ): Promise<AccessTokenEntity | null> {
     if (!response.access_token) {
-        logger.verbose("TokenCache - no access token found in response");
+        logger.verbose(
+            "TokenCache - no access token found in response",
+            correlationId
+        );
         return null;
     } else if (!response.expires_in) {
         logger.error(
-            "TokenCache - no expiration set on the access token. Cannot add it to the cache."
+            "TokenCache - no expiration set on the access token. Cannot add it to the cache.",
+            correlationId
         );
         return null;
     } else if (!response.scope && (!request.scopes || !request.scopes.length)) {
         logger.error(
-            "TokenCache - scopes not specified in the request or response. Cannot add token to the cache."
+            "TokenCache - scopes not specified in the request or response. Cannot add token to the cache.",
+            correlationId
         );
         return null;
     }
 
-    logger.verbose("TokenCache - loading access token");
+    logger.verbose("TokenCache - loading access token", correlationId);
 
     const scopes = response.scope
         ? ScopeSet.fromString(response.scope)
@@ -341,11 +352,14 @@ async function loadRefreshToken(
     clientId: string
 ): Promise<RefreshTokenEntity | null> {
     if (!response.refresh_token) {
-        logger.verbose("TokenCache - no refresh token found in response");
+        logger.verbose(
+            "TokenCache - no refresh token found in response",
+            correlationId
+        );
         return null;
     }
 
-    logger.verbose("TokenCache - loading refresh token");
+    logger.verbose("TokenCache - loading refresh token", correlationId);
     const refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
         homeAccountId,
         environment,

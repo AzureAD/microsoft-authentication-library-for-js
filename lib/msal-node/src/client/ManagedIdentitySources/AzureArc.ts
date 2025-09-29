@@ -136,7 +136,8 @@ export class AzureArc extends BaseManagedIdentitySource {
         // if either of the identity or imds endpoints are undefined (even after himds file detection)
         if (!identityEndpoint || !imdsEndpoint) {
             logger.info(
-                `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is unavailable through environment variables because one or both of '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT}' are not defined. ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is also unavailable through file detection.`
+                `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is unavailable through environment variables because one or both of '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT}' are not defined. ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is also unavailable through file detection.`,
+                ""
             );
 
             return null;
@@ -145,7 +146,8 @@ export class AzureArc extends BaseManagedIdentitySource {
         // check if the imds endpoint is set to the default for file detection
         if (imdsEndpoint === HIMDS_EXECUTABLE_HELPER_STRING) {
             logger.info(
-                `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is available through file detection. Defaulting to known ${ManagedIdentitySourceNames.AZURE_ARC} endpoint: ${DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT}. Creating ${ManagedIdentitySourceNames.AZURE_ARC} managed identity.`
+                `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is available through file detection. Defaulting to known ${ManagedIdentitySourceNames.AZURE_ARC} endpoint: ${DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT}. Creating ${ManagedIdentitySourceNames.AZURE_ARC} managed identity.`,
+                ""
             );
         } else {
             // otherwise, both the identity and imds endpoints are defined without file detection; validate them
@@ -170,7 +172,8 @@ export class AzureArc extends BaseManagedIdentitySource {
             );
 
             logger.info(
-                `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.AZURE_ARC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.AZURE_ARC} managed identity.`
+                `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.AZURE_ARC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.AZURE_ARC} managed identity.`,
+                ""
             );
         }
 
@@ -302,7 +305,8 @@ export class AzureArc extends BaseManagedIdentitySource {
             const authHeaderValue = `Basic ${secret}`;
 
             this.logger.info(
-                `[Managed Identity] Adding authorization header to the request.`
+                `[Managed Identity] Adding authorization header to the request.`,
+                ""
             );
             networkRequest.headers[
                 ManagedIdentityHeaders.AUTHORIZATION_HEADER_NAME

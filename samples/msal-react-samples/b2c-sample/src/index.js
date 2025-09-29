@@ -19,12 +19,7 @@ msalInstance.initialize().then(() => {
   }
   
   msalInstance.addEventCallback((event) => {
-    if (event.eventType === EventType.LOGIN_SUCCESS
-      ||
-      event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS
-      ||
-      event.eventType === EventType.SSO_SILENT_SUCCESS
-    ) {
+    if (event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS && event.payload) {
       const account = event.payload.account;
       msalInstance.setActiveAccount(account);
     }

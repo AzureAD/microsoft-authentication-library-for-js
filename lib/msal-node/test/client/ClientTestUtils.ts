@@ -326,7 +326,8 @@ export class ClientTestUtils {
             mockStorage,
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            new StubPerformanceClient()
         );
 
         await authority.resolveEndpointsAsync().catch(() => {

@@ -41,10 +41,10 @@ export class CrossPlatformLock {
     public async lock(): Promise<void> {
         for (let tryCount = 0; tryCount < this.retryNumber; tryCount++) {
             try {
-                this.logger.info(`Pid ${pid} trying to acquire lock`);
+                this.logger.info(`Pid ${pid} trying to acquire lock`, "");
                 this.lockFileHandle = await fs.open(this.lockFilePath, "wx+");
 
-                this.logger.info(`Pid ${pid} acquired lock`);
+                this.logger.info(`Pid ${pid} acquired lock`, "");
                 await this.lockFileHandle.write(pid.toString());
                 return;
             } catch (err) {
@@ -53,11 +53,12 @@ export class CrossPlatformLock {
                         err.code === Constants.EEXIST_ERROR ||
                         err.code === Constants.EPERM_ERROR
                     ) {
-                        this.logger.info(err.message);
+                        this.logger.info(err.message, "");
                         await this.sleep(this.retryDelay);
                     } else {
                         this.logger.error(
-                            `${pid} was not able to acquire lock. Ran into error: ${err.message}`
+                            `${pid} was not able to acquire lock. Ran into error: ${err.message}`,
+                            ""
                         );
                         throw PersistenceError.createCrossPlatformLockError(
                             err.message
@@ -69,7 +70,8 @@ export class CrossPlatformLock {
             }
         }
         this.logger.error(
-            `${pid} was not able to acquire lock. Exceeded amount of retries set in the options`
+            `${pid} was not able to acquire lock. Exceeded amount of retries set in the options`,
+            ""
         );
         throw PersistenceError.createCrossPlatformLockError(
             "Not able to acquire lock. Exceeded amount of retries set in options"
@@ -85,21 +87,24 @@ export class CrossPlatformLock {
                 // if we have a file handle to the .lockfile, delete lock file
                 await fs.unlink(this.lockFilePath);
                 await this.lockFileHandle.close();
-                this.logger.info("lockfile deleted");
+                this.logger.info("lockfile deleted", "");
             } else {
                 this.logger.warning(
-                    "lockfile handle does not exist, so lockfile could not be deleted"
+                    "lockfile handle does not exist, so lockfile could not be deleted",
+                    ""
                 );
             }
         } catch (err) {
             if (isNodeError(err)) {
                 if (err.code === Constants.ENOENT_ERROR) {
                     this.logger.info(
-                        "Tried to unlock but lockfile does not exist"
+                        "Tried to unlock but lockfile does not exist",
+                        ""
                     );
                 } else {
                     this.logger.error(
-                        `${pid} was not able to release lock. Ran into error: ${err.message}`
+                        `${pid} was not able to release lock. Ran into error: ${err.message}`,
+                        ""
                     );
                     throw PersistenceError.createCrossPlatformLockError(
                         err.message

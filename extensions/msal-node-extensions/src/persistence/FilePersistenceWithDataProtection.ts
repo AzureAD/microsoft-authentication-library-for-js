@@ -88,7 +88,8 @@ export class FilePersistenceWithDataProtection
                 this.filePersistence
                     .getLogger()
                     .info(
-                        "Encrypted contents loaded from file were null or empty"
+                        "Encrypted contents loaded from file were null or empty",
+                        ""
                     );
                 return null;
             }

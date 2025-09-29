@@ -206,6 +206,7 @@ export function generateHomeAccountId(
     authType: AuthorityType,
     logger: Logger,
     cryptoObj: ICrypto,
+    correlationId: string,
     idTokenClaims?: TokenClaims
 ): string {
     // since ADFS/DSTS do not have tid and does not set client_info
@@ -222,7 +223,7 @@ export function generateHomeAccountId(
                 }
             } catch (e) {}
         }
-        logger.warning("No client info in response");
+        logger.warning("No client info in response", correlationId);
     }
 
     // default to "sub" claim

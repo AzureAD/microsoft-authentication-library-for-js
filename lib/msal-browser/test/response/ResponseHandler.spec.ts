@@ -2,6 +2,7 @@ import { Logger } from "@azure/msal-common";
 import * as ResponseHandler from "../../src/response/ResponseHandler";
 import { BrowserAuthErrorCodes } from "../../src";
 import { createBrowserAuthError } from "../../src/error/BrowserAuthError";
+import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 describe("ResponseHandler tests", () => {
     describe("deserializeResponse", () => {
@@ -11,7 +12,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "#code=hello&state=state",
                     "hash",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toEqual({ code: "hello", state: "state" });
 
@@ -20,7 +22,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "code=hello&state=state",
                     "hash",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toEqual({ code: "hello", state: "state" });
 
@@ -29,7 +32,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "#error=errorCode&error_description=errorDescription",
                     "hash",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toEqual({
                 error: "errorCode",
@@ -43,7 +47,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "?code=hello&state=state",
                     "query",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toEqual({ code: "hello", state: "state" });
 
@@ -52,7 +57,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "code=hello&state=state",
                     "query",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toEqual({ code: "hello", state: "state" });
 
@@ -61,7 +67,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "?error=errorCode&error_description=errorDescription",
                     "query",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toEqual({
                 error: "errorCode",
@@ -71,13 +78,23 @@ describe("ResponseHandler tests", () => {
 
         it("Throws error if response is empty", () => {
             expect(() =>
-                ResponseHandler.deserializeResponse("#", "hash", new Logger({}))
+                ResponseHandler.deserializeResponse(
+                    "#",
+                    "hash",
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).toThrowError(
                 createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
 
             expect(() =>
-                ResponseHandler.deserializeResponse("", "hash", new Logger({}))
+                ResponseHandler.deserializeResponse(
+                    "",
+                    "hash",
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).toThrowError(
                 createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
@@ -86,14 +103,20 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "?",
                     "query",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
                 createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
 
             expect(() =>
-                ResponseHandler.deserializeResponse("", "query", new Logger({}))
+                ResponseHandler.deserializeResponse(
+                    "",
+                    "query",
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).toThrowError(
                 createBrowserAuthError(BrowserAuthErrorCodes.hashEmptyError)
             );
@@ -104,7 +127,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "#hello",
                     "hash",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
                 createBrowserAuthError(
@@ -115,7 +139,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "#key=value",
                     "hash",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
                 createBrowserAuthError(
@@ -127,7 +152,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "?hello",
                     "query",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
                 createBrowserAuthError(
@@ -139,7 +165,8 @@ describe("ResponseHandler tests", () => {
                 ResponseHandler.deserializeResponse(
                     "?key=value",
                     "query",
-                    new Logger({})
+                    new Logger({}),
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).toThrowError(
                 createBrowserAuthError(

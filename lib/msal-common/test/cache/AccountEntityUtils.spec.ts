@@ -77,7 +77,8 @@ const authority = new Authority(
     new MockStorageClass("client-id", mockCrypto, logger, performanceClient),
     authorityOptions,
     logger,
-    TEST_CONFIG.CORRELATION_ID
+    TEST_CONFIG.CORRELATION_ID,
+    new StubPerformanceClient()
 );
 
 describe("AccountEntityUtils.ts Unit Tests", () => {
@@ -118,6 +119,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
+            TEST_CONFIG.CORRELATION_ID,
             idTokenClaims
         );
 
@@ -157,6 +159,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
+            TEST_CONFIG.CORRELATION_ID,
             idTokenClaims
         );
 
@@ -196,6 +199,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
+            TEST_CONFIG.CORRELATION_ID,
             idTokenClaims
         );
 
@@ -228,7 +232,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             ),
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            new StubPerformanceClient()
         );
 
         // Set up stubs
@@ -248,6 +253,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
+            TEST_CONFIG.CORRELATION_ID,
             idTokenClaims
         );
 
@@ -286,7 +292,8 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 authorityMetadata: "",
             },
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            new StubPerformanceClient()
         );
 
         // Set up stubs
@@ -406,6 +413,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
+                TEST_CONFIG.CORRELATION_ID,
                 idTokenClaims
             );
 
@@ -633,7 +641,8 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
             ),
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            new StubPerformanceClient()
         );
 
         // Set up stubs
@@ -694,7 +703,8 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
             ),
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            new StubPerformanceClient()
         );
 
         // Set up stubs
