@@ -454,8 +454,6 @@ export class HttpClient implements INetworkModule {
 
     /**
      * Helper function to log URLs with PII-aware sanitization using pre-bound method
-     * @param logMethod {(message: string) => void} the pre-bound logger method
-     * @param isPiiEnabled {boolean} whether PII logging is enabled
      * @param urlString {string} the URL to log
      * @param label {string} the label for the log message
      */
@@ -480,9 +478,6 @@ export class HttpClient implements INetworkModule {
 
     /**
      * Helper function to log headers with PII awareness using pre-bound method and standard logger
-     * @param logMethod {(message: string) => void} the pre-bound logger method
-     * @param standardLogger {Logger} the logger instance for standard (non-PII) logging
-     * @param isPiiEnabled {boolean} whether PII logging is enabled
      * @param headers {Record<string, unknown>} the headers to log
      */
     private logHeadersWithPiiAwareness = (
