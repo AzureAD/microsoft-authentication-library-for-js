@@ -1,4 +1,4 @@
-import { StaticAuthorityOptions, Constants } from "../../src";
+import { StaticAuthorityOptions, Constants, LogLevel, Logger } from "../../src";
 import {
     InstanceDiscoveryMetadata,
     getAliasesFromStaticSources,
@@ -19,6 +19,13 @@ const TENANTS = [
 ];
 const CLOUD_KEYS = Object.keys(CLOUD_HOSTS);
 
+const loggerOptions = {
+    loggerCallback: (): void => {},
+    piiLoggingEnabled: true,
+    logLevel: LogLevel.Verbose,
+};
+const logger = new Logger(loggerOptions);
+
 describe("AuthorityMetadata.ts Unit Tests", () => {
     describe("getAliasesFromStaticSources()", () => {
         describe("from config CloudDiscoveryMetadataResponse", () => {
@@ -34,7 +41,11 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                                 tenant
                             );
                         expect(
-                            getAliasesFromStaticSources(staticAuthorityOptions)
+                            getAliasesFromStaticSources(
+                                staticAuthorityOptions,
+                                logger,
+                                TEST_CONFIG.CORRELATION_ID
+                            )
                         ).toEqual(METADATA_ALIASES[cloudKey]);
                     });
                 });
@@ -52,7 +63,11 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                             ),
                         };
                         expect(
-                            getAliasesFromStaticSources(staticAuthorityOptions)
+                            getAliasesFromStaticSources(
+                                staticAuthorityOptions,
+                                logger,
+                                TEST_CONFIG.CORRELATION_ID
+                            )
                         ).toEqual(METADATA_ALIASES[cloudKey]);
                     });
                 });

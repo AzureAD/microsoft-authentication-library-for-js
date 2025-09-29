@@ -6,6 +6,7 @@ import {
     getDefaultBrowserCacheManager,
     getDefaultLogger,
 } from "../test_resources/TestModules.js";
+import { TEST_CONFIG } from "../../utils/StringConstants.js";
 
 describe("CustomAuthAuthority", () => {
     const authorityUrl = customAuthConfig.auth.authority;
@@ -92,7 +93,10 @@ describe("CustomAuthAuthority", () => {
                     .includes(authorityMetadataEntityKey)
             ).toBe(true);
             expect(
-                browserStorage.getAuthorityMetadata(authorityMetadataEntityKey)
+                browserStorage.getAuthorityMetadata(
+                    authorityMetadataEntityKey,
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).toMatchObject({
                 aliases: [authorityHostname],
                 preferred_cache: authorityHostname,

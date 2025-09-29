@@ -150,20 +150,7 @@ const cryptoInterface = {
     },
 };
 
-const performanceClient = {
-    startMeasurement: jest.fn(),
-    endMeasurement: jest.fn(),
-    discardMeasurements: jest.fn(),
-    removePerformanceCallback: jest.fn(),
-    addPerformanceCallback: jest.fn(),
-    emitEvents: jest.fn(),
-    generateId: jest.fn(),
-    calculateQueuedTime: jest.fn(),
-    addQueueMeasurement: jest.fn(),
-    setPreQueueTime: jest.fn(),
-    addFields: jest.fn(),
-    incrementFields: jest.fn(),
-};
+const performanceClient = new StubPerformanceClient();
 
 let authorityInstance: Authority;
 let authConfig: ClientConfiguration;
@@ -205,7 +192,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             browserStorage,
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            new StubPerformanceClient()
         );
         await authorityInstance.resolveEndpointsAsync();
         authConfig = {
@@ -240,7 +228,10 @@ describe("InteractionHandler.ts Unit Tests", () => {
             },
             loggerOptions: loggerOptions,
         };
-        authCodeModule = new AuthorizationCodeClient(authConfig);
+        authCodeModule = new AuthorizationCodeClient(
+            authConfig,
+            new StubPerformanceClient()
+        );
     });
 
     afterEach(() => {

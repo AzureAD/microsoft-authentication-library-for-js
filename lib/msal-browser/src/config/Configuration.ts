@@ -324,7 +324,8 @@ export function buildConfiguration(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.cannotSetOIDCOptions
                 )
-            )
+            ),
+            ""
         );
     }
 

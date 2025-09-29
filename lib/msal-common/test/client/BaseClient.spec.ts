@@ -25,10 +25,11 @@ import {
     ClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
+import { StubPerformanceClient } from "../../src/index.js";
 
 class TestClient extends BaseClient {
     constructor(config: ClientConfiguration) {
-        super(config);
+        super(config, new StubPerformanceClient());
     }
 
     getLogger() {

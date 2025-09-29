@@ -37,9 +37,9 @@ export type KeyLocation = (typeof KeyLocation)[keyof typeof KeyLocation];
 /** @internal */
 export class PopTokenGenerator {
     private cryptoUtils: ICrypto;
-    private performanceClient?: IPerformanceClient;
+    private performanceClient: IPerformanceClient;
 
-    constructor(cryptoUtils: ICrypto, performanceClient?: IPerformanceClient) {
+    constructor(cryptoUtils: ICrypto, performanceClient: IPerformanceClient) {
         this.cryptoUtils = cryptoUtils;
         this.performanceClient = performanceClient;
     }

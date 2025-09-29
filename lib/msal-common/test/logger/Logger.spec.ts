@@ -1,5 +1,6 @@
 import { LoggerOptions } from "../../src/config/ClientConfiguration.js";
 import { LogLevel, Logger } from "../../src/logger/Logger.js";
+import { TEST_CONFIG } from "../test_kit/StringConstants.js";
 
 describe("Logger.ts Class Unit Tests", () => {
     let loggerOptions: LoggerOptions;
@@ -38,11 +39,11 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a logger with level Error", () => {
             const options = { ...loggerOptions, logLevel: LogLevel.Error };
             const logger = new Logger(options);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBe(undefined);
             expect(logStore[LogLevel.Info]).toBe(undefined);
@@ -53,11 +54,11 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a logger with level Warning", () => {
             const options = { ...loggerOptions, logLevel: LogLevel.Warning };
             const logger = new Logger(options);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBe(undefined);
@@ -68,11 +69,11 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a logger with level Info", () => {
             const options = { ...loggerOptions, logLevel: LogLevel.Info };
             const logger = new Logger(options);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -83,11 +84,11 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a logger with level Verbose", () => {
             const options = { ...loggerOptions, logLevel: LogLevel.Verbose };
             const logger = new Logger(options);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -98,11 +99,11 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a logger with level Trace", () => {
             const options = { ...loggerOptions, logLevel: LogLevel.Trace };
             const logger = new Logger(options);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -122,11 +123,11 @@ describe("Logger.ts Class Unit Tests", () => {
                 piiLoggingEnabled: true,
             };
             const logger = new Logger(loggerOptions);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -148,11 +149,11 @@ describe("Logger.ts Class Unit Tests", () => {
                 logLevel: "Verbose",
             };
             const logger = new Logger(loggerOptions);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -174,11 +175,11 @@ describe("Logger.ts Class Unit Tests", () => {
                 logLevel: [LogLevel.Verbose],
             };
             const logger = new Logger(loggerOptions);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -200,11 +201,11 @@ describe("Logger.ts Class Unit Tests", () => {
                 logLevel: null,
             };
             const logger = new Logger(loggerOptions);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message");
+            logger.error("Message", "");
+            logger.warning("Message", "");
+            logger.info("Message", "");
+            logger.verbose("Message", "");
+            logger.trace("Message", "");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -225,7 +226,7 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a new logger with package name and package version", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "2.0.0");
-            loggerClone.info("Message");
+            loggerClone.info("Message", TEST_CONFIG.CORRELATION_ID);
             expect(logStore[LogLevel.Info]).toContain("msal-common");
             expect(logStore[LogLevel.Info]).toContain("2.0.0");
             expect(logStore[LogLevel.Info]).toContain("msal-common@2.0.0");
@@ -244,7 +245,7 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a new logger with package name and package version", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "2.0.0");
-            loggerClone.info("Message");
+            loggerClone.info("Message", TEST_CONFIG.CORRELATION_ID);
             expect(logStore[LogLevel.Info]).toContain("msal-common");
             expect(logStore[LogLevel.Info]).toContain("2.0.0");
             expect(logStore[LogLevel.Info]).toContain("msal-common@2.0.0");
@@ -267,7 +268,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.error("Message");
+            logger.error("Message", "");
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Error,
                 expect.anything(),
@@ -282,7 +283,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.errorPii("Message");
+            logger.errorPii("Message", TEST_CONFIG.CORRELATION_ID);
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Error,
                 expect.anything(),
@@ -298,7 +299,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.errorPii("Message");
+            logger.errorPii("Message", TEST_CONFIG.CORRELATION_ID);
             expect(executeCbSpy).not.toHaveBeenCalled();
         });
     });
@@ -311,7 +312,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.warning("Message");
+            logger.warning("Message", "");
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Warning,
                 expect.anything(),
@@ -326,7 +327,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.warningPii("Message");
+            logger.warningPii("Message", TEST_CONFIG.CORRELATION_ID);
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Warning,
                 expect.anything(),
@@ -342,7 +343,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.warningPii("Message");
+            logger.warningPii("Message", TEST_CONFIG.CORRELATION_ID);
             expect(executeCbSpy).not.toHaveBeenCalled();
         });
     });
@@ -355,7 +356,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.info("Message");
+            logger.info("Message", "");
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.anything(),
@@ -370,7 +371,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.infoPii("Message");
+            logger.infoPii("Message", TEST_CONFIG.CORRELATION_ID);
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Info,
                 expect.anything(),
@@ -386,7 +387,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.infoPii("Message");
+            logger.infoPii("Message", TEST_CONFIG.CORRELATION_ID);
             expect(executeCbSpy).not.toHaveBeenCalled();
         });
     });
@@ -399,7 +400,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.verbose("Message");
+            logger.verbose("Message", "");
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.anything(),
@@ -414,7 +415,7 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.verbosePii("Message");
+            logger.verbosePii("Message", "");
             expect(executeCbSpy).toHaveBeenCalledWith(
                 LogLevel.Verbose,
                 expect.anything(),
@@ -430,51 +431,17 @@ describe("Logger.ts Class Unit Tests", () => {
             );
 
             const logger = new Logger(loggerOptions);
-            logger.verbosePii("Message");
+            logger.verbosePii("Message", "");
             expect(executeCbSpy).not.toHaveBeenCalled();
         });
     });
 
     describe("CorrelationId tests", () => {
-        it("CorrelationId is included in log message if set on Logger configurations", () => {
-            const testCorrelationId = "12345";
-            const logger = new Logger({
-                ...loggerOptions,
-                correlationId: testCorrelationId,
-            });
-
-            logger.verbose("Message");
-            expect(logStore[LogLevel.Verbose]).toContain(testCorrelationId);
-        });
-
         it("CorrelationId is included in log message if passed in log message", () => {
             const testCorrelationId = "23456";
             const logger = new Logger(loggerOptions);
 
             logger.verbose("Message", testCorrelationId);
-            expect(logStore[LogLevel.Verbose]).toContain(testCorrelationId);
-        });
-
-        it("CorrelationId passed in log message takes precedence over correlationId in Logger configurations", () => {
-            const optionsCorrelationId = "34567";
-            const testCorrelationId = "45678";
-            const logger = new Logger({
-                ...loggerOptions,
-                correlationId: optionsCorrelationId,
-            });
-
-            logger.verbose("Message", testCorrelationId);
-            expect(logStore[LogLevel.Verbose]).toContain(testCorrelationId);
-            expect(logStore[LogLevel.Verbose]).not.toContain(
-                optionsCorrelationId
-            );
-        });
-
-        it("CorrelationId on Logger will be used if an empty string is passed in the log message", () => {
-            const testCorrelationId = "56789";
-            const logger = new Logger(loggerOptions, testCorrelationId);
-
-            logger.verbose("Message", "");
             expect(logStore[LogLevel.Verbose]).toContain(testCorrelationId);
         });
     });
