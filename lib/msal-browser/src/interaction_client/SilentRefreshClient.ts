@@ -41,7 +41,13 @@ export class SilentRefreshClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request, this.config, this.performanceClient, this.logger);
+        )(
+            request,
+            this.config,
+            this.performanceClient,
+            this.logger,
+            this.correlationId
+        );
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...baseRequest,
@@ -52,7 +58,8 @@ export class SilentRefreshClient extends StandardInteractionClient {
             silentRequest.redirectUri = getRedirectUri(
                 request.redirectUri,
                 this.config.auth.redirectUri,
-                this.logger
+                this.logger,
+                this.correlationId
             );
         }
 

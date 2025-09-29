@@ -8,7 +8,8 @@ import { InProgressPerformanceEvent, Logger } from "@azure/msal-common/browser";
 export function collectInstanceStats(
     currentClientId: string,
     performanceEvent: InProgressPerformanceEvent,
-    logger: Logger
+    logger: Logger,
+    correlationId: string
 ): void {
     const frameInstances: string[] =
         // @ts-ignore
@@ -22,7 +23,8 @@ export function collectInstanceStats(
 
     if (sameClientIdInstanceCount > 1) {
         logger.warning(
-            "There is already an instance of MSAL.js in the window with the same client id."
+            "There is already an instance of MSAL.js in the window with the same client id.",
+            correlationId
         );
     }
     performanceEvent.add({

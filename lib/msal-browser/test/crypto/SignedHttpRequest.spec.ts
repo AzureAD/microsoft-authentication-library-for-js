@@ -1,8 +1,9 @@
-import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
+import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest.js";
 import { createHash } from "crypto";
 import { AuthToken } from "@azure/msal-common";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { base64Decode } from "../../src/encode/Base64Decode";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
+import { base64Decode } from "../../src/encode/Base64Decode.js";
+import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 let mockDatabase = {
     "TestDB.keys": {},
@@ -57,6 +58,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
         const shr: SignedHttpRequest = new SignedHttpRequest({
             resourceRequestUri: "https://consoto.com",
             resourceRequestMethod: "GET",
+            correlationId: TEST_CONFIG.CORRELATION_ID,
         });
         const kid = await shr.generatePublicKeyThumbprint();
         expect(kid).toEqual("oYYABCL-q4VzKcaE6f6RQSsaXbCEEAs3qYz8lbYqqGc");
@@ -70,6 +72,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
         const shr: SignedHttpRequest = new SignedHttpRequest({
             resourceRequestUri: "https://consoto.com/path",
             resourceRequestMethod: "GET",
+            correlationId: TEST_CONFIG.CORRELATION_ID,
         });
         const kid = await shr.generatePublicKeyThumbprint();
 
@@ -95,11 +98,12 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
         const shr: SignedHttpRequest = new SignedHttpRequest({
             resourceRequestUri: "https://consoto.com/path",
             resourceRequestMethod: "GET",
+            correlationId: TEST_CONFIG.CORRELATION_ID,
         });
         const kid = await shr.generatePublicKeyThumbprint();
 
         expect(mockDatabase["TestDB.keys"][kid]).toBeDefined();
-        await shr.removeKeys(kid);
+        await shr.removeKeys(kid, TEST_CONFIG.CORRELATION_ID);
         expect(mockDatabase["TestDB.keys"][kid]).toBeUndefined();
     });
 });

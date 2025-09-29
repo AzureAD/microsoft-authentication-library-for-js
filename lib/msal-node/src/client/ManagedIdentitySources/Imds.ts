@@ -94,7 +94,8 @@ export class Imds extends BaseManagedIdentitySource {
                         ManagedIdentityEnvironmentVariableNames
                             .AZURE_POD_IDENTITY_AUTHORITY_HOST
                     ]
-                }`
+                }`,
+                ""
             );
             validatedIdentityEndpoint = Imds.getValidatedEnvVariableUrlString(
                 ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST,
@@ -109,7 +110,8 @@ export class Imds extends BaseManagedIdentitySource {
             );
         } else {
             logger.info(
-                `[Managed Identity] Unable to find ${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST} environment variable for ${ManagedIdentitySourceNames.IMDS}, using the default endpoint.`
+                `[Managed Identity] Unable to find ${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST} environment variable for ${ManagedIdentitySourceNames.IMDS}, using the default endpoint.`,
+                ""
             );
             validatedIdentityEndpoint = DEFAULT_IMDS_ENDPOINT;
         }

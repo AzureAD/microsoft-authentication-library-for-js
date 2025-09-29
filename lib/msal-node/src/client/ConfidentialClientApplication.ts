@@ -145,7 +145,7 @@ export class ConfidentialClientApplication
     ): Promise<AuthenticationResult | null> {
         this.logger.info(
             "acquireTokenByClientCredential called",
-            request.correlationId
+            request.correlationId || ""
         );
 
         // If there is a client assertion present in the request, it overrides the one present in the client configuration
@@ -268,7 +268,7 @@ export class ConfidentialClientApplication
     ): Promise<AuthenticationResult | null> {
         this.logger.info(
             "acquireTokenOnBehalfOf called",
-            request.correlationId
+            request.correlationId || ""
         );
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,

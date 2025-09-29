@@ -7,7 +7,7 @@ import {
     DeviceCodeResponse,
     StringDict,
     BaseAuthRequest,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 
 /**
  * Parameters for Oauth2 device code flow.

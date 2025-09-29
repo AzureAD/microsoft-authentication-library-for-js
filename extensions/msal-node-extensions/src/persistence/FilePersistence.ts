@@ -112,7 +112,8 @@ export class FilePersistence extends BasePersistence implements IPersistence {
                 if (err.code === Constants.ENOENT_ERROR) {
                     // file does not exist, so it was not deleted
                     this.logger.warning(
-                        "Cache file does not exist, so it could not be deleted"
+                        "Cache file does not exist, so it could not be deleted",
+                        ""
                     );
                     return false;
                 }
@@ -161,7 +162,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             if (isNodeError(err)) {
                 if (err.code === Constants.ENOENT_ERROR) {
                     // file does not exist, so it's never been modified
-                    this.logger.verbose("Cache file does not exist");
+                    this.logger.verbose("Cache file does not exist", "");
                     return 0;
                 }
                 throw PersistenceError.createFileSystemError(
@@ -179,7 +180,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
         // File is created only if it does not exist
         const fileHandle = await fs.open(this.filePath, "a");
         await fileHandle.close();
-        this.logger.info(`File created at ${this.filePath}`);
+        this.logger.info(`File created at ${this.filePath}`, "");
     }
 
     private async createFileDirectory(): Promise<void> {
@@ -189,7 +190,8 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             if (isNodeError(err)) {
                 if (err.code === Constants.EEXIST_ERROR) {
                     this.logger.info(
-                        `Directory ${dirname(this.filePath)}  already exists`
+                        `Directory ${dirname(this.filePath)}  already exists`,
+                        ""
                     );
                 } else {
                     throw PersistenceError.createFileSystemError(

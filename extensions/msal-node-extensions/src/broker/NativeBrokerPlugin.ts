@@ -59,56 +59,57 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         const logCallback = (
             message: string,
             logLevel: MsalRuntimeLogLevel,
-            containsPii: boolean
+            containsPii: boolean,
+            correlationId: string = ""
         ) => {
             switch (logLevel) {
                 case MsalRuntimeLogLevel.Trace:
                     if (containsPii) {
-                        this.logger.tracePii(message);
+                        this.logger.tracePii(message, correlationId);
                     } else {
-                        this.logger.trace(message);
+                        this.logger.trace(message, correlationId);
                     }
                     break;
                 case MsalRuntimeLogLevel.Debug:
                     if (containsPii) {
-                        this.logger.tracePii(message);
+                        this.logger.tracePii(message, correlationId);
                     } else {
-                        this.logger.trace(message);
+                        this.logger.trace(message, correlationId);
                     }
                     break;
                 case MsalRuntimeLogLevel.Info:
                     if (containsPii) {
-                        this.logger.infoPii(message);
+                        this.logger.infoPii(message, correlationId);
                     } else {
-                        this.logger.info(message);
+                        this.logger.info(message, correlationId);
                     }
                     break;
                 case MsalRuntimeLogLevel.Warning:
                     if (containsPii) {
-                        this.logger.warningPii(message);
+                        this.logger.warningPii(message, correlationId);
                     } else {
-                        this.logger.warning(message);
+                        this.logger.warning(message, correlationId);
                     }
                     break;
                 case MsalRuntimeLogLevel.Error:
                     if (containsPii) {
-                        this.logger.errorPii(message);
+                        this.logger.errorPii(message, correlationId);
                     } else {
-                        this.logger.error(message);
+                        this.logger.error(message, correlationId);
                     }
                     break;
                 case MsalRuntimeLogLevel.Fatal:
                     if (containsPii) {
-                        this.logger.errorPii(message);
+                        this.logger.errorPii(message, correlationId);
                     } else {
-                        this.logger.error(message);
+                        this.logger.error(message, correlationId);
                     }
                     break;
                 default:
                     if (containsPii) {
-                        this.logger.infoPii(message);
+                        this.logger.infoPii(message, correlationId);
                     } else {
-                        this.logger.info(message);
+                        this.logger.info(message, correlationId);
                     }
                     break;
             }
@@ -611,7 +612,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         account: Account,
         idTokenClaims?: IdTokenClaims
     ): AccountInfo {
-        this.logger.trace("NativeBrokerPlugin - generateAccountInfo called");
+        this.logger.trace(
+            "NativeBrokerPlugin - generateAccountInfo called",
+            ""
+        );
 
         const accountInfo: AccountInfo = {
             homeAccountId: account.homeAccountId,

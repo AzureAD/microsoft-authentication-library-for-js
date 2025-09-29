@@ -62,7 +62,7 @@ export function useAccount(
                         true
                     )
                 ) {
-                    logger.info("useAccount - Updating account");
+                    logger.info("useAccount - Updating account", "");
                     return nextAccount;
                 }
 

@@ -8,6 +8,7 @@ import {
     AuthorityOptions,
     INetworkModule,
     Logger,
+    StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import * as CustomAuthApiEndpoint from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
 import { buildUrl } from "./utils/UrlUtils.js";
@@ -52,7 +53,8 @@ export class CustomAuthAuthority extends Authority {
             cacheManager,
             authorityOptions,
             logger,
-            ""
+            "",
+            new StubPerformanceClient()
         );
 
         // Set the metadata for the authority
@@ -75,9 +77,14 @@ export class CustomAuthAuthority extends Authority {
             jwks_uri: "",
         };
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
-            metadataEntity.preferred_cache
+            metadataEntity.preferred_cache,
+            this.correlationId
         );
-        cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
+        cacheManager.setAuthorityMetadata(
+            cacheKey,
+            metadataEntity,
+            this.correlationId
+        );
     }
 
     /**

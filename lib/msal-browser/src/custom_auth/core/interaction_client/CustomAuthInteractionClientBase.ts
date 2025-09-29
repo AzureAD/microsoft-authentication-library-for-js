@@ -48,7 +48,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             logger,
             eventHandler,
             navigationClient,
-            performanceClient
+            performanceClient,
+            ""
         );
 
         this.tokenResponseHandler = new ResponseHandler(
@@ -56,6 +57,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             this.browserStorage,
             this.browserCrypto,
             this.logger,
+            this.performanceClient,
             null,
             null
         );

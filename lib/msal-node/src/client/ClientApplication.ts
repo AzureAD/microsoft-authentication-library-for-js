@@ -32,6 +32,7 @@ import {
     ClientAssertionCallback,
     Constants,
     ClientAuthError,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -120,7 +121,7 @@ export abstract class ClientApplication {
      * `acquireTokenByCode(AuthorizationCodeRequest)`.
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
-        this.logger.info("getAuthCodeUrl called", request.correlationId);
+        this.logger.info("getAuthCodeUrl called", request.correlationId || "");
         const validRequest: CommonAuthorizationUrlRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
@@ -156,9 +157,15 @@ export abstract class ClientApplication {
         request: AuthorizationCodeRequest,
         authCodePayLoad?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
-        this.logger.info("acquireTokenByCode called");
+        this.logger.info(
+            "acquireTokenByCode called",
+            request.correlationId || ""
+        );
         if (request.state && authCodePayLoad) {
-            this.logger.info("acquireTokenByCode - validating state");
+            this.logger.info(
+                "acquireTokenByCode - validating state",
+                request.correlationId || ""
+            );
             this.validateState(request.state, authCodePayLoad.state || "");
             // eslint-disable-next-line no-param-reassign
             authCodePayLoad = { ...authCodePayLoad, state: "" };
@@ -187,7 +194,8 @@ export abstract class ClientApplication {
                 serverTelemetryManager
             );
             const authorizationCodeClient = new AuthorizationCodeClient(
-                authClientConfig
+                authClientConfig,
+                new StubPerformanceClient()
             );
             this.logger.verbose(
                 "Auth code client created",
@@ -218,7 +226,7 @@ export abstract class ClientApplication {
     ): Promise<AuthenticationResult | null> {
         this.logger.info(
             "acquireTokenByRefreshToken called",
-            request.correlationId
+            request.correlationId || ""
         );
         const validRequest: CommonRefreshTokenRequest = {
             ...request,
@@ -245,7 +253,8 @@ export abstract class ClientApplication {
                     serverTelemetryManager
                 );
             const refreshTokenClient = new RefreshTokenClient(
-                refreshTokenClientConfig
+                refreshTokenClientConfig,
+                new StubPerformanceClient()
             );
             this.logger.verbose(
                 "Refresh token client created",
@@ -298,7 +307,10 @@ export abstract class ClientApplication {
                     validRequest.redirectUri || "",
                     serverTelemetryManager
                 );
-            const silentFlowClient = new SilentFlowClient(clientConfiguration);
+            const silentFlowClient = new SilentFlowClient(
+                clientConfiguration,
+                new StubPerformanceClient()
+            );
             this.logger.verbose(
                 "Silent flow client created",
                 validRequest.correlationId
@@ -318,7 +330,8 @@ export abstract class ClientApplication {
                         ClientAuthErrorCodes.tokenRefreshRequired
                 ) {
                     const refreshTokenClient = new RefreshTokenClient(
-                        clientConfiguration
+                        clientConfiguration,
+                        new StubPerformanceClient()
                     );
                     return refreshTokenClient.acquireTokenByRefreshToken(
                         validRequest
@@ -350,11 +363,13 @@ export abstract class ClientApplication {
 
         if (cacheOutcome === Constants.CacheOutcome.PROACTIVELY_REFRESHED) {
             this.logger.info(
-                "ClientApplication:acquireCachedTokenSilent - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                "ClientApplication:acquireCachedTokenSilent - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed.",
+                validRequest.correlationId
             );
             // refresh the access token in the background
             const refreshTokenClient = new RefreshTokenClient(
-                clientConfiguration
+                clientConfiguration,
+                new StubPerformanceClient()
             );
 
             try {
@@ -386,7 +401,7 @@ export abstract class ClientApplication {
     ): Promise<AuthenticationResult | null> {
         this.logger.info(
             "acquireTokenByUsernamePassword called",
-            request.correlationId
+            request.correlationId || ""
         );
         const validRequest: CommonUsernamePasswordRequest = {
             ...request,
@@ -431,7 +446,7 @@ export abstract class ClientApplication {
      * Gets the token cache for the application.
      */
     getTokenCache(): TokenCache {
-        this.logger.info("getTokenCache called");
+        this.logger.info("getTokenCache called", "");
         return this.tokenCache;
     }
 
@@ -564,10 +579,9 @@ export abstract class ClientApplication {
     protected async initializeBaseRequest(
         authRequest: Partial<BaseAuthRequest>
     ): Promise<BaseAuthRequest> {
-        this.logger.verbose(
-            "initializeRequestScopes called",
-            authRequest.correlationId
-        );
+        const correlationId =
+            authRequest.correlationId || this.cryptoProvider.createNewGuid();
+        this.logger.verbose("initializeRequestScopes called", correlationId);
         // Default authenticationScheme to Bearer, log that POP isn't supported yet
         if (
             authRequest.authenticationScheme &&
@@ -576,7 +590,7 @@ export abstract class ClientApplication {
         ) {
             this.logger.verbose(
                 "Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request",
-                authRequest.correlationId
+                correlationId
             );
         }
 
@@ -589,9 +603,7 @@ export abstract class ClientApplication {
                 ...((authRequest && authRequest.scopes) || []),
                 ...Constants.OIDC_DEFAULT_SCOPES,
             ],
-            correlationId:
-                (authRequest && authRequest.correlationId) ||
-                this.cryptoProvider.createNewGuid(),
+            correlationId,
             authority: authRequest.authority || this.config.auth.authority,
         };
     }
@@ -650,7 +662,8 @@ export abstract class ClientApplication {
             this.storage,
             authorityOptions,
             this.logger,
-            requestCorrelationId
+            requestCorrelationId,
+            new StubPerformanceClient()
         );
     }
 

@@ -14,6 +14,7 @@ import {
 import * as RequestHelpers from "../../src/request/RequestHelpers.js";
 import { BrowserConfiguration } from "../../src/config/Configuration.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
+import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 describe("RequestHelpers tests", () => {
     let mockConfig: BrowserConfiguration;
@@ -49,7 +50,8 @@ describe("RequestHelpers tests", () => {
                 request,
                 mockConfig,
                 mockPerformanceClient,
-                mockLogger
+                mockLogger,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             expect(result.correlationId).toBe("test-correlation-id");
@@ -75,7 +77,8 @@ describe("RequestHelpers tests", () => {
                     request,
                     mockConfig,
                     mockPerformanceClient,
-                    mockLogger
+                    mockLogger,
+                    TEST_CONFIG.CORRELATION_ID
                 )
             ).rejects.toThrowError(
                 new ClientConfigurationError(
