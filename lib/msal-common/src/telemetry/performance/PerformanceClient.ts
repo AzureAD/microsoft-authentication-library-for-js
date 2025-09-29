@@ -503,7 +503,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         fields: { [key: string]: {} | undefined },
         correlationId: string
     ): void {
-        this.logger.trace("PerformanceClient: Updating static fields");
+        this.logger.trace(
+            "PerformanceClient: Updating static fields",
+            correlationId
+        );
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             this.eventsByCorrelationId.set(correlationId, {
@@ -527,7 +530,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         fields: { [key: string]: number | undefined },
         correlationId: string
     ): void {
-        this.logger.trace("PerformanceClient: Updating counters");
+        this.logger.trace(
+            "PerformanceClient: Updating counters",
+            correlationId
+        );
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             for (const counter in fields) {
@@ -607,7 +613,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         for (const [id, cb] of this.callbacks) {
             if (cb.toString() === callback.toString()) {
                 this.logger.warning(
-                    `PerformanceClient: Performance callback is already registered with id: ${id}`
+                    `PerformanceClient: Performance callback is already registered with id: ${id}`,
+                    ""
                 );
                 return id;
             }
@@ -616,7 +623,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const callbackId = this.generateId();
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(
-            `PerformanceClient: Performance callback registered with id: '${callbackId}'`
+            `PerformanceClient: Performance callback registered with id: '${callbackId}'`,
+            ""
         );
 
         return callbackId;
@@ -633,11 +641,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         if (result) {
             this.logger.verbose(
-                `PerformanceClient: Performance callback '${callbackId}' removed.`
+                `PerformanceClient: Performance callback '${callbackId}' removed.`,
+                ""
             );
         } else {
             this.logger.verbose(
-                `PerformanceClient: Performance callback '${callbackId}' not removed.`
+                `PerformanceClient: Performance callback '${callbackId}' not removed.`,
+                ""
             );
         }
 

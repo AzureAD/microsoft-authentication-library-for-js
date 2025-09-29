@@ -7,6 +7,7 @@ import { ServerTelemetryManager } from "@azure/msal-common/browser";
 import { GrantType } from "../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
+import { IHttpClient } from "../http_client/IHttpClient.js";
 import * as CustomAuthApiEndpoint from "./CustomAuthApiEndpoint.js";
 import * as CustomAuthApiErrorCode from "./types/ApiErrorCodes.js";
 import {
@@ -23,6 +24,24 @@ import {
 } from "./types/ApiResponseTypes.js";
 
 export class SignInApiClient extends BaseApiClient {
+    private readonly capabilities?: string;
+
+    constructor(
+        customAuthApiBaseUrl: string,
+        clientId: string,
+        httpClient: IHttpClient,
+        capabilities?: string,
+        customAuthApiQueryParams?: Record<string, string>
+    ) {
+        super(
+            customAuthApiBaseUrl,
+            clientId,
+            httpClient,
+            customAuthApiQueryParams
+        );
+        this.capabilities = capabilities;
+    }
+
     /**
      * Initiates the sign-in flow
      * @param username User's email
@@ -36,6 +55,9 @@ export class SignInApiClient extends BaseApiClient {
             {
                 username: params.username,
                 challenge_type: params.challenge_type,
+                ...(this.capabilities && {
+                    capabilities: this.capabilities,
+                }),
             },
             params.telemetryManager,
             params.correlationId
@@ -62,6 +84,7 @@ export class SignInApiClient extends BaseApiClient {
             {
                 continuation_token: params.continuation_token,
                 challenge_type: params.challenge_type,
+                ...(params.id && { id: params.id }),
             },
             params.telemetryManager,
             params.correlationId
@@ -119,11 +142,11 @@ export class SignInApiClient extends BaseApiClient {
         return this.requestTokens(
             {
                 continuation_token: params.continuation_token,
-                username: params.username,
                 scope: params.scope,
                 grant_type: GrantType.CONTINUATION_TOKEN,
                 client_info: true,
                 ...(params.claims && { claims: params.claims }),
+                ...(params.username && { username: params.username }),
             },
             params.telemetryManager,
             params.correlationId

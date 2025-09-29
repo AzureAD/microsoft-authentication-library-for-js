@@ -120,7 +120,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             expect(authority.canonicalAuthority).toBe(
                 `${Constants.DEFAULT_AUTHORITY}`
@@ -153,7 +154,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     )
             ).toThrow(
                 new ClientConfigurationError(
@@ -168,7 +170,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     )
             ).toThrow(
                 new ClientConfigurationError(
@@ -183,7 +186,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     )
             ).toThrow(
                 new ClientConfigurationError(
@@ -218,7 +222,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
         });
 
@@ -352,7 +357,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 expect(() => authority.authorizationEndpoint).toThrowError(
                     createClientAuthError(
@@ -406,7 +412,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         knownAuthorities: ["msidlabb2c.b2clogin.com"],
                     },
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -419,7 +426,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         knownAuthorities: ["msidlabb2c.b2clogin.com"],
                     },
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 await secondAuthority.resolveEndpointsAsync();
@@ -480,7 +488,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -525,7 +534,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         knownAuthorities: ["msidlabb2c.b2clogin.com"],
                     },
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 await customAuthority.resolveEndpointsAsync();
 
@@ -572,7 +582,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 await customAuthority.resolveEndpointsAsync();
 
@@ -652,7 +663,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             await authority.resolveEndpointsAsync();
 
@@ -708,7 +720,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     },
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             await authority.resolveEndpointsAsync();
 
@@ -769,7 +782,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     },
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             await authority.resolveEndpointsAsync();
 
@@ -827,7 +841,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     },
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             await authority.resolveEndpointsAsync();
 
@@ -883,7 +898,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     },
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             await authority.resolveEndpointsAsync();
 
@@ -934,7 +950,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
         });
 
@@ -1013,7 +1030,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     options,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -1096,7 +1114,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     options,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
@@ -1127,7 +1146,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     options,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -1159,7 +1179,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     customAuthorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -1217,7 +1238,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     customAuthorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -1300,7 +1322,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     customAuthorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -1349,7 +1372,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 // Force hardcoded metadata to return null
@@ -1440,7 +1464,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 // Force hardcoded metadata to return null
@@ -1524,7 +1549,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
 
@@ -1607,7 +1633,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 // Force hardcoded metadata to return null
                 getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
@@ -1642,7 +1669,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 await authority.resolveEndpointsAsync();
                 expect(
@@ -1710,7 +1738,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -1759,7 +1788,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 await authority.resolveEndpointsAsync();
 
@@ -1856,7 +1886,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     );
 
                     await authority.resolveEndpointsAsync();
@@ -1906,7 +1937,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     );
 
                     const hardcodedCloudDiscoveryMetadata =
@@ -1974,7 +2006,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     );
 
                     getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
@@ -2057,7 +2090,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     );
                     getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
                         null
@@ -2109,7 +2143,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     );
 
                     getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
@@ -2193,7 +2228,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     );
 
                     await authority.resolveEndpointsAsync();
@@ -2258,7 +2294,8 @@ describe("Authority.ts Class Unit Tests", () => {
                         mockStorage,
                         authorityOptions,
                         logger,
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     );
 
                     await authority.resolveEndpointsAsync();
@@ -2312,7 +2349,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
@@ -2352,7 +2390,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 authority.resolveEndpointsAsync().catch((e) => {
@@ -2403,7 +2442,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 authority.resolveEndpointsAsync().catch((e) => {
@@ -2448,7 +2488,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     mockStorage,
                     authorityOptions,
                     logger,
-                    TEST_CONFIG.CORRELATION_ID
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
                 );
 
                 await authority.resolveEndpointsAsync();
@@ -2474,7 +2515,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
 
             await authority.resolveEndpointsAsync();
@@ -2493,7 +2535,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 { ...authorityOptions, knownAuthorities: [authorityUrl] },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             jest.spyOn(
                 networkInterface,
@@ -2519,7 +2562,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 { ...authorityOptions, knownAuthorities: [authorityUrl] },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
 
             await authority.resolveEndpointsAsync();
@@ -2538,7 +2582,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
 
             await authority.resolveEndpointsAsync();
@@ -2556,7 +2601,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
 
             await authority.resolveEndpointsAsync();
@@ -2581,7 +2627,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 options,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             jest.spyOn(
                 networkInterface,
@@ -2612,7 +2659,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 mockStorage,
                 options,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
 
             await authority.resolveEndpointsAsync();

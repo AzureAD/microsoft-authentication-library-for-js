@@ -66,11 +66,11 @@ export abstract class BaseClient {
     public authority: Authority;
 
     // Performance telemetry client
-    protected performanceClient?: IPerformanceClient;
+    protected performanceClient: IPerformanceClient;
 
     protected constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient: IPerformanceClient
     ) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
@@ -117,7 +117,8 @@ export abstract class BaseClient {
                         ] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
                     } catch (e) {
                         this.logger.verbose(
-                            `Could not parse home account ID for CCS Header: '${e}'`
+                            `Could not parse home account ID for CCS Header: '${e}'`,
+                            ""
                         );
                     }
                     break;

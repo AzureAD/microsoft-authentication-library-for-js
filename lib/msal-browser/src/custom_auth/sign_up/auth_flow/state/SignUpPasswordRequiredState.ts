@@ -69,6 +69,7 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
                         signInClient: this.stateParameters.signInClient,
                         signUpClient: this.stateParameters.signUpClient,
                         cacheClient: this.stateParameters.cacheClient,
+                        jitClient: this.stateParameters.jitClient,
                         username: this.stateParameters.username,
                         requiredAttributes: result.requiredAttributes,
                     })
@@ -88,6 +89,7 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
                         config: this.stateParameters.config,
                         signInClient: this.stateParameters.signInClient,
                         cacheClient: this.stateParameters.cacheClient,
+                        jitClient: this.stateParameters.jitClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
                     })

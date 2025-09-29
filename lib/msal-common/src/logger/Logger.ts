@@ -12,7 +12,7 @@ export type LoggerMessageOptions = {
     logLevel: LogLevel;
     containsPii?: boolean;
     context?: string;
-    correlationId?: string;
+    correlationId: string;
 };
 
 /**
@@ -223,9 +223,6 @@ function normalizeMessageForHashing(message: string): string {
  * Class which facilitates logging of messages to a specific place.
  */
 export class Logger {
-    // Correlation ID for request, usually set by user.
-    private correlationId: string;
-
     // Current log level, defaults to info.
     private level: LogLevel = LogLevel.Info;
 
@@ -258,7 +255,6 @@ export class Logger {
             typeof setLoggerOptions.logLevel === "number"
                 ? setLoggerOptions.logLevel
                 : LogLevel.Info;
-        this.correlationId = setLoggerOptions.correlationId || "";
         this.packageName = packageName || "";
         this.packageVersion = packageVersion || "";
     }
@@ -276,17 +272,12 @@ export class Logger {
     /**
      * Create new Logger with existing configurations.
      */
-    public clone(
-        packageName: string,
-        packageVersion: string,
-        correlationId?: string
-    ): Logger {
+    public clone(packageName: string, packageVersion: string): Logger {
         return new Logger(
             {
                 loggerCallback: this.localCallback,
                 piiLoggingEnabled: this.piiLoggingEnabled,
                 logLevel: this.level,
-                correlationId: correlationId || this.correlationId,
             },
             packageName,
             packageVersion
@@ -300,7 +291,7 @@ export class Logger {
         logMessage: string,
         options: LoggerMessageOptions
     ): void {
-        const correlationId = options.correlationId || this.correlationId || "";
+        const correlationId = options.correlationId;
         const isHashedInput = isHashedString(logMessage);
         const hash: string = isHashedInput ? logMessage : createStringHash(logMessage);
         const loggedMessage: LoggedMessage = {
@@ -350,110 +341,110 @@ export class Logger {
     /**
      * Logs error messages.
      */
-    error(message: string, correlationId?: string): void {
+    error(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: false,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs error messages with PII.
      */
-    errorPii(message: string, correlationId?: string): void {
+    errorPii(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: true,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs warning messages.
      */
-    warning(message: string, correlationId?: string): void {
+    warning(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: false,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs warning messages with PII.
      */
-    warningPii(message: string, correlationId?: string): void {
+    warningPii(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: true,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs info messages.
      */
-    info(message: string, correlationId?: string): void {
+    info(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: false,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs info messages with PII.
      */
-    infoPii(message: string, correlationId?: string): void {
+    infoPii(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: true,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs verbose messages.
      */
-    verbose(message: string, correlationId?: string): void {
+    verbose(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: false,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs verbose messages with PII.
      */
-    verbosePii(message: string, correlationId?: string): void {
+    verbosePii(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: true,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs trace messages.
      */
-    trace(message: string, correlationId?: string): void {
+    trace(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: false,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 
     /**
      * Logs trace messages with PII.
      */
-    tracePii(message: string, correlationId?: string): void {
+    tracePii(message: string, correlationId: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: true,
-            correlationId: correlationId || "",
+            correlationId: correlationId,
         });
     }
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, Logger } from "@azure/msal-common";
+import { Constants, Logger } from "@azure/msal-common/node";
 import { ExponentialRetryStrategy } from "./ExponentialRetryStrategy.js";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 
@@ -104,7 +104,8 @@ export class ImdsRetryPolicy implements IHttpRetryPolicy {
             logger.verbose(
                 `Retrying request in ${retryAfterDelay}ms (retry attempt: ${
                     currentRetry + 1
-                })`
+                })`,
+                ""
             );
 
             // pause execution for the calculated delay

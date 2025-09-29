@@ -22,6 +22,7 @@ import {
  * @param pollIntervalMilliseconds - The interval, in milliseconds, at which to poll the popup window.
  * @param logger - Logger instance for logging monitoring events.
  * @param unloadWindow - Event handler to remove from the parent window on cleanup.
+ * @param correlationId
  * @returns Promise<string> - Resolves with the response string (query or hash) from the popup window,
  * or rejects if the popup is closed before a response is received.
  *
@@ -35,16 +36,21 @@ export async function monitorPopupForHash(
     responseMode: Constants.ResponseMode,
     pollIntervalMilliseconds: number,
     logger: Logger,
-    unloadWindow: (e: Event) => void
+    unloadWindow: (e: Event) => void,
+    correlationId: string
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        logger.verbose("PopupHandler.monitorPopupForHash - polling started");
+        logger.verbose(
+            "PopupHandler.monitorPopupForHash - polling started",
+            correlationId
+        );
 
         const intervalId = setInterval(() => {
             // Window is closed
             if (popupWindow.closed) {
                 logger.error(
-                    "PopupHandler.monitorPopupForHash - window closed"
+                    "PopupHandler.monitorPopupForHash - window closed",
+                    correlationId
                 );
                 clearInterval(intervalId);
                 reject(
@@ -79,7 +85,8 @@ export async function monitorPopupForHash(
             }
 
             logger.verbose(
-                "PopupHandler.monitorPopupForHash - popup window is on same origin as caller"
+                "PopupHandler.monitorPopupForHash - popup window is on same origin as caller",
+                correlationId
             );
 
             resolve(responseString);

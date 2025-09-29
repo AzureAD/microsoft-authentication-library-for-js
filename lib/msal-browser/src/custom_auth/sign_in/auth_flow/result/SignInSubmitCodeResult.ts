@@ -6,12 +6,17 @@
 import { SignInSubmitCodeError } from "../error_type/SignInError.js";
 import { SignInCompletedState } from "../state/SignInCompletedState.js";
 import { SignInFailedState } from "../state/SignInFailedState.js";
-import { SignInSubmitCredentialResult } from "./SignInSubmitCredentialResult.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
+import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 
 /*
  * Result of a sign-in submit code operation.
  */
-export class SignInSubmitCodeResult extends SignInSubmitCredentialResult<SignInSubmitCodeError> {
+export class SignInSubmitCodeResult extends AuthFlowResultBase<
+    SignInSubmitCodeResultState,
+    SignInSubmitCodeError,
+    CustomAuthAccountData
+> {
     /**
      * Creates a new instance of SignInSubmitCodeResult with error data.
      * @param error The error that occurred.
@@ -42,3 +47,13 @@ export class SignInSubmitCodeResult extends SignInSubmitCredentialResult<SignInS
         return this.state instanceof SignInCompletedState;
     }
 }
+
+/**
+ * The possible states of the SignInSubmitCodeResult.
+ * This includes:
+ * - SignInCompletedState: The sign-in process has completed successfully.
+ * - SignInFailedState: The sign-in process has failed.
+ */
+export type SignInSubmitCodeResultState =
+    | SignInCompletedState
+    | SignInFailedState;

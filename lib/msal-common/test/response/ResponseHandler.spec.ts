@@ -124,8 +124,11 @@ const testAuthority = new Authority(
     testCacheManager,
     authorityOptions,
     logger,
-    TEST_CONFIG.CORRELATION_ID
+    TEST_CONFIG.CORRELATION_ID,
+    new StubPerformanceClient()
 );
+
+const stubPerformanceClient = new StubPerformanceClient();
 
 describe("ResponseHandler.ts", () => {
     let preferredCacheStub: jest.SpyInstance;
@@ -169,6 +172,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -227,6 +231,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -294,6 +299,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -360,6 +366,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -413,6 +420,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -456,7 +464,8 @@ describe("ResponseHandler.ts", () => {
                     authorityMetadata: "",
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -472,6 +481,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -525,6 +535,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -572,6 +583,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -619,6 +631,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -650,6 +663,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -678,12 +692,16 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
 
             try {
-                responseHandler.validateTokenResponse(testTokenResponse);
+                responseHandler.validateTokenResponse(
+                    testTokenResponse,
+                    TEST_CONFIG.CORRELATION_ID
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -710,12 +728,16 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
 
             try {
-                responseHandler.validateTokenResponse(testTokenResponse);
+                responseHandler.validateTokenResponse(
+                    testTokenResponse,
+                    TEST_CONFIG.CORRELATION_ID
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
                 const serverError = e as InteractionRequiredAuthError;
@@ -742,12 +764,16 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
 
             try {
-                responseHandler.validateTokenResponse(testTokenResponse);
+                responseHandler.validateTokenResponse(
+                    testTokenResponse,
+                    TEST_CONFIG.CORRELATION_ID
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -774,12 +800,16 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
 
             try {
-                responseHandler.validateTokenResponse(testTokenResponse);
+                responseHandler.validateTokenResponse(
+                    testTokenResponse,
+                    TEST_CONFIG.CORRELATION_ID
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -817,6 +847,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -863,6 +894,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -909,6 +941,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -952,6 +985,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );

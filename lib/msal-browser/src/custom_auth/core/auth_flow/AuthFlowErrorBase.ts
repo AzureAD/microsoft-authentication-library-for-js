@@ -139,6 +139,14 @@ export abstract class AuthFlowErrorBase {
             this.errorData.errorCodes?.includes(50142) === true
         );
     }
+
+    protected isInvalidAuthMethodRegistrationInputError(): boolean {
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
+            this.errorData.errorCodes?.includes(901001) === true
+        );
+    }
 }
 
 export abstract class AuthActionErrorBase extends AuthFlowErrorBase {
@@ -148,5 +156,13 @@ export abstract class AuthActionErrorBase extends AuthFlowErrorBase {
      */
     isTokenExpired(): boolean {
         return this.isTokenExpiredError();
+    }
+
+    /**
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
+     */
+    isRedirectRequired(): boolean {
+        return this.isRedirectError();
     }
 }
