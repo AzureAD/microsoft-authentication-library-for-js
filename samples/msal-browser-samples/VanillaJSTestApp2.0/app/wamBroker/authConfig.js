@@ -10,7 +10,8 @@ const isPlatformBrokerAvailable = msal.isPlatformBrokerAvailable().then((isAvail
 const msalConfig = {
     auth: {
         clientId: "591ddbcc-105b-42c5-89e6-c7638c4124d4",
-        authority: "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
+        //authority: "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca"
+        authority: "https://login.microsoftonline.com/common"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored

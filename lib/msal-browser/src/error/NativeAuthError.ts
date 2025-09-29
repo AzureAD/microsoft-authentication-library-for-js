@@ -67,6 +67,7 @@ export function isFatalNativeAuthError(error: NativeAuthError): boolean {
 
     switch (error.errorCode) {
         case NativeAuthErrorCodes.contentError:
+        case NativeAuthErrorCodes.pageException:
             return true;
         default:
             return false;
