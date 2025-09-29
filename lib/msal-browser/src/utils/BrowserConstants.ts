@@ -149,10 +149,6 @@ export const InteractionStatus = {
      */
     Startup: "startup",
     /**
-     * Status set when all login calls occuring
-     */
-    Login: "login",
-    /**
      * Status set when logout call occuring
      */
     Logout: "logout",
@@ -160,10 +156,6 @@ export const InteractionStatus = {
      * Status set for acquireToken calls
      */
     AcquireToken: "acquireToken",
-    /**
-     * Status set for ssoSilent calls
-     */
-    SsoSilent: "ssoSilent",
     /**
      * Status set when handleRedirect in progress
      */
