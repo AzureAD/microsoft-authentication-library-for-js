@@ -697,7 +697,6 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.dataBoundary).toBeUndefined();
         });
 
         it("creates an account without dataBoundary when no clientInfo is provided", () => {
@@ -732,7 +731,6 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
                 cryptoInterface.base64Decode
             );
 
-            expect(acc.dataBoundary).toBeUndefined();
             expect(acc.dataBoundary).toBeUndefined();
         });
 
