@@ -1267,7 +1267,7 @@ describe("PerformanceClient.spec.ts", () => {
             const mockPerfClient = new MockPerformanceClient();
             const correlationId = "test-correlation-id";
             const testLibraryVersion = "1.0.0";
-            
+
             // Mock the logger's executeCallback to capture all log calls
             const mockExecuteCallback = jest.fn();
             // @ts-ignore - accessing protected property for test
@@ -1282,38 +1282,49 @@ describe("PerformanceClient.spec.ts", () => {
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
-                
+
                 // Verify executeCallback was called
                 expect(mockExecuteCallback).toHaveBeenCalled();
-                
+
                 // Find the call with the aggregated logs format
-                const aggregatedLogCall = mockExecuteCallback.mock.calls.find(call => 
-                    call[1].includes("Accumulated hashed logs for correlation id")
+                const aggregatedLogCall = mockExecuteCallback.mock.calls.find(
+                    (call) =>
+                        call[1].includes(
+                            "Accumulated hashed logs for correlation id"
+                        )
                 );
-                
+
                 if (aggregatedLogCall) {
                     expect(aggregatedLogCall[0]).toBe(LogLevel.Info); // First parameter should be LogLevel.Info
                     expect(aggregatedLogCall[2]).toBe(false); // Third parameter should be false (not PII)
-                    
+
                     // Verify the log message format
                     const logMessage = aggregatedLogCall[1];
-                    
+
                     expect(logMessage).toMatch(
-                        new RegExp(`^Accumulated hashed logs for correlation id '${correlationId}', version: ${testLibraryVersion}: '\\[.+\\]'$`)
+                        new RegExp(
+                            `^Accumulated hashed logs for correlation id '${correlationId}', version: ${testLibraryVersion}: '\\[.+\\]'$`
+                        )
                     );
-                    
+
                     // Verify the message contains the correlation ID and library version
-                    expect(logMessage).toContain(`correlation id '${correlationId}'`);
-                    expect(logMessage).toContain(`version: ${testLibraryVersion}`);
-                    
+                    expect(logMessage).toContain(
+                        `correlation id '${correlationId}'`
+                    );
+                    expect(logMessage).toContain(
+                        `version: ${testLibraryVersion}`
+                    );
+
                     // Verify the logs are in the expected format: [millis1,hash1;millis2,hash2;...]
                     const logsMatch = logMessage.match(/\[(.+)\]'/);
                     expect(logsMatch).toBeTruthy();
-                    
+
                     if (logsMatch) {
                         const formattedLogs = logsMatch[1];
                         // Should contain semicolon-separated entries with milliseconds,hash format
-                        expect(formattedLogs).toMatch(/^\d+,[a-zA-Z0-9]+(;\d+,[a-zA-Z0-9]+)*$/);
+                        expect(formattedLogs).toMatch(
+                            /^\d+,[a-zA-Z0-9]+(;\d+,[a-zA-Z0-9]+)*$/
+                        );
                     }
                 } else {
                     // If no aggregated log call found, check that logs were present in the event
@@ -1321,13 +1332,17 @@ describe("PerformanceClient.spec.ts", () => {
                     // Check if the logs field exists and has content
                     if (event.logs && event.logs.length > 0) {
                         // Log aggregation happened but executeCallback might not have been called due to caching behavior
-                        console.log('Event has logs but executeCallback was not called with aggregated format');
-                        console.log('Event logs:', event.logs);
+                        console.log(
+                            "Event has logs but executeCallback was not called with aggregated format"
+                        );
+                        console.log("Event logs:", event.logs);
                     } else {
-                        fail('Expected either executeCallback to be called with aggregated logs or event.logs to contain log data');
+                        fail(
+                            "Expected either executeCallback to be called with aggregated logs or event.logs to contain log data"
+                        );
                     }
                 }
-                
+
                 done();
             });
 
@@ -1336,7 +1351,7 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
-            
+
             rootEvent.end({ success: true });
         });
     });

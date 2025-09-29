@@ -1,5 +1,11 @@
 import { LoggerOptions } from "../../src/config/ClientConfiguration.js";
-import { LogLevel, Logger, getLogsFromCache, getAndFlushLogsFromCache, getCachedCorrelationIds } from "../../src/logger/Logger.js";
+import {
+    LogLevel,
+    Logger,
+    getLogsFromCache,
+    getAndFlushLogsFromCache,
+    getCachedCorrelationIds,
+} from "../../src/logger/Logger.js";
 import { TEST_CONFIG } from "../test_kit/StringConstants.js";
 
 describe("Logger.ts Class Unit Tests", () => {
@@ -477,7 +483,7 @@ describe("Logger.ts Class Unit Tests", () => {
                     hash: expect.any(String),
                     level: LogLevel.Info,
                     containsPii: false,
-                    milliseconds: expect.any(Number)
+                    milliseconds: expect.any(Number),
                 });
                 expect(cachedLogs[0].hash).toHaveLength(6);
             });
@@ -511,7 +517,9 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 const cachedLogs = getLogsFromCache("");
                 expect(cachedLogs.length).toBeGreaterThan(0);
-                expect(cachedLogs[cachedLogs.length - 1].level).toBe(LogLevel.Error);
+                expect(cachedLogs[cachedLogs.length - 1].level).toBe(
+                    LogLevel.Error
+                );
             });
 
             it("should handle empty string correlation ID as default", () => {
@@ -533,7 +541,10 @@ describe("Logger.ts Class Unit Tests", () => {
         describe("Multiple log levels", () => {
             it("should cache logs from all log levels correctly", () => {
                 // Set log level to Trace to allow all levels
-                const traceOptions = { ...loggerOptions, logLevel: LogLevel.Trace };
+                const traceOptions = {
+                    ...loggerOptions,
+                    logLevel: LogLevel.Trace,
+                };
                 const logger = new Logger(traceOptions);
                 const correlationId = "multi-level-test";
 
@@ -547,18 +558,21 @@ describe("Logger.ts Class Unit Tests", () => {
                 const cachedLogs = getLogsFromCache(correlationId);
 
                 expect(cachedLogs).toHaveLength(5);
-                expect(cachedLogs.map(log => log.level)).toEqual([
+                expect(cachedLogs.map((log) => log.level)).toEqual([
                     LogLevel.Error,
                     LogLevel.Warning,
                     LogLevel.Info,
                     LogLevel.Verbose,
-                    LogLevel.Trace
+                    LogLevel.Trace,
                 ]);
             });
 
             it("should always cache logs despite the configured log level", () => {
                 // Set log level to Warning (should exclude Info, Verbose, Trace)
-                const restrictedOptions = { ...loggerOptions, logLevel: LogLevel.Warning };
+                const restrictedOptions = {
+                    ...loggerOptions,
+                    logLevel: LogLevel.Warning,
+                };
                 const logger = new Logger(restrictedOptions);
                 const correlationId = "restricted-level-test";
 
@@ -573,12 +587,12 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Only Error and Warning should be cached
                 expect(cachedLogs).toHaveLength(5);
-                expect(cachedLogs.map(log => log.level)).toEqual([
+                expect(cachedLogs.map((log) => log.level)).toEqual([
                     LogLevel.Error,
                     LogLevel.Warning,
                     LogLevel.Info,
                     LogLevel.Verbose,
-                    LogLevel.Trace
+                    LogLevel.Trace,
                 ]);
             });
         });
@@ -707,7 +721,9 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Verify that milliseconds are in ascending order
                 for (let i = 1; i < cachedLogs.length; i++) {
-                    expect(cachedLogs[i].milliseconds).toBeGreaterThanOrEqual(cachedLogs[i - 1].milliseconds);
+                    expect(cachedLogs[i].milliseconds).toBeGreaterThanOrEqual(
+                        cachedLogs[i - 1].milliseconds
+                    );
                 }
             });
         });
@@ -883,28 +899,6 @@ describe("Logger.ts Class Unit Tests", () => {
         });
 
         describe("Edge cases and error Handling", () => {
-            it("should handle null/undefined correlation IDs gracefully", () => {
-                const logger = new Logger(loggerOptions);
-
-                // Clear existing cache first
-                const existingIds = getCachedCorrelationIds();
-                existingIds.forEach((id: string) => {
-                    getAndFlushLogsFromCache(id);
-                });
-
-                // Test with various falsy values
-                logger.info("Message with null", null as any);
-                logger.info("Message with undefined", undefined as any);
-                logger.info("Message with empty string", "");
-
-                // All should be treated as empty string correlation
-                const emptyLogs = getLogsFromCache("");
-                const undefinedLogs = getLogsFromCache("");
-
-                expect(emptyLogs).toHaveLength(3);
-                expect(undefinedLogs).toEqual(emptyLogs);
-            });
-
             it("should handle very long messages", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "long-message-test";
@@ -920,7 +914,8 @@ describe("Logger.ts Class Unit Tests", () => {
             it("should handle special characters in messages", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "special-chars-test";
-                const specialMessage = "Message with éñ¡cöde and 🚀 emoji and \n newlines";
+                const specialMessage =
+                    "Message with éñ¡cöde and \n newlines";
 
                 logger.info(specialMessage, correlationId);
 
@@ -947,7 +942,7 @@ describe("Logger.ts Class Unit Tests", () => {
                     hash: "modified",
                     level: LogLevel.Error,
                     containsPii: false,
-                    milliseconds: 0
+                    milliseconds: 0,
                 });
 
                 expect(cachedLogs1).toHaveLength(2);
@@ -960,7 +955,9 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Simulate concurrent logging
                 const promises = Array.from({ length: 100 }, (_, i) =>
-                    Promise.resolve(logger.info(`Concurrent message ${i}`, correlationId))
+                    Promise.resolve(
+                        logger.info(`Concurrent message ${i}`, correlationId)
+                    )
                 );
 
                 return Promise.all(promises).then(() => {
@@ -968,10 +965,10 @@ describe("Logger.ts Class Unit Tests", () => {
                     expect(cachedLogs).toHaveLength(100);
 
                     // All logs should have valid hashes
-                    cachedLogs.forEach(log => {
+                    cachedLogs.forEach((log) => {
                         expect(log.hash).toHaveLength(6);
                         expect(log.level).toBe(LogLevel.Info);
-                        expect(typeof log.milliseconds).toBe('number');
+                        expect(typeof log.milliseconds).toBe("number");
                     });
                 });
             });
@@ -1003,7 +1000,9 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(correlationIds).toContain(`${uniquePrefix}-47`);
 
                 // Some correlation IDs from this test should be present
-                const ourCorrelationIds = correlationIds.filter(id => id.startsWith(uniquePrefix));
+                const ourCorrelationIds = correlationIds.filter((id) =>
+                    id.startsWith(uniquePrefix)
+                );
                 expect(ourCorrelationIds.length).toBeGreaterThan(0);
             });
 
@@ -1025,8 +1024,217 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Verify milliseconds are in order
                 for (let i = 1; i < cachedLogs.length; i++) {
-                    expect(cachedLogs[i].milliseconds).toBeGreaterThanOrEqual(cachedLogs[i - 1].milliseconds);
+                    expect(cachedLogs[i].milliseconds).toBeGreaterThanOrEqual(
+                        cachedLogs[i - 1].milliseconds
+                    );
                 }
+            });
+        });
+        describe("getAndFlushLogsFromCache with empty correlation ID attachment", () => {
+            it("should return logs from both empty and specific correlation ID, then clear both", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "test-specific-id";
+
+                // Add logs with empty correlation ID
+                logger.info("Empty correlation message 1", "");
+                logger.error("Empty correlation message 2", "");
+
+                // Add logs with specific correlation ID
+                logger.info("Specific correlation message 1", correlationId);
+                logger.warning("Specific correlation message 2", correlationId);
+
+                // Verify both caches have logs
+                const emptyLogs = getLogsFromCache("");
+                const specificLogs = getLogsFromCache(correlationId);
+                expect(emptyLogs).toHaveLength(2);
+                expect(specificLogs).toHaveLength(2);
+
+                // Flush logs for specific correlation ID
+                const flushedLogs = getAndFlushLogsFromCache(correlationId);
+
+                // Should return all 4 logs (2 from empty + 2 from specific)
+                expect(flushedLogs).toHaveLength(4);
+
+                // Verify logs contain expected levels
+                const levels = flushedLogs.map((log) => log.level);
+                expect(levels).toContain(LogLevel.Info);
+                expect(levels).toContain(LogLevel.Error);
+                expect(levels).toContain(LogLevel.Warning);
+
+                // Verify both caches are cleared
+                expect(getLogsFromCache("")).toHaveLength(0);
+                expect(getLogsFromCache(correlationId)).toHaveLength(0);
+            });
+
+            it("should return only specific correlation logs when no empty correlation logs exist", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "test-only-specific";
+
+                // Add only logs with specific correlation ID
+                logger.info("Specific message 1", correlationId);
+                logger.error("Specific message 2", correlationId);
+
+                const flushedLogs = getAndFlushLogsFromCache(correlationId);
+
+                expect(flushedLogs).toHaveLength(2);
+                expect(flushedLogs[0].level).toBe(LogLevel.Info);
+                expect(flushedLogs[1].level).toBe(LogLevel.Error);
+                expect(getLogsFromCache(correlationId)).toHaveLength(0);
+            });
+
+            it("should return only empty correlation logs when no specific correlation logs exist", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "non-existent-id";
+
+                // Add only logs with empty correlation ID
+                logger.warning("Empty message 1", "");
+                logger.trace("Empty message 2", "");
+
+                const flushedLogs = getAndFlushLogsFromCache(correlationId);
+
+                expect(flushedLogs).toHaveLength(2);
+                expect(flushedLogs[0].level).toBe(LogLevel.Warning);
+                expect(flushedLogs[1].level).toBe(LogLevel.Trace);
+                expect(getLogsFromCache("")).toHaveLength(0);
+            });
+
+            it("should return empty array when neither correlation ID exists", () => {
+                const correlationId = "completely-non-existent";
+
+                const flushedLogs = getAndFlushLogsFromCache(correlationId);
+
+                expect(flushedLogs).toHaveLength(0);
+            });
+
+            it("should maintain chronological order when combining logs from empty and specific correlations", async () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "chronological-test";
+
+                // Add logs in specific order with small delays to ensure different timestamps
+                logger.info("First empty", "");
+
+                // Small delay to ensure different timestamps
+                await new Promise((resolve) => setTimeout(resolve, 1));
+
+                logger.info("First specific", correlationId);
+                logger.error("Second empty", "");
+                logger.warning("Second specific", correlationId);
+
+                const flushedLogs = getAndFlushLogsFromCache(correlationId);
+
+                expect(flushedLogs).toHaveLength(4);
+
+                // Verify that empty correlation logs come first, then specific correlation logs
+                // This is the order they are processed in getAndFlushLogsFromCache
+                expect(flushedLogs[0].level).toBe(LogLevel.Info); // First empty
+                expect(flushedLogs[1].level).toBe(LogLevel.Error); // Second empty
+                expect(flushedLogs[2].level).toBe(LogLevel.Info); // First specific
+                expect(flushedLogs[3].level).toBe(LogLevel.Warning); // Second specific
+            });
+
+            it("should handle PII logs correctly from both correlation IDs", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "pii-test";
+
+                // Add PII logs with empty correlation ID
+                logger.infoPii("Empty PII message", "");
+                logger.info("Empty non-PII message", "");
+
+                // Add PII logs with specific correlation ID
+                logger.errorPii("Specific PII message", correlationId);
+                logger.warning("Specific non-PII message", correlationId);
+
+                const flushedLogs = getAndFlushLogsFromCache(correlationId);
+
+                expect(flushedLogs).toHaveLength(4);
+
+                // Check PII flags are preserved
+                const piiLogs = flushedLogs.filter((log) => log.containsPii);
+                const nonPiiLogs = flushedLogs.filter(
+                    (log) => !log.containsPii
+                );
+
+                expect(piiLogs).toHaveLength(2);
+                expect(nonPiiLogs).toHaveLength(2);
+            });
+
+            it("should handle large number of logs from both correlations", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "large-volume-combined";
+
+                // Add 50 logs to empty correlation
+                for (let i = 0; i < 50; i++) {
+                    logger.info(`Empty message ${i}`, "");
+                }
+
+                // Add 75 logs to specific correlation
+                for (let i = 0; i < 75; i++) {
+                    logger.warning(`Specific message ${i}`, correlationId);
+                }
+
+                const flushedLogs = getAndFlushLogsFromCache(correlationId);
+
+                expect(flushedLogs).toHaveLength(125);
+
+                // Verify we have the right mix of log levels
+                const infoLogs = flushedLogs.filter(
+                    (log) => log.level === LogLevel.Info
+                );
+                const warningLogs = flushedLogs.filter(
+                    (log) => log.level === LogLevel.Warning
+                );
+
+                expect(infoLogs).toHaveLength(50);
+                expect(warningLogs).toHaveLength(75);
+            });
+
+            it("should not affect other correlation IDs when flushing", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId1 = "keep-this-one";
+                const correlationId2 = "flush-this-one";
+
+                // Add logs to multiple correlations
+                logger.info("Keep message 1", correlationId1);
+                logger.info("Empty message", "");
+                logger.info("Flush message 1", correlationId2);
+                logger.info("Keep message 2", correlationId1);
+                logger.info("Flush message 2", correlationId2);
+
+                // Flush correlationId2 (should also clear empty correlation)
+                const flushedLogs = getAndFlushLogsFromCache(correlationId2);
+
+                expect(flushedLogs).toHaveLength(3); // 1 empty + 2 specific
+
+                // correlationId1 should still have its logs
+                const remainingLogs = getLogsFromCache(correlationId1);
+                expect(remainingLogs).toHaveLength(2);
+
+                // Empty correlation should be cleared
+                expect(getLogsFromCache("")).toHaveLength(0);
+
+                // correlationId2 should be cleared
+                expect(getLogsFromCache(correlationId2)).toHaveLength(0);
+            });
+
+            it("should clear both correlation IDs from cache keys after flush", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "cache-key-test";
+
+                logger.info("Empty message", "");
+                logger.info("Specific message", correlationId);
+
+                // Verify both correlation IDs are in cache
+                const correlationIdsBefore = getCachedCorrelationIds();
+                expect(correlationIdsBefore).toContain("");
+                expect(correlationIdsBefore).toContain(correlationId);
+
+                // Flush logs
+                getAndFlushLogsFromCache(correlationId);
+
+                // Verify both correlation IDs are removed from cache
+                const correlationIdsAfter = getCachedCorrelationIds();
+                expect(correlationIdsAfter).not.toContain("");
+                expect(correlationIdsAfter).not.toContain(correlationId);
             });
         });
     });

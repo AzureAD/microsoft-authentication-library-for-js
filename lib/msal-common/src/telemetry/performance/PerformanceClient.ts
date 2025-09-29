@@ -4,14 +4,22 @@
  */
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration.js";
-import { getAndFlushLogsFromCache, Logger, LogLevel } from "../../logger/Logger.js";
-import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient.js";
+import {
+    getAndFlushLogsFromCache,
+    Logger,
+    LogLevel,
+} from "../../logger/Logger.js";
+import {
+    InProgressPerformanceEvent,
+    IPerformanceClient,
+    PerformanceCallbackFunction,
+} from "./IPerformanceClient.js";
 import {
     IntFields,
     PerformanceEvent,
     PerformanceEventContext,
     PerformanceEventStackedContext,
-    PerformanceEventStatus
+    PerformanceEventStatus,
 } from "./PerformanceEvent.js";
 import { AuthError } from "../../error/AuthError.js";
 import { CacheError } from "../../error/CacheError.js";
@@ -477,17 +485,26 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         const logs = getAndFlushLogsFromCache(event.correlationId);
         // Format logs: [millis1,hash1;millis2,hash2;...]
-        const formattedLogs = logs.map((logMessage) => `${logMessage.milliseconds},${logMessage.hash}`).join(";");
+        const formattedLogs = logs
+            .map(
+                (logMessage) => `${logMessage.milliseconds},${logMessage.hash}`
+            )
+            .join(";");
 
         finalEvent = {
             ...finalEvent,
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
             context,
-            logs: formattedLogs
+            logs: formattedLogs,
         };
 
-        logs.length && this.logger.executeCallback(LogLevel.Info, `Accumulated hashed logs for correlation id '${event.correlationId}', version: ${finalEvent.libraryVersion}: '[${formattedLogs}]'`, false);
+        logs.length &&
+            this.logger.executeCallback(
+                LogLevel.Info,
+                `Accumulated hashed logs for correlation id '${event.correlationId}', version: ${finalEvent.libraryVersion}: '[${formattedLogs}]'`,
+                false
+            );
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);
 
