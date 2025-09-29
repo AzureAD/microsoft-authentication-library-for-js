@@ -158,9 +158,7 @@ export class NestedAppAuthController implements IController {
      * @returns
      */
     async initialize(
-        request?: InitializeApplicationRequest,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        isBroker?: boolean
+        request?: InitializeApplicationRequest
     ): Promise<void> {
         const initCorrelationId = request?.correlationId || createNewGuid();
         await this.browserStorage.initialize(initCorrelationId);

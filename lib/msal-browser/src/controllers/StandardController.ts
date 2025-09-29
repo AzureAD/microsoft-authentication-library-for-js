@@ -302,8 +302,7 @@ export class StandardController implements IController {
      * @param request {?InitializeApplicationRequest} correlation id
      */
     async initialize(
-        request?: InitializeApplicationRequest,
-        isBroker?: boolean
+        request?: InitializeApplicationRequest
     ): Promise<void> {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("initialize called", correlationId);
@@ -333,13 +332,6 @@ export class StandardController implements IController {
             initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
-
-        // Broker applications are initialized twice, so we avoid double-counting it
-        if (!isBroker) {
-            try {
-                this.logMultipleInstances(initMeasurement, initCorrelationId);
-            } catch {}
-        }
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
