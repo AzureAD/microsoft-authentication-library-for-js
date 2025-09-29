@@ -790,14 +790,6 @@ export class RedirectClient extends StandardInteractionClient {
                 account: (logoutRequest && logoutRequest.account) || undefined,
             });
 
-            // Create a serializable version of the request for events
-            const {
-                // @ts-ignore
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                onRedirectNavigate,
-                ...serializableLogoutRequest
-            } = validLogoutRequest;
-
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try {
                     authClient.authority.endSessionEndpoint;
