@@ -1479,7 +1479,7 @@ describe("PerformanceClient.spec.ts", () => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.accountType).toBe("AAD");
-                expect(event.dataBoundary).toBe("None"); // Should default to WW when dataBoundary is empty
+                expect(event.dataBoundary).toBe("None"); // Should be 'None' when dataBoundary is set to 'None'
                 done();
             });
 
