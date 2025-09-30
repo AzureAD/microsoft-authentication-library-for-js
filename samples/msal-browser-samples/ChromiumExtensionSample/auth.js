@@ -11,7 +11,11 @@ const msalInstance = new msal.PublicClientApplication({
         authority: "https://login.microsoftonline.com/common/",
         clientId: "your-client-id-here",
         redirectUri,
-        postLogoutRedirectUri: redirectUri
+        postLogoutRedirectUri: redirectUri,
+        onRedirectNavigate: (url) => {
+            resolve(url);
+            return false;
+        }
     },
     cache: {
         cacheLocation: "localStorage"

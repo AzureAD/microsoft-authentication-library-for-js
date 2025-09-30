@@ -24,16 +24,31 @@ Chromium extensions are unable to perform certain types of navigation, so applic
 
 ```js
 /**
+ * Initialize MSAL object
+ */
+const msalInstance = new msal.PublicClientApplication({
+    auth: {
+        authority: "https://login.microsoftonline.com/common/",
+        clientId: "your-client-id-here",
+        redirectUri,
+        postLogoutRedirectUri: redirectUri,
+        onRedirectNavigate: (url) => {
+            resolve(url);
+            return false;
+        }
+    },
+    cache: {
+        cacheLocation: "localStorage"
+    }
+});
+
+/**
  * Generates a login url
  */
 async function getLoginUrl(request) {
     return new Promise((resolve, reject) => {
         msalInstance.loginRedirect({
-            ...request,
-            onRedirectNavigate: (url) => {
-                resolve(url);
-                return false;
-            }
+            request,
         }).catch(reject);
     });
 }
@@ -45,11 +60,7 @@ async function getLoginUrl(request) {
 async function getAcquireTokenUrl(request) {
     return new Promise((resolve, reject) => {
         msalInstance.acquireTokenRedirect({
-            ...request,
-            onRedirectNavigate: (url) => {
-                resolve(url);
-                return false;
-            }
+            request,
         }).catch(reject);
     });
 }
