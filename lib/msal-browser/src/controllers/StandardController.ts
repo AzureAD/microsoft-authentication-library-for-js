@@ -1711,6 +1711,7 @@ export class StandardController implements IController {
                 case PromptValue.NONE:
                 case PromptValue.CONSENT:
                 case PromptValue.LOGIN:
+                case PromptValue.SELECT_ACCOUNT:
                     this.logger.trace(
                         "canUsePlatformBroker: prompt is compatible with platform broker flow"
                     );

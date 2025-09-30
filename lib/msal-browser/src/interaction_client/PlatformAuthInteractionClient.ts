@@ -1028,6 +1028,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             case PromptValue.NONE:
             case PromptValue.CONSENT:
             case PromptValue.LOGIN:
+            case PromptValue.SELECT_ACCOUNT:
                 this.logger.trace(
                     "initializeNativeRequest: prompt is compatible with native flow"
                 );

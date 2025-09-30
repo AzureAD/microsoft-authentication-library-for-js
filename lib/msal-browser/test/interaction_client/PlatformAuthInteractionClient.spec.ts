@@ -459,40 +459,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.expiresOn).toBeDefined();
         });
 
-        it("throws if prompt: select_account", (done) => {
-            platformAuthInteractionClient
-                .acquireToken({
-                    scopes: ["User.Read"],
-                    prompt: PromptValue.SELECT_ACCOUNT,
-                })
-                .catch((e) => {
-                    expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.code
-                    );
-                    expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.desc
-                    );
-                    done();
-                });
-        });
-
-        it("throws if prompt: create", (done) => {
-            platformAuthInteractionClient
-                .acquireToken({
-                    scopes: ["User.Read"],
-                    prompt: PromptValue.CREATE,
-                })
-                .catch((e) => {
-                    expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.code
-                    );
-                    expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.desc
-                    );
-                    done();
-                });
-        });
-
         it("prompt: none succeeds", async () => {
             jest.spyOn(
                 PlatformAuthExtensionHandler.prototype,
@@ -566,6 +532,48 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+
+        it("prompt: select_account succeeds", async () => {
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<PlatformAuthResponse> => {
+                return Promise.resolve(MOCK_WAM_RESPONSE);
+            });
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                prompt: PromptValue.SELECT_ACCOUNT,
+            });
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+
+        it("throws if prompt: create", (done) => {
+            platformAuthInteractionClient
+                .acquireToken({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.CREATE,
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toBe(
+                        BrowserAuthErrorMessage.nativePromptNotSupported.code
+                    );
+                    expect(e.errorMessage).toBe(
+                        BrowserAuthErrorMessage.nativePromptNotSupported.desc
+                    );
+                    done();
+                });
         });
 
         it("does not throw account switch error when homeaccountid is same", (done) => {
