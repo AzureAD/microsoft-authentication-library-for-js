@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 24 Sep 2025 21:54:45 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 30 Sep 2025 19:33:48 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.24.1
+
+Tue, 30 Sep 2025 19:33:48 GMT
+
+### Patches
+
+- Add prompt=select_account for native flows (#8062) (sameera.gajjarapu@microsoft.com)
+- Add support for "pageException" error to fallback to web (#8064) (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.24.0
 

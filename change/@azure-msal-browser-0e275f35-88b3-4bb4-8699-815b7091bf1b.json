@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add prompt=select_account for native flows (#8062)",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}
