@@ -467,20 +467,20 @@ describe("Logger.ts Class Unit Tests", () => {
 
     describe("Log caching", () => {
         describe("Basic cache operations", () => {
-            it("should cache log messages with correct metadata", () => {
+            it("should cache hashed log messages with correct metadata", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "test-correlation-1";
-                const message = "Test log message";
+                const hashedMessage = "abc123"; // Pre-hashed message
 
-                // Log a message
-                logger.info(message, correlationId);
+                // Log a hashed message
+                logger.info(hashedMessage, correlationId);
 
                 // Retrieve cached logs
                 const cachedLogs = getLogsFromCache(correlationId);
 
                 expect(cachedLogs).toHaveLength(1);
                 expect(cachedLogs[0]).toMatchObject({
-                    hash: expect.any(String),
+                    hash: hashedMessage,
                     level: LogLevel.Info,
                     containsPii: false,
                     milliseconds: expect.any(Number),
@@ -488,13 +488,27 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(cachedLogs[0].hash).toHaveLength(6);
             });
 
-            it("should cache PII logs with correct containsPii flag", () => {
+            it("should not cache plain text log messages", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "test-correlation-plain";
+                const plainMessage = "This is a plain text message";
+
+                // Log a plain text message
+                logger.info(plainMessage, correlationId);
+
+                // Retrieve cached logs - should be empty
+                const cachedLogs = getLogsFromCache(correlationId);
+
+                expect(cachedLogs).toHaveLength(0);
+            });
+
+            it("should cache hashed PII logs with correct containsPii flag", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "test-correlation-2";
-                const message = "Test PII message";
+                const hashedPiiMessage = "def456"; // Pre-hashed PII message
 
-                // Log a PII message
-                logger.infoPii(message, correlationId);
+                // Log a hashed PII message
+                logger.infoPii(hashedPiiMessage, correlationId);
 
                 // Retrieve cached logs
                 const cachedLogs = getLogsFromCache(correlationId);
@@ -502,16 +516,31 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(cachedLogs).toHaveLength(1);
                 expect(cachedLogs[0].containsPii).toBe(true);
                 expect(cachedLogs[0].level).toBe(LogLevel.Info);
+                expect(cachedLogs[0].hash).toBe(hashedPiiMessage);
             });
 
-            it("should use empty string correlation ID when none provided", () => {
+            it("should not cache plain text PII messages", () => {
                 const logger = new Logger(loggerOptions);
-                const message = "Test message without correlation";
+                const correlationId = "test-correlation-plain-pii";
+                const plainPiiMessage = "This is plain text PII data";
 
-                // Log without correlation ID
-                logger.error(message, "");
+                // Log a plain text PII message
+                logger.infoPii(plainPiiMessage, correlationId);
 
-                // Check that empty string correlation ID is used
+                // Retrieve cached logs - should be empty
+                const cachedLogs = getLogsFromCache(correlationId);
+
+                expect(cachedLogs).toHaveLength(0);
+            });
+
+            it("should use empty string correlation ID for hashed messages when none provided", () => {
+                const logger = new Logger(loggerOptions);
+                const hashedMessage = "xyz789"; // Hashed message
+
+                // Log hashed message without correlation ID
+                logger.error(hashedMessage, "");
+
+                // Check that empty string correlation ID is used for caching
                 const correlationIds = getCachedCorrelationIds();
                 expect(correlationIds).toContain("");
 
@@ -520,14 +549,15 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(cachedLogs[cachedLogs.length - 1].level).toBe(
                     LogLevel.Error
                 );
+                expect(cachedLogs[cachedLogs.length - 1].hash).toBe(hashedMessage);
             });
 
-            it("should handle empty string correlation ID as default", () => {
+            it("should handle empty string correlation ID as default for hashed messages", () => {
                 const logger = new Logger(loggerOptions);
-                const message = "Test message with empty correlation";
+                const hashedMessage = "pqr123"; // Hashed message
 
-                // Log with empty correlation ID
-                logger.warning(message, "");
+                // Log hashed message with empty correlation ID
+                logger.warning(hashedMessage, "");
 
                 // Both empty string and no correlation should use default
                 const logsWithEmpty = getLogsFromCache("");
@@ -535,11 +565,28 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 expect(logsWithEmpty).toEqual(logsWithUndefined);
                 expect(logsWithEmpty).toHaveLength(1);
+                expect(logsWithEmpty[0].hash).toBe(hashedMessage);
+            });
+
+            it("should not create cache entries for plain text messages with empty correlation", () => {
+                const logger = new Logger(loggerOptions);
+                const plainMessage = "Plain text message";
+
+                // Log plain text message with empty correlation ID
+                logger.warning(plainMessage, "");
+
+                // Should not create any cache entries
+                const logsWithEmpty = getLogsFromCache("");
+                expect(logsWithEmpty).toHaveLength(0);
+
+                // Verify no cache entries were created
+                const emptyCorrelationLogs = getLogsFromCache("");
+                expect(emptyCorrelationLogs).toHaveLength(0);
             });
         });
 
         describe("Multiple log levels", () => {
-            it("should cache logs from all log levels correctly", () => {
+            it("should cache hashed messages from all log levels correctly", () => {
                 // Set log level to Trace to allow all levels
                 const traceOptions = {
                     ...loggerOptions,
@@ -548,12 +595,12 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(traceOptions);
                 const correlationId = "multi-level-test";
 
-                // Log messages at different levels
-                logger.error("Error message", correlationId);
-                logger.warning("Warning message", correlationId);
-                logger.info("Info message", correlationId);
-                logger.verbose("Verbose message", correlationId);
-                logger.trace("Trace message", correlationId);
+                // Log hashed messages at different levels
+                logger.error("err123", correlationId);
+                logger.warning("wrn456", correlationId);
+                logger.info("inf789", correlationId);
+                logger.verbose("vrb012", correlationId);
+                logger.trace("trc345", correlationId);
 
                 const cachedLogs = getLogsFromCache(correlationId);
 
@@ -565,10 +612,39 @@ describe("Logger.ts Class Unit Tests", () => {
                     LogLevel.Verbose,
                     LogLevel.Trace,
                 ]);
+                expect(cachedLogs.map((log) => log.hash)).toEqual([
+                    "err123",
+                    "wrn456", 
+                    "inf789",
+                    "vrb012",
+                    "trc345",
+                ]);
             });
 
-            it("should always cache logs despite the configured log level", () => {
-                // Set log level to Warning (should exclude Info, Verbose, Trace)
+            it("should not cache plain text messages from any log level", () => {
+                // Set log level to Trace to allow all levels
+                const traceOptions = {
+                    ...loggerOptions,
+                    logLevel: LogLevel.Trace,
+                };
+                const logger = new Logger(traceOptions);
+                const correlationId = "plain-multi-level-test";
+
+                // Log plain text messages at different levels
+                logger.error("Error message", correlationId);
+                logger.warning("Warning message", correlationId);
+                logger.info("Info message", correlationId);
+                logger.verbose("Verbose message", correlationId);
+                logger.trace("Trace message", correlationId);
+
+                const cachedLogs = getLogsFromCache(correlationId);
+
+                // No logs should be cached since they're all plain text
+                expect(cachedLogs).toHaveLength(0);
+            });
+
+            it("should always cache hashed messages despite the configured log level", () => {
+                // Set log level to Warning (should exclude Info, Verbose, Trace from display)
                 const restrictedOptions = {
                     ...loggerOptions,
                     logLevel: LogLevel.Warning,
@@ -576,16 +652,16 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(restrictedOptions);
                 const correlationId = "restricted-level-test";
 
-                // Try to log at all levels
-                logger.error("Error message", correlationId);
-                logger.warning("Warning message", correlationId);
-                logger.info("Info message", correlationId);
-                logger.verbose("Verbose message", correlationId);
-                logger.trace("Trace message", correlationId);
+                // Try to log hashed messages at all levels
+                logger.error("err123", correlationId);
+                logger.warning("wrn456", correlationId);
+                logger.info("inf789", correlationId);
+                logger.verbose("vrb012", correlationId);
+                logger.trace("trc345", correlationId);
 
                 const cachedLogs = getLogsFromCache(correlationId);
 
-                // Only Error and Warning should be cached
+                // All hashed messages should be cached regardless of log level
                 expect(cachedLogs).toHaveLength(5);
                 expect(cachedLogs.map((log) => log.level)).toEqual([
                     LogLevel.Error,
@@ -594,18 +670,25 @@ describe("Logger.ts Class Unit Tests", () => {
                     LogLevel.Verbose,
                     LogLevel.Trace,
                 ]);
+                expect(cachedLogs.map((log) => log.hash)).toEqual([
+                    "err123",
+                    "wrn456", 
+                    "inf789",
+                    "vrb012",
+                    "trc345",
+                ]);
             });
         });
 
         describe("LRU cache behavior", () => {
-            it("should maintain LRU order for correlation IDs", () => {
+            it("should maintain LRU order for correlation IDs with hashed messages", () => {
                 const logger = new Logger(loggerOptions);
 
-                // Add correlation IDs to test LRU behavior
+                // Add correlation IDs to test LRU behavior with hashed messages
                 const uniquePrefix = `lru-test-${Date.now()}`;
-                logger.info("Message 1", `${uniquePrefix}-1`);
-                logger.info("Message 2", `${uniquePrefix}-2`);
-                logger.info("Message 3", `${uniquePrefix}-3`);
+                logger.info("msg001", `${uniquePrefix}-1`);
+                logger.info("msg002", `${uniquePrefix}-2`);
+                logger.info("msg003", `${uniquePrefix}-3`);
 
                 let correlationIds = getCachedCorrelationIds();
                 expect(correlationIds).toContain(`${uniquePrefix}-1`);
@@ -615,9 +698,10 @@ describe("Logger.ts Class Unit Tests", () => {
                 // Access an older correlation ID to make it more recent
                 getLogsFromCache(`${uniquePrefix}-1`);
 
-                // Add more correlation IDs
+                // Add more correlation IDs with hashed messages
                 for (let i = 4; i <= 15; i++) {
-                    logger.info(`Message ${i}`, `${uniquePrefix}-${i}`);
+                    const paddedNum = i.toString().padStart(3, '0');
+                    logger.info(`msg${paddedNum}`, `${uniquePrefix}-${i}`);
                 }
 
                 correlationIds = getCachedCorrelationIds();
@@ -630,7 +714,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(correlationIds.length).toBeLessThan(100); // Reasonable upper bound
             });
 
-            it("should move accessed correlation ID to end (most recent)", () => {
+            it("should move accessed correlation ID to end (most recent) with hashed messages", () => {
                 const logger = new Logger(loggerOptions);
 
                 // Clear cache and create fresh test
@@ -639,10 +723,10 @@ describe("Logger.ts Class Unit Tests", () => {
                     getAndFlushLogsFromCache(id);
                 });
 
-                // Create 3 correlation IDs
-                logger.info("Message 1", "correlation-1");
-                logger.info("Message 2", "correlation-2");
-                logger.info("Message 3", "correlation-3");
+                // Create 3 correlation IDs with hashed messages
+                logger.info("msg001", "correlation-1");
+                logger.info("msg002", "correlation-2");
+                logger.info("msg003", "correlation-3");
 
                 // Access correlation-1 (should move to end)
                 getLogsFromCache("correlation-1");
@@ -657,7 +741,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(indexOf1).toBeGreaterThan(indexOf3);
             });
 
-            it("should update LRU order when adding logs to existing correlation", () => {
+            it("should update LRU order when adding hashed logs to existing correlation", () => {
                 const logger = new Logger(loggerOptions);
 
                 // Clear and start fresh
@@ -666,13 +750,13 @@ describe("Logger.ts Class Unit Tests", () => {
                     getAndFlushLogsFromCache(id);
                 });
 
-                // Create 3 correlation IDs
-                logger.info("Message 1", "correlation-1");
-                logger.info("Message 2", "correlation-2");
-                logger.info("Message 3", "correlation-3");
+                // Create 3 correlation IDs with hashed messages
+                logger.info("msg001", "correlation-1");
+                logger.info("msg002", "correlation-2");
+                logger.info("msg003", "correlation-3");
 
-                // Add another log to correlation-1 (should move to end)
-                logger.info("Another message", "correlation-1");
+                // Add another hashed log to correlation-1 (should move to end)
+                logger.info("msg004", "correlation-1");
 
                 const correlationIds = getCachedCorrelationIds();
                 const indexOf1 = correlationIds.indexOf("correlation-1");
@@ -686,34 +770,39 @@ describe("Logger.ts Class Unit Tests", () => {
                 // Verify correlation-1 has 2 logs
                 const correlation1Logs = getLogsFromCache("correlation-1");
                 expect(correlation1Logs).toHaveLength(2);
+                expect(correlation1Logs.map(log => log.hash)).toEqual(["msg001", "msg004"]);
             });
         });
 
         describe("Log count limits", () => {
-            it("should limit logs per correlation to MAX_LOGS_PER_CORRELATION (300)", () => {
+            it("should limit hashed logs per correlation to MAX_LOGS_PER_CORRELATION (300)", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "high-volume-test";
 
-                // Add more than 300 logs
+                // Add more than 300 hashed logs (6-char format)
                 for (let i = 0; i < 350; i++) {
-                    logger.info(`Message ${i}`, correlationId);
+                    const paddedNum = i.toString().padStart(3, '0');
+                    logger.info(`msg${paddedNum}`, correlationId);
                 }
 
                 const cachedLogs = getLogsFromCache(correlationId);
                 expect(cachedLogs).toHaveLength(300);
 
-                // Should contain the most recent 300 logs (250-349)
+                // Should contain the most recent 300 logs (50-349)
                 // The first 50 logs should have been evicted
                 expect(cachedLogs[0].hash).not.toEqual(cachedLogs[299].hash);
+                expect(cachedLogs[0].hash).toBe("msg050"); // First remaining log
+                expect(cachedLogs[299].hash).toBe("msg349"); // Last log
             });
 
-            it("should maintain chronological order when evicting old logs", () => {
+            it("should maintain chronological order when evicting old hashed logs", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "chronological-test";
 
-                // Add logs with distinctive messages
+                // Add hashed logs with distinctive messages
                 for (let i = 0; i < 305; i++) {
-                    logger.info(`Unique message ${i}`, correlationId);
+                    const paddedNum = i.toString().padStart(3, '0');
+                    logger.info(`log${paddedNum}`, correlationId);
                 }
 
                 const cachedLogs = getLogsFromCache(correlationId);
@@ -725,18 +814,22 @@ describe("Logger.ts Class Unit Tests", () => {
                         cachedLogs[i - 1].milliseconds
                     );
                 }
+
+                // Verify the remaining logs are the most recent ones (5-304)
+                expect(cachedLogs[0].hash).toBe("log005");
+                expect(cachedLogs[299].hash).toBe("log304");
             });
         });
 
         describe("Flush operations", () => {
-            it("should flush and return logs, then clear the cache", () => {
+            it("should flush and return hashed logs, then clear the cache", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "flush-test";
 
-                // Add some logs
-                logger.info("Message 1", correlationId);
-                logger.error("Message 2", correlationId);
-                logger.warning("Message 3", correlationId);
+                // Add some hashed logs
+                logger.info("msg001", correlationId);
+                logger.error("msg002", correlationId);
+                logger.warning("msg003", correlationId);
 
                 // Verify logs exist
                 let cachedLogs = getLogsFromCache(correlationId);
@@ -746,6 +839,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 const flushedLogs = getAndFlushLogsFromCache(correlationId);
                 expect(flushedLogs).toHaveLength(3);
                 expect(flushedLogs).toEqual(cachedLogs);
+                expect(flushedLogs.map(log => log.hash)).toEqual(["msg001", "msg002", "msg003"]);
 
                 // Verify cache is empty for this correlation
                 cachedLogs = getLogsFromCache(correlationId);
@@ -762,36 +856,37 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(Array.isArray(flushedLogs)).toBe(true);
             });
 
-            it("should allow adding logs after flush", () => {
+            it("should allow adding hashed logs after flush", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "post-flush-test";
 
-                // Add and flush logs
-                logger.info("Before flush", correlationId);
+                // Add and flush hashed logs
+                logger.info("bef001", correlationId);
                 getAndFlushLogsFromCache(correlationId);
 
-                // Add new logs after flush
-                logger.error("After flush", correlationId);
-                logger.warning("Another after flush", correlationId);
+                // Add new hashed logs after flush
+                logger.error("aft001", correlationId);
+                logger.warning("aft002", correlationId);
 
                 const cachedLogs = getLogsFromCache(correlationId);
                 expect(cachedLogs).toHaveLength(2);
                 expect(cachedLogs[0].level).toBe(LogLevel.Error);
                 expect(cachedLogs[1].level).toBe(LogLevel.Warning);
+                expect(cachedLogs.map(log => log.hash)).toEqual(["aft001", "aft002"]);
             });
         });
 
         describe("Cross-instance cache sharing", () => {
-            it("should share cache across multiple Logger instances", () => {
+            it("should share cache across multiple Logger instances for hashed messages", () => {
                 const logger1 = new Logger(loggerOptions);
                 const logger2 = new Logger(loggerOptions);
                 const correlationId = "shared-cache-test";
 
-                // Log from first instance
-                logger1.info("Message from logger1", correlationId);
+                // Log hashed messages from first instance
+                logger1.info("lg1001", correlationId);
 
-                // Log from second instance
-                logger2.error("Message from logger2", correlationId);
+                // Log hashed messages from second instance
+                logger2.error("lg2001", correlationId);
 
                 // Both instances should see both logs
                 const logs1 = getLogsFromCache(correlationId);
@@ -803,9 +898,10 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 expect(logs1[0].level).toBe(LogLevel.Info);
                 expect(logs1[1].level).toBe(LogLevel.Error);
+                expect(logs1.map(log => log.hash)).toEqual(["lg1001", "lg2001"]);
             });
 
-            it("should share LRU eviction across instances", () => {
+            it("should share LRU eviction across instances with hashed messages", () => {
                 const logger1 = new Logger(loggerOptions);
                 const logger2 = new Logger(loggerOptions);
 
@@ -815,13 +911,13 @@ describe("Logger.ts Class Unit Tests", () => {
                     getAndFlushLogsFromCache(id);
                 });
 
-                // Fill cache from first instance
-                logger1.info("Message 1", "correlation-1");
-                logger1.info("Message 2", "correlation-2");
-                logger1.info("Message 3", "correlation-3");
+                // Fill cache from first instance with hashed messages
+                logger1.info("msg001", "correlation-1");
+                logger1.info("msg002", "correlation-2");
+                logger1.info("msg003", "correlation-3");
 
-                // Add from second instance
-                logger2.info("Message 4", "correlation-4");
+                // Add from second instance with hashed message
+                logger2.info("msg004", "correlation-4");
 
                 // Both instances should see same correlation IDs
                 const correlationIds1 = getCachedCorrelationIds();
@@ -839,9 +935,9 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger2 = new Logger(loggerOptions);
                 const correlationId = "shared-flush-test";
 
-                // Add logs from both instances
-                logger1.info("Message from logger1", correlationId);
-                logger2.error("Message from logger2", correlationId);
+                // Add hashed logs from both instances
+                logger1.info("log001", correlationId);
+                logger2.error("log002", correlationId);
 
                 // Flush from first instance
                 const flushedLogs = getAndFlushLogsFromCache(correlationId);
@@ -853,82 +949,76 @@ describe("Logger.ts Class Unit Tests", () => {
             });
         });
 
-        describe("Hash generation and consistency", () => {
-            it("should generate consistent 6-character hashes", () => {
+        describe("Hash detection and caching behavior", () => {
+            it("should cache messages that are already hashed", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "hash-test";
-                const message = "Test message for hashing";
-
-                // Log the same message multiple times
-                logger.info(message, correlationId);
-                logger.info(message, correlationId);
-
-                const cachedLogs = getLogsFromCache(correlationId);
-                expect(cachedLogs).toHaveLength(2);
-
-                // Both logs should have the same hash for the same message
-                expect(cachedLogs[0].hash).toBe(cachedLogs[1].hash);
-                expect(cachedLogs[0].hash).toHaveLength(6);
-                expect(/^[a-zA-Z0-9]{6}$/.test(cachedLogs[0].hash)).toBe(true);
-            });
-
-            it("should generate different hashes for different messages", () => {
-                const logger = new Logger(loggerOptions);
-                const correlationId = "different-hash-test";
-
-                logger.info("First message", correlationId);
-                logger.info("Second message", correlationId);
-
-                const cachedLogs = getLogsFromCache(correlationId);
-                expect(cachedLogs).toHaveLength(2);
-                expect(cachedLogs[0].hash).not.toBe(cachedLogs[1].hash);
-            });
-
-            it("should handle already hashed strings correctly", () => {
-                const logger = new Logger(loggerOptions);
-                const correlationId = "pre-hashed-test";
-                const hashedMessage = "abc123"; // 6-character alphanumeric string
+                const hashedMessage = "msg001"; // 6-character alphanumeric hash
 
                 logger.info(hashedMessage, correlationId);
 
                 const cachedLogs = getLogsFromCache(correlationId);
                 expect(cachedLogs).toHaveLength(1);
-                // Should use the string as-is since it looks like a hash
                 expect(cachedLogs[0].hash).toBe(hashedMessage);
+                expect(/^[a-zA-Z0-9]{6}$/.test(cachedLogs[0].hash)).toBe(true);
+            });
+
+            it("should not cache plain text messages", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "plain-text-test";
+                const plainMessage = "This is a plain text message";
+
+                logger.info(plainMessage, correlationId);
+
+                const cachedLogs = getLogsFromCache(correlationId);
+                expect(cachedLogs).toHaveLength(0); // Plain text messages are not cached
+            });
+
+            it("should distinguish between hashed and plain text messages", () => {
+                const logger = new Logger(loggerOptions);
+                const correlationId = "mixed-test";
+
+                // Mix hashed and plain text messages
+                logger.info("msg001", correlationId); // Should be cached
+                logger.info("This is plain text", correlationId); // Should not be cached
+                logger.info("msg002", correlationId); // Should be cached
+
+                const cachedLogs = getLogsFromCache(correlationId);
+                expect(cachedLogs).toHaveLength(2); // Only hashed messages cached
+                expect(cachedLogs[0].hash).toBe("msg001");
+                expect(cachedLogs[1].hash).toBe("msg002");
             });
         });
 
         describe("Edge cases and error Handling", () => {
-            it("should handle very long messages", () => {
+            it("should not cache very long plain text messages", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "long-message-test";
-                const longMessage = "x".repeat(10000); // 10KB message
+                const longMessage = "x".repeat(10000); // 10KB plain text message
 
                 logger.info(longMessage, correlationId);
 
                 const cachedLogs = getLogsFromCache(correlationId);
-                expect(cachedLogs).toHaveLength(1);
-                expect(cachedLogs[0].hash).toHaveLength(6);
+                expect(cachedLogs).toHaveLength(0); // Plain text not cached
             });
 
-            it("should handle special characters in messages", () => {
+            it("should cache hashed messages regardless of special context", () => {
                 const logger = new Logger(loggerOptions);
-                const correlationId = "special-chars-test";
-                const specialMessage =
-                    "Message with éñ¡cöde and \n newlines";
+                const correlationId = "special-context-test";
+                const hashedMessage = "msg001"; // Valid hash format
 
-                logger.info(specialMessage, correlationId);
+                logger.info(hashedMessage, correlationId);
 
                 const cachedLogs = getLogsFromCache(correlationId);
                 expect(cachedLogs).toHaveLength(1);
-                expect(cachedLogs[0].hash).toHaveLength(6);
+                expect(cachedLogs[0].hash).toBe(hashedMessage);
             });
 
             it("should return copies of cached logs to prevent external modification", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "immutable-test";
 
-                logger.info("Original message", correlationId);
+                logger.info("msg001", correlationId); // Use hashed message
 
                 const cachedLogs1 = getLogsFromCache(correlationId);
                 const cachedLogs2 = getLogsFromCache(correlationId);
@@ -949,16 +1039,17 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(cachedLogs2).toHaveLength(1);
             });
 
-            it("should handle concurrent access safely", () => {
+            it("should handle concurrent access safely with hashed messages", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "concurrent-test";
 
-                // Simulate concurrent logging
-                const promises = Array.from({ length: 100 }, (_, i) =>
-                    Promise.resolve(
-                        logger.info(`Concurrent message ${i}`, correlationId)
-                    )
-                );
+                // Simulate concurrent logging with hashed messages
+                const promises = Array.from({ length: 100 }, (_, i) => {
+                    const hashedMsg = `msg${i.toString().padStart(3, '0')}`; // msg000, msg001, etc.
+                    return Promise.resolve(
+                        logger.info(hashedMsg, correlationId)
+                    );
+                });
 
                 return Promise.all(promises).then(() => {
                     const cachedLogs = getLogsFromCache(correlationId);
@@ -975,7 +1066,7 @@ describe("Logger.ts Class Unit Tests", () => {
         });
 
         describe("Performance and memory", () => {
-            it("should not cause memory leaks with many correlation IDs", () => {
+            it("should not cause memory leaks with many correlation IDs using hashed messages", () => {
                 const logger = new Logger(loggerOptions);
 
                 // Use a unique prefix to avoid conflicts with other tests
@@ -984,9 +1075,10 @@ describe("Logger.ts Class Unit Tests", () => {
                 // Record initial cache size
                 const initialCacheSize = getCachedCorrelationIds().length;
 
-                // Create many correlation IDs
+                // Create many correlation IDs with hashed messages
                 for (let i = 0; i < 50; i++) {
-                    logger.info(`Message ${i}`, `${uniquePrefix}-${i}`);
+                    const hashedMsg = `msg${i.toString().padStart(3, '0')}`; // msg000, msg001, etc.
+                    logger.info(hashedMsg, `${uniquePrefix}-${i}`);
                 }
 
                 // Cache should grow but not indefinitely
@@ -1006,14 +1098,15 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(ourCorrelationIds.length).toBeGreaterThan(0);
             });
 
-            it("should handle rapid logging without issues", () => {
+            it("should handle rapid logging without issues using hashed messages", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "rapid-test";
                 const startTime = Date.now();
 
-                // Log many messages rapidly
+                // Log many hashed messages rapidly
                 for (let i = 0; i < 1000; i++) {
-                    logger.info(`Rapid message ${i}`, correlationId);
+                    const hashedMsg = `rp${i.toString().padStart(4, '0')}`; // rp0000, rp0001, etc.
+                    logger.info(hashedMsg, correlationId);
                 }
 
                 const endTime = Date.now();
@@ -1035,13 +1128,13 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "test-specific-id";
 
-                // Add logs with empty correlation ID
-                logger.info("Empty correlation message 1", "");
-                logger.error("Empty correlation message 2", "");
+                // Add hashed logs with empty correlation ID
+                logger.info("emp001", "");
+                logger.error("emp002", "");
 
-                // Add logs with specific correlation ID
-                logger.info("Specific correlation message 1", correlationId);
-                logger.warning("Specific correlation message 2", correlationId);
+                // Add hashed logs with specific correlation ID
+                logger.info("spc001", correlationId);
+                logger.warning("spc002", correlationId);
 
                 // Verify both caches have logs
                 const emptyLogs = getLogsFromCache("");
@@ -1070,9 +1163,9 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "test-only-specific";
 
-                // Add only logs with specific correlation ID
-                logger.info("Specific message 1", correlationId);
-                logger.error("Specific message 2", correlationId);
+                // Add only hashed logs with specific correlation ID
+                logger.info("spc001", correlationId);
+                logger.error("spc002", correlationId);
 
                 const flushedLogs = getAndFlushLogsFromCache(correlationId);
 
@@ -1086,9 +1179,9 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "non-existent-id";
 
-                // Add only logs with empty correlation ID
-                logger.warning("Empty message 1", "");
-                logger.trace("Empty message 2", "");
+                // Add only hashed logs with empty correlation ID
+                logger.warning("emp001", "");
+                logger.trace("emp002", "");
 
                 const flushedLogs = getAndFlushLogsFromCache(correlationId);
 
@@ -1110,15 +1203,15 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "chronological-test";
 
-                // Add logs in specific order with small delays to ensure different timestamps
-                logger.info("First empty", "");
+                // Add hashed logs in specific order with small delays to ensure different timestamps
+                logger.info("emp001", "");
 
                 // Small delay to ensure different timestamps
                 await new Promise((resolve) => setTimeout(resolve, 1));
 
-                logger.info("First specific", correlationId);
-                logger.error("Second empty", "");
-                logger.warning("Second specific", correlationId);
+                logger.info("spc001", correlationId);
+                logger.error("emp002", "");
+                logger.warning("spc002", correlationId);
 
                 const flushedLogs = getAndFlushLogsFromCache(correlationId);
 
@@ -1136,13 +1229,13 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "pii-test";
 
-                // Add PII logs with empty correlation ID
-                logger.infoPii("Empty PII message", "");
-                logger.info("Empty non-PII message", "");
+                // Add hashed PII logs with empty correlation ID
+                logger.infoPii("emp001", "");
+                logger.info("emp002", "");
 
-                // Add PII logs with specific correlation ID
-                logger.errorPii("Specific PII message", correlationId);
-                logger.warning("Specific non-PII message", correlationId);
+                // Add hashed PII logs with specific correlation ID
+                logger.errorPii("spc001", correlationId);
+                logger.warning("spc002", correlationId);
 
                 const flushedLogs = getAndFlushLogsFromCache(correlationId);
 
@@ -1162,14 +1255,16 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "large-volume-combined";
 
-                // Add 50 logs to empty correlation
+                // Add 50 hashed logs to empty correlation
                 for (let i = 0; i < 50; i++) {
-                    logger.info(`Empty message ${i}`, "");
+                    const hashedMsg = `emp${i.toString().padStart(3, '0')}`; // emp000, emp001, etc.
+                    logger.info(hashedMsg, "");
                 }
 
-                // Add 75 logs to specific correlation
+                // Add 75 hashed logs to specific correlation
                 for (let i = 0; i < 75; i++) {
-                    logger.warning(`Specific message ${i}`, correlationId);
+                    const hashedMsg = `spc${i.toString().padStart(3, '0')}`; // spc000, spc001, etc.
+                    logger.warning(hashedMsg, correlationId);
                 }
 
                 const flushedLogs = getAndFlushLogsFromCache(correlationId);
@@ -1193,12 +1288,12 @@ describe("Logger.ts Class Unit Tests", () => {
                 const correlationId1 = "keep-this-one";
                 const correlationId2 = "flush-this-one";
 
-                // Add logs to multiple correlations
-                logger.info("Keep message 1", correlationId1);
-                logger.info("Empty message", "");
-                logger.info("Flush message 1", correlationId2);
-                logger.info("Keep message 2", correlationId1);
-                logger.info("Flush message 2", correlationId2);
+                // Add hashed logs to multiple correlations
+                logger.info("kep001", correlationId1);
+                logger.info("emp001", "");
+                logger.info("flu001", correlationId2);
+                logger.info("kep002", correlationId1);
+                logger.info("flu002", correlationId2);
 
                 // Flush correlationId2 (should also clear empty correlation)
                 const flushedLogs = getAndFlushLogsFromCache(correlationId2);
@@ -1220,8 +1315,8 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "cache-key-test";
 
-                logger.info("Empty message", "");
-                logger.info("Specific message", correlationId);
+                logger.info("emp001", "");
+                logger.info("spc001", correlationId);
 
                 // Verify both correlation IDs are in cache
                 const correlationIdsBefore = getCachedCorrelationIds();

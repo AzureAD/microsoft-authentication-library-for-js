@@ -147,36 +147,6 @@ export function getCachedCorrelationIds(): string[] {
 }
 
 /**
- * Creates a consistent 6-char hash for a given string
- */
-function createStringHash(str: string) {
-    const cyrb64 = (str: string, seed = 0) => {
-        let h1 = 0xdeadbeef ^ seed,
-            h2 = 0x41c6ce57 ^ seed;
-        for (let i = 0, ch; i < str.length; i++) {
-            ch = str.charCodeAt(i);
-            h1 = Math.imul(h1 ^ ch, 2654435761);
-            h2 = Math.imul(h2 ^ ch, 1597334677);
-        }
-        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-        h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-        h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-        return [h2 >>> 0, h1 >>> 0];
-    };
-
-    const cyrb64Hash = (str: string, seed = 0) => {
-        const [h2, h1] = cyrb64(str, seed);
-        return (
-            h2.toString(36).padStart(7, "0") + h1.toString(36).padStart(7, "0")
-        );
-    };
-
-    const normalized = normalizeMessageForHashing(str);
-    return cyrb64Hash(normalized).substring(0, 6);
-}
-
-/**
  * Checks if a string is already a hashed logging string (6 alphanumeric characters)
  */
 function isHashedString(str: string): boolean {
@@ -198,49 +168,6 @@ function isHashedString(str: string): boolean {
     return true;
 }
 
-/**
- * Normalizes a message for consistent hashing between minified and runtime versions
- * Handles quoted variables and expressions without regex to avoid quadratic time complexity
- */
-function normalizeMessageForHashing(message: string): string {
-    let result = "";
-    let i = 0;
-
-    while (i < message.length) {
-        if (
-            message[i] === "'" &&
-            i + 1 < message.length &&
-            message.substr(i + 1, 2) === "${"
-        ) {
-            // Found start of quoted variable: '${
-            let j = i + 3; // Skip past '${
-            let depth = 1;
-
-            // Find the matching closing brace
-            while (j < message.length && depth > 0) {
-                if (message[j] === "{") depth++;
-                else if (message[j] === "}") depth--;
-                j++;
-            }
-
-            // Check if we have the closing quote after the brace
-            if (j < message.length && message[j] === "'") {
-                // Replace the entire quoted variable with {VAR}
-                result += "{VAR}";
-                i = j + 1; // Skip past the closing quote
-            } else {
-                // Not a properly quoted variable, just add the character
-                result += message[i];
-                i++;
-            }
-        } else {
-            result += message[i];
-            i++;
-        }
-    }
-
-    return result;
-}
 /**
  * Class which facilitates logging of messages to a specific place.
  */
@@ -315,16 +242,16 @@ export class Logger {
     ): void {
         const correlationId = options.correlationId;
         const isHashedInput = isHashedString(logMessage);
-        const hash: string = isHashedInput
-            ? logMessage
-            : createStringHash(logMessage);
-        const loggedMessage: LoggedMessage = {
-            hash,
-            level: options.logLevel,
-            containsPii: options.containsPii || false,
-            milliseconds: 0, // Will be calculated in addLogToCache
-        };
-        addLogToCache(correlationId, loggedMessage);
+
+        if (isHashedInput) {
+            const loggedMessage: LoggedMessage = {
+                hash: logMessage,
+                level: options.logLevel,
+                containsPii: options.containsPii || false,
+                milliseconds: 0, // Will be calculated in addLogToCache
+            };
+            addLogToCache(correlationId, loggedMessage);
+        }
 
         if (
             options.logLevel > this.level ||

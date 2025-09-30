@@ -77,7 +77,7 @@
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
     "build:debug": "npm run clean && MSAL_MINIFY_LOGS=false npm run build:modules",
-    "decode-logs": "node scripts/decode-logs.cjs --mappings ./dist/log-strings-mapping.json,../msal-common/dist-browser/log-strings-mapping.json",
+    "decode-logs": "node scripts/decode-logs.cjs",
     "prepack": "npm run build:all",
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",

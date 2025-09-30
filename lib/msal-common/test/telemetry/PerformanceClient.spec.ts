@@ -1274,11 +1274,12 @@ describe("PerformanceClient.spec.ts", () => {
             mockPerfClient.logger.executeCallback = mockExecuteCallback;
 
             // Create some logs to accumulate in the cache using the Logger class directly
+            // Using hashed messages (6-char alphanumeric) that will be cached
             const logger = new Logger({
                 loggerCallback: () => {},
             });
-            logger.info("Test log message 1", correlationId);
-            logger.warning("Test log message 2", correlationId);
+            logger.info("msg001", correlationId);
+            logger.warning("msg002", correlationId);
 
             mockPerfClient.addPerformanceCallback((events) => {
                 expect(events.length).toBe(1);
