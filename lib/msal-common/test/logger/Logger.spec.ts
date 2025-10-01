@@ -549,7 +549,9 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(cachedLogs[cachedLogs.length - 1].level).toBe(
                     LogLevel.Error
                 );
-                expect(cachedLogs[cachedLogs.length - 1].hash).toBe(hashedMessage);
+                expect(cachedLogs[cachedLogs.length - 1].hash).toBe(
+                    hashedMessage
+                );
             });
 
             it("should handle empty string correlation ID as default for hashed messages", () => {
@@ -614,7 +616,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 ]);
                 expect(cachedLogs.map((log) => log.hash)).toEqual([
                     "err123",
-                    "wrn456", 
+                    "wrn456",
                     "inf789",
                     "vrb012",
                     "trc345",
@@ -672,7 +674,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 ]);
                 expect(cachedLogs.map((log) => log.hash)).toEqual([
                     "err123",
-                    "wrn456", 
+                    "wrn456",
                     "inf789",
                     "vrb012",
                     "trc345",
@@ -700,7 +702,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Add more correlation IDs with hashed messages
                 for (let i = 4; i <= 15; i++) {
-                    const paddedNum = i.toString().padStart(3, '0');
+                    const paddedNum = i.toString().padStart(3, "0");
                     logger.info(`msg${paddedNum}`, `${uniquePrefix}-${i}`);
                 }
 
@@ -770,7 +772,10 @@ describe("Logger.ts Class Unit Tests", () => {
                 // Verify correlation-1 has 2 logs
                 const correlation1Logs = getLogsFromCache("correlation-1");
                 expect(correlation1Logs).toHaveLength(2);
-                expect(correlation1Logs.map(log => log.hash)).toEqual(["msg001", "msg004"]);
+                expect(correlation1Logs.map((log) => log.hash)).toEqual([
+                    "msg001",
+                    "msg004",
+                ]);
             });
         });
 
@@ -781,7 +786,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Add more than 300 hashed logs (6-char format)
                 for (let i = 0; i < 350; i++) {
-                    const paddedNum = i.toString().padStart(3, '0');
+                    const paddedNum = i.toString().padStart(3, "0");
                     logger.info(`msg${paddedNum}`, correlationId);
                 }
 
@@ -801,7 +806,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Add hashed logs with distinctive messages
                 for (let i = 0; i < 305; i++) {
-                    const paddedNum = i.toString().padStart(3, '0');
+                    const paddedNum = i.toString().padStart(3, "0");
                     logger.info(`log${paddedNum}`, correlationId);
                 }
 
@@ -839,7 +844,11 @@ describe("Logger.ts Class Unit Tests", () => {
                 const flushedLogs = getAndFlushLogsFromCache(correlationId);
                 expect(flushedLogs).toHaveLength(3);
                 expect(flushedLogs).toEqual(cachedLogs);
-                expect(flushedLogs.map(log => log.hash)).toEqual(["msg001", "msg002", "msg003"]);
+                expect(flushedLogs.map((log) => log.hash)).toEqual([
+                    "msg001",
+                    "msg002",
+                    "msg003",
+                ]);
 
                 // Verify cache is empty for this correlation
                 cachedLogs = getLogsFromCache(correlationId);
@@ -872,7 +881,10 @@ describe("Logger.ts Class Unit Tests", () => {
                 expect(cachedLogs).toHaveLength(2);
                 expect(cachedLogs[0].level).toBe(LogLevel.Error);
                 expect(cachedLogs[1].level).toBe(LogLevel.Warning);
-                expect(cachedLogs.map(log => log.hash)).toEqual(["aft001", "aft002"]);
+                expect(cachedLogs.map((log) => log.hash)).toEqual([
+                    "aft001",
+                    "aft002",
+                ]);
             });
         });
 
@@ -898,7 +910,10 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 expect(logs1[0].level).toBe(LogLevel.Info);
                 expect(logs1[1].level).toBe(LogLevel.Error);
-                expect(logs1.map(log => log.hash)).toEqual(["lg1001", "lg2001"]);
+                expect(logs1.map((log) => log.hash)).toEqual([
+                    "lg1001",
+                    "lg2001",
+                ]);
             });
 
             it("should share LRU eviction across instances with hashed messages", () => {
@@ -1045,7 +1060,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Simulate concurrent logging with hashed messages
                 const promises = Array.from({ length: 100 }, (_, i) => {
-                    const hashedMsg = `msg${i.toString().padStart(3, '0')}`; // msg000, msg001, etc.
+                    const hashedMsg = `msg${i.toString().padStart(3, "0")}`; // msg000, msg001, etc.
                     return Promise.resolve(
                         logger.info(hashedMsg, correlationId)
                     );
@@ -1077,7 +1092,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Create many correlation IDs with hashed messages
                 for (let i = 0; i < 50; i++) {
-                    const hashedMsg = `msg${i.toString().padStart(3, '0')}`; // msg000, msg001, etc.
+                    const hashedMsg = `msg${i.toString().padStart(3, "0")}`; // msg000, msg001, etc.
                     logger.info(hashedMsg, `${uniquePrefix}-${i}`);
                 }
 
@@ -1105,7 +1120,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Log many hashed messages rapidly
                 for (let i = 0; i < 1000; i++) {
-                    const hashedMsg = `rp${i.toString().padStart(4, '0')}`; // rp0000, rp0001, etc.
+                    const hashedMsg = `rp${i.toString().padStart(4, "0")}`; // rp0000, rp0001, etc.
                     logger.info(hashedMsg, correlationId);
                 }
 
@@ -1257,13 +1272,13 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Add 50 hashed logs to empty correlation
                 for (let i = 0; i < 50; i++) {
-                    const hashedMsg = `emp${i.toString().padStart(3, '0')}`; // emp000, emp001, etc.
+                    const hashedMsg = `emp${i.toString().padStart(3, "0")}`; // emp000, emp001, etc.
                     logger.info(hashedMsg, "");
                 }
 
                 // Add 75 hashed logs to specific correlation
                 for (let i = 0; i < 75; i++) {
-                    const hashedMsg = `spc${i.toString().padStart(3, '0')}`; // spc000, spc001, etc.
+                    const hashedMsg = `spc${i.toString().padStart(3, "0")}`; // spc000, spc001, etc.
                     logger.warning(hashedMsg, correlationId);
                 }
 
