@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { DataBoundary } from "../../account/AccountInfo.js";
+
 /**
  * State of the performance event.
  *
@@ -331,6 +333,8 @@ export type PerformanceEvent = {
     sameClientIdInstanceCount?: number;
 
     navigateCallbackResult?: boolean;
+
+    dataBoundary?: DataBoundary;
 };
 
 export type PerformanceEventContext = {
