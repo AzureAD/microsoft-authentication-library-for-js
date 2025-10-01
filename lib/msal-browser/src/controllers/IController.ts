@@ -28,9 +28,7 @@ import { EventType } from "../event/EventType.js";
 
 export interface IController {
     // TODO: Make request mandatory in the next major version?
-    initialize(
-        request?: InitializeApplicationRequest
-    ): Promise<void>;
+    initialize(request?: InitializeApplicationRequest): Promise<void>;
 
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
 

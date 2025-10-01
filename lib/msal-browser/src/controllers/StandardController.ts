@@ -286,9 +286,7 @@ export class StandardController implements IController {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      * @param request {?InitializeApplicationRequest} correlation id
      */
-    async initialize(
-        request?: InitializeApplicationRequest
-    ): Promise<void> {
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("initialize called", correlationId);
         if (this.initialized) {
