@@ -822,7 +822,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
                 // Verify the remaining logs are the most recent ones (5-504)
                 expect(cachedLogs[0].hash).toBe("log005");
-                expect(cachedLogs[299].hash).toBe("log304");
+                expect(cachedLogs[499].hash).toBe("log504");
             });
         });
 
