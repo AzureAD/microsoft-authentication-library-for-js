@@ -333,6 +333,8 @@ export class StandardController implements IController {
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
+        this.logMultipleInstances(initMeasurement, initCorrelationId);
+
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
             BrowserPerformanceEvents.InitializeCache,
