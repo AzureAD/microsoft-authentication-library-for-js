@@ -172,7 +172,7 @@ const msal = new PublicClientApplication({
 msal.logoutRedirect();
 ```
 
-There are some limitations to front-channel logouts. For more information, see [here](https://learn.microsoft.com/en-us/entra/identity-platform/reference-third-party-cookies-spas#limitations-on-front-channel-logout-without-third-party-cookies).
+Please note that front-channel logouts are not always supported across browsers. Chromium enabled [Storage Partitioning](https://privacysandbox.google.com/cookies/storage-partitioning) and Firefox supports [similar standard](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/State_Partitioning) limiting applications to execute front-channel logout. For official Entra documentation on this topic,  see [here](https://learn.microsoft.com/en-us/entra/identity-platform/reference-third-party-cookies-spas#limitations-on-front-channel-logout-without-third-party-cookies).
 
 ### Front-channel logout samples
 
