@@ -2,6 +2,45 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 30 Sep 2025 22:02:06 GMT",
+      "version": "4.24.1",
+      "tag": "@azure/msal-browser_v4.24.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "754ae6fed676690e18263fd344b49a0faf0dd75b",
+            "comment": "Add prompt=select_account for native flows (#8062)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "754ae6fed676690e18263fd344b49a0faf0dd75b",
+            "comment": "Add support for \"pageException\" error to fallback to web (#8064)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 24 Sep 2025 21:54:45 GMT",
       "version": "4.24.0",
       "tag": "@azure/msal-browser_v4.24.0",
