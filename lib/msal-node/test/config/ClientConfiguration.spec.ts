@@ -111,19 +111,23 @@ describe("ClientConfiguration tests", () => {
                 networkClient: {
                     sendGetRequestAsync: async (
                         url: string,
-                        options?: NetworkRequestOptions
+                        correlationId: string,
+                        _options?: NetworkRequestOptions
                     ): Promise<any> => {
-                        if (url && options) {
+                        if (url && correlationId) {
                             return testNetworkResult;
                         }
+                        throw new Error("Missing required parameters");
                     },
                     sendPostRequestAsync: async (
                         url: string,
-                        options?: NetworkRequestOptions
+                        correlationId: string,
+                        _options?: NetworkRequestOptions
                     ): Promise<any> => {
-                        if (url && options) {
+                        if (url && correlationId) {
                             return testNetworkResult;
                         }
+                        throw new Error("Missing required parameters");
                     },
                 },
                 loggerOptions: {
@@ -159,12 +163,14 @@ describe("ClientConfiguration tests", () => {
         expect(
             config.system!.networkClient!.sendGetRequestAsync(
                 TEST_CONSTANTS.AUTH_CODE_URL,
+                RANDOM_TEST_GUID,
                 testNetworkOptions
             )
         ).resolves.toEqual(testNetworkResult);
         expect(
             config.system!.networkClient!.sendPostRequestAsync(
                 TEST_CONSTANTS.AUTH_CODE_URL,
+                RANDOM_TEST_GUID,
                 testNetworkOptions
             )
         ).resolves.toEqual(testNetworkResult);
@@ -223,6 +229,7 @@ describe("ClientConfiguration tests", () => {
                 "{tenant}",
                 "tenantid"
             ) + `?client-request-id=${RANDOM_TEST_GUID}`,
+            RANDOM_TEST_GUID,
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })
@@ -267,6 +274,7 @@ describe("ClientConfiguration tests", () => {
                 "{tenant}",
                 "tenantid"
             ) + `?client-request-id=${RANDOM_TEST_GUID}`,
+            RANDOM_TEST_GUID,
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })

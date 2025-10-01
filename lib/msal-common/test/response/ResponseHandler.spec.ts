@@ -47,10 +47,18 @@ import { TestTimeUtils } from "msal-test-utils";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const networkInterface: INetworkModule = {
-    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+    sendGetRequestAsync<T>(
+        url: string,
+        correlationId: string,
+        options?: NetworkRequestOptions
+    ): T {
         return {} as T;
     },
-    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+    sendPostRequestAsync<T>(
+        url: string,
+        correlationId: string,
+        options?: NetworkRequestOptions
+    ): T {
         return {} as T;
     },
 };

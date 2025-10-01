@@ -203,7 +203,7 @@ export abstract class BaseClient {
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(tokenEndpoint, options);
+            )(tokenEndpoint, correlationId, options);
             const responseHeaders = response.headers || {};
             this.performanceClient?.addFields(
                 {

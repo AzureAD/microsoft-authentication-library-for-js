@@ -140,6 +140,8 @@ export class ManagedIdentityApplication {
             );
         }
 
+        const correlationId: string = this.cryptoProvider.createNewGuid();
+
         const managedIdentityRequest: ManagedIdentityRequest = {
             forceRefresh: managedIdentityRequestParams.forceRefresh,
             resource: managedIdentityRequestParams.resource.replace(
@@ -150,7 +152,7 @@ export class ManagedIdentityApplication {
                 managedIdentityRequestParams.resource.replace("/.default", ""),
             ],
             authority: this.fakeAuthority.canonicalAuthority,
-            correlationId: this.cryptoProvider.createNewGuid(),
+            correlationId: correlationId,
             claims: managedIdentityRequestParams.claims,
             clientCapabilities: this.config.clientCapabilities,
         };
@@ -159,7 +161,8 @@ export class ManagedIdentityApplication {
             return this.acquireTokenFromManagedIdentity(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
-                this.fakeAuthority
+                this.fakeAuthority,
+                correlationId
             );
         }
 
@@ -198,7 +201,8 @@ export class ManagedIdentityApplication {
             return this.acquireTokenFromManagedIdentity(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
-                this.fakeAuthority
+                this.fakeAuthority,
+                correlationId
             );
         }
 
@@ -215,6 +219,7 @@ export class ManagedIdentityApplication {
                     managedIdentityRequest,
                     this.config.managedIdentityId,
                     this.fakeAuthority,
+                    correlationId,
                     refreshAccessToken
                 );
             }
@@ -224,7 +229,8 @@ export class ManagedIdentityApplication {
             return this.acquireTokenFromManagedIdentity(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
-                this.fakeAuthority
+                this.fakeAuthority,
+                correlationId
             );
         }
     }
@@ -242,6 +248,7 @@ export class ManagedIdentityApplication {
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
+        correlationId: string,
         refreshAccessToken?: boolean
     ): Promise<AuthenticationResult> {
         // make a network call to the managed identity
@@ -249,6 +256,7 @@ export class ManagedIdentityApplication {
             managedIdentityRequest,
             managedIdentityId,
             fakeAuthority,
+            correlationId,
             refreshAccessToken
         );
     }

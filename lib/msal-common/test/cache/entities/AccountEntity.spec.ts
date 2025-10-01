@@ -37,10 +37,18 @@ import { StubPerformanceClient } from "../../../src/telemetry/performance/StubPe
 const cryptoInterface: ICrypto = mockCrypto;
 
 const networkInterface: INetworkModule = {
-    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+    sendGetRequestAsync<T>(
+        url: string,
+        correlationId: string,
+        options?: NetworkRequestOptions
+    ): T {
         return {} as T;
     },
-    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+    sendPostRequestAsync<T>(
+        url: string,
+        correlationId: string,
+        options?: NetworkRequestOptions
+    ): T {
         return {} as T;
     },
 };

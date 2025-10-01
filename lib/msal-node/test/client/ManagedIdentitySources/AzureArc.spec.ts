@@ -239,6 +239,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 }?api-version=${ARC_API_VERSION}&resource=${encodeURIComponent(
                     MANAGED_IDENTITY_RESOURCE_BASE
                 )}`,
+                expect.any(String), // Accept any string for the correlation ID
                 {
                     headers: {
                         Authorization:

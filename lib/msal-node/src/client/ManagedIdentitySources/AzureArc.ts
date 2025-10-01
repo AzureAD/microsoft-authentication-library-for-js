@@ -216,7 +216,8 @@ export class AzureArc extends BaseManagedIdentitySource {
         originalResponse: NetworkResponse<ManagedIdentityTokenResponse>,
         networkClient: INetworkModule,
         networkRequest: ManagedIdentityRequestParameters,
-        networkRequestOptions: NetworkRequestOptions
+        networkRequestOptions: NetworkRequestOptions,
+        correlationId: string
     ): Promise<ServerAuthorizationTokenResponse> {
         let retryResponse:
             | NetworkResponse<ManagedIdentityTokenResponse>
@@ -310,6 +311,7 @@ export class AzureArc extends BaseManagedIdentitySource {
                 retryResponse =
                     await networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
+                        correlationId,
                         networkRequestOptions
                     );
             } catch (error) {

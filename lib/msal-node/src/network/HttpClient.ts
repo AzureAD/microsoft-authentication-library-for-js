@@ -25,7 +25,6 @@ export class HttpClient implements INetworkModule {
     private customAgentOptions: http.AgentOptions | https.AgentOptions;
     private logger: Logger;
     private isPiiEnabled: boolean;
-    private logErrorMethod: (message: string) => void;
 
     constructor(
         proxyUrl?: string,
@@ -37,9 +36,6 @@ export class HttpClient implements INetworkModule {
 
         this.logger = new Logger(loggerOptions || {}, name, version);
         this.isPiiEnabled = this.logger.isPiiLoggingEnabled();
-        this.logErrorMethod = this.isPiiEnabled
-            ? this.logger.errorPii.bind(this.logger)
-            : this.logger.error.bind(this.logger);
     }
 
     /**
@@ -49,20 +45,23 @@ export class HttpClient implements INetworkModule {
      */
     public async sendGetRequestAsync<T>(
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions,
         timeout?: number
     ): Promise<NetworkResponse<T>> {
         if (this.proxyUrl) {
             return this.networkRequestViaProxy(
-                url,
                 HttpMethod.GET,
+                url,
+                correlationId,
                 options,
                 timeout
             );
         } else {
             return this.networkRequestViaHttps(
-                url,
                 HttpMethod.GET,
+                url,
+                correlationId,
                 options,
                 timeout
             );
@@ -76,18 +75,30 @@ export class HttpClient implements INetworkModule {
      */
     public async sendPostRequestAsync<T>(
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         if (this.proxyUrl) {
-            return this.networkRequestViaProxy(url, HttpMethod.POST, options);
+            return this.networkRequestViaProxy(
+                HttpMethod.POST,
+                url,
+                correlationId,
+                options
+            );
         } else {
-            return this.networkRequestViaHttps(url, HttpMethod.POST, options);
+            return this.networkRequestViaHttps(
+                HttpMethod.POST,
+                url,
+                correlationId,
+                options
+            );
         }
     }
 
     private networkRequestViaProxy = <T>(
-        destinationUrlString: string,
         httpMethod: string,
+        destinationUrlString: string,
+        correlationId: string,
         options?: NetworkRequestOptions,
         timeout?: number
     ): Promise<NetworkResponse<T>> => {
@@ -140,8 +151,9 @@ export class HttpClient implements INetworkModule {
             if (timeout) {
                 request.on("timeout", () => {
                     this.logUrlWithPiiAwareness(
+                        `Request timeout after ${timeout}ms for URL`,
                         destinationUrlString,
-                        `Request timeout after ${timeout}ms for URL`
+                        correlationId
                     );
 
                     request.destroy();
@@ -267,15 +279,24 @@ export class HttpClient implements INetworkModule {
 
             request.on("error", (chunk) => {
                 this.logger.error(
-                    `[MSAL-Network] Proxy request error: ${chunk.toString()}`
+                    `[MSAL-Network] Proxy request error: ${chunk.toString()}`,
+                    correlationId
                 );
                 this.logUrlWithPiiAwareness(
+                    "Destination URL",
                     destinationUrlString,
-                    "Destination URL"
+                    correlationId
                 );
-                this.logUrlWithPiiAwareness(this.proxyUrl, "Proxy URL");
-                this.logger.error(`[MSAL-Network] Method: ${httpMethod}`);
-                this.logHeadersWithPiiAwareness(headers);
+                this.logUrlWithPiiAwareness(
+                    "Proxy URL",
+                    this.proxyUrl,
+                    correlationId
+                );
+                this.logger.error(
+                    `[MSAL-Network] Method: ${httpMethod}`,
+                    correlationId
+                );
+                this.logHeadersWithPiiAwareness(headers, correlationId);
 
                 request.destroy();
                 reject(new Error(chunk.toString()));
@@ -284,8 +305,9 @@ export class HttpClient implements INetworkModule {
     };
 
     private networkRequestViaHttps = <T>(
-        urlString: string,
         httpMethod: string,
+        urlString: string,
+        correlationId: string,
         options?: NetworkRequestOptions,
         timeout?: number
     ): Promise<NetworkResponse<T>> => {
@@ -336,8 +358,9 @@ export class HttpClient implements INetworkModule {
             if (timeout) {
                 request.on("timeout", () => {
                     this.logUrlWithPiiAwareness(
+                        `HTTPS request timeout after ${timeout}ms for URL`,
                         urlString,
-                        `HTTPS request timeout after ${timeout}ms for URL`
+                        correlationId
                     );
 
                     request.destroy();
@@ -384,11 +407,15 @@ export class HttpClient implements INetworkModule {
 
             request.on("error", (chunk) => {
                 this.logger.error(
-                    `[MSAL-Network] HTTPS request error: ${chunk.toString()}`
+                    `[MSAL-Network] HTTPS request error: ${chunk.toString()}`,
+                    correlationId
                 );
-                this.logUrlWithPiiAwareness(urlString, "URL");
-                this.logger.error(`[MSAL-Network] Method: ${httpMethod}`);
-                this.logHeadersWithPiiAwareness(headers);
+                this.logUrlWithPiiAwareness("URL", urlString, correlationId);
+                this.logger.error(
+                    `[MSAL-Network] Method: ${httpMethod}`,
+                    correlationId
+                );
+                this.logHeadersWithPiiAwareness(headers, correlationId);
 
                 request.destroy();
                 reject(new Error(chunk.toString()));
@@ -458,22 +485,29 @@ export class HttpClient implements INetworkModule {
      * @param label {string} the label for the log message
      */
     private logUrlWithPiiAwareness = (
+        label: string,
         urlString: string,
-        label: string
+        correlationId: string
     ): void => {
-        let urlHelper;
         if (this.isPiiEnabled) {
-            urlHelper = urlString;
+            this.logger.errorPii(
+                `[MSAL-Network] ${label}: ${urlString}`,
+                correlationId
+            );
         } else {
+            let urlHelper;
             try {
                 const url = new URL(urlString);
                 urlHelper = `${url.protocol}//${url.host}${url.pathname}`;
             } catch {
                 urlHelper = urlString.split("?")[0] || "unknown";
             }
-        }
 
-        this.logErrorMethod(`[MSAL-Network] ${label}: ${urlHelper}`);
+            this.logger.error(
+                `[MSAL-Network] ${label}: ${urlHelper} [Enable PII logging to see additional details]`,
+                correlationId
+            );
+        }
     };
 
     /**
@@ -481,15 +515,18 @@ export class HttpClient implements INetworkModule {
      * @param headers {Record<string, unknown>} the headers to log
      */
     private logHeadersWithPiiAwareness = (
-        headers: Record<string, unknown>
+        headers: Record<string, unknown>,
+        correlationId: string
     ): void => {
         if (this.isPiiEnabled) {
-            this.logErrorMethod(
-                `[MSAL-Network] Headers: ${JSON.stringify(headers)}`
+            this.logger.errorPii(
+                `[MSAL-Network] Headers: ${JSON.stringify(headers)}`,
+                correlationId
             );
         } else {
-            this.logErrorMethod(
-                `[MSAL-Network] Headers: [REDACTED - Enable PII logging to see headers]`
+            this.logger.error(
+                `[MSAL-Network] Headers: [REDACTED - Enable PII logging to see headers]`,
+                correlationId
             );
         }
     };

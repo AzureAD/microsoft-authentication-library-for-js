@@ -20,6 +20,7 @@ jest.mock("http", () => ({
 }));
 
 import https from "https";
+import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
 jest.mock("https", () => ({
     // will be overridden every test
     request: jest.fn(),
@@ -314,7 +315,10 @@ describe("HttpClient", () => {
                 )
             );
             await expect(
-                httpClientWithoutProxyUrl.sendGetRequestAsync(url)
+                httpClientWithoutProxyUrl.sendGetRequestAsync(
+                    url,
+                    RANDOM_TEST_GUID
+                )
             ).resolves.toEqual(httpsNetworkResponse);
         });
 
@@ -329,7 +333,10 @@ describe("HttpClient", () => {
                 )
             );
             await expect(
-                httpClientWithProxyUrl.sendGetRequestAsync(url)
+                httpClientWithProxyUrl.sendGetRequestAsync(
+                    url,
+                    RANDOM_TEST_GUID
+                )
             ).resolves.toEqual(proxyThenSocketNetworkResponse);
         });
     });
@@ -350,6 +357,7 @@ describe("HttpClient", () => {
             await expect(
                 httpClientWithoutProxyUrl.sendPostRequestAsync(
                     url,
+                    RANDOM_TEST_GUID,
                     postNetworkRequestOptions
                 )
             ).resolves.toEqual(httpsNetworkResponse);
@@ -368,6 +376,7 @@ describe("HttpClient", () => {
             await expect(
                 httpClientWithProxyUrl.sendPostRequestAsync(
                     url,
+                    RANDOM_TEST_GUID,
                     postNetworkRequestOptions
                 )
             ).resolves.toEqual(proxyThenSocketNetworkResponse);
@@ -389,6 +398,7 @@ describe("HttpClient", () => {
             await expect(
                 httpClientWithoutProxyUrl.sendGetRequestAsync(
                     url,
+                    RANDOM_TEST_GUID,
                     undefined,
                     timeoutInMilliseconds
                 )
@@ -417,7 +427,10 @@ describe("HttpClient", () => {
                         )
                     );
                     await expect(
-                        httpClientWithoutProxyUrl.sendGetRequestAsync(url)
+                        httpClientWithoutProxyUrl.sendGetRequestAsync(
+                            url,
+                            RANDOM_TEST_GUID
+                        )
                     ).resolves.toEqual(serverErrorNetworkResponse);
                 });
 
@@ -435,7 +448,10 @@ describe("HttpClient", () => {
                         )
                     );
                     await expect(
-                        httpClientWithoutProxyUrl.sendGetRequestAsync(url)
+                        httpClientWithoutProxyUrl.sendGetRequestAsync(
+                            url,
+                            RANDOM_TEST_GUID
+                        )
                     ).resolves.toEqual(serverErrorNetworkResponse);
                 });
 
@@ -455,7 +471,10 @@ describe("HttpClient", () => {
                         )
                     );
                     await expect(
-                        httpClientWithoutProxyUrl.sendGetRequestAsync(url)
+                        httpClientWithoutProxyUrl.sendGetRequestAsync(
+                            url,
+                            RANDOM_TEST_GUID
+                        )
                     ).resolves.toEqual(serverErrorNetworkResponse);
                 });
             });
@@ -470,7 +489,10 @@ describe("HttpClient", () => {
                         )
                     );
                     await expect(
-                        httpClientWithProxyUrl.sendGetRequestAsync(url)
+                        httpClientWithProxyUrl.sendGetRequestAsync(
+                            url,
+                            RANDOM_TEST_GUID
+                        )
                     ).rejects.toEqual(proxyError);
                 });
 
@@ -491,7 +513,10 @@ describe("HttpClient", () => {
                             )
                         );
                         await expect(
-                            httpClientWithProxyUrl.sendGetRequestAsync(url)
+                            httpClientWithProxyUrl.sendGetRequestAsync(
+                                url,
+                                RANDOM_TEST_GUID
+                            )
                         ).resolves.toEqual(serverErrorNetworkResponse);
                     });
 
@@ -511,7 +536,10 @@ describe("HttpClient", () => {
                             )
                         );
                         await expect(
-                            httpClientWithProxyUrl.sendGetRequestAsync(url)
+                            httpClientWithProxyUrl.sendGetRequestAsync(
+                                url,
+                                RANDOM_TEST_GUID
+                            )
                         ).resolves.toEqual(serverErrorNetworkResponse);
                     });
 
@@ -531,7 +559,10 @@ describe("HttpClient", () => {
                             )
                         );
                         await expect(
-                            httpClientWithProxyUrl.sendGetRequestAsync(url)
+                            httpClientWithProxyUrl.sendGetRequestAsync(
+                                url,
+                                RANDOM_TEST_GUID
+                            )
                         ).resolves.toEqual(serverErrorNetworkResponse);
                     });
                 });
@@ -556,6 +587,7 @@ describe("HttpClient", () => {
                     await expect(
                         httpClientWithoutProxyUrl.sendPostRequestAsync(
                             url,
+                            RANDOM_TEST_GUID,
                             postNetworkRequestOptions
                         )
                     ).resolves.toEqual(serverErrorNetworkResponse);
@@ -577,6 +609,7 @@ describe("HttpClient", () => {
                     await expect(
                         httpClientWithoutProxyUrl.sendPostRequestAsync(
                             url,
+                            RANDOM_TEST_GUID,
                             postNetworkRequestOptions
                         )
                     ).resolves.toEqual(serverErrorNetworkResponse);
@@ -600,6 +633,7 @@ describe("HttpClient", () => {
                     await expect(
                         httpClientWithoutProxyUrl.sendPostRequestAsync(
                             url,
+                            RANDOM_TEST_GUID,
                             postNetworkRequestOptions
                         )
                     ).resolves.toEqual(serverErrorNetworkResponse);
@@ -618,6 +652,7 @@ describe("HttpClient", () => {
                     await expect(
                         httpClientWithProxyUrl.sendPostRequestAsync(
                             url,
+                            RANDOM_TEST_GUID,
                             postNetworkRequestOptions
                         )
                     ).rejects.toEqual(proxyError);
@@ -642,6 +677,7 @@ describe("HttpClient", () => {
                         await expect(
                             httpClientWithProxyUrl.sendPostRequestAsync(
                                 url,
+                                RANDOM_TEST_GUID,
                                 postNetworkRequestOptions
                             )
                         ).resolves.toEqual(serverErrorNetworkResponse);
@@ -665,6 +701,7 @@ describe("HttpClient", () => {
                         await expect(
                             httpClientWithProxyUrl.sendPostRequestAsync(
                                 url,
+                                RANDOM_TEST_GUID,
                                 postNetworkRequestOptions
                             )
                         ).resolves.toEqual(serverErrorNetworkResponse);
@@ -688,6 +725,7 @@ describe("HttpClient", () => {
                         await expect(
                             httpClientWithProxyUrl.sendPostRequestAsync(
                                 url,
+                                RANDOM_TEST_GUID,
                                 postNetworkRequestOptions
                             )
                         ).resolves.toEqual(serverErrorNetworkResponse);

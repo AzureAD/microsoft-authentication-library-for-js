@@ -58,6 +58,7 @@ export class ManagedIdentityClient {
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
+        correlationId: string,
         refreshAccessToken?: boolean
     ): Promise<AuthenticationResult> {
         if (!ManagedIdentityClient.identitySource) {
@@ -76,6 +77,7 @@ export class ManagedIdentityClient {
             managedIdentityRequest,
             managedIdentityId,
             fakeAuthority,
+            correlationId,
             refreshAccessToken
         );
     }

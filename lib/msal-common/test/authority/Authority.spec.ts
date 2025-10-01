@@ -101,6 +101,7 @@ describe("Authority.ts Class Unit Tests", () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): T {
                     // @ts-ignore
@@ -108,6 +109,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 },
                 sendPostRequestAsync<T>(
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): T {
                     // @ts-ignore
@@ -131,6 +133,7 @@ describe("Authority.ts Class Unit Tests", () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): T {
                     // @ts-ignore
@@ -138,6 +141,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 },
                 sendPostRequestAsync<T>(
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): T {
                     // @ts-ignore
@@ -187,6 +191,7 @@ describe("Authority.ts Class Unit Tests", () => {
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): T {
                 // @ts-ignore
@@ -194,6 +199,7 @@ describe("Authority.ts Class Unit Tests", () => {
             },
             sendPostRequestAsync<T>(
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): T {
                 // @ts-ignore
@@ -594,12 +600,14 @@ describe("Authority.ts Class Unit Tests", () => {
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): T {
                 return {} as T;
             },
             sendPostRequestAsync<T>(
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): T {
                 return {} as T;
@@ -623,6 +631,7 @@ describe("Authority.ts Class Unit Tests", () => {
             );
             networkInterface.sendGetRequestAsync = (
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): any => {
                 return JSON.parse(
@@ -673,6 +682,7 @@ describe("Authority.ts Class Unit Tests", () => {
             );
             networkInterface.sendGetRequestAsync = (
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): any => {
                 return JSON.parse(
@@ -729,6 +739,7 @@ describe("Authority.ts Class Unit Tests", () => {
             );
             networkInterface.sendGetRequestAsync = (
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): any => {
                 return JSON.parse(
@@ -792,6 +803,7 @@ describe("Authority.ts Class Unit Tests", () => {
             );
             networkInterface.sendGetRequestAsync = (
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): any => {
                 return JSON.parse(
@@ -848,6 +860,7 @@ describe("Authority.ts Class Unit Tests", () => {
             );
             networkInterface.sendGetRequestAsync = (
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): any => {
                 return JSON.parse(
@@ -897,6 +910,7 @@ describe("Authority.ts Class Unit Tests", () => {
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): T {
                 // @ts-ignore
@@ -904,6 +918,7 @@ describe("Authority.ts Class Unit Tests", () => {
             },
             sendPostRequestAsync<T>(
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): T {
                 // @ts-ignore
@@ -946,6 +961,7 @@ describe("Authority.ts Class Unit Tests", () => {
             };
             networkInterface.sendGetRequestAsync = (
                 url: string,
+                correlationId: string,
                 options?: NetworkRequestOptions
             ): any => {
                 return {
@@ -1132,6 +1148,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return null;
@@ -1275,6 +1292,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return null;
@@ -1501,6 +1519,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
@@ -1585,6 +1604,7 @@ describe("Authority.ts Class Unit Tests", () => {
             it("Gets endpoints from network", async () => {
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
@@ -1668,6 +1688,7 @@ describe("Authority.ts Class Unit Tests", () => {
             it("Throws error if openid-configuration network call fails", (done) => {
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     throw Error("Unable to reach endpoint");
@@ -1700,6 +1721,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
@@ -1767,6 +1789,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
@@ -1816,6 +1839,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
@@ -1913,6 +1937,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
                     networkInterface.sendGetRequestAsync = (
                         url: string,
+                        correlationId: string,
                         options?: NetworkRequestOptions
                     ): any => {
                         return DEFAULT_OPENID_CONFIG_RESPONSE;
@@ -1963,6 +1988,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
                     networkInterface.sendGetRequestAsync = (
                         url: string,
+                        correlationId: string,
                         options?: NetworkRequestOptions
                     ): any => {
                         return DEFAULT_OPENID_CONFIG_RESPONSE;
@@ -2204,6 +2230,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
                     networkInterface.sendGetRequestAsync = (
                         url: string,
+                        correlationId: string,
                         options?: NetworkRequestOptions
                     ): any => {
                         if (url.includes("discovery/instance")) {
@@ -2256,6 +2283,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
                     networkInterface.sendGetRequestAsync = (
                         url: string,
+                        correlationId: string,
                         options?: NetworkRequestOptions
                     ): any => {
                         if (url.includes("discovery/instance")) {
@@ -2341,6 +2369,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
                     networkInterface.sendGetRequestAsync = (
                         url: string,
+                        correlationId: string,
                         options?: NetworkRequestOptions
                     ): any => {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -2406,6 +2435,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
                     networkInterface.sendGetRequestAsync = (
                         url: string,
+                        correlationId: string,
                         options?: NetworkRequestOptions
                     ): any => {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -2496,6 +2526,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     throw Error("Unable to get response");
@@ -2531,6 +2562,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return {
@@ -2570,6 +2602,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
                 networkInterface.sendGetRequestAsync = (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): any => {
                     return {

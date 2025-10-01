@@ -149,6 +149,7 @@ export class RegionDiscovery {
         );
         return this.networkInterface.sendGetRequestAsync<string>(
             `${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`,
+            this.correlationId ?? "",
             options,
             Constants.IMDS_TIMEOUT
         );
@@ -170,6 +171,7 @@ export class RegionDiscovery {
             const response =
                 await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(
                     `${Constants.IMDS_ENDPOINT}?format=json`,
+                    this.correlationId ?? "",
                     options
                 );
 

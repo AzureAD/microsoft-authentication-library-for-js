@@ -31,23 +31,38 @@ export class HttpClientWithRetries implements INetworkModule {
     private async sendNetworkRequestAsyncHelper<T>(
         httpMethod: HttpMethod,
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         if (httpMethod === HttpMethod.GET) {
-            return this.httpClientNoRetries.sendGetRequestAsync(url, options);
+            return this.httpClientNoRetries.sendGetRequestAsync(
+                url,
+                correlationId,
+                options
+            );
         } else {
-            return this.httpClientNoRetries.sendPostRequestAsync(url, options);
+            return this.httpClientNoRetries.sendPostRequestAsync(
+                url,
+                correlationId,
+                options
+            );
         }
     }
 
     private async sendNetworkRequestAsync<T>(
         httpMethod: HttpMethod,
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         // the underlying network module (custom or HttpClient) will make the call
         let response: NetworkResponse<T> =
-            await this.sendNetworkRequestAsyncHelper(httpMethod, url, options);
+            await this.sendNetworkRequestAsyncHelper(
+                httpMethod,
+                url,
+                correlationId,
+                options
+            );
 
         if ("isNewRequest" in this.retryPolicy) {
             this.retryPolicy.isNewRequest = true;
@@ -65,6 +80,7 @@ export class HttpClientWithRetries implements INetworkModule {
             response = await this.sendNetworkRequestAsyncHelper(
                 httpMethod,
                 url,
+                correlationId,
                 options
             );
             currentRetry++;
@@ -75,15 +91,27 @@ export class HttpClientWithRetries implements INetworkModule {
 
     public async sendGetRequestAsync<T>(
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
-        return this.sendNetworkRequestAsync(HttpMethod.GET, url, options);
+        return this.sendNetworkRequestAsync(
+            HttpMethod.GET,
+            url,
+            correlationId,
+            options
+        );
     }
 
     public async sendPostRequestAsync<T>(
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
-        return this.sendNetworkRequestAsync(HttpMethod.POST, url, options);
+        return this.sendNetworkRequestAsync(
+            HttpMethod.POST,
+            url,
+            correlationId,
+            options
+        );
     }
 }

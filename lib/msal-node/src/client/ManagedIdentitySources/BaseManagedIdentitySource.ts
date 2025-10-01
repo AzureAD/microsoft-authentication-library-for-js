@@ -84,7 +84,9 @@ export abstract class BaseManagedIdentitySource {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _networkRequest: ManagedIdentityRequestParameters,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _networkRequestOptions: NetworkRequestOptions
+        _networkRequestOptions: NetworkRequestOptions,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _correlationId: string
     ): Promise<ServerAuthorizationTokenResponse> {
         return this.getServerTokenResponse(response);
     }
@@ -142,6 +144,7 @@ export abstract class BaseManagedIdentitySource {
         managedIdentityRequest: ManagedIdentityRequest,
         managedIdentityId: ManagedIdentityId,
         fakeAuthority: Authority,
+        correlationId: string,
         refreshAccessToken?: boolean
     ): Promise<AuthenticationResult> {
         const networkRequest: ManagedIdentityRequestParameters =
@@ -204,6 +207,7 @@ export abstract class BaseManagedIdentitySource {
                 response =
                     await networkClientHelper.sendPostRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
+                        correlationId,
                         networkRequestOptions
                     );
                 // Sources that send GET requests: App Service, Azure Arc, IMDS, Service Fabric
@@ -211,6 +215,7 @@ export abstract class BaseManagedIdentitySource {
                 response =
                     await networkClientHelper.sendGetRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
+                        correlationId,
                         networkRequestOptions
                     );
             }
@@ -236,7 +241,8 @@ export abstract class BaseManagedIdentitySource {
                 response,
                 networkClientHelper,
                 networkRequest,
-                networkRequestOptions
+                networkRequestOptions,
+                correlationId
             );
 
         responseHandler.validateTokenResponse(

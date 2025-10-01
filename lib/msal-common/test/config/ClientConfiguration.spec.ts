@@ -140,12 +140,14 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             networkInterface: {
                 sendGetRequestAsync: async (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): Promise<any> => {
                     return testNetworkResult;
                 },
                 sendPostRequestAsync: async (
                     url: string,
+                    correlationId: string,
                     options?: NetworkRequestOptions
                 ): Promise<any> => {
                     return testNetworkResult;

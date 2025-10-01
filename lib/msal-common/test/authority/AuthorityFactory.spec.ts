@@ -28,6 +28,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
     const networkInterface: INetworkModule = {
         sendGetRequestAsync<T>(
             url: string,
+            correlationId: string,
             options?: NetworkRequestOptions
         ): T {
             // @ts-ignore
@@ -35,6 +36,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         },
         sendPostRequestAsync<T>(
             url: string,
+            correlationId: string,
             options?: NetworkRequestOptions
         ): T {
             // @ts-ignore

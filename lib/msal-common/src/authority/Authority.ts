@@ -722,6 +722,7 @@ export class Authority {
             const response =
                 await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(
                     openIdConfigurationEndpoint,
+                    this.correlationId,
                     options
                 );
             const isValidResponse = isOpenIdConfigResponse(response.body);
@@ -1026,7 +1027,7 @@ export class Authority {
             const response = await this.networkInterface.sendGetRequestAsync<
                 | CloudInstanceDiscoveryResponse
                 | CloudInstanceDiscoveryErrorResponse
-            >(instanceDiscoveryEndpoint, options);
+            >(instanceDiscoveryEndpoint, this.correlationId, options);
             let typedResponseBody:
                 | CloudInstanceDiscoveryResponse
                 | CloudInstanceDiscoveryErrorResponse;

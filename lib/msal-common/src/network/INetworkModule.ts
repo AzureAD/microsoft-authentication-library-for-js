@@ -30,6 +30,7 @@ export interface INetworkModule {
      */
     sendGetRequestAsync<T>(
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions,
         timeout?: number
     ): Promise<NetworkResponse<T>>;
@@ -42,6 +43,7 @@ export interface INetworkModule {
      */
     sendPostRequestAsync<T>(
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>>;
 }
