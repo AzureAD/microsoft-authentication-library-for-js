@@ -210,7 +210,7 @@ export class NestedAppAuthController implements IController {
             correlationId
         );
 
-        atPopupMeasurement?.add({ nestedAppAuthRequest: true });
+        atPopupMeasurement.add({ nestedAppAuthRequest: true });
 
         try {
             const naaRequest =
@@ -256,10 +256,14 @@ export class NestedAppAuthController implements IController {
                 idTokenSize: result.idToken.length,
             });
 
-            atPopupMeasurement.end({
-                success: true,
-                requestId: result.requestId,
-            });
+            atPopupMeasurement.end(
+                {
+                    success: true,
+                    requestId: result.requestId,
+                },
+                undefined,
+                result.account
+            );
 
             return result;
         } catch (e) {
@@ -278,7 +282,8 @@ export class NestedAppAuthController implements IController {
                 {
                     success: false,
                 },
-                e
+                e,
+                request.account
             );
 
             throw error;
@@ -318,11 +323,10 @@ export class NestedAppAuthController implements IController {
             correlationId
         );
 
-        ssoSilentMeasurement?.increment({
+        ssoSilentMeasurement.increment({
             visibilityChangeCount: 0,
         });
-
-        ssoSilentMeasurement?.add({
+        ssoSilentMeasurement.add({
             nestedAppAuthRequest: true,
         });
 
@@ -367,10 +371,14 @@ export class NestedAppAuthController implements IController {
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
             });
-            ssoSilentMeasurement?.end({
-                success: true,
-                requestId: result.requestId,
-            });
+            ssoSilentMeasurement?.end(
+                {
+                    success: true,
+                    requestId: result.requestId,
+                },
+                undefined,
+                result.account
+            );
             return result;
         } catch (e) {
             const error =
@@ -387,7 +395,8 @@ export class NestedAppAuthController implements IController {
                 {
                     success: false,
                 },
-                e
+                e,
+                request.account
             );
             throw error;
         }
@@ -451,13 +460,17 @@ export class NestedAppAuthController implements IController {
                 InteractionType.Silent,
                 result
             );
-            atsMeasurement?.add({
-                accessTokenSize: result?.accessToken.length,
-                idTokenSize: result?.idToken.length,
+            atsMeasurement.add({
+                accessTokenSize: result.accessToken.length,
+                idTokenSize: result.idToken.length,
             });
-            atsMeasurement?.end({
-                success: true,
-            });
+            atsMeasurement.end(
+                {
+                    success: true,
+                },
+                undefined,
+                result.account
+            );
             return result;
         }
 
@@ -471,9 +484,13 @@ export class NestedAppAuthController implements IController {
             InteractionType.Silent,
             null
         );
-        atsMeasurement?.end({
-            success: false,
-        });
+        atsMeasurement.end(
+            {
+                success: false,
+            },
+            undefined,
+            request.account
+        );
 
         return null;
     }

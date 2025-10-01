@@ -25,6 +25,7 @@ import { AuthError } from "../../error/AuthError.js";
 import { CacheError } from "../../error/CacheError.js";
 import { ServerError } from "../../error/ServerError.js";
 import { InteractionRequiredAuthError } from "../../error/InteractionRequiredAuthError.js";
+import { AccountInfo } from "../../account/AccountInfo.js";
 
 /**
  * Starts context by adding payload to the stack
@@ -254,6 +255,22 @@ export function compactStackLine(line: string): string {
     return line.trimStart();
 }
 
+export function getAccountType(
+    account?: AccountInfo
+): "AAD" | "MSA" | "B2C" | undefined {
+    const idTokenClaims = account?.idTokenClaims;
+    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
+        return "B2C";
+    }
+
+    if (!idTokenClaims?.tid) {
+        return undefined;
+    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+        return "MSA";
+    }
+    return "AAD";
+}
+
 export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
     protected libraryName: string;
@@ -371,7 +388,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         return {
             end: (
                 event?: Partial<PerformanceEvent>,
-                error?: unknown
+                error?: unknown,
+                account?: AccountInfo
             ): PerformanceEvent | null => {
                 return this.endMeasurement(
                     {
@@ -380,7 +398,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         // Properties set when event ends
                         ...event,
                     },
-                    error
+                    error,
+                    account
                 );
             },
             discard: () => {
@@ -407,11 +426,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
      *
      * @param {PerformanceEvent} event
      * @param {unknown} error
+     * @param {AccountInfo?} account
      * @returns {(PerformanceEvent | null)}
      */
     endMeasurement(
         event: PerformanceEvent,
-        error?: unknown
+        error?: unknown,
+        account?: AccountInfo
     ): PerformanceEvent | null {
         const rootEvent: PerformanceEvent | undefined =
             this.eventsByCorrelationId.get(event.correlationId);
@@ -498,6 +519,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
             context,
             logs: formattedLogs,
         };
+        if (account) {
+            finalEvent.accountType = getAccountType(account);
+            finalEvent.dataBoundary = account.dataBoundary;
+        }
 
         logs.length &&
             this.logger.executeCallback(

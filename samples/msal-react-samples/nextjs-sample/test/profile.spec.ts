@@ -155,6 +155,7 @@ describe("/profile", () => {
 
         // Go to protected page
         await page.goto(`http://localhost:${port}/profile`);
+        
         // Wait for Graph data to display
         await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");

@@ -790,17 +790,36 @@ export class RedirectClient extends StandardInteractionClient {
                 account: (logoutRequest && logoutRequest.account) || undefined,
             });
 
+            // Create a serializable version of the request for events
+            const {
+                // @ts-ignore
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                onRedirectNavigate,
+                ...serializableLogoutRequest
+            } = validLogoutRequest;
+
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try {
                     authClient.authority.endSessionEndpoint;
                 } catch {
                     if (validLogoutRequest.account?.homeAccountId) {
-                        this.eventHandler.emitEvent(
-                            EventType.LOGOUT_SUCCESS,
-                            InteractionType.Redirect,
-                            validLogoutRequest
-                        );
-
+                        if (
+                            // @ts-ignore
+                            typeof validLogoutRequest.onRedirectNavigate ===
+                            "function"
+                        ) {
+                            this.eventHandler.emitEvent(
+                                EventType.LOGOUT_SUCCESS,
+                                InteractionType.Redirect,
+                                serializableLogoutRequest
+                            );
+                        } else {
+                            this.eventHandler.emitEvent(
+                                EventType.LOGOUT_SUCCESS,
+                                InteractionType.Redirect,
+                                validLogoutRequest
+                            );
+                        }
                         return;
                     }
                 }
@@ -810,11 +829,24 @@ export class RedirectClient extends StandardInteractionClient {
             const logoutUri: string =
                 authClient.getLogoutUri(validLogoutRequest);
 
-            this.eventHandler.emitEvent(
-                EventType.LOGOUT_SUCCESS,
-                InteractionType.Redirect,
-                validLogoutRequest
-            );
+            if (validLogoutRequest.account?.homeAccountId) {
+                if (
+                    // @ts-ignore
+                    typeof validLogoutRequest.onRedirectNavigate === "function"
+                ) {
+                    this.eventHandler.emitEvent(
+                        EventType.LOGOUT_SUCCESS,
+                        InteractionType.Redirect,
+                        serializableLogoutRequest
+                    );
+                } else {
+                    this.eventHandler.emitEvent(
+                        EventType.LOGOUT_SUCCESS,
+                        InteractionType.Redirect,
+                        validLogoutRequest
+                    );
+                }
+            }
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (
                 logoutRequest &&

@@ -5,8 +5,6 @@
 
 import { ServerTelemetryManager } from "@azure/msal-common";
 
-import * as msalCommon from "@azure/msal-common";
-
 // @ts-ignore
 const mockServerTelemetryManager: ServerTelemetryManager = {
     cacheManager: undefined,
@@ -33,9 +31,15 @@ const mockServerTelemetryManager: ServerTelemetryManager = {
 };
 
 export const setupServerTelemetryManagerMock = () => {
-    jest.spyOn(msalCommon, "ServerTelemetryManager").mockImplementation(
-        () => mockServerTelemetryManager as unknown as ServerTelemetryManager
-    );
+    jest.doMock("@azure/msal-common", () => ({
+        ...jest.requireActual("@azure/msal-common"),
+        ServerTelemetryManager: jest
+            .fn()
+            .mockImplementation(
+                () =>
+                    mockServerTelemetryManager as unknown as ServerTelemetryManager
+            ),
+    }));
 
     return mockServerTelemetryManager;
 };

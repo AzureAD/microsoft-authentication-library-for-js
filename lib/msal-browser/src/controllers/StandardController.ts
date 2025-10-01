@@ -91,30 +91,15 @@ import {
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 
-function getAccountType(
-    account?: AccountInfo
-): "AAD" | "MSA" | "B2C" | undefined {
-    const idTokenClaims = account?.idTokenClaims;
-    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
-        return "B2C";
-    }
-
-    if (!idTokenClaims?.tid) {
-        return undefined;
-    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-        return "MSA";
-    }
-    return "AAD";
-}
-
 function preflightCheck(
     initialized: boolean,
-    performanceEvent: InProgressPerformanceEvent
+    performanceEvent: InProgressPerformanceEvent,
+    account?: AccountInfo
 ) {
     try {
         BrowserUtils.preflightCheck(initialized);
     } catch (e) {
-        performanceEvent.end({ success: false }, e);
+        performanceEvent.end({ success: false }, e, account);
         throw e;
     }
 }
@@ -535,6 +520,15 @@ export class StandardController implements IController {
             .then((result: AuthenticationResult | null) => {
                 if (result) {
                     this.browserStorage.resetRequestCache(result.correlationId);
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_SUCCESS,
+                        InteractionType.Redirect,
+                        result
+                    );
+                    this.logger.verbose(
+                        "handleRedirectResponse returned result, acquire token success",
+                        result.correlationId
+                    );
                     // Emit login event if number of accounts change
                     const isLoggingIn =
                         loggedInAccounts.length < this.getAllAccounts().length;
@@ -542,34 +536,27 @@ export class StandardController implements IController {
                         this.eventHandler.emitEvent(
                             EventType.LOGIN_SUCCESS,
                             InteractionType.Redirect,
-                            result
+                            result.account
                         );
                         this.logger.verbose(
                             "handleRedirectResponse returned result, login success",
                             result.correlationId
                         );
-                    } else {
-                        this.eventHandler.emitEvent(
-                            EventType.ACQUIRE_TOKEN_SUCCESS,
-                            InteractionType.Redirect,
-                            result
-                        );
-                        this.logger.verbose(
-                            "handleRedirectResponse returned result, acquire token success",
-                            result.correlationId
-                        );
                     }
-                    rootMeasurement.end({
-                        success: true,
-                        accountType: getAccountType(result.account),
-                    });
+                    rootMeasurement.end(
+                        {
+                            success: true,
+                        },
+                        undefined,
+                        result.account
+                    );
                 } else {
                     /*
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
                      * is empty and the error code is missing.
                      */
                     if (rootMeasurement.event.errorCode) {
-                        rootMeasurement.end({ success: false });
+                        rootMeasurement.end({ success: false }, undefined);
                     } else {
                         rootMeasurement.discard();
                     }
@@ -587,22 +574,12 @@ export class StandardController implements IController {
                     rootMeasurement.event.correlationId
                 );
                 const eventError = e as EventError;
-                // Emit login event if there is an account
-                if (loggedInAccounts.length > 0) {
-                    this.eventHandler.emitEvent(
-                        EventType.ACQUIRE_TOKEN_FAILURE,
-                        InteractionType.Redirect,
-                        null,
-                        eventError
-                    );
-                } else {
-                    this.eventHandler.emitEvent(
-                        EventType.LOGIN_FAILURE,
-                        InteractionType.Redirect,
-                        null,
-                        eventError
-                    );
-                }
+                this.eventHandler.emitEvent(
+                    EventType.ACQUIRE_TOKEN_FAILURE,
+                    InteractionType.Redirect,
+                    null,
+                    eventError
+                );
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_END,
                     InteractionType.Redirect
@@ -638,7 +615,6 @@ export class StandardController implements IController {
             correlationId
         );
         atrMeasurement.add({
-            accountType: getAccountType(request.account),
             scenarioId: request.scenarioId,
         });
 
@@ -652,12 +628,14 @@ export class StandardController implements IController {
                 navigateCallbackResult: navigate !== false,
             });
             atrMeasurement.event =
-                atrMeasurement.end({ success: true }) || atrMeasurement.event;
+                atrMeasurement.end(
+                    { success: true },
+                    undefined,
+                    request.account
+                ) || atrMeasurement.event;
             return navigate;
         };
 
-        // If logged in, emit acquire token events
-        const isLoggedIn = this.getAllAccounts().length > 0;
         try {
             BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
             this.browserStorage.setInteractionInProgress(
@@ -665,19 +643,11 @@ export class StandardController implements IController {
                 INTERACTION_TYPE.SIGNIN
             );
 
-            if (isLoggedIn) {
-                this.eventHandler.emitEvent(
-                    EventType.ACQUIRE_TOKEN_START,
-                    InteractionType.Redirect,
-                    request
-                );
-            } else {
-                this.eventHandler.emitEvent(
-                    EventType.LOGIN_START,
-                    InteractionType.Redirect,
-                    request
-                );
-            }
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_START,
+                InteractionType.Redirect,
+                request
+            );
 
             let result: Promise<void>;
 
@@ -739,26 +709,17 @@ export class StandardController implements IController {
                         BrowserRootPerformanceEvents.AcquireTokenRedirect,
                         correlationId
                     )
-                    .end({ success: false }, e);
+                    .end({ success: false }, e, request.account);
             } else {
-                atrMeasurement.end({ success: false }, e);
+                atrMeasurement.end({ success: false }, e, request.account);
             }
 
-            if (isLoggedIn) {
-                this.eventHandler.emitEvent(
-                    EventType.ACQUIRE_TOKEN_FAILURE,
-                    InteractionType.Redirect,
-                    null,
-                    e as EventError
-                );
-            } else {
-                this.eventHandler.emitEvent(
-                    EventType.LOGIN_FAILURE,
-                    InteractionType.Redirect,
-                    null,
-                    e as EventError
-                );
-            }
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_FAILURE,
+                InteractionType.Redirect,
+                null,
+                e as EventError
+            );
             throw e;
         }
     }
@@ -783,12 +744,15 @@ export class StandardController implements IController {
 
         atPopupMeasurement.add({
             scenarioId: request.scenarioId,
-            accountType: getAccountType(request.account),
         });
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
-            preflightCheck(this.initialized, atPopupMeasurement);
+            preflightCheck(
+                this.initialized,
+                atPopupMeasurement,
+                request.account
+            );
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN
@@ -800,19 +764,11 @@ export class StandardController implements IController {
 
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
-        if (loggedInAccounts.length > 0) {
-            this.eventHandler.emitEvent(
-                EventType.ACQUIRE_TOKEN_START,
-                InteractionType.Popup,
-                request
-            );
-        } else {
-            this.eventHandler.emitEvent(
-                EventType.LOGIN_START,
-                InteractionType.Popup,
-                request
-            );
-        }
+        this.eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_START,
+            InteractionType.Popup,
+            request
+        );
 
         let result: Promise<AuthenticationResult>;
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
@@ -826,11 +782,14 @@ export class StandardController implements IController {
                 ApiId.acquireTokenPopup
             )
                 .then((response) => {
-                    atPopupMeasurement.end({
-                        success: true,
-                        isNativeBroker: true,
-                        accountType: getAccountType(response.account),
-                    });
+                    atPopupMeasurement.end(
+                        {
+                            success: true,
+                            isNativeBroker: true,
+                        },
+                        undefined,
+                        response.account
+                    );
                     return response;
                 })
                 .catch((e: AuthError) => {
@@ -865,50 +824,43 @@ export class StandardController implements IController {
                  */
                 const isLoggingIn =
                     loggedInAccounts.length < this.getAllAccounts().length;
+                this.eventHandler.emitEvent(
+                    EventType.ACQUIRE_TOKEN_SUCCESS,
+                    InteractionType.Popup,
+                    result
+                );
                 if (isLoggingIn) {
                     this.eventHandler.emitEvent(
                         EventType.LOGIN_SUCCESS,
                         InteractionType.Popup,
-                        result
-                    );
-                } else {
-                    this.eventHandler.emitEvent(
-                        EventType.ACQUIRE_TOKEN_SUCCESS,
-                        InteractionType.Popup,
-                        result
-                    );
-                }
-
-                atPopupMeasurement.end({
-                    success: true,
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                    accountType: getAccountType(result.account),
-                });
-                return result;
-            })
-            .catch((e: Error) => {
-                if (loggedInAccounts.length > 0) {
-                    this.eventHandler.emitEvent(
-                        EventType.ACQUIRE_TOKEN_FAILURE,
-                        InteractionType.Popup,
-                        null,
-                        e
-                    );
-                } else {
-                    this.eventHandler.emitEvent(
-                        EventType.LOGIN_FAILURE,
-                        InteractionType.Popup,
-                        null,
-                        e
+                        result.account
                     );
                 }
 
                 atPopupMeasurement.end(
                     {
+                        success: true,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
+                    },
+                    undefined,
+                    result.account
+                );
+                return result;
+            })
+            .catch((e: Error) => {
+                this.eventHandler.emitEvent(
+                    EventType.ACQUIRE_TOKEN_FAILURE,
+                    InteractionType.Popup,
+                    null,
+                    e
+                );
+                atPopupMeasurement.end(
+                    {
                         success: false,
                     },
-                    e
+                    e,
+                    request.account
                 );
 
                 // Since this function is syncronous we need to reject
@@ -967,9 +919,12 @@ export class StandardController implements IController {
         );
         this.ssoSilentMeasurement?.add({
             scenarioId: request.scenarioId,
-            accountType: getAccountType(request.account),
         });
-        preflightCheck(this.initialized, this.ssoSilentMeasurement);
+        preflightCheck(
+            this.initialized,
+            this.ssoSilentMeasurement,
+            request.account
+        );
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
         });
@@ -978,9 +933,11 @@ export class StandardController implements IController {
             "visibilitychange",
             this.trackPageVisibilityWithMeasurement
         );
+
+        const loggedInAccounts = this.getAllAccounts();
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(
-            EventType.SSO_SILENT_START,
+            EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,
             validRequest
         );
@@ -1011,23 +968,35 @@ export class StandardController implements IController {
 
         return result
             .then((response) => {
+                const isLoggingIn =
+                    loggedInAccounts.length < this.getAllAccounts().length;
                 this.eventHandler.emitEvent(
-                    EventType.SSO_SILENT_SUCCESS,
+                    EventType.ACQUIRE_TOKEN_SUCCESS,
                     InteractionType.Silent,
                     response
                 );
-                this.ssoSilentMeasurement?.end({
-                    success: true,
-                    isNativeBroker: response.fromPlatformBroker,
-                    accessTokenSize: response.accessToken.length,
-                    idTokenSize: response.idToken.length,
-                    accountType: getAccountType(response.account),
-                });
+                if (isLoggingIn) {
+                    this.eventHandler.emitEvent(
+                        EventType.LOGIN_SUCCESS,
+                        InteractionType.Silent,
+                        response.account
+                    );
+                }
+                this.ssoSilentMeasurement?.end(
+                    {
+                        success: true,
+                        isNativeBroker: response.fromPlatformBroker,
+                        accessTokenSize: response.accessToken.length,
+                        idTokenSize: response.idToken.length,
+                    },
+                    undefined,
+                    response.account
+                );
                 return response;
             })
             .catch((e: Error) => {
                 this.eventHandler.emitEvent(
-                    EventType.SSO_SILENT_FAILURE,
+                    EventType.ACQUIRE_TOKEN_FAILURE,
                     InteractionType.Silent,
                     null,
                     e
@@ -1036,7 +1005,8 @@ export class StandardController implements IController {
                     {
                         success: false,
                     },
-                    e
+                    e,
+                    request.account
                 );
                 throw e;
             })
@@ -1069,7 +1039,7 @@ export class StandardController implements IController {
         );
         preflightCheck(this.initialized, atbcMeasurement);
         this.eventHandler.emitEvent(
-            EventType.ACQUIRE_TOKEN_BY_CODE_START,
+            EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,
             request
         );
@@ -1095,24 +1065,27 @@ export class StandardController implements IController {
                     })
                         .then((result: AuthenticationResult) => {
                             this.eventHandler.emitEvent(
-                                EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS,
+                                EventType.ACQUIRE_TOKEN_SUCCESS,
                                 InteractionType.Silent,
                                 result
                             );
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
-                            atbcMeasurement.end({
-                                success: true,
-                                isNativeBroker: result.fromPlatformBroker,
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
-                                accountType: getAccountType(result.account),
-                            });
+                            atbcMeasurement.end(
+                                {
+                                    success: true,
+                                    isNativeBroker: result.fromPlatformBroker,
+                                    accessTokenSize: result.accessToken.length,
+                                    idTokenSize: result.idToken.length,
+                                },
+                                undefined,
+                                result.account
+                            );
                             return result;
                         })
                         .catch((error: Error) => {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             this.eventHandler.emitEvent(
-                                EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE,
+                                EventType.ACQUIRE_TOKEN_FAILURE,
                                 InteractionType.Silent,
                                 null,
                                 error
@@ -1155,10 +1128,13 @@ export class StandardController implements IController {
                         }
                         throw e;
                     });
-                    atbcMeasurement.end({
-                        accountType: getAccountType(result.account),
-                        success: true,
-                    });
+                    atbcMeasurement.end(
+                        {
+                            success: true,
+                        },
+                        undefined,
+                        result.account
+                    );
                     return result;
                 } else {
                     throw createBrowserAuthError(
@@ -1172,7 +1148,7 @@ export class StandardController implements IController {
             }
         } catch (e) {
             this.eventHandler.emitEvent(
-                EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE,
+                EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Silent,
                 null,
                 e as EventError
@@ -1939,24 +1915,27 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        preflightCheck(this.initialized, atsMeasurement);
+        preflightCheck(this.initialized, atsMeasurement, request.account);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
-        atsMeasurement.add({ accountType: getAccountType(account) });
 
         return this.acquireTokenSilentDeduped(request, account, correlationId)
             .then((result) => {
-                atsMeasurement.end({
-                    success: true,
-                    fromCache: result.fromCache,
-                    isNativeBroker: result.fromPlatformBroker,
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                });
+                atsMeasurement.end(
+                    {
+                        success: true,
+                        fromCache: result.fromCache,
+                        isNativeBroker: result.fromPlatformBroker,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
+                    },
+                    undefined,
+                    result.account
+                );
                 return {
                     ...result,
                     state: request.state,
@@ -1973,7 +1952,8 @@ export class StandardController implements IController {
                     {
                         success: false,
                     },
-                    error
+                    error,
+                    account
                 );
                 throw error;
             });

@@ -623,23 +623,15 @@ export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | Silent
 export const EventType: {
     readonly INITIALIZE_START: "msal:initializeStart";
     readonly INITIALIZE_END: "msal:initializeEnd";
-    readonly ACCOUNT_ADDED: "msal:accountAdded";
-    readonly ACCOUNT_REMOVED: "msal:accountRemoved";
     readonly ACTIVE_ACCOUNT_CHANGED: "msal:activeAccountChanged";
-    readonly LOGIN_START: "msal:loginStart";
     readonly LOGIN_SUCCESS: "msal:loginSuccess";
-    readonly LOGIN_FAILURE: "msal:loginFailure";
     readonly ACQUIRE_TOKEN_START: "msal:acquireTokenStart";
+    readonly BROKERED_REQUEST_START: "msal:brokeredRequestStart";
     readonly ACQUIRE_TOKEN_SUCCESS: "msal:acquireTokenSuccess";
     readonly BROKERED_REQUEST_SUCCESS: "msal:brokeredRequestSuccess";
     readonly ACQUIRE_TOKEN_FAILURE: "msal:acquireTokenFailure";
+    readonly BROKERED_REQUEST_FAILURE: "msal:brokeredRequestFailure";
     readonly ACQUIRE_TOKEN_NETWORK_START: "msal:acquireTokenFromNetworkStart";
-    readonly SSO_SILENT_START: "msal:ssoSilentStart";
-    readonly SSO_SILENT_SUCCESS: "msal:ssoSilentSuccess";
-    readonly SSO_SILENT_FAILURE: "msal:ssoSilentFailure";
-    readonly ACQUIRE_TOKEN_BY_CODE_START: "msal:acquireTokenByCodeStart";
-    readonly ACQUIRE_TOKEN_BY_CODE_SUCCESS: "msal:acquireTokenByCodeSuccess";
-    readonly ACQUIRE_TOKEN_BY_CODE_FAILURE: "msal:acquireTokenByCodeFailure";
     readonly HANDLE_REDIRECT_START: "msal:handleRedirectStart";
     readonly HANDLE_REDIRECT_END: "msal:handleRedirectEnd";
     readonly POPUP_OPENED: "msal:popupOpened";
@@ -831,10 +823,8 @@ export { InteractionRequiredAuthErrorCodes }
 // @public
 export const InteractionStatus: {
     readonly Startup: "startup";
-    readonly Login: "login";
     readonly Logout: "logout";
     readonly AcquireToken: "acquireToken";
-    readonly SsoSilent: "ssoSilent";
     readonly HandleRedirect: "handleRedirect";
     readonly None: "none";
 };
@@ -1605,8 +1595,8 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:416:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:447:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/Configuration.ts:211:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
-// src/event/EventHandler.ts:117:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/event/EventHandler.ts:144:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/event/EventHandler.ts:114:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/event/EventHandler.ts:141:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 // src/navigation/NavigationClient.ts:40:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

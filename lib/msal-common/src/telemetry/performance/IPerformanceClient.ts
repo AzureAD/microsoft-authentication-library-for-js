@@ -4,13 +4,15 @@
  */
 
 import { PerformanceEvent } from "./PerformanceEvent.js";
+import { AccountInfo } from "../../account/AccountInfo.js";
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type InProgressPerformanceEvent = {
     end: (
         event?: Partial<PerformanceEvent>,
-        error?: unknown
+        error?: unknown,
+        account?: AccountInfo
     ) => PerformanceEvent | null;
     discard: () => void;
     add: (fields: { [key: string]: {} | undefined }) => void;

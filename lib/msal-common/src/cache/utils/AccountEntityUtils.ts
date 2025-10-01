@@ -11,6 +11,7 @@ import {
     AccountInfo,
     TenantProfile,
     buildTenantProfile,
+    DataBoundary,
 } from "../../account/AccountInfo.js";
 import {
     createClientAuthError,
@@ -56,6 +57,7 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
                 return [tenantProfile.tenantId, tenantProfile];
             })
         ),
+        dataBoundary: accountEntity.dataBoundary,
     };
 }
 
@@ -94,9 +96,13 @@ export function createAccountEntity(
     }
 
     let clientInfo: ClientInfo | undefined;
+    let dataBoundary: DataBoundary | undefined;
 
     if (accountDetails.clientInfo && base64Decode) {
         clientInfo = buildClientInfo(accountDetails.clientInfo, base64Decode);
+        if (clientInfo.xms_tdbr) {
+            dataBoundary = clientInfo.xms_tdbr === "EU" ? "EU" : "None";
+        }
     }
 
     const env =
@@ -164,6 +170,7 @@ export function createAccountEntity(
         msGraphHost: accountDetails.msGraphHost,
         nativeAccountId: accountDetails.nativeAccountId,
         tenantProfiles: tenantProfiles,
+        dataBoundary,
     } as AccountEntity;
 }
 
@@ -193,6 +200,7 @@ export function createAccountEntityFromAccountInfo(
         cloudGraphHostName: cloudGraphHostName,
         msGraphHost: msGraphHost,
         tenantProfiles: Array.from(accountInfo.tenantProfiles?.values() || []),
+        dataBoundary: accountInfo.dataBoundary,
     } as AccountEntity;
 }
 
