@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Added logging to FunctionWrappers (#8073)",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
