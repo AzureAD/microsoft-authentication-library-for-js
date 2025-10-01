@@ -784,14 +784,14 @@ describe("Logger.ts Class Unit Tests", () => {
                 const logger = new Logger(loggerOptions);
                 const correlationId = "high-volume-test";
 
-                // Add more than 300 hashed logs (6-char format)
-                for (let i = 0; i < 350; i++) {
+                // Add more than 500 hashed logs (6-char format)
+                for (let i = 0; i < 550; i++) {
                     const paddedNum = i.toString().padStart(3, "0");
                     logger.info(`msg${paddedNum}`, correlationId);
                 }
 
                 const cachedLogs = getLogsFromCache(correlationId);
-                expect(cachedLogs).toHaveLength(300);
+                expect(cachedLogs).toHaveLength(500);
 
                 // Should contain the most recent 300 logs (50-349)
                 // The first 50 logs should have been evicted
@@ -805,13 +805,13 @@ describe("Logger.ts Class Unit Tests", () => {
                 const correlationId = "chronological-test";
 
                 // Add hashed logs with distinctive messages
-                for (let i = 0; i < 305; i++) {
+                for (let i = 0; i < 505; i++) {
                     const paddedNum = i.toString().padStart(3, "0");
                     logger.info(`log${paddedNum}`, correlationId);
                 }
 
                 const cachedLogs = getLogsFromCache(correlationId);
-                expect(cachedLogs).toHaveLength(300);
+                expect(cachedLogs).toHaveLength(500);
 
                 // Verify that milliseconds are in ascending order
                 for (let i = 1; i < cachedLogs.length; i++) {
@@ -820,7 +820,7 @@ describe("Logger.ts Class Unit Tests", () => {
                     );
                 }
 
-                // Verify the remaining logs are the most recent ones (5-304)
+                // Verify the remaining logs are the most recent ones (5-504)
                 expect(cachedLogs[0].hash).toBe("log005");
                 expect(cachedLogs[299].hash).toBe("log304");
             });
@@ -1127,7 +1127,7 @@ describe("Logger.ts Class Unit Tests", () => {
                 const endTime = Date.now();
                 const cachedLogs = getLogsFromCache(correlationId);
 
-                expect(cachedLogs).toHaveLength(300); // Limited by MAX_LOGS_PER_CORRELATION
+                expect(cachedLogs).toHaveLength(500); // Limited by MAX_LOGS_PER_CORRELATION
                 expect(endTime - startTime).toBeLessThan(1000); // Should complete quickly
 
                 // Verify milliseconds are in order

@@ -53,7 +53,7 @@ interface CorrelationLogData {
 
 // Shared cache state for better minification - using Map's insertion order for LRU
 const CACHE_CAPACITY = 10;
-const MAX_LOGS_PER_CORRELATION = 300;
+const MAX_LOGS_PER_CORRELATION = 500;
 const correlationCache = new Map<string, CorrelationLogData>();
 
 /**
