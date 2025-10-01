@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Added correlationId to INetworkModule's get/post methods",
+  "comment": "Added correlationId to INetworkModule's get/post methods (#8073)",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
