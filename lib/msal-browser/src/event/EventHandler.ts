@@ -51,12 +51,16 @@ export class EventHandler {
             const id = callbackId || createGuid();
             if (this.eventCallbacks.has(id)) {
                 this.logger.error(
-                    `Event callback with id: '${id}' is already registered. Please provide a unique id or remove the existing callback and try again.`
+                    `Event callback with id: '${id}' is already registered. Please provide a unique id or remove the existing callback and try again.`,
+                    ""
                 );
                 return null;
             }
             this.eventCallbacks.set(id, [callback, eventTypes || []]);
-            this.logger.verbose(`Event callback registered with id: '${id}'`);
+            this.logger.verbose(
+                `Event callback registered with id: '${id}'`,
+                ""
+            );
 
             return id;
         }
@@ -70,7 +74,7 @@ export class EventHandler {
      */
     removeEventCallback(callbackId: string): void {
         this.eventCallbacks.delete(callbackId);
-        this.logger.verbose(`Event callback '${callbackId}' removed.`);
+        this.logger.verbose(`Event callback '${callbackId}' removed.`, "");
     }
 
     /**
@@ -95,17 +99,14 @@ export class EventHandler {
         };
 
         switch (eventType) {
-            case EventType.ACCOUNT_ADDED:
-            case EventType.ACCOUNT_REMOVED:
+            case EventType.LOGIN_SUCCESS:
+            case EventType.LOGOUT_SUCCESS:
             case EventType.ACTIVE_ACCOUNT_CHANGED:
                 // Send event to other open tabs / MSAL instances on same domain
                 this.broadcastChannel?.postMessage(message);
-                break;
-            default:
-                // Emit event to callbacks registered in this instance
-                this.invokeCallbacks(message);
-                break;
         }
+        // Emit event to callbacks registered in this instance
+        this.invokeCallbacks(message);
     }
 
     /**
@@ -126,7 +127,8 @@ export class EventHandler {
                     eventTypes.includes(message.eventType)
                 ) {
                     this.logger.verbose(
-                        `Emitting event to callback '${callbackId}': '${message.eventType}'`
+                        `Emitting event to callback '${callbackId}': '${message.eventType}'`,
+                        ""
                     );
                     callback.apply(null, [message]);
                 }

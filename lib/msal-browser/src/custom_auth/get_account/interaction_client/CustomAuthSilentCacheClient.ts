@@ -115,10 +115,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
 
         // Clear the cache
-        this.logger.verbose(
-            "Start to clear the cache",
-            logoutRequest?.correlationId
-        );
+        this.logger.verbose("Start to clear the cache", this.correlationId);
         await clearCacheOnLogout(
             this.browserStorage,
             this.browserCrypto,
@@ -126,7 +123,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
             this.correlationId,
             validLogoutRequest?.account
         );
-        this.logger.verbose("Cache cleared", logoutRequest?.correlationId);
+        this.logger.verbose("Cache cleared", this.correlationId);
 
         const postLogoutRedirectUri = this.config.auth.postLogoutRedirectUri;
 
@@ -138,7 +135,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
 
             this.logger.verbose(
                 "Post logout redirect uri is set, redirecting to uri",
-                logoutRequest?.correlationId
+                this.correlationId
             );
 
             // Redirect to post logout redirect uri

@@ -71,20 +71,20 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * Serializes in memory cache to JSON
      */
     serialize(): string {
-        this.logger.trace("Serializing in-memory cache");
+        this.logger.trace("Serializing in-memory cache", "");
         let finalState = Serializer.serializeAllCache(
             this.storage.getInMemoryCache() as InMemoryCache
         );
 
         // if cacheSnapshot not null or empty, merge
         if (this.cacheSnapshot) {
-            this.logger.trace("Reading cache snapshot from disk");
+            this.logger.trace("Reading cache snapshot from disk", "");
             finalState = this.mergeState(
                 JSON.parse(this.cacheSnapshot),
                 finalState
             );
         } else {
-            this.logger.trace("No cache snapshot to merge");
+            this.logger.trace("No cache snapshot to merge", "");
         }
         this.cacheHasChanged = false;
 
@@ -96,17 +96,17 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param cache - blob formatted cache
      */
     deserialize(cache: string): void {
-        this.logger.trace("Deserializing JSON to in-memory cache");
+        this.logger.trace("Deserializing JSON to in-memory cache", "");
         this.cacheSnapshot = cache;
 
         if (this.cacheSnapshot) {
-            this.logger.trace("Reading cache snapshot from disk");
+            this.logger.trace("Reading cache snapshot from disk", "");
             const deserializedCache = Deserializer.deserializeAllCache(
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
             );
             this.storage.setInMemoryCache(deserializedCache);
         } else {
-            this.logger.trace("No cache snapshot to deserialize");
+            this.logger.trace("No cache snapshot to deserialize", "");
         }
     }
 
@@ -133,7 +133,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     async getAllAccounts(
         correlationId: string = new CryptoProvider().createNewGuid()
     ): Promise<AccountInfo[]> {
-        this.logger.trace("getAllAccounts called");
+        this.logger.trace("getAllAccounts called", correlationId);
         let cacheContext;
         try {
             if (this.persistence) {
@@ -198,7 +198,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         account: AccountInfo,
         correlationId?: string
     ): Promise<void> {
-        this.logger.trace("removeAccount called");
+        this.logger.trace("removeAccount called", correlationId || "");
         let cacheContext;
         try {
             if (this.persistence) {
@@ -222,11 +222,15 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     async overwriteCache(): Promise<void> {
         if (!this.persistence) {
             this.logger.info(
-                "No persistence layer specified, cache cannot be overwritten"
+                "No persistence layer specified, cache cannot be overwritten",
+                ""
             );
             return;
         }
-        this.logger.info("Overwriting in-memory cache with persistent cache");
+        this.logger.info(
+            "Overwriting in-memory cache with persistent cache",
+            ""
+        );
         this.storage.clear();
         const cacheContext = new TokenCacheContext(this, false);
         await this.persistence.beforeCacheAccess(cacheContext);
@@ -251,7 +255,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         oldState: JsonCache,
         currentState: JsonCache
     ): JsonCache {
-        this.logger.trace("Merging in-memory cache with cache snapshot");
+        this.logger.trace("Merging in-memory cache with cache snapshot", "");
         const stateAfterRemoval = this.mergeRemovals(oldState, currentState);
         return this.mergeUpdates(stateAfterRemoval, currentState);
     }
@@ -302,7 +306,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param newState - updated cache
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
-        this.logger.trace("Remove updated entries in cache");
+        this.logger.trace("Remove updated entries in cache", "");
         const accounts = oldState.Account
             ? this.mergeRemovalsDict<SerializedAccountEntity>(
                   oldState.Account,
@@ -367,7 +371,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param passedInCache - cache read from the blob
      */
     private overlayDefaults(passedInCache: JsonCache): JsonCache {
-        this.logger.trace("Overlaying input cache with the default cache");
+        this.logger.trace("Overlaying input cache with the default cache", "");
         return {
             Account: {
                 ...defaultSerializedCache.Account,

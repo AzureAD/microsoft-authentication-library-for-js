@@ -55,7 +55,7 @@ export class MsalGuard {
    * @returns Full destination url
    */
   getDestinationUrl(path: string): string {
-    this.authService.getLogger().verbose("Guard - getting destination url");
+    this.authService.getLogger().verbose("Guard - getting destination url", "");
     // Absolute base url for the application (default to origin if base element not present)
     const baseElements = document.getElementsByTagName("base");
     const baseUrl = this.location.normalize(
@@ -69,7 +69,7 @@ export class MsalGuard {
     if (pathUrl.startsWith("#")) {
       this.authService
         .getLogger()
-        .verbose("Guard - destination by hash routing");
+        .verbose("Guard - destination by hash routing", "");
       return `${baseUrl}/${pathUrl}`;
     }
 
@@ -90,13 +90,16 @@ export class MsalGuard {
         ? this.msalGuardConfig.authRequest(this.authService, state)
         : { ...this.msalGuardConfig.authRequest };
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
-      this.authService.getLogger().verbose("Guard - logging in by popup");
+      this.authService
+        .getLogger()
+        .verbose("Guard - logging in by popup", authRequest.correlationId);
       return this.authService.loginPopup(authRequest as PopupRequest).pipe(
         map((response: AuthenticationResult) => {
           this.authService
             .getLogger()
             .verbose(
-              "Guard - login by popup successful, can activate, setting active account"
+              "Guard - login by popup successful, can activate, setting active account",
+              authRequest.correlationId
             );
           this.authService.instance.setActiveAccount(response.account);
           return true;
@@ -104,7 +107,9 @@ export class MsalGuard {
       );
     }
 
-    this.authService.getLogger().verbose("Guard - logging in by redirect");
+    this.authService
+      .getLogger()
+      .verbose("Guard - logging in by redirect", authRequest.correlationId);
     const redirectStartPage = this.getDestinationUrl(state.url);
     return this.authService
       .loginRedirect({
@@ -130,7 +135,7 @@ export class MsalGuard {
         "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration"
       );
     }
-    this.authService.getLogger().verbose("MSAL Guard activated");
+    this.authService.getLogger().verbose("MSAL Guard activated", "");
 
     /*
      * If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
@@ -140,7 +145,8 @@ export class MsalGuard {
       this.authService
         .getLogger()
         .info(
-          "Guard - window is undefined, MSAL does not support server-side token acquisition"
+          "Guard - window is undefined, MSAL does not support server-side token acquisition",
+          ""
         );
       return of(true);
     } else {
@@ -154,7 +160,8 @@ export class MsalGuard {
           this.authService
             .getLogger()
             .warning(
-              "Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication."
+              "Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.",
+              ""
             );
           return of(false);
         }
@@ -183,19 +190,26 @@ export class MsalGuard {
             this.authService
               .getLogger()
               .verbose(
-                "Guard - no accounts retrieved, log in required to activate"
+                "Guard - no accounts retrieved, log in required to activate",
+                ""
               );
             return this.loginInteractively(state);
           }
           this.authService
             .getLogger()
-            .verbose("Guard - no accounts retrieved, no state, cannot load");
+            .verbose(
+              "Guard - no accounts retrieved, no state, cannot load",
+              ""
+            );
           return of(false);
         }
 
         this.authService
           .getLogger()
-          .verbose("Guard - at least 1 account exists, can activate or load");
+          .verbose(
+            "Guard - at least 1 account exists, can activate or load",
+            ""
+          );
 
         // Prevent navigating the app to /#code= or /code=
         if (state) {
@@ -223,7 +237,8 @@ export class MsalGuard {
             this.authService
               .getLogger()
               .info(
-                "Guard - Hash contains known code response, stopping navigation."
+                "Guard - Hash contains known code response, stopping navigation.",
+                ""
               );
 
             // Path routing (navigate to current path without hash)
@@ -241,17 +256,17 @@ export class MsalGuard {
       catchError((error: Error) => {
         this.authService
           .getLogger()
-          .error("Guard - error while logging in, unable to activate");
+          .error("Guard - error while logging in, unable to activate", "");
         this.authService
           .getLogger()
-          .errorPii(`Guard - error: ${error.message}`);
+          .errorPii(`Guard - error: ${error.message}`, "");
         /**
          * If a loginFailedRoute is set, checks to see if state is passed before returning route
          */
         if (this.loginFailedRoute && state) {
           this.authService
             .getLogger()
-            .verbose("Guard - loginFailedRoute set, redirecting");
+            .verbose("Guard - loginFailedRoute set, redirecting", "");
           return of(this.loginFailedRoute);
         }
         return of(false);
@@ -272,7 +287,7 @@ export class MsalGuard {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    this.authService.getLogger().verbose("Guard - canActivate");
+    this.authService.getLogger().verbose("Guard - canActivate", "");
     return this.activateHelper(state);
   }
 
@@ -280,12 +295,12 @@ export class MsalGuard {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    this.authService.getLogger().verbose("Guard - canActivateChild");
+    this.authService.getLogger().verbose("Guard - canActivateChild", "");
     return this.activateHelper(state);
   }
 
   canMatch(): Observable<boolean | UrlTree> {
-    this.authService.getLogger().verbose("Guard - canLoad");
+    this.authService.getLogger().verbose("Guard - canLoad", "");
     return this.activateHelper();
   }
 }

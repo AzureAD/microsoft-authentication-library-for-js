@@ -35,11 +35,11 @@ import {
     CACHE_KEY_SEPARATOR,
     CredentialType,
     SKU,
+    EncodingTypes,
 } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
-import { EncodingTypes } from "../../src/utils/Constants.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import { CredentialEntity } from "../../src/cache/entities/CredentialEntity.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
@@ -409,7 +409,8 @@ export async function getDiscoveredAuthority(
         mockStorage,
         authorityOptions,
         logger,
-        TEST_CONFIG.CORRELATION_ID
+        TEST_CONFIG.CORRELATION_ID,
+        new StubPerformanceClient()
     );
 
     await authority.resolveEndpointsAsync().catch((error) => {

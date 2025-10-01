@@ -54,34 +54,6 @@ describe("MsalBroadcastService", () => {
     subscription.unsubscribe();
   });
 
-  it("broadcasts event from PublicClientApplication", (done) => {
-    const sub = broadcastService.msalSubject$.subscribe((result) => {
-      expect(result.eventType).toEqual(EventType.LOGIN_START);
-      expect(result.interactionType).toEqual(InteractionType.Popup);
-      expect(result.payload).toEqual(null);
-      expect(result.error).toEqual(null);
-      expect(result.timestamp).toBeInstanceOf(Number);
-      sub.unsubscribe();
-    });
-
-    const expectedInProgress = [
-      InteractionStatus.Startup,
-      InteractionStatus.Login,
-    ];
-    let index = 0;
-
-    subscription = broadcastService.inProgress$.subscribe((result) => {
-      expect(result).toEqual(expectedInProgress[index]);
-      if (index === expectedInProgress.length - 1) {
-        done();
-      } else {
-        index++;
-      }
-    });
-
-    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
-  });
-
   it("broadcasts previous events if MsalBroadcastConfig set and eventsToReplay is greater than 0", (done) => {
     initializeMsal([
       {
@@ -94,7 +66,7 @@ describe("MsalBroadcastService", () => {
 
     const expectedMsalSubjectFirstSubscription = [
       {
-        eventType: EventType.LOGIN_START,
+        eventType: EventType.ACQUIRE_TOKEN_START,
         interactionType: InteractionType.Redirect,
         payload: null,
         error: null,
@@ -123,14 +95,17 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.ACQUIRE_TOKEN_START,
+      InteractionType.Redirect
+    );
 
     subscription.unsubscribe();
 
     let index = 0;
     const expectedMsalSubject = [
       {
-        eventType: EventType.LOGIN_START,
+        eventType: EventType.ACQUIRE_TOKEN_START,
         interactionType: InteractionType.Redirect,
         payload: null,
         error: null,
@@ -196,7 +171,7 @@ describe("MsalBroadcastService", () => {
         error: null,
       },
       {
-        eventType: EventType.LOGIN_START,
+        eventType: EventType.ACQUIRE_TOKEN_START,
         interactionType: InteractionType.Redirect,
         payload: null,
         error: null,
@@ -229,14 +204,17 @@ describe("MsalBroadcastService", () => {
       EventType.INITIALIZE_START,
       InteractionType.Redirect
     );
-    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.ACQUIRE_TOKEN_START,
+      InteractionType.Redirect
+    );
 
     subscription.unsubscribe();
 
     let index = 0;
     const expectedMsalSubject = [
       {
-        eventType: EventType.LOGIN_START,
+        eventType: EventType.ACQUIRE_TOKEN_START,
         interactionType: InteractionType.Redirect,
         payload: null,
         error: null,
@@ -287,7 +265,7 @@ describe("MsalBroadcastService", () => {
   it("does not broadcasts previous events if MsalBroadcastConfig is not set", (done) => {
     const expectedMsalSubjectFirstSubscription = [
       {
-        eventType: EventType.LOGIN_START,
+        eventType: EventType.ACQUIRE_TOKEN_START,
         interactionType: InteractionType.Redirect,
         payload: null,
         error: null,
@@ -316,7 +294,10 @@ describe("MsalBroadcastService", () => {
       }
     });
 
-    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.ACQUIRE_TOKEN_START,
+      InteractionType.Redirect
+    );
 
     subscription.unsubscribe();
 
@@ -365,7 +346,7 @@ describe("MsalBroadcastService", () => {
     newSubscription.unsubscribe();
   });
 
-  it("LOGIN_SUCCESS event does not set inProgress to None if handleRedirect is still in progress", (done) => {
+  it("ACQUIRE_TOKEN_SUCCESS event does not set inProgress to None if handleRedirect is still in progress", (done) => {
     const expectedInProgress = [
       InteractionStatus.Startup,
       InteractionStatus.HandleRedirect,
@@ -385,7 +366,10 @@ describe("MsalBroadcastService", () => {
       EventType.HANDLE_REDIRECT_START,
       InteractionType.Redirect
     );
-    eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.ACQUIRE_TOKEN_SUCCESS,
+      InteractionType.Redirect
+    );
   });
 
   it("HANDLE_REDIRECT_END event sets inProgress to None if handleRedirect is in progress", (done) => {
@@ -409,7 +393,10 @@ describe("MsalBroadcastService", () => {
       EventType.HANDLE_REDIRECT_START,
       InteractionType.Redirect
     );
-    eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.ACQUIRE_TOKEN_SUCCESS,
+      InteractionType.Redirect
+    );
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_END,
       InteractionType.Redirect
@@ -420,7 +407,7 @@ describe("MsalBroadcastService", () => {
     const expectedInProgress = [
       InteractionStatus.Startup,
       InteractionStatus.HandleRedirect,
-      InteractionStatus.Login,
+      InteractionStatus.AcquireToken,
     ];
     let index = 0;
 
@@ -437,7 +424,10 @@ describe("MsalBroadcastService", () => {
       EventType.HANDLE_REDIRECT_START,
       InteractionType.Redirect
     );
-    eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    eventHandler.emitEvent(
+      EventType.ACQUIRE_TOKEN_START,
+      InteractionType.Redirect
+    );
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_END,
       InteractionType.Redirect

@@ -22,38 +22,35 @@ export const invoke = <T extends Array<any>, U>(
     callback: (...args: T) => U,
     eventName: string,
     logger: Logger,
-    telemetryClient?: IPerformanceClient,
-    correlationId?: string
+    telemetryClient: IPerformanceClient,
+    correlationId: string
 ) => {
     return (...args: T): U => {
-        logger.trace(`Executing function '${eventName}'`);
-        const inProgressEvent = telemetryClient?.startMeasurement(
+        logger.trace(`Executing function '${eventName}'`, correlationId);
+        const inProgressEvent = telemetryClient.startMeasurement(
             eventName,
             correlationId
         );
         if (correlationId) {
             // Track number of times this API is called in a single request
             const eventCount = eventName + "CallCount";
-            telemetryClient?.incrementFields(
-                { [eventCount]: 1 },
-                correlationId
-            );
+            telemetryClient.incrementFields({ [eventCount]: 1 }, correlationId);
         }
         try {
             const result = callback(...args);
-            inProgressEvent?.end({
+            inProgressEvent.end({
                 success: true,
             });
-            logger.trace(`Returning result from '${eventName}'`);
+            logger.trace(`Returning result from '${eventName}'`, correlationId);
             return result;
         } catch (e) {
-            logger.trace(`Error occurred in '${eventName}'`);
+            logger.trace(`Error occurred in '${eventName}'`, correlationId);
             try {
-                logger.trace(JSON.stringify(e));
+                logger.trace(JSON.stringify(e), correlationId);
             } catch (e) {
-                logger.trace("Unable to print error message.");
+                logger.trace("Unable to print error message.", correlationId);
             }
-            inProgressEvent?.end(
+            inProgressEvent.end(
                 {
                     success: false,
                 },
@@ -81,39 +78,42 @@ export const invokeAsync = <T extends Array<any>, U>(
     callback: (...args: T) => Promise<U>,
     eventName: string,
     logger: Logger,
-    telemetryClient?: IPerformanceClient,
-    correlationId?: string
+    telemetryClient: IPerformanceClient,
+    correlationId: string
 ) => {
     return (...args: T): Promise<U> => {
-        logger.trace(`Executing function '${eventName}'`);
-        const inProgressEvent = telemetryClient?.startMeasurement(
+        logger.trace(`Executing function '${eventName}'`, correlationId);
+        const inProgressEvent = telemetryClient.startMeasurement(
             eventName,
             correlationId
         );
         if (correlationId) {
             // Track number of times this API is called in a single request
             const eventCount = eventName + "CallCount";
-            telemetryClient?.incrementFields(
-                { [eventCount]: 1 },
-                correlationId
-            );
+            telemetryClient.incrementFields({ [eventCount]: 1 }, correlationId);
         }
         return callback(...args)
             .then((response) => {
-                logger.trace(`Returning result from '${eventName}'`);
-                inProgressEvent?.end({
+                logger.trace(
+                    `Returning result from '${eventName}'`,
+                    correlationId
+                );
+                inProgressEvent.end({
                     success: true,
                 });
                 return response;
             })
             .catch((e) => {
-                logger.trace(`Error occurred in '${eventName}'`);
+                logger.trace(`Error occurred in '${eventName}'`, correlationId);
                 try {
-                    logger.trace(JSON.stringify(e));
+                    logger.trace(JSON.stringify(e), correlationId);
                 } catch (e) {
-                    logger.trace("Unable to print error message.");
+                    logger.trace(
+                        "Unable to print error message.",
+                        correlationId
+                    );
                 }
-                inProgressEvent?.end(
+                inProgressEvent.end(
                     {
                         success: false,
                     },

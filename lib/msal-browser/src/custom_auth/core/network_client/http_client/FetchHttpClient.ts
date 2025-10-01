@@ -23,7 +23,7 @@ export class FetchHttpClient implements IHttpClient {
     ): Promise<Response> {
         const headers = options.headers as Record<string, string>;
         const correlationId =
-            headers?.[AADServerParamKeys.CLIENT_REQUEST_ID] || undefined;
+            headers?.[AADServerParamKeys.CLIENT_REQUEST_ID] || "";
 
         try {
             this.logger.verbosePii(

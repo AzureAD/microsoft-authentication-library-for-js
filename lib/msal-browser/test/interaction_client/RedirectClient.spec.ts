@@ -173,7 +173,8 @@ describe("RedirectClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage
+            pca.nativeInternalStorage,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         rootMeasurement = new BrowserPerformanceClient(
@@ -524,6 +525,7 @@ describe("RedirectClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID,
                 nativeMessageHandler
             );
 
@@ -1969,7 +1971,7 @@ describe("RedirectClient", () => {
             );
             await redirectClient.acquireToken(tokenRequest);
             const [cachedRequest, codeVerifier] =
-                browserStorage.getCachedRequest();
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID);
             expect(cachedRequest.scopes).toEqual([]);
             expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
             expect(cachedRequest.authority).toEqual(
@@ -2043,7 +2045,8 @@ describe("RedirectClient", () => {
                     //@ts-ignore
                     pca.performanceClient,
                     //@ts-ignore
-                    pca.nativeInternalStorage
+                    pca.nativeInternalStorage,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 let initiateAuthRequestSpy = jest.spyOn(

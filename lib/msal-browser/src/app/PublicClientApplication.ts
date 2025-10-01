@@ -37,6 +37,7 @@ import { NestedAppAuthController } from "../controllers/NestedAppAuthController.
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -378,8 +379,9 @@ export class PublicClientApplication implements IPublicClientApplication {
 export async function createNestablePublicClientApplication(
     configuration: Configuration
 ): Promise<IPublicClientApplication> {
+    const correlationId = createNewGuid();
     const nestedAppAuth = new NestedAppOperatingContext(configuration);
-    await nestedAppAuth.initialize();
+    await nestedAppAuth.initialize(correlationId);
 
     if (nestedAppAuth.isAvailable()) {
         const controller = new NestedAppAuthController(nestedAppAuth);
@@ -387,7 +389,7 @@ export async function createNestablePublicClientApplication(
             configuration,
             controller
         );
-        await nestablePCA.initialize();
+        await nestablePCA.initialize({ correlationId });
         return nestablePCA;
     }
 

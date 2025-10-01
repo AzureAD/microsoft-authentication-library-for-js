@@ -114,15 +114,27 @@ describe("MsalAuthenticationTemplate tests", () => {
             .mockImplementation((request) => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
-                const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+
+                const acquireTokenEvent: EventMessage = {
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Popup,
                     payload: testResult,
                     error: null,
                     timestamp: 10000,
                 };
                 eventCallbacks.forEach((callback) => {
-                    callback(eventMessage);
+                    callback(acquireTokenEvent);
+                });
+
+                const loginEvent: EventMessage = {
+                    eventType: EventType.LOGIN_SUCCESS,
+                    interactionType: InteractionType.Popup,
+                    payload: testAccount,
+                    error: null,
+                    timestamp: 10000,
+                };
+                eventCallbacks.forEach((callback) => {
+                    callback(loginEvent);
                 });
 
                 return Promise.resolve(testResult);
@@ -156,7 +168,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Redirect,
                     payload: testResult,
                     error: null,
@@ -180,7 +192,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             </MsalProvider>
         );
 
-        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(2));
         await waitFor(() => expect(loginRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
             screen.queryByText("This text will always display.")
@@ -197,7 +209,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Silent,
                     payload: testResult,
                     error: null,
@@ -242,7 +254,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(loginRequest);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Popup,
                     payload: testResult,
                     error: null,
@@ -288,7 +300,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(loginRequest);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Redirect,
                     payload: testResult,
                     error: null,
@@ -313,7 +325,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             </MsalProvider>
         );
 
-        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(2));
         await waitFor(() => expect(loginRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
             screen.queryByText("This text will always display.")
@@ -333,7 +345,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(loginRequest);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Silent,
                     payload: testResult,
                     error: null,
@@ -381,7 +393,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                     timestamp: 10000,
                 };
                 const failureMessage: EventMessage = {
-                    eventType: EventType.LOGIN_FAILURE,
+                    eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                     interactionType: InteractionType.Redirect,
                     payload: null,
                     error: error,
@@ -424,7 +436,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             </MsalProvider>
         );
 
-        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(2));
         expect(
             screen.queryByText("This text will always display.")
         ).toBeInTheDocument();
@@ -711,7 +723,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             });
 
             await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+                expect(handleRedirectSpy).toHaveBeenCalledTimes(2)
             );
             await waitFor(() =>
                 expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
@@ -943,7 +955,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .spyOn(pca, "loginPopup")
             .mockImplementation(() => {
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_FAILURE,
+                    eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                     interactionType: InteractionType.Popup,
                     payload: null,
                     error: error,
@@ -995,7 +1007,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .spyOn(pca, "loginPopup")
             .mockImplementation(() => {
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_FAILURE,
+                    eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                     interactionType: InteractionType.Popup,
                     payload: null,
                     error: error,
@@ -1057,7 +1069,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .spyOn(pca, "ssoSilent")
             .mockImplementation(() => {
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_FAILURE,
+                    eventType: EventType.ACQUIRE_TOKEN_FAILURE,
                     interactionType: InteractionType.Silent,
                     payload: null,
                     error: error,
@@ -1076,7 +1088,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request).toBe(undefined);
                 accounts = [testAccount];
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_SUCCESS,
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                     interactionType: InteractionType.Popup,
                     payload: testResult,
                     error: null,
@@ -1146,7 +1158,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             .spyOn(pca, "loginPopup")
             .mockImplementation(() => {
                 const eventMessage: EventMessage = {
-                    eventType: EventType.LOGIN_START,
+                    eventType: EventType.ACQUIRE_TOKEN_START,
                     interactionType: InteractionType.Popup,
                     payload: null,
                     error: null,
@@ -1181,7 +1193,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             screen.queryByText("This text will always display.")
         ).toBeInTheDocument();
         expect(
-            await screen.findByText("In Progress: login")
+            await screen.findByText("In Progress: acquireToken")
         ).toBeInTheDocument();
         expect(
             screen.queryByText("A user is authenticated!")

@@ -46,6 +46,7 @@ import {
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 
 /**
  * Class that handles response parsing.
@@ -57,6 +58,7 @@ export class ResponseHandler {
     private cryptoObj: ICrypto;
     private logger: Logger;
     private homeAccountIdentifier: string;
+    private performanceClient: IPerformanceClient;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
 
@@ -65,6 +67,7 @@ export class ResponseHandler {
         cacheStorage: CacheManager,
         cryptoObj: ICrypto,
         logger: Logger,
+        performanceClient: IPerformanceClient,
         serializableCache: ISerializableTokenCache | null,
         persistencePlugin: ICachePlugin | null
     ) {
@@ -72,6 +75,7 @@ export class ResponseHandler {
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
+        this.performanceClient = performanceClient;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
     }
@@ -79,10 +83,12 @@ export class ResponseHandler {
     /**
      * Function which validates server authorization token response.
      * @param serverResponse
+     * @param correlationId
      * @param refreshAccessToken
      */
     validateTokenResponse(
         serverResponse: ServerAuthorizationTokenResponse,
+        correlationId: string,
         refreshAccessToken?: boolean
     ): void {
         // Check for error
@@ -122,7 +128,8 @@ export class ResponseHandler {
                 serverResponse.status <= Constants.HTTP_SERVER_ERROR_RANGE_END
             ) {
                 this.logger.warning(
-                    `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
+                    `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`,
+                    correlationId
                 );
 
                 // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
@@ -136,7 +143,8 @@ export class ResponseHandler {
                 serverResponse.status <= Constants.HTTP_CLIENT_ERROR_RANGE_END
             ) {
                 this.logger.warning(
-                    `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
+                    `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`,
+                    correlationId
                 );
 
                 // don't throw an exception, but alert the user via a log that the token was unable to be refreshed
@@ -218,6 +226,7 @@ export class ResponseHandler {
             authority.authorityType,
             this.logger,
             this.cryptoObj,
+            request.correlationId,
             idTokenClaims
         );
 
@@ -247,7 +256,8 @@ export class ResponseHandler {
         try {
             if (this.persistencePlugin && this.serializableCache) {
                 this.logger.verbose(
-                    "Persistence enabled, calling beforeCacheAccess"
+                    "Persistence enabled, calling beforeCacheAccess",
+                    request.correlationId
                 );
                 cacheContext = new TokenCacheContext(
                     this.serializableCache,
@@ -275,7 +285,8 @@ export class ResponseHandler {
                 );
                 if (!account) {
                     this.logger.warning(
-                        "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
+                        "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache",
+                        request.correlationId
                     );
                     return await ResponseHandler.generateAuthenticationResult(
                         this.cryptoObj,
@@ -283,6 +294,7 @@ export class ResponseHandler {
                         cacheRecord,
                         false,
                         request,
+                        this.performanceClient,
                         idTokenClaims,
                         requestStateObj,
                         undefined,
@@ -302,7 +314,8 @@ export class ResponseHandler {
                 cacheContext
             ) {
                 this.logger.verbose(
-                    "Persistence enabled, calling afterCacheAccess"
+                    "Persistence enabled, calling afterCacheAccess",
+                    request.correlationId
                 );
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
@@ -314,6 +327,7 @@ export class ResponseHandler {
             cacheRecord,
             false,
             request,
+            this.performanceClient,
             idTokenClaims,
             requestStateObj,
             serverTokenResponse,
@@ -484,6 +498,7 @@ export class ResponseHandler {
         cacheRecord: CacheRecord,
         fromTokenCache: boolean,
         request: BaseAuthRequest,
+        performanceClient: IPerformanceClient,
         idTokenClaims?: TokenClaims,
         requestState?: RequestStateObject,
         serverTokenResponse?: ServerAuthorizationTokenResponse,
@@ -507,7 +522,7 @@ export class ResponseHandler {
                 !request.popKid
             ) {
                 const popTokenGenerator: PopTokenGenerator =
-                    new PopTokenGenerator(cryptoObj);
+                    new PopTokenGenerator(cryptoObj, performanceClient);
                 const { secret, keyId } = cacheRecord.accessToken;
 
                 if (!keyId) {
@@ -605,7 +620,7 @@ export function buildAccountToCache(
     nativeAccountId?: string,
     logger?: Logger
 ): AccountEntity {
-    logger?.verbose("setCachedAccount called");
+    logger?.verbose("setCachedAccount called", correlationId);
 
     // Check if base account is already cached
     const accountKeys = cacheStorage.getAccountKeys();

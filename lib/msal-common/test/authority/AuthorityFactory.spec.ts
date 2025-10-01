@@ -15,7 +15,7 @@ import {
     ClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError";
-import { Logger, LogLevel } from "../../src";
+import { Logger, LogLevel, StubPerformanceClient } from "../../src";
 
 const loggerOptions = {
     loggerCallback: (): void => {},
@@ -71,7 +71,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
@@ -88,7 +89,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             mockStorage,
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            new StubPerformanceClient()
         ).catch((e) => {
             expect(e).toBeInstanceOf(ClientAuthError);
             expect(e.errorCode).toBe(
@@ -110,7 +112,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
@@ -131,7 +134,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
@@ -152,7 +156,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
@@ -173,7 +178,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
@@ -194,7 +200,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage,
                 authorityOptions,
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
         expect(authorityInstance.canonicalAuthority).toBe(
