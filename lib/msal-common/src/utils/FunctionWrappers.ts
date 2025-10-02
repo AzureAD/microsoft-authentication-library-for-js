@@ -26,7 +26,6 @@ export const invoke = <T extends Array<any>, U>(
     correlationId: string
 ) => {
     return (...args: T): U => {
-        logger.trace(`Executing function '${eventName}'`, correlationId);
         const inProgressEvent = telemetryClient.startMeasurement(
             eventName,
             correlationId
@@ -41,7 +40,6 @@ export const invoke = <T extends Array<any>, U>(
             inProgressEvent.end({
                 success: true,
             });
-            logger.trace(`Returning result from '${eventName}'`, correlationId);
             return result;
         } catch (e) {
             logger.trace(`Error occurred in '${eventName}'`, correlationId);
