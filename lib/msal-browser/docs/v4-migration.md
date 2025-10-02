@@ -159,7 +159,7 @@ See the [Configuration doc](./configuration.md#system-config-options) for more d
 
 ### Removal of `onRedirectNavigate` parameter
 
-The `onRedirectNavigate` parameter will *only be supported* from `Configuration` object going forward and is removed from `RedirectRequest` and `EndSessionRequest` object. Please ensure to set it in msal config if you need to use it.
+The `onRedirectNavigate` parameter will *only be supported* from `Configuration` object going forward and is removed from `RedirectRequest` and `EndSessionRequest` objects. Please ensure to set it in msal config if you need to use it.
 
 ## Behavioral Breaking Changes
 
