@@ -2303,18 +2303,19 @@ export class StandardController implements IController {
     private getPreGeneratedPkceCodes(
         correlationId: string
     ): PkceCodes | undefined {
-        this.logger.verbose(
-            "Attempting to pick up pre-generated PKCE codes",
-            correlationId
-        );
         const res = this.pkceCode ? { ...this.pkceCode } : undefined;
         this.pkceCode = undefined;
-        this.logger.verbose(
-            res
-                ? `Pre-generated PKCE codes were found`
-                : `Pre-generated PKCE codes were not found`,
-            correlationId
-        );
+        if (res) {
+            this.logger.verbose(
+                `Pre-generated PKCE codes were found`,
+                correlationId
+            );
+        } else {
+            this.logger.verbose(
+                `Pre-generated PKCE codes were not found`,
+                correlationId
+            );
+        }
 
         this.performanceClient.addFields(
             { usePreGeneratedPkce: !!res },
