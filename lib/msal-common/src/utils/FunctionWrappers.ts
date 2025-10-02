@@ -80,7 +80,6 @@ export const invokeAsync = <T extends Array<any>, U>(
     correlationId: string
 ) => {
     return (...args: T): Promise<U> => {
-        logger.trace(`Executing function '${eventName}'`, correlationId);
         const inProgressEvent = telemetryClient.startMeasurement(
             eventName,
             correlationId
@@ -92,10 +91,6 @@ export const invokeAsync = <T extends Array<any>, U>(
         }
         return callback(...args)
             .then((response) => {
-                logger.trace(
-                    `Returning result from '${eventName}'`,
-                    correlationId
-                );
                 inProgressEvent.end({
                     success: true,
                 });
