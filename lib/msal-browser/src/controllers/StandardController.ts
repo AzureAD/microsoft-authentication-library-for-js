@@ -2309,7 +2309,12 @@ export class StandardController implements IController {
         );
         const res = this.pkceCode ? { ...this.pkceCode } : undefined;
         this.pkceCode = undefined;
-        this.logger.verbose(res ? `Pre-generated PKCE codes were found` : `Pre-generated PKCE codes were not found`, correlationId);
+        this.logger.verbose(
+            res
+                ? `Pre-generated PKCE codes were found`
+                : `Pre-generated PKCE codes were not found`,
+            correlationId
+        );
 
         this.performanceClient.addFields(
             { usePreGeneratedPkce: !!res },
