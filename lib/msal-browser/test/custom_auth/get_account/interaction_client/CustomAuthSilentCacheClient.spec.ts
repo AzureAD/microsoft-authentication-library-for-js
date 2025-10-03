@@ -45,6 +45,7 @@ describe("CustomAuthSilentCacheClient", () => {
     let mockCacheManager: BrowserCacheManager;
     let mockCrypto: ICrypto;
     let mockNetworkModule: INetworkModule;
+    let mockLogger: jest.Mocked<Logger>;
 
     const mockNavigationClient = {
         navigateExternal: jest.fn(),
@@ -92,7 +93,7 @@ describe("CustomAuthSilentCacheClient", () => {
             telemetry: {},
         } as unknown as jest.Mocked<BrowserConfiguration>;
 
-        const mockLogger = {
+        mockLogger = {
             clone: jest.fn(),
             info: jest.fn(),
             verbose: jest.fn(),
@@ -398,6 +399,36 @@ describe("CustomAuthSilentCacheClient", () => {
 
             expect(mockCacheManager.removeAccount).toHaveBeenCalled();
             expect(mockNavigationClient.navigateExternal).toHaveBeenCalled();
+        });
+
+        it("uses correlation id from logout request when provided", async () => {
+            // Arrange
+            (client as any).correlationId = "internal-default-cid"; // set internal correlation id
+
+            // Act
+            await client.logout({ correlationId: "explicit-logout-cid" });
+
+            // Assert - find the log entry that starts the cache clear
+            const startClearLog = mockLogger.verbose.mock.calls.find(
+                (c) => c[0] === "Start to clear the cache"
+            );
+            expect(startClearLog).toBeDefined();
+            expect(startClearLog?.[1]).toBe("explicit-logout-cid");
+        });
+
+        it("falls back to internal correlation id when not provided in logout request", async () => {
+            // Arrange
+            (client as any).correlationId = "internal-only-cid";
+
+            // Act
+            await client.logout();
+
+            // Assert
+            const startClearLog = mockLogger.verbose.mock.calls.find(
+                (c) => c[0] === "Start to clear the cache"
+            );
+            expect(startClearLog).toBeDefined();
+            expect(startClearLog?.[1]).toBe("internal-only-cid");
         });
     });
 });
