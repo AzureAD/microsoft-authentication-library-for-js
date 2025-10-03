@@ -37,6 +37,7 @@ import {
     getDefaultPerformanceClient,
 } from "../../test_resources/TestModules.js";
 import { AuthenticationScheme } from "../../../../../msal-common/lib/types/utils/Constants.js";
+import { mock } from "node:test";
 
 describe("CustomAuthSilentCacheClient", () => {
     let client: CustomAuthSilentCacheClient;
@@ -130,6 +131,7 @@ describe("CustomAuthSilentCacheClient", () => {
             mockNetworkModule,
             mockCacheManager,
             mockLogger,
+            mockPerformanceClient,
             customAuthConfig.customAuth.authApiProxyUrl
         );
 
