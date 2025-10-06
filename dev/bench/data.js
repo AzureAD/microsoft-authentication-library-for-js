@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759306360215,
+  "lastUpdate": 1759782743143,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -18071,6 +18071,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.88%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "45603194+shenj@users.noreply.github.com",
+            "name": "Jian Shen",
+            "username": "shenj"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b08a46c1a4a2fbc2eac4521e5e672a084998940d",
+          "message": "[Native Auth] Enable MFA and JIT for SMS in public interfaces (#8069)",
+          "timestamp": "2025-10-06T21:25:43+01:00",
+          "tree_id": "e63b3fd9d8ec86afceaed3d70275d2d58af67c4f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b08a46c1a4a2fbc2eac4521e5e672a084998940d"
+        },
+        "date": 1759782739733,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 250760,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 251406,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
