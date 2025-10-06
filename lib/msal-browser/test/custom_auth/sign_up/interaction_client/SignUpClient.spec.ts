@@ -105,6 +105,7 @@ describe("SignUpClient", () => {
             StubbedNetworkModule,
             mockCacheManager,
             mockLogger,
+            mockPerformanceClient,
             customAuthConfig.customAuth.authApiProxyUrl
         );
 

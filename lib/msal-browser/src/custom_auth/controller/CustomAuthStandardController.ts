@@ -103,6 +103,7 @@ export class CustomAuthStandardController
             this.networkClient,
             this.browserStorage,
             this.logger,
+            this.performanceClient,
             this.customAuthConfig.customAuth?.authApiProxyUrl
         );
 
