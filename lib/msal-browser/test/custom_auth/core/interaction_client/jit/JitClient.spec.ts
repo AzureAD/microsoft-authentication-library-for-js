@@ -80,6 +80,7 @@ describe("JitClient", () => {
         );
         const mockCacheManager = getDefaultBrowserCacheManager();
         const mockLogger = getDefaultLogger();
+        const mockPerformanceClient = getDefaultPerformanceClient();
 
         customAuthAuthority = new CustomAuthAuthority(
             customAuthConfig.auth.authority ?? "",
@@ -87,6 +88,7 @@ describe("JitClient", () => {
             StubbedNetworkModule,
             mockCacheManager,
             mockLogger,
+            mockPerformanceClient,
             customAuthConfig.customAuth.authApiProxyUrl
         );
 
