@@ -119,8 +119,8 @@ abstract class AuthMethodRegistrationState<
                 );
             }
         } catch (error) {
-            this.stateParameters.logger.error(
-                "Failed to challenge authentication method for auth method registration.",
+            this.stateParameters.logger.errorPii(
+                `Failed to challenge authentication method for auth method registration. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
             return AuthMethodRegistrationChallengeMethodResult.createWithError(
@@ -236,8 +236,8 @@ export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationS
                 accountInfo
             );
         } catch (error) {
-            this.stateParameters.logger.error(
-                "Failed to submit auth method challenge.",
+            this.stateParameters.logger.errorPii(
+                `Failed to submit auth method challenge. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
             return AuthMethodRegistrationSubmitChallengeResult.createWithError(

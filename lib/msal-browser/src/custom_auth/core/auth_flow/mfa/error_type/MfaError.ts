@@ -16,6 +16,14 @@ export class MfaRequestChallengeError extends AuthActionErrorBase {
     isInvalidInput(): boolean {
         return this.isInvalidInputError();
     }
+
+    /**
+     * Checks if the error is due to the verification contact (e.g., phone number or email) being blocked. Consider contacting customer support for assistance.
+     * @returns true if the error is due to the verification contact being blocked, false otherwise.
+     */
+    isVerificationContactBlocked(): boolean {
+        return this.isVerificationContactBlockedError();
+    }
 }
 
 /**

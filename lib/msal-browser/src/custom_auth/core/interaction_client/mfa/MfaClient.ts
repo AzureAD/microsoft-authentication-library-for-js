@@ -27,6 +27,7 @@ import {
 import { ensureArgumentIsNotEmptyString } from "../../utils/ArgumentValidator.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import * as CustomAuthApiErrorCode from "../../network_client/custom_auth_api/types/ApiErrorCodes.js";
+import { initializeServerTelemetryManager } from "../../../../interaction_client/BaseInteractionClient.js";
 
 /**
  * MFA client for handling multi-factor authentication flows.
@@ -41,18 +42,25 @@ export class MfaClient extends CustomAuthInteractionClientBase {
         parameters: MfaRequestChallengeParams
     ): Promise<MfaVerificationRequiredResult> {
         const apiId = PublicApiId.MFA_REQUEST_CHALLENGE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const correlationId = parameters.correlationId || this.correlationId;
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            correlationId,
+            this.browserStorage,
+            this.logger
+        );
 
         this.logger.verbose(
             "Calling challenge endpoint for MFA.",
-            parameters.correlationId
+            correlationId
         );
 
         const challengeReq: SignInChallengeRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             continuation_token: parameters.continuationToken,
             id: parameters.authMethodId,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -63,13 +71,14 @@ export class MfaClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Challenge endpoint called for MFA.",
-            parameters.correlationId
+            correlationId
         );
 
         if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Verification required - code will be sent
             return createMfaVerificationRequiredResult({
-                correlationId: challengeResponse.correlation_id,
+                correlationId:
+                    challengeResponse.correlation_id || correlationId,
                 continuationToken: challengeResponse.continuation_token ?? "",
                 challengeChannel: challengeResponse.challenge_channel ?? "",
                 challengeTargetLabel:
@@ -83,13 +92,13 @@ export class MfaClient extends CustomAuthInteractionClientBase {
 
         this.logger.error(
             `Unsupported challenge type '${challengeResponse.challenge_type}' for MFA.`,
-            parameters.correlationId
+            challengeResponse.correlation_id || correlationId
         );
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            challengeResponse.correlation_id
+            challengeResponse.correlation_id || correlationId
         );
     }
 
@@ -101,14 +110,22 @@ export class MfaClient extends CustomAuthInteractionClientBase {
     async submitChallenge(
         parameters: MfaSubmitChallengeParams
     ): Promise<MfaCompletedResult> {
+        const correlationId = parameters.correlationId || this.correlationId;
+
         ensureArgumentIsNotEmptyString(
             "parameters.challenge",
             parameters.challenge,
-            parameters.correlationId
+            correlationId
         );
 
         const apiId = PublicApiId.MFA_SUBMIT_CHALLENGE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+        const telemetryManager = initializeServerTelemetryManager(
+            apiId,
+            this.config.auth.clientId,
+            correlationId,
+            this.browserStorage,
+            this.logger
+        );
         const scopes = this.getScopes(parameters.scopes);
 
         const request: SignInOobTokenRequest = {
@@ -116,7 +133,7 @@ export class MfaClient extends CustomAuthInteractionClientBase {
             oob: parameters.challenge,
             grant_type: GrantType.MFA_OOB,
             scope: scopes.join(" "),
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
             ...(parameters.claims && {
                 claims: parameters.claims,
@@ -125,7 +142,7 @@ export class MfaClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Calling token endpoint for MFA challenge submission.",
-            parameters.correlationId
+            correlationId
         );
 
         const tokenResponse =
@@ -137,11 +154,11 @@ export class MfaClient extends CustomAuthInteractionClientBase {
         const result = await this.handleTokenResponse(
             tokenResponse,
             scopes,
-            tokenResponse.correlation_id ?? parameters.correlationId
+            tokenResponse.correlation_id || correlationId
         );
 
         return createMfaCompletedResult({
-            correlationId: parameters.correlationId,
+            correlationId: tokenResponse.correlation_id || correlationId,
             authenticationResult: result,
         });
     }

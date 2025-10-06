@@ -75,7 +75,7 @@ abstract class MfaState<
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to request MFA challenge. Error: ${error}.`,
+                `Failed to request MFA challenge. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 
@@ -178,7 +178,7 @@ export class MfaVerificationRequiredState extends MfaState<MfaVerificationRequir
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to submit MFA challenge. Error: ${error}.`,
+                `Failed to submit MFA challenge. Error: '${error}'.`,
                 this.stateParameters.correlationId
             );
 

@@ -65,26 +65,27 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async start(
         parameters: SignInStartParams
     ): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = !parameters.password
             ? PublicApiId.SIGN_IN_WITH_CODE_START
             : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
 
         this.logger.verbose(
             "Calling initiate endpoint for sign in.",
-            parameters.correlationId
+            correlationId
         );
 
         const initReq: SignInInitiateRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             username: parameters.username,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -93,13 +94,13 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Initiate endpoint called for sign in.",
-            parameters.correlationId
+            initiateResponse.correlation_id || correlationId
         );
 
         const challengeReq: SignInChallengeRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             continuation_token: initiateResponse.continuation_token ?? "",
-            correlationId: initiateResponse.correlation_id,
+            correlationId: initiateResponse.correlation_id || correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -114,11 +115,12 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: SignInResendCodeParams
     ): Promise<SignInCodeSendResult> {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -126,7 +128,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const challengeReq: SignInChallengeRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             continuation_token: parameters.continuationToken ?? "",
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -135,13 +137,13 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         if (result.type === SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE) {
             this.logger.error(
                 "Resend code operation failed due to the challenge type 'password' is not supported.",
-                parameters.correlationId
+                result.correlationId || correlationId
             );
 
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
                 "Unsupported challenge type 'password'.",
-                result.correlationId
+                result.correlationId || correlationId
             );
         }
 
@@ -160,17 +162,18 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         | SignInJitRequiredResult
         | SignInMfaRequiredResult
     > {
+        const correlationId = parameters.correlationId || this.correlationId;
         ensureArgumentIsNotEmptyString(
             "parameters.code",
             parameters.code,
-            parameters.correlationId
+            correlationId
         );
 
         const apiId = PublicApiId.SIGN_IN_SUBMIT_CODE;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -181,7 +184,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             oob: parameters.code,
             grant_type: GrantType.OOB,
             scope: scopes.join(" "),
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
             ...(parameters.claims && {
                 claims: parameters.claims,
@@ -194,7 +197,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                     request
                 ),
             scopes,
-            parameters.correlationId,
+            correlationId,
             telemetryManager
         );
     }
@@ -211,17 +214,18 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         | SignInJitRequiredResult
         | SignInMfaRequiredResult
     > {
+        const correlationId = parameters.correlationId || this.correlationId;
         ensureArgumentIsNotEmptyString(
             "parameters.password",
             parameters.password,
-            parameters.correlationId
+            correlationId
         );
 
         const apiId = PublicApiId.SIGN_IN_SUBMIT_PASSWORD;
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -231,7 +235,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             continuation_token: parameters.continuationToken,
             password: parameters.password,
             scope: scopes.join(" "),
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
             ...(parameters.claims && {
                 claims: parameters.claims,
@@ -244,7 +248,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                     request
                 ),
             scopes,
-            parameters.correlationId,
+            correlationId,
             telemetryManager
         );
     }
@@ -261,14 +265,15 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         | SignInJitRequiredResult
         | SignInMfaRequiredResult
     > {
+        const correlationId = parameters.correlationId || this.correlationId;
         const apiId = this.getPublicApiIdBySignInScenario(
             parameters.signInScenario,
-            parameters.correlationId
+            correlationId
         );
         const telemetryManager = initializeServerTelemetryManager(
             apiId,
             this.config.auth.clientId,
-            this.correlationId,
+            correlationId,
             this.browserStorage,
             this.logger
         );
@@ -278,7 +283,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const request: SignInContinuationTokenRequest = {
             continuation_token: parameters.continuationToken,
             username: parameters.username,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
             scope: scopes.join(" "),
             ...(parameters.claims && {
@@ -293,7 +298,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                     request
                 ),
             scopes,
-            parameters.correlationId,
+            correlationId,
             telemetryManager
         );
     }
@@ -326,17 +331,17 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
             this.logger.verbose(
                 "Token endpoint response received for sign in.",
-                correlationId
+                tokenResponse.correlation_id || correlationId
             );
 
             const authResult = await this.handleTokenResponse(
                 tokenResponse,
                 scopes,
-                correlationId
+                tokenResponse.correlation_id || correlationId
             );
 
             return createSignInCompleteResult({
-                correlationId: tokenResponse.correlation_id ?? correlationId,
+                correlationId: tokenResponse.correlation_id || correlationId,
                 authenticationResult: authResult,
             });
         } catch (error) {
@@ -347,7 +352,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 return this.handleJitRequiredError(
                     error,
                     telemetryManager,
-                    correlationId
+                    error.correlationId || correlationId
                 );
             } else if (
                 error instanceof CustomAuthApiError &&
@@ -356,7 +361,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 return this.handleMfaRequiredError(
                     error,
                     telemetryManager,
-                    correlationId
+                    error.correlationId || correlationId
                 );
             }
 
@@ -378,18 +383,19 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Challenge endpoint called for sign in.",
-            request.correlationId
+            challengeResponse.correlation_id || request.correlationId
         );
 
         if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Code is required
             this.logger.verbose(
                 "Challenge type is oob for sign in.",
-                request.correlationId
+                challengeResponse.correlation_id || request.correlationId
             );
 
             return createSignInCodeSendResult({
-                correlationId: challengeResponse.correlation_id,
+                correlationId:
+                    challengeResponse.correlation_id || request.correlationId,
                 continuationToken: challengeResponse.continuation_token ?? "",
                 challengeChannel: challengeResponse.challenge_channel ?? "",
                 challengeTargetLabel:
@@ -405,24 +411,25 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             // Password is required
             this.logger.verbose(
                 "Challenge type is password for sign in.",
-                request.correlationId
+                challengeResponse.correlation_id || request.correlationId
             );
 
             return createSignInPasswordRequiredResult({
-                correlationId: challengeResponse.correlation_id,
+                correlationId:
+                    challengeResponse.correlation_id || request.correlationId,
                 continuationToken: challengeResponse.continuation_token ?? "",
             });
         }
 
         this.logger.error(
             `Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`,
-            request.correlationId
+            challengeResponse.correlation_id || request.correlationId
         );
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            challengeResponse.correlation_id
+            challengeResponse.correlation_id || request.correlationId
         );
     }
 
@@ -456,7 +463,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         // Call register introspect endpoint to get available authentication methods
         const introspectRequest: RegisterIntrospectRequest = {
             continuation_token: error.continuationToken ?? "",
-            correlationId: error.correlationId ?? correlationId,
+            correlationId: correlationId,
             telemetryManager,
         };
 
@@ -472,11 +479,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Introspect endpoint called for getting auth methods.",
-            introspectResponse.correlation_id ?? correlationId
+            introspectResponse.correlation_id || correlationId
         );
 
         return createSignInJitRequiredResult({
-            correlationId: introspectResponse.correlation_id ?? correlationId,
+            correlationId: introspectResponse.correlation_id || correlationId,
             continuationToken: introspectResponse.continuation_token ?? "",
             authMethods: introspectResponse.methods,
         });
@@ -492,7 +499,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         // Call sign-in introspect endpoint to get available MFA methods
         const introspectRequest: SignInIntrospectRequest = {
             continuation_token: error.continuationToken ?? "",
-            correlationId: error.correlationId ?? correlationId,
+            correlationId: correlationId,
             telemetryManager,
         };
 
@@ -508,11 +515,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         this.logger.verbose(
             "Introspect endpoint called for MFA auth methods.",
-            introspectResponse.correlation_id ?? correlationId
+            introspectResponse.correlation_id || correlationId
         );
 
         return createSignInMfaRequiredResult({
-            correlationId: introspectResponse.correlation_id ?? correlationId,
+            correlationId: introspectResponse.correlation_id || correlationId,
             continuationToken: introspectResponse.continuation_token ?? "",
             authMethods: introspectResponse.methods,
         });

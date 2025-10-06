@@ -108,6 +108,7 @@ describe("MfaClient", () => {
             StubbedNetworkModule,
             mockCacheManager,
             mockLogger,
+            mockPerformanceClient,
             customAuthConfig.customAuth.authApiProxyUrl
         );
 
@@ -205,7 +206,9 @@ describe("MfaClient", () => {
             expect(result.type).toBe(MFA_COMPLETED_RESULT_TYPE);
 
             const completedResult = result as MfaCompletedResult;
-            expect(completedResult.correlationId).toBe("corr123");
+            expect(completedResult.correlationId).toBe(
+                TestServerTokenResponse.correlation_id
+            );
             expect(completedResult.authenticationResult).toBeDefined();
             expect(completedResult.authenticationResult.accessToken).toBe(
                 TestServerTokenResponse.access_token

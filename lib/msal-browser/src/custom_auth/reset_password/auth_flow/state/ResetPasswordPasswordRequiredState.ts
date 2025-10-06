@@ -59,6 +59,7 @@ export class ResetPasswordPasswordRequiredState extends ResetPasswordState<Reset
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
                     jitClient: this.stateParameters.jitClient,
+                    mfaClient: this.stateParameters.mfaClient,
                     signInScenario: SignInScenario.SignInAfterPasswordReset,
                 })
             );
