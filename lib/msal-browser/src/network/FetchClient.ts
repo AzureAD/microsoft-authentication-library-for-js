@@ -27,6 +27,7 @@ export class FetchClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         let response: Response;
@@ -79,6 +80,7 @@ export class FetchClient implements INetworkModule {
      */
     async sendPostRequestAsync<T>(
         url: string,
+        correlationId: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || "";
