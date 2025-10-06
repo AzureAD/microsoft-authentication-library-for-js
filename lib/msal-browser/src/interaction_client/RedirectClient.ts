@@ -816,21 +816,50 @@ export class RedirectClient extends StandardInteractionClient {
                     validLogoutRequest
                 );
             }
-            // Ensure interaction is in progress
-            if (!this.browserStorage.getInteractionInProgress()) {
-                this.browserStorage.setInteractionInProgress(
-                    true,
-                    INTERACTION_TYPE.SIGNOUT
+            // Check if onRedirectNavigate is implemented, and invoke it if so
+            const onRedirectNavigate = this.config.auth.onRedirectNavigate;
+            if (typeof onRedirectNavigate === "function") {
+                const navigate = onRedirectNavigate(logoutUri);
+
+                if (navigate !== false) {
+                    this.logger.verbose(
+                        "Logout onRedirectNavigate did not return false, navigating",
+                        this.correlationId
+                    );
+                    // Ensure interaction is in progress
+                    if (!this.browserStorage.getInteractionInProgress()) {
+                        this.browserStorage.setInteractionInProgress(
+                            true,
+                            INTERACTION_TYPE.SIGNOUT
+                        );
+                    }
+                    await this.navigationClient.navigateExternal(
+                        logoutUri,
+                        navigationOptions
+                    );
+                    return;
+                } else {
+                    // Ensure interaction is not in progress
+                    this.browserStorage.setInteractionInProgress(false);
+                    this.logger.verbose(
+                        "Logout onRedirectNavigate returned false, stopping navigation",
+                        this.correlationId
+                    );
+                }
+            } else {
+                // Ensure interaction is in progress
+                if (!this.browserStorage.getInteractionInProgress()) {
+                    this.browserStorage.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNOUT
+                    );
+                }
+                await this.navigationClient.navigateExternal(
+                    logoutUri,
+                    navigationOptions
                 );
+                return;
             }
-            await this.navigationClient.navigateExternal(
-                logoutUri,
-                navigationOptions
-            );
-            this.eventHandler.emitEvent(
-                EventType.LOGOUT_END,
-                InteractionType.Redirect
-            );
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
@@ -848,6 +877,11 @@ export class RedirectClient extends StandardInteractionClient {
             );
             throw e;
         }
+
+        this.eventHandler.emitEvent(
+            EventType.LOGOUT_END,
+            InteractionType.Redirect
+        );
     }
 
     /**
