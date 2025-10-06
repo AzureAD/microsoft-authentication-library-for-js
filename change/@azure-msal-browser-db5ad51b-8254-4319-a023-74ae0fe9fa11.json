@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Added correlationId to FetchClient's get/send RequestAsync  methods to match changes in msal-common (#8073)",
+  "packageName": "@azure/msal-browser",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
