@@ -28,7 +28,7 @@ export type SignedHttpRequestParameters = Pick<
     | "shrNonce"
     | "shrOptions"
 > & {
-    correlationId?: string;
+    correlationId: string;
 };
 
 /**
@@ -69,12 +69,14 @@ export interface ICrypto {
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
+     * @param correlationId
      */
-    removeTokenBindingKey(kid: string): Promise<void>;
+    removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
     /**
      * Removes all cryptographic keys from IndexedDB storage
+     * @param correlationId
      */
-    clearKeystore(): Promise<boolean>;
+    clearKeystore(correlationId: string): Promise<boolean>;
     /**
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Make correlation id mandatory for Logger calls #8071",
+  "packageName": "@azure/msal-react",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -348,7 +348,8 @@ describe("BaseInteractionClient", () => {
                 // @ts-ignore
                 pca.navigationClient,
                 // @ts-ignore
-                pca.performanceClient
+                pca.performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             const clientInst = interactionClient as any;
@@ -398,7 +399,8 @@ describe("BaseInteractionClient", () => {
                 // @ts-ignore
                 pca.navigationClient,
                 // @ts-ignore
-                pca.performanceClient
+                pca.performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             const clientInst = interactionClient as any;

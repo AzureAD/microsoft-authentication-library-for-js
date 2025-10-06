@@ -31,8 +31,8 @@ export class AppComponent implements OnInit, OnDestroy {
       .pipe(
         filter(
           (msg: EventMessage) =>
-            msg.eventType === EventType.ACCOUNT_ADDED ||
-            msg.eventType === EventType.ACCOUNT_REMOVED
+            msg.eventType === EventType.LOGIN_SUCCESS ||
+            msg.eventType === EventType.LOGOUT_SUCCESS
         )
       )
       .subscribe((result: EventMessage) => {

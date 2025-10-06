@@ -117,7 +117,8 @@ InstanceDiscoveryMetadata.metadata.forEach(
  */
 export function getAliasesFromStaticSources(
     staticAuthorityOptions: StaticAuthorityOptions,
-    logger?: Logger
+    logger: Logger,
+    correlationId: string
 ): string[] {
     let staticAliases: string[] | undefined;
     const canonicalAuthority = staticAuthorityOptions.canonicalAuthority;
@@ -127,16 +128,18 @@ export function getAliasesFromStaticSources(
         ).getUrlComponents().HostNameAndPort;
         staticAliases =
             getAliasesFromMetadata(
+                logger,
+                correlationId,
                 authorityHost,
                 staticAuthorityOptions.cloudDiscoveryMetadata?.metadata,
-                AuthorityMetadataSource.CONFIG,
-                logger
+                AuthorityMetadataSource.CONFIG
             ) ||
             getAliasesFromMetadata(
+                logger,
+                correlationId,
                 authorityHost,
                 InstanceDiscoveryMetadata.metadata,
-                AuthorityMetadataSource.HARDCODED_VALUES,
-                logger
+                AuthorityMetadataSource.HARDCODED_VALUES
             ) ||
             staticAuthorityOptions.knownAuthorities;
     }
@@ -151,12 +154,16 @@ export function getAliasesFromStaticSources(
  * @returns
  */
 export function getAliasesFromMetadata(
+    logger: Logger,
+    correlationId: string,
     authorityHost?: string,
     cloudDiscoveryMetadata?: CloudDiscoveryMetadata[],
-    source?: AuthorityMetadataSource,
-    logger?: Logger
+    source?: AuthorityMetadataSource
 ): string[] | null {
-    logger?.trace(`getAliasesFromMetadata called with source: '${source}'`);
+    logger.trace(
+        `getAliasesFromMetadata called with source: '${source}'`,
+        correlationId
+    );
     if (authorityHost && cloudDiscoveryMetadata) {
         const metadata = getCloudDiscoveryMetadataFromNetworkResponse(
             cloudDiscoveryMetadata,
@@ -164,13 +171,15 @@ export function getAliasesFromMetadata(
         );
 
         if (metadata) {
-            logger?.trace(
-                `getAliasesFromMetadata: found cloud discovery metadata in '${source}', returning aliases`
+            logger.trace(
+                `getAliasesFromMetadata: found cloud discovery metadata in '${source}', returning aliases`,
+                correlationId
             );
             return metadata.aliases;
         } else {
-            logger?.trace(
-                `getAliasesFromMetadata: did not find cloud discovery metadata in '${source}'`
+            logger.trace(
+                `getAliasesFromMetadata: did not find cloud discovery metadata in '${source}'`,
+                correlationId
             );
         }
     }

@@ -90,9 +90,8 @@ export class InteractionHandler {
     /**
      * Process auth code response from AAD
      * @param authCodeResponse
-     * @param state
-     * @param authority
-     * @param networkModule
+     * @param request
+     * @param validateNonce
      * @returns
      */
     async handleCodeResponseFromServer(
@@ -101,7 +100,8 @@ export class InteractionHandler {
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
         this.logger.trace(
-            "InteractionHandler.handleCodeResponseFromServer called"
+            "InteractionHandler.handleCodeResponseFromServer called",
+            request.correlationId
         );
 
         // Assign code to request

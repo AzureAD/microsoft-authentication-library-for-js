@@ -3,12 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
     AccountInfo,
     IPublicClientApplication,
     AccountEntityUtils,
     InteractionStatus,
+    EventMessage,
+    EventType,
+    InteractionType,
 } from "@azure/msal-browser";
 import { useMsal } from "./useMsal.js";
 import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
@@ -51,25 +54,46 @@ export function useAccount(
         }
     });
 
+    const updateAccount = useCallback(() => {
+        const nextAccount = getAccount(instance, accountIdentifiers);
+        setAccount((currentAccount: AccountInfo | null) => {
+            if (
+                !AccountEntityUtils.accountInfoIsEqual(
+                    currentAccount,
+                    nextAccount,
+                    true
+                )
+            ) {
+                logger.info("useAccount - Updating account", "");
+                return nextAccount;
+            }
+            return currentAccount;
+        });
+    }, [accountIdentifiers, instance, logger]);
+
     useEffect(() => {
         if (inProgress !== InteractionStatus.Startup) {
-            setAccount((currentAccount: AccountInfo | null) => {
-                const nextAccount = getAccount(instance, accountIdentifiers);
-                if (
-                    !AccountEntityUtils.accountInfoIsEqual(
-                        currentAccount,
-                        nextAccount,
-                        true
-                    )
-                ) {
-                    logger.info("useAccount - Updating account");
-                    return nextAccount;
-                }
-
-                return currentAccount;
-            });
+            updateAccount();
         }
-    }, [inProgress, accountIdentifiers, instance, logger]);
+
+        const callbackId = instance.addEventCallback(
+            (message: EventMessage) => {
+                if (
+                    message.eventType === EventType.ACTIVE_ACCOUNT_CHANGED ||
+                    (message.eventType === EventType.LOGIN_SUCCESS &&
+                        message.interactionType === InteractionType.Silent)
+                ) {
+                    updateAccount();
+                }
+            }
+        );
+
+        return () => {
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
+        };
+    }, [updateAccount, inProgress, instance]);
 
     return account;
 }

@@ -7,6 +7,7 @@ import {
     Authority,
     AuthorityOptions,
     INetworkModule,
+    IPerformanceClient,
     Logger,
 } from "@azure/msal-common/browser";
 import * as CustomAuthApiEndpoint from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
@@ -33,6 +34,7 @@ export class CustomAuthAuthority extends Authority {
         networkInterface: INetworkModule,
         cacheManager: BrowserCacheManager,
         logger: Logger,
+        performanceClient: IPerformanceClient,
         private customAuthProxyDomain?: string
     ) {
         const ciamAuthorityUrl =
@@ -52,7 +54,8 @@ export class CustomAuthAuthority extends Authority {
             cacheManager,
             authorityOptions,
             logger,
-            ""
+            "",
+            performanceClient
         );
 
         // Set the metadata for the authority
@@ -75,9 +78,14 @@ export class CustomAuthAuthority extends Authority {
             jwks_uri: "",
         };
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
-            metadataEntity.preferred_cache
+            metadataEntity.preferred_cache,
+            this.correlationId
         );
-        cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
+        cacheManager.setAuthorityMetadata(
+            cacheKey,
+            metadataEntity,
+            this.correlationId
+        );
     }
 
     /**

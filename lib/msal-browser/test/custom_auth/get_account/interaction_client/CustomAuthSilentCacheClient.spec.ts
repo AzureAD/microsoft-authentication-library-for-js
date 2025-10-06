@@ -27,13 +27,17 @@ import { DefaultScopes } from "../../../../src/custom_auth/CustomAuthConstants.j
 import { BrowserCacheManager } from "../../../../src/cache/BrowserCacheManager.js";
 import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
 import { INavigationClient } from "../../../../src/navigation/INavigationClient.js";
-import { RANDOM_TEST_GUID } from "../../../utils/StringConstants.js";
+import {
+    RANDOM_TEST_GUID,
+    TEST_CONFIG,
+} from "../../../utils/StringConstants.js";
 import {
     getDefaultCrypto,
     getDefaultEventHandler,
     getDefaultPerformanceClient,
 } from "../../test_resources/TestModules.js";
 import { AuthenticationScheme } from "../../../../../msal-common/lib/types/utils/Constants.js";
+import { mock } from "node:test";
 
 describe("CustomAuthSilentCacheClient", () => {
     let client: CustomAuthSilentCacheClient;
@@ -127,6 +131,7 @@ describe("CustomAuthSilentCacheClient", () => {
             mockNetworkModule,
             mockCacheManager,
             mockLogger,
+            mockPerformanceClient,
             customAuthConfig.customAuth.authApiProxyUrl
         );
 

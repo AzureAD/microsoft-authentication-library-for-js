@@ -85,7 +85,8 @@ export class CustomAuthStandardController
 
         if (!this.isBrowserEnvironment) {
             this.logger.verbose(
-                "The SDK can only be used in a browser environment."
+                "The SDK can only be used in a browser environment.",
+                ""
             );
             throw new UnsupportedEnvironmentError();
         }
@@ -102,6 +103,7 @@ export class CustomAuthStandardController
             this.networkClient,
             this.browserStorage,
             this.logger,
+            this.performanceClient,
             this.customAuthConfig.customAuth?.authApiProxyUrl
         );
 
