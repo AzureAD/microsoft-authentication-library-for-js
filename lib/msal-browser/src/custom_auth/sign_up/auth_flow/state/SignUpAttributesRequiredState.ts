@@ -84,6 +84,7 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
                         signInClient: this.stateParameters.signInClient,
                         cacheClient: this.stateParameters.cacheClient,
                         jitClient: this.stateParameters.jitClient,
+                        mfaClient: this.stateParameters.mfaClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
                     })
