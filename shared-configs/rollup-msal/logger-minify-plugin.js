@@ -176,7 +176,7 @@ function normalizeTemplateVariables(str) {
     let i = 0;
 
     while (i < str.length) {
-        if (str[i] === "'" && i + 1 < str.length && str.substr(i + 1, 2) === '${') {
+        if (str[i] === "'" && i + 1 < str.length && str.substring(i + 1, i + 3) === '${') {
             // Found start of quoted variable: '${
             const varStart = i;
             let j = i + 3; // Skip past '${
