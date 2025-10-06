@@ -11,6 +11,7 @@ import { SignInPasswordRequiredState } from "../state/SignInPasswordRequiredStat
 import { SignInFailedState } from "../state/SignInFailedState.js";
 import { SignInCompletedState } from "../state/SignInCompletedState.js";
 import { AuthMethodRegistrationRequiredState } from "../../../core/auth_flow/jit/state/AuthMethodRegistrationState.js";
+import { MfaAwaitingState } from "../../../core/auth_flow/mfa/state/MfaState.js";
 
 /*
  * Result of a sign-in operation.
@@ -81,6 +82,14 @@ export class SignInResult extends AuthFlowResultBase<
     } {
         return this.state instanceof AuthMethodRegistrationRequiredState;
     }
+
+    /**
+     * Checks if the result requires MFA.
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     */
+    isMfaRequired(): this is SignInResult & { state: MfaAwaitingState } {
+        return this.state instanceof MfaAwaitingState;
+    }
 }
 
 /**
@@ -91,10 +100,12 @@ export class SignInResult extends AuthFlowResultBase<
  * - SignInFailedState: The sign-in process has failed.
  * - SignInCompletedState: The sign-in process is completed.
  * - AuthMethodRegistrationRequiredState: The sign-in process requires authentication method registration.
+ * - MfaAwaitingState: The sign-in process requires MFA.
  */
 export type SignInResultState =
     | SignInCodeRequiredState
     | SignInPasswordRequiredState
     | SignInFailedState
     | SignInCompletedState
-    | AuthMethodRegistrationRequiredState;
+    | AuthMethodRegistrationRequiredState
+    | MfaAwaitingState;

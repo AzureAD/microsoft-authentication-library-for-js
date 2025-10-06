@@ -71,6 +71,58 @@ describe("MfaRequestChallengeError", () => {
             expect(mfaError.isInvalidInput()).toBe(false);
         });
     });
+
+    describe("isVerificationContactBlocked", () => {
+        it("returns true when invalid_request with code 550024 and matching description substring", () => {
+            const apiError = new CustomAuthApiError(
+                "invalid_request",
+                "The multi-factor authentication method is blocked due to too many attempts.",
+                "correlation-id",
+                [550024]
+            );
+            const mfaError = new MfaRequestChallengeError(apiError);
+            expect(mfaError.isVerificationContactBlocked()).toBe(true);
+        });
+
+        it("returns false when code 550024 present but description does not contain required phrase", () => {
+            const apiError = new CustomAuthApiError(
+                "invalid_request",
+                "MFA method temporarily disabled.",
+                "correlation-id",
+                [550024]
+            );
+            const mfaError = new MfaRequestChallengeError(apiError);
+            expect(mfaError.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("returns false when description contains phrase but error code 550024 missing", () => {
+            const apiError = new CustomAuthApiError(
+                "invalid_request",
+                "The multi-factor authentication method is blocked at this time.",
+                "correlation-id",
+                [901001]
+            );
+            const mfaError = new MfaRequestChallengeError(apiError);
+            expect(mfaError.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("returns false when different error type even if code and description match", () => {
+            const apiError = new CustomAuthApiError(
+                "server_error",
+                "The multi-factor authentication method is blocked by policy.",
+                "correlation-id",
+                [550024]
+            );
+            const mfaError = new MfaRequestChallengeError(apiError);
+            expect(mfaError.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("returns false for non-API errors (InvalidArgumentError)", () => {
+            const invalidArg = new InvalidArgumentError("authMethodId");
+            const mfaError = new MfaRequestChallengeError(invalidArg);
+            expect(mfaError.isVerificationContactBlocked()).toBe(false);
+        });
+    });
 });
 
 describe("MfaSubmitChallengeError", () => {
