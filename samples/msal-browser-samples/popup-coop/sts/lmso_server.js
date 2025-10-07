@@ -10,20 +10,20 @@ const argv = require("yargs")
     .usage("Usage: $0 -p [PORT] -https")
     .alias("p", "port")
     .alias("h", "https")
-    .describe("port", "(Optional) Port Number - default is 30662")
+    .describe("port", "(Optional) Port Number - default is 30663")
     .describe("https", "(Optional) Serve over https")
     .strict()
     .argv;
 
 
-const DEFAULT_PORT = 30662;
-const APP_DIR = __dirname + `/app`;
+const DEFAULT_PORT = 30663;
+const APP_DIR = __dirname;
 
 //initialize express.
 const app = express();
 
 // Initialize variables.
-let port = DEFAULT_PORT; // -p {PORT} || 30662;
+let port = DEFAULT_PORT; // -p {PORT} || 30663;
 if (argv.p) {
     port = argv.p;
 }
@@ -31,30 +31,31 @@ if (argv.p) {
 let logHttpRequests = true;
 
 // Set the front-end folder to serve public assets.
-app.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
+// app.use("/lib", express.static(path.join(__dirname, "../../../../lib/msal-browser/lib")));
 
 
-app.use(express.static('app/', {
+app.use(express.static('../sts/', {
     setHeaders: (res) => {
-      res.set('Cross-Origin-Opener-Policy', 'unsafe-none');
+      res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
     }
 }));
+
+//Serve popup.html with COOP header set to 'same-origin'
+app.get('/popup', function (req, res) {
+    res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.sendFile(path.join(APP_DIR + '/popup.html'));
+});
+
+// Set up a route for index.html.
+app.get('*', function (req, res) {
+    res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.sendFile(path.join(APP_DIR + '/sts_index.html'));
+});
 
 if (logHttpRequests) {
     // Configure morgan module to log all requests.
     app.use(morgan('dev'));
 }
-
-// set up a route for redirect.html. When using popup and silent APIs, 
-// we recommend setting the redirectUri to a blank page or a page that does not implement MSAL.
-app.get("/redirect", function (req, res) {
-    res.sendFile(path.join(APP_DIR + "/redirect.html"));
-});
-
-// Set up a route for index.html.
-app.get('*', function (req, res) {
-    res.sendFile(path.join(APP_DIR + '/index.html'));
-});
 
 // Start the server.
 if (argv.https) {
@@ -72,8 +73,8 @@ if (argv.https) {
      * Please see "Certificates and Secrets" (https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets)
      * for more information.
      */
-    const privateKey = fs.readFileSync('./key.pem', 'utf8');
-    const certificate = fs.readFileSync('./cert.pem', 'utf8');
+    const privateKey = fs.readFileSync('./../key.pem', 'utf8');
+    const certificate = fs.readFileSync('./../cert.pem', 'utf8');
     const credentials = { key: privateKey, cert: certificate };
     const httpsServer = https.createServer(credentials, app);
     httpsServer.listen(port);

@@ -1,4 +1,5 @@
 // Select DOM elements to work with
+window.name = "MSAL JS App Window";
 const welcomeDiv = document.getElementById("WelcomeMessage");
 const signInButton = document.getElementById("SignIn");
 const popupButton = document.getElementById("popup");
@@ -67,4 +68,20 @@ function updateUI(data, endpoint) {
             });
         }
     }
+}
+
+function openStsIframeBtn() {
+    var iframe = document.getElementById("stsIframe");
+    iframe.src = "http://localhost:30663";
+    iframe.style.display = "block";
+
+    // Listen for messages from the iframe
+    window.addEventListener("message", (event) => {
+        // For security reasons, check the origin of the message
+        if (event.origin !== "http://localhost:30663") {
+            console.warn("MSAL JS: Origin not allowed:", event.origin);
+            return;
+        }
+        console.log("MSAL JS: Message received from iframe:", event.data);
+    });
 }

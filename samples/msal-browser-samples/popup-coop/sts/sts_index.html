@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <title>LMSO</title>
+
+  <!-- adding Bootstrap 4 for UI components  -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="SHORTCUT ICON" href="https://c.s-microsoft.com/favicon.ico?v2" type="image/x-icon">
+
+</head>
+
+<body onload="openPopupLmso()">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <a class="navbar-brand" href="/">MS Identity Platform</a>
+    <div class="btn-group ml-auto dropleft"></div>
+  </nav>
+  <br>
+  <h5 class="card-header text-center">STS Test App</h5>
+  <br>
+  <div class="row" style="margin:auto">
+      <div id="openPopupText">Opening Popup in 2 secs</div>
+  </div>
+  <br>
+  <br>
+  <!-- importing app scripts | load order is important -->
+  <script src="ui.js"></script>
+  
+</body>
+</html>
