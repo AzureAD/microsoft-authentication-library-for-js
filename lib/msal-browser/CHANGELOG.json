@@ -2,6 +2,39 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 07 Oct 2025 19:01:01 GMT",
+      "version": "4.25.0",
+      "tag": "@azure/msal-browser_v4.25.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "b08a46c1a4a2fbc2eac4521e5e672a084998940d",
+            "comment": "[Native Auth] Enable the MFA and JIT (SMS) in the public interfaces #8069"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Sep 2025 22:02:06 GMT",
       "version": "4.24.1",
       "tag": "@azure/msal-browser_v4.24.1",

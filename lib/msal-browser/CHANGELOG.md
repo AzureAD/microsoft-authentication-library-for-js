@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 30 Sep 2025 22:02:06 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 07 Oct 2025 19:01:01 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.25.0
+
+Tue, 07 Oct 2025 19:01:01 GMT
+
+### Minor changes
+
+- [Native Auth] Enable the MFA and JIT (SMS) in the public interfaces #8069 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.24.1
 
