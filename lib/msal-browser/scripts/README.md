@@ -1,273 +1,97 @@
 # MSAL Browser Log Decoder
 
-This script helps decode hashed logging strings from the minified MSAL browser bundle back to their original, human-readable messages.
+This script decodes hashed logging strings from browser console logs back to their original messages.
 
-## Background
+## Overview
 
-When MSAL Browser is built in production mode, all logging strings are minified using consistent hashing to reduce bundle size. This means that instead of seeing:
+The MSAL Browser library hashes logging strings to reduce bundle size. When running in a browser, console logs display these hashes instead of full messages. This decoder script transforms those hashed logs back into readable messages and saves them to a new file.
 
+## Log Format
+
+The script expects log files where each MSAL log entry follows this format:
 ```
-acquireTokenSilent - attempting to acquire token from native platform
-```
-
-Users will see:
-
-```
-ac8ab7
+[timestamp] : [correlation-id] : @azure/[module]@[version] : [LogLevel] - [hash]
 ```
 
-This script allows you to decode these hashes back to the original messages for debugging purposes.
+Example:
+```
+[Tue, 07 Oct 2025 16:50:29 GMT] : [] : @azure/msal-browser@4.13.1 : Verbose - 0hoqeo
+[Tue, 07 Oct 2025 16:50:30 GMT] : [abc-123] : @azure/msal-common@15.7.0 : Info - 1atvtd
+```
 
-## Features
-
-- **Remote Mapping Fetching**: Automatically fetches log mappings from npm registry for specific versions
-- **Multi-Package Support**: Combines mappings from both `@azure/msal-browser` and `@azure/msal-common` packages
-- **Multiple Input Formats**: Supports various hash input formats (arrays, space-separated, JSON)
-- **Timing Information**: Supports new format with timing data for performance analysis
-- **Verbose Mode**: Optional detailed output for debugging
-- **Caching**: Caches remote mappings locally (24 hours) to reduce network requests
-- **Fallback Support**: Falls back to local mappings when remote fetching fails
+Non-MSAL log lines are preserved unchanged in the output.
 
 ## Usage
 
 ### Basic Usage
-
 ```bash
-# Decode hashes using local mappings
-npm run decode-logs -- [ac8ab7,b2c9d1,e4f6a3]
-
-# Decode with timing information (new format)
-npm run decode-logs -- [0,ac8ab7;5,b2c9d1;10,e4f6a3]
-
-# Space separated hashes
-npm run decode-logs -- ac8ab7 b2c9d1 e4f6a3
-
-# Single hash
-npm run decode-logs -- ac8ab7
-
-# Using stdin
-echo '[ac8ab7,e4f6a3]' | npm run decode-logs
+node scripts/decode-logs.cjs <path-to-log-file>
 ```
 
-### Remote Version Support
-
+### With NPM Script
 ```bash
-# Fetch mappings for specific version
-npm run decode-logs -- --version 4.13.1 [ac8ab7,b2c9d1,e4f6a3]
-
-# Use latest published version
-npm run decode-logs -- --version latest [ac8ab7,b2c9d1,e4f6a3]
-
-# With timing information
-npm run decode-logs -- --version 4.13.1 [0,ac8ab7;5,b2c9d1;10,e4f6a3]
+npm run decode-logs -- <path-to-log-file>
 ```
 
 ### Verbose Mode
-
+Add `--verbose` or `-V` flag for detailed debugging information:
 ```bash
-# Enable verbose output for debugging
-npm run decode-logs -- --verbose [ac8ab7,b2c9d1,e4f6a3]
-
-# Combine with version fetching
-npm run decode-logs -- --verbose --version 4.13.1 [ac8ab7,b2c9d1,e4f6a3]
+node scripts/decode-logs.cjs --verbose <path-to-log-file>
+npm run decode-logs -- --verbose /path/to/console.log
 ```
 
-### Direct Script Execution
-
+### Examples
 ```bash
-# Basic usage
-node scripts/decode-logs.cjs [ac8ab7,b2c9d1,e4f6a3]
+# Decode logs from a file
+node scripts/decode-logs.cjs ./console-logs.txt
+# Output: ./console-logs-decoded.txt
 
-# With version and verbose mode
-node scripts/decode-logs.cjs --version 4.13.1 --verbose [0,ac8ab7;5,b2c9d1;10,e4f6a3]
+# Decode with verbose output
+node scripts/decode-logs.cjs --verbose /Users/user/Downloads/browser-console.log
+# Output: /Users/user/Downloads/browser-console-decoded.log
 
-# Using stdin
-echo '[ac8ab7,e4f6a3]' | node scripts/decode-logs.cjs
+# Using npm script
+npm run decode-logs -- ./logs/debug.log
+# Output: ./logs/debug-decoded.log
 ```
 
-## Input Formats
+## Output
 
-The script accepts multiple input formats for maximum flexibility:
+The script creates a new file with the decoded logs in the same directory as the input file, adding a `-decoded` suffix before the file extension:
 
-### 1. Simple Array (recommended)
-```bash
-[hash1,hash2,hash3]           # No quotes needed!
-```
+- Input: `/path/to/debug.log` → Output: `/path/to/debug-decoded.log`
 
-### 2. Timing Format (new)
-```bash
-[0,ac8ab7;5,b2c9d1;10,e4f6a3]    # [milliseconds,hash;...]
-0,ac8ab7;5,b2c9d1;10,e4f6a3      # Without brackets also works
-```
+## Features
 
-### 3. Space Separated
-```bash
-ac8ab7 b2c9d1 e4f6a3             # For multiple hashes
-```
+- **Automatic Version Detection**: Extracts module@version from each log entry and fetches appropriate mappings
+- **Multi-Module Support**: Handles logs from multiple MSAL packages (msal-browser, msal-common, etc.)
+- **Multiple Versions Support**: Can handle multiple versions of the same module in a single file
+- **Efficient Mapping Download**: Downloads each unique module@version combination only once
+- **Local Fallback**: Automatically falls back to local mapping files when remote fetching fails
+- **Non-MSAL Log Preservation**: Leaves non-MSAL log lines unchanged
+- **File Output**: Saves decoded logs to a new file with `-decoded` suffix
+- **Remote Mapping Fetching**: Automatically downloads mappings from npm registry
+- **Caching**: Caches downloaded mappings for 24 hours to improve performance
+- **Verbose Mode**: Detailed debugging information with `--verbose` flag
 
-### 4. JSON Array (legacy)
-```bash
-'["ac8ab7", "b2c9d1", "e4f6a3"]' # Traditional format (still supported)
-```
+## How It Works
 
-### 5. Single Hash
-```bash
-ac8ab7                         # For a single hash
-```
+1. **Scans the entire log file** to identify all unique module@version combinations
+2. **Downloads mappings once** for each unique module@version combination
+3. **Falls back to local mappings** if remote download fails (for local development)
+4. **Identifies MSAL log entries** by pattern matching for `@azure/[module]@[version]`
+5. **Decodes hashes** back to original messages using the appropriate mappings
+6. **Preserves non-MSAL lines** unchanged
+7. **Saves decoded output** to a new file with `-decoded` suffix
 
-### 6. Stdin
-Pipe any of the above formats via stdin.
+## Mapping File Locations
 
-## Output Formats
+The script looks for mapping files in the following locations within each package:
+- **@azure/msal-browser**: `dist/log-strings-mapping.json`, `dist/custom-auth-path/log-strings-mapping.json`
+- **@azure/msal-common**: `dist-browser/log-strings-mapping.json`
 
-### Standard Output
-```
-MSAL Browser Log Decoder
+## Cache Location
 
-[1] acquireTokenSilent - attempting to acquire token from native platform
-[2] acquireTokenByCode called  
-[3] TokenCache - loading account
+Downloaded mappings are cached in: `temp/log-mappings/`
 
-Summary:
-✓ Decoded: 3
-```
-
-### With Timing Information
-```
-MSAL Browser Log Decoder
-
-[1] +0ms acquireTokenSilent - attempting to acquire token from native platform
-[2] +5ms acquireTokenByCode called  
-[3] +10ms TokenCache - loading account
-
-Summary:
-✓ Decoded: 3
-```
-
-### With Unknown Hashes
-```
-MSAL Browser Log Decoder
-
-[1] +0ms acquireTokenSilent - attempting to acquire token from native platform
-[2] +5ms Unknown hash: xyz123
-[3] +10ms acquireTokenByCode called
-
-Summary:
-✓ Decoded: 2
-✗ Not found: 1
-Unknown hashes: xyz123
-Note: Unknown hashes might be from a different build or version.
-```
-
-### Verbose Mode Output
-When using `--verbose`, additional information is displayed:
-- Remote fetching progress
-- Package metadata details
-- Mapping file sources and statistics
-- Network requests and caching information
-
-## Command Line Options
-
-| Option | Short | Description |
-|--------|-------|-------------|
-| `--version <version>` | `-v` | Fetch mappings for specific version (e.g., `4.13.1`, `latest`) |
-| `--verbose` | `-V` | Enable verbose logging for debugging |
-| `--help` | `-h` | Show help information |
-
-## Remote Mapping Support
-
-The script can automatically fetch log mappings from the npm registry:
-
-- **@azure/msal-browser**: Fetched from public npm registry
-- **@azure/msal-common**: Fetched from public npm registry (dependency)
-- **Caching**: Remote mappings are cached locally for 24 hours
-- **Fallback**: Falls back to local mappings if remote fetching fails
-
-### Cache Location
-Remote mappings are cached in: `temp/log-mappings/`
-
-## Requirements
-
-- Node.js environment
-- Internet connection (for remote mapping fetching)
-- Local `lib/log-strings-mapping.json` file (generated during build) for fallback
-
-## Examples
-
-### Customer logs with timing
-If a customer sends you logs like:
-```
-[0,ac8ab7;150,b2c9d1;300,e4f6a3;450,x7y9z2]
-```
-
-Decode with specific version:
-```bash
-npm run decode-logs -- --version 4.13.1 [0,ac8ab7;150,b2c9d1;300,e4f6a3;450,x7y9z2]
-```
-
-### Real-world debugging scenario
-Customer reports: "I'm getting error hash `e6a1b8` during token acquisition in version 4.12.0"
-
-```bash
-npm run decode-logs -- --version 4.12.0 e6a1b8
-```
-
-Output:
-```
-MSAL Browser Log Decoder
-
-[1] TokenCache - scopes not specified in the request or response. Cannot add token to the cache.
-
-Summary:
-✓ Decoded: 1
-```
-
-### Debug with verbose information
-```bash
-npm run decode-logs -- --verbose --version latest [0,ac8ab7;5,b2c9d1]
-```
-
-Shows detailed information about:
-- Which packages are being fetched
-- Mapping file sources and timestamps
-- Network requests and caching
-- Combined mapping statistics
-
-## Troubleshooting
-
-### Script not found
-Make sure you're running from the msal-browser directory.
-
-### Mapping file not found (local)
-Run `npm run build` to generate the `lib/log-strings-mapping.json` file.
-
-### Unknown hashes
-- Hashes might be from a different version - try using `--version <specific-version>`
-- Try using `--version latest` to get the most recent mappings
-- Use `--verbose` to see detailed fetching information
-
-### Remote fetching fails
-- Check internet connection
-- The script will automatically fall back to local mappings
-- Use `--verbose` to see detailed error information
-
-### Cache issues
-Delete the cache directory to force fresh downloads:
-```bash
-rm -rf temp/log-mappings/
-```
-
-## Advanced Usage
-
-### Combining local and remote mappings
-The script automatically combines mappings from multiple sources:
-1. @azure/msal-browser (main library)
-2. @azure/msal-common (shared library)
-
-### Performance analysis with timing
-Use the timing format to analyze performance:
-```bash
-npm run decode-logs -- --version 4.13.1 [0,a1b2c3;150,d4e5f6;300,g7h8i9]
-```
-
-This shows the progression of operations with their timing offsets.
+Cache files are valid for 24 hours.
