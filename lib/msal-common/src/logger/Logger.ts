@@ -52,7 +52,7 @@ interface CorrelationLogData {
 }
 
 // Shared cache state for better minification - using Map's insertion order for LRU
-const CACHE_CAPACITY = 10;
+const CACHE_CAPACITY = 50;
 const MAX_LOGS_PER_CORRELATION = 500;
 const correlationCache = new Map<string, CorrelationLogData>();
 
@@ -268,13 +268,11 @@ export class Logger {
             this.packageVersion
         } : ${LogLevel[options.logLevel]} - ${logMessage}`;
 
-        // Display log message only if it's not hashed
-        !isHashedInput &&
-            this.executeCallback(
-                options.logLevel,
-                log,
-                options.containsPii || false
-            );
+        this.executeCallback(
+            options.logLevel,
+            log,
+            options.containsPii || false
+        );
     }
 
     /**

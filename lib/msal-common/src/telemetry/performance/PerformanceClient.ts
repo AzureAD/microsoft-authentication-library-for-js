@@ -4,11 +4,7 @@
  */
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration.js";
-import {
-    getAndFlushLogsFromCache,
-    Logger,
-    LogLevel,
-} from "../../logger/Logger.js";
+import { getAndFlushLogsFromCache, Logger } from "../../logger/Logger.js";
 import {
     InProgressPerformanceEvent,
     IPerformanceClient,
@@ -524,12 +520,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             finalEvent.dataBoundary = account.dataBoundary;
         }
 
-        logs.length &&
-            this.logger.executeCallback(
-                LogLevel.Info,
-                `Accumulated hashed logs for correlation id '${event.correlationId}', version: ${finalEvent.libraryVersion}: '[${formattedLogs}]'`,
-                false
-            );
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);
 

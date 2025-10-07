@@ -41,14 +41,16 @@ function findLoggerStrings(code) {
 /**
  * Linear parser to find string literals in logger arguments
  * Avoids regex backtracking by using state machine approach
+ *
+ * Logger calls follow the pattern: logger.method(message, correlationId, ...other args)
+ * We need to find the FIRST non-empty string argument (the actual log message)
  */
 function parseLoggerArguments(code, startPos, loggerStartPos, prefix) {
     let pos = startPos;
     let depth = 1; // We're already inside the first parenthesis
     let inString = false;
     let stringChar = '';
-    let stringStart = -1;
-    let stringEnd = -1;
+    const stringLiterals = []; // Store all string literals found
 
     // Extract the logger method from the prefix (e.g., "logger.info(" -> "info")
     const methodMatch = prefix.match(new RegExp(`\\.(${LOGGER_METHODS.join('|')})\\s*\\($`));
@@ -64,32 +66,68 @@ function parseLoggerArguments(code, startPos, loggerStartPos, prefix) {
             } else if (char === ')' || char === ']' || char === '}') {
                 depth--;
                 if (depth === 0 && char === ')') {
-                    // Found the end of the logger call
-                    if (stringStart !== -1 && stringEnd !== -1) {
-                        const quotedString = code.slice(stringStart, stringEnd + 1);
-                        const suffix = code.slice(stringEnd + 1, pos + 1);
-                        return {
-                            startPos: loggerStartPos,
-                            endPos: pos + 1,
-                            prefix,
-                            quotedString,
-                            suffix,
-                            logLevel
-                        };
+                    // Find the first non-empty string literal (the actual log message)
+                    for (const literal of stringLiterals) {
+                        const content = literal.text.slice(1, -1); // Remove quotes
+                        if (content.trim().length > 0) {
+                            // This is the actual log message
+                            // Calculate the middle part (between logger call start and the string)
+                            const middle = code.slice(startPos, literal.start);
+                            // The suffix includes everything from the end of this string to the closing paren
+                            const suffix = code.slice(literal.end + 1, pos + 1);
+                            return {
+                                startPos: loggerStartPos,
+                                endPos: pos + 1,
+                                prefix, // The original prefix (logger.method()
+                                middle, // Everything between opening paren and the string
+                                quotedString: literal.text,
+                                suffix,
+                                logLevel
+                            };
+                        }
                     }
                     break;
                 }
             } else if ((char === '"' || char === "'" || char === '`') && prevChar !== '\\') {
                 inString = true;
                 stringChar = char;
-                stringStart = pos;
-            }
-        } else {
-            if (char === stringChar && prevChar !== '\\') {
-                inString = false;
-                stringEnd = pos;
-                // For now, take the first string literal we find
-                // Could be extended to handle multiple strings if needed
+                const stringStart = pos;
+
+                // Find the end of this string
+                let stringPos = pos + 1;
+                let templateDepth = (char === '`') ? 1 : 0; // Track ${} nesting in template literals
+
+                while (stringPos < code.length) {
+                    const c = code[stringPos];
+                    const p = stringPos > 0 ? code[stringPos - 1] : '';
+
+                    // Handle template literal ${} expressions
+                    if (stringChar === '`') {
+                        if (c === '$' && stringPos + 1 < code.length && code[stringPos + 1] === '{') {
+                            templateDepth++;
+                            stringPos += 2; // Skip ${
+                            continue;
+                        } else if (c === '}' && templateDepth > 1) {
+                            templateDepth--;
+                            stringPos++;
+                            continue;
+                        }
+                    }
+
+                    // Check for end of string
+                    if (c === stringChar && p !== '\\' && (stringChar !== '`' || templateDepth === 1)) {
+                        // Found the end of the string
+                        stringLiterals.push({
+                            start: stringStart,
+                            end: stringPos,
+                            text: code.slice(stringStart, stringPos + 1)
+                        });
+                        pos = stringPos; // Skip to the end of the string
+                        inString = false;
+                        break;
+                    }
+                    stringPos++;
+                }
             }
         }
 
@@ -236,7 +274,7 @@ function loggerMinifyPlugin(options = {}) {
 
             // Process from end to start to maintain string positions
             for (let i = loggerCalls.length - 1; i >= 0; i--) {
-                const { startPos, endPos, prefix, quotedString, suffix, logLevel } = loggerCalls[i];
+                const { startPos, endPos, prefix, middle, quotedString, suffix, logLevel } = loggerCalls[i];
 
                 const originalString = cleanMessage(quotedString);
 
@@ -267,7 +305,7 @@ function loggerMinifyPlugin(options = {}) {
                 hasChanges = true;
 
                 // Replace the entire logger call
-                const replacement = `${prefix}"${hash}"${suffix}`;
+                const replacement = `${prefix}${middle}"${hash}"${suffix}`;
                 transformedCode = transformedCode.slice(0, startPos) + replacement + transformedCode.slice(endPos);
             }
 
