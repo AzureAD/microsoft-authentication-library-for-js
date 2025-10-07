@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Remove claims-based caching cleanup code",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

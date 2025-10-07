@@ -1,37 +1,37 @@
 {
-  "name": "next-js-msal-react-sample",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "test:e2e": "jest",
-    "build": "next build",
-    "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@azure/msal-browser": "^4.0.0",
-    "@azure/msal-react": "^3.0.0",
-    "@emotion/cache": "^11.10.5",
-    "@emotion/react": "^11.10.5",
-    "@emotion/server": "^11.10.0",
-    "@emotion/styled": "^11.10.5",
-    "@mui/icons-material": "^5.10.14",
-    "@mui/material": "^5.10.14",
-    "next": "^15.3.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
-  },
-  "devDependencies": {
-    "@types/jest": "^29.5.2",
-    "e2e-test-utils": "file:../../e2eTestUtils",
-    "jest": "^29.5.0",
-    "jest-junit": "^16.0.0",
-    "ts-jest": "^29.1.0"
-  },
-  "jest-junit": {
-    "suiteNameTemplate": "Next.js Sample Tests",
-    "outputDirectory": ".",
-    "outputName": "test-results.xml"
-  }
+    "name": "next-js-msal-react-sample",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "test:e2e": "jest",
+        "build": "next build",
+        "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
+        "start": "next start"
+    },
+    "dependencies": {
+        "@azure/msal-browser": "^5.0.0-alpha.0",
+        "@azure/msal-react": "^5.0.0-alpha.0",
+        "@emotion/cache": "^11.10.5",
+        "@emotion/react": "^11.10.5",
+        "@emotion/server": "^11.10.0",
+        "@emotion/styled": "^11.10.5",
+        "@mui/icons-material": "^5.10.14",
+        "@mui/material": "^5.10.14",
+        "next": "^15.3.1",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.2",
+        "e2e-test-utils": "file:../../e2eTestUtils",
+        "jest": "^29.5.0",
+        "jest-junit": "^16.0.0",
+        "ts-jest": "^29.1.0"
+    },
+    "jest-junit": {
+        "suiteNameTemplate": "Next.js Sample Tests",
+        "outputDirectory": ".",
+        "outputName": "test-results.xml"
+    }
 }

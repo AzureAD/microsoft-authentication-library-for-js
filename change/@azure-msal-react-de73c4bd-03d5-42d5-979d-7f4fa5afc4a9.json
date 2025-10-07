@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Refactor event types and InteractionStatus to be more concise #8009 ",
-  "packageName": "@azure/msal-react",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}

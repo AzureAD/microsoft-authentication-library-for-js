@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Merge dev into v5 #7808",
-  "packageName": "@azure/msal-node",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Drop support for Angular 17 and below, add support for Angular 20",
-  "packageName": "@azure/msal-angular",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}
