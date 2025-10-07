@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix the phone blocked error detection logic",
+  "comment": "Update the logic for detecting phone blocked error #8087",
   "packageName": "@azure/msal-browser",
   "email": "shen.jian@live.com",
   "dependentChangeType": "patch"
