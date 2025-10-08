@@ -8,6 +8,7 @@ import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_
 import { ResetPasswordPasswordRequiredState } from "../../../../../src/custom_auth/reset_password/auth_flow/state/ResetPasswordPasswordRequiredState.js";
 import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { JitClient } from "../../../../../src/custom_auth/core/interaction_client/jit/JitClient.js";
+import { MfaClient } from "../../../../../src/custom_auth/core/interaction_client/mfa/MfaClient.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("ResetPasswordPasswordRequiredState", () => {
@@ -28,6 +29,11 @@ describe("ResetPasswordPasswordRequiredState", () => {
         requestChallenge: jest.fn(),
         continueChallenge: jest.fn(),
     } as unknown as jest.Mocked<JitClient>;
+    const mockMfaClient = {
+        requestChallenge: jest.fn(),
+        submitChallenge: jest.fn(),
+        getAuthMethods: jest.fn(),
+    } as unknown as jest.Mocked<MfaClient>;
 
     const username = "testuser";
     const correlationId = "test-correlation-id";
@@ -44,6 +50,7 @@ describe("ResetPasswordPasswordRequiredState", () => {
             resetPasswordClient: mockResetPasswordClient,
             signInClient: mockSignInClient,
             jitClient: mockJitClient,
+            mfaClient: mockMfaClient,
             cacheClient:
                 {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>,
             username: username,
