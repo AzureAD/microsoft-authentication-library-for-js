@@ -327,7 +327,7 @@ export abstract class CacheManager implements ICacheManager {
             correlationId
         );
         if (accountEntities.length > 0) {
-            return accountEntities[0].getAccountInfo();
+            return AccountEntity.getAccountInfo(accountEntities[0]);
         } else {
             return null;
         }
@@ -417,7 +417,7 @@ export abstract class CacheManager implements ICacheManager {
         targetTenantId?: string,
         tenantProfileFilter?: TenantProfileFilter
     ): AccountInfo[] {
-        const accountInfo = accountEntity.getAccountInfo();
+        const accountInfo = AccountEntity.getAccountInfo(accountEntity);
         let searchTenantProfiles: Map<string, TenantProfile> =
             accountInfo.tenantProfiles || new Map<string, TenantProfile>();
         const tokenKeys = this.getTokenKeys();

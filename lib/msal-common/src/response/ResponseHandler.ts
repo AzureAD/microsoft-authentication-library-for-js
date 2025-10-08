@@ -279,7 +279,7 @@ export class ResponseHandler {
                 cacheRecord.account
             ) {
                 const key = this.cacheStorage.generateAccountKey(
-                    cacheRecord.account.getAccountInfo()
+                    AccountEntity.getAccountInfo(cacheRecord.account)
                 );
                 const account = this.cacheStorage.getAccount(
                     key,
@@ -573,7 +573,7 @@ export class ResponseHandler {
 
         const accountInfo: AccountInfo | null = cacheRecord.account
             ? updateAccountTenantProfileData(
-                  cacheRecord.account.getAccountInfo(),
+                  AccountEntity.getAccountInfo(cacheRecord.account),
                   undefined, // tenantProfile optional
                   idTokenClaims,
                   cacheRecord.idToken?.secret

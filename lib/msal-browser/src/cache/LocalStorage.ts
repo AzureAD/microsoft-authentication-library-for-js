@@ -205,7 +205,7 @@ export class LocalStorage implements IWindowStorage<string> {
         }
 
         try {
-            return JSON.parse(decryptedData);
+            return {...JSON.parse(decryptedData), lastUpdatedAt: data.lastUpdatedAt };
         } catch (e) {
             this.performanceClient.incrementFields(
                 { encryptedCacheCorruptionCount: 1 },

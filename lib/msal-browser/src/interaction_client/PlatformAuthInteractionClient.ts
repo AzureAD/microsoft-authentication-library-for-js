@@ -677,7 +677,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             Constants.EMPTY_STRING;
 
         const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
-            accountEntity.getAccountInfo(),
+            AccountEntity.getAccountInfo(accountEntity),
             undefined, // tenantProfile optional
             idTokenClaims,
             response.id_token
@@ -737,7 +737,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         await this.browserStorage.setAccount(accountEntity, this.correlationId, kmsi);
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(
-            accountEntity.getAccountInfo(),
+            AccountEntity.getAccountInfo(accountEntity),
             correlationId
         );
     }
