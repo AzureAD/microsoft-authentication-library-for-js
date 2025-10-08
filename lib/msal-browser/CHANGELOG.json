@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 08 Oct 2025 22:58:06 GMT",
+      "version": "4.25.0",
+      "tag": "@azure/msal-browser_v4.25.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "ffe81abe542469e37266bf69a7837323541a8d54",
+            "comment": "Update the logic for detecting phone blocked error #8087"
+          }
+        ],
+        "minor": [
+          {
+            "author": "shen.jian@live.com",
+            "package": "@azure/msal-browser",
+            "commit": "ffe81abe542469e37266bf69a7837323541a8d54",
+            "comment": "[Native Auth] Enable the MFA and JIT (SMS) in the public interfaces #8069"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 30 Sep 2025 22:02:06 GMT",
       "version": "4.24.1",
       "tag": "@azure/msal-browser_v4.24.1",
