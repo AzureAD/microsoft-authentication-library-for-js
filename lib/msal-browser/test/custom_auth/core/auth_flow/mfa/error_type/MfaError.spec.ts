@@ -73,45 +73,37 @@ describe("MfaRequestChallengeError", () => {
     });
 
     describe("isVerificationContactBlocked", () => {
-        it("returns true when invalid_request with code 550024 and matching description substring", () => {
+        it("returns true when error is ACCESS_DENIED with subError PROVIDER_BLOCKED_BY_REPUTATION", () => {
             const apiError = new CustomAuthApiError(
-                "invalid_request",
-                "The multi-factor authentication method is blocked due to too many attempts.",
+                "access_denied",
+                "Verification contact blocked by reputation system",
                 "correlation-id",
-                [550024]
+                [],
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
             );
             const mfaError = new MfaRequestChallengeError(apiError);
             expect(mfaError.isVerificationContactBlocked()).toBe(true);
         });
 
-        it("returns false when code 550024 present but description does not contain required phrase", () => {
+        it("returns false when error is ACCESS_DENIED but subError different", () => {
             const apiError = new CustomAuthApiError(
-                "invalid_request",
-                "MFA method temporarily disabled.",
+                "access_denied",
+                "Some other access denied error",
                 "correlation-id",
-                [550024]
+                [],
+                CustomAuthApiSuberror.INVALID_OOB_VALUE
             );
             const mfaError = new MfaRequestChallengeError(apiError);
             expect(mfaError.isVerificationContactBlocked()).toBe(false);
         });
 
-        it("returns false when description contains phrase but error code 550024 missing", () => {
+        it("returns false when subError matches but error code not ACCESS_DENIED", () => {
             const apiError = new CustomAuthApiError(
                 "invalid_request",
-                "The multi-factor authentication method is blocked at this time.",
+                "Verification contact blocked by reputation system",
                 "correlation-id",
-                [901001]
-            );
-            const mfaError = new MfaRequestChallengeError(apiError);
-            expect(mfaError.isVerificationContactBlocked()).toBe(false);
-        });
-
-        it("returns false when different error type even if code and description match", () => {
-            const apiError = new CustomAuthApiError(
-                "server_error",
-                "The multi-factor authentication method is blocked by policy.",
-                "correlation-id",
-                [550024]
+                [],
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
             );
             const mfaError = new MfaRequestChallengeError(apiError);
             expect(mfaError.isVerificationContactBlocked()).toBe(false);
