@@ -16,7 +16,9 @@ import { MsalCustomAuthError } from "../../../../src/custom_auth/core/error/Msal
 import { UnexpectedError } from "../../../../src/custom_auth/core/error/UnexpectedError.js";
 
 // Mock implementations for testing
-class MockState extends AuthFlowStateBase {}
+class MockState extends AuthFlowStateBase {
+    stateType = "mock_state";
+}
 
 class MockError extends AuthFlowErrorBase {
     constructor(errorData: CustomAuthError) {
