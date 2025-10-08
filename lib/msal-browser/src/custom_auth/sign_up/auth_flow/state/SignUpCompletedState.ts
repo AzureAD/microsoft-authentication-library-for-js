@@ -7,7 +7,7 @@ import { SignInContinuationState } from "../../../sign_in/auth_flow/state/SignIn
 import { SIGN_UP_COMPLETED_STATE_TYPE } from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /**
- * Represents the state of a sign-up operation that has been completed scuccessfully.
+ * Represents the state of a sign-up operation that has been completed successfully.
  */
 export class SignUpCompletedState extends SignInContinuationState {
     /**
