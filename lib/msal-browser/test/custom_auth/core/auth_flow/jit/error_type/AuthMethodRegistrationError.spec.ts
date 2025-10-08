@@ -95,12 +95,13 @@ describe("JitError", () => {
             expect(error.isInvalidInput()).toBe(false);
         });
 
-        it("should return true for isVerificationContactBlocked when API error with error code 550024 and correct description", () => {
+        it("should return true for isVerificationContactBlocked when ACCESS_DENIED with PROVIDER_BLOCKED_BY_REPUTATION subError", () => {
             const apiError = new CustomAuthApiError(
-                CustomAuthApiErrorCode.INVALID_REQUEST,
-                "multi-factor authentication method is blocked",
+                CustomAuthApiErrorCode.ACCESS_DENIED,
+                "Verification contact blocked by reputation system",
                 "correlation-id",
-                [550024]
+                [],
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
             );
             const error = new AuthMethodRegistrationChallengeMethodError(
                 apiError
@@ -109,12 +110,13 @@ describe("JitError", () => {
             expect(error.isVerificationContactBlocked()).toBe(true);
         });
 
-        it("should return false for isVerificationContactBlocked when API error with error code 550024 but wrong description", () => {
+        it("should return false for isVerificationContactBlocked when ACCESS_DENIED but different subError", () => {
             const apiError = new CustomAuthApiError(
-                CustomAuthApiErrorCode.INVALID_REQUEST,
-                "Some other error description",
+                CustomAuthApiErrorCode.ACCESS_DENIED,
+                "Other access denied scenario",
                 "correlation-id",
-                [550024]
+                [],
+                CustomAuthApiSuberror.INVALID_OOB_VALUE
             );
             const error = new AuthMethodRegistrationChallengeMethodError(
                 apiError
@@ -123,12 +125,13 @@ describe("JitError", () => {
             expect(error.isVerificationContactBlocked()).toBe(false);
         });
 
-        it("should return false for isVerificationContactBlocked when different error code", () => {
+        it("should return false for isVerificationContactBlocked when subError matches but error != ACCESS_DENIED", () => {
             const apiError = new CustomAuthApiError(
-                CustomAuthApiErrorCode.INVALID_GRANT,
-                "multi-factor authentication method is blocked",
+                CustomAuthApiErrorCode.INVALID_REQUEST,
+                "Verification contact blocked by reputation system",
                 "correlation-id",
-                [901001]
+                [],
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
             );
             const error = new AuthMethodRegistrationChallengeMethodError(
                 apiError
