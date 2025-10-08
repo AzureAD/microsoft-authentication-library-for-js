@@ -113,17 +113,19 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
 
     override async logout(logoutRequest?: ClearCacheRequest): Promise<void> {
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+        const correlationId =
+            logoutRequest?.correlationId || this.correlationId;
 
         // Clear the cache
-        this.logger.verbose("Start to clear the cache", this.correlationId);
+        this.logger.verbose("Start to clear the cache", correlationId);
         await clearCacheOnLogout(
             this.browserStorage,
             this.browserCrypto,
             this.logger,
-            this.correlationId,
+            correlationId,
             validLogoutRequest?.account
         );
-        this.logger.verbose("Cache cleared", this.correlationId);
+        this.logger.verbose("Cache cleared", correlationId);
 
         const postLogoutRedirectUri = this.config.auth.postLogoutRedirectUri;
 
@@ -135,7 +137,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
 
             this.logger.verbose(
                 "Post logout redirect uri is set, redirecting to uri",
-                this.correlationId
+                correlationId
             );
 
             // Redirect to post logout redirect uri

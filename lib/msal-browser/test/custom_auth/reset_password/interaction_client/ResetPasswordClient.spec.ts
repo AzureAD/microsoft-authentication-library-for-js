@@ -114,6 +114,7 @@ describe("ResetPasswordClient", () => {
             StubbedNetworkModule,
             mockCacheManager,
             mockLogger,
+            mockPerformanceClient,
             customAuthConfig.customAuth.authApiProxyUrl
         );
 
