@@ -353,9 +353,133 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     async migrateAccessTokens(credentialSchema: number, kmsiMap: KmsiMap, correlationId: string): Promise<void> {
+        const credentialKeysToMigrate = getTokenKeys(this.clientId, this.browserStorage, credentialSchema);
+        if (credentialKeysToMigrate.accessToken.length === 0) {
+            return
+        }
+
+        const currentCredentialKeys = getTokenKeys(this.clientId, this.browserStorage, CacheKeys.CREDENTIAL_SCHEMA_VERSION);
+
+        for (const accessTokenKey of [...credentialKeysToMigrate.accessToken]) {
+            this.performanceClient.incrementFields(
+                { oldAccessTokenCount: 1}, correlationId
+            )
+
+            const oldSchemaData = await this.updateOldEntry(accessTokenKey, correlationId) as AccessTokenEntity | null;
+            if (!oldSchemaData) {
+                removeElementFromArray(credentialKeysToMigrate.accessToken, accessTokenKey);
+                continue;
+            }
+            
+            if (!Object.keys(kmsiMap).includes(oldSchemaData.homeAccountId)) {
+                // Don't migrate tokens if we don't have an idToken for them
+                this.performanceClient.incrementFields(
+                    { skippedAccessTokenMigrationCount: 1 }, correlationId
+                );
+                continue;
+            }
+
+            const newKey = this.generateCredentialKey(oldSchemaData);
+            const kmsi = kmsiMap[oldSchemaData.homeAccountId];
+            if (!currentCredentialKeys.accessToken.includes(newKey)) {
+                await this.setUserData(
+                    newKey,
+                    JSON.stringify(oldSchemaData),
+                    correlationId,
+                    oldSchemaData.lastUpdatedAt,
+                    kmsi
+                );
+                this.performanceClient.incrementFields(
+                    { migratedAccessTokenCount: 1 },
+                    correlationId
+                );
+                currentCredentialKeys.accessToken.push(newKey);
+            } else {
+                const currentToken = this.getAccessTokenCredential(newKey, correlationId);
+                if (!currentToken || oldSchemaData.lastUpdatedAt > currentToken.lastUpdatedAt) {
+                    // If the token already exists, only overwrite it if the old token has a more recent lastUpdatedAt
+                    await this.setUserData(
+                        newKey,
+                        JSON.stringify(oldSchemaData),
+                        correlationId,
+                        oldSchemaData.lastUpdatedAt,
+                        kmsi
+                    );
+                    this.performanceClient.incrementFields(
+                        { migratedAccessTokenCount: 1 },
+                        correlationId
+                    );
+                }
+            }
+        }
+
+        this.setTokenKeys(credentialKeysToMigrate, correlationId, credentialSchema);
+        this.setTokenKeys(currentCredentialKeys, correlationId);
     }
 
     async migrateRefreshTokens(credentialSchema: number, kmsiMap: KmsiMap, correlationId: string): Promise<void> {
+        const credentialKeysToMigrate = getTokenKeys(this.clientId, this.browserStorage, credentialSchema);
+        if (credentialKeysToMigrate.refreshToken.length === 0) {
+            return
+        }
+
+        const currentCredentialKeys = getTokenKeys(this.clientId, this.browserStorage, CacheKeys.CREDENTIAL_SCHEMA_VERSION);
+
+        for (const refreshTokenKey of [...credentialKeysToMigrate.refreshToken]) {
+            this.performanceClient.incrementFields(
+                { oldRefreshTokenCount: 1}, correlationId
+            )
+
+            const oldSchemaData = await this.updateOldEntry(refreshTokenKey, correlationId) as RefreshTokenEntity | null;
+            if (!oldSchemaData) {
+                removeElementFromArray(credentialKeysToMigrate.refreshToken, refreshTokenKey);
+                continue;
+            }
+            
+            if (!Object.keys(kmsiMap).includes(oldSchemaData.homeAccountId)) {
+                // Don't migrate tokens if we don't have an idToken for them
+                this.performanceClient.incrementFields(
+                    { skippedRefreshTokenMigrationCount: 1 }, correlationId
+                );
+                continue;
+            }
+
+            const newKey = this.generateCredentialKey(oldSchemaData);
+            const kmsi = kmsiMap[oldSchemaData.homeAccountId];
+            if (!currentCredentialKeys.refreshToken.includes(newKey)) {
+                await this.setUserData(
+                    newKey,
+                    JSON.stringify(oldSchemaData),
+                    correlationId,
+                    oldSchemaData.lastUpdatedAt,
+                    kmsi
+                );
+                this.performanceClient.incrementFields(
+                    { migratedRefreshTokenCount: 1 },
+                    correlationId
+                );
+                currentCredentialKeys.refreshToken.push(newKey);
+            } else {
+                const currentToken = this.getRefreshTokenCredential(newKey, correlationId);
+                if (!currentToken || oldSchemaData.lastUpdatedAt > currentToken.lastUpdatedAt) {
+                    // If the token already exists, only overwrite it if the old token has a more recent lastUpdatedAt
+                    await this.setUserData(
+                        newKey,
+                        JSON.stringify(oldSchemaData),
+                        correlationId,
+                        oldSchemaData.lastUpdatedAt,
+                        kmsi
+                    );
+                    this.performanceClient.incrementFields(
+                        { migratedRefreshTokenCount: 1 },
+                        correlationId
+                    );
+                }
+            }
+        }
+
+        this.setTokenKeys(credentialKeysToMigrate, correlationId, credentialSchema);
+        this.setTokenKeys(currentCredentialKeys, correlationId);
     }
 
     /**
