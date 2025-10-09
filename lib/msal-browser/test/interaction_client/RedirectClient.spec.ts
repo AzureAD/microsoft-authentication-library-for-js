@@ -2008,7 +2008,7 @@ describe("RedirectClient", () => {
             redirectClient.acquireToken(loginRequest);
         });
 
-        it("passes onRedirectNavigate callback", (done) => {
+        it("passes onRedirectNavigate callback from config", (done) => {
             const onRedirectNavigate = (url: string) => {
                 verifyUrl(url, ["user.read"]);
                 done();
@@ -2553,235 +2553,6 @@ describe("RedirectClient", () => {
                 );
         });
 
-        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
-                    done();
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            redirectClient
-                .logout({
-                    onRedirectNavigate: (url: string) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return false;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeFalsy();
-
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                });
-        });
-
-        it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
-            const testAccountInfo: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                loginHint: "loginHint",
-            };
-
-            const testAccount: AccountEntity = {
-                homeAccountId: testAccountInfo.homeAccountId,
-                localAccountId: testAccountInfo.localAccountId,
-                environment: testAccountInfo.environment,
-                realm: testAccountInfo.tenantId,
-                username: testAccountInfo.username,
-                name: testAccountInfo.name,
-                authorityType: "MSSTS",
-                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
-                lastUpdatedAt: Date.now().toString(),
-            };
-
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
-                    done();
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
-                .then(() =>
-                    redirectClient
-                        .logout({
-                            account: testAccountInfo,
-                            onRedirectNavigate: (url: string) => {
-                                expect(url).toEqual(testLogoutUrl);
-                                return false;
-                            },
-                        })
-                        .then(() => {
-                            expect(
-                                browserStorage.getInteractionInProgress()
-                            ).toBeFalsy();
-
-                            const validatedLogoutRequest: CommonEndSessionRequest =
-                                {
-                                    correlationId: RANDOM_TEST_GUID,
-                                    postLogoutRedirectUri:
-                                        TEST_URIS.TEST_REDIR_URI,
-                                };
-                            expect(logoutUriSpy).toHaveBeenCalledWith(
-                                expect.objectContaining(validatedLogoutRequest)
-                            );
-                            done();
-                        })
-                );
-        });
-
-        it("does navigate if onRedirectNavigate returns true", (done) => {
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeTruthy();
-                    expect(urlNavigate).toEqual(testLogoutUrl);
-
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            redirectClient
-                .logout({
-                    onRedirectNavigate: (url) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return true;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeTruthy();
-
-                    // Reset after testing it was properly set
-                    browserStorage.setInteractionInProgress(false);
-
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                });
-        });
-
-        it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
-            const testAccountInfo: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                loginHint: "loginHint",
-            };
-
-            const testAccount: AccountEntity = {
-                homeAccountId: testAccountInfo.homeAccountId,
-                localAccountId: testAccountInfo.localAccountId,
-                environment: testAccountInfo.environment,
-                realm: testAccountInfo.tenantId,
-                username: testAccountInfo.username,
-                name: testAccountInfo.name,
-                authorityType: "MSSTS",
-                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
-                lastUpdatedAt: Date.now().toString(),
-            };
-
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(urlNavigate).toEqual(testLogoutUrl);
-
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
-                .then(() =>
-                    redirectClient
-                        .logout({
-                            account: testAccountInfo,
-                            onRedirectNavigate: (url) => {
-                                expect(url).toEqual(testLogoutUrl);
-                                return true;
-                            },
-                        })
-                        .then(() => {
-                            expect(
-                                browserStorage.getInteractionInProgress()
-                            ).toBeTruthy();
-
-                            // Reset after testing it was properly set
-                            browserStorage.setInteractionInProgress(false);
-
-                            const validatedLogoutRequest: CommonEndSessionRequest =
-                                {
-                                    correlationId: RANDOM_TEST_GUID,
-                                    postLogoutRedirectUri:
-                                        TEST_URIS.TEST_REDIR_URI,
-                                };
-                            expect(logoutUriSpy).toHaveBeenCalledWith(
-                                expect.objectContaining(validatedLogoutRequest)
-                            );
-                            done();
-                        })
-                );
-        });
-
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
             const testError = createBrowserAuthError(
                 BrowserAuthErrorCodes.emptyNavigateUri
@@ -2876,6 +2647,327 @@ describe("RedirectClient", () => {
             await redirectClient.logout(validatedLogoutRequest).then(() => {
                 expect(pca.getActiveAccount()).toBe(null);
                 expect(pca.getAllAccounts().length).toBe(0);
+            });
+        });
+
+        describe("onRedirectNavigate tests", () => {
+            let pca2: PublicClientApplication,
+                pca3: PublicClientApplication,
+                redirectClient2: RedirectClient,
+                redirectClient3: RedirectClient,
+                browserStorage2: BrowserCacheManager,
+                browserStorage3: BrowserCacheManager;
+            beforeEach(async () => {
+                const onRedirectNavigateFalse = (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return false;
+                };
+                pca2 = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        onRedirectNavigate: onRedirectNavigateFalse,
+                    },
+                    telemetry: {
+                        application: {
+                            appName: TEST_CONFIG.applicationName,
+                            appVersion: TEST_CONFIG.applicationVersion,
+                        },
+                    },
+                });
+
+                await pca2.initialize();
+                pca2 = (pca2 as any).controller;
+                // @ts-ignore
+                redirectClient2 = new RedirectClient(
+                    //@ts-ignore
+                    pca2.config,
+                    //@ts-ignore
+                    pca2.browserStorage,
+                    //@ts-ignore
+                    pca2.browserCrypto,
+                    //@ts-ignore
+                    pca2.logger,
+                    //@ts-ignore
+                    pca2.eventHandler,
+                    //@ts-ignore
+                    pca2.navigationClient,
+                    //@ts-ignore
+                    pca2.performanceClient,
+                    //@ts-ignore
+                    pca2.nativeInternalStorage
+                );
+
+                // @ts-ignore
+                browserStorage2 = pca2.browserStorage;
+
+                const onRedirectNavigateTrue = (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return true;
+                };
+                pca3 = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        onRedirectNavigate: onRedirectNavigateTrue,
+                    },
+                    telemetry: {
+                        application: {
+                            appName: TEST_CONFIG.applicationName,
+                            appVersion: TEST_CONFIG.applicationVersion,
+                        },
+                    },
+                });
+
+                await pca3.initialize();
+                pca3 = (pca3 as any).controller;
+                // @ts-ignore
+                redirectClient3 = new RedirectClient(
+                    //@ts-ignore
+                    pca3.config,
+                    //@ts-ignore
+                    pca3.browserStorage,
+                    //@ts-ignore
+                    pca3.browserCrypto,
+                    //@ts-ignore
+                    pca3.logger,
+                    //@ts-ignore
+                    pca3.eventHandler,
+                    //@ts-ignore
+                    pca3.navigationClient,
+                    //@ts-ignore
+                    pca3.performanceClient,
+                    //@ts-ignore
+                    pca3.nativeInternalStorage
+                );
+
+                // @ts-ignore
+                browserStorage3 = pca3.browserStorage;
+            });
+
+            it("doesnt navigate if onRedirectNavigate returns false", (done) => {
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        done(
+                            "Navigation should not happen if onRedirectNavigate returns false"
+                        );
+                        return Promise.reject();
+                    }
+                );
+
+                browserStorage2.setInteractionInProgress(true);
+
+                redirectClient2
+                    .logout({ correlationId: RANDOM_TEST_GUID })
+                    .then(() => {
+                        expect(
+                            browserStorage2.getInteractionInProgress()
+                        ).toBeFalsy();
+
+                        const validatedLogoutRequest: CommonEndSessionRequest =
+                            {
+                                correlationId: RANDOM_TEST_GUID,
+                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                            };
+                        expect(logoutUriSpy).toHaveBeenCalledWith(
+                            expect.objectContaining(validatedLogoutRequest)
+                        );
+                        done();
+                    });
+            });
+
+            it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    loginHint: "loginHint",
+                };
+
+                const testAccount: AccountEntity = {
+                    homeAccountId: testAccountInfo.homeAccountId,
+                    localAccountId: testAccountInfo.localAccountId,
+                    environment: testAccountInfo.environment,
+                    realm: testAccountInfo.tenantId,
+                    username: testAccountInfo.username,
+                    name: testAccountInfo.name,
+                    authorityType: "MSSTS",
+                    clientInfo:
+                        TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                    lastUpdatedAt: Date.now().toString(),
+                };
+
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        done(
+                            "Navigation should not happen if onRedirectNavigate returns false"
+                        );
+                        return Promise.reject();
+                    }
+                );
+
+                browserStorage2.setInteractionInProgress(true);
+                browserStorage2
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                    .then(() =>
+                        redirectClient2
+                            .logout({
+                                account: testAccountInfo,
+                                correlationId: RANDOM_TEST_GUID,
+                            })
+                            .then(() => {
+                                expect(
+                                    browserStorage2.getInteractionInProgress()
+                                ).toBeFalsy();
+
+                                const validatedLogoutRequest: CommonEndSessionRequest =
+                                    {
+                                        correlationId: RANDOM_TEST_GUID,
+                                        postLogoutRedirectUri:
+                                            TEST_URIS.TEST_REDIR_URI,
+                                    };
+                                expect(logoutUriSpy).toHaveBeenCalledWith(
+                                    expect.objectContaining(
+                                        validatedLogoutRequest
+                                    )
+                                );
+                                done();
+                            })
+                    );
+            });
+
+            it("does navigate if onRedirectNavigate returns true", (done) => {
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        expect(
+                            browserStorage.getInteractionInProgress()
+                        ).toBeTruthy();
+                        expect(urlNavigate).toEqual(testLogoutUrl);
+                        return Promise.resolve(true);
+                    }
+                );
+
+                browserStorage3.setInteractionInProgress(true);
+
+                redirectClient
+                    .logout({ correlationId: RANDOM_TEST_GUID })
+                    .then(() => {
+                        expect(
+                            browserStorage3.getInteractionInProgress()
+                        ).toBeTruthy();
+                        browserStorage3.setInteractionInProgress(false);
+
+                        const validatedLogoutRequest: CommonEndSessionRequest =
+                            {
+                                correlationId: RANDOM_TEST_GUID,
+                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                            };
+                        expect(logoutUriSpy).toHaveBeenCalledWith(
+                            expect.objectContaining(validatedLogoutRequest)
+                        );
+                        done();
+                    });
+            });
+
+            it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    loginHint: "loginHint",
+                };
+
+                const testAccount: AccountEntity = {
+                    homeAccountId: testAccountInfo.homeAccountId,
+                    localAccountId: testAccountInfo.localAccountId,
+                    environment: testAccountInfo.environment,
+                    realm: testAccountInfo.tenantId,
+                    username: testAccountInfo.username,
+                    name: testAccountInfo.name,
+                    authorityType: "MSSTS",
+                    clientInfo:
+                        TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                    lastUpdatedAt: Date.now().toString(),
+                };
+
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        expect(urlNavigate).toEqual(testLogoutUrl);
+                        return Promise.resolve(true);
+                    }
+                );
+
+                browserStorage3.setInteractionInProgress(true);
+                browserStorage3
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                    .then(() =>
+                        redirectClient3
+                            .logout({
+                                account: testAccountInfo,
+                                correlationId: RANDOM_TEST_GUID,
+                            })
+                            .then(() => {
+                                expect(
+                                    browserStorage3.getInteractionInProgress()
+                                ).toBeTruthy();
+                                browserStorage3.setInteractionInProgress(false);
+
+                                const validatedLogoutRequest: CommonEndSessionRequest =
+                                    {
+                                        correlationId: RANDOM_TEST_GUID,
+                                        postLogoutRedirectUri:
+                                            TEST_URIS.TEST_REDIR_URI,
+                                    };
+                                expect(logoutUriSpy).toHaveBeenCalledWith(
+                                    expect.objectContaining(
+                                        validatedLogoutRequest
+                                    )
+                                );
+                                done();
+                            })
+                    );
             });
         });
     });
