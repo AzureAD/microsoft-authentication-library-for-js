@@ -9,11 +9,17 @@ import { SignInWithContinuationTokenInputs } from "../../../CustomAuthActionInpu
 import { SignInContinuationStateParameters } from "./SignInStateParameters.js";
 import { SignInState } from "./SignInState.js";
 import * as ArgumentValidator from "../../../core/utils/ArgumentValidator.js";
+import { SIGN_IN_CONTINUATION_STATE_TYPE } from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Sign-in continuation state.
  */
 export class SignInContinuationState extends SignInState<SignInContinuationStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = SIGN_IN_CONTINUATION_STATE_TYPE;
+
     /**
      * Initiates the sign-in flow with continuation token.
      * @param {SignInWithContinuationTokenInputs} signInWithContinuationTokenInputs - The result of the operation.

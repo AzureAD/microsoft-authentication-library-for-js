@@ -11,11 +11,17 @@ import { SignInResendCodeResult } from "../result/SignInResendCodeResult.js";
 import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInCodeRequiredStateParameters } from "./SignInStateParameters.js";
 import { SignInState } from "./SignInState.js";
+import { SIGN_IN_CODE_REQUIRED_STATE_TYPE } from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Sign-in code required state.
  */
 export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = SIGN_IN_CODE_REQUIRED_STATE_TYPE;
+
     /**
      * Once user configures email one-time passcode as a authentication method in Microsoft Entra, a one-time passcode will be sent to the user’s email.
      * Submit this one-time passcode to continue sign-in flow.

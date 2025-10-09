@@ -10,6 +10,12 @@ import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.j
 import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { AuthMethodRegistrationRequiredState } from "../../../core/auth_flow/jit/state/AuthMethodRegistrationState.js";
 import { MfaAwaitingState } from "../../../core/auth_flow/mfa/state/MfaState.js";
+import {
+    SIGN_IN_FAILED_STATE_TYPE,
+    SIGN_IN_COMPLETED_STATE_TYPE,
+    AUTH_METHOD_REGISTRATION_REQUIRED_STATE_TYPE,
+    MFA_AWAITING_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of a sign-in submit code operation.
@@ -37,7 +43,7 @@ export class SignInSubmitCodeResult extends AuthFlowResultBase<
      * Checks if the result is in a failed state.
      */
     isFailed(): this is SignInSubmitCodeResult & { state: SignInFailedState } {
-        return this.state instanceof SignInFailedState;
+        return this.state.stateType === SIGN_IN_FAILED_STATE_TYPE;
     }
 
     /**
@@ -46,7 +52,7 @@ export class SignInSubmitCodeResult extends AuthFlowResultBase<
     isCompleted(): this is SignInSubmitCodeResult & {
         state: SignInCompletedState;
     } {
-        return this.state instanceof SignInCompletedState;
+        return this.state.stateType === SIGN_IN_COMPLETED_STATE_TYPE;
     }
 
     /**
@@ -56,7 +62,10 @@ export class SignInSubmitCodeResult extends AuthFlowResultBase<
     isAuthMethodRegistrationRequired(): this is SignInSubmitCodeResult & {
         state: AuthMethodRegistrationRequiredState;
     } {
-        return this.state instanceof AuthMethodRegistrationRequiredState;
+        return (
+            this.state.stateType ===
+            AUTH_METHOD_REGISTRATION_REQUIRED_STATE_TYPE
+        );
     }
 
     /**
@@ -66,7 +75,7 @@ export class SignInSubmitCodeResult extends AuthFlowResultBase<
     isMfaRequired(): this is SignInSubmitCodeResult & {
         state: MfaAwaitingState;
     } {
-        return this.state instanceof MfaAwaitingState;
+        return this.state.stateType === MFA_AWAITING_STATE_TYPE;
     }
 }
 
