@@ -8,14 +8,20 @@ const LOGGER_METHODS = [
 ];
 
 // Optimized patterns to avoid quadratic backtracking
+// Matches both direct logger calls and chained method calls that end with logger methods
+// Examples: logger.verbose(, this.getLogger().info(, obj.getLogger().error(
 const LOGGER_CALL_START = new RegExp(
-    `((?:commonLogger|logger|log)[?!]?\\.(${LOGGER_METHODS.join('|')})\\s*\\()`,
+    `((?:(?:commonLogger|logger|log)[?!]?|\\w+\\.getLogger\\(\\)[?!]?)\\.(${LOGGER_METHODS.join('|')})\\s*\\()`,
     'g'
 );
 
 /**
  * Efficiently find string literals within logger calls using linear parsing
- * instead of complex regex that can cause quadratic performance
+ * instead of complex regex that can cause quadratic performance.
+ * 
+ * Supports both direct logger calls and chained method calls:
+ * - Direct: logger.verbose(...), commonLogger.info(...), log.error(...)
+ * - Chained: this.getLogger().verbose(...), obj.getLogger().info(...)
  */
 function findLoggerStrings(code) {
     const results = [];
