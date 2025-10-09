@@ -150,14 +150,14 @@ export class BrowserCacheManager extends CacheManager {
      * Migrates any existing cache data from previous versions of MSAL.js into the current cache structure.
      */
     async migrateExistingCache(correlationId: string): Promise<void> {
-        const accountKeys = getAccountKeys(this.browserStorage);
-        const tokenKeys = getTokenKeys(this.clientId, this.browserStorage);
+        let accountKeys = getAccountKeys(this.browserStorage);
+        let tokenKeys = getTokenKeys(this.clientId, this.browserStorage);
         this.performanceClient.addFields(
             {
-                currAccountCount: accountKeys.length,
-                currAccessCount: tokenKeys.accessToken.length,
-                currIdCount: tokenKeys.idToken.length,
-                currRefreshCount: tokenKeys.refreshToken.length,
+                preMigrateAcntCount: accountKeys.length,
+                preMigrateATCount: tokenKeys.accessToken.length,
+                preMigrateITCount: tokenKeys.idToken.length,
+                preMigrateRTCount: tokenKeys.refreshToken.length,
             },
             correlationId
         );
@@ -176,6 +176,18 @@ export class BrowserCacheManager extends CacheManager {
             await this.migrateAccessTokens(i, kmsiMap, correlationId);
             await this.migrateRefreshTokens(i, kmsiMap, correlationId);
         }
+
+        accountKeys = getAccountKeys(this.browserStorage);
+        tokenKeys = getTokenKeys(this.clientId, this.browserStorage);
+        this.performanceClient.addFields(
+            {
+                postMigrateAcntCount: accountKeys.length,
+                postMigrateATCount: tokenKeys.accessToken.length,
+                postMigrateITCount: tokenKeys.idToken.length,
+                postMigrateRTCount: tokenKeys.refreshToken.length,
+            },
+            correlationId
+        );
     }
 
     /**
@@ -262,7 +274,7 @@ export class BrowserCacheManager extends CacheManager {
 
         for (const accountKey of [...accountKeysToCheck]) {
             this.performanceClient.incrementFields(
-                { oldAccountCount: 1}, correlationId
+                { oldAcntCount: 1}, correlationId
             );
             const rawValue = this.browserStorage.getItem(accountKey);
             const parsedValue = this.validateAndParseJson(
@@ -315,7 +327,7 @@ export class BrowserCacheManager extends CacheManager {
                 }
 
                 this.performanceClient.incrementFields(
-                    { expiredAccountRemovedCount: 1 },
+                    { expiredAcntRemovedCount: 1 },
                     correlationId
                 );
 
@@ -367,7 +379,7 @@ export class BrowserCacheManager extends CacheManager {
 
         for (const idTokenKey of [...credentialKeysToMigrate.idToken]) {
             this.performanceClient.incrementFields(
-                { oldIdTokenCount: 1}, correlationId
+                { oldITCount: 1}, correlationId
             )
 
             const oldSchemaData = await this.updateOldEntry(idTokenKey, correlationId) as IdTokenEntity | null;
@@ -399,7 +411,7 @@ export class BrowserCacheManager extends CacheManager {
             if (!account) {
                 // Don't migrate idToken if we don't have an account for it
                 this.performanceClient.incrementFields(
-                    { skippedIdTokenMigrationCount: 1 }, correlationId
+                    { skipITMigrateCount: 1 }, correlationId
                 );
                 continue;
             }
@@ -455,7 +467,7 @@ export class BrowserCacheManager extends CacheManager {
                     kmsi
                 );
                 this.performanceClient.incrementFields(
-                    { migratedIdTokenCount: 1 },
+                    { migratedITCount: 1 },
                     correlationId
                 );
                 currentCredentialKeys.idToken.push(newIdTokenKey);
@@ -477,7 +489,7 @@ export class BrowserCacheManager extends CacheManager {
 
         for (const accessTokenKey of [...credentialKeysToMigrate.accessToken]) {
             this.performanceClient.incrementFields(
-                { oldAccessTokenCount: 1}, correlationId
+                { oldATCount: 1}, correlationId
             )
 
             const oldSchemaData = await this.updateOldEntry(accessTokenKey, correlationId) as AccessTokenEntity | null;
@@ -489,7 +501,7 @@ export class BrowserCacheManager extends CacheManager {
             if (!Object.keys(kmsiMap).includes(oldSchemaData.homeAccountId)) {
                 // Don't migrate tokens if we don't have an idToken for them
                 this.performanceClient.incrementFields(
-                    { skippedAccessTokenMigrationCount: 1 }, correlationId
+                    { skipATMigrateCount: 1 }, correlationId
                 );
                 continue;
             }
@@ -505,7 +517,7 @@ export class BrowserCacheManager extends CacheManager {
                     kmsi
                 );
                 this.performanceClient.incrementFields(
-                    { migratedAccessTokenCount: 1 },
+                    { migratedATCount: 1 },
                     correlationId
                 );
                 currentCredentialKeys.accessToken.push(newKey);
@@ -521,7 +533,7 @@ export class BrowserCacheManager extends CacheManager {
                         kmsi
                     );
                     this.performanceClient.incrementFields(
-                        { migratedAccessTokenCount: 1 },
+                        { migratedATCount: 1 },
                         correlationId
                     );
                 }
@@ -542,7 +554,7 @@ export class BrowserCacheManager extends CacheManager {
 
         for (const refreshTokenKey of [...credentialKeysToMigrate.refreshToken]) {
             this.performanceClient.incrementFields(
-                { oldRefreshTokenCount: 1}, correlationId
+                { oldRTCount: 1}, correlationId
             )
 
             const oldSchemaData = await this.updateOldEntry(refreshTokenKey, correlationId) as RefreshTokenEntity | null;
@@ -554,7 +566,7 @@ export class BrowserCacheManager extends CacheManager {
             if (!Object.keys(kmsiMap).includes(oldSchemaData.homeAccountId)) {
                 // Don't migrate tokens if we don't have an idToken for them
                 this.performanceClient.incrementFields(
-                    { skippedRefreshTokenMigrationCount: 1 }, correlationId
+                    { skipRTMigrateCount: 1 }, correlationId
                 );
                 continue;
             }
@@ -570,7 +582,7 @@ export class BrowserCacheManager extends CacheManager {
                     kmsi
                 );
                 this.performanceClient.incrementFields(
-                    { migratedRefreshTokenCount: 1 },
+                    { migratedRTCount: 1 },
                     correlationId
                 );
                 currentCredentialKeys.refreshToken.push(newKey);
@@ -586,7 +598,7 @@ export class BrowserCacheManager extends CacheManager {
                         kmsi
                     );
                     this.performanceClient.incrementFields(
-                        { migratedRefreshTokenCount: 1 },
+                        { migratedRTCount: 1 },
                         correlationId
                     );
                 }
