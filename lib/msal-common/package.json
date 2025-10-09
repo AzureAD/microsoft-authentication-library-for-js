@@ -29,8 +29,8 @@
   "exports": {
     "./browser": {
       "import": {
-        "types": "./dist/index-browser.d.ts",
-        "default": "./dist/index-browser.mjs"
+        "types": "./dist-browser/index-browser.d.ts",
+        "default": "./dist-browser/index-browser.mjs"
       },
       "require": {
         "types": "./lib/types/index-browser.d.ts",
@@ -73,7 +73,7 @@
     "browser"
   ],
   "scripts": {
-    "clean": "shx rm -rf dist lib",
+    "clean": "shx rm -rf dist dist-browser lib",
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
@@ -83,7 +83,9 @@
     "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
+    "build:debug": "npm run clean && MSAL_MINIFY_LOGS=false npm run build:modules",
     "build:all": "npm run build",
+    "build:all:debug": "MSAL_MINIFY_LOGS=false npm run build",
     "prepack": "npm run build",
     "metadata:check": "ts-node scripts/metadata.ts",
     "format:check": "prettier --ignore-path .gitignore --check src test",
