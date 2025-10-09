@@ -188,7 +188,11 @@ export class TokenCache implements ITokenCache {
             const accountEntity = AccountEntity.createFromAccountInfo(
                 request.account
             );
-            await this.storage.setAccount(accountEntity, correlationId, AuthToken.isKmsi(idTokenClaims || {}));
+            await this.storage.setAccount(
+                accountEntity,
+                correlationId,
+                AuthToken.isKmsi(idTokenClaims || {})
+            );
             return accountEntity;
         } else if (!authority || (!clientInfo && !idTokenClaims)) {
             this.logger.error(
@@ -224,7 +228,11 @@ export class TokenCache implements ITokenCache {
             this.logger
         );
 
-        await this.storage.setAccount(cachedAccount, correlationId, AuthToken.isKmsi(idTokenClaims || {}));
+        await this.storage.setAccount(
+            cachedAccount,
+            correlationId,
+            AuthToken.isKmsi(idTokenClaims || {})
+        );
         return cachedAccount;
     }
 
@@ -258,7 +266,11 @@ export class TokenCache implements ITokenCache {
             tenantId
         );
 
-        await this.storage.setIdTokenCredential(idTokenEntity, correlationId, kmsi);
+        await this.storage.setIdTokenCredential(
+            idTokenEntity,
+            correlationId,
+            kmsi
+        );
         return idTokenEntity;
     }
 

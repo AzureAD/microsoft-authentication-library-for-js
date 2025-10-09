@@ -534,7 +534,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount, this.correlationId, AuthToken.isKmsi(idTokenClaims));
+        await this.cacheAccount(
+            baseAccount,
+            this.correlationId,
+            AuthToken.isKmsi(idTokenClaims)
+        );
         await this.cacheNativeTokens(
             response,
             request,
@@ -734,7 +738,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         kmsi: boolean
     ): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
-        await this.browserStorage.setAccount(accountEntity, this.correlationId, kmsi);
+        await this.browserStorage.setAccount(
+            accountEntity,
+            this.correlationId,
+            kmsi
+        );
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(
             AccountEntity.getAccountInfo(accountEntity),
