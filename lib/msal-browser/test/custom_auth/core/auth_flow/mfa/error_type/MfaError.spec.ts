@@ -71,6 +71,50 @@ describe("MfaRequestChallengeError", () => {
             expect(mfaError.isInvalidInput()).toBe(false);
         });
     });
+
+    describe("isVerificationContactBlocked", () => {
+        it("returns true when error is ACCESS_DENIED with subError PROVIDER_BLOCKED_BY_REPUTATION", () => {
+            const apiError = new CustomAuthApiError(
+                "access_denied",
+                "Verification contact blocked by reputation system",
+                "correlation-id",
+                [],
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
+            );
+            const mfaError = new MfaRequestChallengeError(apiError);
+            expect(mfaError.isVerificationContactBlocked()).toBe(true);
+        });
+
+        it("returns false when error is ACCESS_DENIED but subError different", () => {
+            const apiError = new CustomAuthApiError(
+                "access_denied",
+                "Some other access denied error",
+                "correlation-id",
+                [],
+                CustomAuthApiSuberror.INVALID_OOB_VALUE
+            );
+            const mfaError = new MfaRequestChallengeError(apiError);
+            expect(mfaError.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("returns false when subError matches but error code not ACCESS_DENIED", () => {
+            const apiError = new CustomAuthApiError(
+                "invalid_request",
+                "Verification contact blocked by reputation system",
+                "correlation-id",
+                [],
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
+            );
+            const mfaError = new MfaRequestChallengeError(apiError);
+            expect(mfaError.isVerificationContactBlocked()).toBe(false);
+        });
+
+        it("returns false for non-API errors (InvalidArgumentError)", () => {
+            const invalidArg = new InvalidArgumentError("authMethodId");
+            const mfaError = new MfaRequestChallengeError(invalidArg);
+            expect(mfaError.isVerificationContactBlocked()).toBe(false);
+        });
+    });
 });
 
 describe("MfaSubmitChallengeError", () => {

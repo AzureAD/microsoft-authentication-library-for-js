@@ -7,6 +7,10 @@ import { AuthFlowResultBase } from "../../AuthFlowResultBase.js";
 import { MfaRequestChallengeError } from "../error_type/MfaError.js";
 import { MfaFailedState } from "../state/MfaFailedState.js";
 import type { MfaVerificationRequiredState } from "../state/MfaState.js";
+import {
+    MFA_VERIFICATION_REQUIRED_STATE_TYPE,
+    MFA_FAILED_STATE_TYPE,
+} from "../../AuthFlowStateTypes.js";
 
 /**
  * Result of requesting an MFA challenge.
@@ -34,8 +38,10 @@ export class MfaRequestChallengeResult extends AuthFlowResultBase<
      * @returns true if verification is required, false otherwise.
      * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
-    isVerificationRequired(): boolean {
-        return this.state.constructor?.name === "MfaVerificationRequiredState";
+    isVerificationRequired(): this is MfaRequestChallengeResult & {
+        state: MfaVerificationRequiredState;
+    } {
+        return this.state.stateType === MFA_VERIFICATION_REQUIRED_STATE_TYPE;
     }
 
     /**
@@ -43,8 +49,10 @@ export class MfaRequestChallengeResult extends AuthFlowResultBase<
      * @returns true if the result is failed, false otherwise.
      * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
-    isFailed(): boolean {
-        return this.state instanceof MfaFailedState;
+    isFailed(): this is MfaRequestChallengeResult & {
+        state: MfaFailedState;
+    } {
+        return this.state.stateType === MFA_FAILED_STATE_TYPE;
     }
 }
 
