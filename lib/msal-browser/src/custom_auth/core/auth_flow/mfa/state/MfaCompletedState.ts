@@ -4,8 +4,14 @@
  */
 
 import { AuthFlowStateBase } from "../../AuthFlowState.js";
+import { MFA_COMPLETED_STATE_TYPE } from "../../AuthFlowStateTypes.js";
 
 /**
  * State indicating that the MFA flow has completed successfully.
  */
-export class MfaCompletedState extends AuthFlowStateBase {}
+export class MfaCompletedState extends AuthFlowStateBase {
+    /**
+     * The type of the state.
+     */
+    stateType = MFA_COMPLETED_STATE_TYPE;
+}

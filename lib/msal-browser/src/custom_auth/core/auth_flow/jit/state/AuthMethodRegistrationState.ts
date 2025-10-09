@@ -25,6 +25,10 @@ import { GrantType } from "../../../../CustomAuthConstants.js";
 import { AuthMethodRegistrationChallengeMethodResult } from "../result/AuthMethodRegistrationChallengeMethodResult.js";
 import { AuthMethodRegistrationSubmitChallengeResult } from "../result/AuthMethodRegistrationSubmitChallengeResult.js";
 import { AuthMethodRegistrationCompletedState } from "./AuthMethodRegistrationCompletedState.js";
+import {
+    AUTH_METHOD_REGISTRATION_REQUIRED_STATE_TYPE,
+    AUTH_METHOD_VERIFICATION_REQUIRED_STATE_TYPE,
+} from "../../AuthFlowStateTypes.js";
 
 /**
  * Abstract base class for authentication method registration states.
@@ -135,6 +139,11 @@ abstract class AuthMethodRegistrationState<
  */
 export class AuthMethodRegistrationRequiredState extends AuthMethodRegistrationState<AuthMethodRegistrationRequiredStateParameters> {
     /**
+     * The type of the state.
+     */
+    stateType = AUTH_METHOD_REGISTRATION_REQUIRED_STATE_TYPE;
+
+    /**
      * Gets the available authentication methods for registration.
      * @returns Array of available authentication methods.
      * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
@@ -160,6 +169,11 @@ export class AuthMethodRegistrationRequiredState extends AuthMethodRegistrationS
  * State indicating that verification is required for the challenged authentication method.
  */
 export class AuthMethodVerificationRequiredState extends AuthMethodRegistrationState<AuthMethodVerificationRequiredStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = AUTH_METHOD_VERIFICATION_REQUIRED_STATE_TYPE;
+
     /**
      * Gets the length of the expected verification code.
      * @returns The code length.

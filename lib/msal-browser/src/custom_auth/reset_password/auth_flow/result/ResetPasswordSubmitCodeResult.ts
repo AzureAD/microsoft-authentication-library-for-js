@@ -7,6 +7,10 @@ import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.j
 import { ResetPasswordSubmitCodeError } from "../error_type/ResetPasswordError.js";
 import { ResetPasswordFailedState } from "../state/ResetPasswordFailedState.js";
 import { ResetPasswordPasswordRequiredState } from "../state/ResetPasswordPasswordRequiredState.js";
+import {
+    RESET_PASSWORD_FAILED_STATE_TYPE,
+    RESET_PASSWORD_PASSWORD_REQUIRED_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of a reset password operation that requires a code.
@@ -46,7 +50,7 @@ export class ResetPasswordSubmitCodeResult extends AuthFlowResultBase<
     isFailed(): this is ResetPasswordSubmitCodeResult & {
         state: ResetPasswordFailedState;
     } {
-        return this.state instanceof ResetPasswordFailedState;
+        return this.state.stateType === RESET_PASSWORD_FAILED_STATE_TYPE;
     }
 
     /**
@@ -55,7 +59,9 @@ export class ResetPasswordSubmitCodeResult extends AuthFlowResultBase<
     isPasswordRequired(): this is ResetPasswordSubmitCodeResult & {
         state: ResetPasswordPasswordRequiredState;
     } {
-        return this.state instanceof ResetPasswordPasswordRequiredState;
+        return (
+            this.state.stateType === RESET_PASSWORD_PASSWORD_REQUIRED_STATE_TYPE
+        );
     }
 }
 
