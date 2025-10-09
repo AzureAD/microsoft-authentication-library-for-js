@@ -153,11 +153,9 @@ export abstract class AuthFlowErrorBase {
     protected isVerificationContactBlockedError(): boolean {
         return (
             this.errorData instanceof CustomAuthApiError &&
-            this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
-            this.errorData.errorCodes?.includes(550024) === true &&
-            this.errorData.errorDescription?.includes(
-                "multi-factor authentication method is blocked"
-            ) === true
+            this.errorData.error === CustomAuthApiErrorCode.ACCESS_DENIED &&
+            this.errorData.subError ===
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
         );
     }
 }

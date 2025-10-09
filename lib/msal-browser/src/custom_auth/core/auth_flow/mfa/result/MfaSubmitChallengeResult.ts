@@ -8,6 +8,10 @@ import { MfaSubmitChallengeError } from "../error_type/MfaError.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { MfaCompletedState } from "../state/MfaCompletedState.js";
 import { MfaFailedState } from "../state/MfaFailedState.js";
+import {
+    MFA_COMPLETED_STATE_TYPE,
+    MFA_FAILED_STATE_TYPE,
+} from "../../AuthFlowStateTypes.js";
 
 /**
  * Result of submitting an MFA challenge.
@@ -35,8 +39,10 @@ export class MfaSubmitChallengeResult extends AuthFlowResultBase<
      * @returns true if completed, false otherwise.
      * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
-    isCompleted(): boolean {
-        return this.state instanceof MfaCompletedState;
+    isCompleted(): this is MfaSubmitChallengeResult & {
+        state: MfaCompletedState;
+    } {
+        return this.state.stateType === MFA_COMPLETED_STATE_TYPE;
     }
 
     /**
@@ -44,8 +50,10 @@ export class MfaSubmitChallengeResult extends AuthFlowResultBase<
      * @returns true if the result is failed, false otherwise.
      * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
-    isFailed(): boolean {
-        return this.state instanceof MfaFailedState;
+    isFailed(): this is MfaSubmitChallengeResult & {
+        state: MfaFailedState;
+    } {
+        return this.state.stateType === MFA_FAILED_STATE_TYPE;
     }
 }
 
