@@ -373,23 +373,27 @@ export class PublicClientApplication implements IPublicClientApplication {
  * falls back to StandardController if NestedAppAuthController is not available
  *
  * @param configuration
+ * @param correlationId
+ * @param pcaFactory
  * @returns IPublicClientApplication
  *
  */
 export async function createNestablePublicClientApplication(
-    configuration: Configuration
+    configuration: Configuration,
+    correlationId?: string,
+    pcaFactory?: (configuration: Configuration, controller: IController) => IPublicClientApplication,
 ): Promise<IPublicClientApplication> {
-    const correlationId = createNewGuid();
+    const cid = correlationId || createNewGuid();
     const nestedAppAuth = new NestedAppOperatingContext(configuration);
-    await nestedAppAuth.initialize(correlationId);
+    await nestedAppAuth.initialize(cid);
 
     if (nestedAppAuth.isAvailable()) {
         const controller = new NestedAppAuthController(nestedAppAuth);
-        const nestablePCA = new PublicClientApplication(
+        const nestablePCA = pcaFactory ? pcaFactory(configuration, controller) : new PublicClientApplication(
             configuration,
             controller
         );
-        await nestablePCA.initialize({ correlationId });
+        await nestablePCA.initialize({ correlationId: cid });
         return nestablePCA;
     }
 
