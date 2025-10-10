@@ -549,7 +549,7 @@ export abstract class CacheManager implements ICacheManager {
         cacheRecord: CacheRecord,
         correlationId: string,
         kmsi: boolean,
-        storeInCache?: StoreInCache,
+        storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
             throw createClientAuthError(

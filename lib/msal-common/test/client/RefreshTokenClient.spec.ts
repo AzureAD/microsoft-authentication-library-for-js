@@ -331,8 +331,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo =
-            AccountEntity.getAccountInfo(buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS));
+        const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -1078,8 +1079,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo =
-            AccountEntity.getAccountInfo(buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS));
+        const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -1449,8 +1451,9 @@ describe("RefreshTokenClient unit tests", () => {
                 resEvents = events;
             });
             const client = new RefreshTokenClient(config, mockPerfClient);
-            const testAccount: AccountInfo =
-                AccountEntity.getAccountInfo(buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS));
+            const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
             jest.spyOn(
                 RefreshTokenClient.prototype,

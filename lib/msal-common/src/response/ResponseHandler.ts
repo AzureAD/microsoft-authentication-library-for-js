@@ -40,7 +40,11 @@ import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
-import { checkMaxAge, extractTokenClaims, isKmsi } from "../account/AuthToken.js";
+import {
+    checkMaxAge,
+    extractTokenClaims,
+    isKmsi,
+} from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,

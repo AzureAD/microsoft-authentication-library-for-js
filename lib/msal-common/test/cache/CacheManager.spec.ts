@@ -95,7 +95,9 @@ describe("CacheManager.ts test cases", () => {
             ac.username = "Jane Goodman";
             ac.authorityType = "MSSTS";
 
-            const accountKey = generateAccountKey(AccountEntity.getAccountInfo(ac));
+            const accountKey = generateAccountKey(
+                AccountEntity.getAccountInfo(ac)
+            );
             const cacheRecord: CacheRecord = {};
             cacheRecord.account = ac;
             await mockCache.cacheManager.saveCacheRecord(
@@ -332,10 +334,12 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAllAccounts", () => {
-        const account1 =
-            AccountEntity.getAccountInfo(buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS));
-        const account2 =
-            AccountEntity.getAccountInfo(buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS));
+        const account1 = AccountEntity.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
+        const account2 = AccountEntity.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS)
+        );
         it("getAllAccounts returns an empty array if there are no accounts in the cache", () => {
             mockCache.clearCache();
             expect(
@@ -676,10 +680,11 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAccountInfoFilteredBy", () => {
-        const multiTenantAccount = AccountEntity.getAccountInfo(buildAccountFromIdTokenClaims(
-            ID_TOKEN_CLAIMS,
-            [GUEST_ID_TOKEN_CLAIMS]
-        ));
+        const multiTenantAccount = AccountEntity.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+                GUEST_ID_TOKEN_CLAIMS,
+            ])
+        );
 
         it("returns null if no accounts match filter", () => {
             expect(
@@ -778,10 +783,11 @@ describe("CacheManager.ts test cases", () => {
 
     describe("getBaseAccountInfo", () => {
         it("returns base account regardless of tenantId", () => {
-            const multiTenantAccount = AccountEntity.getAccountInfo(buildAccountFromIdTokenClaims(
-                ID_TOKEN_CLAIMS,
-                [GUEST_ID_TOKEN_CLAIMS]
-            ));
+            const multiTenantAccount = AccountEntity.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+                    GUEST_ID_TOKEN_CLAIMS,
+                ])
+            );
             const resultAccount = mockCache.cacheManager.getBaseAccountInfo(
                 {
                     homeAccountId: multiTenantAccount.homeAccountId,
@@ -820,7 +826,7 @@ describe("CacheManager.ts test cases", () => {
         await mockCache.cacheManager.saveCacheRecord(
             cacheRecord,
             TEST_CONFIG.CORRELATION_ID,
-                true
+            true
         );
 
         const cacheAccount = mockCache.cacheManager.getAccount(
@@ -850,7 +856,7 @@ describe("CacheManager.ts test cases", () => {
         await mockCache.cacheManager.saveCacheRecord(
             cacheRecord,
             TEST_CONFIG.CORRELATION_ID,
-                true
+            true
         );
 
         const cachedAccessToken =
@@ -883,7 +889,7 @@ describe("CacheManager.ts test cases", () => {
         await mockCache.cacheManager.saveCacheRecord(
             cacheRecord,
             TEST_CONFIG.CORRELATION_ID,
-                true
+            true
         );
 
         const cachedAccessToken =
@@ -2268,8 +2274,9 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getIdToken", () => {
-        const baseAccountInfo =
-            AccountEntity.getAccountInfo(buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS));
+        const baseAccountInfo = AccountEntity.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS)
+        );
         // Get home ID token by default
         const idToken = mockCache.cacheManager.getIdToken(
             baseAccountInfo,

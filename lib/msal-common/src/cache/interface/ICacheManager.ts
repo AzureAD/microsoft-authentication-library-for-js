@@ -29,7 +29,11 @@ export interface ICacheManager {
      * @param correlationId
      * @param kmsi
      */
-    setAccount(account: AccountEntity, correlationId: string, kmsi: boolean): Promise<void>;
+    setAccount(
+        account: AccountEntity,
+        correlationId: string,
+        kmsi: boolean
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache

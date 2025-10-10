@@ -678,7 +678,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(AccountEntity.getAccountInfo(acc).dataBoundary).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).dataBoundary
+            ).toBeUndefined();
         });
 
         it("creates an account without dataBoundary when no clientInfo is provided", () => {
@@ -713,7 +715,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(AccountEntity.getAccountInfo(acc).dataBoundary).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).dataBoundary
+            ).toBeUndefined();
         });
 
         it("handles empty string xms_tdbr gracefully", () => {
@@ -759,7 +763,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(AccountEntity.getAccountInfo(acc).dataBoundary).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).dataBoundary
+            ).toBeUndefined();
         });
 
         it("handles null xms_tdbr gracefully", () => {
@@ -805,7 +811,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(AccountEntity.getAccountInfo(acc).dataBoundary).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).dataBoundary
+            ).toBeUndefined();
         });
     });
 });
