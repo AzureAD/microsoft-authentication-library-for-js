@@ -819,10 +819,10 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string, correlationId: string): void {
-        let tokenKeysCount = new Array(
+        const tokenKeysCount = new Array(
             CacheKeys.CREDENTIAL_SCHEMA_VERSION + 1
         ).fill(0);
-        let accessTokenKeys: Array<string> = [];
+        const accessTokenKeys: Array<string> = [];
         const maxRetries = 20;
         for (let i = 0; i <= maxRetries; i++) {
             try {
@@ -923,10 +923,10 @@ export class BrowserCacheManager extends CacheManager {
         timestamp: string,
         kmsi: boolean
     ): Promise<void> {
-        let tokenKeysCount = new Array(
+        const tokenKeysCount = new Array(
             CacheKeys.CREDENTIAL_SCHEMA_VERSION + 1
         ).fill(0);
-        let accessTokenKeys: Array<string> = [];
+        const accessTokenKeys: Array<string> = [];
         const maxRetries = 20;
         for (let i = 0; i <= maxRetries; i++) {
             try {
