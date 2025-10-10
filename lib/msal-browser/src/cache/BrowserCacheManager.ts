@@ -237,7 +237,7 @@ export class BrowserCacheManager extends CacheManager {
             : parsedValue;
         if (!decryptedData || !CacheHelpers.isCredentialEntity(decryptedData)) {
             this.performanceClient.incrementFields(
-                { invalidCacheEntryCount: 1 },
+                { invalidCacheCount: 1 },
                 correlationId
             );
             return null;

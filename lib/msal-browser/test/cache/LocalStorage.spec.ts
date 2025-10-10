@@ -30,25 +30,29 @@ describe("LocalStorage tests", () => {
             idTokenKey,
             idTokenVal,
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
         await localStorageInstance.setUserData(
             accessTokenKey,
             accessTokenVal,
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
         await localStorageInstance.setUserData(
             refreshTokenKey,
             refreshTokenVal,
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
         await localStorageInstance.setUserData(
             accountKey,
             accountVal,
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
 
         localStorage.setItem(
@@ -169,7 +173,8 @@ describe("LocalStorage tests", () => {
             "testKey",
             "testVal",
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
         expect(localStorage.getItem("testKey")).toBeTruthy(); // Encrypted
         expect(localStorageInstance.getUserData("testKey")).toBe("testVal"); // From in-memory
@@ -218,7 +223,8 @@ describe("LocalStorage tests", () => {
             "testKey",
             "testVal",
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
 
         const encrypted = localStorage.getItem("testKey") || "";
@@ -252,7 +258,8 @@ describe("LocalStorage tests", () => {
             "testKey",
             "testVal",
             TEST_CONFIG.CORRELATION_ID,
-            Date.now().toString()
+            Date.now().toString(),
+            false
         );
 
         expect(localStorageInstance1.getUserData("testKey")).toBe("testVal");
