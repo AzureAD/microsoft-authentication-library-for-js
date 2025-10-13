@@ -262,4 +262,5 @@ node_modules/
 typings/
 lib/
 dist/
+dist-browser/
 ref/
