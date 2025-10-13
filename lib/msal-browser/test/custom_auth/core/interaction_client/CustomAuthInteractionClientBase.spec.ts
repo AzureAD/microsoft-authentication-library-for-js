@@ -94,6 +94,7 @@ describe("CustomAuthInteractionClientBase", () => {
             StubbedNetworkModule,
             mockCacheManager,
             mockLogger,
+            mockPerformanceClient,
             customAuthConfig.customAuth.authApiProxyUrl
         );
 
