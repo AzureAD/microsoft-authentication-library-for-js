@@ -489,13 +489,12 @@ export type Configuration = {
 // @public
 function createGuid(): string;
 
-/**
- * Creates a nestable PublicClientApplication instance.
- * @param configuration - The configuration object for the client application.
- * @param correlationId - Optional correlation ID for tracking requests.
- * @param pcaFactory - Optional factory function to customize PublicClientApplication creation.
- * @public
- */
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "createNestablePublicClientApplication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
 export function createNestablePublicClientApplication(configuration: Configuration, correlationId?: string, pcaFactory?: (configuration: Configuration, controller: IController) => IPublicClientApplication): Promise<IPublicClientApplication>;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
