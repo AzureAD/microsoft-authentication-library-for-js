@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Remove isBroker flag from initialize",
+  "comment": "Remove isBroker flag from initialize, #8075 ",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
