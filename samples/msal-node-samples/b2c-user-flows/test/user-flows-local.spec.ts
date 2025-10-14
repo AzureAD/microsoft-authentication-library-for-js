@@ -48,7 +48,10 @@ describe("B2C User Flow Tests", () => {
 
     let clientSecret: { secret: string; value: string };
 
-    const screenshotFolder = path.join(__dirname, "screenshots/b2c-user-flows/local");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/b2c-user-flows/local"
+    );
 
     beforeAll(async () => {
         createFolder(screenshotFolder);
@@ -131,7 +134,11 @@ describe("B2C User Flow Tests", () => {
             );
             let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
             await page.goto(homeRoute);
-            await page.click("#signIn");
+            await screenshot.takeScreenshot(page, "homePage");
+            const [response] = await Promise.all([
+                page.waitForNavigation(),
+                page.click("#signIn"),
+            ]);
             await b2cLocalAccountEnterCredentials(
                 page,
                 screenshot,
