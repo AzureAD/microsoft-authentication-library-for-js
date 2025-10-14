@@ -843,17 +843,16 @@ export class BrowserCacheManager extends CacheManager {
                             break;
                         }
                         const endIndex =
-                            i > startIndex + tokenKeysCount[schemaVersion] ? startIndex + tokenKeysCount[schemaVersion] : i;
+                            i > startIndex + tokenKeysCount[schemaVersion]
+                                ? startIndex + tokenKeysCount[schemaVersion]
+                                : i;
 
                         if (
                             i > startIndex &&
                             tokenKeysCount[schemaVersion] > 0
                         ) {
                             this.removeAccessTokenKeys(
-                                accessTokenKeys.slice(
-                                    startIndex,
-                                    endIndex
-                                ),
+                                accessTokenKeys.slice(startIndex, endIndex),
                                 correlationId,
                                 schemaVersion
                             );
@@ -952,17 +951,16 @@ export class BrowserCacheManager extends CacheManager {
                             break;
                         }
                         const endIndex =
-                            i > startIndex + tokenKeysCount[schemaVersion] ? startIndex + tokenKeysCount[schemaVersion] : i;
+                            i > startIndex + tokenKeysCount[schemaVersion]
+                                ? startIndex + tokenKeysCount[schemaVersion]
+                                : i;
 
                         if (
                             i > startIndex &&
                             tokenKeysCount[schemaVersion] > 0
                         ) {
                             this.removeAccessTokenKeys(
-                                accessTokenKeys.slice(
-                                    startIndex,
-                                    endIndex
-                                ),
+                                accessTokenKeys.slice(startIndex, endIndex),
                                 correlationId,
                                 schemaVersion
                             );

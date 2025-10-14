@@ -58,6 +58,7 @@ import { version } from "../../src/packageMetadata.js";
 import { getAccount } from "../../src/cache/AccountManager.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 import { SessionStorage } from "../../src/cache/SessionStorage.js";
+import { isEncrypted } from "../../src/cache/EncryptedData.js";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -252,15 +253,21 @@ describe("BrowserCacheManager tests", () => {
 
         describe("migrateExistingCache", () => {
             it("should migrate v0 tokens to v2 in localStorage", async () => {
-                await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
 
                 // Setup some current cache entries
-                await browserCacheManager.saveCacheRecord({
-                    account: TEST_ACCOUNT_ENTITY,
-                    accessToken: TEST_ACCESS_TOKEN_ENTITY,
-                    idToken: TEST_ID_TOKEN_ENTITY,
-                    refreshToken: TEST_REFRESH_TOKEN_ENTITY,
-                }, TEST_CONFIG.CORRELATION_ID, true);
+                await browserCacheManager.saveCacheRecord(
+                    {
+                        account: TEST_ACCOUNT_ENTITY,
+                        accessToken: TEST_ACCESS_TOKEN_ENTITY,
+                        idToken: TEST_ID_TOKEN_ENTITY,
+                        refreshToken: TEST_REFRESH_TOKEN_ENTITY,
+                    },
+                    TEST_CONFIG.CORRELATION_ID,
+                    true
+                );
 
                 // Setup some v0 cache entries
                 const v0AccountKey = "msal.account.keys";
@@ -274,28 +281,40 @@ describe("BrowserCacheManager tests", () => {
                     v0AccountKey,
                     JSON.stringify([accountKey])
                 );
-                window.localStorage.setItem(accountKey, JSON.stringify(v0Account));
-                
+                window.localStorage.setItem(
+                    accountKey,
+                    JSON.stringify(v0Account)
+                );
+
                 const v0IdToken = {
                     ...TEST_ID_TOKEN_ENTITY,
                     homeAccountId: "different-uid.different-utid",
                 };
                 const idTokenKey = `${v0IdToken.homeAccountId}-${v0IdToken.environment}-idtoken-${v0IdToken.clientId}-${v0IdToken.realm}`;
-                window.localStorage.setItem(idTokenKey, JSON.stringify(v0IdToken));
+                window.localStorage.setItem(
+                    idTokenKey,
+                    JSON.stringify(v0IdToken)
+                );
 
                 const v0AccessToken = {
                     ...TEST_ACCESS_TOKEN_ENTITY,
                     homeAccountId: "different-uid.different-utid",
                 };
                 const accessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
-                window.localStorage.setItem(accessTokenKey, JSON.stringify(v0AccessToken));
+                window.localStorage.setItem(
+                    accessTokenKey,
+                    JSON.stringify(v0AccessToken)
+                );
 
                 const v0RefreshToken = {
                     ...TEST_REFRESH_TOKEN_ENTITY,
                     homeAccountId: "different-uid.different-utid",
                 };
                 const refreshTokenKey = `${v0RefreshToken.homeAccountId}-${v0RefreshToken.environment}-refreshtoken-${v0RefreshToken.clientId}-${v0RefreshToken.realm}`;
-                window.localStorage.setItem(refreshTokenKey, JSON.stringify(v0RefreshToken));
+                window.localStorage.setItem(
+                    refreshTokenKey,
+                    JSON.stringify(v0RefreshToken)
+                );
 
                 window.localStorage.setItem(
                     v0TokenKey,
@@ -334,15 +353,21 @@ describe("BrowserCacheManager tests", () => {
             });
 
             it("should migrate v1 tokens to v2 in localStorage", async () => {
-                await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
 
                 // Setup some current cache entries
-                await browserCacheManager.saveCacheRecord({
-                    account: TEST_ACCOUNT_ENTITY,
-                    accessToken: TEST_ACCESS_TOKEN_ENTITY,
-                    idToken: TEST_ID_TOKEN_ENTITY,
-                    refreshToken: TEST_REFRESH_TOKEN_ENTITY,
-                }, TEST_CONFIG.CORRELATION_ID, true);
+                await browserCacheManager.saveCacheRecord(
+                    {
+                        account: TEST_ACCOUNT_ENTITY,
+                        accessToken: TEST_ACCESS_TOKEN_ENTITY,
+                        idToken: TEST_ID_TOKEN_ENTITY,
+                        refreshToken: TEST_REFRESH_TOKEN_ENTITY,
+                    },
+                    TEST_CONFIG.CORRELATION_ID,
+                    true
+                );
 
                 // Setup some v1 cache entries
                 const v1AccountKey = "msal.1.account.keys";
@@ -356,28 +381,40 @@ describe("BrowserCacheManager tests", () => {
                     v1AccountKey,
                     JSON.stringify([accountKey])
                 );
-                window.localStorage.setItem(accountKey, JSON.stringify(v1Account));
-                
+                window.localStorage.setItem(
+                    accountKey,
+                    JSON.stringify(v1Account)
+                );
+
                 const v1IdToken = {
                     ...TEST_ID_TOKEN_ENTITY,
                     homeAccountId: "different-uid.different-utid",
                 };
                 const idTokenKey = `msal.1-${v1IdToken.homeAccountId}-${v1IdToken.environment}-idtoken-${v1IdToken.clientId}-${v1IdToken.realm}`;
-                window.localStorage.setItem(idTokenKey, JSON.stringify(v1IdToken));
+                window.localStorage.setItem(
+                    idTokenKey,
+                    JSON.stringify(v1IdToken)
+                );
 
                 const v1AccessToken = {
                     ...TEST_ACCESS_TOKEN_ENTITY,
                     homeAccountId: "different-uid.different-utid",
                 };
                 const accessTokenKey = `msal.1-${v1AccessToken.homeAccountId}-${v1AccessToken.environment}-accesstoken-${v1AccessToken.clientId}-${v1AccessToken.realm}`;
-                window.localStorage.setItem(accessTokenKey, JSON.stringify(v1AccessToken));
+                window.localStorage.setItem(
+                    accessTokenKey,
+                    JSON.stringify(v1AccessToken)
+                );
 
                 const v1RefreshToken = {
                     ...TEST_REFRESH_TOKEN_ENTITY,
                     homeAccountId: "different-uid.different-utid",
                 };
                 const refreshTokenKey = `msal.1-${v1RefreshToken.homeAccountId}-${v1RefreshToken.environment}-refreshtoken-${v1RefreshToken.clientId}-${v1RefreshToken.realm}`;
-                window.localStorage.setItem(refreshTokenKey, JSON.stringify(v1RefreshToken));
+                window.localStorage.setItem(
+                    refreshTokenKey,
+                    JSON.stringify(v1RefreshToken)
+                );
 
                 window.localStorage.setItem(
                     v1TokenKey,
@@ -495,12 +532,42 @@ describe("BrowserCacheManager tests", () => {
                 );
             });
 
+            it("should return decrypted value if cached entry is encrypted", async () => {
+                const encryptedKey = "test-encrypted-key";
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                await browserCacheManager.setUserData(
+                    encryptedKey,
+                    JSON.stringify(TEST_ACCESS_TOKEN_ENTITY),
+                    TEST_CONFIG.CORRELATION_ID,
+                    TEST_ACCESS_TOKEN_ENTITY.lastUpdatedAt,
+                    false
+                );
+
+                const result = await browserCacheManager.updateOldEntry(
+                    encryptedKey,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(
+                    isEncrypted(
+                        JSON.parse(
+                            window.localStorage.getItem(encryptedKey) || "{}"
+                        )
+                    )
+                ).toBe(true);
+                expect(result).toEqual(TEST_ACCESS_TOKEN_ENTITY);
+            });
+
             it("should handle missing cache entries gracefully", async () => {
                 const missingKey = "non-existent-key";
-                expect(await browserCacheManager.updateOldEntry(
-                    missingKey,
-                    TEST_CONFIG.CORRELATION_ID
-                )).toBeNull();
+                expect(
+                    await browserCacheManager.updateOldEntry(
+                        missingKey,
+                        TEST_CONFIG.CORRELATION_ID
+                    )
+                ).toBeNull();
             });
         });
 
@@ -1432,28 +1499,40 @@ describe("BrowserCacheManager tests", () => {
 
             // Create v0 access tokens
             const v0AccessToken1 = TEST_ACCESS_TOKEN_ENTITY;
-            const v0AccessToken2 = {...TEST_ACCESS_TOKEN_ENTITY, target: "different-scope"};
+            const v0AccessToken2 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                target: "different-scope",
+            };
 
             // Create v1 access tokens
-            const v1AccessToken1 = {...TEST_ACCESS_TOKEN_ENTITY, homeAccountId: "v1-home-account-id"};
-            const v1AccessToken2 = {...TEST_ACCESS_TOKEN_ENTITY, homeAccountId: "v1-home-account-id", target: "different-scope"};
+            const v1AccessToken1 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                homeAccountId: "v1-home-account-id",
+            };
+            const v1AccessToken2 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                homeAccountId: "v1-home-account-id",
+                target: "different-scope",
+            };
 
             // Create v2 access tokens
-            const v2AccessToken1 = {...TEST_ACCESS_TOKEN_ENTITY, homeAccountId: "v2-home-account-id"};
-            const v2AccessToken2 = {...TEST_ACCESS_TOKEN_ENTITY, homeAccountId: "v2-home-account-id", target: "different-scope"};
+            const v2AccessToken1 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                homeAccountId: "v2-home-account-id",
+            };
+            const v2AccessToken2 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                homeAccountId: "v2-home-account-id",
+                target: "different-scope",
+            };
 
             // Generate keys with schema versions
             const v0AtKey1 = `${v0AccessToken1.homeAccountId}-${v0AccessToken1.environment}-${v0AccessToken1.credentialType}-${v0AccessToken1.clientId}-${v0AccessToken1.target}`;
-            const v0AtKey2 =
-                `${v0AccessToken2.homeAccountId}-${v0AccessToken2.environment}-${v0AccessToken2.credentialType}-${v0AccessToken2.clientId}-${v0AccessToken2.target}`;
-            const v1AtKey1 =
-                `msal.1-${v1AccessToken1.homeAccountId}-${v1AccessToken1.environment}-${v1AccessToken1.credentialType}-${v1AccessToken1.clientId}-${v1AccessToken1.target}`;
-            const v1AtKey2 =
-                `msal.1-${v1AccessToken2.homeAccountId}-${v1AccessToken2.environment}-${v1AccessToken2.credentialType}-${v1AccessToken2.clientId}-${v1AccessToken2.target}`;
-            const v2AtKey1 =
-                `msal.2-${v2AccessToken1.homeAccountId}-${v2AccessToken1.environment}-${v2AccessToken1.credentialType}-${v2AccessToken1.clientId}-${v2AccessToken1.target}`;
-            const v2AtKey2 =
-                `msal.2-${v2AccessToken2.homeAccountId}-${v2AccessToken2.environment}-${v2AccessToken2.credentialType}-${v2AccessToken2.clientId}-${v2AccessToken2.target}`;
+            const v0AtKey2 = `${v0AccessToken2.homeAccountId}-${v0AccessToken2.environment}-${v0AccessToken2.credentialType}-${v0AccessToken2.clientId}-${v0AccessToken2.target}`;
+            const v1AtKey1 = `msal.1-${v1AccessToken1.homeAccountId}-${v1AccessToken1.environment}-${v1AccessToken1.credentialType}-${v1AccessToken1.clientId}-${v1AccessToken1.target}`;
+            const v1AtKey2 = `msal.1-${v1AccessToken2.homeAccountId}-${v1AccessToken2.environment}-${v1AccessToken2.credentialType}-${v1AccessToken2.clientId}-${v1AccessToken2.target}`;
+            const v2AtKey1 = `msal.2-${v2AccessToken1.homeAccountId}-${v2AccessToken1.environment}-${v2AccessToken1.credentialType}-${v2AccessToken1.clientId}-${v2AccessToken1.target}`;
+            const v2AtKey2 = `msal.2-${v2AccessToken2.homeAccountId}-${v2AccessToken2.environment}-${v2AccessToken2.credentialType}-${v2AccessToken2.clientId}-${v2AccessToken2.target}`;
 
             // Store tokens directly in cache
             window.sessionStorage.setItem(
@@ -1661,28 +1740,40 @@ describe("BrowserCacheManager tests", () => {
 
             // Create v0 access tokens
             const v0AccessToken1 = TEST_ACCESS_TOKEN_ENTITY;
-            const v0AccessToken2 = {...TEST_ACCESS_TOKEN_ENTITY, target: "different-scope"};
+            const v0AccessToken2 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                target: "different-scope",
+            };
 
             // Create v1 access tokens
-            const v1AccessToken1 = {...TEST_ACCESS_TOKEN_ENTITY, homeAccountId: "v1-home-account-id"};
-            const v1AccessToken2 = {...TEST_ACCESS_TOKEN_ENTITY, homeAccountId: "v1-home-account-id", target: "different-scope"};
+            const v1AccessToken1 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                homeAccountId: "v1-home-account-id",
+            };
+            const v1AccessToken2 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                homeAccountId: "v1-home-account-id",
+                target: "different-scope",
+            };
 
             // Create v2 access tokens
-            const v2AccessToken1 = {...TEST_ACCESS_TOKEN_ENTITY, homeAccountId: "v2-home-account-id"};
-            const v2AccessToken2 = {...TEST_ACCESS_TOKEN_ENTITY, homeAccountId: "v2-home-account-id", target: "different-scope"};
+            const v2AccessToken1 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                homeAccountId: "v2-home-account-id",
+            };
+            const v2AccessToken2 = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                homeAccountId: "v2-home-account-id",
+                target: "different-scope",
+            };
 
             // Generate keys with schema versions
             const v0AtKey1 = `${v0AccessToken1.homeAccountId}-${v0AccessToken1.environment}-${v0AccessToken1.credentialType}-${v0AccessToken1.clientId}-${v0AccessToken1.target}`;
-            const v0AtKey2 =
-                `${v0AccessToken2.homeAccountId}-${v0AccessToken2.environment}-${v0AccessToken2.credentialType}-${v0AccessToken2.clientId}-${v0AccessToken2.target}`;
-            const v1AtKey1 =
-                `msal.1-${v1AccessToken1.homeAccountId}-${v1AccessToken1.environment}-${v1AccessToken1.credentialType}-${v1AccessToken1.clientId}-${v1AccessToken1.target}`;
-            const v1AtKey2 =
-                `msal.1-${v1AccessToken2.homeAccountId}-${v1AccessToken2.environment}-${v1AccessToken2.credentialType}-${v1AccessToken2.clientId}-${v1AccessToken2.target}`;
-            const v2AtKey1 =
-                `msal.2-${v2AccessToken1.homeAccountId}-${v2AccessToken1.environment}-${v2AccessToken1.credentialType}-${v2AccessToken1.clientId}-${v2AccessToken1.target}`;
-            const v2AtKey2 =
-                `msal.2-${v2AccessToken2.homeAccountId}-${v2AccessToken2.environment}-${v2AccessToken2.credentialType}-${v2AccessToken2.clientId}-${v2AccessToken2.target}`;
+            const v0AtKey2 = `${v0AccessToken2.homeAccountId}-${v0AccessToken2.environment}-${v0AccessToken2.credentialType}-${v0AccessToken2.clientId}-${v0AccessToken2.target}`;
+            const v1AtKey1 = `msal.1-${v1AccessToken1.homeAccountId}-${v1AccessToken1.environment}-${v1AccessToken1.credentialType}-${v1AccessToken1.clientId}-${v1AccessToken1.target}`;
+            const v1AtKey2 = `msal.1-${v1AccessToken2.homeAccountId}-${v1AccessToken2.environment}-${v1AccessToken2.credentialType}-${v1AccessToken2.clientId}-${v1AccessToken2.target}`;
+            const v2AtKey1 = `msal.2-${v2AccessToken1.homeAccountId}-${v2AccessToken1.environment}-${v2AccessToken1.credentialType}-${v2AccessToken1.clientId}-${v2AccessToken1.target}`;
+            const v2AtKey2 = `msal.2-${v2AccessToken2.homeAccountId}-${v2AccessToken2.environment}-${v2AccessToken2.credentialType}-${v2AccessToken2.clientId}-${v2AccessToken2.target}`;
 
             // Store tokens directly in cache
             window.sessionStorage.setItem(

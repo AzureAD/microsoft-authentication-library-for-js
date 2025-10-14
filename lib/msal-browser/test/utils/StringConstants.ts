@@ -643,7 +643,7 @@ export const TEST_ID_TOKEN_ENTITY: IdTokenEntity = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
     realm: ID_TOKEN_CLAIMS.tid,
     secret: TEST_TOKENS.IDTOKEN_V2,
-    lastUpdatedAt: Date.now().toString()
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const TEST_ACCESS_TOKEN_ENTITY: AccessTokenEntity = {
@@ -657,7 +657,7 @@ export const TEST_ACCESS_TOKEN_ENTITY: AccessTokenEntity = {
     expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
     cachedAt: Date.now().toString(),
     tokenType: "Bearer",
-    lastUpdatedAt: Date.now().toString()
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const TEST_REFRESH_TOKEN_ENTITY: RefreshTokenEntity = {
@@ -668,7 +668,7 @@ export const TEST_REFRESH_TOKEN_ENTITY: RefreshTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: TEST_TOKENS.REFRESH_TOKEN,
     expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
-    lastUpdatedAt: Date.now().toString()
+    lastUpdatedAt: Date.now().toString(),
 };
 
 export const TEST_ACCOUNT_ENTITY: AccountEntity = new AccountEntity();
@@ -682,4 +682,6 @@ TEST_ACCOUNT_ENTITY.authorityType = "MSSTS";
 TEST_ACCOUNT_ENTITY.name = ID_TOKEN_CLAIMS.name;
 TEST_ACCOUNT_ENTITY.clientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
 TEST_ACCOUNT_ENTITY.lastUpdatedAt = Date.now().toString();
-TEST_ACCOUNT_ENTITY.tenantProfiles = [testTenantProfilesMap.get(ID_TOKEN_CLAIMS.tid)];
+TEST_ACCOUNT_ENTITY.tenantProfiles = [
+    testTenantProfilesMap.get(ID_TOKEN_CLAIMS.tid),
+];
