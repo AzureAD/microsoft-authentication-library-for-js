@@ -15,6 +15,6 @@
         "eslint-plugin-react": "^7.31.9",
         "eslint-plugin-react-hooks": "^4.1.2",
         "eslint-plugin-security": "^1.4.0",
-        "eslint-plugin-custom-msal": "^1.0.0"
+        "eslint-plugin-custom-msal": "file:../eslint-plugin-custom-msal"
     }
 }
