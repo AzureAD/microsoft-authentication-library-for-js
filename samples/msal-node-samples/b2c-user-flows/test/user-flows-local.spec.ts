@@ -135,7 +135,6 @@ describe("B2C User Flow Tests", () => {
             let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
             await page.goto(homeRoute);
             await screenshot.takeScreenshot(page, "homePage");
-            await page.click("#signIn");
             const [response] = await Promise.all([
                 page.waitForNavigation(),
                 page.click("#signIn"),
