@@ -843,7 +843,7 @@ export class BrowserCacheManager extends CacheManager {
                             break;
                         }
                         const endIndex =
-                            startIndex + tokenKeysCount[schemaVersion];
+                            i > startIndex + tokenKeysCount[schemaVersion] ? startIndex + tokenKeysCount[schemaVersion] : i;
 
                         if (
                             i > startIndex &&
@@ -851,8 +851,8 @@ export class BrowserCacheManager extends CacheManager {
                         ) {
                             this.removeAccessTokenKeys(
                                 accessTokenKeys.slice(
-                                    tokenKeysCount[startIndex],
-                                    i > endIndex ? tokenKeysCount[endIndex] : i
+                                    startIndex,
+                                    endIndex
                                 ),
                                 correlationId,
                                 schemaVersion
@@ -952,7 +952,7 @@ export class BrowserCacheManager extends CacheManager {
                             break;
                         }
                         const endIndex =
-                            startIndex + tokenKeysCount[schemaVersion];
+                            i > startIndex + tokenKeysCount[schemaVersion] ? startIndex + tokenKeysCount[schemaVersion] : i;
 
                         if (
                             i > startIndex &&
@@ -960,8 +960,8 @@ export class BrowserCacheManager extends CacheManager {
                         ) {
                             this.removeAccessTokenKeys(
                                 accessTokenKeys.slice(
-                                    tokenKeysCount[startIndex],
-                                    i > endIndex ? tokenKeysCount[endIndex] : i
+                                    startIndex,
+                                    endIndex
                                 ),
                                 correlationId,
                                 schemaVersion
