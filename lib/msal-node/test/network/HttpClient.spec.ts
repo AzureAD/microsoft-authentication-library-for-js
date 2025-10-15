@@ -376,7 +376,7 @@ describe("HttpClient", () => {
 
     describe("Timeout Error (Post Requests Only)", () => {
         const timeoutInMilliseconds: number = 100;
-        const error: Error = new Error("Request time out");
+        const error: Error = new Error("Request time out after 100ms");
 
         test("Via Https", async () => {
             (https.request as jest.Mock).mockImplementationOnce(
