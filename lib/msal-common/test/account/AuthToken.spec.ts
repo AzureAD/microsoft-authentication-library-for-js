@@ -158,4 +158,22 @@ describe("AuthToken.ts Class Unit Tests", () => {
             ).toEqual(ID_TOKEN_CLAIMS);
         });
     });
+
+    describe("isKmsi()", () => {
+        it("Returns false if claims don't contain signin_state", () => {
+            expect(AuthToken.isKmsi({})).toBe(false);
+        });
+
+        it("Returns false if signin_state claim does not contain kmsi", () => {
+            expect(AuthToken.isKmsi({
+                signin_state: ["not-kmsi", "other-value"]
+            })).toBe(false);
+        });
+
+        it("Returns true if signin_state claim contains kmsi", () => {
+            expect(AuthToken.isKmsi({
+                signin_state: ["kmsi", "other-value"]
+            })).toBe(true);
+        });
+    });
 });
