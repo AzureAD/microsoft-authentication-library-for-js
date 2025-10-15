@@ -42,7 +42,7 @@ An exception is the client secret, which must be stored in an `.env` file instea
 **.env file**
 
 ```
-CLIENT_SECRET=<your client secret here>
+AZURE_CLIENT_SECRET=<your client secret here>
 ```
 
 In `index.js`, we setup the configuration object expected by MSAL Node `confidentialClientApplication` class constructor:

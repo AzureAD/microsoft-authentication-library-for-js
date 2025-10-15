@@ -8,6 +8,10 @@ import { AuthMethodRegistrationSubmitChallengeError } from "../error_type/AuthMe
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { AuthMethodRegistrationFailedState } from "../state/AuthMethodRegistrationFailedState.js";
 import { AuthMethodRegistrationCompletedState } from "../state/AuthMethodRegistrationCompletedState.js";
+import {
+    AUTH_METHOD_REGISTRATION_COMPLETED_STATE_TYPE,
+    AUTH_METHOD_REGISTRATION_FAILED_STATE_TYPE,
+} from "../../AuthFlowStateTypes.js";
 
 /**
  * Result of submitting a challenge for authentication method registration.
@@ -39,10 +43,12 @@ export class AuthMethodRegistrationSubmitChallengeResult extends AuthFlowResultB
      * @returns true if registration is completed, false otherwise.
      * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
-    isCompleted(): boolean {
+    isCompleted(): this is AuthMethodRegistrationSubmitChallengeResult & {
+        state: AuthMethodRegistrationCompletedState;
+    } {
         return (
-            this.state.constructor?.name ===
-            "AuthMethodRegistrationCompletedState"
+            this.state.stateType ===
+            AUTH_METHOD_REGISTRATION_COMPLETED_STATE_TYPE
         );
     }
 
@@ -51,8 +57,12 @@ export class AuthMethodRegistrationSubmitChallengeResult extends AuthFlowResultB
      * @returns true if the result is failed, false otherwise.
      * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
-    isFailed(): boolean {
-        return this.state instanceof AuthMethodRegistrationFailedState;
+    isFailed(): this is AuthMethodRegistrationSubmitChallengeResult & {
+        state: AuthMethodRegistrationFailedState;
+    } {
+        return (
+            this.state.stateType === AUTH_METHOD_REGISTRATION_FAILED_STATE_TYPE
+        );
     }
 }
 

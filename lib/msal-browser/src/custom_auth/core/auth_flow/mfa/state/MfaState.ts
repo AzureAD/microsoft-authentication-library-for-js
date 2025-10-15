@@ -19,6 +19,10 @@ import { MfaCompletedState } from "./MfaCompletedState.js";
 import { ensureArgumentIsNotEmptyString } from "../../../utils/ArgumentValidator.js";
 import { AuthenticationMethod } from "../../../network_client/custom_auth_api/types/ApiResponseTypes.js";
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
+import {
+    MFA_AWAITING_STATE_TYPE,
+    MFA_VERIFICATION_REQUIRED_STATE_TYPE,
+} from "../../AuthFlowStateTypes.js";
 
 abstract class MfaState<
     TParameters extends MfaStateParameters
@@ -90,6 +94,11 @@ abstract class MfaState<
  */
 export class MfaAwaitingState extends MfaState<MfaAwaitingStateParameters> {
     /**
+     * The type of the state.
+     */
+    stateType = MFA_AWAITING_STATE_TYPE;
+
+    /**
      * Gets the available authentication methods for MFA.
      * @returns Array of available authentication methods.
      * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
@@ -104,6 +113,11 @@ export class MfaAwaitingState extends MfaState<MfaAwaitingStateParameters> {
  * The challenge has been sent and the user needs to provide the code.
  */
 export class MfaVerificationRequiredState extends MfaState<MfaVerificationRequiredStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = MFA_VERIFICATION_REQUIRED_STATE_TYPE;
+
     /**
      * Gets the length of the code that the user needs to provide.
      * @returns The expected code length.
