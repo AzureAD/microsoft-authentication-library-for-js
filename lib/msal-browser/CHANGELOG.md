@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 09 Oct 2025 00:57:39 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 16 Oct 2025 20:11:06 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.25.1
+
+Thu, 16 Oct 2025 20:11:06 GMT
+
+### Patches
+
+- Introduce the stateType property in state classes for the type detection #8090 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.25.0
 
