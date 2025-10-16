@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Logger statements updated #7825",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

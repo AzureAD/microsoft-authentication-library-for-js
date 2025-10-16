@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Configuration changes to NodeAuthOptions #7695",
-  "packageName": "@azure/msal-node",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

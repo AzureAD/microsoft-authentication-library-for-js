@@ -1,6 +1,6 @@
 {
-  "type": "major",
-  "comment": "Update handleRedirectPromise signature to consolidate hash into options type",
+  "type": "prerelease",
+  "comment": "Bump to pre-release alpha",
   "packageName": "@azure/msal-angular",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
