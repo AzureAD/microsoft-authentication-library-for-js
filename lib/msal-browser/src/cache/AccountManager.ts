@@ -36,11 +36,6 @@ export function getAccount(
     correlationId: string
 ): AccountInfo | null {
     logger.trace("getAccount called");
-    if (Object.keys(accountFilter).length === 0) {
-        logger.warning("getAccount: No accountFilter provided");
-        return null;
-    }
-
     const account: AccountInfo | null = browserStorage.getAccountInfoFilteredBy(
         accountFilter,
         correlationId
