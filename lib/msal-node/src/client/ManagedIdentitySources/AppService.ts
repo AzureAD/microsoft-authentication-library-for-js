@@ -101,6 +101,7 @@ export class AppService extends BaseManagedIdentitySource {
      * @param networkClient - Network client for making HTTP requests
      * @param cryptoProvider - Cryptographic operations provider
      * @param disableInternalRetries - Whether to disable internal retry logic
+     *
      * @returns A new AppService instance if the environment is suitable, null otherwise
      */
     public static tryCreate(
@@ -153,6 +154,7 @@ export class AppService extends BaseManagedIdentitySource {
      *
      * @param resource - The target resource/scope for which to request an access token (e.g., "https://graph.microsoft.com/.default")
      * @param managedIdentityId - The managed identity configuration specifying whether to use system-assigned or user-assigned identity
+     *
      * @returns A configured ManagedIdentityRequestParameters object ready for network execution
      */
     public createRequest(

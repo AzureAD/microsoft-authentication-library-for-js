@@ -250,8 +250,7 @@ export class AzureArc extends BaseManagedIdentitySource {
      *
      * @param resource - The target resource/scope for which to request an access token (e.g., "https://graph.microsoft.com/.default")
      *
-     * @returns A ManagedIdentityRequestParameters object configured for Azure Arc token requests
-     *          with proper headers, query parameters, and HTTP method
+     * @returns A configured ManagedIdentityRequestParameters object ready for network execution
      */
     public createRequest(resource: string): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =

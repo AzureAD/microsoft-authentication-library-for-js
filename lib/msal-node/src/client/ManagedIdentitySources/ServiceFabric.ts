@@ -177,22 +177,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
      * @param resource - The Azure resource URI for which the access token is requested (e.g., "https://vault.azure.net/")
      * @param managedIdentityId - The managed identity configuration specifying system-assigned or user-assigned identity details
      *
-     * @returns A ManagedIdentityRequestParameters object containing the complete HTTP request configuration
-     *          including URL, headers, and query parameters needed for token acquisition
-     *
-     * @example
-     * ```typescript
-     * const request = serviceFabric.createRequest(
-     *   "https://vault.azure.net/",
-     *   { idType: ManagedIdentityIdType.SYSTEM_ASSIGNED }
-     * );
-     *
-     * // Request will contain:
-     * // - Method: GET
-     * // - URL: Service Fabric identity endpoint
-     * // - Headers: Secret header for MITS authentication
-     * // - Query params: api-version=2019-07-01-preview&resource=https://vault.azure.net/
-     * ```
+     * @returns A configured ManagedIdentityRequestParameters object ready for network execution
      */
     public createRequest(
         resource: string,

@@ -31,8 +31,6 @@ export const MANAGED_IDENTITY_MACHINE_LEARNING_UNSUPPORTED_ID_TYPE_ERROR = `Only
  * This class handles managed identity authentication specifically for Azure Machine Learning services.
  * It supports both system-assigned and user-assigned managed identities, using the MSI_ENDPOINT
  * and MSI_SECRET environment variables that are automatically provided in Azure ML environments.
- *
- * @extends BaseManagedIdentitySource
  */
 export class MachineLearning extends BaseManagedIdentitySource {
     private msiEndpoint: string;
@@ -104,6 +102,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
      * @param networkClient - Network client for making HTTP requests
      * @param cryptoProvider - Cryptographic operations provider
      * @param disableInternalRetries - Whether to disable automatic request retries
+     *
      * @returns A new MachineLearning instance if the environment is valid, null otherwise
      */
     public static tryCreate(
@@ -161,7 +160,9 @@ export class MachineLearning extends BaseManagedIdentitySource {
      *
      * @param resource - The target resource/scope for which to request an access token (e.g., "https://graph.microsoft.com/.default")
      * @param managedIdentityId - The managed identity configuration specifying whether to use system-assigned or user-assigned identity
-     * @returns A configured ManagedIdentityRequestParameters object ready for HTTP execution
+     *
+     * @returns A configured ManagedIdentityRequestParameters object ready for network execution
+     *
      * @throws Error if an unsupported managed identity ID type is specified (only client ID is supported for user-assigned)
      */
     public createRequest(

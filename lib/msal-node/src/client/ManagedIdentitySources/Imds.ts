@@ -79,6 +79,7 @@ export class Imds extends BaseManagedIdentitySource {
      * @param networkClient - Network client for HTTP requests
      * @param cryptoProvider - CryptoProvider for cryptographic operations
      * @param disableInternalRetries - Whether to disable built-in retry logic
+     *
      * @returns A configured Imds instance ready to make token requests
      */
     public static tryCreate(
@@ -150,7 +151,8 @@ export class Imds extends BaseManagedIdentitySource {
      *
      * @param resource - The target resource/scope for which to request an access token (e.g., "https://graph.microsoft.com/.default")
      * @param managedIdentityId - The managed identity configuration specifying whether to use system-assigned or user-assigned identity
-     * @returns A ManagedIdentityRequestParameters object ready for HTTP execution
+     *
+     * @returns A configured ManagedIdentityRequestParameters object ready for network execution
      */
     public createRequest(
         resource: string,

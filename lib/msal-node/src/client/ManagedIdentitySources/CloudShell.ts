@@ -72,8 +72,6 @@ export class CloudShell extends BaseManagedIdentitySource {
      * contains the URL of the managed identity service endpoint.
      *
      * @returns An array containing the MSI_ENDPOINT environment variable value (or undefined if not set)
-     *
-     * @public
      */
     public static getEnvironmentVariables(): Array<string | undefined> {
         const msiEndpoint: string | undefined =
@@ -100,8 +98,6 @@ export class CloudShell extends BaseManagedIdentitySource {
      *
      * @throws {ManagedIdentityError} When a user-assigned managed identity is requested,
      *         as Cloud Shell only supports system-assigned identities
-     *
-     * @public
      */
     public static tryCreate(
         logger: Logger,
@@ -160,7 +156,7 @@ export class CloudShell extends BaseManagedIdentitySource {
      *
      * @param resource - The target resource/scope for which to request an access token (e.g., "https://graph.microsoft.com/.default")
      *
-     * @returns A configured ManagedIdentityRequestParameters object ready for execution
+     * @returns A configured ManagedIdentityRequestParameters object ready for network execution
      */
     public createRequest(resource: string): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
