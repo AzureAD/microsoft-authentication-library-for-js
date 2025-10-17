@@ -158,11 +158,9 @@ export class CloudShell extends BaseManagedIdentitySource {
      * body parameters for Cloud Shell authentication. The request includes the target resource
      * for which the access token is being requested.
      *
-     * @param resource - The Azure resource URI for which to request an access token (e.g., "https://management.azure.com/")
+     * @param resource - The target resource/scope for which to request an access token (e.g., "https://graph.microsoft.com/.default")
      *
      * @returns A configured ManagedIdentityRequestParameters object ready for execution
-     *
-     * @public
      */
     public createRequest(resource: string): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =

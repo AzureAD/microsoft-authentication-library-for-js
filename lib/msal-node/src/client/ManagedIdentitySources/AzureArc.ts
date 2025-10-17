@@ -155,7 +155,7 @@ export class AzureArc extends BaseManagedIdentitySource {
     /**
      * Attempts to create an AzureArc managed identity source instance.
      *
-     * This factory method validates the Azure Arc environment by checking environment variables
+     * Validates the Azure Arc environment by checking environment variables
      * and performing file-based detection. It ensures that only system-assigned managed identities
      * are supported for Azure Arc scenarios. The method performs comprehensive validation of
      * endpoint URLs and logs detailed information about the detection process.
@@ -248,16 +248,10 @@ export class AzureArc extends BaseManagedIdentitySource {
      * and query parameters. The endpoint URL is normalized to use 127.0.0.1 instead of localhost for
      * consistency. Additional body parameters are calculated by the base class during token acquisition.
      *
-     * @param resource - The Azure resource identifier (scope) for which the token is being requested
+     * @param resource - The target resource/scope for which to request an access token (e.g., "https://graph.microsoft.com/.default")
      *
      * @returns A ManagedIdentityRequestParameters object configured for Azure Arc token requests
      *          with proper headers, query parameters, and HTTP method
-     *
-     * @example
-     * ```typescript
-     * const request = azureArc.createRequest("https://management.azure.com/");
-     * // Returns a GET request to the HIMDS endpoint with metadata header and resource parameter
-     * ```
      */
     public createRequest(resource: string): ManagedIdentityRequestParameters {
         const request: ManagedIdentityRequestParameters =
