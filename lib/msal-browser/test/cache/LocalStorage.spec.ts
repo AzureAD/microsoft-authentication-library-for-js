@@ -235,23 +235,23 @@ describe("LocalStorage tests", () => {
     });
 
     it("setUserData stores unencrypted when KMSI is true", async () => {
-       const localStorageInstance = new LocalStorage(
+        const localStorageInstance = new LocalStorage(
             TEST_CONFIG.MSAL_CLIENT_ID,
             logger,
             performanceClient
         );
-       await localStorageInstance.initialize(TEST_CONFIG.CORRELATION_ID);
+        await localStorageInstance.initialize(TEST_CONFIG.CORRELATION_ID);
 
-       await localStorageInstance.setUserData(
-           "testKey",
-           "testVal",
-           TEST_CONFIG.CORRELATION_ID,
-           Date.now().toString(),
-           true
-       );
+        await localStorageInstance.setUserData(
+            "testKey",
+            "testVal",
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString(),
+            true
+        );
 
-       expect(localStorage.getItem("testKey")).toBe("testVal");
-       expect(localStorageInstance.getUserData("testKey")).toBe("testVal");
+        expect(localStorage.getItem("testKey")).toBe("testVal");
+        expect(localStorageInstance.getUserData("testKey")).toBe("testVal");
     });
 
     it("setUserData broadcasts cache update to other LocalStorage instances", async () => {
