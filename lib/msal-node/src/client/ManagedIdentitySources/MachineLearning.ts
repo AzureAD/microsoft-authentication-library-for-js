@@ -159,8 +159,8 @@ export class MachineLearning extends BaseManagedIdentitySource {
      * The request uses the 2017-09-01 API version and includes the required secret header
      * for authentication with the MSI endpoint.
      *
-     * @param resource - The target resource (audience) for which to request an access token
-     * @param managedIdentityId - Configuration specifying the managed identity type and identifier
+     * @param resource - The target resource/scope for which to request an access token (e.g., "https://graph.microsoft.com/.default")
+     * @param managedIdentityId - The managed identity configuration specifying whether to use system-assigned or user-assigned identity
      * @returns A configured ManagedIdentityRequestParameters object ready for HTTP execution
      * @throws Error if an unsupported managed identity ID type is specified (only client ID is supported for user-assigned)
      */
