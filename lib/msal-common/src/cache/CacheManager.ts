@@ -295,12 +295,13 @@ export abstract class CacheManager implements ICacheManager {
         accountFilter: AccountFilter,
         correlationId: string
     ): AccountInfo | null {
-          if (
+        if (
             Object.keys(accountFilter).length === 0 ||
             Object.values(accountFilter).every((value) => !value)
         ) {
             this.commonLogger.warning(
-                "getAccountInfoFilteredBy: Account filter is empty or invalid, returning null"
+                "getAccountInfoFilteredBy: Account filter is empty or invalid, returning null",
+                correlationId
             );
             return null;
         }

@@ -35,7 +35,7 @@ export function getAccount(
     browserStorage: BrowserCacheManager,
     correlationId: string
 ): AccountInfo | null {
-    logger.trace("getAccount called");
+    logger.trace("getAccount called", correlationId);
     const account: AccountInfo | null = browserStorage.getAccountInfoFilteredBy(
         accountFilter,
         correlationId

@@ -2314,7 +2314,6 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(testAccount);
                 });
 
-
                 it("getAccount returns null if accountFilter is passed but values are undefined", () => {
                     const testAccountFilter: AccountFilter = {
                         loginHint: undefined,

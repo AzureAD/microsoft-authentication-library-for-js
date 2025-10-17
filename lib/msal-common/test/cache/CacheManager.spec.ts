@@ -686,7 +686,7 @@ describe("CacheManager.ts test cases", () => {
             ).toBeNull();
         });
 
-         it("returns null if filter passed in is empty", () => {
+        it("returns null if filter passed in is empty", () => {
             expect(
                 mockCache.cacheManager.getAccountInfoFilteredBy(
                     {
