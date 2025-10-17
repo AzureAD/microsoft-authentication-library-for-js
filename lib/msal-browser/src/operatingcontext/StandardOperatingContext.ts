@@ -39,7 +39,8 @@ export class StandardOperatingContext extends BaseOperatingContext {
      * Confirms that the code is running a browser rather.  This is required.
      * @returns Promise<boolean> indicating whether this operating context is currently available.
      */
-    async initialize(): Promise<boolean> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async initialize(correlationId: string): Promise<boolean> {
         this.available = typeof window !== "undefined";
         return this.available;
         /*

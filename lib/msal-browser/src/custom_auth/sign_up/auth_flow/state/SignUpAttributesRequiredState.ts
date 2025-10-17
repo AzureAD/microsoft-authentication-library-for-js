@@ -83,6 +83,7 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
                         config: this.stateParameters.config,
                         signInClient: this.stateParameters.signInClient,
                         cacheClient: this.stateParameters.cacheClient,
+                        jitClient: this.stateParameters.jitClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
                     })

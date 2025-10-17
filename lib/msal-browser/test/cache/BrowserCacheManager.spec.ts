@@ -986,7 +986,8 @@ describe("BrowserCacheManager tests", () => {
                     knownAuthorities: [],
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
             jest.spyOn(
                 Authority.prototype,
@@ -1036,9 +1037,12 @@ describe("BrowserCacheManager tests", () => {
                 new StubPerformanceClient(),
                 new EventHandler()
             );
-            expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
-                testTempItemValue
-            );
+            expect(
+                browserLocalStorage.getTemporaryCache(
+                    testTempItemKey,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBe(testTempItemValue);
         });
 
         it("setItem", () => {
@@ -2184,10 +2188,18 @@ describe("BrowserCacheManager tests", () => {
             expect(window.sessionStorage.getItem(msalCacheKey)).toBeNull();
             expect(window.localStorage.getItem(msalCacheKey)).toBeNull();
             expect(
-                browserLocalStorage.getTemporaryCache("cacheKey", true)
+                browserLocalStorage.getTemporaryCache(
+                    "cacheKey",
+                    TEST_CONFIG.CORRELATION_ID,
+                    true
+                )
             ).toBeNull();
             expect(
-                browserSessionStorage.getTemporaryCache("cacheKey", true)
+                browserSessionStorage.getTemporaryCache(
+                    "cacheKey",
+                    TEST_CONFIG.CORRELATION_ID,
+                    true
+                )
             ).toBeNull();
         });
 
@@ -2934,9 +2946,17 @@ describe("BrowserCacheManager tests", () => {
                 it("getAppMetadata returns null if key not in cache", () => {
                     const key = "not-in-cache";
                     expect(
-                        browserSessionStorage.getAppMetadata(key)
+                        browserSessionStorage.getAppMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
-                    expect(browserLocalStorage.getAppMetadata(key)).toBeNull();
+                    expect(
+                        browserLocalStorage.getAppMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toBeNull();
                 });
 
                 it("getAppMetadata returns null if value is not JSON", () => {
@@ -2945,9 +2965,17 @@ describe("BrowserCacheManager tests", () => {
                     window.sessionStorage.setItem(key, "this is not json");
 
                     expect(
-                        browserSessionStorage.getAppMetadata(key)
+                        browserSessionStorage.getAppMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
-                    expect(browserLocalStorage.getAppMetadata(key)).toBeNull();
+                    expect(
+                        browserLocalStorage.getAppMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toBeNull();
                 });
 
                 it("getAppMetadata returns null if value is not appMetadata entity", () => {
@@ -2966,9 +2994,17 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     expect(
-                        browserSessionStorage.getAppMetadata(key)
+                        browserSessionStorage.getAppMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
-                    expect(browserLocalStorage.getAppMetadata(key)).toBeNull();
+                    expect(
+                        browserLocalStorage.getAppMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toBeNull();
                 });
 
                 it("getAppMetadata returns AppMetadataEntity", () => {
@@ -2989,12 +3025,18 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAppMetadata(
-                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
+                            CacheHelpers.generateAppMetadataKey(
+                                testAppMetadata
+                            ),
+                            TEST_CONFIG.CORRELATION_ID
                         )
                     ).toEqual(testAppMetadata);
                     expect(
                         browserLocalStorage.getAppMetadata(
-                            CacheHelpers.generateAppMetadataKey(testAppMetadata)
+                            CacheHelpers.generateAppMetadataKey(
+                                testAppMetadata
+                            ),
+                            TEST_CONFIG.CORRELATION_ID
                         )
                     ).toEqual(testAppMetadata);
                 });
@@ -3004,10 +3046,16 @@ describe("BrowserCacheManager tests", () => {
                 it("getServerTelemetry returns null if key not in cache", () => {
                     const key = "not-in-cache";
                     expect(
-                        browserSessionStorage.getServerTelemetry(key)
+                        browserSessionStorage.getServerTelemetry(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getServerTelemetry(key)
+                        browserLocalStorage.getServerTelemetry(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
 
@@ -3017,10 +3065,16 @@ describe("BrowserCacheManager tests", () => {
                     window.sessionStorage.setItem(key, "this is not json");
 
                     expect(
-                        browserSessionStorage.getServerTelemetry(key)
+                        browserSessionStorage.getServerTelemetry(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getServerTelemetry(key)
+                        browserLocalStorage.getServerTelemetry(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
 
@@ -3040,10 +3094,16 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     expect(
-                        browserSessionStorage.getServerTelemetry(key)
+                        browserSessionStorage.getServerTelemetry(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getServerTelemetry(key)
+                        browserLocalStorage.getServerTelemetry(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
 
@@ -3067,10 +3127,16 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     expect(
-                        browserSessionStorage.getServerTelemetry(testKey)
+                        browserSessionStorage.getServerTelemetry(
+                            testKey,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toEqual(testVal);
                     expect(
-                        browserLocalStorage.getServerTelemetry(testKey)
+                        browserLocalStorage.getServerTelemetry(
+                            testKey,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toEqual(testVal);
                 });
             });
@@ -3107,27 +3173,47 @@ describe("BrowserCacheManager tests", () => {
 
                 it("getAuthorityMetadata() returns null if key is not in cache", () => {
                     expect(
-                        browserSessionStorage.getAuthorityMetadata(key)
+                        browserSessionStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getAuthorityMetadata(key)
+                        browserLocalStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
 
                 it("getAuthorityMetadata() returns null if isAuthorityMetadataEntity returns false", () => {
-                    browserSessionStorage.setAuthorityMetadata(key, {
-                        // @ts-ignore
-                        invalidKey: "invalidValue",
-                    });
-                    browserLocalStorage.setAuthorityMetadata(key, {
-                        // @ts-ignore
-                        invalidKey: "invalidValue",
-                    });
+                    browserSessionStorage.setAuthorityMetadata(
+                        key,
+                        {
+                            // @ts-ignore
+                            invalidKey: "invalidValue",
+                        },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    browserLocalStorage.setAuthorityMetadata(
+                        key,
+                        {
+                            // @ts-ignore
+                            invalidKey: "invalidValue",
+                        },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
                     expect(
-                        browserSessionStorage.getAuthorityMetadata(key)
+                        browserSessionStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getAuthorityMetadata(key)
+                        browserLocalStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
@@ -3138,14 +3224,28 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("setAuthorityMetadata() and getAuthorityMetadata() sets and returns AuthorityMetadataEntity in-memory", () => {
-                    browserSessionStorage.setAuthorityMetadata(key, testObj);
-                    browserLocalStorage.setAuthorityMetadata(key, testObj);
+                    browserSessionStorage.setAuthorityMetadata(
+                        key,
+                        testObj,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    browserLocalStorage.setAuthorityMetadata(
+                        key,
+                        testObj,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
 
                     expect(
-                        browserSessionStorage.getAuthorityMetadata(key)
+                        browserSessionStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toEqual(testObj);
                     expect(
-                        browserLocalStorage.getAuthorityMetadata(key)
+                        browserLocalStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toEqual(testObj);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
@@ -3156,14 +3256,28 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("clear() removes AuthorityMetadataEntity from in-memory storage", async () => {
-                    browserSessionStorage.setAuthorityMetadata(key, testObj);
-                    browserLocalStorage.setAuthorityMetadata(key, testObj);
+                    browserSessionStorage.setAuthorityMetadata(
+                        key,
+                        testObj,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    browserLocalStorage.setAuthorityMetadata(
+                        key,
+                        testObj,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
 
                     expect(
-                        browserSessionStorage.getAuthorityMetadata(key)
+                        browserSessionStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toEqual(testObj);
                     expect(
-                        browserLocalStorage.getAuthorityMetadata(key)
+                        browserLocalStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toEqual(testObj);
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys()
@@ -3175,10 +3289,16 @@ describe("BrowserCacheManager tests", () => {
                     browserSessionStorage.clear(RANDOM_TEST_GUID);
                     browserLocalStorage.clear(RANDOM_TEST_GUID);
                     expect(
-                        browserSessionStorage.getAuthorityMetadata(key)
+                        browserSessionStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getAuthorityMetadata(key)
+                        browserLocalStorage.getAuthorityMetadata(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
                         browserLocalStorage.getAuthorityMetadataKeys().length
@@ -3193,10 +3313,16 @@ describe("BrowserCacheManager tests", () => {
                 it("getThrottlingCache returns null if key not in cache", () => {
                     const key = "not-in-cache";
                     expect(
-                        browserSessionStorage.getServerTelemetry(key)
+                        browserSessionStorage.getServerTelemetry(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getServerTelemetry(key)
+                        browserLocalStorage.getServerTelemetry(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
 
@@ -3206,10 +3332,16 @@ describe("BrowserCacheManager tests", () => {
                     window.sessionStorage.setItem(key, "this is not json");
 
                     expect(
-                        browserSessionStorage.getThrottlingCache(key)
+                        browserSessionStorage.getThrottlingCache(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getThrottlingCache(key)
+                        browserLocalStorage.getThrottlingCache(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
 
@@ -3229,10 +3361,16 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     expect(
-                        browserSessionStorage.getThrottlingCache(key)
+                        browserSessionStorage.getThrottlingCache(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                     expect(
-                        browserLocalStorage.getThrottlingCache(key)
+                        browserLocalStorage.getThrottlingCache(
+                            key,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
 
@@ -3254,11 +3392,17 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     expect(
-                        browserSessionStorage.getThrottlingCache(testKey)
+                        browserSessionStorage.getThrottlingCache(
+                            testKey,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toEqual(testVal);
 
                     expect(
-                        browserLocalStorage.getThrottlingCache(testKey)
+                        browserLocalStorage.getThrottlingCache(
+                            testKey,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toEqual(testVal);
                 });
             });
@@ -3440,7 +3584,10 @@ describe("BrowserCacheManager tests", () => {
                     );
                     expect(cacheManager.getInteractionInProgress()).toBeNull();
                     expect(
-                        cacheManager.getTemporaryCache(requestParamKey)
+                        cacheManager.getTemporaryCache(
+                            requestParamKey,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                     ).toBeNull();
                 });
             });
@@ -3475,7 +3622,7 @@ describe("BrowserCacheManager tests", () => {
                 TEST_URIS.TEST_REDIR_URI
             );
 
-            browserStorage.resetRequestCache();
+            browserStorage.resetRequestCache(TEST_CONFIG.CORRELATION_ID);
 
             expect(window.sessionStorage[requestParamsKey]).toBeUndefined();
             expect(window.sessionStorage[originUriKey]).toBeUndefined();
@@ -3503,11 +3650,12 @@ describe("BrowserCacheManager tests", () => {
 
             browserStorage.cacheAuthorizeRequest(
                 tokenRequest,
+                TEST_CONFIG.CORRELATION_ID,
                 TEST_CONFIG.TEST_VERIFIER
             );
 
             const [cachedRequest, codeVerifier] =
-                browserStorage.getCachedRequest();
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID);
             expect(cachedRequest).toEqual(tokenRequest);
             expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
         });
@@ -3522,7 +3670,9 @@ describe("BrowserCacheManager tests", () => {
                 new EventHandler()
             );
 
-            expect(() => browserStorage.getCachedRequest()).toThrow(
+            expect(() =>
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
+            ).toThrow(
                 new BrowserAuthError(
                     BrowserAuthErrorCodes.noTokenRequestCacheError
                 )
@@ -3559,7 +3709,9 @@ describe("BrowserCacheManager tests", () => {
                 stringifiedRequest.substring(0, stringifiedRequest.length / 2),
                 true
             );
-            expect(() => browserStorage.getCachedRequest()).toThrow(
+            expect(() =>
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID)
+            ).toThrow(
                 new BrowserAuthError(
                     BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
                 )

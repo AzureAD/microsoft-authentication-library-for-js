@@ -2,7 +2,11 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
-import { RANDOM_TEST_GUID, TEST_URIS } from "../utils/StringConstants";
+import {
+    RANDOM_TEST_GUID,
+    TEST_CONFIG,
+    TEST_URIS,
+} from "../utils/StringConstants";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -301,7 +305,10 @@ describe("CryptoOps.ts Unit Tests", () => {
             resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS,
         } as BaseAuthRequest);
         const key = mockDatabase["TestDB.keys"][pkThumbprint];
-        await cryptoObj.removeTokenBindingKey(pkThumbprint);
+        await cryptoObj.removeTokenBindingKey(
+            pkThumbprint,
+            TEST_CONFIG.CORRELATION_ID
+        );
         expect(key).not.toBe(undefined);
         expect(mockDatabase["TestDB.keys"][pkThumbprint]).toBe(undefined);
     }, 30000);

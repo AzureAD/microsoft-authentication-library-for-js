@@ -69,20 +69,21 @@ export class PersistenceCachePlugin implements ICachePlugin {
     public async beforeCacheAccess(
         cacheContext: TokenCacheContext
     ): Promise<void> {
-        this.logger.info("Executing before cache access");
+        this.logger.info("Executing before cache access", "");
         const reloadNecessary = await this.persistence.reloadNecessary(
             this.lastSync
         );
         if (!reloadNecessary && this.currentCache !== null) {
             if (cacheContext.cacheHasChanged) {
-                this.logger.verbose("Cache context has changed");
+                this.logger.verbose("Cache context has changed", "");
                 await this.crossPlatformLock.lock();
             }
             return;
         }
         try {
             this.logger.info(
-                `Reload necessary. Last sync time: ${this.lastSync}`
+                `Reload necessary. Last sync time: ${this.lastSync}`,
+                ""
             );
             await this.crossPlatformLock.lock();
 
@@ -91,17 +92,18 @@ export class PersistenceCachePlugin implements ICachePlugin {
             if (this.currentCache) {
                 cacheContext.tokenCache.deserialize(this.currentCache);
             } else {
-                this.logger.info("Cache empty.");
+                this.logger.info("Cache empty.", "");
             }
 
-            this.logger.info(`Last sync time updated to: ${this.lastSync}`);
+            this.logger.info(`Last sync time updated to: ${this.lastSync}`, "");
         } finally {
             if (!cacheContext.cacheHasChanged) {
                 await this.crossPlatformLock.unlock();
-                this.logger.info(`Pid ${pid} released lock`);
+                this.logger.info(`Pid ${pid} released lock`, "");
             } else {
                 this.logger.info(
-                    `Pid ${pid} beforeCacheAccess did not release lock`
+                    `Pid ${pid} beforeCacheAccess did not release lock`,
+                    ""
                 );
             }
         }
@@ -113,22 +115,24 @@ export class PersistenceCachePlugin implements ICachePlugin {
     public async afterCacheAccess(
         cacheContext: TokenCacheContext
     ): Promise<void> {
-        this.logger.info("Executing after cache access");
+        this.logger.info("Executing after cache access", "");
         try {
             if (cacheContext.cacheHasChanged) {
                 this.logger.info(
-                    "Msal in-memory cache has changed. Writing changes to persistence"
+                    "Msal in-memory cache has changed. Writing changes to persistence",
+                    ""
                 );
                 this.currentCache = cacheContext.tokenCache.serialize();
                 await this.persistence.save(this.currentCache);
             } else {
                 this.logger.info(
-                    "Msal in-memory cache has not changed. Did not write to persistence"
+                    "Msal in-memory cache has not changed. Did not write to persistence",
+                    ""
                 );
             }
         } finally {
             await this.crossPlatformLock.unlock();
-            this.logger.info(`Pid ${pid} afterCacheAccess released lock`);
+            this.logger.info(`Pid ${pid} afterCacheAccess released lock`, "");
         }
     }
 }

@@ -24,7 +24,11 @@ import { invokeAsync } from "../utils/FunctionWrappers.js";
  *
  * @param authorityUri
  * @param networkClient
- * @param protocolMode
+ * @param cacheManager
+ * @param authorityOptions
+ * @param logger
+ * @param correlationId
+ * @param performanceClient
  * @internal
  */
 export async function createDiscoveredInstance(
@@ -34,7 +38,7 @@ export async function createDiscoveredInstance(
     authorityOptions: AuthorityOptions,
     logger: Logger,
     correlationId: string,
-    performanceClient?: IPerformanceClient
+    performanceClient: IPerformanceClient
 ): Promise<Authority> {
     const authorityUriFinal = Authority.transformCIAMAuthority(
         formatAuthorityUri(authorityUri)

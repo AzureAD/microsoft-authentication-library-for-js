@@ -67,8 +67,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        platformAuthProvider?: IPlatformAuthHandler,
-        correlationId?: string
+        correlationId: string,
+        platformAuthProvider?: IPlatformAuthHandler
     ) {
         super(
             config,
@@ -78,8 +78,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            platformAuthProvider,
-            correlationId
+            correlationId,
+            platformAuthProvider
         );
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;
@@ -99,7 +99,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             (!request.account || !request.account.username)
         ) {
             this.logger.warning(
-                "No user hint provided. The authorization server may need more information to complete this request."
+                "No user hint provided. The authorization server may need more information to complete this request.",
+                this.correlationId
             );
         }
 
@@ -111,7 +112,8 @@ export class SilentIframeClient extends StandardInteractionClient {
                 inputRequest.prompt !== Constants.PromptValue.NO_SESSION
             ) {
                 this.logger.warning(
-                    `SilentIframeClient. Replacing invalid prompt '${inputRequest.prompt}' with '${Constants.PromptValue.NONE}'`
+                    `SilentIframeClient. Replacing invalid prompt '${inputRequest.prompt}' with '${Constants.PromptValue.NONE}'`,
+                    this.correlationId
                 );
                 inputRequest.prompt = Constants.PromptValue.NONE;
             }
@@ -125,7 +127,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            this.correlationId
         )(
             inputRequest,
             InteractionType.Silent,
@@ -139,6 +141,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         silentRequest.platformBroker = isPlatformAuthAllowed(
             this.config,
             this.logger,
+            this.correlationId,
             this.platformAuthProvider,
             silentRequest.authenticationScheme
         );
@@ -303,7 +306,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(responseString, responseType, this.logger);
+        )(responseString, responseType, this.logger, this.correlationId);
 
         return invokeAsync(
             Authorize.handleResponseEAR,
@@ -408,7 +411,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(responseString, responseType, this.logger);
+        )(responseString, responseType, this.logger, this.correlationId);
 
         return invokeAsync(
             Authorize.handleResponseCode,

@@ -55,7 +55,7 @@ export class SilentCacheClient extends StandardInteractionClient {
             clientConfig,
             this.performanceClient
         );
-        this.logger.verbose("Silent auth client created");
+        this.logger.verbose("Silent auth client created", this.correlationId);
 
         try {
             const response = await invokeAsync(
@@ -80,7 +80,8 @@ export class SilentCacheClient extends StandardInteractionClient {
                 error.errorCode === BrowserAuthErrorCodes.cryptoKeyNotFound
             ) {
                 this.logger.verbose(
-                    "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."
+                    "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.",
+                    this.correlationId
                 );
             }
             throw error;
@@ -92,7 +93,7 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param logoutRequest
      */
     logout(logoutRequest?: ClearCacheRequest): Promise<void> {
-        this.logger.verbose("logoutRedirect called");
+        this.logger.verbose("logoutRedirect called", this.correlationId);
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         return clearCacheOnLogout(
             this.browserStorage,

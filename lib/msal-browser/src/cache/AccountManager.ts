@@ -18,7 +18,7 @@ export function getAllAccounts(
     correlationId: string,
     accountFilter?: AccountFilter
 ): AccountInfo[] {
-    logger.verbose("getAllAccounts called");
+    logger.verbose("getAllAccounts called", correlationId);
     return isInBrowser
         ? browserStorage.getAllAccounts(accountFilter, correlationId)
         : [];
@@ -43,11 +43,15 @@ export function getAccount(
 
     if (account) {
         logger.verbose(
-            "getAccount: Account matching provided filter found, returning"
+            "getAccount: Account matching provided filter found, returning",
+            correlationId
         );
         return account;
     } else {
-        logger.verbose("getAccount: No matching account found, returning null");
+        logger.verbose(
+            "getAccount: No matching account found, returning null",
+            correlationId
+        );
         return null;
     }
 }
@@ -66,9 +70,12 @@ export function getAccountByUsername(
     browserStorage: BrowserCacheManager,
     correlationId: string
 ): AccountInfo | null {
-    logger.trace("getAccountByUsername called");
+    logger.trace("getAccountByUsername called", correlationId);
     if (!username) {
-        logger.warning("getAccountByUsername: No username provided");
+        logger.warning(
+            "getAccountByUsername: No username provided",
+            correlationId
+        );
         return null;
     }
 
@@ -80,15 +87,18 @@ export function getAccountByUsername(
     );
     if (account) {
         logger.verbose(
-            "getAccountByUsername: Account matching username found, returning"
+            "getAccountByUsername: Account matching username found, returning",
+            correlationId
         );
         logger.verbosePii(
-            `getAccountByUsername: Returning signed-in accounts matching username: '${username}'`
+            `getAccountByUsername: Returning signed-in accounts matching username: '${username}'`,
+            correlationId
         );
         return account;
     } else {
         logger.verbose(
-            "getAccountByUsername: No matching account found, returning null"
+            "getAccountByUsername: No matching account found, returning null",
+            correlationId
         );
         return null;
     }
@@ -107,9 +117,12 @@ export function getAccountByHomeId(
     browserStorage: BrowserCacheManager,
     correlationId: string
 ): AccountInfo | null {
-    logger.trace("getAccountByHomeId called");
+    logger.trace("getAccountByHomeId called", correlationId);
     if (!homeAccountId) {
-        logger.warning("getAccountByHomeId: No homeAccountId provided");
+        logger.warning(
+            "getAccountByHomeId: No homeAccountId provided",
+            correlationId
+        );
         return null;
     }
 
@@ -121,15 +134,18 @@ export function getAccountByHomeId(
     );
     if (account) {
         logger.verbose(
-            "getAccountByHomeId: Account matching homeAccountId found, returning"
+            "getAccountByHomeId: Account matching homeAccountId found, returning",
+            correlationId
         );
         logger.verbosePii(
-            `getAccountByHomeId: Returning signed-in accounts matching homeAccountId: '${homeAccountId}'`
+            `getAccountByHomeId: Returning signed-in accounts matching homeAccountId: '${homeAccountId}'`,
+            correlationId
         );
         return account;
     } else {
         logger.verbose(
-            "getAccountByHomeId: No matching account found, returning null"
+            "getAccountByHomeId: No matching account found, returning null",
+            correlationId
         );
         return null;
     }
@@ -148,9 +164,12 @@ export function getAccountByLocalId(
     browserStorage: BrowserCacheManager,
     correlationId: string
 ): AccountInfo | null {
-    logger.trace("getAccountByLocalId called");
+    logger.trace("getAccountByLocalId called", correlationId);
     if (!localAccountId) {
-        logger.warning("getAccountByLocalId: No localAccountId provided");
+        logger.warning(
+            "getAccountByLocalId: No localAccountId provided",
+            correlationId
+        );
         return null;
     }
 
@@ -162,15 +181,18 @@ export function getAccountByLocalId(
     );
     if (account) {
         logger.verbose(
-            "getAccountByLocalId: Account matching localAccountId found, returning"
+            "getAccountByLocalId: Account matching localAccountId found, returning",
+            correlationId
         );
         logger.verbosePii(
-            `getAccountByLocalId: Returning signed-in accounts matching localAccountId: '${localAccountId}'`
+            `getAccountByLocalId: Returning signed-in accounts matching localAccountId: '${localAccountId}'`,
+            correlationId
         );
         return account;
     } else {
         logger.verbose(
-            "getAccountByLocalId: No matching account found, returning null"
+            "getAccountByLocalId: No matching account found, returning null",
+            correlationId
         );
         return null;
     }

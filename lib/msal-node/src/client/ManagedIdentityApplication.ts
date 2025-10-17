@@ -17,6 +17,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     Constants,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
@@ -102,7 +103,7 @@ export class ManagedIdentityApplication {
             fakeAuthorityOptions,
             this.logger,
             this.cryptoProvider.createNewGuid(), // correlationID
-            undefined,
+            new StubPerformanceClient(),
             true
         );
 
@@ -207,7 +208,8 @@ export class ManagedIdentityApplication {
                 Constants.CacheOutcome.PROACTIVELY_REFRESHED
             ) {
                 this.logger.info(
-                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed.",
+                    managedIdentityRequest.correlationId
                 );
 
                 // force refresh; will run in the background

@@ -20,9 +20,9 @@ export class RegionDiscovery {
     // Logger
     private logger: Logger;
     // Performance client
-    protected performanceClient: IPerformanceClient | undefined;
+    protected performanceClient: IPerformanceClient;
     // CorrelationId
-    protected correlationId: string | undefined;
+    protected correlationId: string;
     // Options for the IMDS endpoint request
     protected static IMDS_OPTIONS: ImdsOptions = {
         headers: {
@@ -33,8 +33,8 @@ export class RegionDiscovery {
     constructor(
         networkInterface: INetworkModule,
         logger: Logger,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
+        performanceClient: IPerformanceClient,
+        correlationId: string
     ) {
         this.networkInterface = networkInterface;
         this.logger = logger;

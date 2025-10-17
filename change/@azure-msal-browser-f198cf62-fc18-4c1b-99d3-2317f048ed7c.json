@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Upgrade/rollback telemetry #7738",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

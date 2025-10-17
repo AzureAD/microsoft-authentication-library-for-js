@@ -2,8 +2,9 @@ import { Logger, LogLevel } from "@azure/msal-common";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError";
-import { AsyncMemoryStorage } from "../../src/cache/AsyncMemoryStorage";
+} from "../../src/error/BrowserAuthError.js";
+import { AsyncMemoryStorage } from "../../src/cache/AsyncMemoryStorage.js";
+import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 let mockDatabase = {};
 
@@ -168,7 +169,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = TEST_CACHE_ITEMS.TestItem.value;
                 const item = await asyncMemoryStorage.getItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 expect(callCounter.getItem).toBe(1);
                 expect(callCounter.getItemPersistent).toBe(0);
@@ -180,7 +182,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = TEST_CACHE_ITEMS.TestItem.value;
                 const item = await asyncMemoryStorage.getItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 expect(callCounter.getItem).toBe(1);
                 expect(callCounter.getItemPersistent).toBe(1);
@@ -205,7 +208,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
             it("should set item in in-memory cache and persistent storage", async () => {
                 await asyncMemoryStorage.setItem(
                     TEST_CACHE_ITEMS.TestItem.key,
-                    TEST_CACHE_ITEMS.TestItem.value
+                    TEST_CACHE_ITEMS.TestItem.value,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 const memoryItem =
                     mockInMemoryCache[TEST_DB_TABLE_NAME][
@@ -238,7 +242,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = TEST_CACHE_ITEMS.TestItem.value;
                 await asyncMemoryStorage.removeItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 expect(callCounter.removeItem).toBe(1);
                 expect(callCounter.removeItemPersistent).toBe(1);
@@ -271,7 +276,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
             });
 
             it("should clear in-memory storage by deleting all elements inside", async () => {
-                asyncMemoryStorage.clearInMemory();
+                asyncMemoryStorage.clearInMemory(TEST_CONFIG.CORRELATION_ID);
                 expect(callCounter.clearInMemory).toBe(1);
                 expect(
                     Object.keys(mockInMemoryCache[TEST_DB_TABLE_NAME]).length
@@ -279,7 +284,9 @@ describe("AsyncMemoryStorage Unit Tests", () => {
             });
 
             it("should clear persistent storage by deleting the IndexedDB database", async () => {
-                const deleted = await asyncMemoryStorage.clearPersistent();
+                const deleted = await asyncMemoryStorage.clearPersistent(
+                    TEST_CONFIG.CORRELATION_ID
+                );
                 expect(deleted).toBe(true);
                 expect(callCounter.clearPersistent).toBe(1);
                 expect(mockDatabase[TEST_DB_TABLE_NAME]).toBe(undefined);
@@ -290,7 +297,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
 
                 return new Promise((resolve, reject) => {
                     asyncMemoryStorage
-                        .clearPersistent()
+                        .clearPersistent(TEST_CONFIG.CORRELATION_ID)
                         .then(() => {
                             reject("This code path should not be reached");
                         })
@@ -327,7 +334,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = DB_UNAVAILABLE;
                 const item = await asyncMemoryStorage.getItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 const lastLog = logMessages[logMessages.length - 1];
                 expect(callCounter.getItem).toBe(1);
@@ -353,7 +361,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
             it("should log an error if persistent storage is unavailable or inaccessible", async () => {
                 const item = await asyncMemoryStorage.setItem(
                     TEST_CACHE_ITEMS.TestItem.key,
-                    DB_UNAVAILABLE
+                    DB_UNAVAILABLE,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 const lastLog = logMessages[logMessages.length - 1];
                 expect(callCounter.setItem).toBe(1);
@@ -381,7 +390,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = DB_UNAVAILABLE;
                 await asyncMemoryStorage.removeItem(
-                    TEST_CACHE_ITEMS.TestItem.key
+                    TEST_CACHE_ITEMS.TestItem.key,
+                    TEST_CONFIG.CORRELATION_ID
                 );
                 const lastLog = logMessages[logMessages.length - 1];
                 expect(callCounter.removeItem).toBe(1);

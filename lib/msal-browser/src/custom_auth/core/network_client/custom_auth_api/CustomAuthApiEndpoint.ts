@@ -16,3 +16,7 @@ export const RESET_PWD_CHALLENGE = "/resetpassword/v1.0/challenge";
 export const RESET_PWD_CONTINUE = "/resetpassword/v1.0/continue";
 export const RESET_PWD_SUBMIT = "/resetpassword/v1.0/submit";
 export const RESET_PWD_POLL = "/resetpassword/v1.0/poll_completion";
+
+export const REGISTER_INTROSPECT = "/register/v1.0/introspect";
+export const REGISTER_CHALLENGE = "/register/v1.0/challenge";
+export const REGISTER_CONTINUE = "/register/v1.0/continue";

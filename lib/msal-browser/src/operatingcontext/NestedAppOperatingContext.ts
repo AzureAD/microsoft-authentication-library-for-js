@@ -57,9 +57,10 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
     /**
      * Checks whether the operating context is available.
      * Confirms that the code is running a browser rather.  This is required.
+     * @param correlationId
      * @returns Promise<boolean> indicating whether this operating context is currently available.
      */
-    async initialize(): Promise<boolean> {
+    async initialize(correlationId: string): Promise<boolean> {
         try {
             if (typeof window !== "undefined") {
                 if (typeof window.__initializeNestedAppAuth === "function") {
@@ -78,12 +79,14 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
             }
         } catch (ex) {
             this.logger.infoPii(
-                `Could not initialize Nested App Auth bridge ('${ex}')`
+                `Could not initialize Nested App Auth bridge ('${ex}')`,
+                correlationId
             );
         }
 
         this.logger.info(
-            `Nested App Auth Bridge available: '${this.available}'`
+            `Nested App Auth Bridge available: '${this.available}'`,
+            correlationId
         );
         return this.available;
     }
