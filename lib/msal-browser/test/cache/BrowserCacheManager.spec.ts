@@ -59,6 +59,7 @@ import { getAccount } from "../../src/cache/AccountManager.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 import { SessionStorage } from "../../src/cache/SessionStorage.js";
 import { isEncrypted } from "../../src/cache/EncryptedData.js";
+import { parse } from "path";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -451,6 +452,553 @@ describe("BrowserCacheManager tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
             });
+
+            describe("getKMSIValues", () => {
+                it("should return empty map when there are no idTokens", () => {
+                    const kmsiMap = browserCacheManager.getKMSIValues();
+                    expect(kmsiMap).toEqual({});
+                });
+
+                it("should handle idToken with no signin_state claim", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Use existing IDTOKEN_V2 which doesn't have signin_state claim
+                    const idTokenWithoutKmsi = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        secret: TEST_TOKENS.IDTOKEN_V2,
+                    };
+                    await browserCacheManager.setIdTokenCredential(
+                        idTokenWithoutKmsi,
+                        TEST_CONFIG.CORRELATION_ID,
+                        false
+                    );
+
+                    const kmsiMap = browserCacheManager.getKMSIValues();
+                    // IDTOKEN_V2 doesn't have signin_state, so KMSI should be false
+                    expect(kmsiMap[idTokenWithoutKmsi.homeAccountId]).toBe(
+                        false
+                    );
+                });
+
+                it("should return correct KMSI values for multiple accounts", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Account 1 - Use IDTOKEN_V2 which doesn't have signin_state
+                    const idToken1 = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        homeAccountId: "account1.tenant1",
+                        secret: TEST_TOKENS.IDTOKEN_V2,
+                    };
+                    await browserCacheManager.setIdTokenCredential(
+                        idToken1,
+                        TEST_CONFIG.CORRELATION_ID,
+                        false
+                    );
+
+                    // Account 2 - Use IDTOKEN_V2_ALT which also doesn't have signin_state
+                    const idToken2 = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        homeAccountId: "account2.tenant2",
+                        secret: TEST_TOKENS.IDTOKEN_V2_ALT,
+                    };
+                    await browserCacheManager.setIdTokenCredential(
+                        idToken2,
+                        TEST_CONFIG.CORRELATION_ID,
+                        false
+                    );
+
+                    const kmsiMap = browserCacheManager.getKMSIValues();
+                    expect(Object.keys(kmsiMap).length).toBe(2);
+                    expect(kmsiMap["account1.tenant1"]).toBe(false);
+                    expect(kmsiMap["account2.tenant2"]).toBe(false);
+                });
+
+                it("should return KMSI=true for idToken with signin_state claim", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Create an idToken entity with signin_state in the claims
+                    // We'll mock the getUserData to return a token with the right structure
+                    const idTokenWithKmsi = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        homeAccountId: "kmsi-account.tenant",
+                        secret: TEST_TOKENS.IDTOKEN_V2,
+                    };
+
+                    // Store the token first
+                    await browserCacheManager.setIdTokenCredential(
+                        idTokenWithKmsi,
+                        TEST_CONFIG.CORRELATION_ID,
+                        true
+                    );
+
+                    // Mock getUserData to inject signin_state into the decoded claims
+                    // We need to mock at the point where getKMSIValues reads the token
+                    const originalGetUserData = browserCacheManager[
+                        "browserStorage"
+                    ].getUserData.bind(browserCacheManager["browserStorage"]);
+                    jest.spyOn(
+                        browserCacheManager["browserStorage"],
+                        "getUserData"
+                    ).mockImplementation((key: string) => {
+                        const data = originalGetUserData(key);
+                        if (data) {
+                            const parsed = JSON.parse(data);
+                            if (
+                                parsed.homeAccountId === "kmsi-account.tenant"
+                            ) {
+                                // Create a mock token with signin_state
+                                // Base64 encode a payload with signin_state: ["kmsi"]
+                                const header =
+                                    "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9"; // {"typ":"JWT","alg":"RS256"}
+                                const payload = Buffer.from(
+                                    JSON.stringify({
+                                        oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                                        sub: "sub",
+                                        signin_state: ["kmsi"],
+                                    })
+                                ).toString("base64");
+                                const signature = "signature";
+                                parsed.secret = `${header}.${payload}.${signature}`;
+                            }
+                            return JSON.stringify(parsed);
+                        }
+                        return data;
+                    });
+
+                    const kmsiMap = browserCacheManager.getKMSIValues();
+                    expect(kmsiMap["kmsi-account.tenant"]).toBe(true);
+
+                    // Restore the original method
+                    jest.restoreAllMocks();
+                });
+
+                it("should skip invalid idToken entries", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Create a valid idToken first
+                    await browserCacheManager.setIdTokenCredential(
+                        TEST_ID_TOKEN_ENTITY,
+                        TEST_CONFIG.CORRELATION_ID,
+                        true
+                    );
+
+                    // Manually add an invalid entry
+                    const tokenKeys = browserCacheManager.getTokenKeys();
+                    tokenKeys.idToken.push("invalid-key");
+                    browserCacheManager.setTokenKeys(
+                        tokenKeys,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    const kmsiMap = browserCacheManager.getKMSIValues();
+                    // Should only have the valid token
+                    expect(Object.keys(kmsiMap).length).toBe(1);
+                    expect(
+                        kmsiMap[TEST_ID_TOKEN_ENTITY.homeAccountId]
+                    ).toBeDefined();
+                });
+            });
+
+            describe("migrateIdTokens - KMSI edge cases", () => {
+                it("should migrate when old token has signin_state and is newer", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Create a v0 token WITH signin_state (KMSI) - different account to avoid conflicts
+                    // Use recent timestamp to avoid cache expiration
+                    const recentTimestamp = (Date.now() - 1000).toString(); // 1 second ago
+                    const v0IdToken = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        homeAccountId: "v0-account.tenant",
+                        secret: TEST_TOKENS.IDTOKEN_V2, // Has signin_state
+                        lastUpdatedAt: recentTimestamp,
+                    };
+                    const v0IdTokenKey = `${v0IdToken.homeAccountId}-${v0IdToken.environment}-idtoken-${v0IdToken.clientId}-${v0IdToken.realm}`;
+                    window.localStorage.setItem(
+                        v0IdTokenKey,
+                        JSON.stringify(v0IdToken)
+                    );
+
+                    // Setup v0 account
+                    const v0Account = {
+                        ...TEST_ACCOUNT_ENTITY,
+                        homeAccountId: "v0-account.tenant",
+                    };
+                    const v0AccountKey = `${v0Account.homeAccountId}-${v0Account.environment}-${v0Account.realm}`;
+                    window.localStorage.setItem(
+                        v0AccountKey,
+                        JSON.stringify(v0Account)
+                    );
+                    window.localStorage.setItem(
+                        "msal.account.keys",
+                        JSON.stringify([v0AccountKey])
+                    );
+
+                    // Setup v0 token keys
+                    window.localStorage.setItem(
+                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                        JSON.stringify({
+                            idToken: [v0IdTokenKey],
+                            accessToken: [],
+                            refreshToken: [],
+                        })
+                    );
+
+                    const performanceIncrement = jest.spyOn(
+                        performanceClient,
+                        "incrementFields"
+                    );
+
+                    await browserCacheManager.migrateExistingCache(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Should have migrated successfully
+                    expect(performanceIncrement).toHaveBeenCalledWith(
+                        { migratedITCount: 1 },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                });
+
+                it("should NOT overwrite newer tokens with KMSI during migration", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Setup a fresh account and idToken (this will be the "current" v2 state)
+                    const currentAccount = new AccountEntity();
+                    Object.assign(currentAccount, TEST_ACCOUNT_ENTITY);
+                    currentAccount.homeAccountId = "test-account.tenant";
+                    currentAccount.lastUpdatedAt = "3000"; // Newest
+
+                    const currentIdToken = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        homeAccountId: "test-account.tenant",
+                        secret: TEST_TOKENS.IDTOKEN_V2, // Has signin_state
+                        lastUpdatedAt: "3000", // Newest
+                    };
+                    await browserCacheManager.setAccount(
+                        currentAccount,
+                        TEST_CONFIG.CORRELATION_ID,
+                        true
+                    );
+                    await browserCacheManager.setIdTokenCredential(
+                        currentIdToken,
+                        TEST_CONFIG.CORRELATION_ID,
+                        true
+                    );
+
+                    // Now setup an older v0 token - use IDTOKEN_V2_ALT as a different token
+                    const v0IdToken = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        homeAccountId: "test-account.tenant",
+                        secret: TEST_TOKENS.IDTOKEN_V2_ALT,
+                        lastUpdatedAt: "1000", // Older
+                    };
+                    const v0IdTokenKey = `${v0IdToken.homeAccountId}-${v0IdToken.environment}-idtoken-${v0IdToken.clientId}-${v0IdToken.realm}`;
+                    window.localStorage.setItem(
+                        v0IdTokenKey,
+                        JSON.stringify(v0IdToken)
+                    );
+
+                    // Setup v0 account
+                    const v0Account = {
+                        ...TEST_ACCOUNT_ENTITY,
+                        homeAccountId: "test-account.tenant",
+                        lastUpdatedAt: "1000",
+                    };
+                    const v0AccountKey = `${v0Account.homeAccountId}-${v0Account.environment}-${v0Account.realm}`;
+                    window.localStorage.setItem(
+                        v0AccountKey,
+                        JSON.stringify(v0Account)
+                    );
+                    window.localStorage.setItem(
+                        "msal.account.keys",
+                        JSON.stringify([v0AccountKey])
+                    );
+
+                    // Setup v0 token keys
+                    window.localStorage.setItem(
+                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                        JSON.stringify({
+                            idToken: [v0IdTokenKey],
+                            accessToken: [],
+                            refreshToken: [],
+                        })
+                    );
+
+                    await browserCacheManager.migrateExistingCache(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Should NOT have overwritten - current token with signin_state should remain
+                    const currentToken =
+                        browserCacheManager.getIdTokenCredential(
+                            browserCacheManager.generateCredentialKey(
+                                currentIdToken
+                            ),
+                            TEST_CONFIG.CORRELATION_ID
+                        );
+                    expect(currentToken?.secret).toBe(TEST_TOKENS.IDTOKEN_V2);
+                });
+
+                it("should skip migration when account is missing", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Create v0 idToken without corresponding account
+                    const v0IdToken = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        homeAccountId: "orphaned-account",
+                    };
+                    const v0IdTokenKey = `${v0IdToken.homeAccountId}-${v0IdToken.environment}-idtoken-${v0IdToken.clientId}-${v0IdToken.realm}`;
+                    window.localStorage.setItem(
+                        v0IdTokenKey,
+                        JSON.stringify(v0IdToken)
+                    );
+
+                    // Setup v0 token keys but NO account keys
+                    window.localStorage.setItem(
+                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                        JSON.stringify({
+                            idToken: [v0IdTokenKey],
+                            accessToken: [],
+                            refreshToken: [],
+                        })
+                    );
+
+                    const performanceIncrement = jest.spyOn(
+                        performanceClient,
+                        "incrementFields"
+                    );
+
+                    await browserCacheManager.migrateExistingCache(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Should have skipped the migration
+                    expect(performanceIncrement).toHaveBeenCalledWith(
+                        { skipITMigrateCount: 1 },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                });
+            });
+
+            describe("migrateAccessTokens/RefreshTokens - KMSI edge cases", () => {
+                it("should skip access token migration when kmsiMap doesn't contain homeAccountId", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Create v0 access token without corresponding idToken
+                    const v0AccessToken = {
+                        ...TEST_ACCESS_TOKEN_ENTITY,
+                        homeAccountId: "orphaned-account",
+                    };
+                    const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
+                    window.localStorage.setItem(
+                        v0AccessTokenKey,
+                        JSON.stringify(v0AccessToken)
+                    );
+
+                    // Setup v0 token keys
+                    window.localStorage.setItem(
+                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                        JSON.stringify({
+                            idToken: [],
+                            accessToken: [v0AccessTokenKey],
+                            refreshToken: [],
+                        })
+                    );
+
+                    const performanceIncrement = jest.spyOn(
+                        performanceClient,
+                        "incrementFields"
+                    );
+
+                    await browserCacheManager.migrateExistingCache(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Should have skipped the migration
+                    expect(performanceIncrement).toHaveBeenCalledWith(
+                        { skipATMigrateCount: 1 },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                });
+
+                it("should skip refresh token migration when kmsiMap doesn't contain homeAccountId", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Create v0 refresh token without corresponding idToken
+                    const v0RefreshToken = {
+                        ...TEST_REFRESH_TOKEN_ENTITY,
+                        homeAccountId: "orphaned-account",
+                    };
+                    const v0RefreshTokenKey = `${v0RefreshToken.homeAccountId}-${v0RefreshToken.environment}-refreshtoken-${v0RefreshToken.clientId}----`;
+                    window.localStorage.setItem(
+                        v0RefreshTokenKey,
+                        JSON.stringify(v0RefreshToken)
+                    );
+
+                    // Setup v0 token keys
+                    window.localStorage.setItem(
+                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                        JSON.stringify({
+                            idToken: [],
+                            accessToken: [],
+                            refreshToken: [v0RefreshTokenKey],
+                        })
+                    );
+
+                    const performanceIncrement = jest.spyOn(
+                        performanceClient,
+                        "incrementFields"
+                    );
+
+                    await browserCacheManager.migrateExistingCache(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Should have skipped the migration
+                    expect(performanceIncrement).toHaveBeenCalledWith(
+                        { skipRTMigrateCount: 1 },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                });
+
+                it("should migrate access tokens with correct KMSI value from kmsiMap", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Setup idToken with KMSI=true
+                    const idToken = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        secret: TEST_TOKENS.IDTOKEN_V2, // Has signin_state with kmsi
+                    };
+                    await browserCacheManager.setIdTokenCredential(
+                        idToken,
+                        TEST_CONFIG.CORRELATION_ID,
+                        true
+                    );
+
+                    // Create v0 access token for same account
+                    const v0AccessToken = {
+                        ...TEST_ACCESS_TOKEN_ENTITY,
+                        homeAccountId: idToken.homeAccountId,
+                    };
+                    const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
+                    window.localStorage.setItem(
+                        v0AccessTokenKey,
+                        JSON.stringify(v0AccessToken)
+                    );
+
+                    // Setup v0 token keys
+                    window.localStorage.setItem(
+                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                        JSON.stringify({
+                            idToken: [],
+                            accessToken: [v0AccessTokenKey],
+                            refreshToken: [],
+                        })
+                    );
+
+                    const performanceIncrement = jest.spyOn(
+                        performanceClient,
+                        "incrementFields"
+                    );
+
+                    await browserCacheManager.migrateExistingCache(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Should have migrated successfully
+                    expect(performanceIncrement).toHaveBeenCalledWith(
+                        { migratedATCount: 1 },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                });
+
+                it("should only migrate access tokens when newer than existing", async () => {
+                    await browserCacheManager.initialize(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Use recent timestamp to avoid cache expiration
+                    const recentTimestamp = (Date.now() - 1000).toString(); // 1 second ago
+
+                    // Setup idToken first for KMSI map
+                    const idToken = {
+                        ...TEST_ID_TOKEN_ENTITY,
+                        lastUpdatedAt: recentTimestamp,
+                    };
+                    await browserCacheManager.setIdTokenCredential(
+                        idToken,
+                        TEST_CONFIG.CORRELATION_ID,
+                        true
+                    );
+
+                    // Create v0 access token (older) with specific target
+                    const v0AccessToken = {
+                        ...TEST_ACCESS_TOKEN_ENTITY,
+                        lastUpdatedAt: recentTimestamp,
+                        target: "scope1 scope2",
+                    };
+                    const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}-${v0AccessToken.target}--`;
+                    window.localStorage.setItem(
+                        v0AccessTokenKey,
+                        JSON.stringify(v0AccessToken)
+                    );
+
+                    // Setup v0 token keys
+                    window.localStorage.setItem(
+                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                        JSON.stringify({
+                            idToken: [],
+                            accessToken: [v0AccessTokenKey],
+                            refreshToken: [],
+                        })
+                    );
+
+                    const performanceIncrement = jest.spyOn(
+                        performanceClient,
+                        "incrementFields"
+                    );
+
+                    await browserCacheManager.migrateExistingCache(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Should have migrated the old token
+                    expect(performanceIncrement).toHaveBeenCalledWith(
+                        { migratedATCount: 1 },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    // Verify the token was migrated
+                    const migratedToken =
+                        browserCacheManager.getAccessTokenCredential(
+                            browserCacheManager.generateCredentialKey(
+                                v0AccessToken
+                            ),
+                            TEST_CONFIG.CORRELATION_ID
+                        );
+                    expect(migratedToken).toBeDefined();
+                });
+            });
         });
 
         describe("updateOldEntry", () => {
@@ -568,6 +1116,239 @@ describe("BrowserCacheManager tests", () => {
                         TEST_CONFIG.CORRELATION_ID
                     )
                 ).toBeNull();
+            });
+        });
+
+        describe("KMSI (Keep Me Signed In) Storage Tests", () => {
+            beforeEach(async () => {
+                await browserCacheManager.initialize(
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            });
+
+            it("should NOT encrypt idToken when KMSI is true", async () => {
+                const idToken = {
+                    ...TEST_ID_TOKEN_ENTITY,
+                    secret: TEST_TOKENS.IDTOKEN_V2,
+                };
+
+                await browserCacheManager.setIdTokenCredential(
+                    idToken,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true // KMSI = true, NO encryption (user wants to stay signed in)
+                );
+
+                const key = browserCacheManager.generateCredentialKey(idToken);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(isEncrypted(parsedValue)).toBe(false);
+                expect(parsedValue).toStrictEqual(idToken);
+            });
+
+            it("should encrypt idToken when KMSI is false", async () => {
+                const idToken = {
+                    ...TEST_ID_TOKEN_ENTITY,
+                    secret: TEST_TOKENS.IDTOKEN_V2,
+                };
+
+                await browserCacheManager.setIdTokenCredential(
+                    idToken,
+                    TEST_CONFIG.CORRELATION_ID,
+                    false // KMSI = false, encryption for additional security
+                );
+
+                const key = browserCacheManager.generateCredentialKey(idToken);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(isEncrypted(parsedValue)).toBe(true);
+            });
+
+            it("should NOT encrypt accessToken when KMSI is true", async () => {
+                const accessToken = {
+                    ...TEST_ACCESS_TOKEN_ENTITY,
+                };
+
+                await browserCacheManager.setAccessTokenCredential(
+                    accessToken,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true // KMSI = true, NO encryption
+                );
+
+                const key =
+                    browserCacheManager.generateCredentialKey(accessToken);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(isEncrypted(parsedValue)).toBe(false);
+                expect(parsedValue).toStrictEqual(accessToken);
+            });
+
+            it("should encrypt accessToken when KMSI is false", async () => {
+                const accessToken = {
+                    ...TEST_ACCESS_TOKEN_ENTITY,
+                };
+
+                await browserCacheManager.setAccessTokenCredential(
+                    accessToken,
+                    TEST_CONFIG.CORRELATION_ID,
+                    false // KMSI = false, encryption for security
+                );
+
+                const key =
+                    browserCacheManager.generateCredentialKey(accessToken);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(isEncrypted(parsedValue)).toBe(true);
+            });
+
+            it("should NOT encrypt refreshToken when KMSI is true", async () => {
+                const refreshToken = {
+                    ...TEST_REFRESH_TOKEN_ENTITY,
+                };
+
+                await browserCacheManager.setRefreshTokenCredential(
+                    refreshToken,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true // KMSI = true, NO encryption
+                );
+
+                const key =
+                    browserCacheManager.generateCredentialKey(refreshToken);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(isEncrypted(parsedValue)).toBe(false);
+                expect(parsedValue).toStrictEqual(refreshToken);
+            });
+
+            it("should encrypt refreshToken when KMSI is false", async () => {
+                const refreshToken = {
+                    ...TEST_REFRESH_TOKEN_ENTITY,
+                };
+
+                await browserCacheManager.setRefreshTokenCredential(
+                    refreshToken,
+                    TEST_CONFIG.CORRELATION_ID,
+                    false // KMSI = false, encryption for security
+                );
+
+                const key =
+                    browserCacheManager.generateCredentialKey(refreshToken);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(isEncrypted(parsedValue)).toBe(true);
+            });
+
+            it("should NOT encrypt account when KMSI is true", async () => {
+                const account = new AccountEntity();
+                Object.assign(account, TEST_ACCOUNT_ENTITY);
+
+                await browserCacheManager.setAccount(
+                    account,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true // KMSI = true, NO encryption
+                );
+
+                const accountInfo = {
+                    homeAccountId: account.homeAccountId,
+                    environment: account.environment,
+                    tenantId: account.realm,
+                    username: account.username,
+                    localAccountId: account.localAccountId,
+                };
+                const key = browserCacheManager.generateAccountKey(accountInfo);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(isEncrypted(parsedValue)).toBe(false);
+            });
+
+            it("should encrypt account when KMSI is false", async () => {
+                const account = new AccountEntity();
+                Object.assign(account, TEST_ACCOUNT_ENTITY);
+
+                await browserCacheManager.setAccount(
+                    account,
+                    TEST_CONFIG.CORRELATION_ID,
+                    false // KMSI = false, encryption for security
+                );
+
+                const accountInfo = {
+                    homeAccountId: account.homeAccountId,
+                    environment: account.environment,
+                    tenantId: account.realm,
+                    username: account.username,
+                    localAccountId: account.localAccountId,
+                };
+                const key = browserCacheManager.generateAccountKey(accountInfo);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(isEncrypted(parsedValue)).toBe(true);
+            });
+
+            it("should retrieve idToken without decryption when KMSI is true", async () => {
+                const idToken = {
+                    ...TEST_ID_TOKEN_ENTITY,
+                    secret: TEST_TOKENS.IDTOKEN_V2,
+                };
+
+                // Store without encryption (KMSI=true)
+                await browserCacheManager.setIdTokenCredential(
+                    idToken,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true
+                );
+
+                // Retrieve and verify no decryption needed
+                const key = browserCacheManager.generateCredentialKey(idToken);
+                const retrieved = browserCacheManager.getIdTokenCredential(
+                    key,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(retrieved).toBeDefined();
+                expect(retrieved?.secret).toBe(idToken.secret);
+                expect(retrieved?.homeAccountId).toBe(idToken.homeAccountId);
+            });
+
+            it("should retrieve and decrypt accessToken when KMSI is false", async () => {
+                const accessToken = {
+                    ...TEST_ACCESS_TOKEN_ENTITY,
+                };
+
+                // Store with encryption (KMSI=false)
+                await browserCacheManager.setAccessTokenCredential(
+                    accessToken,
+                    TEST_CONFIG.CORRELATION_ID,
+                    false
+                );
+
+                // Retrieve and verify decryption works
+                const key =
+                    browserCacheManager.generateCredentialKey(accessToken);
+                const retrieved = browserCacheManager.getAccessTokenCredential(
+                    key,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+                expect(retrieved).toBeDefined();
+                expect(retrieved?.secret).toBe(accessToken.secret);
+                expect(retrieved?.homeAccountId).toBe(
+                    accessToken.homeAccountId
+                );
             });
         });
 
