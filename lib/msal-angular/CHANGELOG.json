@@ -2,6 +2,99 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Thu, 02 Oct 2025 21:58:46 GMT",
+      "version": "5.0.0-alpha.0",
+      "tag": "@azure/msal-angular_v5.0.0-alpha.0",
+      "comments": {
+        "major": [
+          {
+            "author": "bradkovach@gmail.com",
+            "package": "@azure/msal-angular",
+            "commit": "ea6c026b1d3f89762a68650f8d6522539cfdaa6e",
+            "comment": "dx: Fix InjectionToken types to allow new Angular 14+ inject(TOKEN) syntax."
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "3a3b283e7f832ba14940464861432325a5f88174",
+            "comment": "Drop support for Angular 17 and below, add support for Angular 20"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "17247ba053cc796667fc3e89f9d38c3e0132b130",
+            "comment": "Remove deprecated functions and parameters"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "0e51bd9ec568ee0f25b14f0c01b8d80056225fa4",
+            "comment": "Upgrade MSAL Angular to Angular 19"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "da8782af0b3c07cc829b972ef777e95af00f4fa8",
+            "comment": "Update handleRedirectPromise signature to consolidate hash into options type"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.0.0-alpha.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "53f7d511c4abe24e3182f35f70c87de2b6aa3c7a",
+            "comment": "Merge dev changes to v5 branch #7748"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "7d5be4bc764effb51ebc03fa105033dbcef3d10f",
+            "comment": "Allow major change types for v5 updates #7647"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "7a767d3c98f228ae550281481356812d38ee89ec",
+            "comment": "Update build:all:prod"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "36dc89bede23d89bc73c762104afdb1c222077c8",
+            "comment": "Make correlation id mandatory for Logger calls #8071"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "24f3394d349672e10a11af0c9dd523381013e80f",
+            "comment": "Update rxjs dependency #7726"
+          }
+        ],
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "a0820db4c5444ef2ccc8257a5c03dd0dc1d617e1",
+            "comment": "Remove legacy APIs"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 06 May 2025 22:47:43 GMT",
       "version": "4.0.12",
       "tag": "@azure/msal-angular_v4.0.12",

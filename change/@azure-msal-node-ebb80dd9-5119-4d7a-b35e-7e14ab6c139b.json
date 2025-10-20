@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add correlationIds to cache APIs #7865",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

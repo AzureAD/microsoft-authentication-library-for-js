@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "remove access tokens synchronously",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

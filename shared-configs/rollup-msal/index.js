@@ -4,9 +4,10 @@
  */
 const path = require("path");
 const fs = require("fs");
+const { loggerMinifyPlugin } = require("./logger-minify-plugin");
 
 /**
- * Creates a package json for the specific output (ESM or CJS). This is necessary to resolve types properly in both formats. 
+ * Creates a package json for the specific output (ESM or CJS). This is necessary to resolve types properly in both formats.
  */
 const createPackageJson = ({libPath}) => {
     return {
@@ -24,5 +25,6 @@ const createPackageJson = ({libPath}) => {
 }
 
 module.exports = {
-    createPackageJson
+    createPackageJson,
+    loggerMinifyPlugin
 }

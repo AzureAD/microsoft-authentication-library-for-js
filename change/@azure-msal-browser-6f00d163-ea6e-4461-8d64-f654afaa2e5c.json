@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Configuration changes to CacheOptions #7697",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
