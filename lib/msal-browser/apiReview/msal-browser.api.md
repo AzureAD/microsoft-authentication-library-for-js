@@ -549,7 +549,7 @@ const emptyWindowError = "empty_window_error";
 // Warning: (ae-missing-release-tag) "EndSessionPopupRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type EndSessionPopupRequest = Partial<Omit<CommonEndSessionRequest, "tokenQueryParameters">> & {
+export type EndSessionPopupRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
     mainWindowRedirectUri?: string;
     popupWindowAttributes?: PopupWindowAttributes;
@@ -559,7 +559,7 @@ export type EndSessionPopupRequest = Partial<Omit<CommonEndSessionRequest, "toke
 // Warning: (ae-missing-release-tag) "EndSessionRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type EndSessionRequest = Partial<Omit<CommonEndSessionRequest, "tokenQueryParameters">> & {
+export type EndSessionRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
 };
 

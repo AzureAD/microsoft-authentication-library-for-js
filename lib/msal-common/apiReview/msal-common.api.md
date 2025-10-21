@@ -961,14 +961,13 @@ export type BaseAuthRequest = {
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
     maxAge?: number;
-    tokenBodyParameters?: StringDict;
-    tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
-    authorizePostBodyParameters?: StringDict;
+    extraQueryParameters?: StringDict;
+    extraParams?: StringDict;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "BaseClient" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1584,8 +1583,7 @@ declare namespace ClientConfigurationErrorCodes {
         cannotSetOIDCOptions,
         cannotAllowPlatformBroker,
         authorityMismatch,
-        invalidRequestMethodForEAR,
-        invalidAuthorizePostBodyParameters
+        invalidRequestMethodForEAR
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1665,7 +1663,6 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;
-    extraQueryParameters?: StringDict;
     extraScopesToConsent?: Array<string>;
     loginHint?: string;
     nonce: string;
@@ -2671,11 +2668,6 @@ const invalidAuthenticationHeader = "invalid_authentication_header";
 //
 // @public (undocumented)
 const invalidAuthorityMetadata = "invalid_authority_metadata";
-
-// Warning: (ae-missing-release-tag) "invalidAuthorizePostBodyParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const invalidAuthorizePostBodyParameters = "invalid_authorize_post_body_parameters";
 
 // Warning: (ae-missing-release-tag) "invalidCacheEnvironment" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -4685,7 +4677,7 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/client/AuthorizationCodeClient.ts:151:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:152:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:210:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:446:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:444:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:183:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:270:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:271:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
