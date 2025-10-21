@@ -584,7 +584,8 @@ export class PopupClient extends StandardInteractionClient {
             this.config.auth.OIDCOptions.responseMode,
             this.config.system.pollIntervalMilliseconds,
             this.logger,
-            this.unloadWindow
+            this.unloadWindow,
+            this.correlationId
         );
 
         const serverParams = invoke(
@@ -596,7 +597,8 @@ export class PopupClient extends StandardInteractionClient {
         )(
             responseString,
             this.config.auth.OIDCOptions.responseMode,
-            this.logger
+            this.logger,
+            this.correlationId
         );
 
         return invokeAsync(

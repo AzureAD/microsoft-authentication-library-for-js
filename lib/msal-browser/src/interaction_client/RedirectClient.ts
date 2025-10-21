@@ -356,7 +356,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger
         );
 
-        this.browserStorage.cacheAuthorizeRequest(request);
+        this.browserStorage.cacheAuthorizeRequest(request, this.correlationId);
 
         const form = await Authorize.getCodeForm(
             document,

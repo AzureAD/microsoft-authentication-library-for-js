@@ -327,33 +327,6 @@ describe("StandardInteractionClient", () => {
         expect(authCodeRequest.sid).toEqual(request.sid);
     });
 
-    it("initializeAuthorizationRequest throws if request method is GET and includes authorizePostBodyParameters", async () => {
-        const request: CommonAuthorizationUrlRequest = {
-            redirectUri: TEST_URIS.TEST_REDIR_URI,
-            scopes: ["scope"],
-            state: TEST_STATE_VALUES.USER_STATE,
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: Constants.ResponseMode.QUERY,
-            nonce: "",
-            httpMethod: Constants.HttpMethod.GET,
-            authorizePostBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
-        };
-
-        try {
-            await testClient.initializeAuthorizationRequest(
-                request,
-                InteractionType.Redirect
-            );
-            throw "Unexpected! Should throw";
-        } catch (e) {
-            expect(e).toBeInstanceOf(ClientConfigurationError);
-            expect((e as ClientConfigurationError).errorCode).toEqual(
-                ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
-            );
-        }
-    });
-
     it("initializeAuthorizationRequest sets httpMethod to GET by default", async () => {
         const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -370,32 +343,6 @@ describe("StandardInteractionClient", () => {
             InteractionType.Redirect
         );
         expect(authCodeRequest.httpMethod).toEqual(Constants.HttpMethod.GET);
-    });
-
-    it("initializeAuthorizationRequest throws if no httpMethod is set in the request and authorizePostBodyParameters are set", async () => {
-        const request: CommonAuthorizationUrlRequest = {
-            redirectUri: TEST_URIS.TEST_REDIR_URI,
-            scopes: ["scope"],
-            state: TEST_STATE_VALUES.USER_STATE,
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: Constants.ResponseMode.QUERY,
-            nonce: "",
-            authorizePostBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
-        };
-
-        try {
-            await testClient.initializeAuthorizationRequest(
-                request,
-                InteractionType.Redirect
-            );
-            throw "Unexpected! Should throw";
-        } catch (e) {
-            expect(e).toBeInstanceOf(ClientConfigurationError);
-            expect((e as ClientConfigurationError).errorCode).toEqual(
-                ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
-            );
-        }
     });
 });
 

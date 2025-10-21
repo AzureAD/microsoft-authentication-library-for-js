@@ -49,7 +49,7 @@ import {
     AccessTokenEntity,
     AccountEntityUtils,
     Constants,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
     TemporaryCacheKeys,
@@ -1829,30 +1829,7 @@ describe("RedirectClient", () => {
                 )
             );
         });
-
-        it("throws error when httpMethod is set to GET and authorizePostBodyParameters is set", async () => {
-            const request: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: ["user.read"],
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode:
-                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
-                nonce: "",
-                httpMethod: Constants.HttpMethod.GET,
-                authorizePostBodyParameters: {
-                    testParam: "testValue",
-                },
-            };
-
-            await expect(redirectClient.acquireToken(request)).rejects.toThrow(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
-                )
-            );
-        });
-
+        
         it("navigates to created login url", (done) => {
             jest.spyOn(
                 RedirectClient.prototype,

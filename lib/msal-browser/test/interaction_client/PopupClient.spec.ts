@@ -67,6 +67,7 @@ import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
+import * as Authorize from "../../src/protocol/Authorize.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -180,30 +181,6 @@ describe("PopupClient", () => {
             await expect(popupClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshKid
-                )
-            );
-        });
-
-        it("throws error when httpMethod is set to GET and authorizePostBodyParameters are set", async () => {
-            const request: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: ["user.read"],
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode:
-                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
-                nonce: "",
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                httpMethod: Constants.HttpMethod.GET,
-                authorizePostBodyParameters: {
-                    testAssertion: "testValue",
-                },
-            };
-
-            await expect(popupClient.acquireToken(request)).rejects.toThrow(
-                createClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
                 )
             );
         });

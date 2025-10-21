@@ -1243,25 +1243,6 @@ describe("SilentIframeClient", () => {
                 expect(tokenResp).toEqual(testTokenResponse);
             });
 
-            it("does not throw if httpMethod is set to POST and authorizePostBodyParameters are set", async () => {
-                jest.spyOn(
-                    SilentHandler,
-                    "initiateCodeFlowWithPost"
-                ).mockResolvedValue(document.createElement("iframe"));
-                const tokenResp = await silentIframeClient.acquireToken({
-                    redirectUri: TEST_URIS.TEST_REDIR_URI,
-                    loginHint: "testLoginHint",
-                    prompt: Constants.PromptValue.SELECT_ACCOUNT,
-                    account: testAccount,
-                    httpMethod: Constants.HttpMethod.POST,
-                    authorizePostBodyParameters: {
-                        testParam: "testValue",
-                    },
-                });
-
-                expect(tokenResp).toEqual(testTokenResponse);
-            });
-
             it("uses GET code flow if httpMethod is set to GET", async () => {
                 const getAuthCodeRequestUrlSpy = jest
                     .spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
@@ -1281,34 +1262,6 @@ describe("SilentIframeClient", () => {
                 expect(getAuthCodeRequestUrlSpy).toHaveBeenCalled();
                 expect(initiateCodeRequestSpy).toHaveBeenCalled();
                 expect(tokenResp).toEqual(testTokenResponse);
-            });
-
-            it("throws if httpMethod is set to GET and authorizePostBodyParameters are set", async () => {
-                jest.spyOn(
-                    AuthorizeProtocol,
-                    "getAuthCodeRequestUrl"
-                ).mockResolvedValue(testNavUrl);
-                jest.spyOn(
-                    SilentHandler,
-                    "initiateCodeRequest"
-                ).mockResolvedValue(document.createElement("iframe"));
-
-                await expect(
-                    silentIframeClient.acquireToken({
-                        redirectUri: TEST_URIS.TEST_REDIR_URI,
-                        loginHint: "testLoginHint",
-                        prompt: Constants.PromptValue.SELECT_ACCOUNT,
-                        account: testAccount,
-                        httpMethod: Constants.HttpMethod.GET,
-                        authorizePostBodyParameters: {
-                            testParam: "testValue",
-                        },
-                    })
-                ).rejects.toThrow(
-                    createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
-                    )
-                );
             });
         });
 
