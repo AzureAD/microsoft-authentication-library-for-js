@@ -181,7 +181,7 @@ The following request parameters have been removed:
 
 In order to simplify extra request parameters, generic extra parameters should go in the new `extraParams` request option. When `extraParams` are set in a request, they will be sent on all token service calls in either the URL query string or the request body, depending on the `httpMethod` configured (default is `GET`) in the request. **To submit extra parameters that MUST go in the URL query string, `extraQueryParameters` is still available.**
 
-> Note: In cases where MSAL determines `extraParams` must be encoded into the URL string, `extraParams` will be merged with `extraQueryParams` in a way that will cause same-named parameters to be overwritten.
+> Note: In cases where MSAL determines `extraParams` must be encoded into the URL string, `extraParams` will be merged with `extraQueryParams` in a way that will cause same-named parameters to be overwritten. In these cases, the value for the parameter in `extraParams` will take precedence over the value in the `extraQueryParams`.
 
 #### v4 (previous) request example:
 
