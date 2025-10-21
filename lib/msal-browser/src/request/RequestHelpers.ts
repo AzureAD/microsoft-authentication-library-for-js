@@ -24,12 +24,17 @@ import { RedirectRequest } from "./RedirectRequest.js";
 /**
  * Initializer function for all request APIs
  * @param request
+ * @param config
+ * @param performanceClient
+ * @param logger
+ * @param correlationId
  */
 export async function initializeBaseRequest(
     request: Partial<BaseAuthRequest> & { correlationId: string },
     config: BrowserConfiguration,
     performanceClient: IPerformanceClient,
-    logger: Logger
+    logger: Logger,
+    correlationId: string
 ): Promise<BaseAuthRequest> {
     const authority = request.authority || config.auth.authority;
 
@@ -47,7 +52,8 @@ export async function initializeBaseRequest(
         validatedRequest.authenticationScheme =
             Constants.AuthenticationScheme.BEARER;
         logger.verbose(
-            'Authentication Scheme wasn\'t explicitly set in request, defaulting to "Bearer" request'
+            'Authentication Scheme was not explicitly set in request, defaulting to "Bearer" request',
+            correlationId
         );
     } else {
         if (
@@ -66,7 +72,8 @@ export async function initializeBaseRequest(
             }
         }
         logger.verbose(
-            `Authentication Scheme set to "'${validatedRequest.authenticationScheme}'" as configured in Auth request`
+            `Authentication Scheme set to "'${validatedRequest.authenticationScheme}'" as configured in Auth request`,
+            correlationId
         );
     }
 
@@ -86,7 +93,7 @@ export async function initializeSilentRequest(
         logger,
         performanceClient,
         request.correlationId
-    )(request, config, performanceClient, logger);
+    )(request, config, performanceClient, logger, request.correlationId);
     return {
         ...request,
         ...baseRequest,

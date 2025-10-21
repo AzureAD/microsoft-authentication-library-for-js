@@ -4,7 +4,7 @@
  */
 
 import { IncomingHttpHeaders } from "http";
-import { Constants, Logger } from "@azure/msal-common";
+import { Constants, Logger } from "@azure/msal-common/node";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 import { LinearRetryStrategy } from "./LinearRetryStrategy.js";
 
@@ -52,7 +52,8 @@ export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {
             logger.verbose(
                 `Retrying request in ${retryAfterDelay}ms (retry attempt: ${
                     currentRetry + 1
-                })`
+                })`,
+                ""
             );
 
             // pause execution for the calculated delay

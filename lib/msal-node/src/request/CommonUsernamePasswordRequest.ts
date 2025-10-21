@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "@azure/msal-common";
+import { BaseAuthRequest } from "@azure/msal-common/node";
 
 /**
  * CommonUsernamePassword parameters passed by the user to retrieve credentials

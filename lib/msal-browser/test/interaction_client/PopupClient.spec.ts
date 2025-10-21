@@ -112,7 +112,6 @@ describe("PopupClient", () => {
             pca.performanceClient,
             //@ts-ignore
             pca.nativeInternalStorage,
-            undefined,
             TEST_CONFIG.CORRELATION_ID
         );
     });
@@ -281,7 +280,6 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -452,6 +450,7 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID,
                 nativeMessageHandler
             );
             const correlationId = BrowserUtils.createGuid();
@@ -1911,7 +1910,8 @@ describe("PopupClient", () => {
                 clientImpl.config.auth.OIDCOptions.responseMode,
                 clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
-                clientImpl.unloadWindow
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
             ).catch((error) => {
                 expect(error.errorCode).toEqual("user_cancelled");
                 done();
@@ -1940,7 +1940,8 @@ describe("PopupClient", () => {
                 clientImpl.config.auth.OIDCOptions.responseMode,
                 clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
-                clientImpl.unloadWindow
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
             ).then((hash) => {
                 expect(hash).toEqual("code=testCode");
                 done();
@@ -1993,7 +1994,6 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
             const clientImpl = popupClient as any;
@@ -2003,7 +2003,8 @@ describe("PopupClient", () => {
                 clientImpl.config.auth.OIDCOptions.responseMode,
                 clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
-                clientImpl.unloadWindow
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
             ).catch((e) => {
                 expect(e.errorCode).toEqual(
                     BrowserAuthErrorCodes.monitorPopupTimeout
@@ -2032,7 +2033,8 @@ describe("PopupClient", () => {
                 clientImpl.config.auth.OIDCOptions.responseMode,
                 clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
-                clientImpl.unloadWindow
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
             ).then((hash: string) => {
                 expect(hash).toEqual("#code=hello");
                 done();
@@ -2072,7 +2074,6 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -2096,7 +2097,8 @@ describe("PopupClient", () => {
                 clientImpl.config.auth.OIDCOptions.responseMode,
                 clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
-                clientImpl.unloadWindow
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
             );
             expect(result).toEqual("?code=authCode");
         });
@@ -2118,7 +2120,8 @@ describe("PopupClient", () => {
                 clientImpl.config.auth.OIDCOptions.responseMode,
                 clientImpl.config.system.pollIntervalMilliseconds,
                 clientImpl.logger,
-                clientImpl.unloadWindow
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
             ).catch((error: AuthError) => {
                 expect(error.errorCode).toEqual("user_cancelled");
                 done();

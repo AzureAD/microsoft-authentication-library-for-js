@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Address standalone function refactoring feedback #7992",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -61,14 +61,14 @@ export class MsalInterceptor implements HttpInterceptor {
       );
     }
 
-    this.authService.getLogger().verbose("MSAL Interceptor activated");
+    this.authService.getLogger().verbose("MSAL Interceptor activated", "");
     const scopes = this.getScopesForEndpoint(req.url, req.method);
 
     // If no scopes for endpoint, does not acquire token
     if (!scopes || scopes.length === 0) {
       this.authService
         .getLogger()
-        .verbose("Interceptor - no scopes for endpoint");
+        .verbose("Interceptor - no scopes for endpoint", "");
       return next.handle(req);
     }
 
@@ -77,12 +77,15 @@ export class MsalInterceptor implements HttpInterceptor {
     if (!!this.authService.instance.getActiveAccount()) {
       this.authService
         .getLogger()
-        .verbose("Interceptor - active account selected");
+        .verbose("Interceptor - active account selected", "");
       account = this.authService.instance.getActiveAccount();
     } else {
       this.authService
         .getLogger()
-        .verbose("Interceptor - no active account, fallback to first account");
+        .verbose(
+          "Interceptor - no active account, fallback to first account",
+          ""
+        );
       account = this.authService.instance.getAllAccounts()[0];
     }
 
@@ -95,16 +98,16 @@ export class MsalInterceptor implements HttpInterceptor {
 
     this.authService
       .getLogger()
-      .info(`Interceptor - ${scopes.length} scopes found for endpoint`);
+      .info(`Interceptor - ${scopes.length} scopes found for endpoint`, "");
     this.authService
       .getLogger()
-      .infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);
+      .infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`, "");
 
     return this.acquireToken(authRequest, scopes, account).pipe(
       switchMap((result: AuthenticationResult) => {
         this.authService
           .getLogger()
-          .verbose("Interceptor - setting authorization headers");
+          .verbose("Interceptor - setting authorization headers", "");
         const headers = req.headers.set(
           "Authorization",
           `Bearer ${result.accessToken}`
@@ -136,7 +139,8 @@ export class MsalInterceptor implements HttpInterceptor {
           this.authService
             .getLogger()
             .error(
-              "Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve."
+              "Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.",
+              authRequest.correlationId
             );
           return this.msalBroadcastService.inProgress$.pipe(
             take(1),
@@ -161,7 +165,8 @@ export class MsalInterceptor implements HttpInterceptor {
             this.authService
               .getLogger()
               .error(
-                "Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve."
+                "Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.",
+                authRequest.correlationId
               );
             return this.msalBroadcastService.inProgress$.pipe(
               filter(
@@ -192,14 +197,16 @@ export class MsalInterceptor implements HttpInterceptor {
       this.authService
         .getLogger()
         .verbose(
-          "Interceptor - error acquiring token silently, acquiring by popup"
+          "Interceptor - error acquiring token silently, acquiring by popup",
+          authRequest.correlationId
         );
       return this.authService.acquireTokenPopup({ ...authRequest, scopes });
     }
     this.authService
       .getLogger()
       .verbose(
-        "Interceptor - error acquiring token silently, acquiring by redirect"
+        "Interceptor - error acquiring token silently, acquiring by redirect",
+        authRequest.correlationId
       );
     const redirectStartPage = window.location.href;
     this.authService.acquireTokenRedirect({
@@ -223,7 +230,7 @@ export class MsalInterceptor implements HttpInterceptor {
   ): Array<string> | null {
     this.authService
       .getLogger()
-      .verbose("Interceptor - getting scopes for endpoint");
+      .verbose("Interceptor - getting scopes for endpoint", "");
 
     // Ensures endpoints and protected resources compared are normalized
     const normalizedEndpoint = this.location.normalize(endpoint);
@@ -376,7 +383,8 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService
           .getLogger()
           .warning(
-            "Interceptor - More than 1 matching scopes for endpoint found."
+            "Interceptor - More than 1 matching scopes for endpoint found.",
+            ""
           );
       }
       // Returns scopes for first matching endpoint

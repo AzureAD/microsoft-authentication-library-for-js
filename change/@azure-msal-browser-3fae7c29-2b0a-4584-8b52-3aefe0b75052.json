@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Support authentication method registration during Sign-In, #8007",
-  "packageName": "@azure/msal-browser",
-  "email": "shen.jian@live.com",
-  "dependentChangeType": "patch"
-}

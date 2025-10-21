@@ -36,7 +36,7 @@ export class ThrottlingUtils {
         correlationId: string
     ): void {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
-        const value = cacheManager.getThrottlingCache(key);
+        const value = cacheManager.getThrottlingCache(key, correlationId);
 
         if (value) {
             if (value.throttleTime < Date.now()) {

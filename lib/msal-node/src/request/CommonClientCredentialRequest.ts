@@ -7,7 +7,7 @@ import {
     BaseAuthRequest,
     AzureRegion,
     ClientAssertion,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 
 /**
  * CommonClientCredentialRequest

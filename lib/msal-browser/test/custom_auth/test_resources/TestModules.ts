@@ -14,6 +14,7 @@ import {
 import { BrowserPerformanceClient } from "../../../src/telemetry/BrowserPerformanceClient.js";
 import { NavigationClient } from "../../../src/navigation/NavigationClient.js";
 import { INavigationClient } from "../../../src/navigation/INavigationClient.js";
+import { TEST_CONFIG } from "../../utils/StringConstants.js";
 
 export function getDefaultLogger(): Logger {
     return new Logger({}, "test", "1.0.0");

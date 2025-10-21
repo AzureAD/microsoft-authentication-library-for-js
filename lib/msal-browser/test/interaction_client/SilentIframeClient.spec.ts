@@ -96,7 +96,6 @@ describe("SilentIframeClient", () => {
             pca.performanceClient,
             //@ts-ignore
             pca.nativeInternalStorage,
-            undefined,
             TEST_CONFIG.CORRELATION_ID
         );
 
@@ -456,6 +455,7 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID,
                 nativeMessageHandler
             );
             const testServerTokenResponse = {
@@ -867,7 +867,6 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -966,7 +965,6 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -1072,7 +1070,6 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 

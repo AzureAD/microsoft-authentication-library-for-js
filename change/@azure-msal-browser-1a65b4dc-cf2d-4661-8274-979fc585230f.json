@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Remove deprecated functions and parameters",
-  "packageName": "@azure/msal-browser",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}

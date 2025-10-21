@@ -46,8 +46,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         apiId: ApiId,
         performanceClient: IPerformanceClient,
-        platformAuthProvider?: IPlatformAuthHandler,
-        correlationId?: string
+        correlationId: string,
+        platformAuthProvider?: IPlatformAuthHandler
     ) {
         super(
             config,
@@ -57,8 +57,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            platformAuthProvider,
-            correlationId
+            correlationId,
+            platformAuthProvider
         );
         this.apiId = apiId;
     }
@@ -83,7 +83,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
-            request.correlationId
+            this.correlationId
         )(
             request,
             InteractionType.Silent,
@@ -92,6 +92,10 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             this.browserStorage,
             this.logger,
             this.performanceClient,
+            /*
+             * correlationId is optional in request payload, while this.correlationId is always instantiated as request.correlationId || createGuid().
+             * Each auth request creates a new instance of *Client so we can safely use this.correlationId.
+             */
             this.correlationId
         );
 
@@ -116,7 +120,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                this.correlationId
             )({
                 serverTelemetryManager,
                 requestAuthority: silentRequest.authority,
@@ -125,8 +129,11 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 account: silentRequest.account,
             });
             const authClient: HybridSpaAuthorizationCodeClient =
-                new HybridSpaAuthorizationCodeClient(clientConfig);
-            this.logger.verbose("Auth code client created");
+                new HybridSpaAuthorizationCodeClient(
+                    clientConfig,
+                    this.performanceClient
+                );
+            this.logger.verbose("Auth code client created", this.correlationId);
 
             // Create silent handler
             const interactionHandler = new InteractionHandler(
@@ -145,7 +152,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 PerformanceEvents.HandleCodeResponseFromServer,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                this.correlationId
             )(
                 {
                     code: request.code,

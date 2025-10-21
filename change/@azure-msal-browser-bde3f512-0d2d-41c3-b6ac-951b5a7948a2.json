@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Move auth error messages out of the bundle #7744",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

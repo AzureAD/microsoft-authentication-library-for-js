@@ -19,7 +19,10 @@ async function initializeMsal() {
 
             myMSALObj.addEventCallback((event) => {
                 if (event.eventType === msal.EventType.ACTIVE_ACCOUNT_CHANGED) {
-                    showWelcomeMessage(myMSALObj.getActiveAccount());
+                    activeAccount = myMSALObj.getActiveAccount();
+                    if(activeAccount) {
+                        showWelcomeMessage(activeAccount);
+                    }
                 }
             })
         });

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Throw timeout error in acquireTokenRedirect if the redirect doesn't happen #7867",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

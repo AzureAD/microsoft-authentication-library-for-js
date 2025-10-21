@@ -20,18 +20,21 @@ export interface ICacheManager {
     /**
      * fetch the account entity from the platform cache
      * @param accountKey
+     * @param correlationId
      */
     getAccount(accountKey: string, correlationId: string): AccountEntity | null;
 
     /**
      * set account entity in the platform cache
      * @param account
+     * @param correlationId
      */
     setAccount(account: AccountEntity, correlationId: string): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
      * @param idTokenKey
+     * @param correlationId
      */
     getIdTokenCredential(
         idTokenKey: string,
@@ -41,6 +44,7 @@ export interface ICacheManager {
     /**
      * set idToken entity to the platform cache
      * @param idToken
+     * @param correlationId
      */
     setIdTokenCredential(
         idToken: IdTokenEntity,
@@ -50,6 +54,7 @@ export interface ICacheManager {
     /**
      * fetch the idToken entity from the platform cache
      * @param accessTokenKey
+     * @param correlationId
      */
     getAccessTokenCredential(
         accessTokenKey: string,
@@ -59,6 +64,7 @@ export interface ICacheManager {
     /**
      * set idToken entity to the platform cache
      * @param accessToken
+     * @param correlationId
      */
     setAccessTokenCredential(
         accessToken: AccessTokenEntity,
@@ -68,6 +74,7 @@ export interface ICacheManager {
     /**
      * fetch the idToken entity from the platform cache
      * @param refreshTokenKey
+     * @param correlationId
      */
     getRefreshTokenCredential(
         refreshTokenKey: string,
@@ -77,6 +84,7 @@ export interface ICacheManager {
     /**
      * set idToken entity to the platform cache
      * @param refreshToken
+     * @param correlationId
      */
     setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity,
@@ -86,27 +94,35 @@ export interface ICacheManager {
     /**
      * fetch appMetadata entity from the platform cache
      * @param appMetadataKey
+     * @param correlationId
      */
-    getAppMetadata(appMetadataKey: string): AppMetadataEntity | null;
+    getAppMetadata(
+        appMetadataKey: string,
+        correlationId: string
+    ): AppMetadataEntity | null;
 
     /**
      * set appMetadata entity to the platform cache
      * @param appMetadata
+     * @param correlationId
      */
     setAppMetadata(appMetadata: AppMetadataEntity, correlationId: string): void;
 
     /**
      * fetch server telemetry entity from the platform cache
      * @param serverTelemetryKey
+     * @param correlationId
      */
     getServerTelemetry(
-        serverTelemetryKey: string
+        serverTelemetryKey: string,
+        correlationId: string
     ): ServerTelemetryEntity | null;
 
     /**
      * set server telemetry entity to the platform cache
      * @param serverTelemetryKey
      * @param serverTelemetry
+     * @param correlationId
      */
     setServerTelemetry(
         serverTelemetryKey: string,
@@ -117,43 +133,66 @@ export interface ICacheManager {
     /**
      * fetch cloud discovery metadata entity from the platform cache
      * @param key
+     * @param correlationId
      */
-    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
+    getAuthorityMetadata(
+        key: string,
+        correlationId: string
+    ): AuthorityMetadataEntity | null;
 
     /**
      * Get cache keys for authority metadata
+     * @param correlationId
      */
-    getAuthorityMetadataKeys(): Array<string>;
+    getAuthorityMetadataKeys(correlationId: string): Array<string>;
 
     /**
      * set cloud discovery metadata entity to the platform cache
      * @param key
      * @param value
+     * @param correlationId
      */
-    setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void;
+    setAuthorityMetadata(
+        key: string,
+        value: AuthorityMetadataEntity,
+        correlationId: string
+    ): void;
 
     /**
      * Provide an alias to find a matching AuthorityMetadataEntity in cache
      * @param host
+     * @param correlationId
      */
-    getAuthorityMetadataByAlias(host: string): AuthorityMetadataEntity | null;
+    getAuthorityMetadataByAlias(
+        host: string,
+        correlationId: string
+    ): AuthorityMetadataEntity | null;
 
     /**
      * given an authority generates the cache key for authorityMetadata
      * @param authority
+     * @param correlationId
      */
-    generateAuthorityMetadataCacheKey(authority: string): string;
+    generateAuthorityMetadataCacheKey(
+        authority: string,
+        correlationId: string
+    ): string;
 
     /**
      * fetch throttling entity from the platform cache
      * @param throttlingCacheKey
+     * @param correlationId
      */
-    getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
+    getThrottlingCache(
+        throttlingCacheKey: string,
+        correlationId: string
+    ): ThrottlingEntity | null;
 
     /**
      * set throttling entity to the platform cache
      * @param throttlingCacheKey
      * @param throttlingCache
+     * @param correlationId
      */
     setThrottlingCache(
         throttlingCacheKey: string,
@@ -163,12 +202,16 @@ export interface ICacheManager {
 
     /**
      * Returns all accounts in cache
+     * @param filter
+     * @param correlationId
      */
     getAllAccounts(filter: AccountFilter, correlationId: string): AccountInfo[];
 
     /**
      * saves a cache record
      * @param cacheRecord
+     * @param correlationId
+     * @param storeInCache
      */
     saveCacheRecord(
         cacheRecord: CacheRecord,
@@ -178,9 +221,8 @@ export interface ICacheManager {
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
-     * @param homeAccountId
-     * @param environment
-     * @param realm
+     * @param filter
+     * @param correlationId
      */
     getAccountsFilteredBy(
         filter: AccountFilter,
@@ -190,6 +232,7 @@ export interface ICacheManager {
     /**
      * Get AccountInfo object based on provided filters
      * @param filter
+     * @param correlationId
      */
     getAccountInfoFilteredBy(
         filter: AccountFilter,
@@ -198,33 +241,39 @@ export interface ICacheManager {
 
     /**
      * Removes all accounts and related tokens from cache.
+     * @param correlationId
      */
     removeAllAccounts(correlationId: string): void;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
+     * @param correlationId
      */
     removeAccount(account: AccountInfo, correlationId: string): void;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
+     * @param correlationId
      */
     removeAccountContext(account: AccountInfo, correlationId: string): void;
 
     /**
      * @param key
+     * @param correlationId
      */
     removeIdToken(key: string, correlationId: string): void;
 
     /**
      * @param key
+     * @param correlationId
      */
     removeAccessToken(key: string, correlationId: string): void;
 
     /**
      * @param key
+     * @param correlationId
      */
     removeRefreshToken(key: string, correlationId: string): void;
 }

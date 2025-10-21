@@ -5,7 +5,9 @@ import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import {
     getDefaultBrowserCacheManager,
     getDefaultLogger,
+    getDefaultPerformanceClient,
 } from "../test_resources/TestModules.js";
+import { TEST_CONFIG } from "../../utils/StringConstants.js";
 
 describe("CustomAuthAuthority", () => {
     const authorityUrl = customAuthConfig.auth.authority;
@@ -19,6 +21,7 @@ describe("CustomAuthAuthority", () => {
 
     const config = buildConfiguration({ auth: { clientId: clientId } }, true);
     const logger = getDefaultLogger();
+    const performanceClient = getDefaultPerformanceClient();
     const browserStorage = getDefaultBrowserCacheManager(
         clientId,
         logger,
@@ -35,7 +38,8 @@ describe("CustomAuthAuthority", () => {
                 config,
                 StubbedNetworkModule,
                 browserStorage,
-                logger
+                logger,
+                performanceClient
             );
             expect(customAuthAuthority.canonicalAuthority).toBe(
                 "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
@@ -49,6 +53,7 @@ describe("CustomAuthAuthority", () => {
                 StubbedNetworkModule,
                 browserStorage,
                 logger,
+                performanceClient,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority["customAuthProxyDomain"]).toBe(
@@ -63,6 +68,7 @@ describe("CustomAuthAuthority", () => {
                 StubbedNetworkModule,
                 browserStorage,
                 logger,
+                performanceClient,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority["customAuthProxyDomain"]).toBe(
@@ -76,7 +82,8 @@ describe("CustomAuthAuthority", () => {
                 config,
                 StubbedNetworkModule,
                 browserStorage,
-                logger
+                logger,
+                performanceClient
             );
             expect(customAuthAuthority.canonicalAuthority).toBe(
                 "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
@@ -92,7 +99,10 @@ describe("CustomAuthAuthority", () => {
                     .includes(authorityMetadataEntityKey)
             ).toBe(true);
             expect(
-                browserStorage.getAuthorityMetadata(authorityMetadataEntityKey)
+                browserStorage.getAuthorityMetadata(
+                    authorityMetadataEntityKey,
+                    TEST_CONFIG.CORRELATION_ID
+                )
             ).toMatchObject({
                 aliases: [authorityHostname],
                 preferred_cache: authorityHostname,
@@ -107,7 +117,8 @@ describe("CustomAuthAuthority", () => {
                 config,
                 StubbedNetworkModule,
                 browserStorage,
-                logger
+                logger,
+                performanceClient
             );
             expect(customAuthAuthority.tenant).toBe(
                 "spasamples.onmicrosoft.com"
@@ -123,6 +134,7 @@ describe("CustomAuthAuthority", () => {
                 StubbedNetworkModule,
                 browserStorage,
                 logger,
+                performanceClient,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority.getCustomAuthApiDomain()).toBe(
@@ -136,7 +148,8 @@ describe("CustomAuthAuthority", () => {
                 config,
                 StubbedNetworkModule,
                 browserStorage,
-                logger
+                logger,
+                performanceClient
             );
             expect(customAuthAuthority.getCustomAuthApiDomain()).toBe(
                 "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
@@ -152,6 +165,7 @@ describe("CustomAuthAuthority", () => {
                 StubbedNetworkModule,
                 browserStorage,
                 logger,
+                performanceClient,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority.getPreferredCache()).toBe(
@@ -168,6 +182,7 @@ describe("CustomAuthAuthority", () => {
                 StubbedNetworkModule,
                 browserStorage,
                 logger,
+                performanceClient,
                 customAuthProxyDomain
             );
             expect(customAuthAuthority.tokenEndpoint).toBe(

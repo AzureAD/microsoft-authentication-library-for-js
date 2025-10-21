@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Allow major change types for v5 updates #7647",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

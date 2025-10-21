@@ -230,7 +230,8 @@ export class ServerTelemetryManager {
             cacheHits: 0,
         };
         const lastRequests = this.cacheManager.getServerTelemetry(
-            this.telemetryCacheKey
+            this.telemetryCacheKey,
+            this.correlationId
         ) as ServerTelemetryEntity;
 
         return lastRequests || initialValue;

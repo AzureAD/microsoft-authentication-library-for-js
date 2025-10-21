@@ -88,7 +88,10 @@ async function getStandardParameters(
             request.authenticationScheme === Constants.AuthenticationScheme.POP
         ) {
             const cryptoOps = new CryptoOps(logger, performanceClient);
-            const popTokenGenerator = new PopTokenGenerator(cryptoOps);
+            const popTokenGenerator = new PopTokenGenerator(
+                cryptoOps,
+                performanceClient
+            );
 
             // req_cnf is always sent as a string for SPAs
             let reqCnfData;
@@ -308,7 +311,10 @@ export async function handleResponsePlatformBroker(
     performanceClient: IPerformanceClient,
     platformAuthProvider?: IPlatformAuthHandler
 ): Promise<AuthenticationResult> {
-    logger.verbose("Account id found, calling WAM for token");
+    logger.verbose(
+        "Account id found, calling WAM for token",
+        request.correlationId
+    );
 
     if (!platformAuthProvider) {
         throw createBrowserAuthError(
@@ -505,12 +511,13 @@ export async function handleResponseEAR(
         browserStorage,
         new CryptoOps(logger, performanceClient),
         logger,
+        performanceClient,
         null,
         null
     );
 
     // Validate response. This function throws a server error if an error is returned by the server.
-    responseHandler.validateTokenResponse(decryptedData);
+    responseHandler.validateTokenResponse(decryptedData, request.correlationId);
 
     // Temporary until response handler is refactored to be more flow agnostic.
     const additionalData: AuthorizationCodePayload = {

@@ -114,6 +114,7 @@ describe("TokenCache tests", () => {
                 AuthorityType.Default,
                 logger,
                 cryptoObj,
+                TEST_CONFIG.CORRELATION_ID,
                 testIdTokenClaims
             );
 
@@ -520,6 +521,7 @@ describe("TokenCache tests", () => {
                 AuthorityType.Default,
                 logger,
                 cryptoObj,
+                TEST_CONFIG.CORRELATION_ID,
                 testIdTokenClaims
             );
 

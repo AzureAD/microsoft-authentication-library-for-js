@@ -150,7 +150,9 @@ export class LocalStorage implements IWindowStorage<string> {
         )(correlationId);
 
         // Register listener for cache updates in other tabs
-        this.broadcast.addEventListener("message", this.updateCache.bind(this));
+        this.broadcast.addEventListener("message", (event: MessageEvent) => {
+            this.updateCache(event, correlationId);
+        });
 
         this.initialized = true;
     }
@@ -454,8 +456,11 @@ export class LocalStorage implements IWindowStorage<string> {
         return context;
     }
 
-    private updateCache(event: MessageEvent): void {
-        this.logger.trace("Updating internal cache from broadcast event");
+    private updateCache(event: MessageEvent, correlationId: string): void {
+        this.logger.trace(
+            "Updating internal cache from broadcast event",
+            correlationId
+        );
         const perfMeasurement = this.performanceClient.startMeasurement(
             BrowserRootPerformanceEvents.LocalStorageUpdated
         );
@@ -463,14 +468,15 @@ export class LocalStorage implements IWindowStorage<string> {
 
         const { key, value, context } = event.data;
         if (!key) {
-            this.logger.error("Broadcast event missing key");
+            this.logger.error("Broadcast event missing key", correlationId);
             perfMeasurement.end({ success: false, errorCode: "noKey" });
             return;
         }
 
         if (context && context !== this.clientId) {
             this.logger.trace(
-                `Ignoring broadcast event from clientId: '${context}'`
+                `Ignoring broadcast event from clientId: '${context}'`,
+                correlationId
             );
             perfMeasurement.end({
                 success: false,
@@ -481,10 +487,16 @@ export class LocalStorage implements IWindowStorage<string> {
 
         if (!value) {
             this.memoryStorage.removeItem(key);
-            this.logger.verbose("Removed item from internal cache");
+            this.logger.verbose(
+                "Removed item from internal cache",
+                correlationId
+            );
         } else {
             this.memoryStorage.setItem(key, value);
-            this.logger.verbose("Updated item in internal cache");
+            this.logger.verbose(
+                "Updated item in internal cache",
+                correlationId
+            );
         }
         perfMeasurement.end({ success: true });
     }

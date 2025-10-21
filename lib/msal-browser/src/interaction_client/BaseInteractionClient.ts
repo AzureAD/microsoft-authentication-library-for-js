@@ -35,7 +35,6 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
-import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export abstract class BaseInteractionClient {
@@ -58,8 +57,8 @@ export abstract class BaseInteractionClient {
         eventHandler: EventHandler,
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
-        platformAuthProvider?: IPlatformAuthHandler,
-        correlationId?: string
+        correlationId: string,
+        platformAuthProvider?: IPlatformAuthHandler
     ) {
         this.config = config;
         this.browserStorage = storageImpl;
@@ -68,12 +67,8 @@ export abstract class BaseInteractionClient {
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
         this.platformAuthProvider = platformAuthProvider;
-        this.correlationId = correlationId || createNewGuid();
-        this.logger = logger.clone(
-            BrowserConstants.MSAL_SKU,
-            version,
-            this.correlationId
-        );
+        this.correlationId = correlationId;
+        this.logger = logger.clone(BrowserConstants.MSAL_SKU, version);
         this.performanceClient = performanceClient;
     }
 
@@ -91,14 +86,16 @@ export abstract class BaseInteractionClient {
  * @param requestRedirectUri - Redirect URI from the request or undefined if not configured
  * @param clientConfigRedirectUri - Redirect URI from the client configuration or undefined if not configured
  * @param logger - Logger instance from the calling client
+ * @param correlationId
  * @returns Absolute redirect URL constructed from the provided URI, config, or current page
  */
 export function getRedirectUri(
     requestRedirectUri: string | undefined,
     clientConfigRedirectUri: string | undefined,
-    logger: Logger
+    logger: Logger,
+    correlationId: string
 ): string {
-    logger.verbose("getRedirectUri called");
+    logger.verbose("getRedirectUri called", correlationId);
     const redirectUri = requestRedirectUri || clientConfigRedirectUri || "";
     return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
 }
@@ -121,7 +118,7 @@ export function initializeServerTelemetryManager(
     logger: Logger,
     forceRefresh?: boolean
 ): ServerTelemetryManager {
-    logger.verbose("initializeServerTelemetryManager called");
+    logger.verbose("initializeServerTelemetryManager called", correlationId);
     const telemetryPayload: ServerTelemetryRequest = {
         clientId: clientId,
         correlationId: correlationId,
@@ -242,11 +239,13 @@ export async function clearCacheOnLogout(
         try {
             browserStorage.removeAccount(account, correlationId);
             logger.verbose(
-                "Cleared cache items belonging to the account provided in the logout request."
+                "Cleared cache items belonging to the account provided in the logout request.",
+                correlationId
             );
         } catch (error) {
             logger.error(
-                "Account provided in logout request was not found. Local cache unchanged."
+                "Account provided in logout request was not found. Local cache unchanged.",
+                correlationId
             );
         }
     } else {
@@ -258,10 +257,11 @@ export async function clearCacheOnLogout(
             // Clear all accounts and tokens
             browserStorage.clear(correlationId);
             // Clear any stray keys from IndexedDB
-            await browserCrypto.clearKeystore();
+            await browserCrypto.clearKeystore(correlationId);
         } catch (e) {
             logger.error(
-                "Attempted to clear all MSAL cache items and failed. Local cache unchanged."
+                "Attempted to clear all MSAL cache items and failed. Local cache unchanged.",
+                correlationId
             );
         }
     }

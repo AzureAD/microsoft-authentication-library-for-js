@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove legacy APIs",
-  "packageName": "@azure/msal-angular",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}

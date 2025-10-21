@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { DataBoundary } from "../../account/AccountInfo.js";
+
 /**
  * State of the performance event.
  *
@@ -331,6 +333,11 @@ export type PerformanceEvent = {
     sameClientIdInstanceCount?: number;
 
     navigateCallbackResult?: boolean;
+
+    dataBoundary?: DataBoundary;
+
+    // Hashed logs in the format [millis1,hash1;millis2,hash2;...]
+    logs?: string;
 };
 
 export type PerformanceEventContext = {

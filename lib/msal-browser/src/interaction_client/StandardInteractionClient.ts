@@ -59,11 +59,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     ): CommonEndSessionRequest {
         this.logger.verbose(
             "initializeLogoutRequest called",
-            logoutRequest?.correlationId
+            this.correlationId
         );
 
         const validLogoutRequest: CommonEndSessionRequest = {
-            correlationId: this.correlationId || createNewGuid(),
+            correlationId: this.correlationId,
             ...logoutRequest,
         };
 
@@ -80,23 +80,27 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                     );
                     if (logoutHint) {
                         this.logger.verbose(
-                            "Setting logoutHint to login_hint ID Token Claim value for the account provided"
+                            "Setting logoutHint to login_hint ID Token Claim value for the account provided",
+                            this.correlationId
                         );
                         validLogoutRequest.logoutHint = logoutHint;
                     }
                 } else {
                     this.logger.verbose(
-                        "logoutHint was not set and account was not passed into logout request, logoutHint will not be set"
+                        "logoutHint was not set and account was not passed into logout request, logoutHint will not be set",
+                        this.correlationId
                     );
                 }
             } else {
                 this.logger.verbose(
-                    "logoutHint has already been set in logoutRequest"
+                    "logoutHint has already been set in logoutRequest",
+                    this.correlationId
                 );
             }
         } else {
             this.logger.verbose(
-                "logoutHint will not be set since no logout request was configured"
+                "logoutHint will not be set since no logout request was configured",
+                this.correlationId
             );
         }
 
@@ -165,12 +169,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 return idTokenClaims.login_hint;
             } else {
                 this.logger.verbose(
-                    "The ID Token Claims tied to the provided account do not contain a login_hint claim, logoutHint will not be added to logout request"
+                    "The ID Token Claims tied to the provided account do not contain a login_hint claim, logoutHint will not be added to logout request",
+                    this.correlationId
                 );
             }
         } else {
             this.logger.verbose(
-                "The provided account does not contain ID Token Claims, logoutHint will not be added to logout request"
+                "The provided account does not contain ID Token Claims, logoutHint will not be added to logout request",
+                this.correlationId
             );
         }
 
@@ -312,7 +318,8 @@ export async function initializeAuthorizationRequest(
     const redirectUri = getRedirectUri(
         request.redirectUri,
         config.auth.redirectUri,
-        logger
+        logger,
+        correlationId
     );
     const browserState: BrowserStateObject = {
         interactionType: interactionType,
@@ -333,7 +340,8 @@ export async function initializeAuthorizationRequest(
         { ...request, correlationId: correlationId },
         config,
         performanceClient,
-        logger
+        logger,
+        correlationId
     );
 
     const interactionRequest: CommonAuthorizationUrlRequest = {

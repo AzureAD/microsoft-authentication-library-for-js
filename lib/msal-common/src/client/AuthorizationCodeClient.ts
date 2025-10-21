@@ -55,7 +55,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
     constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient: IPerformanceClient
     ) {
         super(configuration, performanceClient);
         this.oidcDefaultScopes =
@@ -95,12 +95,16 @@ export class AuthorizationCodeClient extends BaseClient {
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
+            this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
-        responseHandler.validateTokenResponse(response.body);
+        responseHandler.validateTokenResponse(
+            response.body,
+            request.correlationId
+        );
 
         return invokeAsync(
             responseHandler.handleServerTokenResponse.bind(responseHandler),
@@ -178,7 +182,8 @@ export class AuthorizationCodeClient extends BaseClient {
                 };
             } catch (e) {
                 this.logger.verbose(
-                    `Could not parse client info for CCS Header: '${e}'`
+                    `Could not parse client info for CCS Header: '${e}'`,
+                    request.correlationId
                 );
             }
         }
@@ -364,7 +369,8 @@ export class AuthorizationCodeClient extends BaseClient {
                 };
             } catch (e) {
                 this.logger.verbose(
-                    `Could not parse client info for CCS Header: '${e}'`
+                    `Could not parse client info for CCS Header: '${e}'`,
+                    request.correlationId
                 );
             }
         } else {
@@ -385,7 +391,8 @@ export class AuthorizationCodeClient extends BaseClient {
                         );
                     } catch (e) {
                         this.logger.verbose(
-                            `Could not parse home account ID for CCS Header: '${e}'`
+                            `Could not parse home account ID for CCS Header: '${e}'`,
+                            request.correlationId
                         );
                     }
                     break;
