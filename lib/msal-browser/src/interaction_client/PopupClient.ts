@@ -369,29 +369,29 @@ export class PopupClient extends StandardInteractionClient {
                     null
                 );
 
-            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const responseString = await monitorPopupForHash(
-                popupWindow,
-                popupParams.popupWindowParent,
-                this.config.auth.OIDCOptions.responseMode,
-                this.config.system.pollIntervalMilliseconds,
-                this.logger,
-                this.unloadWindow,
-                this.correlationId
-            );
+                // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+                const responseString = await monitorPopupForHash(
+                    popupWindow,
+                    popupParams.popupWindowParent,
+                    this.config.auth.OIDCOptions.responseMode,
+                    this.config.system.pollIntervalMilliseconds,
+                    this.logger,
+                    this.unloadWindow,
+                    this.correlationId
+                );
 
-            const serverParams = invoke(
-                ResponseHandler.deserializeResponse,
-                BrowserPerformanceEvents.DeserializeResponse,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )(
-                responseString,
-                this.config.auth.OIDCOptions.responseMode,
-                this.logger,
-                this.correlationId
-            );
+                const serverParams = invoke(
+                    ResponseHandler.deserializeResponse,
+                    BrowserPerformanceEvents.DeserializeResponse,
+                    this.logger,
+                    this.performanceClient,
+                    this.correlationId
+                )(
+                    responseString,
+                    this.config.auth.OIDCOptions.responseMode,
+                    this.logger,
+                    this.correlationId
+                );
 
                 return await invokeAsync(
                     Authorize.handleResponseCode,

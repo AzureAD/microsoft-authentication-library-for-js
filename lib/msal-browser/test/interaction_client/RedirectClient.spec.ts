@@ -1829,7 +1829,7 @@ describe("RedirectClient", () => {
                 )
             );
         });
-        
+
         it("navigates to created login url", (done) => {
             jest.spyOn(
                 RedirectClient.prototype,
