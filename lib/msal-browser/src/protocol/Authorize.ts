@@ -157,10 +157,10 @@ export async function getAuthCodeRequestUrl(
         Constants.S256_CODE_CHALLENGE_METHOD
     );
 
-    RequestParameterBuilder.addExtraQueryParameters(
-        parameters,
-        request.extraQueryParameters || {}
-    );
+    RequestParameterBuilder.addExtraQueryParameters(parameters, {
+        ...request.extraQueryParameters,
+        ...request.extraParams,
+    });
 
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }
@@ -193,6 +193,10 @@ export async function getEARForm(
         Constants.OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
+
+    RequestParameterBuilder.addPostBodyParameters(parameters, {
+        ...request.extraParams,
+    });
 
     const queryParams = new Map<string, string>();
     RequestParameterBuilder.addExtraQueryParameters(
@@ -234,10 +238,9 @@ export async function getCodeForm(
         request.codeChallengeMethod || Constants.S256_CODE_CHALLENGE_METHOD
     );
 
-    RequestParameterBuilder.addPostBodyParameters(
-        parameters,
-        request.authorizePostBodyParameters || {}
-    );
+    RequestParameterBuilder.addPostBodyParameters(parameters, {
+        ...request.extraParams,
+    });
 
     const queryParams = new Map<string, string>();
     RequestParameterBuilder.addExtraQueryParameters(

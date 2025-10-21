@@ -4,7 +4,6 @@
  */
 
 import { ResponseMode } from "../utils/Constants.js";
-import { StringDict } from "../utils/MsalTypes.js";
 import { BaseAuthRequest } from "./BaseAuthRequest.js";
 import { AccountInfo } from "../account/AccountInfo.js";
 

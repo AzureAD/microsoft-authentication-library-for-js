@@ -45,7 +45,6 @@ import {
     initializeBaseRequest,
     validateRequestMethod,
 } from "../request/RequestHelpers.js";
-import { ResponseMode } from "../index.js";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -342,7 +341,7 @@ export async function initializeAuthorizationRequest(
         redirectUri: redirectUri,
         state: state,
         nonce: request.nonce || createNewGuid(),
-        responseMode: config.auth.OIDCOptions.responseMode as ResponseMode,
+        responseMode: config.auth.OIDCOptions.responseMode,
     };
 
     const validatedRequest = {

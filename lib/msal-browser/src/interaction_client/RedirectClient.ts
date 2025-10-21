@@ -340,12 +340,6 @@ export class RedirectClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            {
-                requestAuthority: request.authority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                requestExtraQueryParameters: request.extraQueryParameters,
-                account: request.account,
-            },
             this.config,
             this.correlationId,
             this.performanceClient,
