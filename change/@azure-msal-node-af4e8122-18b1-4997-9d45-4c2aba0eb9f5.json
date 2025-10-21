@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Update tests to account for changes in extra param configuration",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
