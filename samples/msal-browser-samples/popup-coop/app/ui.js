@@ -92,9 +92,13 @@ function openStsIframeBtn() {
 //Solution 2: Open STS in popup and redirect back to MSAL JS
 function openStsPopup() {
     console.log("MSAL JS: Opening STS Popup");
-    const stsPopupWindow = window.open("https://localhost:30663", "STS Popup", "width=600,height=600,'noopener'");
+    const stsPopupWindow = window.open(
+        "https://localhost:30663",
+        "STS Popup",
+        "width=600,height=600"
+    );
     console.log("MSAL JS: stsPopupWindow", stsPopupWindow);
-    
+
     // Check if popup was closed by user
     if (stsPopupWindow) {
         const checkClosed = setInterval(() => {
@@ -105,16 +109,14 @@ function openStsPopup() {
             }
         }, 1000); // Check every second
     }
-    
+
     // Listen for messages from the popup
-    // window.addEventListener("message", (event) => {
-    //     // For security reasons, check the origin of the message
-    //     if (event.origin !== "https://localhost:30663") {
-    //         console.warn("MSAL JS: Origin not allowed:", event.origin);
-    //         return;
-    //     }
-    //     console.log("MSAL JS: Message received from popup:", event.data);
-    // });
+    broadcastchannel.onmessage = (event) => {
+        console.log("MSAL JS: Message received from popup via broadcastchannel:", event.data);
+        if (event.data) {
+            document.getElementById("successAuthCode").innerText = "Received message from popup via broadcastchannel: " + event.data.text;
+        }
+    }
 }
 
 function onLoad() {
