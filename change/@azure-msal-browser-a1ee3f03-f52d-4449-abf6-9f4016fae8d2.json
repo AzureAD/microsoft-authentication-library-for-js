@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add changes in network and interaction client layers to support MFA",
+  "packageName": "@azure/msal-browser",
+  "email": "shen.jian@live.com",
+  "dependentChangeType": "patch"
+}
