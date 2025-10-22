@@ -36,19 +36,25 @@ let logHttpRequests = true;
 
 app.use(express.static('../sts/', {
     setHeaders: (res) => {
-      res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+        //res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+        res.set('cross-origin-opener-policy-report-only', 'same-origin; report-to="coop-endpoint"');
+        res.set('reporting-endpoints', 'coop-endpoint="https://idux.azurewebsites.net/api/coopReport"');
     }
 }));
 
 //Serve popup.html with COOP header set to 'same-origin'
 app.get('/popup', function (req, res) {
-    res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    //res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.set('cross-origin-opener-policy-report-only', 'same-origin; report-to="coop-endpoint"');
+    res.set('reporting-endpoints', 'coop-endpoint="https://idux.azurewebsites.net/api/coopReport"');
     res.sendFile(path.join(APP_DIR + '/popup.html'));
 });
 
 // Set up a route for index.html.
 app.get('*', function (req, res) {
-    res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    //res.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+    res.set('cross-origin-opener-policy-report-only', 'same-origin; report-to="coop-endpoint"');
+    res.set('reporting-endpoints', 'coop-endpoint="https://idux.azurewebsites.net/api/coopReport"');
     res.sendFile(path.join(APP_DIR + '/sts_index.html'));
 });
 

@@ -48,7 +48,7 @@ async function signIn(method) {
     if (signInType === "popup") {
         return myMSALObj.loginPopup({
             ...loginRequest,
-            redirectUri: "http://localhost:30662"
+            redirectUri: "https://localhost:30662"
         }).then(handleResponse).catch(function (error) {
             console.log(error);
         });
@@ -72,7 +72,7 @@ function signOut(interactionType) {
 }
 
 async function getTokenPopup(request, account) {
-    request.redirectUri = "http://localhost:30662"
+    request.redirectUri = "https://localhost:30662"
     return await myMSALObj
         .acquireTokenSilent(request)
         .catch(async (error) => {
@@ -102,13 +102,13 @@ async function getTokenRedirect(request, account) {
     });
 }
 
-function openPopupLmso(){
+function openPopupLmso() {
     // const popupWindow = window.open("http://localhost:30662", "popup", "width=600,height=600");
     const popupWindow = window.open("https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration", "popup", "width=600,height=600");
     monitorLmsoPopup(popupWindow);
 }
 
-function monitorLmsoPopup(popupWindow){
+function monitorLmsoPopup(popupWindow) {
     console.log("PopupHandler.monitorPopupLmso - monitoring popup");
     const intervalId = setInterval(() => {
         // Window is closed
@@ -116,9 +116,9 @@ function monitorLmsoPopup(popupWindow){
             console.log(
                 "PopupHandler.monitorPopupLmso - window closed"
             );
-        clearInterval(intervalId);
+            clearInterval(intervalId);
         }
     }, 100000);
-    popupWindow.location = "http://localhost:30662";
+    popupWindow.location = "https://localhost:30662";
     popupWindow.close();
 };

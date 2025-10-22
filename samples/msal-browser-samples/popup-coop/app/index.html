@@ -12,6 +12,21 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <link rel="SHORTCUT ICON" href="https://c.s-microsoft.com/favicon.ico?v2" type="image/x-icon">
+
+  <style>
+    .container {
+      height: 200px;
+      position: relative;
+    }
+
+    .center {
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  </style>
 </head>
 
 <body>
@@ -57,13 +72,29 @@
       <div class="tab-content" id="nav-tabContent">
       </div>
     </div>
-      <br><br>
-      <div class="row" style="margin:auto">
-        <button id="openStsIframeBtn" class="btn btn-info" onclick="openStsIframeBtn()">Open STS in iframe and trigger popup</button>
+    <br><br>
+    <div class="row container">
+      <div class="col-md-5"><button id="openStsIframeBtn" class="btn btn-info center" onclick="openStsIframeBtn()">Open
+          STS in iframe and
+          trigger popup (Solution 3)
+        </button>
       </div>
-      <div class="row" style="margin:auto">
-        <iframe id="stsIframe" src="" style="display:none;width:800px;height:600px;border:1px solid #ccc;"></iframe>
+
+      <div class="col-md-5">
+        <button id="openStsPopup" class="btn btn-info center" onclick="openStsPopup()">Open STS in
+          popup (Solution 2)
+        </button>
+
+        <br>
+        <div id="successAuthCode"></div>
       </div>
+
+
+    </div>
+    <div class="row" style="margin:auto">
+      <iframe id="stsIframe" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" src=""
+        style="display:none;width:800px;height:600px;border:1px solid #ccc;"></iframe>
+    </div>
   </div>
   <br>
   <br>

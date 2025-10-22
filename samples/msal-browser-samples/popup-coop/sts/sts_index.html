@@ -13,7 +13,7 @@
 
 </head>
 
-<body onload="openPopupLmso()">
+<body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <a class="navbar-brand" href="/">MS Identity Platform</a>
     <div class="btn-group ml-auto dropleft"></div>
@@ -22,12 +22,16 @@
   <h5 class="card-header text-center">STS Test App</h5>
   <br>
   <div class="row" style="margin:auto">
-      <div id="openPopupText">Opening Popup in 2 secs</div>
+    <!-- <button id="openPopupButton" onclick="openPopupLmso()">Open Popup</button> -->
+    <button id="authentication" onclick="performAuthentication()">Login</button>
+    <br>
+    <div id="openPopupText"></div>
   </div>
   <br>
   <br>
   <!-- importing app scripts | load order is important -->
   <script src="ui.js"></script>
-  
+
 </body>
+
 </html>

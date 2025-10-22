@@ -8,6 +8,7 @@ const cardDiv = document.getElementById("card-div");
 const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
+const broadcastchannel = new BroadcastChannel('sts-channel');
 
 function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
@@ -70,9 +71,10 @@ function updateUI(data, endpoint) {
     }
 }
 
+//Solution 3: Open STS in iframe and trigger popup
 function openStsIframeBtn() {
     var iframe = document.getElementById("stsIframe");
-    iframe.src = "http://localhost:30663";
+    iframe.src = "https://localhost:30663";
     iframe.style.display = "block";
 
     // Listen for messages from the iframe
@@ -85,3 +87,55 @@ function openStsIframeBtn() {
         console.log("MSAL JS: Message received from iframe:", event.data);
     });
 }
+//end of Solution 3
+
+//Solution 2: Open STS in popup and redirect back to MSAL JS
+function openStsPopup() {
+    console.log("MSAL JS: Opening STS Popup");
+    const stsPopupWindow = window.open("https://localhost:30663", "STS Popup", "width=600,height=600,'noopener'");
+    console.log("MSAL JS: stsPopupWindow", stsPopupWindow);
+    
+    // Check if popup was closed by user
+    if (stsPopupWindow) {
+        const checkClosed = setInterval(() => {
+            if (stsPopupWindow.closed) {
+                clearInterval(checkClosed);
+                console.log("MSAL JS: Popup was closed by user");
+                // Handle popup closure here (e.g., show a message, reset UI state, etc.)
+            }
+        }, 1000); // Check every second
+    }
+    
+    // Listen for messages from the popup
+    // window.addEventListener("message", (event) => {
+    //     // For security reasons, check the origin of the message
+    //     if (event.origin !== "https://localhost:30663") {
+    //         console.warn("MSAL JS: Origin not allowed:", event.origin);
+    //         return;
+    //     }
+    //     console.log("MSAL JS: Message received from popup:", event.data);
+    // });
+}
+
+function onLoad() {
+    console.log("MSAL JS: onLoad called");
+
+    const url = window.location.href;
+    if (url.includes("code")) {
+        console.log("MSAL JS: Authorization code received in URL");
+        const urlParams = new URLSearchParams(window.location.search);
+        const authCode = urlParams.get("code");
+        console.log("MSAL JS: Authorization code:", authCode);
+        document.getElementById("successAuthCode").innerText = "Authorization code received: " + authCode;
+
+        if (authCode) {
+            broadcastchannel.postMessage({ text: authCode });
+            window.close();
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    onLoad();
+});
+//end of Solution 2
