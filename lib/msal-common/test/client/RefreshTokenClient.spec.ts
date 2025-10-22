@@ -349,8 +349,6 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        
-
         it("Checks whether performance telemetry startMeasurement method is called", async () => {
             const spy = jest.spyOn(stubPerformanceClient, "startMeasurement");
 

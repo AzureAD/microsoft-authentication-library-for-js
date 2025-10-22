@@ -1288,7 +1288,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     // Verify extraParams value is in the body
                     expect(body).toContain("sharedParam=bodyValue");
                     // Verify the body doesn't contain the query value
-                    expect(!body.includes("sharedParam=queryValue")).toBeTruthy();
+                    expect(
+                        !body.includes("sharedParam=queryValue")
+                    ).toBeTruthy();
                     done();
                 } catch (error) {
                     done(error);
@@ -1332,7 +1334,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        
         it("Adds return_spa_code=1 to body when enableSpaAuthCode is set", (done) => {
             jest.spyOn(
                 Authority.prototype,
