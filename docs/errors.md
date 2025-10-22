@@ -854,6 +854,9 @@ If this error is thrown from `acquireTokenRedirect` it means your application fa
 #### `expired_token`
 - The provided token has expired and cannot be used.
 
+#### `access_denied`
+- The authentication method verification failed because access was denied.
+
 ## Other
 
 Errors not thrown by MSAL, such as server or cache errors.
