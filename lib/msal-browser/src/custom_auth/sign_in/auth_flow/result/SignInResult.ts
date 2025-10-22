@@ -11,6 +11,15 @@ import { SignInPasswordRequiredState } from "../state/SignInPasswordRequiredStat
 import { SignInFailedState } from "../state/SignInFailedState.js";
 import { SignInCompletedState } from "../state/SignInCompletedState.js";
 import { AuthMethodRegistrationRequiredState } from "../../../core/auth_flow/jit/state/AuthMethodRegistrationState.js";
+import { MfaAwaitingState } from "../../../core/auth_flow/mfa/state/MfaState.js";
+import {
+    SIGN_IN_CODE_REQUIRED_STATE_TYPE,
+    SIGN_IN_PASSWORD_REQUIRED_STATE_TYPE,
+    SIGN_IN_FAILED_STATE_TYPE,
+    SIGN_IN_COMPLETED_STATE_TYPE,
+    AUTH_METHOD_REGISTRATION_REQUIRED_STATE_TYPE,
+    MFA_AWAITING_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of a sign-in operation.
@@ -44,7 +53,7 @@ export class SignInResult extends AuthFlowResultBase<
      * Checks if the result is in a failed state.
      */
     isFailed(): this is SignInResult & { state: SignInFailedState } {
-        return this.state instanceof SignInFailedState;
+        return this.state.stateType === SIGN_IN_FAILED_STATE_TYPE;
     }
 
     /**
@@ -53,7 +62,7 @@ export class SignInResult extends AuthFlowResultBase<
     isCodeRequired(): this is SignInResult & {
         state: SignInCodeRequiredState;
     } {
-        return this.state instanceof SignInCodeRequiredState;
+        return this.state.stateType === SIGN_IN_CODE_REQUIRED_STATE_TYPE;
     }
 
     /**
@@ -62,14 +71,14 @@ export class SignInResult extends AuthFlowResultBase<
     isPasswordRequired(): this is SignInResult & {
         state: SignInPasswordRequiredState;
     } {
-        return this.state instanceof SignInPasswordRequiredState;
+        return this.state.stateType === SIGN_IN_PASSWORD_REQUIRED_STATE_TYPE;
     }
 
     /**
      * Checks if the result is in a completed state.
      */
     isCompleted(): this is SignInResult & { state: SignInCompletedState } {
-        return this.state instanceof SignInCompletedState;
+        return this.state.stateType === SIGN_IN_COMPLETED_STATE_TYPE;
     }
 
     /**
@@ -79,7 +88,18 @@ export class SignInResult extends AuthFlowResultBase<
     isAuthMethodRegistrationRequired(): this is SignInResult & {
         state: AuthMethodRegistrationRequiredState;
     } {
-        return this.state instanceof AuthMethodRegistrationRequiredState;
+        return (
+            this.state.stateType ===
+            AUTH_METHOD_REGISTRATION_REQUIRED_STATE_TYPE
+        );
+    }
+
+    /**
+     * Checks if the result requires MFA.
+     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+     */
+    isMfaRequired(): this is SignInResult & { state: MfaAwaitingState } {
+        return this.state.stateType === MFA_AWAITING_STATE_TYPE;
     }
 }
 
@@ -91,10 +111,12 @@ export class SignInResult extends AuthFlowResultBase<
  * - SignInFailedState: The sign-in process has failed.
  * - SignInCompletedState: The sign-in process is completed.
  * - AuthMethodRegistrationRequiredState: The sign-in process requires authentication method registration.
+ * - MfaAwaitingState: The sign-in process requires MFA.
  */
 export type SignInResultState =
     | SignInCodeRequiredState
     | SignInPasswordRequiredState
     | SignInFailedState
     | SignInCompletedState
-    | AuthMethodRegistrationRequiredState;
+    | AuthMethodRegistrationRequiredState
+    | MfaAwaitingState;

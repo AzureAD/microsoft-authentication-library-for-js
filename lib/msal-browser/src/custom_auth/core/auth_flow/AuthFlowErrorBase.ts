@@ -66,7 +66,9 @@ export abstract class AuthFlowErrorBase {
                 this.errorData.subError ===
                     CustomAuthApiSuberror.INVALID_OOB_VALUE) ||
             (this.errorData instanceof InvalidArgumentError &&
-                this.errorData.errorDescription?.includes("code") === true)
+                (this.errorData.errorDescription?.includes("code") ||
+                    this.errorData.errorDescription?.includes("challenge")) ===
+                    true)
         );
     }
 
@@ -140,11 +142,20 @@ export abstract class AuthFlowErrorBase {
         );
     }
 
-    protected isInvalidAuthMethodRegistrationInputError(): boolean {
+    protected isInvalidInputError(): boolean {
         return (
             this.errorData instanceof CustomAuthApiError &&
             this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
             this.errorData.errorCodes?.includes(901001) === true
+        );
+    }
+
+    protected isVerificationContactBlockedError(): boolean {
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.ACCESS_DENIED &&
+            this.errorData.subError ===
+                CustomAuthApiSuberror.PROVIDER_BLOCKED_BY_REPUTATION
         );
     }
 }
