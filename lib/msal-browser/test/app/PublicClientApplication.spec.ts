@@ -2632,7 +2632,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             stubExtensionProvider(config);
             await pca.initialize();
 
-            //Implementation of PCA was moved to controller.
+            // Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
             const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
