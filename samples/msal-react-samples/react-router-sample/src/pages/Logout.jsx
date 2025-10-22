@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { useMsal } from "@azure/msal-react";
-import { BrowserUtils } from "@azure/msal-browser";
 
 export function Logout() {
     const { instance } = useMsal();
@@ -8,7 +7,6 @@ export function Logout() {
     useEffect(() => {
         instance.logoutRedirect({
             account: instance.getActiveAccount(),
-            onRedirectNavigate: () => !BrowserUtils.isInIframe()
         })
     }, [ instance ]);
 

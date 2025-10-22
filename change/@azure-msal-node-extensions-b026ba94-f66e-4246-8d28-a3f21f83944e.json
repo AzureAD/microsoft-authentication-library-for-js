@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update build scripts for Typedoc compatibility #7985",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

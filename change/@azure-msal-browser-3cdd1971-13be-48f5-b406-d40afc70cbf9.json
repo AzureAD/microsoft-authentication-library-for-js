@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Decompose nested constants #7782",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -335,6 +335,9 @@ export type PerformanceEvent = {
     navigateCallbackResult?: boolean;
 
     dataBoundary?: DataBoundary;
+
+    // Hashed logs in the format [millis1,hash1;millis2,hash2;...]
+    logs?: string;
 };
 
 export type PerformanceEventContext = {
