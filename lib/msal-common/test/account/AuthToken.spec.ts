@@ -195,5 +195,13 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 })
             ).toBe(true);
         });
+
+        it("Returns true if signin_state claim contains dvc_dmjd", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["dvc_dmjd", "other-value"],
+                })
+            ).toBe(true);
+        });
     });
 });

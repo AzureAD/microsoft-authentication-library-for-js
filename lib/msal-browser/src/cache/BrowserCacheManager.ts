@@ -536,7 +536,6 @@ export class BrowserCacheManager extends CacheManager {
                 if (!currentAccountKeys.includes(newAccountKey)) {
                     currentAccountKeys.push(newAccountKey);
                 }
-                // Only migrate if it doesn't already exist in the new schema - we expect newer tokens to have KMSI claim and don't want to overwrite with older tokens that may not have it
                 await this.setUserData(
                     newIdTokenKey,
                     JSON.stringify(oldSchemaData),

@@ -2312,8 +2312,8 @@ describe("BrowserCacheManager tests", () => {
             const v0AtKey2 = `${v0AccessToken2.homeAccountId}-${v0AccessToken2.environment}-${v0AccessToken2.credentialType}-${v0AccessToken2.clientId}-${v0AccessToken2.target}`;
             const v1AtKey1 = `msal.1-${v1AccessToken1.homeAccountId}-${v1AccessToken1.environment}-${v1AccessToken1.credentialType}-${v1AccessToken1.clientId}-${v1AccessToken1.target}`;
             const v1AtKey2 = `msal.1-${v1AccessToken2.homeAccountId}-${v1AccessToken2.environment}-${v1AccessToken2.credentialType}-${v1AccessToken2.clientId}-${v1AccessToken2.target}`;
-            const v2AtKey1 = `msal.2-${v2AccessToken1.homeAccountId}-${v2AccessToken1.environment}-${v2AccessToken1.credentialType}-${v2AccessToken1.clientId}-${v2AccessToken1.target}`;
-            const v2AtKey2 = `msal.2-${v2AccessToken2.homeAccountId}-${v2AccessToken2.environment}-${v2AccessToken2.credentialType}-${v2AccessToken2.clientId}-${v2AccessToken2.target}`;
+            const v2AtKey1 = `msal.2|${v2AccessToken1.homeAccountId}|${v2AccessToken1.environment}|${v2AccessToken1.credentialType}|${v2AccessToken1.clientId}|${v2AccessToken1.target}`;
+            const v2AtKey2 = `msal.2|${v2AccessToken2.homeAccountId}|${v2AccessToken2.environment}|${v2AccessToken2.credentialType}|${v2AccessToken2.clientId}|${v2AccessToken2.target}`;
 
             // Store tokens directly in cache
             window.sessionStorage.setItem(
@@ -2553,8 +2553,8 @@ describe("BrowserCacheManager tests", () => {
             const v0AtKey2 = `${v0AccessToken2.homeAccountId}-${v0AccessToken2.environment}-${v0AccessToken2.credentialType}-${v0AccessToken2.clientId}-${v0AccessToken2.target}`;
             const v1AtKey1 = `msal.1-${v1AccessToken1.homeAccountId}-${v1AccessToken1.environment}-${v1AccessToken1.credentialType}-${v1AccessToken1.clientId}-${v1AccessToken1.target}`;
             const v1AtKey2 = `msal.1-${v1AccessToken2.homeAccountId}-${v1AccessToken2.environment}-${v1AccessToken2.credentialType}-${v1AccessToken2.clientId}-${v1AccessToken2.target}`;
-            const v2AtKey1 = `msal.2-${v2AccessToken1.homeAccountId}-${v2AccessToken1.environment}-${v2AccessToken1.credentialType}-${v2AccessToken1.clientId}-${v2AccessToken1.target}`;
-            const v2AtKey2 = `msal.2-${v2AccessToken2.homeAccountId}-${v2AccessToken2.environment}-${v2AccessToken2.credentialType}-${v2AccessToken2.clientId}-${v2AccessToken2.target}`;
+            const v2AtKey1 = `msal.2|${v2AccessToken1.homeAccountId}|${v2AccessToken1.environment}|${v2AccessToken1.credentialType}|${v2AccessToken1.clientId}|${v2AccessToken1.target}`;
+            const v2AtKey2 = `msal.2|${v2AccessToken2.homeAccountId}|${v2AccessToken2.environment}|${v2AccessToken2.credentialType}|${v2AccessToken2.clientId}|${v2AccessToken2.target}`;
 
             // Store tokens directly in cache
             window.sessionStorage.setItem(
