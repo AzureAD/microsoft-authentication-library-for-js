@@ -85,7 +85,9 @@ export class TestStorageManager extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = this.generateAccountKey(value.getAccountInfo());
+        const key = this.generateAccountKey(
+            AccountEntity.getAccountInfo(value)
+        );
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();

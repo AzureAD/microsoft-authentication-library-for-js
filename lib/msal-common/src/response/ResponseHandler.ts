@@ -40,7 +40,11 @@ import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
+import {
+    checkMaxAge,
+    extractTokenClaims,
+    isKmsi,
+} from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -279,7 +283,7 @@ export class ResponseHandler {
                 cacheRecord.account
             ) {
                 const key = this.cacheStorage.generateAccountKey(
-                    cacheRecord.account.getAccountInfo()
+                    AccountEntity.getAccountInfo(cacheRecord.account)
                 );
                 const account = this.cacheStorage.getAccount(
                     key,
@@ -305,6 +309,7 @@ export class ResponseHandler {
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
+                isKmsi(idTokenClaims || {}),
                 request.storeInCache
             );
         } finally {
@@ -572,7 +577,7 @@ export class ResponseHandler {
 
         const accountInfo: AccountInfo | null = cacheRecord.account
             ? updateAccountTenantProfileData(
-                  cacheRecord.account.getAccountInfo(),
+                  AccountEntity.getAccountInfo(cacheRecord.account),
                   undefined, // tenantProfile optional
                   idTokenClaims,
                   cacheRecord.idToken?.secret

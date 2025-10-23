@@ -93,6 +93,7 @@ export class TokenCache implements ITokenCache {
         const idTokenClaims = response.id_token
             ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
             : undefined;
+        const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
@@ -129,7 +130,8 @@ export class TokenCache implements ITokenCache {
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             cacheRecordAccount.realm,
-            correlationId
+            correlationId,
+            kmsi
         );
 
         const accessToken = await this.loadAccessToken(
@@ -139,14 +141,16 @@ export class TokenCache implements ITokenCache {
             cacheRecordAccount.environment,
             cacheRecordAccount.realm,
             options,
-            correlationId
+            correlationId,
+            kmsi
         );
 
         const refreshToken = await this.loadRefreshToken(
             response,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
-            correlationId
+            correlationId,
+            kmsi
         );
 
         return this.generateAuthenticationResult(
@@ -184,7 +188,11 @@ export class TokenCache implements ITokenCache {
             const accountEntity = AccountEntity.createFromAccountInfo(
                 request.account
             );
-            await this.storage.setAccount(accountEntity, correlationId);
+            await this.storage.setAccount(
+                accountEntity,
+                correlationId,
+                AuthToken.isKmsi(idTokenClaims || {})
+            );
             return accountEntity;
         } else if (!authority || (!clientInfo && !idTokenClaims)) {
             this.logger.error(
@@ -220,7 +228,11 @@ export class TokenCache implements ITokenCache {
             this.logger
         );
 
-        await this.storage.setAccount(cachedAccount, correlationId);
+        await this.storage.setAccount(
+            cachedAccount,
+            correlationId,
+            AuthToken.isKmsi(idTokenClaims || {})
+        );
         return cachedAccount;
     }
 
@@ -237,7 +249,8 @@ export class TokenCache implements ITokenCache {
         homeAccountId: string,
         environment: string,
         tenantId: string,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<IdTokenEntity | null> {
         if (!response.id_token) {
             this.logger.verbose("TokenCache - no id token found in response");
@@ -253,7 +266,11 @@ export class TokenCache implements ITokenCache {
             tenantId
         );
 
-        await this.storage.setIdTokenCredential(idTokenEntity, correlationId);
+        await this.storage.setIdTokenCredential(
+            idTokenEntity,
+            correlationId,
+            kmsi
+        );
         return idTokenEntity;
     }
 
@@ -273,7 +290,8 @@ export class TokenCache implements ITokenCache {
         environment: string,
         tenantId: string,
         options: LoadTokenOptions,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<AccessTokenEntity | null> {
         if (!response.access_token) {
             this.logger.verbose(
@@ -322,7 +340,8 @@ export class TokenCache implements ITokenCache {
 
         await this.storage.setAccessTokenCredential(
             accessTokenEntity,
-            correlationId
+            correlationId,
+            kmsi
         );
         return accessTokenEntity;
     }
@@ -339,7 +358,8 @@ export class TokenCache implements ITokenCache {
         response: ExternalTokenResponse,
         homeAccountId: string,
         environment: string,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<RefreshTokenEntity | null> {
         if (!response.refresh_token) {
             this.logger.verbose(
@@ -361,7 +381,8 @@ export class TokenCache implements ITokenCache {
 
         await this.storage.setRefreshTokenCredential(
             refreshTokenEntity,
-            correlationId
+            correlationId,
+            kmsi
         );
         return refreshTokenEntity;
     }
@@ -406,7 +427,7 @@ export class TokenCache implements ITokenCache {
             uniqueId: cacheRecord.account.localAccountId,
             tenantId: cacheRecord.account.realm,
             scopes: responseScopes,
-            account: accountEntity.getAccountInfo(),
+            account: AccountEntity.getAccountInfo(accountEntity),
             idToken: cacheRecord.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,

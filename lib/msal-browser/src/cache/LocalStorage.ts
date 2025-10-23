@@ -205,7 +205,10 @@ export class LocalStorage implements IWindowStorage<string> {
         }
 
         try {
-            return JSON.parse(decryptedData);
+            return {
+                ...JSON.parse(decryptedData),
+                lastUpdatedAt: data.lastUpdatedAt,
+            };
         } catch (e) {
             this.performanceClient.incrementFields(
                 { encryptedCacheCorruptionCount: 1 },
@@ -223,7 +226,8 @@ export class LocalStorage implements IWindowStorage<string> {
         key: string,
         value: string,
         correlationId: string,
-        timestamp: string
+        timestamp: string,
+        kmsi: boolean
     ): Promise<void> {
         if (!this.initialized || !this.encryptionCookie) {
             throw createBrowserAuthError(
@@ -231,22 +235,26 @@ export class LocalStorage implements IWindowStorage<string> {
             );
         }
 
-        const { data, nonce } = await invokeAsync(
-            encrypt,
-            PerformanceEvents.Encrypt,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(this.encryptionCookie.key, value, this.getContext(key));
-        const encryptedData: EncryptedData = {
-            id: this.encryptionCookie.id,
-            nonce: nonce,
-            data: data,
-            lastUpdatedAt: timestamp,
-        };
+        if (kmsi) {
+            this.setItem(key, value);
+        } else {
+            const { data, nonce } = await invokeAsync(
+                encrypt,
+                PerformanceEvents.Encrypt,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(this.encryptionCookie.key, value, this.getContext(key));
+            const encryptedData: EncryptedData = {
+                id: this.encryptionCookie.id,
+                nonce: nonce,
+                data: data,
+                lastUpdatedAt: timestamp,
+            };
+            this.setItem(key, JSON.stringify(encryptedData));
+        }
 
         this.memoryStorage.setItem(key, value);
-        this.setItem(key, JSON.stringify(encryptedData));
 
         // Notify other frames to update their in-memory cache
         this.broadcast.postMessage({
@@ -382,7 +390,7 @@ export class LocalStorage implements IWindowStorage<string> {
                 { unencryptedCacheCount: 1 },
                 correlationId
             );
-            return encObj;
+            return rawCache;
         }
 
         if (encObj.id !== this.encryptionCookie.id) {
@@ -393,6 +401,11 @@ export class LocalStorage implements IWindowStorage<string> {
             );
             return null;
         }
+
+        this.performanceClient.incrementFields(
+            { encryptedCacheCount: 1 },
+            correlationId
+        );
 
         return invokeAsync(
             decrypt,

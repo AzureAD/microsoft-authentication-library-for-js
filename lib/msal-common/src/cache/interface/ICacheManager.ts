@@ -26,8 +26,14 @@ export interface ICacheManager {
     /**
      * set account entity in the platform cache
      * @param account
+     * @param correlationId
+     * @param kmsi
      */
-    setAccount(account: AccountEntity, correlationId: string): Promise<void>;
+    setAccount(
+        account: AccountEntity,
+        correlationId: string,
+        kmsi: boolean
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -41,10 +47,13 @@ export interface ICacheManager {
     /**
      * set idToken entity to the platform cache
      * @param idToken
+     * @param correlationId
+     * @param kmsi
      */
     setIdTokenCredential(
         idToken: IdTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -59,10 +68,13 @@ export interface ICacheManager {
     /**
      * set idToken entity to the platform cache
      * @param accessToken
+     * @param correlationId
+     * @param kmsi
      */
     setAccessTokenCredential(
         accessToken: AccessTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -77,10 +89,13 @@ export interface ICacheManager {
     /**
      * set idToken entity to the platform cache
      * @param refreshToken
+     * @param correlationId
+     * @param kmsi
      */
     setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -172,10 +187,14 @@ export interface ICacheManager {
     /**
      * saves a cache record
      * @param cacheRecord
+     * @param correlationId
+     * @param kmsi
+     * @param storeInCache
      */
     saveCacheRecord(
         cacheRecord: CacheRecord,
         correlationId: string,
+        kmsi: boolean,
         storeInCache?: StoreInCache
     ): Promise<void>;
 
