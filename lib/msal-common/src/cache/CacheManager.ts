@@ -95,7 +95,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setAccount(
         account: AccountEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -114,7 +115,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setIdTokenCredential(
         idToken: IdTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -133,7 +135,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setAccessTokenCredential(
         accessToken: AccessTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -152,7 +155,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**
@@ -323,7 +327,7 @@ export abstract class CacheManager implements ICacheManager {
             correlationId
         );
         if (accountEntities.length > 0) {
-            return accountEntities[0].getAccountInfo();
+            return AccountEntity.getAccountInfo(accountEntities[0]);
         } else {
             return null;
         }
@@ -413,7 +417,7 @@ export abstract class CacheManager implements ICacheManager {
         targetTenantId?: string,
         tenantProfileFilter?: TenantProfileFilter
     ): AccountInfo[] {
-        const accountInfo = accountEntity.getAccountInfo();
+        const accountInfo = AccountEntity.getAccountInfo(accountEntity);
         let searchTenantProfiles: Map<string, TenantProfile> =
             accountInfo.tenantProfiles || new Map<string, TenantProfile>();
         const tokenKeys = this.getTokenKeys();
@@ -537,12 +541,14 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * saves a cache record
      * @param cacheRecord {CacheRecord}
-     * @param storeInCache {?StoreInCache}
      * @param correlationId {?string} correlation id
+     * @param kmsi - Keep Me Signed In
+     * @param storeInCache {?StoreInCache}
      */
     async saveCacheRecord(
         cacheRecord: CacheRecord,
         correlationId: string,
+        kmsi: boolean,
         storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
@@ -553,13 +559,14 @@ export abstract class CacheManager implements ICacheManager {
 
         try {
             if (!!cacheRecord.account) {
-                await this.setAccount(cacheRecord.account, correlationId);
+                await this.setAccount(cacheRecord.account, correlationId, kmsi);
             }
 
             if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {
                 await this.setIdTokenCredential(
                     cacheRecord.idToken,
-                    correlationId
+                    correlationId,
+                    kmsi
                 );
             }
 
@@ -569,7 +576,8 @@ export abstract class CacheManager implements ICacheManager {
             ) {
                 await this.saveAccessToken(
                     cacheRecord.accessToken,
-                    correlationId
+                    correlationId,
+                    kmsi
                 );
             }
 
@@ -579,7 +587,8 @@ export abstract class CacheManager implements ICacheManager {
             ) {
                 await this.setRefreshTokenCredential(
                     cacheRecord.refreshToken,
-                    correlationId
+                    correlationId,
+                    kmsi
                 );
             }
 
@@ -602,7 +611,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     private async saveAccessToken(
         credential: AccessTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
@@ -639,7 +649,7 @@ export abstract class CacheManager implements ICacheManager {
                 }
             }
         });
-        await this.setAccessTokenCredential(credential, correlationId);
+        await this.setAccessTokenCredential(credential, correlationId, kmsi);
     }
 
     /**

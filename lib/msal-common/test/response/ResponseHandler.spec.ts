@@ -139,7 +139,7 @@ describe("ResponseHandler.ts", () => {
             .mockImplementation((encodedIdToken, crypto) => {
                 return ID_TOKEN_CLAIMS as TokenClaims;
             });
-        jest.spyOn(AccountEntity.prototype, "getAccountInfo").mockReturnValue({
+        jest.spyOn(AccountEntity, "getAccountInfo").mockReturnValue({
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
             environment: "login.windows.net",

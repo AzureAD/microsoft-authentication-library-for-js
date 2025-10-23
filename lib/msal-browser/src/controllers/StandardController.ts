@@ -30,6 +30,7 @@ import {
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
     PkceCodes,
+    AuthToken,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -1624,7 +1625,8 @@ export class StandardController implements IController {
         );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims)
         );
 
         if (result.fromNativeBroker) {
