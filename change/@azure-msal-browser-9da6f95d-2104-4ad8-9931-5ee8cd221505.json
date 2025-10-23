@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Introduce the stateType property in state classes for the type detection #8090",
-  "packageName": "@azure/msal-browser",
-  "email": "shen.jian@live.com",
-  "dependentChangeType": "patch"
-}
