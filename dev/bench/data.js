@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761001637934,
+  "lastUpdate": 1761256496600,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -18261,6 +18261,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.83%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ef1261f8f7632997df5c5f62d96d1c9567f5ab19",
+          "message": "Kmsi Support (#8102)\n\nThis pull request introduces support for the \"Keep Me Signed In\" (KMSI)\nfeature in the MSAL browser cache and token management logic. The main\nchanges include updating cache storage interfaces and implementations to\nhandle the new `kmsi` flag, modifying token and account caching flows to\npropagate this flag, and updating schema versions and cache key formats\nfor future compatibility.\n\n**KMSI support and cache logic updates:**\n\n* Added a `kmsi` boolean parameter to the `setUserData` method in the\n`IWindowStorage` interface and its implementations, enabling\ndifferentiation of cache storage behavior based on the KMSI flag.\n[[1]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580L1197-R1197)\n[[2]](diffhunk://#diff-2224455d01ee4ebadbe123ed149d1a4be72be3574af0e7c1874d5791ea11b95bL38-R39)\n[[3]](diffhunk://#diff-5947801aab96891267441aeda40b8d064d31c62194bcace31db0e59752baa010L226-R240)\n* Updated the `LocalStorage` class to store unencrypted cache data when\nKMSI is enabled, and changed the cache retrieval logic to correctly\nhandle encrypted and unencrypted data.\n[[1]](diffhunk://#diff-5947801aab96891267441aeda40b8d064d31c62194bcace31db0e59752baa010L226-R240)\n[[2]](diffhunk://#diff-5947801aab96891267441aeda40b8d064d31c62194bcace31db0e59752baa010R254-L249)\n[[3]](diffhunk://#diff-5947801aab96891267441aeda40b8d064d31c62194bcace31db0e59752baa010L385-R393)\n[[4]](diffhunk://#diff-5947801aab96891267441aeda40b8d064d31c62194bcace31db0e59752baa010R405-R409)\n\n**Token and account caching flow changes:**\n\n* Propagated the `kmsi` flag throughout token and account caching\nmethods in `TokenCache`, `PlatformAuthInteractionClient`,\n`StandardController`, and `NestedAppAuthController`, ensuring that KMSI\nstatus is considered during cache operations.\n[[1]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fR96)\n[[2]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL132-R134)\n[[3]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL142-R153)\n[[4]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL187-R195)\n[[5]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL223-R235)\n[[6]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL240-R253)\n[[7]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL256-R273)\n[[8]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL276-R294)\n[[9]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL325-R344)\n[[10]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL342-R362)\n[[11]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL364-R385)\n[[12]](diffhunk://#diff-7b9a3c980bbe784b514c142a68327c6e99af1de61b545e2e9e7bde79bdf4a8c8L940-R942)\n[[13]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fL1627-R1629)\n[[14]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L537-R541)\n[[15]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L733-R748)\n[[16]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7R819)\n\n**Schema and cache key updates:**\n\n* Updated `CACHE_KEY_SEPARATOR` to `|` and incremented\n`CREDENTIAL_SCHEMA_VERSION` and `ACCOUNT_SCHEMA_VERSION` to `2` in\n`CacheKeys.ts` to support new cache formats and future extensibility.\n\n**API review and documentation:**\n\n* Reflected changes to method signatures and cache schema in the API\nreview file, including updates to parameter lists and documentation\nwarnings for new line numbers.\n[[1]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580L1197-R1197)\n[[2]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580L1234-R1234)\n[[3]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580L1827-R1829)\n\n**Code consistency and minor fixes:**\n\n* Updated usages of `getAccountInfo()` to use the static method\n`AccountEntity.getAccountInfo()` for consistency across the codebase.\n[[1]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL409-R430)\n[[2]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L680-R684)\n[[3]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L733-R748)\n[[4]](diffhunk://#diff-f936803be34376b4fc36745b78ec5110b6e3b420d907b033fa6924453d2815d5L6922-R6923)",
+          "timestamp": "2025-10-23T14:48:18-07:00",
+          "tree_id": "77a562889a840b8e59d49c261f730e9a23472c9a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ef1261f8f7632997df5c5f62d96d1c9567f5ab19"
+        },
+        "date": 1761256493980,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 244176,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 249904,
+            "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
