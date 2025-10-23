@@ -316,7 +316,7 @@ export class BrowserCacheManager extends CacheManager {
                 )
             ) {
                 // Cache expired remove account and associated tokens
-                this.removeAccountOldSchema(
+                await this.removeAccountOldSchema(
                     accountKey,
                     parsedValue,
                     credentialSchema,
