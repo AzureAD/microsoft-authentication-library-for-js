@@ -248,7 +248,9 @@ export class NodeStorage extends CacheManager {
      * @param account - cache value to be set of type AccountEntity
      */
     async setAccount(account: AccountEntity): Promise<void> {
-        const accountKey = this.generateAccountKey(account.getAccountInfo());
+        const accountKey = this.generateAccountKey(
+            AccountEntity.getAccountInfo(account)
+        );
         this.setItem(accountKey, account);
     }
 

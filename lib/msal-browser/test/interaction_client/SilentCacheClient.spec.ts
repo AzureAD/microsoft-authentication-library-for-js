@@ -32,7 +32,7 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     { environment: "login.microsoftonline.com" }
 );
 const testAccount: AccountInfo = {
-    ...testAccountEntity.getAccountInfo(),
+    ...AccountEntity.getAccountInfo(testAccountEntity),
     idTokenClaims: ID_TOKEN_CLAIMS,
     idToken: TEST_TOKENS.IDTOKEN_V2,
 };

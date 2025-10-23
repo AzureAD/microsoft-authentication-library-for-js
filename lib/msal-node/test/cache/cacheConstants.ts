@@ -145,7 +145,9 @@ export const MockCache = {
     rtF: mockCache.createMockRTWithFamilyId(),
     rtFKey: generateCredentialKey(mockCache.createMockRTWithFamilyId()),
     acc: mockCache.createMockAcc(),
-    accKey: generateAccountKey(mockCache.createMockAcc().getAccountInfo()),
+    accKey: generateAccountKey(
+        AccountEntity.getAccountInfo(mockCache.createMockAcc())
+    ),
     amdt: mockCache.createMockAmdt(),
     amdtKey: CacheHelpers.generateAppMetadataKey(mockCache.createMockAmdt()),
 };

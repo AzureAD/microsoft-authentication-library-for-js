@@ -184,7 +184,9 @@ describe("Storage tests for msal-node: ", () => {
         await nodeStorage.setAccount(mockAccountEntity);
         expect(
             nodeStorage.getAccount(
-                generateAccountKey(mockAccountEntity.getAccountInfo())
+                generateAccountKey(
+                    AccountEntity.getAccountInfo(mockAccountEntity)
+                )
             )
         ).toEqual(mockAccountEntity);
     });

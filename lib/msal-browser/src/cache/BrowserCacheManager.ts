@@ -38,6 +38,9 @@ import {
     CredentialEntity,
     CredentialType,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    AuthToken,
+    getTenantIdFromIdTokenClaims,
+    buildTenantProfile,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -71,6 +74,8 @@ import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
+
+type KmsiMap = { [homeAccountId: string]: boolean };
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -145,200 +150,637 @@ export class BrowserCacheManager extends CacheManager {
      * Migrates any existing cache data from previous versions of MSAL.js into the current cache structure.
      */
     async migrateExistingCache(correlationId: string): Promise<void> {
-        const accountKeys0 = getAccountKeys(this.browserStorage, 0);
-        const tokenKeys0 = getTokenKeys(this.clientId, this.browserStorage, 0);
+        let accountKeys = getAccountKeys(this.browserStorage);
+        let tokenKeys = getTokenKeys(this.clientId, this.browserStorage);
         this.performanceClient.addFields(
             {
-                oldAccountCount: accountKeys0.length,
-                oldAccessCount: tokenKeys0.accessToken.length,
-                oldIdCount: tokenKeys0.idToken.length,
-                oldRefreshCount: tokenKeys0.refreshToken.length,
+                preMigrateAcntCount: accountKeys.length,
+                preMigrateATCount: tokenKeys.accessToken.length,
+                preMigrateITCount: tokenKeys.idToken.length,
+                preMigrateRTCount: tokenKeys.refreshToken.length,
             },
             correlationId
         );
 
-        const accountKeys1 = getAccountKeys(this.browserStorage, 1);
-        const tokenKeys1 = getTokenKeys(this.clientId, this.browserStorage, 1);
+        for (let i = 0; i < CacheKeys.ACCOUNT_SCHEMA_VERSION; i++) {
+            const credentialSchema = i; // For now account and credential schemas are the same, but may diverge in future
+            await this.removeStaleAccounts(i, credentialSchema, correlationId);
+        }
+        // Must migrate idTokens first to ensure we have KMSI info for the rest
+        for (let i = 0; i < CacheKeys.CREDENTIAL_SCHEMA_VERSION; i++) {
+            const accountSchema = i; // For now account and credential schemas are the same, but may diverge in future
+            await this.migrateIdTokens(i, accountSchema, correlationId);
+        }
+        const kmsiMap = this.getKMSIValues();
+        for (let i = 0; i < CacheKeys.CREDENTIAL_SCHEMA_VERSION; i++) {
+            await this.migrateAccessTokens(i, kmsiMap, correlationId);
+            await this.migrateRefreshTokens(i, kmsiMap, correlationId);
+        }
+
+        accountKeys = getAccountKeys(this.browserStorage);
+        tokenKeys = getTokenKeys(this.clientId, this.browserStorage);
         this.performanceClient.addFields(
             {
-                currAccountCount: accountKeys1.length,
-                currAccessCount: tokenKeys1.accessToken.length,
-                currIdCount: tokenKeys1.idToken.length,
-                currRefreshCount: tokenKeys1.refreshToken.length,
+                postMigrateAcntCount: accountKeys.length,
+                postMigrateATCount: tokenKeys.accessToken.length,
+                postMigrateITCount: tokenKeys.idToken.length,
+                postMigrateRTCount: tokenKeys.refreshToken.length,
             },
             correlationId
         );
-
-        await Promise.all([
-            this.updateV0ToCurrent(
-                CacheKeys.ACCOUNT_SCHEMA_VERSION,
-                accountKeys0,
-                accountKeys1,
-                correlationId
-            ),
-            this.updateV0ToCurrent(
-                CacheKeys.CREDENTIAL_SCHEMA_VERSION,
-                tokenKeys0.idToken,
-                tokenKeys1.idToken,
-                correlationId
-            ),
-            this.updateV0ToCurrent(
-                CacheKeys.CREDENTIAL_SCHEMA_VERSION,
-                tokenKeys0.accessToken,
-                tokenKeys1.accessToken,
-                correlationId
-            ),
-            this.updateV0ToCurrent(
-                CacheKeys.CREDENTIAL_SCHEMA_VERSION,
-                tokenKeys0.refreshToken,
-                tokenKeys1.refreshToken,
-                correlationId
-            ),
-        ]);
-
-        if (accountKeys0.length > 0) {
-            this.browserStorage.setItem(
-                CacheKeys.getAccountKeysCacheKey(0),
-                JSON.stringify(accountKeys0)
-            );
-        } else {
-            this.browserStorage.removeItem(CacheKeys.getAccountKeysCacheKey(0));
-        }
-
-        if (accountKeys1.length > 0) {
-            this.browserStorage.setItem(
-                CacheKeys.getAccountKeysCacheKey(1),
-                JSON.stringify(accountKeys1)
-            );
-        } else {
-            this.browserStorage.removeItem(CacheKeys.getAccountKeysCacheKey(1));
-        }
-
-        this.setTokenKeys(tokenKeys0, correlationId, 0);
-        this.setTokenKeys(tokenKeys1, correlationId, 1);
     }
 
-    async updateV0ToCurrent(
-        currentSchema: number,
-        v0Keys: Array<string>,
-        v1Keys: Array<string>,
+    /**
+     * Parses entry, adds lastUpdatedAt if it doesn't exist, removes entry if expired or invalid
+     * @param key
+     * @param correlationId
+     * @returns
+     */
+    async updateOldEntry(
+        key: string,
         correlationId: string
-    ): Promise<void[]> {
-        const upgradePromises: Array<Promise<void>> = [];
+    ): Promise<CredentialEntity | null> {
+        const rawValue = this.browserStorage.getItem(key);
+        const parsedValue = this.validateAndParseJson(rawValue || "") as
+            | CredentialEntity
+            | EncryptedData
+            | null;
 
-        for (const v0Key of [...v0Keys]) {
-            const rawV0Value = this.browserStorage.getItem(v0Key);
-            const parsedV0Value = this.validateAndParseJson(
-                rawV0Value || ""
-            ) as CredentialEntity | AccountEntity | EncryptedData | null;
-
-            if (!parsedV0Value) {
-                removeElementFromArray(v0Keys, v0Key);
-                continue;
-            }
-
-            if (!parsedV0Value.lastUpdatedAt) {
-                // Add lastUpdatedAt to the existing v0 entry if it doesnt exist so we know when it's safe to remove it
-                parsedV0Value.lastUpdatedAt = Date.now().toString();
-                this.setItem(
-                    v0Key,
-                    JSON.stringify(parsedV0Value),
-                    correlationId
-                );
-            }
-
-            const decryptedData = isEncrypted(parsedV0Value)
-                ? await this.browserStorage.decryptData(
-                      v0Key,
-                      parsedV0Value,
-                      correlationId
-                  )
-                : parsedV0Value;
-            let expirationTime;
-            if (decryptedData) {
-                if (CacheHelpers.isAccessTokenEntity(decryptedData)) {
-                    expirationTime = decryptedData.expiresOn;
-                } else if (CacheHelpers.isRefreshTokenEntity(decryptedData)) {
-                    expirationTime = decryptedData.expiresOn;
-                }
-            }
-            if (
-                !decryptedData ||
-                TimeUtils.isCacheExpired(
-                    parsedV0Value.lastUpdatedAt,
-                    this.cacheConfig.cacheRetentionDays
-                ) ||
-                (expirationTime &&
-                    TimeUtils.isTokenExpired(
-                        expirationTime,
-                        DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
-                    ))
-            ) {
-                this.browserStorage.removeItem(v0Key);
-                removeElementFromArray(v0Keys, v0Key);
-                this.performanceClient.incrementFields(
-                    { expiredCacheRemovedCount: 1 },
-                    correlationId
-                );
-                continue;
-            }
-
-            if (
-                this.cacheConfig.cacheLocation !==
-                    BrowserCacheLocation.LocalStorage ||
-                isEncrypted(parsedV0Value)
-            ) {
-                const v1Key = `${CacheKeys.PREFIX}.${currentSchema}${CacheKeys.CACHE_KEY_SEPARATOR}${v0Key}`;
-                const rawV1Entry = this.browserStorage.getItem(v1Key);
-                if (!rawV1Entry) {
-                    upgradePromises.push(
-                        this.setUserData(
-                            v1Key,
-                            JSON.stringify(decryptedData),
-                            correlationId,
-                            parsedV0Value.lastUpdatedAt
-                        ).then(() => {
-                            v1Keys.push(v1Key);
-                            this.performanceClient.incrementFields(
-                                { upgradedCacheCount: 1 },
-                                correlationId
-                            );
-                        })
-                    );
-                    continue;
-                } else {
-                    const parsedV1Entry = this.validateAndParseJson(
-                        rawV1Entry
-                    ) as CredentialEntity | AccountEntity | EncryptedData;
-                    // If the entry already exists but is older than the v0 entry, replace it
-                    if (
-                        Number(parsedV0Value.lastUpdatedAt) >
-                        Number(parsedV1Entry.lastUpdatedAt)
-                    ) {
-                        upgradePromises.push(
-                            this.setUserData(
-                                v1Key,
-                                JSON.stringify(decryptedData),
-                                correlationId,
-                                parsedV0Value.lastUpdatedAt
-                            ).then(() => {
-                                this.performanceClient.incrementFields(
-                                    { updatedCacheFromV0Count: 1 },
-                                    correlationId
-                                );
-                            })
-                        );
-                        continue;
-                    }
-                }
-            }
-            /*
-             * Note: If we reach here for unencrypted localStorage data, we continue without migrating
-             * as we can't migrate unencrypted localStorage data right now since we can't guarantee KMSI=no
-             */
+        if (!parsedValue) {
+            this.browserStorage.removeItem(key);
+            return null;
         }
 
-        return Promise.all(upgradePromises);
+        if (!parsedValue.lastUpdatedAt) {
+            // Add lastUpdatedAt to the existing v0 entry if it doesnt exist so we know when it's safe to remove it
+            parsedValue.lastUpdatedAt = Date.now().toString();
+            this.setItem(key, JSON.stringify(parsedValue), correlationId);
+        } else if (
+            TimeUtils.isCacheExpired(
+                parsedValue.lastUpdatedAt,
+                this.cacheConfig.cacheRetentionDays
+            )
+        ) {
+            this.browserStorage.removeItem(key);
+            this.performanceClient.incrementFields(
+                { expiredCacheRemovedCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+
+        const decryptedData = isEncrypted(parsedValue)
+            ? await this.browserStorage.decryptData(
+                  key,
+                  parsedValue,
+                  correlationId
+              )
+            : parsedValue;
+        if (!decryptedData || !CacheHelpers.isCredentialEntity(decryptedData)) {
+            this.performanceClient.incrementFields(
+                { invalidCacheCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+
+        if (
+            (CacheHelpers.isAccessTokenEntity(decryptedData) ||
+                CacheHelpers.isRefreshTokenEntity(decryptedData)) &&
+            decryptedData.expiresOn &&
+            TimeUtils.isTokenExpired(
+                decryptedData.expiresOn,
+                DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+            )
+        ) {
+            this.browserStorage.removeItem(key);
+            this.performanceClient.incrementFields(
+                { expiredCacheRemovedCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+
+        return decryptedData;
+    }
+
+    /**
+     * Remove accounts from the cache for older schema versions if they have not been updated in the last cacheRetentionDays
+     * @param accountSchema
+     * @param credentialSchema
+     * @param correlationId
+     * @returns
+     */
+    async removeStaleAccounts(
+        accountSchema: number,
+        credentialSchema: number,
+        correlationId: string
+    ): Promise<void> {
+        const accountKeysToCheck = getAccountKeys(
+            this.browserStorage,
+            accountSchema
+        );
+        if (accountKeysToCheck.length === 0) {
+            return;
+        }
+
+        for (const accountKey of [...accountKeysToCheck]) {
+            this.performanceClient.incrementFields(
+                { oldAcntCount: 1 },
+                correlationId
+            );
+            const rawValue = this.browserStorage.getItem(accountKey);
+            const parsedValue = this.validateAndParseJson(rawValue || "") as
+                | AccountEntity
+                | EncryptedData
+                | null;
+
+            if (!parsedValue) {
+                removeElementFromArray(accountKeysToCheck, accountKey);
+                continue;
+            }
+
+            if (!parsedValue.lastUpdatedAt) {
+                // Add lastUpdatedAt to the existing entry if it doesnt exist so we know when it's safe to remove it
+                parsedValue.lastUpdatedAt = Date.now().toString();
+                this.setItem(
+                    accountKey,
+                    JSON.stringify(parsedValue),
+                    correlationId
+                );
+                continue;
+            } else if (
+                TimeUtils.isCacheExpired(
+                    parsedValue.lastUpdatedAt,
+                    this.cacheConfig.cacheRetentionDays
+                )
+            ) {
+                // Cache expired remove account and associated tokens
+                await this.removeAccountOldSchema(
+                    accountKey,
+                    parsedValue,
+                    credentialSchema,
+                    correlationId
+                );
+                removeElementFromArray(accountKeysToCheck, accountKey);
+            }
+        }
+
+        this.setAccountKeys(accountKeysToCheck, correlationId, accountSchema);
+    }
+
+    /**
+     * Remove the given account and all associated tokens from the cache
+     * @param accountKey
+     * @param rawObject
+     * @param credentialSchema
+     * @param correlationId
+     */
+    async removeAccountOldSchema(
+        accountKey: string,
+        rawObject: AccountEntity | EncryptedData,
+        credentialSchema: number,
+        correlationId: string
+    ): Promise<void> {
+        const decryptedData = isEncrypted(rawObject)
+            ? ((await this.browserStorage.decryptData(
+                  accountKey,
+                  rawObject,
+                  correlationId
+              )) as AccountEntity | null)
+            : rawObject;
+
+        const homeAccountId = decryptedData?.homeAccountId;
+        if (homeAccountId) {
+            const tokenKeys = this.getTokenKeys(credentialSchema);
+            [...tokenKeys.idToken]
+                .filter((key) => key.includes(homeAccountId))
+                .forEach((key) => {
+                    this.browserStorage.removeItem(key);
+                    removeElementFromArray(tokenKeys.idToken, key);
+                });
+            [...tokenKeys.accessToken]
+                .filter((key) => key.includes(homeAccountId))
+                .forEach((key) => {
+                    this.browserStorage.removeItem(key);
+                    removeElementFromArray(tokenKeys.accessToken, key);
+                });
+            [...tokenKeys.refreshToken]
+                .filter((key) => key.includes(homeAccountId))
+                .forEach((key) => {
+                    this.browserStorage.removeItem(key);
+                    removeElementFromArray(tokenKeys.refreshToken, key);
+                });
+            this.setTokenKeys(tokenKeys, correlationId, credentialSchema);
+        }
+
+        this.performanceClient.incrementFields(
+            { expiredAcntRemovedCount: 1 },
+            correlationId
+        );
+
+        this.browserStorage.removeItem(accountKey);
+    }
+
+    /**
+     * Gets key value pair mapping homeAccountId to KMSI value
+     * @returns
+     */
+    getKMSIValues(): KmsiMap {
+        const kmsiMap: KmsiMap = {};
+        const tokenKeys = this.getTokenKeys().idToken;
+        for (const key of tokenKeys) {
+            const rawValue = this.browserStorage.getUserData(key);
+            if (rawValue) {
+                const idToken = JSON.parse(rawValue) as IdTokenEntity;
+                const claims = AuthToken.extractTokenClaims(
+                    idToken.secret,
+                    base64Decode
+                );
+                if (claims) {
+                    kmsiMap[idToken.homeAccountId] = AuthToken.isKmsi(claims);
+                }
+            }
+        }
+        return kmsiMap;
+    }
+
+    /**
+     * Migrates id tokens from the old schema to the new schema, also migrates associated account object if it doesn't already exist in the new schema
+     * @param credentialSchema
+     * @param accountSchema
+     * @param correlationId
+     * @returns
+     */
+    async migrateIdTokens(
+        credentialSchema: number,
+        accountSchema: number,
+        correlationId: string
+    ): Promise<void> {
+        const credentialKeysToMigrate = getTokenKeys(
+            this.clientId,
+            this.browserStorage,
+            credentialSchema
+        );
+        if (credentialKeysToMigrate.idToken.length === 0) {
+            return;
+        }
+
+        const currentCredentialKeys = getTokenKeys(
+            this.clientId,
+            this.browserStorage,
+            CacheKeys.CREDENTIAL_SCHEMA_VERSION
+        );
+        const currentAccountKeys = getAccountKeys(this.browserStorage);
+        const previousAccountKeys = getAccountKeys(
+            this.browserStorage,
+            accountSchema
+        );
+
+        for (const idTokenKey of [...credentialKeysToMigrate.idToken]) {
+            this.performanceClient.incrementFields(
+                { oldITCount: 1 },
+                correlationId
+            );
+
+            const oldSchemaData = (await this.updateOldEntry(
+                idTokenKey,
+                correlationId
+            )) as IdTokenEntity | null;
+            if (!oldSchemaData) {
+                removeElementFromArray(
+                    credentialKeysToMigrate.idToken,
+                    idTokenKey
+                );
+                continue;
+            }
+
+            const currentAccountKey = currentAccountKeys.find((key) =>
+                key.includes(oldSchemaData.homeAccountId)
+            );
+            const previousAccountKey = previousAccountKeys.find((key) =>
+                key.includes(oldSchemaData.homeAccountId)
+            );
+
+            let account: AccountEntity | null = null;
+            if (currentAccountKey) {
+                account = this.getAccount(currentAccountKey, correlationId);
+            } else if (previousAccountKey) {
+                const rawValue =
+                    this.browserStorage.getItem(previousAccountKey);
+                const parsedValue = this.validateAndParseJson(
+                    rawValue || ""
+                ) as AccountEntity | EncryptedData | null;
+                account =
+                    parsedValue && isEncrypted(parsedValue)
+                        ? ((await this.browserStorage.decryptData(
+                              previousAccountKey,
+                              parsedValue,
+                              correlationId
+                          )) as AccountEntity | null)
+                        : parsedValue;
+            }
+
+            if (!account) {
+                // Don't migrate idToken if we don't have an account for it
+                this.performanceClient.incrementFields(
+                    { skipITMigrateCount: 1 },
+                    correlationId
+                );
+                continue;
+            }
+
+            const claims = AuthToken.extractTokenClaims(
+                oldSchemaData.secret,
+                base64Decode
+            );
+
+            const newIdTokenKey = this.generateCredentialKey(oldSchemaData);
+            const currentIdToken = this.getIdTokenCredential(
+                newIdTokenKey,
+                correlationId
+            );
+            const oldTokenHasSignInState =
+                Object.keys(claims).includes("signin_state");
+            const currentTokenHasSignInState =
+                currentIdToken &&
+                Object.keys(
+                    AuthToken.extractTokenClaims(
+                        currentIdToken.secret,
+                        base64Decode
+                    ) || {}
+                ).includes("signin_state");
+
+            /**
+             * Only migrate if:
+             * 1. Token doesn't yet exist in current schema
+             * 2. Old schema token has been updated more recently than the current one AND migrating it won't result in loss of KMSI state
+             */
+            if (
+                !currentIdToken ||
+                (oldSchemaData.lastUpdatedAt > currentIdToken.lastUpdatedAt &&
+                    (oldTokenHasSignInState || !currentTokenHasSignInState))
+            ) {
+                const tenantProfiles = account.tenantProfiles || [];
+                const tenantId =
+                    getTenantIdFromIdTokenClaims(claims) || account.realm;
+                if (
+                    tenantId &&
+                    !tenantProfiles.find((tenantProfile) => {
+                        return tenantProfile.tenantId === tenantId;
+                    })
+                ) {
+                    const newTenantProfile = buildTenantProfile(
+                        account.homeAccountId,
+                        account.localAccountId,
+                        tenantId,
+                        claims
+                    );
+                    tenantProfiles.push(newTenantProfile);
+                }
+                account.tenantProfiles = tenantProfiles;
+                const newAccountKey = this.generateAccountKey(
+                    AccountEntity.getAccountInfo(account)
+                );
+                const kmsi = AuthToken.isKmsi(claims);
+                await this.setUserData(
+                    newAccountKey,
+                    JSON.stringify(account),
+                    correlationId,
+                    account.lastUpdatedAt,
+                    kmsi
+                );
+                if (!currentAccountKeys.includes(newAccountKey)) {
+                    currentAccountKeys.push(newAccountKey);
+                }
+                await this.setUserData(
+                    newIdTokenKey,
+                    JSON.stringify(oldSchemaData),
+                    correlationId,
+                    oldSchemaData.lastUpdatedAt,
+                    kmsi
+                );
+                this.performanceClient.incrementFields(
+                    { migratedITCount: 1 },
+                    correlationId
+                );
+                currentCredentialKeys.idToken.push(newIdTokenKey);
+            }
+        }
+
+        this.setTokenKeys(
+            credentialKeysToMigrate,
+            correlationId,
+            credentialSchema
+        );
+        this.setTokenKeys(currentCredentialKeys, correlationId);
+        this.setAccountKeys(currentAccountKeys, correlationId);
+    }
+
+    /**
+     * Migrates access tokens from old cache schema to current schema
+     * @param credentialSchema
+     * @param kmsiMap
+     * @param correlationId
+     * @returns
+     */
+    async migrateAccessTokens(
+        credentialSchema: number,
+        kmsiMap: KmsiMap,
+        correlationId: string
+    ): Promise<void> {
+        const credentialKeysToMigrate = getTokenKeys(
+            this.clientId,
+            this.browserStorage,
+            credentialSchema
+        );
+        if (credentialKeysToMigrate.accessToken.length === 0) {
+            return;
+        }
+
+        const currentCredentialKeys = getTokenKeys(
+            this.clientId,
+            this.browserStorage,
+            CacheKeys.CREDENTIAL_SCHEMA_VERSION
+        );
+
+        for (const accessTokenKey of [...credentialKeysToMigrate.accessToken]) {
+            this.performanceClient.incrementFields(
+                { oldATCount: 1 },
+                correlationId
+            );
+
+            const oldSchemaData = (await this.updateOldEntry(
+                accessTokenKey,
+                correlationId
+            )) as AccessTokenEntity | null;
+            if (!oldSchemaData) {
+                removeElementFromArray(
+                    credentialKeysToMigrate.accessToken,
+                    accessTokenKey
+                );
+                continue;
+            }
+
+            if (!Object.keys(kmsiMap).includes(oldSchemaData.homeAccountId)) {
+                // Don't migrate tokens if we don't have an idToken for them
+                this.performanceClient.incrementFields(
+                    { skipATMigrateCount: 1 },
+                    correlationId
+                );
+                continue;
+            }
+
+            const newKey = this.generateCredentialKey(oldSchemaData);
+            const kmsi = kmsiMap[oldSchemaData.homeAccountId];
+            if (!currentCredentialKeys.accessToken.includes(newKey)) {
+                await this.setUserData(
+                    newKey,
+                    JSON.stringify(oldSchemaData),
+                    correlationId,
+                    oldSchemaData.lastUpdatedAt,
+                    kmsi
+                );
+                this.performanceClient.incrementFields(
+                    { migratedATCount: 1 },
+                    correlationId
+                );
+                currentCredentialKeys.accessToken.push(newKey);
+            } else {
+                const currentToken = this.getAccessTokenCredential(
+                    newKey,
+                    correlationId
+                );
+                if (
+                    !currentToken ||
+                    oldSchemaData.lastUpdatedAt > currentToken.lastUpdatedAt
+                ) {
+                    // If the token already exists, only overwrite it if the old token has a more recent lastUpdatedAt
+                    await this.setUserData(
+                        newKey,
+                        JSON.stringify(oldSchemaData),
+                        correlationId,
+                        oldSchemaData.lastUpdatedAt,
+                        kmsi
+                    );
+                    this.performanceClient.incrementFields(
+                        { migratedATCount: 1 },
+                        correlationId
+                    );
+                }
+            }
+        }
+
+        this.setTokenKeys(
+            credentialKeysToMigrate,
+            correlationId,
+            credentialSchema
+        );
+        this.setTokenKeys(currentCredentialKeys, correlationId);
+    }
+
+    /**
+     * Migrates refresh tokens from old cache schema to current schema
+     * @param credentialSchema
+     * @param kmsiMap
+     * @param correlationId
+     * @returns
+     */
+    async migrateRefreshTokens(
+        credentialSchema: number,
+        kmsiMap: KmsiMap,
+        correlationId: string
+    ): Promise<void> {
+        const credentialKeysToMigrate = getTokenKeys(
+            this.clientId,
+            this.browserStorage,
+            credentialSchema
+        );
+        if (credentialKeysToMigrate.refreshToken.length === 0) {
+            return;
+        }
+
+        const currentCredentialKeys = getTokenKeys(
+            this.clientId,
+            this.browserStorage,
+            CacheKeys.CREDENTIAL_SCHEMA_VERSION
+        );
+
+        for (const refreshTokenKey of [
+            ...credentialKeysToMigrate.refreshToken,
+        ]) {
+            this.performanceClient.incrementFields(
+                { oldRTCount: 1 },
+                correlationId
+            );
+
+            const oldSchemaData = (await this.updateOldEntry(
+                refreshTokenKey,
+                correlationId
+            )) as RefreshTokenEntity | null;
+            if (!oldSchemaData) {
+                removeElementFromArray(
+                    credentialKeysToMigrate.refreshToken,
+                    refreshTokenKey
+                );
+                continue;
+            }
+
+            if (!Object.keys(kmsiMap).includes(oldSchemaData.homeAccountId)) {
+                // Don't migrate tokens if we don't have an idToken for them
+                this.performanceClient.incrementFields(
+                    { skipRTMigrateCount: 1 },
+                    correlationId
+                );
+                continue;
+            }
+
+            const newKey = this.generateCredentialKey(oldSchemaData);
+            const kmsi = kmsiMap[oldSchemaData.homeAccountId];
+            if (!currentCredentialKeys.refreshToken.includes(newKey)) {
+                await this.setUserData(
+                    newKey,
+                    JSON.stringify(oldSchemaData),
+                    correlationId,
+                    oldSchemaData.lastUpdatedAt,
+                    kmsi
+                );
+                this.performanceClient.incrementFields(
+                    { migratedRTCount: 1 },
+                    correlationId
+                );
+                currentCredentialKeys.refreshToken.push(newKey);
+            } else {
+                const currentToken = this.getRefreshTokenCredential(
+                    newKey,
+                    correlationId
+                );
+                if (
+                    !currentToken ||
+                    oldSchemaData.lastUpdatedAt > currentToken.lastUpdatedAt
+                ) {
+                    // If the token already exists, only overwrite it if the old token has a more recent lastUpdatedAt
+                    await this.setUserData(
+                        newKey,
+                        JSON.stringify(oldSchemaData),
+                        correlationId,
+                        oldSchemaData.lastUpdatedAt,
+                        kmsi
+                    );
+                    this.performanceClient.incrementFields(
+                        { migratedRTCount: 1 },
+                        correlationId
+                    );
+                }
+            }
+        }
+
+        this.setTokenKeys(
+            credentialKeysToMigrate,
+            correlationId,
+            credentialSchema
+        );
+        this.setTokenKeys(currentCredentialKeys, correlationId);
     }
 
     /**
@@ -393,30 +835,45 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string, correlationId: string): void {
-        let tokenKeysV0Count = 0;
-        let accessTokenKeys: Array<string> = [];
+        const tokenKeysCount = new Array(
+            CacheKeys.CREDENTIAL_SCHEMA_VERSION + 1
+        ).fill(0); // Array mapping schema version to number of token keys stored for that version
+        const accessTokenKeys: Array<string> = []; // Flat map of all access token keys stored, ordered by schema version
         const maxRetries = 20;
         for (let i = 0; i <= maxRetries; i++) {
+            // Attempt to store item in cache, if cache is full this call will throw and we'll attempt to clear space by removing access tokens from the cache one by one, starting with tokens stored by previous versions of MSAL.js
             try {
                 this.browserStorage.setItem(key, value);
                 if (i > 0) {
-                    // Finally update the token keys array with the tokens removed
-                    if (i <= tokenKeysV0Count) {
-                        this.removeAccessTokenKeys(
-                            accessTokenKeys.slice(0, i),
-                            correlationId,
-                            0
-                        );
-                    } else {
-                        this.removeAccessTokenKeys(
-                            accessTokenKeys.slice(0, tokenKeysV0Count),
-                            correlationId,
-                            0
-                        );
-                        this.removeAccessTokenKeys(
-                            accessTokenKeys.slice(tokenKeysV0Count, i),
-                            correlationId
-                        );
+                    // If any tokens were removed in order to store this item update the token keys array with the tokens removed
+                    for (
+                        let schemaVersion = 0;
+                        schemaVersion <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
+                        schemaVersion++
+                    ) {
+                        // Get the sum of all previous token counts to use as start index for this schema version
+                        const startIndex = tokenKeysCount
+                            .slice(0, schemaVersion)
+                            .reduce((sum, count) => sum + count, 0);
+                        if (startIndex >= i) {
+                            // Done removing tokens
+                            break;
+                        }
+                        const endIndex =
+                            i > startIndex + tokenKeysCount[schemaVersion]
+                                ? startIndex + tokenKeysCount[schemaVersion]
+                                : i;
+
+                        if (
+                            i > startIndex &&
+                            tokenKeysCount[schemaVersion] > 0
+                        ) {
+                            this.removeAccessTokenKeys(
+                                accessTokenKeys.slice(startIndex, endIndex),
+                                correlationId,
+                                schemaVersion
+                            );
+                        }
                     }
                 }
                 break; // If setItem succeeds, exit the loop
@@ -429,18 +886,27 @@ export class BrowserCacheManager extends CacheManager {
                 ) {
                     if (!accessTokenKeys.length) {
                         // If we are currently trying to set the token keys, use the value we're trying to set
-                        const tokenKeys0 =
-                            key ===
-                            CacheKeys.getTokenKeysCacheKey(this.clientId, 0)
-                                ? (JSON.parse(value) as TokenKeys).accessToken
-                                : this.getTokenKeys(0).accessToken;
-                        const tokenKeys1 =
-                            key ===
-                            CacheKeys.getTokenKeysCacheKey(this.clientId)
-                                ? (JSON.parse(value) as TokenKeys).accessToken
-                                : this.getTokenKeys().accessToken;
-                        accessTokenKeys = [...tokenKeys0, ...tokenKeys1];
-                        tokenKeysV0Count = tokenKeys0.length;
+                        for (
+                            let i = 0;
+                            i <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
+                            i++
+                        ) {
+                            if (
+                                key ===
+                                CacheKeys.getTokenKeysCacheKey(this.clientId, i)
+                            ) {
+                                const tokenKeys = (
+                                    JSON.parse(value) as TokenKeys
+                                ).accessToken;
+                                accessTokenKeys.push(...tokenKeys);
+                                tokenKeysCount[i] = tokenKeys.length;
+                            } else {
+                                const tokenKeys =
+                                    this.getTokenKeys(i).accessToken;
+                                accessTokenKeys.push(...tokenKeys);
+                                tokenKeysCount[i] = tokenKeys.length;
+                            }
+                        }
                     }
                     if (accessTokenKeys.length <= i) {
                         // Nothing to remove, rethrow the error
@@ -470,37 +936,53 @@ export class BrowserCacheManager extends CacheManager {
         key: string,
         value: string,
         correlationId: string,
-        timestamp: string
+        timestamp: string,
+        kmsi: boolean
     ): Promise<void> {
-        let tokenKeysV0Count = 0;
-        let accessTokenKeys: Array<string> = [];
+        const tokenKeysCount = new Array(
+            CacheKeys.CREDENTIAL_SCHEMA_VERSION + 1
+        ).fill(0); // Array mapping schema version to number of token keys stored for that version
+        const accessTokenKeys: Array<string> = []; // Flat map of all access token keys stored, ordered by schema version
         const maxRetries = 20;
         for (let i = 0; i <= maxRetries; i++) {
             try {
+                // Attempt to store item in cache, if cache is full this call will throw and we'll attempt to clear space by removing access tokens from the cache one by one, starting with tokens stored by previous versions of MSAL.js
                 await invokeAsync(
                     this.browserStorage.setUserData.bind(this.browserStorage),
                     PerformanceEvents.SetUserData,
                     this.logger,
                     this.performanceClient
-                )(key, value, correlationId, timestamp);
+                )(key, value, correlationId, timestamp, kmsi);
                 if (i > 0) {
-                    // Finally update the token keys array with the tokens removed
-                    if (i <= tokenKeysV0Count) {
-                        this.removeAccessTokenKeys(
-                            accessTokenKeys.slice(0, i),
-                            correlationId,
-                            0
-                        );
-                    } else {
-                        this.removeAccessTokenKeys(
-                            accessTokenKeys.slice(0, tokenKeysV0Count),
-                            correlationId,
-                            0
-                        );
-                        this.removeAccessTokenKeys(
-                            accessTokenKeys.slice(tokenKeysV0Count, i),
-                            correlationId
-                        );
+                    // If any tokens were removed in order to store this item update the token keys array with the tokens removed
+                    for (
+                        let schemaVersion = 0;
+                        schemaVersion <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
+                        schemaVersion++
+                    ) {
+                        // Get the sum of all previous token counts to use as start index for this schema version
+                        const startIndex = tokenKeysCount
+                            .slice(0, schemaVersion)
+                            .reduce((sum, count) => sum + count, 0);
+                        if (startIndex >= i) {
+                            // Done removing tokens
+                            break;
+                        }
+                        const endIndex =
+                            i > startIndex + tokenKeysCount[schemaVersion]
+                                ? startIndex + tokenKeysCount[schemaVersion]
+                                : i;
+
+                        if (
+                            i > startIndex &&
+                            tokenKeysCount[schemaVersion] > 0
+                        ) {
+                            this.removeAccessTokenKeys(
+                                accessTokenKeys.slice(startIndex, endIndex),
+                                correlationId,
+                                schemaVersion
+                            );
+                        }
                     }
                 }
                 break; // If setItem succeeds, exit the loop
@@ -512,10 +994,16 @@ export class BrowserCacheManager extends CacheManager {
                     i < maxRetries
                 ) {
                     if (!accessTokenKeys.length) {
-                        const tokenKeys0 = this.getTokenKeys(0).accessToken;
-                        const tokenKeys1 = this.getTokenKeys().accessToken;
-                        accessTokenKeys = [...tokenKeys0, ...tokenKeys1];
-                        tokenKeysV0Count = tokenKeys0.length;
+                        // If we are currently trying to set the token keys, use the value we're trying to set
+                        for (
+                            let i = 0;
+                            i <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
+                            i++
+                        ) {
+                            const tokenKeys = this.getTokenKeys(i).accessToken;
+                            accessTokenKeys.push(...tokenKeys);
+                            tokenKeysCount[i] = tokenKeys.length;
+                        }
                     }
                     if (accessTokenKeys.length <= i) {
                         // Nothing left to remove, rethrow the error
@@ -569,19 +1057,24 @@ export class BrowserCacheManager extends CacheManager {
      */
     async setAccount(
         account: AccountEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
-        const key = this.generateAccountKey(account.getAccountInfo());
+        const key = this.generateAccountKey(
+            AccountEntity.getAccountInfo(account)
+        );
         const timestamp = Date.now().toString();
         account.lastUpdatedAt = timestamp;
         await this.setUserData(
             key,
             JSON.stringify(account),
             correlationId,
-            timestamp
+            timestamp,
+            kmsi
         );
         const wasAdded = this.addAccountKeyToMap(key, correlationId);
+        this.performanceClient.addFields({ kmsi: kmsi }, correlationId);
 
         /**
          * @deprecated - Remove this in next major version in favor of more consistent LOGIN event
@@ -594,7 +1087,7 @@ export class BrowserCacheManager extends CacheManager {
             this.eventHandler.emitEvent(
                 EventType.ACCOUNT_ADDED,
                 undefined,
-                account.getAccountInfo()
+                AccountEntity.getAccountInfo(account)
             );
         }
     }
@@ -605,6 +1098,22 @@ export class BrowserCacheManager extends CacheManager {
      */
     getAccountKeys(): Array<string> {
         return getAccountKeys(this.browserStorage);
+    }
+
+    setAccountKeys(
+        accountKeys: Array<string>,
+        correlationId: string,
+        schemaVersion: number = CacheKeys.ACCOUNT_SCHEMA_VERSION
+    ): void {
+        if (accountKeys.length === 0) {
+            this.removeItem(CacheKeys.getAccountKeysCacheKey(schemaVersion));
+        } else {
+            this.setItem(
+                CacheKeys.getAccountKeysCacheKey(schemaVersion),
+                JSON.stringify(accountKeys),
+                correlationId
+            );
+        }
     }
 
     /**
@@ -650,17 +1159,7 @@ export class BrowserCacheManager extends CacheManager {
         const removalIndex = accountKeys.indexOf(key);
         if (removalIndex > -1) {
             accountKeys.splice(removalIndex, 1);
-            if (accountKeys.length === 0) {
-                // If no keys left, remove the map
-                this.removeItem(CacheKeys.getAccountKeysCacheKey());
-                return;
-            } else {
-                this.setItem(
-                    CacheKeys.getAccountKeysCacheKey(),
-                    JSON.stringify(accountKeys),
-                    correlationId
-                );
-            }
+            this.setAccountKeys(accountKeys, correlationId);
             this.logger.trace(
                 "BrowserCacheManager.removeAccountKeyFromMap account key removed"
             );
@@ -865,7 +1364,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     async setIdTokenCredential(
         idToken: IdTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = this.generateCredentialKey(idToken);
@@ -876,7 +1376,8 @@ export class BrowserCacheManager extends CacheManager {
             idTokenKey,
             JSON.stringify(idToken),
             correlationId,
-            timestamp
+            timestamp,
+            kmsi
         );
 
         const tokenKeys = this.getTokenKeys();
@@ -928,7 +1429,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called"
@@ -941,7 +1443,8 @@ export class BrowserCacheManager extends CacheManager {
             accessTokenKey,
             JSON.stringify(accessToken),
             correlationId,
-            timestamp
+            timestamp,
+            kmsi
         );
 
         const tokenKeys = this.getTokenKeys();
@@ -995,7 +1498,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     async setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity,
-        correlationId: string
+        correlationId: string,
+        kmsi: boolean
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setRefreshTokenCredential called"
@@ -1008,7 +1512,8 @@ export class BrowserCacheManager extends CacheManager {
             refreshTokenKey,
             JSON.stringify(refreshToken),
             correlationId,
-            timestamp
+            timestamp,
+            kmsi
         );
 
         const tokenKeys = this.getTokenKeys();
@@ -1769,7 +2274,13 @@ export class BrowserCacheManager extends CacheManager {
             idToken: idTokenEntity,
             accessToken: accessTokenEntity,
         };
-        return this.saveCacheRecord(cacheRecord, result.correlationId);
+        return this.saveCacheRecord(
+            cacheRecord,
+            result.correlationId,
+            AuthToken.isKmsi(
+                AuthToken.extractTokenClaims(result.idToken, base64Decode)
+            )
+        );
     }
 
     /**
@@ -1781,12 +2292,14 @@ export class BrowserCacheManager extends CacheManager {
     async saveCacheRecord(
         cacheRecord: CacheRecord,
         correlationId: string,
+        kmsi: boolean,
         storeInCache?: StoreInCache
     ): Promise<void> {
         try {
             await super.saveCacheRecord(
                 cacheRecord,
                 correlationId,
+                kmsi,
                 storeInCache
             );
         } catch (e) {
