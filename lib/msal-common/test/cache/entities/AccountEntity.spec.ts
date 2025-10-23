@@ -94,7 +94,7 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("generate an AccountEntityKey", () => {
         const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
-        expect(generateAccountKey(ac.getAccountInfo())).toEqual(
+        expect(generateAccountKey(AccountEntity.getAccountInfo(ac))).toEqual(
             "uid.utid-login.microsoftonline.com-utid"
         );
     });
@@ -129,7 +129,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
+        expect(generateAccountKey(AccountEntity.getAccountInfo(acc))).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -168,7 +168,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
+        expect(generateAccountKey(AccountEntity.getAccountInfo(acc))).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -206,7 +206,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             },
             authority
         );
-        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
+        expect(generateAccountKey(AccountEntity.getAccountInfo(acc))).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -259,7 +259,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
+        expect(generateAccountKey(AccountEntity.getAccountInfo(acc))).toEqual(
             `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -317,7 +317,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
+        expect(generateAccountKey(AccountEntity.getAccountInfo(acc))).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-login.windows.net-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -348,7 +348,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             tenantProfiles.set(tenantProfile.tenantId, tenantProfile);
         });
 
-        const accountInfo = accountEntity.getAccountInfo();
+        const accountInfo = AccountEntity.getAccountInfo(accountEntity);
         expect(accountInfo.tenantProfiles).toBeDefined();
         expect(accountInfo.tenantProfiles?.size).toBe(2);
         expect(accountInfo.tenantProfiles).toMatchObject(tenantProfiles);
@@ -358,7 +358,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         accountEntity.tenantProfiles = undefined;
 
-        const accountInfo = accountEntity.getAccountInfo();
+        const accountInfo = AccountEntity.getAccountInfo(accountEntity);
         expect(accountInfo.tenantProfiles).toBeDefined();
         expect(accountInfo.tenantProfiles?.size).toBe(0);
         expect(accountInfo.tenantProfiles).toMatchObject(
@@ -415,7 +415,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         });
 
         it("returns true if two account info objects have the same values", () => {
-            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc1: AccountInfo = AccountEntity.getAccountInfo(acc);
             const acc2: AccountInfo = { ...acc1 };
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
                 true
@@ -427,7 +427,7 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         it("returns false if two account info objects represent the same user but have different iat claims", () => {
             const acc1: AccountInfo = {
-                ...acc.getAccountInfo(),
+                ...AccountEntity.getAccountInfo(acc),
                 idTokenClaims: idTokenClaims,
             };
             const acc2: AccountInfo = {
@@ -474,7 +474,7 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         it("returns false if two account info objects represent the same user but have different nonce claims", () => {
             const acc1: AccountInfo = {
-                ...acc.getAccountInfo(),
+                ...AccountEntity.getAccountInfo(acc),
                 idTokenClaims: idTokenClaims,
             };
             const acc2: AccountInfo = {
@@ -521,7 +521,7 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         it("returns false if required AccountInfo parameters are not equal", () => {
             const acc1: AccountInfo = {
-                ...acc.getAccountInfo(),
+                ...AccountEntity.getAccountInfo(acc),
                 idTokenClaims: idTokenClaims,
             };
             const acc2: AccountInfo = { ...acc1 };
@@ -584,10 +584,10 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         it("returns false if an account info object is invalid", () => {
             const acc1 = null;
-            const acc2: AccountInfo = acc.getAccountInfo();
+            const acc2: AccountInfo = AccountEntity.getAccountInfo(acc);
             expect(AccountEntity.accountInfoIsEqual(acc1, acc2)).toBe(false);
 
-            const acc3: AccountInfo = acc.getAccountInfo();
+            const acc3: AccountInfo = AccountEntity.getAccountInfo(acc);
             const acc4 = null;
             expect(AccountEntity.accountInfoIsEqual(acc3, acc4)).toBe(false);
 
@@ -641,7 +641,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBe("EU");
-            expect(acc.getAccountInfo().dataBoundary).toBe("EU");
+            expect(AccountEntity.getAccountInfo(acc).dataBoundary).toBe("EU");
         });
 
         it("creates an account without dataBoundary when clientInfo has no xms_tdbr", () => {
@@ -678,7 +678,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).dataBoundary
+            ).toBeUndefined();
         });
 
         it("creates an account without dataBoundary when no clientInfo is provided", () => {
@@ -713,7 +715,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).dataBoundary
+            ).toBeUndefined();
         });
 
         it("handles empty string xms_tdbr gracefully", () => {
@@ -759,7 +763,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).dataBoundary
+            ).toBeUndefined();
         });
 
         it("handles null xms_tdbr gracefully", () => {
@@ -805,7 +811,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             );
 
             expect(acc.dataBoundary).toBeUndefined();
-            expect(acc.getAccountInfo().dataBoundary).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).dataBoundary
+            ).toBeUndefined();
         });
     });
 });
@@ -866,7 +874,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authority
         );
 
-        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
+        expect(generateAccountKey(AccountEntity.getAccountInfo(acc))).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -926,7 +934,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authority
         );
 
-        expect(generateAccountKey(acc.getAccountInfo())).toEqual(
+        expect(generateAccountKey(AccountEntity.getAccountInfo(acc))).toEqual(
             `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
         );
         expect(acc.homeAccountId).toBe(homeAccountId);
