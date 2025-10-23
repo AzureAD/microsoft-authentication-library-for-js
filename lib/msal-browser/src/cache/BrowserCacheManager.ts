@@ -207,6 +207,7 @@ export class BrowserCacheManager extends CacheManager {
             | null;
 
         if (!parsedValue) {
+            this.browserStorage.removeItem(key);
             return null;
         }
 
@@ -315,54 +316,70 @@ export class BrowserCacheManager extends CacheManager {
                 )
             ) {
                 // Cache expired remove account and associated tokens
-                const decryptedData = isEncrypted(parsedValue)
-                    ? ((await this.browserStorage.decryptData(
-                          accountKey,
-                          parsedValue,
-                          correlationId
-                      )) as AccountEntity | null)
-                    : parsedValue;
-
-                const homeAccountId = decryptedData?.homeAccountId;
-                if (homeAccountId) {
-                    const tokenKeys = this.getTokenKeys(credentialSchema);
-                    [...tokenKeys.idToken]
-                        .filter((key) => key.includes(homeAccountId))
-                        .forEach((key) => {
-                            this.browserStorage.removeItem(key);
-                            removeElementFromArray(tokenKeys.idToken, key);
-                        });
-                    [...tokenKeys.accessToken]
-                        .filter((key) => key.includes(homeAccountId))
-                        .forEach((key) => {
-                            this.browserStorage.removeItem(key);
-                            removeElementFromArray(tokenKeys.accessToken, key);
-                        });
-                    [...tokenKeys.refreshToken]
-                        .filter((key) => key.includes(homeAccountId))
-                        .forEach((key) => {
-                            this.browserStorage.removeItem(key);
-                            removeElementFromArray(tokenKeys.refreshToken, key);
-                        });
-                    this.setTokenKeys(
-                        tokenKeys,
-                        correlationId,
-                        credentialSchema
-                    );
-                }
-
-                this.performanceClient.incrementFields(
-                    { expiredAcntRemovedCount: 1 },
+                this.removeAccountOldSchema(
+                    accountKey,
+                    parsedValue,
+                    credentialSchema,
                     correlationId
                 );
-
-                this.browserStorage.removeItem(accountKey);
                 removeElementFromArray(accountKeysToCheck, accountKey);
             }
         }
 
         this.setAccountKeys(accountKeysToCheck, correlationId, accountSchema);
-        // If we remove account from old schema due to expiry, remove all associated tokens from old schema
+    }
+
+    /**
+     * Remove the given account and all associated tokens from the cache
+     * @param accountKey
+     * @param rawObject
+     * @param credentialSchema
+     * @param correlationId
+     */
+    async removeAccountOldSchema(
+        accountKey: string,
+        rawObject: AccountEntity | EncryptedData,
+        credentialSchema: number,
+        correlationId: string
+    ): Promise<void> {
+        const decryptedData = isEncrypted(rawObject)
+            ? ((await this.browserStorage.decryptData(
+                  accountKey,
+                  rawObject,
+                  correlationId
+              )) as AccountEntity | null)
+            : rawObject;
+
+        const homeAccountId = decryptedData?.homeAccountId;
+        if (homeAccountId) {
+            const tokenKeys = this.getTokenKeys(credentialSchema);
+            [...tokenKeys.idToken]
+                .filter((key) => key.includes(homeAccountId))
+                .forEach((key) => {
+                    this.browserStorage.removeItem(key);
+                    removeElementFromArray(tokenKeys.idToken, key);
+                });
+            [...tokenKeys.accessToken]
+                .filter((key) => key.includes(homeAccountId))
+                .forEach((key) => {
+                    this.browserStorage.removeItem(key);
+                    removeElementFromArray(tokenKeys.accessToken, key);
+                });
+            [...tokenKeys.refreshToken]
+                .filter((key) => key.includes(homeAccountId))
+                .forEach((key) => {
+                    this.browserStorage.removeItem(key);
+                    removeElementFromArray(tokenKeys.refreshToken, key);
+                });
+            this.setTokenKeys(tokenKeys, correlationId, credentialSchema);
+        }
+
+        this.performanceClient.incrementFields(
+            { expiredAcntRemovedCount: 1 },
+            correlationId
+        );
+
+        this.browserStorage.removeItem(accountKey);
     }
 
     /**
@@ -820,14 +837,15 @@ export class BrowserCacheManager extends CacheManager {
     setItem(key: string, value: string, correlationId: string): void {
         const tokenKeysCount = new Array(
             CacheKeys.CREDENTIAL_SCHEMA_VERSION + 1
-        ).fill(0);
-        const accessTokenKeys: Array<string> = [];
+        ).fill(0); // Array mapping schema version to number of token keys stored for that version
+        const accessTokenKeys: Array<string> = []; // Flat map of all access token keys stored, ordered by schema version
         const maxRetries = 20;
         for (let i = 0; i <= maxRetries; i++) {
+            // Attempt to store item in cache, if cache is full this call will throw and we'll attempt to clear space by removing access tokens from the cache one by one, starting with tokens stored by previous versions of MSAL.js
             try {
                 this.browserStorage.setItem(key, value);
                 if (i > 0) {
-                    // Finally update the token keys array with the tokens removed
+                    // If any tokens were removed in order to store this item update the token keys array with the tokens removed
                     for (
                         let schemaVersion = 0;
                         schemaVersion <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
@@ -923,11 +941,12 @@ export class BrowserCacheManager extends CacheManager {
     ): Promise<void> {
         const tokenKeysCount = new Array(
             CacheKeys.CREDENTIAL_SCHEMA_VERSION + 1
-        ).fill(0);
-        const accessTokenKeys: Array<string> = [];
+        ).fill(0); // Array mapping schema version to number of token keys stored for that version
+        const accessTokenKeys: Array<string> = []; // Flat map of all access token keys stored, ordered by schema version
         const maxRetries = 20;
         for (let i = 0; i <= maxRetries; i++) {
             try {
+                // Attempt to store item in cache, if cache is full this call will throw and we'll attempt to clear space by removing access tokens from the cache one by one, starting with tokens stored by previous versions of MSAL.js
                 await invokeAsync(
                     this.browserStorage.setUserData.bind(this.browserStorage),
                     PerformanceEvents.SetUserData,
@@ -935,7 +954,7 @@ export class BrowserCacheManager extends CacheManager {
                     this.performanceClient
                 )(key, value, correlationId, timestamp, kmsi);
                 if (i > 0) {
-                    // Finally update the token keys array with the tokens removed
+                    // If any tokens were removed in order to store this item update the token keys array with the tokens removed
                     for (
                         let schemaVersion = 0;
                         schemaVersion <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
