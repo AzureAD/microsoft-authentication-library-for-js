@@ -4,11 +4,16 @@
  */
 
 import {
+    AccessTokenEntity,
+    AccountEntity,
     AccountInfo,
     AuthenticationScheme,
     Constants,
+    CredentialType,
+    IdTokenEntity,
     NetworkResponse,
     OIDC_DEFAULT_SCOPES,
+    RefreshTokenEntity,
     ServerAuthorizationTokenResponse,
     TimeUtils,
 } from "@azure/msal-common";
@@ -630,3 +635,53 @@ export const PlatformDOMTestErrorResponseObject = {
 export const TEST_AUTHORIZE_BODY_PARAMS = {
     assertionName: "testAssertionName",
 };
+
+export const TEST_ID_TOKEN_ENTITY: IdTokenEntity = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    environment: "login.windows.net",
+    credentialType: CredentialType.ID_TOKEN,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.IDTOKEN_V2,
+    lastUpdatedAt: Date.now().toString(),
+};
+
+export const TEST_ACCESS_TOKEN_ENTITY: AccessTokenEntity = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    environment: "login.windows.net",
+    credentialType: CredentialType.ACCESS_TOKEN,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    realm: ID_TOKEN_CLAIMS.tid,
+    target: "user.read mail.read",
+    secret: TEST_TOKENS.ACCESS_TOKEN,
+    expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
+    cachedAt: Date.now().toString(),
+    tokenType: "Bearer",
+    lastUpdatedAt: Date.now().toString(),
+};
+
+export const TEST_REFRESH_TOKEN_ENTITY: RefreshTokenEntity = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    environment: "login.windows.net",
+    credentialType: CredentialType.REFRESH_TOKEN,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.REFRESH_TOKEN,
+    expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
+    lastUpdatedAt: Date.now().toString(),
+};
+
+export const TEST_ACCOUNT_ENTITY: AccountEntity = new AccountEntity();
+TEST_ACCOUNT_ENTITY.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
+TEST_ACCOUNT_ENTITY.environment = "login.windows.net";
+TEST_ACCOUNT_ENTITY.realm = ID_TOKEN_CLAIMS.tid;
+TEST_ACCOUNT_ENTITY.localAccountId =
+    TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID;
+TEST_ACCOUNT_ENTITY.username = ID_TOKEN_CLAIMS.preferred_username;
+TEST_ACCOUNT_ENTITY.authorityType = "MSSTS";
+TEST_ACCOUNT_ENTITY.name = ID_TOKEN_CLAIMS.name;
+TEST_ACCOUNT_ENTITY.clientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+TEST_ACCOUNT_ENTITY.lastUpdatedAt = Date.now().toString();
+TEST_ACCOUNT_ENTITY.tenantProfiles = [
+    testTenantProfilesMap.get(ID_TOKEN_CLAIMS.tid),
+];

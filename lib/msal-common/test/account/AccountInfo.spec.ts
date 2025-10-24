@@ -246,7 +246,7 @@ describe("AccountInfo Unit Tests", () => {
     describe("updateAccountTenantProfileData()", () => {
         const baseAccount: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const baseAccountInfo = baseAccount.getAccountInfo();
+        const baseAccountInfo = AccountEntity.getAccountInfo(baseAccount);
         // Get non-overridable properties to make sure they're unchanged
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {
