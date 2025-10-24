@@ -30,8 +30,6 @@ import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
  * a pre-configured managed identity for authentication.
  *
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/CloudShellManagedIdentitySource.cs
- *
- * @public
  */
 export class CloudShell extends BaseManagedIdentitySource {
     private msiEndpoint: string;

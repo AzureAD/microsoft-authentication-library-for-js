@@ -70,8 +70,6 @@ export const AZURE_ARC_FILE_DETECTION: FilePathMap = {
  * variable-based configuration and automatic detection through the HIMDS executable.
  *
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AzureArcManagedIdentitySource.cs
- *
- * @extends BaseManagedIdentitySource
  */
 export class AzureArc extends BaseManagedIdentitySource {
     private identityEndpoint: string;
