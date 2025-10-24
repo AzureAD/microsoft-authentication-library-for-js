@@ -1,8 +1,34 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 30 Sep 2025 22:02:06 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 17 Oct 2025 17:09:06 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.25.1
+
+Fri, 17 Oct 2025 17:09:06 GMT
+
+### Patches
+
+- Introduce the stateType property in state classes for the type detection #8090 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.25.0
+
+Thu, 09 Oct 2025 00:57:39 GMT
+
+### Minor changes
+
+- [Native Auth] Enable the MFA and JIT (SMS) in the public interfaces #8069 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Update the logic for detecting phone blocked error #8087 (shen.jian@live.com)
 
 ## 4.24.1
 
