@@ -299,7 +299,7 @@ export abstract class BaseManagedIdentitySource {
     }
 
     public static getValidatedEnvVariableUrlString = (
-        envVariableStringName: string,
+        envVariableStringName: keyof typeof ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes,
         envVariable: string,
         sourceName: string,
         logger: Logger
