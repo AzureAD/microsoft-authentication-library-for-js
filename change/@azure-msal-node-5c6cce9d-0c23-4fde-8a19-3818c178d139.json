@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Fixed Minor Type Error in BaseManagedIdentitySource.ts ()",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
