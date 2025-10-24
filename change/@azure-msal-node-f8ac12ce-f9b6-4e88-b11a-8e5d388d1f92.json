@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Improved Managed Identity JSDocs",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
