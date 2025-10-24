@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761256496600,
+  "lastUpdate": 1761314502069,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -18297,6 +18297,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 249904,
             "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "242f70e69e8f8ba41e8879c1622bdec16a464470",
+          "message": "Fixed Minor Type Error in BaseManagedIdentitySource.ts (#8107)\n\nThis was previously showing an error in VSCode. The error is now\nresolved via stricter typing.",
+          "timestamp": "2025-10-24T09:54:59-04:00",
+          "tree_id": "88ae985ea8eecc82c9506833637613d1b5d1742a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/242f70e69e8f8ba41e8879c1622bdec16a464470"
+        },
+        "date": 1761314499339,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 246465,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245644,
+            "range": "±0.89%",
             "unit": "ops/sec",
             "extra": "233 samples"
           }
