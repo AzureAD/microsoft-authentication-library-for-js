@@ -34,9 +34,15 @@ export class ResetPasswordApiClient extends BaseApiClient {
         customAuthApiBaseUrl: string,
         clientId: string,
         httpClient: IHttpClient,
-        capabilities?: string
+        capabilities?: string,
+        customAuthApiQueryParams?: Record<string, string>
     ) {
-        super(customAuthApiBaseUrl, clientId, httpClient);
+        super(
+            customAuthApiBaseUrl,
+            clientId,
+            httpClient,
+            customAuthApiQueryParams
+        );
         this.capabilities = capabilities;
     }
 

@@ -38,6 +38,18 @@ export interface SignInTokenResponse extends ApiResponseBase {
     ext_expires_in?: number;
 }
 
+export interface AuthenticationMethod {
+    id: string;
+    challenge_type: string;
+    challenge_channel: string;
+    login_hint?: string;
+}
+
+export interface SignInIntrospectResponse extends ApiResponseBase {
+    continuation_token: string;
+    methods: AuthenticationMethod[];
+}
+
 /* Sign-up API response types */
 export type SignUpStartResponse = InitiateResponse;
 
@@ -63,4 +75,24 @@ export interface ResetPasswordSubmitResponse extends ContinuousResponse {
 export interface ResetPasswordPollCompletionResponse
     extends ContinuousResponse {
     status: string;
+}
+
+/* Register API response types */
+export interface RegisterIntrospectResponse extends ApiResponseBase {
+    continuation_token: string;
+    methods: AuthenticationMethod[];
+}
+
+export interface RegisterChallengeResponse extends ApiResponseBase {
+    continuation_token: string;
+    challenge_type: string;
+    binding_method: string;
+    challenge_target: string;
+    challenge_channel: string;
+    code_length?: number;
+    interval?: number;
+}
+
+export interface RegisterContinueResponse extends ApiResponseBase {
+    continuation_token: string;
 }

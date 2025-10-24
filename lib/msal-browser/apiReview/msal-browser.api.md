@@ -52,6 +52,7 @@ import { PerformanceEvent } from '@azure/msal-common/browser';
 import { PerformanceEvents } from '@azure/msal-common/browser';
 import { PromptValue } from '@azure/msal-common/browser';
 import { ProtocolMode } from '@azure/msal-common/browser';
+import { RequestParameterBuilder } from '@azure/msal-common/browser';
 import { ServerError } from '@azure/msal-common/browser';
 import { ServerResponseType } from '@azure/msal-common/browser';
 import { SignedHttpRequestParameters } from '@azure/msal-common/browser';
@@ -66,6 +67,11 @@ import { UrlString } from '@azure/msal-common/browser';
 export { AccountEntity }
 
 export { AccountInfo }
+
+// Warning: (ae-missing-release-tag) "addClientCapabilitiesToClaims" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const addClientCapabilitiesToClaims: typeof RequestParameterBuilder.addClientCapabilitiesToClaims;
 
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -610,7 +616,8 @@ declare namespace BrowserUtils {
         preconnect,
         createGuid,
         invoke,
-        invokeAsync
+        invokeAsync,
+        addClientCapabilitiesToClaims
     }
 }
 export { BrowserUtils }
@@ -1187,7 +1194,7 @@ export interface IWindowStorage<T> {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     setItem(key: string, value: T): void;
-    setUserData(key: string, value: T, correlationId: string, timestamp: string): Promise<void>;
+    setUserData(key: string, value: T, correlationId: string, timestamp: string, kmsi: boolean): Promise<void>;
 }
 
 export { JsonWebTokenTypes }
@@ -1224,7 +1231,7 @@ export class LocalStorage implements IWindowStorage<string> {
     // (undocumented)
     setItem(key: string, value: string): void;
     // (undocumented)
-    setUserData(key: string, value: string, correlationId: string, timestamp: string): Promise<void>;
+    setUserData(key: string, value: string, correlationId: string, timestamp: string, kmsi: boolean): Promise<void>;
 }
 
 export { Logger }
@@ -1790,7 +1797,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "4.21.0";
+export const version = "4.25.1";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1817,9 +1824,9 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/app/PublicClientNext.ts:85:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/app/PublicClientNext.ts:88:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/app/PublicClientNext.ts:89:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:355:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:413:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:444:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:363:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:426:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:457:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/Configuration.ts:260:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

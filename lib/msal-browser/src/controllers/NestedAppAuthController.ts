@@ -20,6 +20,7 @@ import {
     BaseAuthRequest,
     AccountFilter,
     AuthError,
+    AuthToken,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -211,7 +212,7 @@ export class NestedAppAuthController implements IController {
             validRequest.correlationId
         );
 
-        atPopupMeasurement?.add({ nestedAppAuthRequest: true });
+        atPopupMeasurement.add({ nestedAppAuthRequest: true });
 
         try {
             const naaRequest =
@@ -257,10 +258,14 @@ export class NestedAppAuthController implements IController {
                 idTokenSize: result.idToken.length,
             });
 
-            atPopupMeasurement.end({
-                success: true,
-                requestId: result.requestId,
-            });
+            atPopupMeasurement.end(
+                {
+                    success: true,
+                    requestId: result.requestId,
+                },
+                undefined,
+                result.account
+            );
 
             return result;
         } catch (e) {
@@ -279,7 +284,8 @@ export class NestedAppAuthController implements IController {
                 {
                     success: false,
                 },
-                e
+                e,
+                request.account
             );
 
             throw error;
@@ -318,17 +324,17 @@ export class NestedAppAuthController implements IController {
             validRequest.correlationId
         );
 
-        ssoSilentMeasurement?.increment({
+        ssoSilentMeasurement.increment({
             visibilityChangeCount: 0,
         });
-
-        ssoSilentMeasurement?.add({
+        ssoSilentMeasurement.add({
             nestedAppAuthRequest: true,
         });
 
         try {
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
+            naaRequest.forceRefresh = validRequest.forceRefresh;
             const reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.bridgeProxy.getTokenSilent(naaRequest);
 
@@ -366,10 +372,14 @@ export class NestedAppAuthController implements IController {
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
             });
-            ssoSilentMeasurement?.end({
-                success: true,
-                requestId: result.requestId,
-            });
+            ssoSilentMeasurement?.end(
+                {
+                    success: true,
+                    requestId: result.requestId,
+                },
+                undefined,
+                result.account
+            );
             return result;
         } catch (e) {
             const error =
@@ -386,7 +396,8 @@ export class NestedAppAuthController implements IController {
                 {
                     success: false,
                 },
-                e
+                e,
+                request.account
             );
             throw error;
         }
@@ -447,13 +458,17 @@ export class NestedAppAuthController implements IController {
                 InteractionType.Silent,
                 result
             );
-            atsMeasurement?.add({
-                accessTokenSize: result?.accessToken.length,
-                idTokenSize: result?.idToken.length,
+            atsMeasurement.add({
+                accessTokenSize: result.accessToken.length,
+                idTokenSize: result.idToken.length,
             });
-            atsMeasurement?.end({
-                success: true,
-            });
+            atsMeasurement.end(
+                {
+                    success: true,
+                },
+                undefined,
+                result.account
+            );
             return result;
         }
 
@@ -466,9 +481,13 @@ export class NestedAppAuthController implements IController {
             InteractionType.Silent,
             null
         );
-        atsMeasurement?.end({
-            success: false,
-        });
+        atsMeasurement.end(
+            {
+                success: false,
+            },
+            undefined,
+            request.account
+        );
 
         return null;
     }
@@ -919,7 +938,8 @@ export class NestedAppAuthController implements IController {
         );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims)
         );
         return this.browserStorage.hydrateCache(result, request);
     }

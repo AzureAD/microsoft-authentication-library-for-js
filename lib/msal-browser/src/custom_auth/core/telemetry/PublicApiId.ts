@@ -35,3 +35,11 @@ export const PASSWORD_RESET_RESEND_CODE = 100044;
 export const ACCOUNT_GET_ACCOUNT = 100061;
 export const ACCOUNT_SIGN_OUT = 100062;
 export const ACCOUNT_GET_ACCESS_TOKEN = 100063;
+
+// JIT (Just-In-Time) Auth Method Registration
+export const JIT_CHALLENGE_AUTH_METHOD = 100081;
+export const JIT_SUBMIT_CHALLENGE = 100082;
+
+// MFA
+export const MFA_REQUEST_CHALLENGE = 100101;
+export const MFA_SUBMIT_CHALLENGE = 100102;

@@ -26,6 +26,7 @@ export class Screenshot {
         await page.screenshot({
             path: `${this.folderName}/${++this
                 .screenshotNum}_${screenshotName}.png`,
+            fullPage: true
         });
     }
 }

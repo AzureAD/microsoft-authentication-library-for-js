@@ -26,15 +26,12 @@ import {
     TEST_URIS,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    TEST_REQ_CNF_DATA,
     ID_TOKEN_CLAIMS,
-    TEST_TOKENS,
     RANDOM_TEST_GUID,
     TEST_AUTHORIZE_BODY_PARAMS,
 } from "../utils/StringConstants.js";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
-import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
@@ -72,7 +69,8 @@ describe("StandardInteractionClient", () => {
         undefined,
         { environment: "login.microsoftonline.com" }
     );
-    const testAccount: AccountInfo = testAccountEntity.getAccountInfo();
+    const testAccount: AccountInfo =
+        AccountEntity.getAccountInfo(testAccountEntity);
 
     beforeEach(() => {
         pca = new PublicClientApplication({

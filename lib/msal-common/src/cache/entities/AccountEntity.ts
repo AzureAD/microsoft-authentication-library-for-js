@@ -11,6 +11,7 @@ import {
     AccountInfo,
     TenantProfile,
     buildTenantProfile,
+    DataBoundary,
 } from "../../account/AccountInfo.js";
 import {
     createClientAuthError,
@@ -64,27 +65,29 @@ export class AccountEntity {
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
     lastUpdatedAt: string;
+    dataBoundary?: DataBoundary;
 
     /**
      * Returns the AccountInfo interface for this account.
      */
-    getAccountInfo(): AccountInfo {
+    static getAccountInfo(accountEntity: AccountEntity): AccountInfo {
         return {
-            homeAccountId: this.homeAccountId,
-            environment: this.environment,
-            tenantId: this.realm,
-            username: this.username,
-            localAccountId: this.localAccountId,
-            loginHint: this.loginHint,
-            name: this.name,
-            nativeAccountId: this.nativeAccountId,
-            authorityType: this.authorityType,
+            homeAccountId: accountEntity.homeAccountId,
+            environment: accountEntity.environment,
+            tenantId: accountEntity.realm,
+            username: accountEntity.username,
+            localAccountId: accountEntity.localAccountId,
+            loginHint: accountEntity.loginHint,
+            name: accountEntity.name,
+            nativeAccountId: accountEntity.nativeAccountId,
+            authorityType: accountEntity.authorityType,
             // Deserialize tenant profiles array into a Map
             tenantProfiles: new Map(
-                (this.tenantProfiles || []).map((tenantProfile) => {
+                (accountEntity.tenantProfiles || []).map((tenantProfile) => {
                     return [tenantProfile.tenantId, tenantProfile];
                 })
             ),
+            dataBoundary: accountEntity.dataBoundary,
         };
     }
 
@@ -130,6 +133,10 @@ export class AccountEntity {
                 accountDetails.clientInfo,
                 base64Decode
             );
+            if (clientInfo.xms_tdbr) {
+                account.dataBoundary =
+                    clientInfo.xms_tdbr === "EU" ? "EU" : "None";
+            }
         }
 
         account.clientInfo = accountDetails.clientInfo;
@@ -227,6 +234,7 @@ export class AccountEntity {
         account.tenantProfiles = Array.from(
             accountInfo.tenantProfiles?.values() || []
         );
+        account.dataBoundary = accountInfo.dataBoundary;
 
         return account;
     }
@@ -273,7 +281,7 @@ export class AccountEntity {
      * Validates an entity: checks for all expected params
      * @param entity
      */
-    static isAccountEntity(entity: object): boolean {
+    static isAccountEntity(entity: object): entity is AccountEntity {
         if (!entity) {
             return false;
         }

@@ -58,7 +58,6 @@ import {
 import http from "http";
 
 import * as msalNode from "../../src/index.js";
-import { setupServerTelemetryManagerMock } from "./test-fixtures.js";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils.js";
 
 import { version, name } from "../../src/packageMetadata.js";
@@ -93,10 +92,6 @@ jest.mock("../../src/client/OnBehalfOfClient");
 jest.mock("../../src/client/UsernamePasswordClient");
 
 describe("PublicClientApplication", () => {
-    // @ts-ignore
-    const mockTelemetryManager: msalCommon.ServerTelemetryManager =
-        setupServerTelemetryManagerMock();
-
     let appConfig: Configuration = {
         auth: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -114,10 +109,6 @@ describe("PublicClientApplication", () => {
             loggerOptions: void 0,
         },
     };
-
-    beforeEach(() => {
-        mockTelemetryManager;
-    });
 
     afterEach(() => {
         jest.restoreAllMocks();
@@ -245,7 +236,7 @@ describe("PublicClientApplication", () => {
         const testAccountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccount: AccountInfo = {
-            ...testAccountEntity.getAccountInfo(),
+            ...AccountEntity.getAccountInfo(testAccountEntity),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -615,6 +606,56 @@ describe("PublicClientApplication", () => {
             authApp.acquireTokenSilent(silentFlowRequest).catch(() => {
                 // Catch errors thrown after the function call this test is testing
             });
+        });
+
+        test("acquireTokenSilent throws error when redirectUri is provided", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                redirectUri: "http://localhost:3000/redirect",
+            };
+
+            await expect(authApp.acquireTokenSilent(request)).rejects.toThrow(
+                "RedirectUri is not supported in this scenario"
+            );
+        });
+
+        test("acquireTokenSilent resets redirectUri when broker fallback occurs", async () => {
+            // Create a broker plugin with broker unavailable
+            const mockBrokerPlugin = new MockNativeBrokerPlugin();
+            mockBrokerPlugin.isBrokerAvailable = false;
+
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                broker: {
+                    nativeBrokerPlugin: mockBrokerPlugin,
+                },
+            });
+
+            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                (config) => new silentFlowClient(config)
+            );
+            jest.spyOn(
+                silentFlowClient.prototype,
+                "acquireCachedToken"
+            ).mockResolvedValue([
+                mockAuthenticationResult,
+                CacheOutcome.NOT_APPLICABLE,
+            ]);
+
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                redirectUri: "http://localhost:3000/redirect",
+            };
+
+            // This should not throw and should reset redirectUri to empty string and continue with the request
+            const response = await authApp.acquireTokenSilent(request);
+
+            expect(response).toEqual(mockAuthenticationResult);
+            expect(request.redirectUri).toBe("");
         });
     });
 
@@ -1023,6 +1064,64 @@ describe("PublicClientApplication", () => {
                 expect(mockCloseServer).toHaveBeenCalled();
                 done();
             });
+        });
+
+        test("acquireTokenInteractive throws error when redirectUri is provided", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: "http://localhost:3000/redirect",
+                openBrowser: jest.fn(),
+            };
+
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toThrow("RedirectUri is not supported in this scenario");
+        });
+
+        test("acquireTokenInteractive resets redirectUri when broker fallback occurs", async () => {
+            // Create a broker plugin with broker unavailable to simulate fallback scenario
+            const mockBrokerPlugin = new MockNativeBrokerPlugin();
+            mockBrokerPlugin.isBrokerAvailable = false;
+
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                broker: {
+                    nativeBrokerPlugin: mockBrokerPlugin,
+                },
+            });
+
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: "http://localhost:3000/redirect",
+                openBrowser: jest.fn(),
+            };
+
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "listenForAuthCode"
+            ).mockResolvedValue({
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            });
+
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "getRedirectUri"
+            ).mockReturnValue(TEST_CONSTANTS.REDIRECT_URI);
+
+            jest.spyOn(authApp, "acquireTokenByCode").mockResolvedValue(
+                mockAuthenticationResult
+            );
+
+            jest.spyOn(authApp, "getAuthCodeUrl").mockResolvedValue(
+                TEST_CONSTANTS.AUTH_CODE_URL
+            );
+
+            // This should not throw and should reset redirectUri to empty string
+            const response = await authApp.acquireTokenInteractive(request);
+
+            expect(response).toEqual(mockAuthenticationResult);
+            expect(request.redirectUri).toBe("");
         });
     });
 

@@ -1,8 +1,109 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 19 Aug 2025 21:26:21 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 17 Oct 2025 17:09:06 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.25.1
+
+Fri, 17 Oct 2025 17:09:06 GMT
+
+### Patches
+
+- Introduce the stateType property in state classes for the type detection #8090 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.25.0
+
+Thu, 09 Oct 2025 00:57:39 GMT
+
+### Minor changes
+
+- [Native Auth] Enable the MFA and JIT (SMS) in the public interfaces #8069 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Update the logic for detecting phone blocked error #8087 (shen.jian@live.com)
+
+## 4.24.1
+
+Tue, 30 Sep 2025 22:02:06 GMT
+
+### Patches
+
+- Add prompt=select_account for native flows (#8062) (sameera.gajjarapu@microsoft.com)
+- Add support for "pageException" error to fallback to web (#8064) (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.24.0
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Minor changes
+
+- [Native Auth] Add MFA related state and results (shen.jian@live.com)
+- Add changes in network and interaction client layers to support MFA (shen.jian@live.com)
+- Instrument data boundary claim #8054 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.23.0
+
+Wed, 17 Sep 2025 09:50:42 GMT
+
+### Minor changes
+
+- Support authentication method registration during Sign-In, #8007 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Pass forceRefresh param to NAA bridge #8042 (kshabelko@microsoft.com)
+- Clean up BroadcastChannel resources to fix hanging tests #8044 (kshabelko@microsoft.com)
+
+## 4.22.1
+
+Tue, 09 Sep 2025 20:27:59 GMT
+
+### Patches
+
+- Export client capabilities helper (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.22.0
+
+Wed, 03 Sep 2025 21:47:34 GMT
+
+### Minor changes
+
+- Add extraQueryParams for api calls #7974 (yongdiwang@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.21.1
+
+Wed, 27 Aug 2025 00:59:59 GMT
+
+### Patches
+
+- Backward compatibility support #7962 (yongdiwang@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.21.0
 

@@ -10,11 +10,15 @@ import {
 import { Separators, Constants } from "../utils/Constants.js";
 
 /**
- * Client info object which consists of two IDs. Need to add more info here.
+ * Client info object which consists of:
+ * uid: user id
+ * utid: tenant id
+ * xms_tdbr: optional, only for non-US tenants
  */
 export type ClientInfo = {
     uid: string;
     utid: string;
+    xms_tdbr?: string;
 };
 
 /**
