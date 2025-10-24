@@ -263,7 +263,7 @@ export class HttpClient implements INetworkModule {
 
             request.on("error", (chunk) => {
                 this.logger.error(
-                    `[MSAL-Network] Proxy request error: ${chunk.toString()}`,
+                    `HttpClient - Proxy request error: ${chunk.toString()}`,
                     ""
                 );
                 this.logUrlWithPiiAwareness(
@@ -271,8 +271,11 @@ export class HttpClient implements INetworkModule {
                     destinationUrlString
                 );
                 this.logUrlWithPiiAwareness("Proxy URL", this.proxyUrl);
-                this.logger.error(`[MSAL-Network] Method: ${httpMethod}`, "");
-                this.logHeadersWithPiiAwareness(headers);
+                this.logger.error(`HttpClient - Method: ${httpMethod}`, "");
+                this.logger.errorPii(
+                    `HttpClient - Headers: ${JSON.stringify(headers)}`,
+                    ""
+                );
 
                 request.destroy();
                 reject(new Error(chunk.toString()));
@@ -381,12 +384,15 @@ export class HttpClient implements INetworkModule {
 
             request.on("error", (chunk) => {
                 this.logger.error(
-                    `[MSAL-Network] HTTPS request error: ${chunk.toString()}`,
+                    `HttpClient - HTTPS request error: ${chunk.toString()}`,
                     ""
                 );
                 this.logUrlWithPiiAwareness("URL", urlString);
-                this.logger.error(`[MSAL-Network] Method: ${httpMethod}`, "");
-                this.logHeadersWithPiiAwareness(headers);
+                this.logger.error(`HttpClient - Method: ${httpMethod}`, "");
+                this.logger.errorPii(
+                    `HttpClient - Headers: ${JSON.stringify(headers)}`,
+                    ""
+                );
 
                 request.destroy();
                 reject(new Error(chunk.toString()));
@@ -451,7 +457,7 @@ export class HttpClient implements INetworkModule {
     };
 
     /**
-     * Helper function to log URLs with PII-aware sanitization using pre-bound method
+     * Helper function to log a formatted message containing URLs, with PII-aware sanitization
      * @param label {string} the label for the log message
      * @param urlString {string} the URL to log
      */
@@ -460,7 +466,7 @@ export class HttpClient implements INetworkModule {
         urlString: string
     ): void => {
         if (this.isPiiEnabled) {
-            this.logger.errorPii(`[MSAL-Network] ${label}: ${urlString}`, "");
+            this.logger.errorPii(`HttpClient - ${label}: ${urlString}`, "");
         } else {
             let urlHelper: string;
             try {
@@ -471,27 +477,7 @@ export class HttpClient implements INetworkModule {
             }
 
             this.logger.error(
-                `[MSAL-Network] ${label}: ${urlHelper} [Enable PII logging to see additional details]`,
-                ""
-            );
-        }
-    };
-
-    /**
-     * Helper function to log headers with PII awareness using pre-bound method and standard logger
-     * @param headers {Record<string, unknown>} the headers to log
-     */
-    private logHeadersWithPiiAwareness = (
-        headers: Record<string, unknown>
-    ): void => {
-        if (this.isPiiEnabled) {
-            this.logger.errorPii(
-                `[MSAL-Network] Headers: ${JSON.stringify(headers)}`,
-                ""
-            );
-        } else {
-            this.logger.error(
-                `[MSAL-Network] Headers: [REDACTED - Enable PII logging to see headers]`,
+                `HttpClient - ${label}: ${urlHelper} [Enable PII logging to see additional details]`,
                 ""
             );
         }
