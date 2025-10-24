@@ -452,8 +452,8 @@ export class HttpClient implements INetworkModule {
 
     /**
      * Helper function to log URLs with PII-aware sanitization using pre-bound method
-     * @param urlString {string} the URL to log
      * @param label {string} the label for the log message
+     * @param urlString {string} the URL to log
      */
     private logUrlWithPiiAwareness = (
         label: string,
@@ -462,7 +462,7 @@ export class HttpClient implements INetworkModule {
         if (this.isPiiEnabled) {
             this.logger.errorPii(`[MSAL-Network] ${label}: ${urlString}`, "");
         } else {
-            let urlHelper;
+            let urlHelper: string;
             try {
                 const url = new URL(urlString);
                 urlHelper = `${url.protocol}//${url.host}${url.pathname}`;
