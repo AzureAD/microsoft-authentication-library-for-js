@@ -120,14 +120,6 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): ServiceFabric | null {
-        if (
-            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
-        ) {
-            logger.warning(
-                `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} user assigned managed identity is configured in the cluster, not during runtime. See also: https://learn.microsoft.com/en-us/azure/service-fabric/configure-existing-cluster-enable-managed-identity-token-service.`
-            );
-        }
-
         const [identityEndpoint, identityHeader, identityServerThumbprint] =
             ServiceFabric.getEnvironmentVariables();
 
@@ -149,6 +141,14 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         logger.info(
             `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity.`
         );
+
+        if (
+            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+        ) {
+            logger.warning(
+                `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} user assigned managed identity is configured in the cluster, not during runtime. See also: https://learn.microsoft.com/en-us/azure/service-fabric/configure-existing-cluster-enable-managed-identity-token-service.`
+            );
+        }
 
         return new ServiceFabric(
             logger,

@@ -107,14 +107,6 @@ export class CloudShell extends BaseManagedIdentitySource {
         disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): CloudShell | null {
-        if (
-            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
-        ) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.unableToCreateCloudShell
-            );
-        }
-
         const [msiEndpoint] = CloudShell.getEnvironmentVariables();
 
         // if the msi endpoint environment variable is undefined, this MSI provider is unavailable.
@@ -136,6 +128,14 @@ export class CloudShell extends BaseManagedIdentitySource {
         logger.info(
             `[Managed Identity] Environment variable validation passed for ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity. Endpoint URI: ${validatedMsiEndpoint}. Creating ${ManagedIdentitySourceNames.CLOUD_SHELL} managed identity.`
         );
+
+        if (
+            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+        ) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.unableToCreateCloudShell
+            );
+        }
 
         return new CloudShell(
             logger,

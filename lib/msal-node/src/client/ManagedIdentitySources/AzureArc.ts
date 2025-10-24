@@ -179,14 +179,6 @@ export class AzureArc extends BaseManagedIdentitySource {
         disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): AzureArc | null {
-        if (
-            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
-        ) {
-            throw createManagedIdentityError(
-                ManagedIdentityErrorCodes.unableToCreateAzureArc
-            );
-        }
-
         const [identityEndpoint, imdsEndpoint] =
             AzureArc.getEnvironmentVariables();
 
@@ -228,6 +220,14 @@ export class AzureArc extends BaseManagedIdentitySource {
 
             logger.info(
                 `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.AZURE_ARC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.AZURE_ARC} managed identity.`
+            );
+        }
+
+        if (
+            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+        ) {
+            throw createManagedIdentityError(
+                ManagedIdentityErrorCodes.unableToCreateAzureArc
             );
         }
 
