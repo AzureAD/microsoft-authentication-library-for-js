@@ -20,6 +20,7 @@ import {
     BaseAuthRequest,
     AccountFilter,
     AuthError,
+    AuthToken,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -937,7 +938,8 @@ export class NestedAppAuthController implements IController {
         );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims)
         );
         return this.browserStorage.hydrateCache(result, request);
     }
