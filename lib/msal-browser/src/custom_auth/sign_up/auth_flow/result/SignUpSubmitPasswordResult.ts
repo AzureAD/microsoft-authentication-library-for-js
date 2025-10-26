@@ -8,6 +8,11 @@ import { SignUpSubmitPasswordError } from "../error_type/SignUpError.js";
 import { SignUpAttributesRequiredState } from "../state/SignUpAttributesRequiredState.js";
 import { SignUpCompletedState } from "../state/SignUpCompletedState.js";
 import { SignUpFailedState } from "../state/SignUpFailedState.js";
+import {
+    SIGN_UP_FAILED_STATE_TYPE,
+    SIGN_UP_ATTRIBUTES_REQUIRED_STATE_TYPE,
+    SIGN_UP_COMPLETED_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of a sign-up operation that requires a password.
@@ -45,7 +50,7 @@ export class SignUpSubmitPasswordResult extends AuthFlowResultBase<
     isFailed(): this is SignUpSubmitPasswordResult & {
         state: SignUpFailedState;
     } {
-        return this.state instanceof SignUpFailedState;
+        return this.state.stateType === SIGN_UP_FAILED_STATE_TYPE;
     }
 
     /**
@@ -54,7 +59,7 @@ export class SignUpSubmitPasswordResult extends AuthFlowResultBase<
     isAttributesRequired(): this is SignUpSubmitPasswordResult & {
         state: SignUpAttributesRequiredState;
     } {
-        return this.state instanceof SignUpAttributesRequiredState;
+        return this.state.stateType === SIGN_UP_ATTRIBUTES_REQUIRED_STATE_TYPE;
     }
 
     /**
@@ -63,7 +68,7 @@ export class SignUpSubmitPasswordResult extends AuthFlowResultBase<
     isCompleted(): this is SignUpSubmitPasswordResult & {
         state: SignUpCompletedState;
     } {
-        return this.state instanceof SignUpCompletedState;
+        return this.state.stateType === SIGN_UP_COMPLETED_STATE_TYPE;
     }
 }
 

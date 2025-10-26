@@ -4,13 +4,10 @@
  */
 
 import {
-    createJitGetAuthMethodsResult,
     createJitVerificationRequiredResult,
     createJitCompletedResult,
-    JIT_GET_AUTH_METHODS_RESULT_TYPE,
     JIT_VERIFICATION_REQUIRED_RESULT_TYPE,
     JIT_COMPLETED_RESULT_TYPE,
-    JitGetAuthMethodsResult,
     JitVerificationRequiredResult,
     JitCompletedResult,
 } from "../../../../../../src/custom_auth/core/interaction_client/jit/result/JitActionResult.js";
@@ -29,22 +26,6 @@ describe("JitActionResult", () => {
         },
     ];
     const mockAuthResult = {} as AuthenticationResult;
-
-    describe("createJitGetAuthMethodsResult", () => {
-        it("should create JitGetAuthMethodsResult with correct type", () => {
-            const result: JitGetAuthMethodsResult =
-                createJitGetAuthMethodsResult({
-                    correlationId: mockCorrelationId,
-                    continuationToken: mockContinuationToken,
-                    authMethods: mockAuthMethods,
-                });
-
-            expect(result.type).toBe(JIT_GET_AUTH_METHODS_RESULT_TYPE);
-            expect(result.correlationId).toBe(mockCorrelationId);
-            expect(result.continuationToken).toBe(mockContinuationToken);
-            expect(result.authMethods).toBe(mockAuthMethods);
-        });
-    });
 
     describe("createJitVerificationRequiredResult", () => {
         it("should create JitVerificationRequiredResult with correct type", () => {

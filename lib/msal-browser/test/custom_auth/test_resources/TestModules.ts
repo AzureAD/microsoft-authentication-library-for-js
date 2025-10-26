@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, IPerformanceClient, Logger } from "@azure/msal-common";
+import {
+    ICrypto,
+    IPerformanceClient,
+    Logger,
+} from "@azure/msal-common/browser";
 import { EventHandler } from "../../../src/event/EventHandler.js";
 import { CryptoOps } from "../../../src/crypto/CryptoOps.js";
 import { BrowserCacheManager } from "../../../src/cache/BrowserCacheManager.js";

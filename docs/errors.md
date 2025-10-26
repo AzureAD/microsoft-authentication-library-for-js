@@ -3,15 +3,18 @@
 ## Auth errors
 
 ### `unexpected_error`
-- Unexpected error in authentication.
+
+-   Unexpected error in authentication.
 
 ### `post_request_failed`
-- Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details.
+
+-   Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details.
 
 ## Cache errors
 
 ### `cache_quota_exceeded`
-- Exceeded cache storage capacity.
+
+-   Exceeded cache storage capacity.
 
 This error occurs when MSAL.js surpasses the allotted storage limit when attempting to save token information in the [configured cache storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/caching.md#cache-storage). See [here](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#web_storage) for web storage limits.
 
@@ -20,185 +23,244 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
 
 ### `cache_error_unknown`
-- An unknown error occurred while accessing the browser cache.
+
+-   An unknown error occurred while accessing the browser cache.
 
 ## Client auth errors
 
 ### `client_info_decoding_error`
-- The client info could not be parsed/decoded correctly.
+
+-   The client info could not be parsed/decoded correctly.
 
 ### `client_info_empty_error`
-- The client info was empty.
+
+-   The client info was empty.
 
 ### `token_parsing_error`
-- Token cannot be parsed.
+
+-   Token cannot be parsed.
 
 ### `null_or_empty_token`
-- The token is null or empty.
+
+-   The token is null or empty.
 
 ### `endpoints_resolution_error`
-- Could not resolve endpoints. Please check network and try again.
+
+-   Could not resolve endpoints. Please check network and try again.
 
 ### `network_error`
-- Network request failed. Please check network and try again.
+
+-   Network request failed. Please check network and try again.
 
 ### `openid_config_error`
-- Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints.
+
+-   Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints.
 
 ### `hash_not_deserialized`
-- The hash parameters could not be deserialized.
+
+-   The hash parameters could not be deserialized.
 
 ### `invalid_state`
-- State was not the expected format.
+
+-   State was not the expected format.
 
 ### `state_mismatch`
-- State mismatch error.
+
+-   State mismatch error.
 
 ### `state_not_found`
-- State not found.
+
+-   State not found.
 
 ### `nonce_mismatch`
-- Nonce mismatch error.
+
+-   Nonce mismatch error.
 
 ### `auth_time_not_found`
-- Max Age was requested and the ID token is missing the auth_time variable. auth_time is an optional claim and is not enabled by default - it must be enabled. See https://aka.ms/msaljs/optional-claims for more information.
+
+-   Max Age was requested and the ID token is missing the auth_time variable. auth_time is an optional claim and is not enabled by default - it must be enabled. See https://aka.ms/msaljs/optional-claims for more information.
 
 ### `max_age_transpired`
-- Max Age is set to 0, or too much time has elapsed since the last end-user authentication.
+
+-   Max Age is set to 0, or too much time has elapsed since the last end-user authentication.
 
 ### `multiple_matching_tokens`
-- The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements such as authority or account.
+
+-   The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements such as authority or account.
 
 ### `multiple_matching_appMetadata`
-- The cache contains multiple appMetadata satisfying the given parameters. Please pass more info to obtain the correct appMetadata.
+
+-   The cache contains multiple appMetadata satisfying the given parameters. Please pass more info to obtain the correct appMetadata.
 
 ### `request_cannot_be_made`
-- Token request cannot be made without authorization code or refresh token.
+
+-   Token request cannot be made without authorization code or refresh token.
 
 ### `cannot_remove_empty_scope`
-- Cannot remove null or empty scope from ScopeSet.
+
+-   Cannot remove null or empty scope from ScopeSet.
 
 ### `cannot_append_scopeset`
-- Cannot append ScopeSet.
+
+-   Cannot append ScopeSet.
 
 ### `empty_input_scopeset`
-- Empty input ScopeSet cannot be processed.
+
+-   Empty input ScopeSet cannot be processed.
 
 ### `no_account_in_silent_request`
-- Please pass an account object, silent flow is not supported without account information.
+
+-   Please pass an account object, silent flow is not supported without account information.
 
 ### `invalid_cache_record`
-- Cache record object was null or undefined.
+
+-   Cache record object was null or undefined.
 
 ### `invalid_cache_environment`
-- Invalid environment when attempting to create cache entry.
+
+-   Invalid environment when attempting to create cache entry.
 
 ### `no_account_found`
-- No account found in cache for given key.
+
+-   No account found in cache for given key.
 
 ### `no_crypto_object`
-- No crypto object detected.
+
+-   No crypto object detected.
 
 ### `unexpected_credential_type`
-- Unexpected credential type.
+
+-   Unexpected credential type.
 
 ### `token_refresh_required`
-- Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired.
+
+-   Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired.
 
 ### `token_claims_cnf_required_for_signedjwt`
-- Cannot generate a POP jwt if the token_claims are not populated.
+
+-   Cannot generate a POP jwt if the token_claims are not populated.
 
 ### `authorization_code_missing_from_server_response`
-- Server response does not contain an authorization code to proceed.
+
+-   Server response does not contain an authorization code to proceed.
 
 ### `binding_key_not_removed`
-- Could not remove the credential's binding key from storage.
+
+-   Could not remove the credential's binding key from storage.
 
 ### `end_session_endpoint_not_supported`
-- The provided authority does not support logout.
+
+-   The provided authority does not support logout.
 
 ### `key_id_missing`
-- A keyId value is missing from the requested bound token's cache record and is required to match the token to its stored binding key.
+
+-   A keyId value is missing from the requested bound token's cache record and is required to match the token to its stored binding key.
 
 ### `no_network_connectivity`
-- No network connectivity. Check your internet connection.
+
+-   No network connectivity. Check your internet connection.
 
 ### `user_canceled`
-- User cancelled the flow.
+
+-   User cancelled the flow.
 
 ### `method_not_implemented`
-- This method has not been implemented.
+
+-   This method has not been implemented.
 
 ### `nested_app_auth_bridge_disabled`
-- The nested app auth bridge is disabled.
+
+-   The nested app auth bridge is disabled.
 
 ## Client configuration errors
 
 ### `redirect_uri_empty`
-- A redirect URI is required for all calls and none has been set.
+
+-   A redirect URI is required for all calls and none has been set.
 
 ### `claims_request_parsing_error`
-- Could not parse the given claims request object.
+
+-   Could not parse the given claims request object.
 
 ### `authority_uri_insecure`
-- Authority URIs must use https. Please see here for valid authority configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options.
+
+-   Authority URIs must use https. Please see here for valid authority configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options.
 
 ### `url_parse_error`
-- URL could not be parsed into appropriate segments.
+
+-   URL could not be parsed into appropriate segments.
 
 ### `empty_url_error`
-- URL was empty or null.
+
+-   URL was empty or null.
 
 ### `empty_input_scopes_error`
-- Scopes cannot be passed as null, undefined or empty array because they are required to obtain an access token.
+
+-   Scopes cannot be passed as null, undefined or empty array because they are required to obtain an access token.
 
 ### `invalid_prompt_value`
-- Invalid prompt value. Please see here for valid configuration options: https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#commonauthorizationurlrequest
+
+-   Invalid prompt value. Please see here for valid configuration options: https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#commonauthorizationurlrequest
 
 ### `invalid_claims`
-- Given claims parameter must be a stringified JSON object.
+
+-   Given claims parameter must be a stringified JSON object.
 
 ### `token_request_empty`
-- Token request was empty and not found in cache.
+
+-   Token request was empty and not found in cache.
 
 ### `logout_request_empty`
-- The logout request was null or undefined.
+
+-   The logout request was null or undefined.
 
 ### `invalid_code_challenge_method`
-- code_challenge_method passed is invalid. Valid values are "plain" and "S256".
+
+-   code_challenge_method passed is invalid. Valid values are "plain" and "S256".
 
 ### `pkce_params_missing`
-- Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request.
+
+-   Both params: code_challenge and code_challenge_method are to be passed if to be sent in the request.
 
 ### `invalid_cloud_discovery_metadata`
-- Invalid cloudDiscoveryMetadata provided. Must be a stringified JSON object containing tenant_discovery_endpoint and metadata fields.
+
+-   Invalid cloudDiscoveryMetadata provided. Must be a stringified JSON object containing tenant_discovery_endpoint and metadata fields.
 
 ### `invalid_authority_metadata`
-- Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, and issuer fields.
+
+-   Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, and issuer fields.
 
 ### `untrusted_authority`
-- The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter.
+
+-   The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter.
 
 ### `missing_ssh_jwk`
-- Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme.
+
+-   Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme.
 
 ### `missing_ssh_kid`
-- Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme.
+
+-   Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme.
 
 ### `missing_nonce_authentication_header`
-- Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce.
+
+-   Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce.
 
 ### `invalid_authentication_header`
-- Invalid authentication header provided.
+
+-   Invalid authentication header provided.
 
 ### `cannot_set_OIDCOptions`
-- Cannot set OIDCOptions parameter. Please change the protocol mode to OIDC or use a non-Microsoft authority.
+
+-   Cannot set OIDCOptions parameter. Please change the protocol mode to OIDC or use a non-Microsoft authority.
 
 ### `cannot_allow_platform_broker`
-- Cannot set allowPlatformBroker parameter to true when not in AAD protocol mode.
+
+-   Cannot set allowPlatformBroker parameter to true when not in AAD protocol mode.
 
 ### `authority_mismatch`
-- Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
+
+-   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
 ### `invalid_request_method_for_EAR`
 - The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`. The EAR protocol cannot be used with HTTP method `GET`.
@@ -206,77 +268,98 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ## Interaction required errors
 
 ### `no_tokens_found`
-- No refresh token found in the cache. Please sign-in.
+
+-   No refresh token found in the cache. Please sign-in.
 
 ### `native_account_unavailable`
-- The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API.
+
+-   The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API.
 
 ### `refresh_token_expired`
-- Refresh token has expired.
+
+-   Refresh token has expired.
 
 ### `interaction_required`
-- User interaction is required.
+
+-   User interaction is required.
 
 ### `consent_required`
-- User consent is required.
+
+-   User consent is required.
 
 ### `login_required`
-- User login is required.
+
+-   User login is required.
 
 ### `bad_token`
-- Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.
+
+-   Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.
 
 ### `ux_not_allowed`
-- `canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.
+
+-   `canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.
 
 ## JOSE header errors
 
 ### `missing_kid_error`
-- The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided.
+
+-   The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided.
 
 ### `missing_alg_error`
-- The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.
+
+-   The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.
 
 ## Browser auth errors
 
 ### `pkce_not_created`
-- The PKCE code challenge and verifier could not be generated.
+
+-   The PKCE code challenge and verifier could not be generated.
 
 ### `ear_jwk_empty`
-- No EAR encryption key provided. This is unexpected.
+
+-   No EAR encryption key provided. This is unexpected.
 
 ### `ear_jwe_empty`
-- Server response does not contain ear_jwe property. This is unexpected.
+
+-   Server response does not contain ear_jwe property. This is unexpected.
 
 ### `crypto_nonexistent`
-- The crypto object or function is not available.
+
+-   The crypto object or function is not available.
 
 ### `empty_navigate_uri`
-- Navigation URI is empty. Please check stack trace for more info.
+
+-   Navigation URI is empty. Please check stack trace for more info.
 
 ### `hash_empty_error`
-- Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash.
+
+-   Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash.
 
 This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
 
 To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
 
 ### `no_state_in_hash`
-- Hash does not contain state. Please verify that the request originated from MSAL.
+
+-   Hash does not contain state. Please verify that the request originated from MSAL.
 
 ### `hash_does_not_contain_known_properties`
-- Hash does not contain known properties. Please verify that your redirectUri is not changing the hash.
+
+-   Hash does not contain known properties. Please verify that your redirectUri is not changing the hash.
 
 Please see explanation for [hash_empty_error](#hash_empty_error) above. The root cause for this error is similar, the difference being the hash has been changed, rather than dropped.
 
 ### `unable_to_parse_state`
-- Unable to parse state. Please verify that the request originated from MSAL.
+
+-   Unable to parse state. Please verify that the request originated from MSAL.
 
 ### `state_interaction_type_mismatch`
-- Hash contains state but the interaction type does not match the caller.
+
+-   Hash contains state but the interaction type does not match the caller.
 
 ### `interaction_in_progress`
-- Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.
+
+-   Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.
 
 This error is thrown when an interactive API (`loginPopup`, `loginRedirect`, `acquireTokenPopup`, `acquireTokenRedirect`) is invoked while another interactive API is still in progress. The login and acquireToken APIs are async so you will need to ensure that the resulting promises have resolved before invoking another one.
 
@@ -476,19 +559,24 @@ If you are unable to figure out why this error is being thrown please [open an i
 -   Open your application in a new tab. Does the error go away?
 
 ### `popup_window_error`
-- Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.
+
+-   Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.
 
 ### `empty_window_error`
-- window.open returned null or undefined window object.
+
+-   window.open returned null or undefined window object.
 
 ### `user_cancelled`
-- User cancelled the flow.
+
+-   User cancelled the flow.
 
 ### `monitor_popup_timeout`
-- Token acquisition in popup failed due to timeout.
+
+-   Token acquisition in popup failed due to timeout.
 
 ### `monitor_window_timeout`
-- Token acquisition in iframe failed due to timeout.
+
+-   Token acquisition in iframe failed due to timeout.
 
 **Error Messages**:
 
@@ -572,10 +660,12 @@ const msalConfig = {
 > Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
 
 ### `redirect_in_iframe`
-- Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.
+
+-   Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.
 
 ### `block_iframe_reload`
-- Request was blocked inside an iframe because MSAL detected an authentication response.
+
+-   Request was blocked inside an iframe because MSAL detected an authentication response.
 
 This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
 Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
@@ -594,81 +684,106 @@ Remember that you will need to register this new `redirectUri` on your App Regis
 If you do not want to use a dedicated `redirectUri` for this purpose, you should instead ensure that your `redirectUri` is not attempting to call MSAL APIs when rendered inside the hidden iframe used by the silent APIs.
 
 ### `block_nested_popups`
-- Request was blocked inside a popup because MSAL detected it was running in a popup.
+
+-   Request was blocked inside a popup because MSAL detected it was running in a popup.
 
 ### `iframe_closed_prematurely`
-- The iframe being monitored was closed prematurely.
+
+-   The iframe being monitored was closed prematurely.
 
 ### `silent_logout_unsupported`
-- Silent logout not supported. Please call logoutRedirect or logoutPopup instead.
+
+-   Silent logout not supported. Please call logoutRedirect or logoutPopup instead.
 
 ### `no_account_error`
-- No account object provided to acquireTokenSilent and no active account has been set. Please call setActiveAccount or provide an account on the request.
+
+-   No account object provided to acquireTokenSilent and no active account has been set. Please call setActiveAccount or provide an account on the request.
 
 ### `silent_prompt_value_error`
-- The value given for the prompt value is not valid for silent requests - must be set to 'none' or 'no_session'.
+
+-   The value given for the prompt value is not valid for silent requests - must be set to 'none' or 'no_session'.
 
 ### `no_token_request_cache_error`
-- No token request found in cache.
+
+-   No token request found in cache.
 
 ### `unable_to_parse_token_request_cache_error`
-- The cached token request could not be parsed.
+
+-   The cached token request could not be parsed.
 
 ### `auth_request_not_set_error`
-- Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler.
+
+-   Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler.
 
 ### `invalid_cache_type`
-- Invalid cache type.
+
+-   Invalid cache type.
 
 ### `non_browser_environment`
-- Login and token requests are not supported in non-browser environments.
+
+-   Login and token requests are not supported in non-browser environments.
 
 ### `database_not_open`
-- Database is not open.
+
+-   Database is not open.
 
 ### `no_network_connectivity`
-- No network connectivity. Check your internet connection.
+
+-   No network connectivity. Check your internet connection.
 
 ### `post_request_failed`
-- Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'.
+
+-   Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'.
 
 ### `get_request_failed`
-- Network request failed. Please check the network trace to determine root cause.
+
+-   Network request failed. Please check the network trace to determine root cause.
 
 ### `failed_to_parse_response`
-- Failed to parse network response. Check network trace.
+
+-   Failed to parse network response. Check network trace.
 
 ### `unable_to_load_token`
-- Error loading token to cache.
+
+-   Error loading token to cache.
 
 ### `crypto_key_not_found`
-- Cryptographic Key or Keypair not found in browser storage.
+
+-   Cryptographic Key or Keypair not found in browser storage.
 
 ### `auth_code_required`
-- An authorization code must be provided (as the `code` property on the request) to this flow.
+
+-   An authorization code must be provided (as the `code` property on the request) to this flow.
 
 ### `auth_code_or_nativeAccountId_required`
-- An authorization code or nativeAccountId must be provided to this flow.
+
+-   An authorization code or nativeAccountId must be provided to this flow.
 
 ### `spa_code_and_nativeAccountId_present`
-- Request cannot contain both spa code and native account id.
+
+-   Request cannot contain both spa code and native account id.
 
 ### `database_unavailable`
-- IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts.
+
+-   IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts.
 
 ### `unable_to_acquire_token_from_native_platform`
-- Unable to acquire token from native platform.
+
+-   Unable to acquire token from native platform.
 
 This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquire tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/device-bound-tokens.md).
 
 ### `native_handshake_timeout`
-- Timed out while attempting to establish connection to browser extension.
+
+-   Timed out while attempting to establish connection to browser extension.
 
 ### `native_extension_not_installed`
-- Native extension is not installed. If you think this is a mistake call the initialize function.
+
+-   Native extension is not installed. If you think this is a mistake call the initialize function.
 
 ### `native_connection_not_established`
-- Connection to native platform has not been established. Please install a compatible browser extension and run initialize().
+
+-   Connection to native platform has not been established. Please install a compatible browser extension and run initialize().
 
 This error is thrown when the user signed in with the native broker but no connection to the native broker currently exists. This can happen for the following reasons:
 
@@ -676,7 +791,8 @@ This error is thrown when the user signed in with the native broker but no conne
 -   The `initialize` API has not been called or was not awaited before invoking another MSAL API
 
 ### `uninitialized_public_client_application`
-- You must call and await the initialize function before attempting to call any other MSAL API.
+
+-   You must call and await the initialize function before attempting to call any other MSAL API.
 
 This error is thrown when a `login`, `acquireToken` or `handleRedirectPromise` API is invoked before the `initialize` API has been called. The `initialize` API must be called and awaited before attempting to acquire tokens.
 
@@ -714,25 +830,32 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ```
 
 ### `native_prompt_not_supported`
-- The provided prompt is not supported by the native platform. This request should be routed to the web based flow.
+
+-   The provided prompt is not supported by the native platform. This request should be routed to the web based flow.
 
 ### `invalid_base64_string`
-- Invalid base64 encoded string.
+
+-   Invalid base64 encoded string.
 
 ### `invalid_pop_token_request`
-- Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.
+
+-   Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.
 
 ### `failed_to_build_headers`
-- Failed to build request headers object.
+
+-   Failed to build request headers object.
 
 ### `failed_to_parse_headers`
-- Failed to parse response headers.
+
+-   Failed to parse response headers.
 
 ### `failed_to_decrypt_ear_response`
-- Failed to decrypt ear response.
+
+-   Failed to decrypt ear response.
 
 ### `timed_out`
-- The request failed to complete within the configured timeout. Review logs and network traces to identify potential causes. Retrying the request once or increasing the configured timeout may sometimes resolve timeouts caused by general runtime or network latency.
+
+-   The request failed to complete within the configured timeout. Review logs and network traces to identify potential causes. Retrying the request once or increasing the configured timeout may sometimes resolve timeouts caused by general runtime or network latency.
 
 #### acquireTokenRedirect timed out
 
@@ -741,121 +864,162 @@ If this error is thrown from `acquireTokenRedirect` it means your application fa
 ## Browser configuration errors
 
 ### `storage_not_supported`
-- Given storage configuration option was not supported.
+
+-   Given storage configuration option was not supported.
 
 ### `stubbed_public_client_application_called`
-- Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider.
-- See [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md).
+
+-   Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider.
+-   See [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md).
 
 ### `in_mem_redirect_unavailable`
-- Redirect cannot be supported. In-memory storage was selected and storeAuthStateInCookie=false, which would cause the library to be unable to handle the incoming hash. If you would like to use the redirect API, please use session/localStorage or set storeAuthStateInCookie=true.
+
+-   Redirect cannot be supported. In-memory storage was selected and storeAuthStateInCookie=false, which would cause the library to be unable to handle the incoming hash. If you would like to use the redirect API, please use session/localStorage or set storeAuthStateInCookie=true.
 
 ## Native auth errors
 
 ### `ContentError`
-- Native broker content error.
+
+-   Platform broker flow, error in the context script for extension.
+
+### `PageException`
+
+-   Platform broker flow, error as there is an exception on the page in the extension.
 
 ### `user_switch`
-- User attempted to switch accounts in the native broker, which is not allowed. All new accounts must sign-in through the standard web flow first, please try again.
+
+-   User attempted to switch accounts in the native broker, which is not allowed. All new accounts must sign-in through the standard web flow first, please try again.
 
 ### `unsupported_method`
-- This method is not supported in nested app environment.
+
+-   This method is not supported in nested app environment.
 
 ## Custom Authentication errors
 
 ### HTTP errors
 
 #### `no_network_connectivity`
-- No network connectivity. Check your internet connection.
+
+-   No network connectivity. Check your internet connection.
 
 #### `failed_send_request`
-- Failed to send HTTP request to the server.
+
+-   Failed to send HTTP request to the server.
 
 ### Configuration errors
 
 #### `missing_configuration`
-- Required configuration is missing for the custom authentication flow.
+
+-   Required configuration is missing for the custom authentication flow.
 
 #### `invalid_authority`
-- The provided authority URL is invalid or not supported for custom authentication.
+
+-   The provided authority URL is invalid or not supported for custom authentication.
 
 #### `invalid_challenge_type`
-- The challenge type specified in the configuration is not supported.
+
+-   The challenge type specified in the configuration is not supported.
 
 ### URL parsing errors
 
 #### `invalid_url`
-- The provided URL could not be parsed or is malformed.
+
+-   The provided URL could not be parsed or is malformed.
 
 ### User account attribute errors
 
 #### `invalid_attribute`
-- One or more user account attributes provided are invalid or malformed.
+
+-   One or more user account attributes provided are invalid or malformed.
 
 ### API errors
 
 #### `continuation_token_missing`
-- The continuation token required for the next step in the authentication flow is missing.
+
+-   The continuation token required for the next step in the authentication flow is missing.
 
 #### `invalid_response_body`
-- The response body from the authentication server is invalid or malformed.
+
+-   The response body from the authentication server is invalid or malformed.
 
 #### `empty_response`
-- The server returned an empty response when data was expected.
+
+-   The server returned an empty response when data was expected.
 
 #### `unsupported_challenge_type`
-- The challenge type provided is not supported.
+
+-   The challenge type provided is not supported.
 
 #### `access_token_missing`
-- The access token is missing from the authentication response.
+
+-   The access token is missing from the authentication response.
 
 #### `id_token_missing`
-- The ID token is missing from the authentication response.
+
+-   The ID token is missing from the authentication response.
 
 #### `refresh_token_missing`
-- The refresh token is missing from the authentication response.
+
+-   The refresh token is missing from the authentication response.
 
 #### `invalid_expires_in`
-- The token expiration time (expires_in) value is invalid.
+
+-   The token expiration time (expires_in) value is invalid.
 
 #### `invalid_token_type`
-- The token type returned by the server is not supported.
+
+-   The token type returned by the server is not supported.
 
 #### `http_request_failed`
-- The HTTP request to the authentication server failed.
+
+-   The HTTP request to the authentication server failed.
 
 #### `invalid_request`
-- The authentication request is malformed or contains invalid parameters.
+
+-   The authentication request is malformed or contains invalid parameters.
 
 #### `user_not_found`
-- The specified user could not be found.
+
+-   The specified user could not be found.
 
 #### `invalid_grant`
-- The authorization grant provided is invalid, expired, or revoked.
+
+-   The authorization grant provided is invalid, expired, or revoked.
 
 #### `credential_required`
-- User credentials are required to complete the authentication flow.
+
+-   User credentials are required to complete the authentication flow.
 
 #### `attributes_required`
-- Additional user attributes are required to complete the authentication flow.
+
+-   Additional user attributes are required to complete the authentication flow.
 
 #### `user_already_exists`
-- A user with the specified identifier already exists.
+
+-   A user with the specified identifier already exists.
 
 #### `invalid_poll_status`
-- The polling status returned by the server is invalid.
+
+-   The polling status returned by the server is invalid.
 
 #### `password_change_failed`
-- The password change operation failed.
+
+-   The password change operation failed.
 
 #### `password_reset_timeout`
-- The password reset operation timed out.
+
+-   The password reset operation timed out.
 
 #### `client_info_missing`
-- Client information is missing from the authentication response.
+
+-   Client information is missing from the authentication response.
 
 #### `expired_token`
-- The provided token has expired and cannot be used.
+
+-   The provided token has expired and cannot be used.
+
+#### `access_denied`
+- The authentication method verification failed because access was denied.
 
 ## Other
 
