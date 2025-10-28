@@ -773,7 +773,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     expiredRefreshOn // refreshOn
                 );
             jest.spyOn(
-                ClientCredentialClient.prototype,
+                ClientCredentialClient,
                 <any>"readAccessTokenFromCache"
             ).mockReturnValueOnce(fakeAccessTokenEntity);
 

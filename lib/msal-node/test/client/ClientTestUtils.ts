@@ -6,7 +6,6 @@
 import {
     AADServerParamKeys,
     ServerTelemetryEntity,
-    CacheManager,
     ClientConfiguration,
     PkceCodes,
     AccountEntity,
@@ -33,7 +32,7 @@ import {
     StubPerformanceClient,
     AccountInfo,
     CredentialEntity,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     AUTHENTICATION_RESULT,
     DEVICE_CODE_RESPONSE,
@@ -51,11 +50,14 @@ import {
     generateAccountKey,
     generateCredentialKey,
 } from "../../src/cache/CacheHelpers.js";
+import { NodeStorage } from "../../src/cache/NodeStorage.js";
+import { Constants as NodeConstants }  from "../../src/utils/Constants.js";
+import { version } from "../../src/packageMetadata.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
 
-export class MockStorageClass extends CacheManager {
+export class MockStorageClass extends NodeStorage {
     store = {};
 
     generateCredentialKey(credential: CredentialEntity): string {
@@ -196,10 +198,11 @@ export class MockStorageClass extends CacheManager {
         this.store[key] = value;
     }
 
-    removeItem(key: string): void {
+    removeItem(key: string): boolean {
         if (!!this.store[key]) {
             delete this.store[key];
         }
+        return true;
     }
     containsKey(key: string): boolean {
         return !!this.store[key];
@@ -287,10 +290,9 @@ export class ClientTestUtils {
         mockNetworkClient?: INetworkModule
     ): Promise<ClientConfiguration> {
         const mockStorage = new MockStorageClass(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            mockCrypto,
             new Logger({}),
-            new StubPerformanceClient()
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            mockCrypto
         );
 
         const testLoggerCallback = (): void => {
@@ -357,9 +359,9 @@ export class ClientTestUtils {
             },
             libraryInfo: {
                 sku: Constants.SKU,
-                version: TEST_CONFIG.TEST_VERSION,
-                os: TEST_CONFIG.TEST_OS,
-                cpu: TEST_CONFIG.TEST_CPU,
+                version: version,
+                os: process.platform || "",
+                cpu: process.arch || "",
             },
             telemetry: {
                 application: {
@@ -498,7 +500,7 @@ export const checkMockedNetworkRequest = (
     if (checks.clientSku !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                `${AADServerParamKeys.X_CLIENT_SKU}=${NodeConstants.MSAL_SKU}`
             )
         ).toBe(checks.clientSku);
     }
@@ -506,7 +508,7 @@ export const checkMockedNetworkRequest = (
     if (checks.clientVersion !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`
+                `${AADServerParamKeys.X_CLIENT_VER}=${version}`
             )
         ).toBe(checks.clientVersion);
     }
@@ -514,7 +516,7 @@ export const checkMockedNetworkRequest = (
     if (checks.clientOs !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`
+                `${AADServerParamKeys.X_CLIENT_OS}=${process.platform || ""}`
             )
         ).toBe(checks.clientOs);
     }
@@ -522,7 +524,7 @@ export const checkMockedNetworkRequest = (
     if (checks.clientCpu !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`
+                `${AADServerParamKeys.X_CLIENT_CPU}=${process.arch || ""}`
             )
         ).toBe(checks.clientCpu);
     }
