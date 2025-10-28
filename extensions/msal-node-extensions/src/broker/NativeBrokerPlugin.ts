@@ -198,7 +198,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 this.chooseRedirectUriByPlatform(platformRequest);
             this.logger.info(
                 "NativeBrokerPlugin - No Redirect URI provided, using default",
-                platformRequest.redirectUri
+                platformRequest.correlationId
             );
         }
         const authParams = this.generateRequestParameters(platformRequest);
@@ -262,7 +262,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 this.chooseRedirectUriByPlatform(platformRequest);
             this.logger.info(
                 "NativeBrokerPlugin - No Redirect URI provided, using default",
-                platformRequest.redirectUri
+                platformRequest.correlationId
             );
         }
         const authParams = this.generateRequestParameters(platformRequest);
