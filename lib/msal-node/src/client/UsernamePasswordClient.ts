@@ -6,10 +6,8 @@
 import {
     AuthenticationResult,
     Authority,
-    BaseClient,
     CcsCredentialType,
     ClientAssertion,
-    ClientConfiguration,
     NetworkResponse,
     Constants,
     RequestParameterBuilder,
@@ -22,8 +20,19 @@ import {
     UrlUtils,
     getClientAssertion,
     StubPerformanceClient,
+    TokenProtocol,
+    Logger,
+    ICrypto,
+    CacheManager,
+    INetworkModule,
+    ServerTelemetryManager,
 } from "@azure/msal-common/node";
 import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
+import { NodeConfiguration } from "../config/Configuration.js";
+import { NodeStorage } from "../cache/NodeStorage.js";
+import { TokenCache } from "../cache/TokenCache.js";
+import { Constants as NodeConstants } from "../utils/Constants.js";
+import { version } from "../packageMetadata.js";
 
 /**
  * Oauth2.0 Password grant client
@@ -31,9 +40,53 @@ import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePassword
  * @public
  * @deprecated - Use a more secure flow instead
  */
-export class UsernamePasswordClient extends BaseClient {
-    constructor(configuration: ClientConfiguration) {
-        super(configuration, new StubPerformanceClient());
+export class UsernamePasswordClient {
+// Logger object
+    public logger: Logger;
+
+    // Application config
+    protected config: NodeConfiguration;
+
+    protected clientAssertion: ClientAssertion;
+
+    // Crypto Interface
+    protected cryptoUtils: ICrypto;
+
+    // Storage Interface
+    protected cacheManager: CacheManager;
+
+    // Network Interface
+    protected networkClient: INetworkModule;
+
+    // Server Telemetry Manager
+    protected serverTelemetryManager: ServerTelemetryManager;
+
+    // Default authority object
+    public authority: Authority;
+
+    constructor(configuration: NodeConfiguration, clientAssertion: ClientAssertion, logger: Logger, crypto: ICrypto, cacheManager: NodeStorage, serverTelemetryManager: ServerTelemetryManager, discoveredAuthority: Authority) {
+        // Set the configuration
+        this.config = configuration;
+
+        // Initialize the logger
+        this.logger = logger;
+
+        this.clientAssertion = clientAssertion;
+
+        // Initialize crypto
+        this.cryptoUtils = crypto;
+
+        // Initialize storage interface
+        this.cacheManager = cacheManager;
+
+        // Set the network interface
+        this.networkClient = this.config.system.networkClient;
+
+        // Set TelemetryManager
+        this.serverTelemetryManager = serverTelemetryManager;
+
+        // set Authority
+        this.authority = discoveredAuthority;
     }
 
     /**
@@ -42,7 +95,8 @@ export class UsernamePasswordClient extends BaseClient {
      * @param request - CommonUsernamePasswordRequest
      */
     async acquireToken(
-        request: CommonUsernamePasswordRequest
+        request: CommonUsernamePasswordRequest,
+        serializableCache: TokenCache
     ): Promise<AuthenticationResult | null> {
         this.logger.info(
             "in acquireToken call in username-password client",
@@ -56,13 +110,13 @@ export class UsernamePasswordClient extends BaseClient {
         );
 
         const responseHandler = new ResponseHandler(
-            this.config.authOptions.clientId,
+            this.config.auth.clientId,
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
-            this.performanceClient,
-            this.config.serializableCache,
-            this.config.persistencePlugin
+            new StubPerformanceClient(),
+            serializableCache,
+            this.config.cache.cachePlugin || null
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
@@ -89,18 +143,22 @@ export class UsernamePasswordClient extends BaseClient {
         authority: Authority,
         request: CommonUsernamePasswordRequest
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const queryParametersString = this.createTokenQueryParameters(request);
+        const performanceClient = new StubPerformanceClient();
+        const queryParametersString = TokenProtocol.createTokenQueryParameters(request, this.config.auth.clientId, "", performanceClient);
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
             queryParametersString
         );
         const requestBody = await this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createTokenRequestHeaders({
+        const headers: Record<string, string> = TokenProtocol.createTokenRequestHeaders(
+            this.logger,
+            false,
+            {
             credential: request.username,
             type: CcsCredentialType.UPN,
         });
         const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
+            clientId: this.config.auth.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
             claims: request.claims,
@@ -111,12 +169,17 @@ export class UsernamePasswordClient extends BaseClient {
             sshKid: request.sshKid,
         };
 
-        return this.executePostToTokenEndpoint(
+        return TokenProtocol.executePostToTokenEndpoint(
             endpoint,
             requestBody,
             headers,
             thumbprint,
-            request.correlationId
+            request.correlationId,
+            this.cacheManager,
+            this.networkClient,
+            this.logger,
+            performanceClient,
+            this.serverTelemetryManager
         );
     }
 
@@ -131,7 +194,7 @@ export class UsernamePasswordClient extends BaseClient {
 
         RequestParameterBuilder.addClientId(
             parameters,
-            this.config.authOptions.clientId
+            this.config.auth.clientId
         );
         RequestParameterBuilder.addUsername(parameters, request.username);
         RequestParameterBuilder.addPassword(parameters, request.password);
@@ -151,7 +214,12 @@ export class UsernamePasswordClient extends BaseClient {
 
         RequestParameterBuilder.addLibraryInfo(
             parameters,
-            this.config.libraryInfo
+            {
+                sku: NodeConstants.MSAL_SKU,
+                version: version,
+                cpu: process.arch || "",
+                os: process.platform || "",
+            }
         );
         RequestParameterBuilder.addApplicationTelemetry(
             parameters,
@@ -168,25 +236,25 @@ export class UsernamePasswordClient extends BaseClient {
 
         const correlationId =
             request.correlationId ||
-            this.config.cryptoInterface.createNewGuid();
+            this.cryptoUtils.createNewGuid();
         RequestParameterBuilder.addCorrelationId(parameters, correlationId);
 
-        if (this.config.clientCredentials.clientSecret) {
+        if (this.config.auth.clientSecret) {
             RequestParameterBuilder.addClientSecret(
                 parameters,
-                this.config.clientCredentials.clientSecret
+                this.config.auth.clientSecret
             );
         }
 
         const clientAssertion: ClientAssertion | undefined =
-            this.config.clientCredentials.clientAssertion;
+            this.clientAssertion;
 
         if (clientAssertion) {
             RequestParameterBuilder.addClientAssertion(
                 parameters,
                 await getClientAssertion(
                     clientAssertion.assertion,
-                    this.config.authOptions.clientId,
+                    this.config.auth.clientId,
                     request.resourceRequestUri
                 )
             );
@@ -198,18 +266,17 @@ export class UsernamePasswordClient extends BaseClient {
 
         if (
             !StringUtils.isEmptyObj(request.claims) ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
+            (this.config.auth.clientCapabilities &&
+                this.config.auth.clientCapabilities.length > 0)
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.auth.clientCapabilities
             );
         }
 
         if (
-            this.config.systemOptions.preventCorsPreflight &&
             request.username
         ) {
             RequestParameterBuilder.addCcsUpn(parameters, request.username);

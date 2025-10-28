@@ -7,7 +7,6 @@ import {
     AccessTokenEntity,
     AuthenticationResult,
     Authority,
-    BaseClient,
     CacheManager,
     ClientAuthErrorCodes,
     ClientConfiguration,
@@ -30,25 +29,73 @@ import {
     getClientAssertion,
     UrlUtils,
     StubPerformanceClient,
+    TokenProtocol,
+    Logger,
+    INetworkModule,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
+import { NodeConfiguration } from "../config/Configuration.js";
+import { NodeStorage } from "../cache/NodeStorage.js";
+import { TokenCache } from "../cache/TokenCache.js";
+import { Constants as NodeConstants } from "../utils/Constants.js";
+import { version } from "../packageMetadata.js";
 
 /**
  * OAuth2.0 client credential grant
  * @public
  */
-export class ClientCredentialClient extends BaseClient {
+export class ClientCredentialClient {
     private readonly appTokenProvider?: IAppTokenProvider;
 
-    constructor(
-        configuration: ClientConfiguration,
-        appTokenProvider?: IAppTokenProvider
-    ) {
-        super(configuration, new StubPerformanceClient());
+    // Logger object
+    public logger: Logger;
+
+    // Application config
+    protected config: NodeConfiguration;
+
+    protected clientAssertion: ClientAssertion;
+
+    // Crypto Interface
+    protected cryptoUtils: ICrypto;
+
+    // Storage Interface
+    protected cacheManager: CacheManager;
+
+    // Network Interface
+    protected networkClient: INetworkModule;
+
+    // Default authority object
+    public authority: Authority;
+
+    protected serverTelemetryManager: ServerTelemetryManager;
+
+    constructor(configuration: NodeConfiguration, clientAssertion: ClientAssertion, logger: Logger, crypto: ICrypto, cacheManager: NodeStorage, discoveredAuthority: Authority, serverTelemetryManager: ServerTelemetryManager,
+        appTokenProvider?: IAppTokenProvider) {
+        // Set the configuration
+        this.config = configuration;
+
+        this.clientAssertion = clientAssertion;
+
+        // Initialize the logger
+        this.logger = logger;
+
+        // Initialize crypto
+        this.cryptoUtils = crypto;
+
+        // Initialize storage interface
+        this.cacheManager = cacheManager;
+
+        // Set the network interface
+        this.networkClient = this.config.system.networkClient;
+
+        // set Authority
+        this.authority = discoveredAuthority;
+
+        this.serverTelemetryManager = serverTelemetryManager;
         this.appTokenProvider = appTokenProvider;
     }
 
@@ -57,14 +104,15 @@ export class ClientCredentialClient extends BaseClient {
      * @param request - CommonClientCredentialRequest provided by the developer
      */
     public async acquireToken(
-        request: CommonClientCredentialRequest
+        request: CommonClientCredentialRequest,
+        serializableCache: TokenCache
     ): Promise<AuthenticationResult | null> {
         if (request.skipCache || request.claims) {
-            return this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(request, serializableCache);
         }
 
         const [cachedAuthenticationResult, lastCacheOutcome] =
-            await this.getCachedAuthenticationResult(
+            await ClientCredentialClient.getCachedAuthenticationResult(
                 request,
                 this.config,
                 this.cryptoUtils,
@@ -88,7 +136,7 @@ export class ClientCredentialClient extends BaseClient {
                 const refreshAccessToken = true;
                 await this.executeTokenRequest(
                     request,
-                    this.authority,
+                    serializableCache,
                     refreshAccessToken
                 );
             }
@@ -96,14 +144,14 @@ export class ClientCredentialClient extends BaseClient {
             // return the cached token
             return cachedAuthenticationResult;
         } else {
-            return this.executeTokenRequest(request, this.authority);
+            return this.executeTokenRequest(request, serializableCache);
         }
     }
 
     /**
      * looks up cache if the tokens are cached already
      */
-    public async getCachedAuthenticationResult(
+    static async getCachedAuthenticationResult(
         request: CommonClientCredentialRequest,
         config: ClientConfiguration | ManagedIdentityConfiguration,
         cryptoUtils: ICrypto,
@@ -133,7 +181,7 @@ export class ClientCredentialClient extends BaseClient {
             );
         }
 
-        const cachedAccessToken = this.readAccessTokenFromCache(
+        const cachedAccessToken = ClientCredentialClient.readAccessTokenFromCache(
             authority,
             managedIdentityConfiguration.managedIdentityId?.id ||
                 clientConfiguration.authOptions.clientId,
@@ -198,7 +246,7 @@ export class ClientCredentialClient extends BaseClient {
                 },
                 true,
                 request,
-                this.performanceClient
+                new StubPerformanceClient()
             ),
             lastCacheOutcome,
         ];
@@ -207,7 +255,7 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * Reads access token from the cache
      */
-    private readAccessTokenFromCache(
+    static readAccessTokenFromCache(
         authority: Authority,
         id: string,
         scopeSet: ScopeSet,
@@ -245,11 +293,12 @@ export class ClientCredentialClient extends BaseClient {
      */
     private async executeTokenRequest(
         request: CommonClientCredentialRequest,
-        authority: Authority,
+        serializableCache: TokenCache,
         refreshAccessToken?: boolean
     ): Promise<AuthenticationResult | null> {
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
+        const performanceClient = new StubPerformanceClient();
 
         if (this.appTokenProvider) {
             this.logger.info(
@@ -259,7 +308,7 @@ export class ClientCredentialClient extends BaseClient {
 
             const appTokenPropviderParameters = {
                 correlationId: request.correlationId,
-                tenantId: this.config.authOptions.authority.tenant,
+                tenantId: this.authority.tenant,
                 scopes: request.scopes,
                 claims: request.claims,
             };
@@ -277,17 +326,17 @@ export class ClientCredentialClient extends BaseClient {
             };
         } else {
             const queryParametersString =
-                this.createTokenQueryParameters(request);
+                TokenProtocol.createTokenQueryParameters(request, this.config.auth.clientId, "", performanceClient);
             const endpoint = UrlString.appendQueryString(
-                authority.tokenEndpoint,
+                this.authority.tokenEndpoint,
                 queryParametersString
             );
 
             const requestBody = await this.createTokenRequestBody(request);
             const headers: Record<string, string> =
-                this.createTokenRequestHeaders();
+                TokenProtocol.createTokenRequestHeaders(this.logger, false);
             const thumbprint: RequestThumbprint = {
-                clientId: this.config.authOptions.clientId,
+                clientId: this.config.auth.clientId,
                 authority: request.authority,
                 scopes: request.scopes,
                 claims: request.claims,
@@ -299,17 +348,22 @@ export class ClientCredentialClient extends BaseClient {
             };
 
             this.logger.info(
-                "Sending token request to endpoint: " + authority.tokenEndpoint,
+                "Sending token request to endpoint: " + this.authority.tokenEndpoint,
                 request.correlationId
             );
 
             reqTimestamp = TimeUtils.nowSeconds();
-            const response = await this.executePostToTokenEndpoint(
+            const response = await TokenProtocol.executePostToTokenEndpoint(
                 endpoint,
                 requestBody,
                 headers,
                 thumbprint,
-                request.correlationId
+                request.correlationId,
+                this.cacheManager,
+                this.networkClient,
+                this.logger,
+                performanceClient,
+                this.serverTelemetryManager
             );
 
             serverTokenResponse = response.body;
@@ -317,13 +371,13 @@ export class ClientCredentialClient extends BaseClient {
         }
 
         const responseHandler = new ResponseHandler(
-            this.config.authOptions.clientId,
+            this.config.auth.clientId,
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
-            this.performanceClient,
-            this.config.serializableCache,
-            this.config.persistencePlugin
+            performanceClient,
+            serializableCache,
+            this.config.cache.cachePlugin || null
         );
 
         responseHandler.validateTokenResponse(
@@ -353,7 +407,7 @@ export class ClientCredentialClient extends BaseClient {
 
         RequestParameterBuilder.addClientId(
             parameters,
-            this.config.authOptions.clientId
+            this.config.auth.clientId
         );
 
         RequestParameterBuilder.addScopes(parameters, request.scopes, false);
@@ -365,7 +419,12 @@ export class ClientCredentialClient extends BaseClient {
 
         RequestParameterBuilder.addLibraryInfo(
             parameters,
-            this.config.libraryInfo
+            {
+                sku: NodeConstants.MSAL_SKU,
+                version: version,
+                cpu: process.arch || "",
+                os: process.platform || "",
+            }
         );
         RequestParameterBuilder.addApplicationTelemetry(
             parameters,
@@ -383,27 +442,27 @@ export class ClientCredentialClient extends BaseClient {
 
         const correlationId =
             request.correlationId ||
-            this.config.cryptoInterface.createNewGuid();
+            this.cryptoUtils.createNewGuid();
         RequestParameterBuilder.addCorrelationId(parameters, correlationId);
 
-        if (this.config.clientCredentials.clientSecret) {
+        if (this.config.auth.clientSecret) {
             RequestParameterBuilder.addClientSecret(
                 parameters,
-                this.config.clientCredentials.clientSecret
+                this.config.auth.clientSecret
             );
         }
 
         // Use clientAssertion from request, fallback to client assertion in base configuration
         const clientAssertion: ClientAssertion | undefined =
             request.clientAssertion ||
-            this.config.clientCredentials.clientAssertion;
+            this.clientAssertion;
 
         if (clientAssertion) {
             RequestParameterBuilder.addClientAssertion(
                 parameters,
                 await getClientAssertion(
                     clientAssertion.assertion,
-                    this.config.authOptions.clientId,
+                    this.config.auth.clientId,
                     request.resourceRequestUri
                 )
             );
@@ -415,13 +474,13 @@ export class ClientCredentialClient extends BaseClient {
 
         if (
             !StringUtils.isEmptyObj(request.claims) ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
+            (this.config.auth.clientCapabilities &&
+                this.config.auth.clientCapabilities.length > 0)
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.auth.clientCapabilities
             );
         }
 

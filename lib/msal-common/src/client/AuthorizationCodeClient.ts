@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { BaseClient } from "./BaseClient.js";
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest.js";
 import { Authority } from "../authority/Authority.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
@@ -11,7 +10,9 @@ import * as UrlUtils from "../utils/UrlUtils.js";
 import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import {
+    buildClientConfiguration,
     ClientConfiguration,
+    CommonClientConfiguration,
     isOidcProtocolMode,
 } from "../config/ClientConfiguration.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
@@ -43,21 +44,79 @@ import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
+import {
+    createTokenQueryParameters,
+    createTokenRequestHeaders,
+    executePostToTokenEndpoint,
+} from "../protocol/Token.js";
+import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { Logger } from "../logger/Logger.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { INetworkModule } from "../network/INetworkModule.js";
+import { version, name } from "../packageMetadata.js";
 
 /**
  * Oauth2.0 Authorization Code client
  * @internal
  */
-export class AuthorizationCodeClient extends BaseClient {
+export class AuthorizationCodeClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
     protected includeRedirectUri: boolean = true;
     private oidcDefaultScopes;
+
+    // Logger object
+    public logger: Logger;
+
+    // Application config
+    protected config: CommonClientConfiguration;
+
+    // Crypto Interface
+    protected cryptoUtils: ICrypto;
+
+    // Storage Interface
+    protected cacheManager: CacheManager;
+
+    // Network Interface
+    protected networkClient: INetworkModule;
+
+    // Server Telemetry Manager
+    protected serverTelemetryManager: ServerTelemetryManager | null;
+
+    // Default authority object
+    public authority: Authority;
+
+    // Performance telemetry client
+    protected performanceClient: IPerformanceClient;
 
     constructor(
         configuration: ClientConfiguration,
         performanceClient: IPerformanceClient
     ) {
-        super(configuration, performanceClient);
+        // Set the configuration
+        this.config = buildClientConfiguration(configuration);
+
+        // Initialize the logger
+        this.logger = new Logger(this.config.loggerOptions, name, version);
+
+        // Initialize crypto
+        this.cryptoUtils = this.config.cryptoInterface;
+
+        // Initialize storage interface
+        this.cacheManager = this.config.storageInterface;
+
+        // Set the network interface
+        this.networkClient = this.config.networkInterface;
+
+        // Set TelemetryManager
+        this.serverTelemetryManager = this.config.serverTelemetryManager;
+
+        // set Authority
+        this.authority = this.config.authOptions.authority;
+
+        // set performance telemetry client
+        this.performanceClient = performanceClient;
         this.oidcDefaultScopes =
             this.config.authOptions.authority.options.OIDCOptions?.defaultScopes;
     }
@@ -77,6 +136,21 @@ export class AuthorizationCodeClient extends BaseClient {
             );
         }
 
+        // Check for new cloud instance
+        if (authCodePayload && authCodePayload.cloud_instance_host_name) {
+            const cloudInstanceAuthorityUri = `https://${authCodePayload.cloud_instance_host_name}/${this.authority.tenant}/`;
+            const cloudInstanceAuthority = await createDiscoveredInstance(
+                cloudInstanceAuthorityUri,
+                this.networkClient,
+                this.cacheManager,
+                this.authority.options,
+                this.logger,
+                request.correlationId,
+                this.performanceClient
+            );
+            this.authority = cloudInstanceAuthority;
+        }
+
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await invokeAsync(
             this.executeTokenRequest.bind(this),
@@ -84,7 +158,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(this.authority, request);
+        )(this.authority, request, this.serverTelemetryManager);
 
         // Retrieve requestId from response headers
         const requestId =
@@ -153,9 +227,15 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     private async executeTokenRequest(
         authority: Authority,
-        request: CommonAuthorizationCodeRequest
+        request: CommonAuthorizationCodeRequest,
+        serverTelemetryManager: ServerTelemetryManager | null
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const queryParametersString = this.createTokenQueryParameters(request);
+        const queryParametersString = createTokenQueryParameters(
+            request,
+            this.config.authOptions.clientId,
+            this.config.authOptions.redirectUri,
+            this.performanceClient
+        );
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
             queryParametersString
@@ -187,7 +267,9 @@ export class AuthorizationCodeClient extends BaseClient {
                 );
             }
         }
-        const headers: Record<string, string> = this.createTokenRequestHeaders(
+        const headers: Record<string, string> = createTokenRequestHeaders(
+            this.logger,
+            this.config.systemOptions.preventCorsPreflight,
             ccsCredential || request.ccsCredential
         );
 
@@ -197,12 +279,23 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         return invokeAsync(
-            this.executePostToTokenEndpoint.bind(this),
+            executePostToTokenEndpoint,
             PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
+        )(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint,
+            request.correlationId,
+            this.cacheManager,
+            this.networkClient,
+            this.logger,
+            this.performanceClient,
+            serverTelemetryManager
+        );
     }
 
     /**

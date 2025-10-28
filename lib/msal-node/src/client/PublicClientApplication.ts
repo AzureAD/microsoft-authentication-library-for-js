@@ -110,6 +110,7 @@ export class PublicClientApplication
             ApiId.acquireTokenByDeviceCode,
             validRequest.correlationId
         );
+
         try {
             const discoveredAuthority = await this.createAuthority(
                 validRequest.authority,
@@ -117,18 +118,15 @@ export class PublicClientApplication
                 undefined,
                 request.azureCloudOptions
             );
-            const deviceCodeConfig = await this.buildOauthClientConfiguration(
-                discoveredAuthority,
-                validRequest.correlationId,
-                "",
-                serverTelemetryManager
+            serverTelemetryManager?.updateRegionDiscoveryMetadata(
+                discoveredAuthority.regionDiscoveryMetadata
             );
-            const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
+            const deviceCodeClient = new DeviceCodeClient(this.config, this.logger, this.cryptoProvider, this.storage, serverTelemetryManager, discoveredAuthority);
             this.logger.verbose(
                 "Device code client created",
                 validRequest.correlationId
             );
-            return await deviceCodeClient.acquireToken(validRequest);
+            return await deviceCodeClient.acquireToken(validRequest, this.tokenCache);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);

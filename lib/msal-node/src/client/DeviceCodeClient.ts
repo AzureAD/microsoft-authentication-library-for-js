@@ -6,8 +6,6 @@
 import {
     AuthErrorCodes,
     AuthenticationResult,
-    BaseClient,
-    ClientConfiguration,
     DeviceCodeResponse,
     RequestParameterBuilder,
     RequestThumbprint,
@@ -22,17 +20,69 @@ import {
     createClientAuthError,
     Constants,
     StubPerformanceClient,
+    TokenProtocol,
+    Logger,
+    CacheManager,
+    INetworkModule,
+    ServerTelemetryManager,
+    Authority,
+    ICrypto,
 } from "@azure/msal-common/node";
 import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
+import { NodeConfiguration } from "../config/Configuration.js";
+import { NodeStorage } from "../cache/NodeStorage.js";
+import { TokenCache } from "../cache/TokenCache.js";
+import { Constants as NodeConstants } from "../utils/Constants.js";
+import { version } from "../packageMetadata.js";
 
 /**
  * OAuth2.0 Device code client
  * @public
  */
-export class DeviceCodeClient extends BaseClient {
-    constructor(configuration: ClientConfiguration) {
-        super(configuration, new StubPerformanceClient());
+export class DeviceCodeClient {
+    // Logger object
+    public logger: Logger;
+
+    // Application config
+    protected config: NodeConfiguration;
+
+    // Crypto Interface
+    protected cryptoUtils: ICrypto;
+
+    // Storage Interface
+    protected cacheManager: CacheManager;
+
+    // Network Interface
+    protected networkClient: INetworkModule;
+
+    // Server Telemetry Manager
+    protected serverTelemetryManager: ServerTelemetryManager | null;
+
+    // Default authority object
+    public authority: Authority;
+
+    constructor(configuration: NodeConfiguration, logger: Logger, crypto: ICrypto, cacheManager: NodeStorage, serverTelemetryManager: ServerTelemetryManager, discoveredAuthority: Authority) {
+        // Set the configuration
+        this.config = configuration;
+
+        // Initialize the logger
+        this.logger = logger;
+
+        // Initialize crypto
+        this.cryptoUtils = crypto;
+
+        // Initialize storage interface
+        this.cacheManager = cacheManager;
+
+        // Set the network interface
+        this.networkClient = this.config.system.networkClient;
+
+        // Set TelemetryManager
+        this.serverTelemetryManager = serverTelemetryManager;
+
+        // set Authority
+        this.authority = discoveredAuthority;
     }
 
     /**
@@ -41,7 +91,8 @@ export class DeviceCodeClient extends BaseClient {
      * @param request - developer provided CommonDeviceCodeRequest
      */
     public async acquireToken(
-        request: CommonDeviceCodeRequest
+        request: CommonDeviceCodeRequest,
+        serializableCache: TokenCache
     ): Promise<AuthenticationResult | null> {
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(
             request
@@ -52,13 +103,13 @@ export class DeviceCodeClient extends BaseClient {
             await this.acquireTokenWithDeviceCode(request, deviceCodeResponse);
 
         const responseHandler = new ResponseHandler(
-            this.config.authOptions.clientId,
+            this.config.auth.clientId,
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
-            this.performanceClient,
-            this.config.serializableCache,
-            this.config.persistencePlugin
+            new StubPerformanceClient(),
+            serializableCache,
+            this.config.cache.cachePlugin || null
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
@@ -84,9 +135,9 @@ export class DeviceCodeClient extends BaseClient {
             queryParametersString
         );
         const queryString = this.createQueryString(request);
-        const headers = this.createTokenRequestHeaders();
+        const headers = TokenProtocol.createTokenRequestHeaders(this.logger, false);
         const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
+            clientId: this.config.auth.clientId,
             authority: request.authority,
             scopes: request.scopes,
             claims: request.claims,
@@ -149,14 +200,18 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message,
             },
-        } = await this.sendPostRequest<ServerDeviceCodeResponse>(
+        } = await TokenProtocol.sendPostRequest<ServerDeviceCodeResponse>(
             thumbprint,
             deviceCodeEndpoint,
             {
                 body: queryString,
                 headers: headers,
             },
-            correlationId
+            correlationId,
+            this.cacheManager,
+            this.networkClient,
+            this.logger,
+            new StubPerformanceClient()
         );
 
         return {
@@ -179,7 +234,7 @@ export class DeviceCodeClient extends BaseClient {
         RequestParameterBuilder.addScopes(parameters, request.scopes);
         RequestParameterBuilder.addClientId(
             parameters,
-            this.config.authOptions.clientId
+            this.config.auth.clientId
         );
 
         if (request.extraQueryParameters) {
@@ -191,13 +246,13 @@ export class DeviceCodeClient extends BaseClient {
 
         if (
             request.claims ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
+            (this.config.auth.clientCapabilities &&
+                this.config.auth.clientCapabilities.length > 0)
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.auth.clientCapabilities
             );
         }
 
@@ -262,7 +317,7 @@ export class DeviceCodeClient extends BaseClient {
         request: CommonDeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse
     ): Promise<ServerAuthorizationTokenResponse> {
-        const queryParametersString = this.createTokenQueryParameters(request);
+        const queryParametersString = TokenProtocol.createTokenQueryParameters(request, this.config.auth.clientId, "", new StubPerformanceClient());
         const endpoint = UrlString.appendQueryString(
             this.authority.tokenEndpoint,
             queryParametersString
@@ -272,7 +327,7 @@ export class DeviceCodeClient extends BaseClient {
             deviceCodeResponse
         );
         const headers: Record<string, string> =
-            this.createTokenRequestHeaders();
+            TokenProtocol.createTokenRequestHeaders(this.logger, false);
 
         const userSpecifiedTimeout = request.timeout
             ? TimeUtils.nowSeconds() + request.timeout
@@ -293,7 +348,7 @@ export class DeviceCodeClient extends BaseClient {
             )
         ) {
             const thumbprint: RequestThumbprint = {
-                clientId: this.config.authOptions.clientId,
+                clientId: this.config.auth.clientId,
                 authority: request.authority,
                 scopes: request.scopes,
                 claims: request.claims,
@@ -303,12 +358,17 @@ export class DeviceCodeClient extends BaseClient {
                 shrClaims: request.shrClaims,
                 sshKid: request.sshKid,
             };
-            const response = await this.executePostToTokenEndpoint(
+            const response = await TokenProtocol.executePostToTokenEndpoint(
                 endpoint,
                 requestBody,
                 headers,
                 thumbprint,
-                request.correlationId
+                request.correlationId,
+                this.cacheManager,
+                this.networkClient,
+                this.logger,
+                new StubPerformanceClient(),
+                this.serverTelemetryManager
             );
 
             if (response.body && response.body.error) {
@@ -366,7 +426,7 @@ export class DeviceCodeClient extends BaseClient {
         RequestParameterBuilder.addScopes(parameters, request.scopes);
         RequestParameterBuilder.addClientId(
             parameters,
-            this.config.authOptions.clientId
+            this.config.auth.clientId
         );
         RequestParameterBuilder.addGrantType(
             parameters,
@@ -378,12 +438,17 @@ export class DeviceCodeClient extends BaseClient {
         );
         const correlationId =
             request.correlationId ||
-            this.config.cryptoInterface.createNewGuid();
+            this.cryptoUtils.createNewGuid();
         RequestParameterBuilder.addCorrelationId(parameters, correlationId);
         RequestParameterBuilder.addClientInfo(parameters);
         RequestParameterBuilder.addLibraryInfo(
             parameters,
-            this.config.libraryInfo
+            {
+                sku: NodeConstants.MSAL_SKU,
+                version: version,
+                cpu: process.arch || "",
+                os: process.platform || "",
+            }
         );
         RequestParameterBuilder.addApplicationTelemetry(
             parameters,
@@ -399,13 +464,13 @@ export class DeviceCodeClient extends BaseClient {
 
         if (
             !StringUtils.isEmptyObj(request.claims) ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
+            (this.config.auth.clientCapabilities &&
+                this.config.auth.clientCapabilities.length > 0)
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
                 request.claims,
-                this.config.authOptions.clientCapabilities
+                this.config.auth.clientCapabilities
             );
         }
         return UrlUtils.mapToQueryString(parameters);

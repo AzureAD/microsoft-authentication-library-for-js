@@ -227,22 +227,27 @@ export class ConfidentialClientApplication
                 azureRegionConfiguration,
                 request.azureCloudOptions
             );
-            const clientCredentialConfig =
-                await this.buildOauthClientConfiguration(
-                    discoveredAuthority,
-                    validRequest.correlationId,
-                    "",
-                    serverTelemetryManager
-                );
+            serverTelemetryManager?.updateRegionDiscoveryMetadata(
+                discoveredAuthority.regionDiscoveryMetadata
+            );
+            const clientAssertion = await this.getClientAssertion(
+                discoveredAuthority
+            );
             const clientCredentialClient = new ClientCredentialClient(
-                clientCredentialConfig,
+                this.config,
+                clientAssertion,
+                this.logger,
+                this.cryptoProvider,
+                this.storage,
+                discoveredAuthority,
+                serverTelemetryManager,
                 this.appTokenProvider
             );
             this.logger.verbose(
                 "Client credential client created",
                 validRequest.correlationId
             );
-            return await clientCredentialClient.acquireToken(validRequest);
+            return await clientCredentialClient.acquireToken(validRequest, this.tokenCache);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -281,18 +286,15 @@ export class ConfidentialClientApplication
                 undefined,
                 request.azureCloudOptions
             );
-            const onBehalfOfConfig = await this.buildOauthClientConfiguration(
-                discoveredAuthority,
-                validRequest.correlationId,
-                "",
-                undefined
+            const clientAssertion = await this.getClientAssertion(
+                discoveredAuthority
             );
-            const oboClient = new OnBehalfOfClient(onBehalfOfConfig);
+            const oboClient = new OnBehalfOfClient(this.config, clientAssertion, this.logger, this.cryptoProvider, this.storage, discoveredAuthority);
             this.logger.verbose(
                 "On behalf of client created",
                 validRequest.correlationId
             );
-            return await oboClient.acquireToken(validRequest);
+            return await oboClient.acquireToken(validRequest, this.tokenCache);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
