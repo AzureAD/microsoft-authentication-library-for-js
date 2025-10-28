@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Bump msal-node-runtime to v0.20.0",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "akaliugonna@microsoft.com",
+  "dependentChangeType": "patch"
+}
