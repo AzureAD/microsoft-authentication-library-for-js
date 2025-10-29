@@ -287,7 +287,7 @@ export abstract class BaseClient {
         }
 
         if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 request.extraQueryParameters
             );

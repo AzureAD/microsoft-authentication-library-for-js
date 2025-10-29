@@ -477,7 +477,7 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.extraParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            RequestParameterBuilder.addExtraParameters(parameters, {
                 ...request.extraParameters,
             });
         }

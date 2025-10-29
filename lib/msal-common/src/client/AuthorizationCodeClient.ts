@@ -414,7 +414,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         if (request.extraParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 request.extraParameters
             );
@@ -426,7 +426,7 @@ export class AuthorizationCodeClient extends BaseClient {
             (!request.extraParameters ||
                 !request.extraParameters[AADServerParamKeys.RETURN_SPA_CODE])
         ) {
-            RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            RequestParameterBuilder.addExtraParameters(parameters, {
                 [AADServerParamKeys.RETURN_SPA_CODE]: "1",
             });
         }
@@ -481,7 +481,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 request.extraQueryParameters
             );

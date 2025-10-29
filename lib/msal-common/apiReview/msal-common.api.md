@@ -322,11 +322,10 @@ function addDomainHint(parameters: Map<string, string>, domainHint: string): voi
 // @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "addExtraQueryParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "addExtraParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function addExtraQueryParameters(parameters: Map<string, string>, eQParams: StringDict): void;
+function addExtraParameters(parameters: Map<string, string>, extraParams: StringDict): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "addGrantType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -391,13 +390,6 @@ function addPassword(parameters: Map<string, string>, password: string): void;
 //
 // @public
 function addPopToken(parameters: Map<string, string>, cnfString: string): void;
-
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "addPostBodyParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function addPostBodyParameters(parameters: Map<string, string>, bodyParameters: StringDict): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "addPostLogoutRedirectUri" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -967,7 +959,7 @@ export type BaseAuthRequest = {
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     extraQueryParameters?: StringDict;
-    extraParams?: StringDict;
+    extraParameters?: StringDict;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "BaseClient" should be prefixed with an underscore because the declaration is marked as @internal
@@ -3788,7 +3780,7 @@ declare namespace RequestParameterBuilder {
         addGrantType,
         addClientInfo,
         addInstanceAware,
-        addExtraQueryParameters,
+        addExtraParameters,
         addClientCapabilitiesToClaims,
         addUsername,
         addPassword,
@@ -3798,8 +3790,7 @@ declare namespace RequestParameterBuilder {
         addThrottling,
         addLogoutHint,
         addBrokerParameters,
-        addEARParameters,
-        addPostBodyParameters
+        addEARParameters
     }
 }
 

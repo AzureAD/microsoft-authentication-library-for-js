@@ -1338,7 +1338,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 params,
                 request.extraQueryParameters!
             );
@@ -1370,7 +1370,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 params,
                 request.extraQueryParameters!
             );
@@ -1430,7 +1430,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 params,
                 request.extraQueryParameters!
             );

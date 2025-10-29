@@ -455,14 +455,14 @@ export function addInstanceAware(parameters: Map<string, string>): void {
 }
 
 /**
- * add extraQueryParams
- * @param eQParams
+ * Add extraParameters
+ * @param extraParams - String dictionary containing extra parameters to be added.
  */
-export function addExtraQueryParameters(
+export function addExtraParameters(
     parameters: Map<string, string>,
-    eQParams: StringDict
+    extraParams: StringDict
 ): void {
-    Object.entries(eQParams).forEach(([key, value]) => {
+    Object.entries(extraParams).forEach(([key, value]) => {
         if (!parameters.has(key) && value) {
             parameters.set(key, value);
         }
@@ -632,20 +632,4 @@ export function addEARParameters(
     // ear_jwe_crypto will always have value: {"alg":"dir","enc":"A256GCM"} so we can hardcode this
     const jweCryptoB64Encoded = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0";
     parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
-}
-
-/**
- * Adds authorize body parameters to the request parameters
- * @param parameters - The map to which body parameters will be added.
- * @param bodyParameters - The body parameters to add.
- */
-export function addPostBodyParameters(
-    parameters: Map<string, string>,
-    bodyParameters: StringDict
-): void {
-    Object.entries(bodyParameters).forEach(([key, value]) => {
-        if (value) {
-            parameters.set(key, value);
-        }
-    });
 }

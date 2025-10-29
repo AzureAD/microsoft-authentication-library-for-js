@@ -160,7 +160,8 @@ export async function getAuthCodeRequestUrl(
         Constants.S256_CODE_CHALLENGE_METHOD
     );
 
-    RequestParameterBuilder.addExtraQueryParameters(parameters, {
+    // Merge extraQueryParameters and extraParameters to be appended to request URL
+    RequestParameterBuilder.addExtraParameters(parameters, {
         ...request.extraQueryParameters,
         ...request.extraParameters,
     });
@@ -197,12 +198,12 @@ export async function getEARForm(
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
-    RequestParameterBuilder.addPostBodyParameters(parameters, {
+    RequestParameterBuilder.addExtraParameters(parameters, {
         ...request.extraParameters,
     });
 
     const queryParams = new Map<string, string>();
-    RequestParameterBuilder.addExtraQueryParameters(
+    RequestParameterBuilder.addExtraParameters(
         queryParams,
         request.extraQueryParameters || {}
     );
@@ -241,12 +242,14 @@ export async function getCodeForm(
         request.codeChallengeMethod || Constants.S256_CODE_CHALLENGE_METHOD
     );
 
-    RequestParameterBuilder.addPostBodyParameters(parameters, {
+    // Add extraParameters to the request body
+    RequestParameterBuilder.addExtraParameters(parameters, {
         ...request.extraParameters,
     });
 
+    // Add extraQueryParameters to be appended to request URL
     const queryParams = new Map<string, string>();
-    RequestParameterBuilder.addExtraQueryParameters(
+    RequestParameterBuilder.addExtraParameters(
         queryParams,
         request.extraQueryParameters || {}
     );
