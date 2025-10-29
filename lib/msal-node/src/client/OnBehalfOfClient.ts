@@ -12,6 +12,7 @@ import {
     Authority,
     AuthToken,
     ClientAuthErrorCodes,
+    ClientConfiguration,
     createClientAuthError,
     CredentialFilter,
     Constants,
@@ -26,69 +27,21 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
-    StubPerformanceClient,
-    TokenProtocol,
-    Logger,
-    ICrypto,
-    CacheManager,
-    INetworkModule,
 } from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
-import { NodeConfiguration } from "../config/Configuration.js";
-import { NodeStorage } from "../cache/NodeStorage.js";
-import { TokenCache } from "../cache/TokenCache.js";
-import { Constants as NodeConstants } from "../utils/Constants.js";
-import { version } from "../packageMetadata.js";
+import { BaseClient } from "./BaseClient.js";
 
 /**
  * On-Behalf-Of client
  * @public
  */
-export class OnBehalfOfClient {
+export class OnBehalfOfClient extends BaseClient {
     private scopeSet: ScopeSet;
     private userAssertionHash: string;
 
-    // Logger object
-    public logger: Logger;
-
-    // Application config
-    protected config: NodeConfiguration;
-
-    protected clientAssertion: ClientAssertion;
-
-    // Crypto Interface
-    protected cryptoUtils: ICrypto;
-
-    // Storage Interface
-    protected cacheManager: CacheManager;
-
-    // Network Interface
-    protected networkClient: INetworkModule;
-
-    // Default authority object
-    public authority: Authority;
-
-    constructor(configuration: NodeConfiguration, clientAssertion: ClientAssertion, logger: Logger, crypto: ICrypto, cacheManager: NodeStorage, discoveredAuthority: Authority) {
-        // Set the configuration
-        this.config = configuration;
-
-        // Initialize the logger
-        this.logger = logger;
-
-        this.clientAssertion = clientAssertion;
-
-        // Initialize crypto
-        this.cryptoUtils = crypto;
-
-        // Initialize storage interface
-        this.cacheManager = cacheManager;
-
-        // Set the network interface
-        this.networkClient = this.config.system.networkClient;
-
-        // set Authority
-        this.authority = discoveredAuthority;
+    constructor(configuration: ClientConfiguration) {
+        super(configuration);
     }
 
     /**
@@ -96,8 +49,7 @@ export class OnBehalfOfClient {
      * @param request - developer provided CommonOnBehalfOfRequest
      */
     public async acquireToken(
-        request: CommonOnBehalfOfRequest,
-        serializableCache: TokenCache
+        request: CommonOnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
@@ -110,8 +62,7 @@ export class OnBehalfOfClient {
             return this.executeTokenRequest(
                 request,
                 this.authority,
-                this.userAssertionHash,
-                serializableCache
+                this.userAssertionHash
             );
         }
 
@@ -122,8 +73,7 @@ export class OnBehalfOfClient {
             return await this.executeTokenRequest(
                 request,
                 this.authority,
-                this.userAssertionHash,
-                serializableCache
+                this.userAssertionHash
             );
         }
     }
@@ -141,10 +91,14 @@ export class OnBehalfOfClient {
     ): Promise<AuthenticationResult | null> {
         // look in the cache for the access_token which matches the incoming_assertion
         const cachedAccessToken = this.readAccessTokenFromCacheForOBO(
-            this.config.auth.clientId,
+            this.config.authOptions.clientId,
             request
         );
         if (!cachedAccessToken) {
+            // Must refresh due to non-existent access_token.
+            this.serverTelemetryManager?.setCacheOutcome(
+                Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN
+            );
             this.logger.info(
                 "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties.",
                 request.correlationId
@@ -155,11 +109,15 @@ export class OnBehalfOfClient {
         } else if (
             TimeUtils.isTokenExpired(
                 cachedAccessToken.expiresOn,
-                Constants.DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+                this.config.systemOptions.tokenRenewalOffsetSeconds
             )
         ) {
+            // Access token expired, will need to renewed
+            this.serverTelemetryManager?.setCacheOutcome(
+                Constants.CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
+            );
             this.logger.info(
-                `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${Constants.DEFAULT_TOKEN_RENEWAL_OFFSET_SEC} seconds.`,
+                `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`,
                 request.correlationId
             );
             throw createClientAuthError(
@@ -194,6 +152,11 @@ export class OnBehalfOfClient {
             );
         }
 
+        // increment telemetry cache hit counter
+        if (this.config.serverTelemetryManager) {
+            this.config.serverTelemetryManager.incrementCacheHits();
+        }
+
         return ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,
@@ -206,7 +169,7 @@ export class OnBehalfOfClient {
             },
             true,
             request,
-            new StubPerformanceClient(),
+            this.performanceClient,
             idTokenClaims
         );
     }
@@ -225,7 +188,7 @@ export class OnBehalfOfClient {
             environment:
                 this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: Constants.CredentialType.ID_TOKEN,
-            clientId: this.config.auth.clientId,
+            clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
         };
 
@@ -296,20 +259,18 @@ export class OnBehalfOfClient {
     private async executeTokenRequest(
         request: CommonOnBehalfOfRequest,
         authority: Authority,
-        userAssertionHash: string,
-        serializableCache: TokenCache
+        userAssertionHash: string
     ): Promise<AuthenticationResult | null> {
-        const performanceClient = new StubPerformanceClient();
-        const queryParametersString = TokenProtocol.createTokenQueryParameters(request, this.config.auth.clientId, "", performanceClient);
+        const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
             queryParametersString
         );
         const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> =
-            TokenProtocol.createTokenRequestHeaders(this.logger, false);
+            this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
-            clientId: this.config.auth.clientId,
+            clientId: this.config.authOptions.clientId,
             authority: request.authority,
             scopes: request.scopes,
             claims: request.claims,
@@ -321,27 +282,22 @@ export class OnBehalfOfClient {
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        const response = await TokenProtocol.executePostToTokenEndpoint(
+        const response = await this.executePostToTokenEndpoint(
             endpoint,
             requestBody,
             headers,
             thumbprint,
-            request.correlationId,
-            this.cacheManager,
-            this.networkClient,
-            this.logger,
-            performanceClient,
-            null
+            request.correlationId
         );
 
         const responseHandler = new ResponseHandler(
-            this.config.auth.clientId,
+            this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
-            performanceClient,
-            serializableCache,
-            this.config.cache.cachePlugin || null
+            this.performanceClient,
+            this.config.serializableCache,
+            this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(
@@ -371,7 +327,7 @@ export class OnBehalfOfClient {
 
         RequestParameterBuilder.addClientId(
             parameters,
-            this.config.auth.clientId
+            this.config.authOptions.clientId
         );
 
         RequestParameterBuilder.addScopes(parameters, request.scopes);
@@ -385,12 +341,7 @@ export class OnBehalfOfClient {
 
         RequestParameterBuilder.addLibraryInfo(
             parameters,
-            {
-                sku: NodeConstants.MSAL_SKU,
-                version: version,
-                cpu: process.arch || "",
-                os: process.platform || "",
-            }
+            this.config.libraryInfo
         );
         RequestParameterBuilder.addApplicationTelemetry(
             parameters,
@@ -398,9 +349,16 @@ export class OnBehalfOfClient {
         );
         RequestParameterBuilder.addThrottling(parameters);
 
+        if (this.serverTelemetryManager) {
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
+        }
+
         const correlationId =
             request.correlationId ||
-            this.cryptoUtils.createNewGuid();
+            this.config.cryptoInterface.createNewGuid();
         RequestParameterBuilder.addCorrelationId(parameters, correlationId);
 
         RequestParameterBuilder.addRequestTokenUse(
@@ -413,22 +371,22 @@ export class OnBehalfOfClient {
             request.oboAssertion
         );
 
-        if (this.config.auth.clientSecret) {
+        if (this.config.clientCredentials.clientSecret) {
             RequestParameterBuilder.addClientSecret(
                 parameters,
-                this.config.auth.clientSecret
+                this.config.clientCredentials.clientSecret
             );
         }
 
         const clientAssertion: ClientAssertion | undefined =
-            this.clientAssertion;
+            this.config.clientCredentials.clientAssertion;
 
         if (clientAssertion) {
             RequestParameterBuilder.addClientAssertion(
                 parameters,
                 await getClientAssertion(
                     clientAssertion.assertion,
-                    this.config.auth.clientId,
+                    this.config.authOptions.clientId,
                     request.resourceRequestUri
                 )
             );
@@ -440,13 +398,13 @@ export class OnBehalfOfClient {
 
         if (
             request.claims ||
-            (this.config.auth.clientCapabilities &&
-                this.config.auth.clientCapabilities.length > 0)
+            (this.config.authOptions.clientCapabilities &&
+                this.config.authOptions.clientCapabilities.length > 0)
         ) {
             RequestParameterBuilder.addClaims(
                 parameters,
                 request.claims,
-                this.config.auth.clientCapabilities
+                this.config.authOptions.clientCapabilities
             );
         }
 

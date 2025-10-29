@@ -61,7 +61,7 @@ import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
  */
 export abstract class ClientApplication {
     protected readonly cryptoProvider: CryptoProvider;
-    protected tokenCache: TokenCache;
+    private tokenCache: TokenCache;
 
     /**
      * Platform storage object
@@ -418,26 +418,21 @@ export abstract class ClientApplication {
                 undefined,
                 request.azureCloudOptions
             );
-            serverTelemetryManager?.updateRegionDiscoveryMetadata(
-                discoveredAuthority.regionDiscoveryMetadata
-            );
-            const clientAssertion = await this.getClientAssertion(
-                discoveredAuthority
-            );
+            const usernamePasswordClientConfig =
+                await this.buildOauthClientConfiguration(
+                    discoveredAuthority,
+                    validRequest.correlationId,
+                    "",
+                    serverTelemetryManager
+                );
             const usernamePasswordClient = new UsernamePasswordClient(
-                this.config,
-                clientAssertion,
-                this.logger,
-                this.cryptoProvider,
-                this.storage,
-                serverTelemetryManager,
-                discoveredAuthority
+                usernamePasswordClientConfig
             );
             this.logger.verbose(
                 "Username password client created",
                 validRequest.correlationId
             );
-            return await usernamePasswordClient.acquireToken(validRequest, this.tokenCache);
+            return await usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -552,7 +547,7 @@ export abstract class ClientApplication {
         return clientConfiguration;
     }
 
-    protected async getClientAssertion(
+    private async getClientAssertion(
         authority: Authority
     ): Promise<ClientAssertionType> {
         if (this.developerProvidedClientAssertion) {
