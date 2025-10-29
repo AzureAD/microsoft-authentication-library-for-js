@@ -58,13 +58,7 @@ export function isInIframe(): boolean {
  * Returns boolean of whether or not the current window is a popup opened by msal
  */
 export function isInPopup(): boolean {
-    return (
-        typeof window !== "undefined" &&
-        !!window.opener &&
-        window.opener !== window &&
-        typeof window.name === "string" &&
-        window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0
-    );
+    return new URLSearchParams(location.search).get('popup') === "true" || new URLSearchParams(location.hash).get('popup') === "true";
 }
 
 // #endregion

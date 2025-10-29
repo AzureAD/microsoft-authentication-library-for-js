@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirect Page</title>
+</head>
+<body>
+  <p>Processing authentication...</p>
+
+  <script src="../../lib/popup-bridge/msal-popup-bridge.js" type="text/javascript"></script>
+
+  <script type="text/javascript">
+    console.log("[REDIRECT] Page loaded");
+    console.log("[REDIRECT] window.opener:", window.opener);
+    console.log("[REDIRECT] URL:", window.location.href);
+
+    // Automatically call sendPopupPayloadToMainFrame when this page loads
+    if (typeof msalPopupBridge !== 'undefined' && msalPopupBridge.sendPopupPayloadToMainFrame) {
+      console.log("[REDIRECT] Calling sendPopupPayloadToMainFrame");
+      msalPopupBridge.sendPopupPayloadToMainFrame();
+    } else {
+      console.error("[REDIRECT] msalPopupBridge is not defined!");
+    }
+  </script>
+</body>
+</html>

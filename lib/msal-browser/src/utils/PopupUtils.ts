@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, Logger } from "@azure/msal-common/browser";
-import {
-    BrowserAuthErrorCodes,
-    createBrowserAuthError,
-} from "../error/BrowserAuthError.js";
+import { CommonAuthorizationUrlRequest, CommonEndSessionRequest, ICrypto, Logger, ProtocolUtils } from "@azure/msal-common/browser";
 
 /**
  * Monitors a popup window for a URL change to the same origin as the parent application.
@@ -16,13 +12,10 @@ import {
  * URL is detected, extracts the response string (query or hash) and resolves the promise.
  * Performs cleanup by closing the popup and removing event listeners when done.
  *
- * @param popupWindow - The popup window to monitor for navigation.
- * @param popupWindowParent - The parent window that opened the popup.
- * @param responseMode - The response mode to use when extracting the response string (query or hash).
  * @param pollIntervalMilliseconds - The interval, in milliseconds, at which to poll the popup window.
  * @param logger - Logger instance for logging monitoring events.
- * @param unloadWindow - Event handler to remove from the parent window on cleanup.
- * @param correlationId
+ * @param browserCrypto - brow
+ * @param request
  * @returns Promise<string> - Resolves with the response string (query or hash) from the popup window,
  * or rejects if the popup is closed before a response is received.
  *
@@ -31,68 +24,81 @@ import {
  * Cleanup process: On completion (success or failure), closes the popup and removes the unload event listener from the parent window.
  */
 export async function monitorPopupForHash(
-    popupWindow: Window,
-    popupWindowParent: Window,
-    responseMode: Constants.ResponseMode,
     pollIntervalMilliseconds: number,
     logger: Logger,
-    unloadWindow: (e: Event) => void,
-    correlationId: string
+    browserCrypto: ICrypto,
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest
 ): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<string>((resolve) => {
         logger.verbose(
             "PopupHandler.monitorPopupForHash - polling started",
-            correlationId
+            request.correlationId
         );
+
+        const { libraryState } = ProtocolUtils.parseRequestState(browserCrypto, request.state || "");
+        const channel = new BroadcastChannel( libraryState.id );
+        let responseString: string | undefined = undefined;
+        channel.onmessage = (event) => {
+            responseString = event.data.payload;
+            logger.warning(`Received a string from the popup = ${responseString}`, "")
+        }
 
         const intervalId = setInterval(() => {
             // Window is closed
-            if (popupWindow.closed) {
-                logger.error(
-                    "PopupHandler.monitorPopupForHash - window closed",
-                    correlationId
-                );
-                clearInterval(intervalId);
-                reject(
-                    createBrowserAuthError(BrowserAuthErrorCodes.userCancelled)
-                );
+            if (!responseString) {
                 return;
             }
 
-            let href = "";
-            try {
-                /*
-                 * Will throw if cross origin,
-                 * which should be caught and ignored
-                 * since we need the interval to keep running while on STS UI.
-                 */
-                href = popupWindow.location.href;
-            } catch (e) {}
-
-            // Don't process blank pages or cross domain
-            if (!href || href === "about:blank") {
-                return;
-            }
             clearInterval(intervalId);
-
-            let responseString = "";
-            if (popupWindow) {
-                if (responseMode === Constants.ResponseMode.QUERY) {
-                    responseString = popupWindow.location.search;
-                } else {
-                    responseString = popupWindow.location.hash;
-                }
-            }
-
-            logger.verbose(
-                "PopupHandler.monitorPopupForHash - popup window is on same origin as caller",
-                correlationId
-            );
-
             resolve(responseString);
         }, pollIntervalMilliseconds);
-    }).finally(() => {
-        cleanPopup(popupWindow, popupWindowParent, unloadWindow);
+
+        // const intervalId = setInterval(() => {
+        //     // Window is closed
+        //     if (popupWindow.closed) {
+        //         logger.error(
+        //             "PopupHandler.monitorPopupForHash - window closed",
+        //             correlationId
+        //         );
+        //         clearInterval(intervalId);
+        //         reject(
+        //             createBrowserAuthError(BrowserAuthErrorCodes.userCancelled)
+        //         );
+        //         return;
+        //     }
+        //
+        //     let href = "";
+        //     try {
+        //         /*
+        //          * Will throw if cross origin,
+        //          * which should be caught and ignored
+        //          * since we need the interval to keep running while on STS UI.
+        //          */
+        //         href = popupWindow.location.href;
+        //     } catch (e) {}
+        //
+        //     // Don't process blank pages or cross domain
+        //     if (!href || href === "about:blank") {
+        //         return;
+        //     }
+        //     clearInterval(intervalId);
+        //
+        //     let responseString = "";
+        //     if (popupWindow) {
+        //         if (responseMode === Constants.ResponseMode.QUERY) {
+        //             responseString = popupWindow.location.search;
+        //         } else {
+        //             responseString = popupWindow.location.hash;
+        //         }
+        //     }
+        //
+        //     logger.verbose(
+        //         "PopupHandler.monitorPopupForHash - popup window is on same origin as caller",
+        //         correlationId
+        //     );
+        //
+        //     resolve(responseString);
+        // }, pollIntervalMilliseconds);
     });
 }
 
