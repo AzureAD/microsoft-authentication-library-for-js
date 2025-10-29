@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Refactor BaseClient usage #8119",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
