@@ -52,9 +52,7 @@ export abstract class BaseClient {
 
     protected performanceClient: StubPerformanceClient;
 
-    protected constructor(
-        configuration: ClientConfiguration
-    ) {
+    protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
 
@@ -85,7 +83,11 @@ export abstract class BaseClient {
     protected createTokenRequestHeaders(
         ccsCred?: CcsCredential
     ): Record<string, string> {
-        return TokenProtocol.createTokenRequestHeaders(this.logger, false, ccsCred);
+        return TokenProtocol.createTokenRequestHeaders(
+            this.logger,
+            false,
+            ccsCred
+        );
     }
 
     /**
@@ -102,7 +104,18 @@ export abstract class BaseClient {
         thumbprint: RequestThumbprint,
         correlationId: string
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        return TokenProtocol.executePostToTokenEndpoint(tokenEndpoint, queryString, headers, thumbprint, correlationId, this.cacheManager, this.networkClient, this.logger, this.performanceClient, this.serverTelemetryManager);
+        return TokenProtocol.executePostToTokenEndpoint(
+            tokenEndpoint,
+            queryString,
+            headers,
+            thumbprint,
+            correlationId,
+            this.cacheManager,
+            this.networkClient,
+            this.logger,
+            this.performanceClient,
+            this.serverTelemetryManager
+        );
     }
 
     /**
@@ -118,7 +131,16 @@ export abstract class BaseClient {
         options: NetworkRequestOptions,
         correlationId: string
     ): Promise<NetworkResponse<T>> {
-        return TokenProtocol.sendPostRequest<T>(thumbprint, tokenEndpoint, options, correlationId, this.cacheManager, this.networkClient, this.logger, this.performanceClient);
+        return TokenProtocol.sendPostRequest<T>(
+            thumbprint,
+            tokenEndpoint,
+            options,
+            correlationId,
+            this.cacheManager,
+            this.networkClient,
+            this.logger,
+            this.performanceClient
+        );
     }
 
     /**
@@ -126,6 +148,11 @@ export abstract class BaseClient {
      * @param request
      */
     createTokenQueryParameters(request: BaseAuthRequest): string {
-        return TokenProtocol.createTokenQueryParameters(request, this.config.authOptions.clientId, this.config.authOptions.redirectUri, this.performanceClient);
+        return TokenProtocol.createTokenQueryParameters(
+            request,
+            this.config.authOptions.clientId,
+            this.config.authOptions.redirectUri,
+            this.performanceClient
+        );
     }
 }

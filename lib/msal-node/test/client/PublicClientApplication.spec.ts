@@ -42,21 +42,17 @@ import {
 } from "@azure/msal-common/node";
 import {
     Configuration,
-    DeviceCodeClient,
     ILoopbackClient,
     InteractiveRequest,
     PublicClientApplication,
-    CryptoProvider,
     DeviceCodeRequest,
     AuthorizationCodeRequest,
     RefreshTokenRequest,
     AuthorizationUrlRequest,
-    UsernamePasswordRequest,
     SilentFlowRequest,
 } from "../../src/index.js";
 import http from "http";
 
-import * as msalNode from "../../src/index.js";
 import { setupServerTelemetryManagerMock } from "./test-fixtures.js";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils.js";
 
@@ -81,6 +77,8 @@ import { TokenCache } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { StubPerformanceClient } from "@azure/msal-common";
+import { DeviceCodeClient } from "../../src/client/DeviceCodeClient.js";
+import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -135,7 +133,6 @@ describe("PublicClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
-        const deviceCodeClientSpy = jest.spyOn(msalNode, "DeviceCodeClient");
         const fakeAuthResult = { foo: "bar" };
         jest.spyOn(
             DeviceCodeClient.prototype,
@@ -146,7 +143,6 @@ describe("PublicClientApplication", () => {
 
         const authApp = new PublicClientApplication(appConfig);
         const result = await authApp.acquireTokenByDeviceCode(request);
-        expect(deviceCodeClientSpy).toHaveBeenCalledTimes(1);
         expect(result).toEqual(fakeAuthResult);
     });
 
@@ -466,8 +462,8 @@ describe("PublicClientApplication", () => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                HttpClient.prototype,
+                "sendPostRequestAsync"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -563,10 +559,7 @@ describe("PublicClientApplication", () => {
         it("Adds tokenQueryParameters to the /token request", (done) => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
+            jest.spyOn(HttpClient.prototype, "sendPostRequestAsync")
                 // @ts-expect-error
                 .mockImplementation((url: string) => {
                     try {
@@ -1257,23 +1250,6 @@ describe("PublicClientApplication", () => {
         expect(url).toContain(appConfig.auth.clientId);
         expect(url).toContain(encodeURIComponent(request.redirectUri));
         expect(url).toContain(encodeURIComponent(request.scopes.join(" ")));
-    });
-
-    test("acquireTokenByUsernamePassword", async () => {
-        const request: UsernamePasswordRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            username: TEST_CONSTANTS.USERNAME,
-            password: TEST_CONSTANTS.PASSWORD,
-        };
-
-        const usernamePasswordClientSpy = jest.spyOn(
-            msalNode,
-            "UsernamePasswordClient"
-        );
-
-        const authApp = new PublicClientApplication(appConfig);
-        await authApp.acquireTokenByUsernamePassword(request);
-        expect(usernamePasswordClientSpy).toHaveBeenCalledTimes(1);
     });
 
     test("acquireToken default authority", async () => {

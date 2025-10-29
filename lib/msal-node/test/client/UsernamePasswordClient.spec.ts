@@ -5,15 +5,9 @@
 
 import {
     AuthenticationResult,
-    Authority,
-    ClientAssertion,
+    ClientConfiguration,
     Constants,
-    INetworkModule,
-    Logger,
-    ProtocolMode,
-    ServerTelemetryManager,
-    StubPerformanceClient,
-} from "@azure/msal-common/node";
+} from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -22,86 +16,35 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient.js";
 import {
-    MockStorageClass,
+    ClientTestUtils,
     checkMockedNetworkRequest,
     getClientAssertionCallback,
-    mockCrypto,
 } from "./ClientTestUtils.js";
-import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest.js";
-import { buildAppConfiguration, NodeConfiguration } from "../../src/config/Configuration.js";
-import { ApiId } from "../../src/utils/Constants.js";
-import { TokenCache } from "../../src/cache/TokenCache.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
-import { HttpClient } from "../../src/network/HttpClient.js";
+import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest.js";
 
 describe("Username Password unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
-    let config: NodeConfiguration;
-    let clientAssertion: ClientAssertion;
-    let mockStorage: MockStorageClass;
-    let mockServerTelemetryManager: ServerTelemetryManager;
-    let mockAuthority: Authority;
-    let networkClient: INetworkModule;
-    const logger = new Logger({});
-
+    let config: ClientConfiguration;
     beforeEach(async () => {
         createTokenRequestBodySpy = jest.spyOn(
             UsernamePasswordClient.prototype,
             <any>"createTokenRequestBody"
         );
 
-        networkClient = mockNetworkClient(
-            DEFAULT_OPENID_CONFIG_RESPONSE.body,
-            AUTHENTICATION_RESULT_DEFAULT_SCOPES
+        config = await ClientTestUtils.createTestClientConfiguration(
+            undefined,
+            mockNetworkClient(
+                DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                AUTHENTICATION_RESULT_DEFAULT_SCOPES
+            )
         );
-
-        config = buildAppConfiguration({
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
-            },
-            system: {
-                networkClient: networkClient
-            },
-            telemetry: {
-                application: {
-                    appName: TEST_CONFIG.applicationName,
-                    appVersion: TEST_CONFIG.applicationVersion,
-                }
-            }
-        });
-
-        clientAssertion = {
-            assertion: TEST_CONFIG.TEST_CONFIG_ASSERTION,
-            assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
+        if (config.systemOptions) {
+            config.systemOptions.preventCorsPreflight = true;
         }
-
-        mockStorage = new MockStorageClass(
-            logger,
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            mockCrypto
-        );
-
-        mockServerTelemetryManager = new ServerTelemetryManager({clientId: TEST_CONFIG.MSAL_CLIENT_ID, apiId: ApiId.acquireTokenByUsernamePassword, correlationId: TEST_CONFIG.CORRELATION_ID}, mockStorage);
-
-        mockAuthority = new Authority(
-            TEST_CONFIG.validAuthority,
-            networkClient,
-            mockStorage,
-            {
-                protocolMode: ProtocolMode.AAD,
-                knownAuthorities: [TEST_CONFIG.validAuthority],
-                cloudDiscoveryMetadata: "",
-                authorityMetadata: "",
-            },
-            logger,
-            TEST_CONFIG.CORRELATION_ID,
-            new StubPerformanceClient()
-        );
-        
-        await mockAuthority.resolveEndpointsAsync();
     });
 
     afterEach(() => {
@@ -110,14 +53,15 @@ describe("Username Password unit tests", () => {
 
     describe("Constructor", () => {
         it("creates a UsernamePasswordClient", async () => {
-            const client = new UsernamePasswordClient(config, clientAssertion, logger, mockCrypto, mockStorage, mockServerTelemetryManager, mockAuthority);
+            const client = new UsernamePasswordClient(config);
             expect(client).not.toBeNull();
             expect(client instanceof UsernamePasswordClient).toBe(true);
+            expect(client instanceof BaseClient).toBe(true);
         });
     });
 
     it("acquires a token", async () => {
-        const client = new UsernamePasswordClient(config, clientAssertion, logger, mockCrypto, mockStorage, mockServerTelemetryManager, mockAuthority);
+        const client = new UsernamePasswordClient(config);
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
@@ -129,8 +73,7 @@ describe("Username Password unit tests", () => {
         };
 
         const authResult = (await client.acquireToken(
-            usernamePasswordRequest,
-            new TokenCache(mockStorage, logger)
+            usernamePasswordRequest
         )) as AuthenticationResult;
         const expectedScopes = [
             Constants.OPENID_SCOPE,
@@ -175,16 +118,16 @@ describe("Username Password unit tests", () => {
 
     it("Adds tokenQueryParameters to the /token request", async () => {
         const badExecutePostToTokenEndpointMock = jest.spyOn(
-            HttpClient.prototype,
-            "sendPostRequestAsync"
+            UsernamePasswordClient.prototype,
+            <any>"executePostToTokenEndpoint"
         );
         // no implementation has been mocked, the acquireToken call will fail
-        const fakeConfig = buildAppConfiguration({
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
-            }
-        });
-        const client: UsernamePasswordClient = new UsernamePasswordClient(fakeConfig, clientAssertion, logger, mockCrypto, mockStorage, mockServerTelemetryManager, mockAuthority);
+
+        const fakeConfig: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration();
+        const client: UsernamePasswordClient = new UsernamePasswordClient(
+            fakeConfig
+        );
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
@@ -201,11 +144,11 @@ describe("Username Password unit tests", () => {
         };
 
         await expect(
-            client.acquireToken(usernamePasswordRequest, new TokenCache(mockStorage, logger))
+            client.acquireToken(usernamePasswordRequest)
         ).rejects.toThrow();
 
         if (!badExecutePostToTokenEndpointMock.mock.lastCall) {
-            throw "executePostToTokenEndpointMock was not called";
+            fail("executePostToTokenEndpointMock was not called");
         }
         const url: string = badExecutePostToTokenEndpointMock.mock
             .lastCall[0] as string;
@@ -216,7 +159,7 @@ describe("Username Password unit tests", () => {
     });
 
     it("properly encodes special characters in emails (usernames)", async () => {
-        const client = new UsernamePasswordClient(config, clientAssertion, logger, mockCrypto, mockStorage, mockServerTelemetryManager, mockAuthority);
+        const client = new UsernamePasswordClient(config);
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
@@ -228,8 +171,7 @@ describe("Username Password unit tests", () => {
         };
 
         const authResult = (await client.acquireToken(
-            usernamePasswordRequest,
-            new TokenCache(mockStorage, logger)
+            usernamePasswordRequest
         )) as AuthenticationResult;
         const expectedScopes = [
             Constants.OPENID_SCOPE,
@@ -273,7 +215,7 @@ describe("Username Password unit tests", () => {
     });
 
     it("properly encodes special characters in passwords", async () => {
-        const client = new UsernamePasswordClient(config, clientAssertion, logger, mockCrypto, mockStorage, mockServerTelemetryManager, mockAuthority);
+        const client = new UsernamePasswordClient(config);
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
@@ -285,8 +227,7 @@ describe("Username Password unit tests", () => {
         };
 
         const authResult = (await client.acquireToken(
-            usernamePasswordRequest,
-            new TokenCache(mockStorage, logger)
+            usernamePasswordRequest
         )) as AuthenticationResult;
         const expectedScopes = [
             Constants.OPENID_SCOPE,
@@ -330,7 +271,7 @@ describe("Username Password unit tests", () => {
     });
 
     it("Does not include claims if empty object is passed", async () => {
-        const client = new UsernamePasswordClient(config, clientAssertion, logger, mockCrypto, mockStorage, mockServerTelemetryManager, mockAuthority);
+        const client = new UsernamePasswordClient(config);
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
@@ -342,8 +283,7 @@ describe("Username Password unit tests", () => {
         };
 
         const authResult = (await client.acquireToken(
-            usernamePasswordRequest,
-            new TokenCache(mockStorage, logger)
+            usernamePasswordRequest
         )) as AuthenticationResult;
         const expectedScopes = [
             Constants.OPENID_SCOPE,
@@ -391,12 +331,17 @@ describe("Username Password unit tests", () => {
         getClientAssertionCallback(TEST_CONFIG.TEST_CONFIG_ASSERTION),
     ])(
         "Uses clientAssertion from ClientConfiguration when no client assertion is added to request",
-        async (testClientAssertion) => {
-            clientAssertion = {
-                assertion: testClientAssertion,
-                assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
-            }
-            const client: UsernamePasswordClient = new UsernamePasswordClient(config, clientAssertion, logger, mockCrypto, mockStorage, mockServerTelemetryManager, mockAuthority);
+        async (clientAssertion) => {
+            config.clientCredentials = {
+                ...config.clientCredentials,
+                clientAssertion: {
+                    assertion: clientAssertion,
+                    assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
+                },
+            };
+            const client: UsernamePasswordClient = new UsernamePasswordClient(
+                config
+            );
 
             const usernamePasswordRequest: CommonUsernamePasswordRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -407,8 +352,7 @@ describe("Username Password unit tests", () => {
             };
 
             const authResult = (await client.acquireToken(
-                usernamePasswordRequest,
-                new TokenCache(mockStorage, logger)
+                usernamePasswordRequest
             )) as AuthenticationResult;
             const expectedScopes = [
                 Constants.OPENID_SCOPE,

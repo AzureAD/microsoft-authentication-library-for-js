@@ -8,7 +8,6 @@ import {
     AppTokenProviderResult,
     AuthenticationResult,
     Authority,
-    BaseClient,
     CacheManager,
     ClientConfiguration,
     IAppTokenProvider,
@@ -19,10 +18,6 @@ import {
     CacheHelpers,
     Constants,
 } from "@azure/msal-common";
-import {
-    ClientCredentialClient,
-    UsernamePasswordClient,
-} from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     CAE_CONSTANTS,
@@ -44,6 +39,9 @@ import {
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest.js";
+import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
+import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient.js";
 
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;

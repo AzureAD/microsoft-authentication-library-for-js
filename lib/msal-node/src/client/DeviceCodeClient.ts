@@ -19,7 +19,7 @@ import {
     UrlUtils,
     createAuthError,
     createClientAuthError,
-    Constants
+    Constants,
 } from "@azure/msal-common/node";
 import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
