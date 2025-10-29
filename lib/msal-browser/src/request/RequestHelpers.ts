@@ -117,13 +117,13 @@ export function validateRequestMethod(
     const requestMethod = interactionRequest.httpMethod;
 
     if (protocolMode === ProtocolMode.EAR) {
-        // Don't override httpMethod if it is already set, default to POST if not set
-        httpMethod = requestMethod || Constants.HttpMethod.POST;
-        // Validate that method is not GET if protocol mode is EAR
-        if (httpMethod !== Constants.HttpMethod.POST) {
+        // Validate that method can only be POST when protocol mode is EAR
+        if (requestMethod && requestMethod !== Constants.HttpMethod.POST) {
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.invalidRequestMethodForEAR
             );
+        } else {
+          httpMethod = Constants.HttpMethod.POST;
         }
     } else {
         // For non-EAR protocol modes, default to GET if httpMethod is not set
