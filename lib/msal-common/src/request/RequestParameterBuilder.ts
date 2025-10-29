@@ -636,8 +636,8 @@ export function addEARParameters(
 
 /**
  * Adds authorize body parameters to the request parameters
- * @param parameters
- * @param bodyParameters
+ * @param parameters - The map to which body parameters will be added.
+ * @param bodyParameters - The body parameters to add.
  */
 export function addPostBodyParameters(
     parameters: Map<string, string>,

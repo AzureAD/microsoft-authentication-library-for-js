@@ -166,7 +166,7 @@ export class PublicClientApplication
                 correlationId: correlationId,
                 extraParameters: {
                     ...remainingProperties.extraQueryParameters,
-                    ...remainingProperties.extraParams,
+                    ...remainingProperties.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: remainingProperties.account?.nativeAccountId,
@@ -262,7 +262,7 @@ export class PublicClientApplication
                 correlationId: correlationId,
                 extraParameters: {
                     ...request.extraQueryParameters,
-                    ...request.extraParams,
+                    ...request.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: request.account.nativeAccountId,

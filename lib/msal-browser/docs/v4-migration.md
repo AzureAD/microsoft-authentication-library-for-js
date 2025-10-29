@@ -179,9 +179,9 @@ The following request parameters have been removed:
 -   `tokenBodyParameters`
 -   `tokenQueryParameters`
 
-In order to simplify extra request parameters, generic extra parameters should go in the new `extraParams` request option. When `extraParams` are set in a request, they will be sent on all token service calls in either the URL query string or the request body, depending on the `httpMethod` configured (default is `GET`) in the request. **To submit extra parameters that MUST go in the URL query string, `extraQueryParameters` is still available.**
+In order to simplify extra request parameters, generic extra parameters should go in the new `extraParameters` request option. When `extraParameters` are set in a request, they will be sent on all token service calls in either the URL query string or the request body, depending on the `httpMethod` configured (default is `GET`) in the request. **To submit extra parameters that MUST go in the URL query string, `extraQueryParameters` is still available.**
 
-> Note: In cases where MSAL determines `extraParams` must be encoded into the URL string, `extraParams` will be merged with `extraQueryParams` in a way that will cause same-named parameters to be overwritten. In these cases, the value for the parameter in `extraParams` will take precedence over the value in the `extraQueryParams`.
+> Note: In cases where MSAL determines `extraParameters` must be encoded into the URL string, `extraParameters` will be merged with `extraQueryParams` in a way that will cause same-named parameters to be overwritten. In these cases, the value for the parameter in `extraParameters` will take precedence over the value in the `extraQueryParams`.
 
 #### v4 (previous) request example:
 
@@ -228,7 +228,7 @@ const authRequest = {
     extraQueryParamters: {
         extra_parameter_one: "sample_value", // Will be sent in query string to /authorize and /token
     },
-    extraParams: {
+    extraParameters: {
         extra_parameter_assertion: "assertion_value", // Will be sent in query stirng to /authorize and in body to /token
     },
 };
@@ -240,7 +240,7 @@ const authRequest = {
     extraQueryParamters: {
         extra_parameter_one: "sample_value", // Will be sent in query string to /authorize and /token
     },
-    extraParams: {
+    extraParameters: {
         extra_parameter_assertion: "assertion_value", // Will be sent in post body to /authorize and /token
     },
 };

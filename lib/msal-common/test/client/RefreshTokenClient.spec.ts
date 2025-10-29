@@ -218,7 +218,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Adds extraParams to the /token request", (done) => {
+        it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"executePostToTokenEndpoint"
@@ -241,7 +241,7 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
-                extraParams: {
+                extraParameters: {
                     testParam: "testValue",
                 },
             };
@@ -251,7 +251,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Adds both extraQueryParameters and extraParams to the /token request", (done) => {
+        it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"executePostToTokenEndpoint"
@@ -264,7 +264,7 @@ describe("RefreshTokenClient unit tests", () => {
                             "/token?queryParam1=queryValue1&queryParam2=queryValue2"
                         )
                     ).toBe(true);
-                    // Verify extraParams are in the body
+                    // Verify extraParameters are in the body
                     expect(body).toContain("bodyParam1=bodyValue1");
                     expect(body).toContain("bodyParam2=bodyValue2");
                     done();
@@ -290,7 +290,7 @@ describe("RefreshTokenClient unit tests", () => {
                     queryParam1: "queryValue1",
                     queryParam2: "queryValue2",
                 },
-                extraParams: {
+                extraParameters: {
                     bodyParam1: "bodyValue1",
                     bodyParam2: "bodyValue2",
                 },
@@ -301,7 +301,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Does not overwrite extraQueryParameters with extraParams when they have the same parameter name", (done) => {
+        it("Does not overwrite extraQueryParameters with extraParameters when they have the same parameter name", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"executePostToTokenEndpoint"
@@ -311,7 +311,7 @@ describe("RefreshTokenClient unit tests", () => {
                     // Verify extraQueryParameters value is in the URL (not overwritten)
                     expect(url.includes("sharedParam=queryValue")).toBe(true);
                     expect(url.includes("sharedParam=bodyValue")).toBe(false);
-                    // Verify extraParams value is in the body
+                    // Verify extraParameters value is in the body
                     expect(body).toContain("sharedParam=bodyValue");
                     // Verify the body doesn't contain the query value
                     expect(body.includes("sharedParam=queryValue")).toBe(false);
@@ -338,7 +338,7 @@ describe("RefreshTokenClient unit tests", () => {
                     sharedParam: "queryValue",
                     uniqueQueryParam: "uniqueQueryValue",
                 },
-                extraParams: {
+                extraParameters: {
                     sharedParam: "bodyValue",
                     uniqueBodyParam: "uniqueBodyValue",
                 },
@@ -679,7 +679,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Adds extraParams to the /token request", (done) => {
+        it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"executePostToTokenEndpoint"
@@ -702,7 +702,7 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
-                extraParams: {
+                extraParameters: {
                     testParam: "testValue",
                 },
             };
@@ -712,7 +712,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Adds both extraQueryParameters and extraParams to the /token request", (done) => {
+        it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"executePostToTokenEndpoint"
@@ -725,7 +725,7 @@ describe("RefreshTokenClient unit tests", () => {
                             "/token?queryParam1=queryValue1&queryParam2=queryValue2"
                         )
                     ).toBe(true);
-                    // Verify extraParams are in the body
+                    // Verify extraParameters are in the body
                     expect(body).toContain("bodyParam1=bodyValue1");
                     expect(body).toContain("bodyParam2=bodyValue2");
                     done();
@@ -751,7 +751,7 @@ describe("RefreshTokenClient unit tests", () => {
                     queryParam1: "queryValue1",
                     queryParam2: "queryValue2",
                 },
-                extraParams: {
+                extraParameters: {
                     bodyParam1: "bodyValue1",
                     bodyParam2: "bodyValue2",
                 },
@@ -762,7 +762,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Does not overwrite extraQueryParameters with extraParams when they have the same parameter name", (done) => {
+        it("Does not overwrite extraQueryParameters with extraParameters when they have the same parameter name", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"executePostToTokenEndpoint"
@@ -772,7 +772,7 @@ describe("RefreshTokenClient unit tests", () => {
                     // Verify extraQueryParameters value is in the URL (not overwritten)
                     expect(url.includes("sharedParam=queryValue")).toBe(true);
                     expect(url.includes("sharedParam=bodyValue")).toBe(false);
-                    // Verify extraParams value is in the body
+                    // Verify extraParameters value is in the body
                     expect(body).toContain("sharedParam=bodyValue");
                     // Verify the body doesn't contain the query value
                     expect(body.includes("sharedParam=queryValue")).toBe(false);
@@ -799,7 +799,7 @@ describe("RefreshTokenClient unit tests", () => {
                     sharedParam: "queryValue",
                     uniqueQueryParam: "uniqueQueryValue",
                 },
-                extraParams: {
+                extraParameters: {
                     sharedParam: "bodyValue",
                     uniqueBodyParam: "uniqueBodyValue",
                 },
@@ -1813,7 +1813,7 @@ describe("RefreshTokenClient unit tests", () => {
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
                     embeddedClientId: "child_client_id_1",
-                    extraParams: {
+                    extraParameters: {
                         client_id: "child_client_id_2",
                         brk_client_id: "broker_client_id_2",
                         brk_redirect_uri: "broker_redirect_uri_2",

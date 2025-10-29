@@ -162,7 +162,7 @@ export async function getAuthCodeRequestUrl(
 
     RequestParameterBuilder.addExtraQueryParameters(parameters, {
         ...request.extraQueryParameters,
-        ...request.extraParams,
+        ...request.extraParameters,
     });
 
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
@@ -198,7 +198,7 @@ export async function getEARForm(
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
     RequestParameterBuilder.addPostBodyParameters(parameters, {
-        ...request.extraParams,
+        ...request.extraParameters,
     });
 
     const queryParams = new Map<string, string>();
@@ -242,7 +242,7 @@ export async function getCodeForm(
     );
 
     RequestParameterBuilder.addPostBodyParameters(parameters, {
-        ...request.extraParams,
+        ...request.extraParameters,
     });
 
     const queryParams = new Map<string, string>();

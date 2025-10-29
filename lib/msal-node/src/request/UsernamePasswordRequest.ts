@@ -16,7 +16,7 @@ import { CommonUsernamePasswordRequest } from "./CommonUsernamePasswordRequest.j
  * - username               - username of the client
  * - password               - credentials
  * - extraQueryParameters   - String to string map of custom query parameters added to outgoing token service requests
- * - extraParams            - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParameters        - String to string map of custom query parameters added to outgoing token service requests
  * @public
  */
 export type UsernamePasswordRequest = Partial<

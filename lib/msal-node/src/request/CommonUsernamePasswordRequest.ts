@@ -16,7 +16,7 @@ import { BaseAuthRequest } from "@azure/msal-common/node";
  * - username               - username of the client
  * - password               - credentials
  * - extraQueryParameters   - String to string map of custom query parameters added to outgoing token service requests
- * - extraParams            - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParameters        - String to string map of custom query parameters added to outgoing token service requests
  */
 export type CommonUsernamePasswordRequest = BaseAuthRequest & {
     username: string;

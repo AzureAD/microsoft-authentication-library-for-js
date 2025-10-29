@@ -20,7 +20,7 @@ import {
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  * - timeout                    - Timeout period in seconds which the user explicitly configures for the polling of the device code endpoint. At the end of this period; assuming the device code has not expired yet; the device code polling is stopped and the request cancelled. The device code expiration window will always take precedence over this set period.
  * - extraQueryParameters       - String to string map of custom query parameters added to outgoing token service requests
- * - extraParams             - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests
  */
 export type CommonDeviceCodeRequest = BaseAuthRequest & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;

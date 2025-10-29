@@ -20,7 +20,7 @@ import { CcsCredential } from "../account/CcsCredential.js";
  * - resourceRequestUri      - URI that token will be used for. Used for proof-of-possession flows.
  * - enableSpaAuthCode       - Enables the acqusition of a spa authorization code (confidential clients only)
  * - extraQueryParameters    - String to string map of custom query parameters added to outgoing token service requests
- * - extraParams             - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests
  */
 export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     code: string;

@@ -29,7 +29,7 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
  * - sid                        - Session ID, unique identifier for the session. Available as an optional claim on ID tokens.
  * - domainHint                 - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant.
  * - extraQueryParameters       - String to string map of custom query parameters added to outgoing token service requests
- * - extraParams                - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParameters            - String to string map of custom query parameters added to outgoing token service requests
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * @public
  */

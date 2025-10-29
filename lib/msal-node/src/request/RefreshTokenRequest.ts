@@ -13,7 +13,7 @@ import { CommonRefreshTokenRequest } from "@azure/msal-common/node";
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - refreshToken            - A refresh token returned from a previous request to the Identity provider.
  * - extraQueryParameters    - String to string map of custom query parameters added to outgoing token service requests
- * - extraParams             - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests
  * - forceCache              - Force MSAL to cache a refresh token flow response when there is no account in the cache. Used for migration scenarios.
  * @public
  */

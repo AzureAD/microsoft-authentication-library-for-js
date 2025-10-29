@@ -317,7 +317,7 @@ export class RefreshTokenClient extends BaseClient {
         RequestParameterBuilder.addClientId(
             parameters,
             request.embeddedClientId ||
-                request.extraParams?.[AADServerParamKeys.CLIENT_ID] ||
+                request.extraParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
 
@@ -476,9 +476,9 @@ export class RefreshTokenClient extends BaseClient {
             );
         }
 
-        if (request.extraParams) {
+        if (request.extraParameters) {
             RequestParameterBuilder.addExtraQueryParameters(parameters, {
-                ...request.extraParams,
+                ...request.extraParameters,
             });
         }
 

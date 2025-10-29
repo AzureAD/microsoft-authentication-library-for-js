@@ -42,6 +42,6 @@ export function getRequestThumbprint(
         shrClaims: request.shrClaims,
         sshKid: request.sshKid,
         embeddedClientId:
-            request.embeddedClientId || request.extraParams?.clientId,
+            request.embeddedClientId || request.extraParameters?.clientId,
     };
 }

@@ -12,7 +12,7 @@ import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common/node";
  * - authority              - Url of the authority which the application acquires tokens from.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - extraQueryParameters   - String to string map of custom query parameters added to outgoing token service requests
- * - extraParams            - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParameters        - String to string map of custom query parameters added to outgoing token service requests
  * - account                - Account entity to lookup the credentials.
  * - forceRefresh           - Forces silent requests to make network calls if true.
  * @public

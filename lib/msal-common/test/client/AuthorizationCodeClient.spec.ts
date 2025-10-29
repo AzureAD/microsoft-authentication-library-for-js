@@ -1162,7 +1162,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it("Adds extraParams to the /token request", (done) => {
+        it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
@@ -1198,7 +1198,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                extraParams: {
+                extraParameters: {
                     extra_body_parameter: "true",
                 },
             };
@@ -1208,7 +1208,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it("Adds both extraQueryParameters and extraParams to the /token request", (done) => {
+        it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
@@ -1225,7 +1225,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                             "/token?queryParam1=queryValue1&queryParam2=queryValue2"
                         )
                     ).toBeTruthy();
-                    // Verify extraParams are in the body
+                    // Verify extraParameters are in the body
                     expect(body).toContain("bodyParam1=bodyValue1");
                     expect(body).toContain("bodyParam2=bodyValue2");
                     done();
@@ -1260,7 +1260,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     queryParam1: "queryValue1",
                     queryParam2: "queryValue2",
                 },
-                extraParams: {
+                extraParameters: {
                     bodyParam1: "bodyValue1",
                     bodyParam2: "bodyValue2",
                 },
@@ -1271,7 +1271,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it("Does not overwrite extraQueryParameters with extraParams in /token request when they have the same parameter name", (done) => {
+        it("Does not overwrite extraQueryParameters with extraParameters in /token request when they have the same parameter name", (done) => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
@@ -1285,7 +1285,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     // Verify extraQueryParameters value is in the URL (not overwritten)
                     expect(url.includes("sharedParam=queryValue")).toBeTruthy();
                     expect(!url.includes("sharedParam=bodyValue")).toBeTruthy();
-                    // Verify extraParams value is in the body
+                    // Verify extraParameters value is in the body
                     expect(body).toContain("sharedParam=bodyValue");
                     // Verify the body doesn't contain the query value
                     expect(
@@ -1323,7 +1323,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     sharedParam: "queryValue",
                     uniqueQueryParam: "uniqueQueryValue",
                 },
-                extraParams: {
+                extraParameters: {
                     sharedParam: "bodyValue",
                     uniqueBodyParam: "uniqueBodyValue",
                 },
@@ -1417,7 +1417,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                extraParams: {
+                extraParameters: {
                     extra_body_parameter: "true",
                 },
             };
@@ -2776,7 +2776,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 await client.createTokenRequestBody({
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
-                    extraParams: {
+                    extraParameters: {
                         client_id: "child_client_id",
                     },
                 });
@@ -2823,7 +2823,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
                     embeddedClientId: "child_client_id_1",
-                    extraParams: {
+                    extraParameters: {
                         client_id: "child_client_id_2",
                         brk_client_id: "broker_client_id_2",
                         brk_redirect_uri: "broker_redirect_uri_2",
