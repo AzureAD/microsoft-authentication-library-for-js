@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "EAR flow falls back to auth code when /authorize returns code #8111",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
