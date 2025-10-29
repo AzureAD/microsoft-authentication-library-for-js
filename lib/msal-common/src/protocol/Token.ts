@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential.js";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
 import { Logger } from "../logger/Logger.js";
