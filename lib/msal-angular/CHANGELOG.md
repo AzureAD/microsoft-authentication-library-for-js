@@ -1,8 +1,31 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Tue, 06 May 2025 22:47:43 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 02 Oct 2025 21:58:46 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.0-alpha.0
+
+Thu, 02 Oct 2025 21:58:46 GMT
+
+### Major changes
+
+- dx: Fix InjectionToken types to allow new Angular 14+ inject(TOKEN) syntax. (bradkovach@gmail.com)
+- Drop support for Angular 17 and below, add support for Angular 20 (thomas.norling@microsoft.com)
+- Remove deprecated functions and parameters (shylasummers@microsoft.com)
+- Upgrade MSAL Angular to Angular 19 (shylasummers@microsoft.com)
+- Update handleRedirectPromise signature to consolidate hash into options type (hemoral@microsoft.com)
+- Bump @azure/msal-browser to v5.0.0-alpha.0
+- Bump eslint-config-msal to v0.0.0
+
+### Minor changes
+
+- Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
+- Update rxjs dependency #7726 (joarroyo@microsoft.com)
+
+### Patches
+
+- Remove legacy APIs (shylasummers@microsoft.com)
 
 ## 4.0.12
 

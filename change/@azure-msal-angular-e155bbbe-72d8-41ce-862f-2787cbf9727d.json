@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Merge dev changes to v5 branch #7748",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

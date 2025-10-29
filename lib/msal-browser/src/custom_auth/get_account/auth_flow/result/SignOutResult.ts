@@ -9,6 +9,10 @@ import {
     SignOutCompletedState,
     SignOutFailedState,
 } from "../state/SignOutState.js";
+import {
+    SIGN_OUT_COMPLETED_STATE_TYPE,
+    SIGN_OUT_FAILED_STATE_TYPE,
+} from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Result of a sign-out operation.
@@ -42,14 +46,14 @@ export class SignOutResult extends AuthFlowResultBase<
      * Checks if the sign-out operation is completed.
      */
     isCompleted(): this is SignOutResult & { state: SignOutCompletedState } {
-        return this.state instanceof SignOutCompletedState;
+        return this.state.stateType === SIGN_OUT_COMPLETED_STATE_TYPE;
     }
 
     /**
      * Checks if the sign-out operation failed.
      */
     isFailed(): this is SignOutResult & { state: SignOutFailedState } {
-        return this.state instanceof SignOutFailedState;
+        return this.state.stateType === SIGN_OUT_FAILED_STATE_TYPE;
     }
 }
 
