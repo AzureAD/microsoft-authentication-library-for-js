@@ -5,6 +5,7 @@
 
 import { Constants } from "../utils/Constants.js";
 import * as AuthErrorCodes from "./AuthErrorCodes.js";
+import type { NativeAuthError } from "./NativeAuthError.js";
 export { AuthErrorCodes };
 
 export const AuthErrorMessages = {
@@ -51,6 +52,11 @@ export class AuthError extends Error {
      * CorrelationId associated with the error
      */
     correlationId: string;
+
+    /**
+     * Default NativeAuthError from MsalNodeRuntime when broker is enabled
+     */
+    msalNodeRuntimeError?: NativeAuthError;
 
     constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
         const errorString = errorMessage

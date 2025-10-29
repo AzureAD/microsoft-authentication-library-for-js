@@ -660,46 +660,61 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             const enhancedErrorContext = errorContext
                 ? `${errorContext} (Error Code: ${errorCode}, Tag: ${tagString})`
                 : `(Error Code: ${errorCode}, Tag: ${tagString})`;
+
+            const nativeAuthError = new NativeAuthError(
+                ErrorStatus[errorStatus],
+                enhancedErrorContext,
+                errorCode,
+                errorTag
+            );
+
+            let wrappedError;
+
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
                 case ErrorStatus.AccountUnusable:
-                    return new InteractionRequiredAuthError(
+                    wrappedError = new InteractionRequiredAuthError(
                         ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
                         enhancedErrorContext
                     );
+                    break;
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
-                    return createClientAuthError(
+                    wrappedError = createClientAuthError(
                         ClientAuthErrorCodes.noNetworkConnectivity
                     );
+                    break;
                 case ErrorStatus.ServerTemporarilyUnavailable:
-                    return new ServerError(
+                    wrappedError = new ServerError(
                         ErrorCodes.SERVER_UNAVAILABLE,
                         errorContext
                     );
+                    break;
                 case ErrorStatus.UserCanceled:
-                    return createClientAuthError(
+                    wrappedError = createClientAuthError(
                         ClientAuthErrorCodes.userCanceled
                     );
+                    break;
                 case ErrorStatus.AuthorityUntrusted:
-                    return createClientConfigurationError(
+                    wrappedError = createClientConfigurationError(
                         ClientConfigurationErrorCodes.untrustedAuthority
                     );
+                    break;
                 case ErrorStatus.UserSwitched:
                     // Not an error case, if there's customer demand we can surface this as a response property
                     return null;
                 case ErrorStatus.AccountNotFound:
-                    return createClientAuthError(
+                    wrappedError = createClientAuthError(
                         ClientAuthErrorCodes.noAccountFound
                     );
+                    break;
                 default:
-                    return new NativeAuthError(
-                        ErrorStatus[errorStatus],
-                        enhancedErrorContext,
-                        errorCode,
-                        errorTag
-                    );
+                    wrappedError = nativeAuthError;
+                    break;
             }
+
+            wrappedError.msalNodeRuntimeError = nativeAuthError;
+            return wrappedError;
         }
         throw error;
     }

@@ -2257,6 +2257,69 @@ if (process.platform === "win32") {
                         done();
                     });
             });
+
+            it("Attaches msalNodeRuntimeError with runtime details to wrapped MSAL.js errors", (done) => {
+                const testCorrelationId = generateCorrelationId();
+
+                jest.spyOn(
+                    msalNodeRuntime,
+                    "SignInSilentlyAsync"
+                ).mockImplementation(
+                    (
+                        authParams: AuthParameters,
+                        correlationId: string,
+                        callback: (result: AuthResult) => void
+                    ) => {
+                        const result: AuthResult = {
+                            idToken: "",
+                            accessToken: "",
+                            authorizationHeader: "",
+                            rawIdToken: "",
+                            grantedScopes: "",
+                            expiresOn: 0,
+                            isPopAuthorization: false,
+                            account: testMsalRuntimeAccount,
+                            CheckError: () => {
+                                const testError: MsalRuntimeError = {
+                                    errorCode: 0,
+                                    errorStatus:
+                                        ErrorStatus.InteractionRequired,
+                                    errorContext: "",
+                                    errorTag: 0,
+                                };
+                                throw testError;
+                            },
+                            telemetryData: "",
+                        };
+                        expect(correlationId).toEqual(testCorrelationId);
+                        callback(result);
+
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: [],
+                    correlationId: testCorrelationId,
+                    authority: "",
+                    redirectUri: TEST_REDIRECTURI,
+                };
+
+                nativeBrokerPlugin
+                    .acquireTokenSilent(request)
+                    .catch((error) => {
+                        expect(error).toBeInstanceOf(
+                            InteractionRequiredAuthError
+                        );
+                        expect(error.msalNodeRuntimeError).toBeDefined();
+                        expect(error.msalNodeRuntimeError).toBeInstanceOf(
+                            NativeAuthError
+                        );
+                        done();
+                    });
+            });
         });
     });
 } else if (process.platform === "darwin") {
