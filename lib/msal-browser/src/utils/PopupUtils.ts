@@ -4,6 +4,7 @@
  */
 
 import { CommonAuthorizationUrlRequest, CommonEndSessionRequest, ICrypto, Logger, ProtocolUtils } from "@azure/msal-common/browser";
+import { BrowserAuthErrorCodes, createBrowserAuthError } from "../error/BrowserAuthError.js";
 
 /**
  * Monitors a popup window for a URL change to the same origin as the parent application.
@@ -13,9 +14,10 @@ import { CommonAuthorizationUrlRequest, CommonEndSessionRequest, ICrypto, Logger
  * Performs cleanup by closing the popup and removing event listeners when done.
  *
  * @param pollIntervalMilliseconds - The interval, in milliseconds, at which to poll the popup window.
+ * @param timeoutMs - popup timeout, ms.
  * @param logger - Logger instance for logging monitoring events.
- * @param browserCrypto - brow
- * @param request
+ * @param browserCrypto - browser crypto.
+ * @param request - popup request.
  * @returns Promise<string> - Resolves with the response string (query or hash) from the popup window,
  * or rejects if the popup is closed before a response is received.
  *
@@ -25,11 +27,12 @@ import { CommonAuthorizationUrlRequest, CommonEndSessionRequest, ICrypto, Logger
  */
 export async function monitorPopupForHash(
     pollIntervalMilliseconds: number,
+    timeoutMs: number,
     logger: Logger,
     browserCrypto: ICrypto,
-    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
 ): Promise<string> {
-    return new Promise<string>((resolve) => {
+    return new Promise<string>((resolve, reject) => {
         logger.verbose(
             "PopupHandler.monitorPopupForHash - polling started",
             request.correlationId
@@ -43,6 +46,19 @@ export async function monitorPopupForHash(
             logger.warning(`Received a string from the popup = ${responseString}`, "")
         }
 
+        /*
+         * Polling for iframes can be purely timing based,
+         * since we don't need to account for interaction.
+         */
+        const timeoutId = window.setTimeout(() => {
+            window.clearInterval(intervalId);
+            reject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.monitorWindowTimeout
+                )
+            );
+        }, timeoutMs);
+
         const intervalId = setInterval(() => {
             // Window is closed
             if (!responseString) {
@@ -50,55 +66,9 @@ export async function monitorPopupForHash(
             }
 
             clearInterval(intervalId);
+            clearTimeout(timeoutId);
             resolve(responseString);
         }, pollIntervalMilliseconds);
-
-        // const intervalId = setInterval(() => {
-        //     // Window is closed
-        //     if (popupWindow.closed) {
-        //         logger.error(
-        //             "PopupHandler.monitorPopupForHash - window closed",
-        //             correlationId
-        //         );
-        //         clearInterval(intervalId);
-        //         reject(
-        //             createBrowserAuthError(BrowserAuthErrorCodes.userCancelled)
-        //         );
-        //         return;
-        //     }
-        //
-        //     let href = "";
-        //     try {
-        //         /*
-        //          * Will throw if cross origin,
-        //          * which should be caught and ignored
-        //          * since we need the interval to keep running while on STS UI.
-        //          */
-        //         href = popupWindow.location.href;
-        //     } catch (e) {}
-        //
-        //     // Don't process blank pages or cross domain
-        //     if (!href || href === "about:blank") {
-        //         return;
-        //     }
-        //     clearInterval(intervalId);
-        //
-        //     let responseString = "";
-        //     if (popupWindow) {
-        //         if (responseMode === Constants.ResponseMode.QUERY) {
-        //             responseString = popupWindow.location.search;
-        //         } else {
-        //             responseString = popupWindow.location.hash;
-        //         }
-        //     }
-        //
-        //     logger.verbose(
-        //         "PopupHandler.monitorPopupForHash - popup window is on same origin as caller",
-        //         correlationId
-        //     );
-        //
-        //     resolve(responseString);
-        // }, pollIntervalMilliseconds);
     });
 }
 

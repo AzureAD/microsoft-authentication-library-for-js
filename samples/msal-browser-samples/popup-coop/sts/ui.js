@@ -1,8 +1,6 @@
 window.name = "STS Window";
 const channel = new BroadcastChannel('sts-channel');
 
-let stsPopupWindow = null;
-
 function performAuthentication() {
     console.log("STS: Performing authentication (simulated)");
     console.log("STS: window.opener", window.opener);

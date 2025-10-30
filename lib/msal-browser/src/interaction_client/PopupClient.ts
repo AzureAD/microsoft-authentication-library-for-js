@@ -355,9 +355,10 @@ export class PopupClient extends StandardInteractionClient {
                 // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
                 const responseString = await monitorPopupForHash(
                     this.config.system.pollIntervalMilliseconds,
+                    this.config.system.windowHashTimeout,
                     this.logger,
                     this.browserCrypto,
-                    request
+                    request,
                 );
 
             const serverParams = invoke(
@@ -470,7 +471,7 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(this.config.system.pollIntervalMilliseconds, this.logger, this.browserCrypto, popupRequest);
+        )(this.config.system.pollIntervalMilliseconds, this.config.system.windowHashTimeout, this.logger, this.browserCrypto, popupRequest);
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -616,6 +617,7 @@ export class PopupClient extends StandardInteractionClient {
 
             await monitorPopupForHash(
                 this.config.system.pollIntervalMilliseconds,
+                this.config.system.windowHashTimeout,
                 this.logger,
                 this.browserCrypto,
                 validRequest
