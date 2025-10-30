@@ -44,7 +44,10 @@ export {
     BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "./error/BrowserAuthError.js";
-export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorCodes } from "./error/BrowserConfigurationAuthError.js";
+export {
+    BrowserConfigurationAuthError,
+    BrowserConfigurationAuthErrorCodes,
+} from "./error/BrowserConfigurationAuthError.js";
 
 // Interfaces
 export {
