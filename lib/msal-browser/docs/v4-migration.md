@@ -181,7 +181,8 @@ The following request parameters have been removed:
 
 In order to simplify extra request parameters, generic extra parameters should go in the new `extraParameters` request option. When `extraParameters` are set in a request, they will be sent on all token service calls in either the URL query string or the request body, depending on the `httpMethod` configured (default is `GET`) in the request. **To submit extra parameters that MUST go in the URL query string, `extraQueryParameters` is still available.**
 
-> Note: In cases where MSAL determines `extraParameters` must be encoded into the URL string, `extraParameters` will be merged with `extraQueryParams` in a way that will cause same-named parameters to be overwritten. In these cases, the value for the parameter in `extraParameters` will take precedence over the value in the `extraQueryParams`.
+> Note: If you're unsure whether the extra parameter should go in the `extraQueryStringParameters` or the `extraParameters`, it should most likely go in `extraParameters`.
+
 
 #### v4 (previous) request example:
 
@@ -190,13 +191,13 @@ In order to simplify extra request parameters, generic extra parameters should g
 const authRequest = {
     scopes: ["SAMPLE_SCOPE"],
     extraQueryParamters: {
-        "extra_parameter_one": "sample_value" // This was sent on the query string on GET /authorize
+        "dc": "DC_VALUE" // This was sent on the query string on GET /authorize
     },
     tokenBodyParameters: {
-        "extra_parameter_assertion": "assertion_value" // This was sent on the POST body to /token
+        "extra_parameters_assertion": "ASSERTION_VALUE" // This was sent on the POST body to /token
     },
     tokenQueryParamters: {
-        "extra_parameter_one": "sample_value" // This was sent on the query string on POST /token
+        "slice": "SLICE_VALUE" // This was sent on the query string on POST /token
     }
 }
 
@@ -205,16 +206,16 @@ const authRequest = {
     scopes: ["SAMPLE_SCOPE"],
     httpMethod: "POST", // default is "GET" -> Determines method for "/authorize" call. Calls to "/token" are always POST
     extraQueryParamters: {
-        "extra_parameter_one": "sample_value" // This was sent on the query string on POST /authorize
+        "dc": "DC_VALUE" // This was sent on the query string on POST /authorize
     },
     authorizePostBodyParameters: {
-        "extra_parameters_assertion": "assertion_value", // This was sent on the body on POST /authorize
+        "extra_parameters_assertion": "ASSERTION_VALUE", // This was sent on the body on POST /authorize
     }
     tokenBodyParameters: {
-        "extra_parameter_assertion": "assertion_value" // This was sent on the POST body to /token
+        "extra_parameters_assertion": "ASSERTION_VALUE" // This was sent on the POST body to /token
     },
     tokenQueryParamters: {
-        "extra_parameter_one": "sample_value" // This was sent on the query string on POST /token
+        "slice": "SLICE_VALUE" // This was sent on the query string on POST /token
     }
 }
 ```
@@ -226,10 +227,12 @@ const authRequest = {
 const authRequest = {
     scopes: ["SAMPLE_SCOPE"],
     extraQueryParamters: {
-        extra_parameter_one: "sample_value", // Will be sent in query string to /authorize and /token
+        // Will be sent in query string to /authorize and /token
+        "dc": "DC_VALUE", 
+        "slice": "SLICE_VALUE"
     },
     extraParameters: {
-        extra_parameter_assertion: "assertion_value", // Will be sent in query stirng to /authorize and in body to /token
+        "extra_parameters_assertion": "ASSERTION_VALUE", // Will be sent in query string to /authorize and in body to /token
     },
 };
 
@@ -238,13 +241,17 @@ const authRequest = {
     scopes: ["SAMPLE_SCOPE"],
     httpMethod: "POST", // default is "GET" -> Determines method for "/authorize" call. Calls to "/token" are always POST
     extraQueryParamters: {
-        extra_parameter_one: "sample_value", // Will be sent in query string to /authorize and /token
+        // Will be sent in query string to /authorize and /token
+        "dc": "DC_VALUE", 
+        "slice": "SLICE_VALUE"
     },
     extraParameters: {
         extra_parameter_assertion: "assertion_value", // Will be sent in post body to /authorize and /token
     },
 };
 ```
+
+> Note: In cases where MSAL determines `extraParameters` must be encoded into the URL string, `extraParameters` will be merged with `extraQueryParams` in a way that will cause same-named parameters to be overwritten. In these cases, the value for the parameter in `extraParameters` will take precedence over the value in the `extraQueryParams`.
 
 ## Behavioral Breaking Changes
 
