@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add new cloud instances to authority metadata #8121",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
