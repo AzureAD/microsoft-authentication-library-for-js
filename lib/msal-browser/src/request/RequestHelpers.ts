@@ -123,7 +123,7 @@ export function validateRequestMethod(
                 ClientConfigurationErrorCodes.invalidRequestMethodForEAR
             );
         } else {
-          httpMethod = Constants.HttpMethod.POST;
+            httpMethod = Constants.HttpMethod.POST;
         }
     } else {
         // For non-EAR protocol modes, default to GET if httpMethod is not set
