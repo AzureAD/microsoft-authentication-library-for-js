@@ -3072,6 +3072,13 @@ export class NativeAuthError extends AuthError {
     tag: string;
 }
 
+// Warning: (ae-missing-release-tag) "NativeBrokerStringUtils" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export class NativeBrokerStringUtils {
+    static tagToString(tag: number): string;
+}
+
 // Warning: (ae-missing-release-tag) "NativeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
