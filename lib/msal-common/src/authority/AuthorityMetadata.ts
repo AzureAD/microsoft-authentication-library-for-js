@@ -63,20 +63,27 @@ export const rawMetdataJSON: RawMetadata = {
                 "https://login.sovcloud-identity.fr/{tenantid}/oauth2/v2.0/logout",
         },
         "login.sovcloud-identity.de": {
-            token_endpoint: "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/token",
-            jwks_uri: "https://login.sovcloud-identity.de/{tenantid}/discovery/v2.0/keys",
+            token_endpoint:
+                "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/token",
+            jwks_uri:
+                "https://login.sovcloud-identity.de/{tenantid}/discovery/v2.0/keys",
             issuer: "https://login.sovcloud-identity.de/{tenantid}/v2.0",
-            authorization_endpoint: "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/authorize",
-            end_session_endpoint: "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/logout"
+            authorization_endpoint:
+                "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/authorize",
+            end_session_endpoint:
+                "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/logout",
         },
         "login.sovcloud-identity.sg": {
-            token_endpoint: "https://login.sovcloud-identity.sg/{tenantid}/oauth2/v2.0/token",
-            jwks_uri: "https://login.sovcloud-identity.sg/{tenantid}/discovery/v2.0/keys",
+            token_endpoint:
+                "https://login.sovcloud-identity.sg/{tenantid}/oauth2/v2.0/token",
+            jwks_uri:
+                "https://login.sovcloud-identity.sg/{tenantid}/discovery/v2.0/keys",
             issuer: "https://login.sovcloud-identity.sg/{tenantid}/v2.0",
-            authorization_endpoint: "https://login.sovcloud-identity.sg/{tenantid}/oauth2/v2.0/authorize",
-            end_session_endpoint: "https://login.sovcloud-identity.sg/{tenantid}/oauth2/v2.0/logout"
-        }
-
+            authorization_endpoint:
+                "https://login.sovcloud-identity.sg/{tenantid}/oauth2/v2.0/authorize",
+            end_session_endpoint:
+                "https://login.sovcloud-identity.sg/{tenantid}/oauth2/v2.0/logout",
+        },
     },
     instanceDiscoveryMetadata: {
         tenant_discovery_endpoint:
@@ -118,7 +125,6 @@ export const rawMetdataJSON: RawMetadata = {
                 preferred_cache: "login-us.microsoftonline.com",
                 aliases: ["login-us.microsoftonline.com"],
             },
-            
         ],
     },
 };
