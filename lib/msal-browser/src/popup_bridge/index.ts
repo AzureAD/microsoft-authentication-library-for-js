@@ -44,6 +44,16 @@ export async function sendPopupPayloadToMainFrame(
         return;
     }
 
+    // 2) Remove the response from URL for security
+    logger.info("Removing auth response from URL", "");
+    if (hasHash) {
+        // Clear hash
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    } else {
+        // Clear query string
+        window.history.replaceState(null, "", window.location.pathname);
+    }
+
     const { libraryState } = ProtocolUtils.parseRequestState(
         new CryptoOps(logger, new StubPerformanceClient(), true),
         state

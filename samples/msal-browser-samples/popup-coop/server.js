@@ -33,6 +33,9 @@ let logHttpRequests = true;
 // Set the front-end folder to serve public assets.
 app.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
 
+// Serve static files from app directory (for .js, .css, etc.)
+app.use(express.static(APP_DIR));
+
 if (logHttpRequests) {
     // Configure morgan module to log all requests.
     app.use(morgan('dev'));
@@ -44,7 +47,7 @@ app.get("/redirect", function (req, res) {
     res.sendFile(path.join(APP_DIR + "/redirect.html"));
 });
 
-// Set up a route for index.html.
+// Set up a route for index.html (catch-all at the end).
 app.get('*', function (req, res) {
     res.sendFile(path.join(APP_DIR + '/index.html'));
 });
