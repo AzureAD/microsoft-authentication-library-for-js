@@ -631,44 +631,6 @@ export class NestedAppAuthController implements IController {
     }
 
     /**
-     * acquireTokenNative flow is not currently supported in nested app auth
-     * @param request
-     * @param apiId
-     * @param accountId
-     */
-    acquireTokenNative(
-        request: // eslint-disable-line @typescript-eslint/no-unused-vars
-        | SilentRequest
-            | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "responseMode"
-                      | "earJwk"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "platformBroker"
-                  >
-              >
-            | PopupRequest,
-        apiId: ApiId, // eslint-disable-line @typescript-eslint/no-unused-vars
-        accountId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<AuthenticationResult> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    /**
-     * acquireTokenByRefreshToken flow is not currently supported in nested app auth
-     * @param commonRequest
-     * @param silentRequest
-     */
-    acquireTokenByRefreshToken(
-        commonRequest: CommonSilentFlowRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<AuthenticationResult> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    /**
      * Adds event callbacks to array
      * @param callback
      * @param eventTypes
@@ -723,55 +685,6 @@ export class NestedAppAuthController implements IController {
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
         return AccountManager.getAccount(
             accountFilter,
-            this.logger,
-            this.browserStorage,
-            createNewGuid()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching username.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found.
-     * This API is provided for convenience but getAccountById should be used for best reliability
-     * @param username
-     * @returns The account object stored in MSAL
-     */
-    getAccountByUsername(username: string): AccountInfo | null {
-        return AccountManager.getAccountByUsername(
-            username,
-            this.logger,
-            this.browserStorage,
-            createNewGuid()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching homeAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param homeAccountId
-     * @returns The account object stored in MSAL
-     */
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByHomeId(
-            homeAccountId,
-            this.logger,
-            this.browserStorage,
-            createNewGuid()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching localAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param localAccountId
-     * @returns The account object stored in MSAL
-     */
-    getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByLocalId(
-            localAccountId,
             this.logger,
             this.browserStorage,
             createNewGuid()

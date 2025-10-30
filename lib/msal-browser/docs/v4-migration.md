@@ -98,6 +98,10 @@ The following functions in `PublicClientApplication` have been removed:
 
 `startPerformanceMeasurement()` has been removed. Please use `startMeasurement()` instead.
 
+### Removal of `PublicClientNext`
+
+Please use `PublicClientApplication`, `createNestablePublicClientApplication` or `createStandardPublicClientApplication` instead.
+
 ## Configuration changes
 
 ### BrowserAuthOptions changes

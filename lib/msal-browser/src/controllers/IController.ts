@@ -45,12 +45,6 @@ export interface IController {
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult>;
 
-    acquireTokenNative(
-        request: PopupRequest | SilentRequest | SsoSilentRequest,
-        apiId: ApiId,
-        accountId?: string
-    ): Promise<AuthenticationResult>;
-
     addEventCallback(
         callback: EventCallbackFunction,
         eventTypes?: Array<EventType>
@@ -63,12 +57,6 @@ export interface IController {
     removePerformanceCallback(callbackId: string): boolean;
 
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
-
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-
-    getAccountByLocalId(localId: string): AccountInfo | null;
-
-    getAccountByUsername(userName: string): AccountInfo | null;
 
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
@@ -111,12 +99,6 @@ export interface IController {
             | RedirectRequest
             | PopupRequest
     ): Promise<void>;
-
-    /** @internal */
-    isBrowserEnv(): boolean;
-
-    /** @internal */
-    getPerformanceClient(): IPerformanceClient;
 }
 
 export type HandleRedirectPromiseOptions = {

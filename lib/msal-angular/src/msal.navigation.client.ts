@@ -9,7 +9,6 @@ import { Router } from "@angular/router";
 import {
   NavigationClient,
   NavigationOptions,
-  UrlString,
 } from "@azure/msal-browser";
 import { MsalService } from "./msal.service";
 
@@ -46,10 +45,10 @@ export class MsalCustomNavigationClient extends NavigationClient {
       return super.navigateInternal(url, options);
     } else {
       // Normalizing newUrl if no query string
-      const urlComponents = new UrlString(url).getUrlComponents();
-      const newUrl = urlComponents.QueryString
-        ? `${urlComponents.AbsolutePath}?${urlComponents.QueryString}`
-        : this.location.normalize(urlComponents.AbsolutePath);
+      const urlComponents = new URL(url);
+      const newUrl = urlComponents.search
+        ? `${urlComponents.pathname}${urlComponents.search}`
+        : this.location.normalize(urlComponents.pathname);
       await this.router.navigateByUrl(newUrl, {
         replaceUrl: options.noHistory,
       });
