@@ -49,7 +49,7 @@ export interface IPublicClientApplication {
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     removePerformanceCallback(callbackId: string): boolean;
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
     handleRedirectPromise(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null>;

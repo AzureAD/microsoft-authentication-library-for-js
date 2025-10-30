@@ -706,59 +706,7 @@ const hashEmptyError = "hash_empty_error";
 // Warning: (ae-missing-release-tag) "IController" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export interface IController {
-    // (undocumented)
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
-    // (undocumented)
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
-    // (undocumented)
-    acquireTokenRedirect(request: RedirectRequest): Promise<void>;
-    // (undocumented)
-    acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
-    // (undocumented)
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
-    // (undocumented)
-    addPerformanceCallback(callback: PerformanceCallbackFunction): string;
-    // (undocumented)
-    clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
-    // (undocumented)
-    getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    // (undocumented)
-    getActiveAccount(): AccountInfo | null;
-    // (undocumented)
-    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
-    // @internal (undocumented)
-    getConfiguration(): BrowserConfiguration;
-    // (undocumented)
-    getLogger(): Logger;
-    // (undocumented)
-    handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
-    // (undocumented)
-    hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
-    // (undocumented)
-    initialize(request?: InitializeApplicationRequest, isBroker?: boolean): Promise<void>;
-    // (undocumented)
-    initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
-    // (undocumented)
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
-    // (undocumented)
-    loginRedirect(request?: RedirectRequest): Promise<void>;
-    // (undocumented)
-    logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
-    // (undocumented)
-    logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
-    // (undocumented)
-    removeEventCallback(callbackId: string): void;
-    // (undocumented)
-    removePerformanceCallback(callbackId: string): boolean;
-    // (undocumented)
-    setActiveAccount(account: AccountInfo | null): void;
-    // (undocumented)
-    setLogger(logger: Logger): void;
-    // (undocumented)
-    setNavigationClient(navigationClient: INavigationClient): void;
-    // (undocumented)
-    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+export interface IController extends IPublicClientApplication {
 }
 
 export { IdTokenClaims }
@@ -881,7 +829,7 @@ export interface IPublicClientApplication {
     // (undocumented)
     getActiveAccount(): AccountInfo | null;
     // (undocumented)
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
     // @internal (undocumented)
     getConfiguration(): BrowserConfiguration;
     // (undocumented)
@@ -1278,8 +1226,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
-    // (undocumented)
-    protected isBroker: boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
