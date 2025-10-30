@@ -3,17 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils } from "../../src/utils/StringUtils.js";
+import { NativeBrokerStringUtils } from "../../src/utils/NativeBrokerStringUtils.js";
 
-describe("StringUtils", () => {
+describe("NativeBrokerStringUtils", () => {
     describe("tagToString tests", () => {
         it("Returns 'UNTAG' for tag value 0", () => {
-            expect(StringUtils.tagToString(0)).toBe("UNTAG");
+            expect(NativeBrokerStringUtils.tagToString(0)).toBe("UNTAG");
         });
 
         it("Converts numeric tag to 5-character string", () => {
             const tag = 0x01234567;
-            const result = StringUtils.tagToString(tag);
+            const result = NativeBrokerStringUtils.tagToString(tag);
 
             expect(result).toHaveLength(5);
             expect(typeof result).toBe("string");
@@ -21,8 +21,8 @@ describe("StringUtils", () => {
 
         it("Produce same results for same input", () => {
             const tag = 0x12345678;
-            const result1 = StringUtils.tagToString(tag);
-            const result2 = StringUtils.tagToString(tag);
+            const result1 = NativeBrokerStringUtils.tagToString(tag);
+            const result2 = NativeBrokerStringUtils.tagToString(tag);
 
             expect(result1).toBe(result2);
         });

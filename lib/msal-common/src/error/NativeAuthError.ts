@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { NativeBrokerStringUtils } from "../utils/NativeBrokerStringUtils.js";
 import { AuthError } from "./AuthError.js";
 
 /**
@@ -28,7 +29,7 @@ export class NativeAuthError extends AuthError {
         super(errorStatus, errorContext);
         this.name = "NativeAuthError";
         this.statusCode = errorCode;
-        this.tag = errorTag.toString();
+        this.tag = NativeBrokerStringUtils.tagToString(errorTag);
         Object.setPrototypeOf(this, NativeAuthError.prototype);
     }
 }

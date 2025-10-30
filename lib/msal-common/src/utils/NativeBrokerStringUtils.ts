@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-export class StringUtils {
+export class NativeBrokerStringUtils {
     /**
      * Converts a numeric tag to a string representation
      * @param tag - The numeric tag to convert

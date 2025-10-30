@@ -52,10 +52,10 @@ import {
     ServerError,
     AuthenticationScheme,
     TimeUtils,
+    NativeAuthError,
+    NativeBrokerStringUtils,
 } from "@azure/msal-common";
 import { randomUUID } from "crypto";
-import { NativeAuthError } from "../../src/error/NativeAuthError";
-import { StringUtils } from "../../src/utils/StringUtils.js";
 import {
     testMsalRuntimeAccount,
     testAccountInfo,
@@ -90,12 +90,12 @@ if (process.platform === "win32") {
         const enhancedErrorContext = msalRuntimeExampleError.errorContext
             ? `${msalRuntimeExampleError.errorContext} (Error Code: ${
                   msalRuntimeExampleError.errorCode
-              }, Tag: ${StringUtils.tagToString(
+              }, Tag: ${NativeBrokerStringUtils.tagToString(
                   msalRuntimeExampleError.errorTag
               )})`
             : `(Error Code: ${
                   msalRuntimeExampleError.errorCode
-              }, Tag: ${StringUtils.tagToString(
+              }, Tag: ${NativeBrokerStringUtils.tagToString(
                   msalRuntimeExampleError.errorTag
               )})`;
         const testNativeAuthError = new NativeAuthError(
