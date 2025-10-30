@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Remove dependency on msal-browser Util functions #8122",
+  "packageName": "@azure/msal-angular",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
