@@ -5,7 +5,6 @@
 
 import {
     CommonAuthorizationUrlRequest,
-    CommonSilentFlowRequest,
     PerformanceCallbackFunction,
     AccountInfo,
     Logger,
@@ -28,8 +27,8 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
-import { IController, HandleRedirectPromiseOptions } from "./IController.js";
+import { WrapperSKU } from "../utils/BrowserConstants.js";
+import { IController } from "./IController.js";
 import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
@@ -40,6 +39,7 @@ import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 /**
  * UnknownOperatingContextController class

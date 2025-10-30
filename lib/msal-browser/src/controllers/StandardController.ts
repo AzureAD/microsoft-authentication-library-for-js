@@ -77,7 +77,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js
 import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
-import { HandleRedirectPromiseOptions, IController } from "./IController.js";
+import { IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
@@ -90,6 +90,7 @@ import {
 } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -286,9 +287,7 @@ export class StandardController implements IController {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      * @param request {?InitializeApplicationRequest} correlation id
      */
-    async initialize(
-        request?: InitializeApplicationRequest
-    ): Promise<void> {
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("initialize called", correlationId);
         if (this.initialized) {

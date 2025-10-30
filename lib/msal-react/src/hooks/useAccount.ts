@@ -90,12 +90,7 @@ export function useAccount(
     const updateAccount = useCallback(() => {
         const nextAccount = getAccount(instance, accountIdentifiers);
         setAccount((currentAccount: AccountInfo | null) => {
-            if (
-                !accountInfoIsEqual(
-                    currentAccount,
-                    nextAccount
-                )
-            ) {
+            if (!accountInfoIsEqual(currentAccount, nextAccount)) {
                 logger.info("useAccount - Updating account", "");
                 return nextAccount;
             }

@@ -5,7 +5,6 @@
 
 import {
     CommonAuthorizationUrlRequest,
-    CommonSilentFlowRequest,
     PerformanceCallbackFunction,
     AccountInfo,
     Logger,
@@ -31,13 +30,12 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import {
-    ApiId,
     WrapperSKU,
     InteractionType,
     DEFAULT_REQUEST,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
-import { IController, HandleRedirectPromiseOptions } from "./IController.js";
+import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -56,6 +54,8 @@ import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+
 export class NestedAppAuthController implements IController {
     // OperatingContext
     protected readonly operatingContext: NestedAppOperatingContext;

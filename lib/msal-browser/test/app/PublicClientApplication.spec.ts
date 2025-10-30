@@ -273,17 +273,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca instanceof PublicClientApplication).toBeTruthy();
             done();
         });
-
-        it("Sets isBroker to false", () => {
-            const config = {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            };
-            pca = new PublicClientApplication(config);
-            // @ts-ignore
-            expect(pca.isBroker).toBe(false);
-        });
     });
 
     describe("initialize tests", () => {
@@ -681,26 +670,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
 
             expect(preGenerateSpy).toHaveBeenCalledTimes(1);
-        });
-
-        it("passes in isBroker in request", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    allowPlatformBroker: false,
-                },
-            });
-            const initializeControllerSpy = jest.spyOn(
-                StandardController.prototype,
-                "initialize"
-            );
-            await pca.initialize();
-            expect(initializeControllerSpy).toHaveBeenCalledWith(
-                undefined,
-                false
-            );
         });
     });
 
