@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 24 Sep 2025 21:54:45 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 29 Oct 2025 00:04:33 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.8.1
+
+Wed, 29 Oct 2025 00:04:33 GMT
+
+### Patches
+
+- Update AccountEntity.getAccountInfo (thomas.norling@microsoft.com)
+-  Fixed Minor Type Error in BaseManagedIdentitySource.ts (#8107) (rginsburg@microsoft.com)
+-  Improved Managed Identity JSDocs (#8106) (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.13.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.8.0
 
