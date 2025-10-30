@@ -32,5 +32,5 @@ export { IGuidGenerator } from "./crypto/IGuidGenerator.js";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient.js";
 export {
     buildClientConfiguration,
-    CommonClientConfiguration
+    CommonClientConfiguration,
 } from "./config/ClientConfiguration.js";
