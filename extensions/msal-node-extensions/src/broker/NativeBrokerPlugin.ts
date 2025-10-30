@@ -709,8 +709,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     );
                     break;
                 default:
-                    wrappedError = nativeAuthError;
-                    break;
+                    return nativeAuthError;
             }
 
             wrappedError.msalNodeRuntimeError = nativeAuthError;
