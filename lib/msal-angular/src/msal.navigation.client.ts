@@ -6,10 +6,7 @@
 import { Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import { Router } from "@angular/router";
-import {
-  NavigationClient,
-  NavigationOptions,
-} from "@azure/msal-browser";
+import { NavigationClient, NavigationOptions } from "@azure/msal-browser";
 import { MsalService } from "./msal.service";
 
 /**
