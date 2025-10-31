@@ -104,7 +104,8 @@ describe("CacheManager.ts test cases", () => {
             cacheRecord.account = ac;
             await mockCache.cacheManager.saveCacheRecord(
                 cacheRecord,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const mockCacheAccount = mockCache.cacheManager.getAccount(
                 accountKey
@@ -138,7 +139,8 @@ describe("CacheManager.ts test cases", () => {
             cacheRecord.accessToken = at;
             await mockCache.cacheManager.saveCacheRecord(
                 cacheRecord,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
                 atKey
@@ -174,6 +176,7 @@ describe("CacheManager.ts test cases", () => {
             await mockCache.cacheManager.saveCacheRecord(
                 cacheRecord,
                 TEST_CONFIG.CORRELATION_ID,
+                true,
                 {
                     accessToken: false,
                 }
@@ -205,7 +208,8 @@ describe("CacheManager.ts test cases", () => {
             cacheRecord.accessToken = at;
             await mockCache.cacheManager.saveCacheRecord(
                 cacheRecord,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
                 atKey
@@ -238,6 +242,7 @@ describe("CacheManager.ts test cases", () => {
             await mockCache.cacheManager.saveCacheRecord(
                 cacheRecord,
                 TEST_CONFIG.CORRELATION_ID,
+                true,
                 {
                     idToken: false,
                 }
@@ -311,6 +316,7 @@ describe("CacheManager.ts test cases", () => {
             await mockCache.cacheManager.saveCacheRecord(
                 cacheRecord,
                 TEST_CONFIG.CORRELATION_ID,
+                true,
                 {
                     refreshToken: false,
                 }
@@ -806,7 +812,8 @@ describe("CacheManager.ts test cases", () => {
         cacheRecord.account = ac;
         await mockCache.cacheManager.saveCacheRecord(
             cacheRecord,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+                true
         );
 
         const cacheAccount = mockCache.cacheManager.getAccount(
@@ -835,7 +842,8 @@ describe("CacheManager.ts test cases", () => {
         cacheRecord.accessToken = accessTokenEntity;
         await mockCache.cacheManager.saveCacheRecord(
             cacheRecord,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+                true
         );
 
         const cachedAccessToken =
@@ -867,7 +875,8 @@ describe("CacheManager.ts test cases", () => {
         cacheRecord.accessToken = accessTokenEntity;
         await mockCache.cacheManager.saveCacheRecord(
             cacheRecord,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+                true
         );
 
         const cachedAccessToken =
