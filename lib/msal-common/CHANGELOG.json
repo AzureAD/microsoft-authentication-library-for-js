@@ -2,6 +2,39 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 29 Oct 2025 00:04:33 GMT",
+      "version": "15.13.1",
+      "tag": "@azure/msal-common_v15.13.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5a25c350f0e7a18e1d88ae6393fd6e847595da83",
+            "comment": "Respect KMSI"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 24 Sep 2025 21:54:45 GMT",
       "version": "15.13.0",
       "tag": "@azure/msal-common_v15.13.0",

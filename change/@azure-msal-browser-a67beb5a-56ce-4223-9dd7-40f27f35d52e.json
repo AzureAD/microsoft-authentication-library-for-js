@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Don't encrypt localStorage when KMSI returned in idToken",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

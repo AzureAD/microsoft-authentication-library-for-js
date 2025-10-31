@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": " Fixed Minor Type Error in BaseManagedIdentitySource.ts (#8107)",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
