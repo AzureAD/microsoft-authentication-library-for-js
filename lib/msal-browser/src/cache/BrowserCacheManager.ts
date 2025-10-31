@@ -618,7 +618,7 @@ export class BrowserCacheManager extends CacheManager {
                 continue;
             }
 
-            if (!Object.keys(kmsiMap).includes(oldSchemaData.homeAccountId)) {
+            if (!(oldSchemaData.homeAccountId in kmsiMap)) {
                 // Don't migrate tokens if we don't have an idToken for them
                 this.performanceClient.incrementFields(
                     { skipATMigrateCount: 1 },
@@ -722,7 +722,7 @@ export class BrowserCacheManager extends CacheManager {
                 continue;
             }
 
-            if (!Object.keys(kmsiMap).includes(oldSchemaData.homeAccountId)) {
+            if (!(oldSchemaData.homeAccountId in kmsiMap)) {
                 // Don't migrate tokens if we don't have an idToken for them
                 this.performanceClient.incrementFields(
                     { skipRTMigrateCount: 1 },

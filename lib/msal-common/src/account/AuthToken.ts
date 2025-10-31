@@ -47,10 +47,9 @@ export function isKmsi(idTokenClaims: TokenClaims): boolean {
      * inknownntwk - Request made inside a known network. Don't use this, use CAE instead.
      */
     const kmsiClaims = ["kmsi", "dvc_dmjd"]; // There are some cases where kmsi may not be returned but persistent storage is still OK - allow dvc_dmjd as well
-    const kmsi = idTokenClaims.signin_state.some((value) =>
+    return idTokenClaims.signin_state.some((value) =>
         kmsiClaims.includes(value.trim().toLowerCase())
     );
-    return kmsi;
 }
 
 /**
