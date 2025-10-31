@@ -709,7 +709,16 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     );
                     break;
                 default:
-                    return nativeAuthError;
+                    wrappedError = nativeAuthError;
+                    // Clone error to avoid circular reference
+                    const clonedError = new NativeAuthError(
+                        ErrorStatus[errorStatus],
+                        enhancedErrorContext,
+                        errorCode,
+                        errorTag
+                    );
+                    wrappedError.msalNodeRuntimeError = clonedError;
+                    return wrappedError;
             }
 
             wrappedError.msalNodeRuntimeError = nativeAuthError;
