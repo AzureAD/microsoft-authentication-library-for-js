@@ -3,8 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest, CommonEndSessionRequest, ICrypto, Logger, ProtocolUtils } from "@azure/msal-common/browser";
-import { BrowserAuthErrorCodes, createBrowserAuthError } from "../error/BrowserAuthError.js";
+import {
+    CommonAuthorizationUrlRequest,
+    CommonEndSessionRequest,
+    ICrypto,
+    Logger,
+    ProtocolUtils,
+} from "@azure/msal-common/browser";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 
 /**
  * Monitors a popup window for a URL change to the same origin as the parent application.
@@ -30,7 +39,7 @@ export async function monitorPopupForHash(
     timeoutMs: number,
     logger: Logger,
     browserCrypto: ICrypto,
-    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         logger.verbose(
@@ -38,13 +47,15 @@ export async function monitorPopupForHash(
             request.correlationId
         );
 
-        const { libraryState } = ProtocolUtils.parseRequestState(browserCrypto, request.state || "");
-        const channel = new BroadcastChannel( libraryState.id );
+        const { libraryState } = ProtocolUtils.parseRequestState(
+            browserCrypto.base64Decode,
+            request.state || ""
+        );
+        const channel = new BroadcastChannel(libraryState.id);
         let responseString: string | undefined = undefined;
         channel.onmessage = (event) => {
             responseString = event.data.payload;
-            logger.warning(`Received a string from the popup = ${responseString}`, "")
-        }
+        };
 
         /*
          * Polling for iframes can be purely timing based,

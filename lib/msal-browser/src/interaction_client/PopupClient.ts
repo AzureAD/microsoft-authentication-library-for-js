@@ -322,9 +322,6 @@ export class PopupClient extends StandardInteractionClient {
                 account: popupRequest.account,
             });
 
-            popupRequest.extraQueryParameters = popupRequest.extraQueryParameters || {};
-            popupRequest.extraQueryParameters["popup"] = "true";
-
             // Create acquire token url.
             const navigateUrl = await invokeAsync(
                 Authorize.getAuthCodeRequestUrl,
@@ -352,14 +349,14 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-                // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-                const responseString = await monitorPopupForHash(
-                    this.config.system.pollIntervalMilliseconds,
-                    this.config.system.windowHashTimeout,
-                    this.logger,
-                    this.browserCrypto,
-                    request,
-                );
+            // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+            const responseString = await monitorPopupForHash(
+                this.config.system.pollIntervalMilliseconds,
+                this.config.system.windowHashTimeout,
+                this.logger,
+                this.browserCrypto,
+                request
+            );
 
             const serverParams = invoke(
                 ResponseHandler.deserializeResponse,
@@ -471,7 +468,13 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(this.config.system.pollIntervalMilliseconds, this.config.system.windowHashTimeout, this.logger, this.browserCrypto, popupRequest);
+        )(
+            this.config.system.pollIntervalMilliseconds,
+            this.config.system.windowHashTimeout,
+            this.logger,
+            this.browserCrypto,
+            popupRequest
+        );
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
