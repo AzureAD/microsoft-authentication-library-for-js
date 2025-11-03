@@ -63,9 +63,10 @@ export async function monitorPopupForHash(
          */
         const timeoutId = window.setTimeout(() => {
             window.clearInterval(intervalId);
+            channel.close();
             reject(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.monitorWindowTimeout
+                    BrowserAuthErrorCodes.monitorPopupTimeout
                 )
             );
         }, timeoutMs);
@@ -78,6 +79,7 @@ export async function monitorPopupForHash(
 
             clearInterval(intervalId);
             clearTimeout(timeoutId);
+            channel.close();
             resolve(responseString);
         }, pollIntervalMilliseconds);
     });

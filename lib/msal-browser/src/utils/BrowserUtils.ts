@@ -14,7 +14,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { BrowserConstants, BrowserCacheLocation } from "./BrowserConstants.js";
+import { BrowserCacheLocation } from "./BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import {
     BrowserConfigurationAuthErrorCodes,
@@ -59,8 +59,9 @@ export function isInIframe(): boolean {
  */
 export function isInPopup(): boolean {
     return (
-        new URLSearchParams(location.search).has("client_info") ||
-        new URLSearchParams(location.hash).has("client_info")
+        !isInIframe() &&
+        (new URLSearchParams(location.search).has("client_info") ||
+         new URLSearchParams(location.hash).has("client_info"))
     );
 }
 

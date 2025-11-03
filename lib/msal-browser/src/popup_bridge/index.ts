@@ -57,7 +57,6 @@ export async function sendPopupPayloadToMainFrame(): Promise<void> {
         const channel = new BroadcastChannel(id);
         channel.postMessage({
             v: 1,
-            state,
             payload,
         });
         channel.close();
