@@ -7,7 +7,6 @@ import {
     Logger,
     IPerformanceClient,
     invoke,
-    Constants,
     Authority,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
@@ -18,7 +17,6 @@ import {
 } from "../error/BrowserAuthError.js";
 import {
     BrowserConfiguration,
-    DEFAULT_IFRAME_TIMEOUT_MS,
 } from "../config/Configuration.js";
 import { getEARForm } from "../protocol/Authorize.js";
 
@@ -69,80 +67,6 @@ export async function initiateEarRequest(
     );
     form.submit();
     return frame;
-}
-
-/**
- * Monitors an iframe content window until it loads a url with a known hash, or hits a specified timeout.
- * @param iframe
- * @param timeout
- */
-export async function monitorIframeForHash(
-    iframe: HTMLIFrameElement,
-    timeout: number,
-    pollIntervalMilliseconds: number,
-    performanceClient: IPerformanceClient,
-    logger: Logger,
-    correlationId: string,
-    responseType: Constants.ResponseMode
-): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-        if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
-            logger.warning(
-                `system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`,
-                correlationId
-            );
-        }
-
-        /*
-         * Polling for iframes can be purely timing based,
-         * since we don't need to account for interaction.
-         */
-        const timeoutId = window.setTimeout(() => {
-            window.clearInterval(intervalId);
-            reject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.monitorWindowTimeout
-                )
-            );
-        }, timeout);
-
-        const intervalId = window.setInterval(() => {
-            let href: string = "";
-            const contentWindow = iframe.contentWindow;
-            try {
-                /*
-                 * Will throw if cross origin,
-                 * which should be caught and ignored
-                 * since we need the interval to keep running while on STS UI.
-                 */
-                href = contentWindow ? contentWindow.location.href : "";
-            } catch (e) {}
-
-            if (!href || href === "about:blank") {
-                return;
-            }
-
-            let responseString = "";
-            if (contentWindow) {
-                if (responseType === Constants.ResponseMode.QUERY) {
-                    responseString = contentWindow.location.search;
-                } else {
-                    responseString = contentWindow.location.hash;
-                }
-            }
-            window.clearTimeout(timeoutId);
-            window.clearInterval(intervalId);
-            resolve(responseString);
-        }, pollIntervalMilliseconds);
-    }).finally(() => {
-        invoke(
-            removeHiddenIframe,
-            BrowserPerformanceEvents.RemoveHiddenIframe,
-            logger,
-            performanceClient,
-            correlationId
-        )(iframe);
-    });
 }
 
 /**

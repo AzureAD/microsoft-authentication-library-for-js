@@ -23,16 +23,18 @@ function handleResponse(resp) {
         myMSALObj.setActiveAccount(resp.account);
         showWelcomeMessage(resp.account);
 
-        // Display success message with token info
-        console.log("[AUTH] Authentication successful! Response:", resp);
-
         if (resp.idToken) {
             // Remove the login button completely
-            const loginButton = document.getElementById("openStsPopup");
+            const loginButton = document.getElementById("loginPopup");
             if (loginButton) {
                 loginButton.remove();
             }
-            
+
+            const ssoButton = document.getElementById("sso");
+            if (ssoButton) {
+                ssoButton.remove();
+            }
+
             // Also display in UI
             const successDiv = document.getElementById("successAuthCode");
             if (successDiv) {
@@ -74,6 +76,12 @@ function logoutPopup(interactionType) {
 
 async function loginPopup(request, account) {
     return myMSALObj.acquireTokenPopup(request).then(handleResponse).catch((error) => {
+        console.error(error);
+    });
+}
+
+async function sso(request) {
+    return myMSALObj.ssoSilent(request).then(handleResponse).catch((error) => {
         console.error(error);
     });
 }

@@ -2,7 +2,7 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "rootDir": "./src",
-        "outDir": "./dist/popup-bridge",
+        "outDir": "./dist/redirect-bridge",
     },
     "include": ["src"]
 }

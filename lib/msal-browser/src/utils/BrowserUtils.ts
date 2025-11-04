@@ -9,6 +9,11 @@ import {
     invokeAsync,
     UrlUtils,
     RequestParameterBuilder,
+    ICrypto,
+    Logger,
+    CommonAuthorizationUrlRequest,
+    CommonEndSessionRequest,
+    ProtocolUtils,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -63,6 +68,61 @@ export function isInPopup(): boolean {
         (new URLSearchParams(location.search).has("client_info") ||
          new URLSearchParams(location.hash).has("client_info"))
     );
+}
+
+/**
+ * Await a response from a redirect bridge using BroadcastChannel.
+ * This unified function works for both popup and iframe scenarios by listening on a
+ * BroadcastChannel for the server payload.
+ *
+ * @param pollIntervalMilliseconds - The interval, in milliseconds, at which to poll for responses.
+ * @param timeoutMs - Timeout in milliseconds.
+ * @param logger - Logger instance for logging monitoring events.
+ * @param browserCrypto - Browser crypto instance for decoding state.
+ * @param request - The authorization or end session request.
+ * @returns Promise<string> - Resolves with the response string (query or hash) from the window.
+ */
+export async function waitForBridgeResponse(
+    pollIntervalMilliseconds: number,
+    timeoutMs: number,
+    logger: Logger,
+    browserCrypto: ICrypto,
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        logger.verbose(
+            "BrowserUtils.monitorWindowForHash - monitoring started",
+            request.correlationId
+        );
+
+        const { libraryState } = ProtocolUtils.parseRequestState(
+            browserCrypto.base64Decode,
+            request.state || ""
+        );
+        const channel = new BroadcastChannel(libraryState.id);
+        let responseString: string | undefined = undefined;
+        channel.onmessage = (event) => {
+            responseString = event.data.payload;
+        };
+
+        const timeoutId = window.setTimeout(() => {
+            window.clearInterval(intervalId);
+            channel.close();
+            reject(createBrowserAuthError(""));
+        }, timeoutMs);
+
+        const intervalId = setInterval(() => {
+            // Response not yet received
+            if (!responseString) {
+                return;
+            }
+
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+            channel.close();
+            resolve(responseString);
+        }, pollIntervalMilliseconds);
+    });
 }
 
 // #endregion

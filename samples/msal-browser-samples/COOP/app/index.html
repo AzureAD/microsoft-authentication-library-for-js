@@ -40,12 +40,11 @@
       <div class="dropdown-menu">
         <button class="dropdown-item" id="popup" onclick="signIn(this.id)">Sign in using Popup</button>
         <button class="dropdown-item" id="redirect" onclick="signIn(this.id)">Sign in using Redirect</button>
-        <button class="dropdown-item" id="popupLmso" onclick="openPopupLmso(this.id)">open lmso popup</button>
       </div>
     </div>
   </nav>
   <br>
-  <h5 class="card-header text-center">Vanilla JavaScript SPA calling MS Graph API with MSAL.JS</h5>
+  <h5 class="card-header text-center">MSAL.js COOP sample</h5>
   <br>
   <div class="row" style="margin:auto">
     <br>
@@ -59,10 +58,10 @@
     </div>
     <br><br>
     <div class="row container">
-      <div class="col-md-5">
-        <button id="openStsPopup" class="btn btn-info center" onclick="loginPopup({})">Login popup with COOP</button>
-
-        <br>
+      <div class="col-md-12 text-center">
+        <button id="loginPopup" class="btn btn-info" onclick="loginPopup({})">Login popup</button>
+        <button id="sso" class="btn btn-info ml-3" onclick="sso({})">SSO</button>
+        <br><br>
         <div id="successAuthCode"></div>
       </div>
 
@@ -91,7 +90,6 @@
   <script type="text/javascript" src="./authConfig.js"></script>
   <script type="text/javascript" src="./ui.js"></script>
   <script type="text/javascript" src="./auth.js"></script>
-  <script type="text/javascript" src="./graph.js"></script>
 </body>
 
 </html>

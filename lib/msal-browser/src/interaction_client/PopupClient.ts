@@ -56,7 +56,6 @@ import {
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
-import { monitorPopupForHash } from "../utils/PopupUtils.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -350,7 +349,7 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const responseString = await monitorPopupForHash(
+            const responseString = await BrowserUtils.waitForBridgeResponse(
                 this.config.system.pollIntervalMilliseconds,
                 this.config.system.windowHashTimeout,
                 this.logger,
@@ -463,7 +462,7 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            monitorPopupForHash,
+            BrowserUtils.waitForBridgeResponse,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
@@ -618,7 +617,7 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await monitorPopupForHash(
+            await BrowserUtils.waitForBridgeResponse(
                 this.config.system.pollIntervalMilliseconds,
                 this.config.system.windowHashTimeout,
                 this.logger,

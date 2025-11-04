@@ -37,7 +37,6 @@ import {
 import {
     initiateCodeRequest,
     initiateEarRequest,
-    monitorIframeForHash,
 } from "../interaction_handler/SilentHandler.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -268,7 +267,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             ...request,
             earJwk: earJwk,
         };
-        const msalFrame = await invokeAsync(
+        await invokeAsync(
             initiateEarRequest,
             BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
@@ -283,21 +282,18 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
-        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            monitorIframeForHash,
+            BrowserUtils.waitForBridgeResponse,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
         )(
-            msalFrame,
-            this.config.system.iframeHashTimeout,
             this.config.system.pollIntervalMilliseconds,
-            this.performanceClient,
+            this.config.system.iframeHashTimeout,
             this.logger,
-            correlationId,
-            responseType
+            this.browserCrypto,
+            request
         );
 
         const serverParams = invoke(
@@ -380,7 +376,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
 
         // Get the frame handle for the silent request
-        const msalFrame = await invokeAsync(
+        await invokeAsync(
             initiateCodeRequest,
             BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
@@ -390,21 +386,21 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+
         const responseString = await invokeAsync(
-            monitorIframeForHash,
+            BrowserUtils.waitForBridgeResponse,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
         )(
-            msalFrame,
-            this.config.system.iframeHashTimeout,
             this.config.system.pollIntervalMilliseconds,
-            this.performanceClient,
+            this.config.system.iframeHashTimeout,
             this.logger,
-            correlationId,
-            responseType
+            this.browserCrypto,
+            request
         );
+
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
             BrowserPerformanceEvents.DeserializeResponse,

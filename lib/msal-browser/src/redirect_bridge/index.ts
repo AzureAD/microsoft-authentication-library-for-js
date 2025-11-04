@@ -4,15 +4,11 @@
  */
 
 import { ProtocolUtils } from "@azure/msal-common/browser";
-import { isInPopup } from "../utils/BrowserUtils.js";
+import { clearHash } from "../utils/BrowserUtils.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 
-export async function sendPopupPayloadToMainFrame(): Promise<void> {
+export async function broadcastResponseToMainFrame(): Promise<void> {
     try {
-        if (!isInPopup()) {
-            throw new Error("Window is not a popup");
-        }
-
         // 1) Determine which URL container carries the payload
         const hasHash =
             !!window.location.hash && window.location.hash.length > 1;
@@ -31,17 +27,7 @@ export async function sendPopupPayloadToMainFrame(): Promise<void> {
         }
 
         // 2) Remove the response from URL for security
-        if (hasHash) {
-            // Clear hash
-            window.history.replaceState(
-                null,
-                "",
-                window.location.pathname + window.location.search
-            );
-        } else {
-            // Clear query string
-            window.history.replaceState(null, "", window.location.pathname);
-        }
+        clearHash(window);
 
         const { libraryState } = ProtocolUtils.parseRequestState(
             base64Decode,
