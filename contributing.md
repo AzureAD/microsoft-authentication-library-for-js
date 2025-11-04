@@ -132,6 +132,21 @@ Once the extension is installed, you will be able to simply right click a test a
 
 ![image](https://github.com/AzureAD/microsoft-authentication-library-for-js/assets/30090357/f1bdc2df-91ed-415a-9295-5e9ce527c182)
 
+## GitHub Copilot Configuration
+
+This repository is configured to work optimally with [GitHub Copilot coding agents](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-for-pull-requests). The configuration provides context about the repository structure, build processes, code standards, and best practices to help Copilot assist you more effectively.
+
+### What's Configured
+
+- **Repository-wide instructions** (`.github/copilot-instructions.md`): General guidance for all files in the repository
+- **Path-specific instructions** (`.github/instructions/`): Specialized guidance for specific areas like custom authentication features
+
+These instructions are automatically loaded when GitHub Copilot works on this repository. You don't need to do anything special to use them.
+
+### For Maintainers
+
+If you're adding new major features or components with unique requirements, consider adding path-specific instruction files. See [`.github/README.md`](.github/README.md) for details on maintaining Copilot configuration.
+
 ## Before committing
 
 We will automatically run lint as our pre-commit command. Failing to pass linting will prevent you from pushing up code which will break the build.
