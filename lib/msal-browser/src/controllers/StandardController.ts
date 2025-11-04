@@ -27,6 +27,7 @@ import {
     PkceCodes,
     AccountEntityUtils,
     Constants,
+    AuthToken,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -1483,7 +1484,8 @@ export class StandardController implements IController {
             );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims)
         );
 
         if (result.fromPlatformBroker) {

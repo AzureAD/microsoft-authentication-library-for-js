@@ -6964,7 +6964,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ]);
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true)
                 .then(async () => {
                     // Create a second PCA instance to simulate another tab
                     const pca2 = new PublicClientApplication({
@@ -7002,7 +7002,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ]);
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() => {
                     // Ensure account is present in the cache before setting it as active
                     secondBrowserStorageInstance.setActiveAccount(
