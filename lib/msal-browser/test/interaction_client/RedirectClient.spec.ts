@@ -45,10 +45,9 @@ import {
     InProgressPerformanceEvent,
     StubPerformanceClient,
     ProtocolMode,
-    AccessTokenEntity,
     AccountEntityUtils,
     Constants,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
     TemporaryCacheKeys,
@@ -67,7 +66,6 @@ import {
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
-import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
@@ -2482,7 +2480,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({ account: testAccountInfo })
                 );
@@ -2544,7 +2542,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({
                         account: testAccountInfo,
@@ -2634,11 +2632,13 @@ describe("RedirectClient", () => {
 
             await browserStorage.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await browserStorage.setIdTokenCredential(
                 testIdToken,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
 
             pca.setActiveAccount(testAccountInfo);
@@ -2828,7 +2828,7 @@ describe("RedirectClient", () => {
 
                 browserStorage2.setInteractionInProgress(true);
                 browserStorage2
-                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                     .then(() =>
                         redirectClient2
                             .logout({
@@ -2941,7 +2941,7 @@ describe("RedirectClient", () => {
 
                 browserStorage3.setInteractionInProgress(true);
                 browserStorage3
-                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                     .then(() =>
                         redirectClient3
                             .logout({

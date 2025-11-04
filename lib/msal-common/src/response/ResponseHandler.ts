@@ -33,7 +33,11 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
+import {
+    checkMaxAge,
+    extractTokenClaims,
+    isKmsi,
+} from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -306,6 +310,7 @@ export class ResponseHandler {
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
+                isKmsi(idTokenClaims || {}),
                 request.storeInCache
             );
         } finally {
