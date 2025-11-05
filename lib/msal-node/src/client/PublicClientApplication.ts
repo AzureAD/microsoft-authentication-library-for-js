@@ -166,7 +166,7 @@ export class PublicClientApplication
                 correlationId: correlationId,
                 extraParameters: {
                     ...remainingProperties.extraQueryParameters,
-                    ...remainingProperties.tokenQueryParameters,
+                    ...remainingProperties.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: remainingProperties.account?.nativeAccountId,
@@ -261,7 +261,8 @@ export class PublicClientApplication
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
-                    ...request.tokenQueryParameters,
+                    ...request.extraQueryParameters,
+                    ...request.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: request.account.nativeAccountId,
