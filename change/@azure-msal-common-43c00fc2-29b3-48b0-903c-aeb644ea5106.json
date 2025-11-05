@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Remove unused AccountEntity Util function #8122",
+  "comment": "Remove unused AccountEntity Util function [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122)",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

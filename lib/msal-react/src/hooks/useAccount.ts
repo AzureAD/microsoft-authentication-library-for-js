@@ -41,7 +41,6 @@ function getAccount(
  * Helper function to determine whether 2 accountInfo objects represent the same account
  * @param accountA
  * @param accountB
- * @param compareClaims - If set to true idTokenClaims will also be compared to determine account equality
  */
 export function accountInfoIsEqual(
     accountA: AccountInfo | null,

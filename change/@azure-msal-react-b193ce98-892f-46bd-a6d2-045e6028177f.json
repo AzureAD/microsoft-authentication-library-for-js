@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Remove dependency on msal-browser Util functions #8122",
+  "comment": "Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122)",
   "packageName": "@azure/msal-react",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
