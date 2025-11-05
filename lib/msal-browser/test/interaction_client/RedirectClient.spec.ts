@@ -64,6 +64,7 @@ import {
     BrowserAuthError,
     getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
