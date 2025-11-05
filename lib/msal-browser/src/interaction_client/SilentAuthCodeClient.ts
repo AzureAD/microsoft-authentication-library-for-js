@@ -13,7 +13,11 @@ import {
     invokeAsync,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { StandardInteractionClient } from "./StandardInteractionClient.js";
+import {
+    initializeAuthorizationRequest,
+    StandardInteractionClient,
+} from "./StandardInteractionClient.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -28,6 +32,7 @@ import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeCl
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -41,8 +46,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         apiId: ApiId,
         performanceClient: IPerformanceClient,
-        platformAuthProvider?: IPlatformAuthHandler,
-        correlationId?: string
+        correlationId: string,
+        platformAuthProvider?: IPlatformAuthHandler
     ) {
         super(
             config,
@@ -52,8 +57,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            platformAuthProvider,
-            correlationId
+            correlationId,
+            platformAuthProvider
         );
         this.apiId = apiId;
     }
@@ -74,15 +79,32 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
 
         // Create silent request
         const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
-            this.initializeAuthorizationRequest.bind(this),
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            initializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
-            request.correlationId
-        )(request, InteractionType.Silent);
+            this.correlationId
+        )(
+            request,
+            InteractionType.Silent,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            /*
+             * correlationId is optional in request payload, while this.correlationId is always instantiated as request.correlationId || createGuid().
+             * Each auth request creates a new instance of *Client so we can safely use this.correlationId.
+             */
+            this.correlationId
+        );
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            this.apiId,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {
@@ -95,10 +117,10 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             // Initialize the client
             const clientConfig = await invokeAsync(
                 this.getClientConfiguration.bind(this),
-                PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+                BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                this.correlationId
             )({
                 serverTelemetryManager,
                 requestAuthority: silentRequest.authority,
@@ -107,8 +129,11 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 account: silentRequest.account,
             });
             const authClient: HybridSpaAuthorizationCodeClient =
-                new HybridSpaAuthorizationCodeClient(clientConfig);
-            this.logger.verbose("Auth code client created");
+                new HybridSpaAuthorizationCodeClient(
+                    clientConfig,
+                    this.performanceClient
+                );
+            this.logger.verbose("Auth code client created", this.correlationId);
 
             // Create silent handler
             const interactionHandler = new InteractionHandler(
@@ -127,7 +152,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 PerformanceEvents.HandleCodeResponseFromServer,
                 this.logger,
                 this.performanceClient,
-                request.correlationId
+                this.correlationId
             )(
                 {
                     code: request.code,

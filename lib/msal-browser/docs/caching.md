@@ -23,11 +23,11 @@ const pca = new PublicClientApplication({
 
 By default, MSAL stores the various authentication artifacts it obtains from the IdP in browser storage using the [Web Storage API](https://developer.mozilla.org/docs/Web/API/Web_Storage_API) supported by all modern browsers. Accordingly, MSAL offers two methods of persistent storage: `sessionStorage` (default) and `localStorage`. In addition, MSAL provides `memoryStorage` option which allows you to opt-out of storing the cache in browser storage.
 
-| Cache Location   | Cleared on              | Shared between windows/tabs | Redirect flow supported |
-|------------------|-------------------------|-----------------------------|-------------------------|
-| `sessionStorage` | window/tab close        | No                          | Yes                     |
-| `localStorage`   | browser close           | Yes                         | Yes                     |
-| `memoryStorage`  | page refresh/navigation | No                          | No                      |
+| Cache Location   | Cleared on                                             | Shared between windows/tabs | Redirect flow supported |
+|------------------|--------------------------------------------------------|-----------------------------|-------------------------|
+| `sessionStorage` | window/tab close                                       | No                          | Yes                     |
+| `localStorage`   | browser close (unless user selected keep me signed in) | Yes                         | Yes                     |
+| `memoryStorage`  | page refresh/navigation                                | No                          | No                      |
 
 > :bulb: While the authentication state may be lost in session and memory storage due to window/tab close or page refresh/navigation, respectively, users will still have an active session with the IdP as long as the session cookie is not expired and might be able to re-authenticate without any prompts.
 
@@ -35,15 +35,11 @@ The choice between different storage locations reflects a trade-off between bett
 
 ### LocalStorage Notes
 
-Starting in v4, if you are using the `localStorage` cache location, auth artifacts will be encrypted with [AES-GCM](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm) using [HKDF](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#hkdf) to derive the key. The base key is stored in a session cookie titled `msal.cache.encryption`.
+Starting in v4, if you are using the `localStorage` cache location, auth artifacts will be encrypted unless the user selects "Keep me signed in" during sign in. The encryption algorithm used is [AES-GCM](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm) using [HKDF](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#hkdf) to derive the key. The base key is stored in a session cookie titled `msal.cache.encryption`.
 
-This cookie will be automatically removed when the browser instance (not tab) is closed, thus making it impossible to decrypt any auth artifacts after the session has ended. These expired auth artifacts will be removed the next time MSAL is initialized and the user may need to reauthenticate. The `localStorage` location still provides cross-tab cache persistence but will no longer persist across browser sessions.  
+This cookie will be automatically removed when the browser instance (not tab) is closed, thus making it impossible to decrypt any auth artifacts after the session has ended. These expired auth artifacts will be removed the next time MSAL is initialized and the user may need to reauthenticate. The `localStorage` location still provides cross-tab cache persistence for all users but will only persist across browser sessions for users who selected "Keep me signed in" (KMSI).
 
 > [!Important] The purpose of this encryption is to reduce the persistence of auth artifacts, **not** to provide additional security. If a bad actor gains access to browser storage they would also have access to the key or have the ability to request tokens on your behalf without the need for cache at all. It is your responsibility to ensure your application is not vulnerable to XSS attacks [see below](#security)
-
-### Cookie storage
-
-Additionally, MSAL Browser can be configured to use cookies for storing temporary authentication artifacts. This option allows you to support browsers that may clear local/session storage during redirect-based login flows (e.g. Firefox in private mode). Note that when this option is chosen, tokens themselves are still stored in browser or memory storage. Please refer to [configuration](./configuration.md#cache-config-options) for more.
 
 ### Security
 
@@ -69,6 +65,31 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 > :bulb: Temporary cache entries will always be stored in session storage or in memory. MSAL will fallback to memory storage if sessionStorage is not available.
 
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
+
+## Cache persistence during MSAL.js upgrades and rollbacks
+
+Occasionally MSAL.js needs to make changes to the shape of the cached artifacts to support new requirements, features or bug fixes. As often as possible these changes will be made in a backwards compatible way so as to ensure that when an application upgrades to a new version or rolls back to an older one the cache present in a user's browser can still be used. However, this is not always possible and you may end up in a state where multiple copies of the cache exist concurrently, one used by the current version of MSAL.js running and another that was written by the version used prior to the upgrade. This is done to allow applications to gracefully rollback, if needed. In the vast majority of upgrades, MSAL.js will migrate any existing cache into the new format for a seamless upgrade experience. In rare cases, such as the upgrade from v3 to v4, this may not be possible due to security or privacy requirements and this will always result in a major version bump. 
+
+When a breaking cache change is made the older cache will be kept for 5 days, by default, to allow for a rollback if needed. The length of time old cache is kept can be configured using the `cacheRetentionDays` cache configuration on `PublicClientApplication`. If the cache has not been actively used within that time it will be cleared the next time MSAL.js is initialized. Additionally, if you do not anticipate needing to rollback you may set this value to `0` to indicate that old cache should always be removed immediately upon upgrading to a new version of MSAL.js. Conversely, if you have a longer rollout window for upgrades you may choose to set this to a longer value.
+
+> [!NOTE]
+> Access and Refresh tokens will be removed once they have expired, even if the configured `cacheRetentionDays` has not yet been reached.
+> Valid access tokens may also be removed at any time if browser storage reaches its storage quota. When storage quotas are reached access tokens will be removed on a First In First Out basis, starting with entries written by a previous version of MSAL.js and then moving on to entries written by the current version of MSAL.js.
+
+```javascript
+const config = {
+    auth: {
+        clientId: "<your-client-id>"
+    },
+    cache: {
+        cacheLocation: "localStorage",
+        cacheRetentionDays: 0 // Set this to the number of days you want old cache to be preserved in the event a rollback is needed (Default 5 days)
+    }
+}
+
+const pca = new PublicClientApplication(config);
+await pca.initialize();
+```
 
 ## Remarks
 

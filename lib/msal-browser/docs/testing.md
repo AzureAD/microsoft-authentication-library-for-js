@@ -6,14 +6,14 @@ The `loadExternalTokens()` API allows the loading of id, access and refresh toke
 
 **Note: This is an advanced feature that is intended for testing purposes in the browser environment only. We do not recommend using this in a production app. For E2E testing recommendations, please refer to our [TestingSample](../../../samples/msal-browser-samples/TestingSample) instead.**
 
-The `loadExternalTokens()` API can be accessed by calling `getTokenCache()` on MSAL Browser's `PublicClientApplication` instance.
+The `loadExternalTokens()` API is a public API facilitating apps to custom load tokens to msal js cache.
 
 ```js
-const msalTokenCache = myMSALObj.getTokenCache();
-await msalTokenCache.loadExternalTokens(
+await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
-    loadTokenOptions
+    loadTokenOptions,
 );
 ```
 
@@ -47,6 +47,10 @@ An account will also be set in the cache based on the information provided above
 See the code examples below:
 
 ```ts
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
+
 const silentRequest: SilentRequest = {
     account: {
         homeAccountId: "your-home-account-id",
@@ -63,16 +67,19 @@ const serverResponse: ExternalTokenResponse = {
 
 const loadTokenOptions: LoadTokenOptions = {};
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
-await pca.getTokenCache().loadExternalTokens(
+const pca = new PublicClientApplication(config);
+await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
     loadTokenOptions
 );
 
 // OR
+
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
 
 const silentRequest: SilentRequest = {
     scopes: [],
@@ -87,16 +94,19 @@ const loadTokenOptions: LoadTokenOptions = {
     clientInfo: "client-info-here",
 };
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
-await pca.getTokenCache().loadExternalTokens(
+const pca = new PublicClientApplication(config);
+await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
     loadTokenOptions
 );
 
 // OR
+
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
 
 const silentRequest: SilentRequest = {
     scopes: [],
@@ -110,10 +120,9 @@ const serverResponse: ExternalTokenResponse = {
 
 const loadTokenOptions: LoadTokenOptions = {};
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
-await pca.getTokenCache().loadExternalTokens(
+const pca = new PublicClientApplication(config);
+await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
     loadTokenOptions
@@ -129,6 +138,10 @@ In addition to the parameters listed [above](#loading-tokens) provide the follow
 See the code examples below:
 
 ```ts
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
+
 const silentRequest: SilentRequest = {
     scopes: ["User.Read", "email"],
     account: {
@@ -151,10 +164,9 @@ const loadTokenOptions: LoadTokenOptions = {
     extendedExpiresOn: 6599,
 };
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
-await pca.getTokenCache().loadExternalTokens(
+const pca = new PublicClientApplication(config);
+await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
     loadTokenOptions
@@ -170,6 +182,10 @@ In addition to the parameters listed [above](#loading-tokens) provide the follow
 See the code examples below:
 
 ```ts
+const config: Configuration = {
+    auth: { clientId: "your-client-id" },
+};
+
 const silentRequest: SilentRequest = {
     scopes: [],
     account: {
@@ -188,10 +204,10 @@ const serverResponse: ExternalTokenResponse = {
 
 const loadTokenOptions: LoadTokenOptions = {};
 
-const pca = new PublicClientApplication({
-    auth: { clientId: "your-client-id" },
-});
-await pca.getTokenCache().loadExternalTokens(
+const pca = new PublicClientApplication(config);
+
+await loadExternalTokens(
+    config,
     silentRequest,
     serverResponse,
     loadTokenOptions

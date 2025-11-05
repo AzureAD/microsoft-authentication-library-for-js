@@ -9,6 +9,7 @@ import {
     LoggerOptions,
     PopTokenGenerator,
     SignedHttpRequestParameters,
+    StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { version, name } from "../packageMetadata.js";
 
@@ -29,7 +30,10 @@ export class SignedHttpRequest {
         const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
         this.logger = new Logger(loggerOptions, name, version);
         this.cryptoOps = new CryptoOps(this.logger);
-        this.popTokenGenerator = new PopTokenGenerator(this.cryptoOps);
+        this.popTokenGenerator = new PopTokenGenerator(
+            this.cryptoOps,
+            new StubPerformanceClient()
+        );
         this.shrParameters = shrParameters;
     }
 
@@ -68,9 +72,16 @@ export class SignedHttpRequest {
     /**
      * Removes cached keys from browser for given public key thumbprint
      * @param publicKeyThumbprint Public key digest (from generatePublicKeyThumbprint API)
+     * @param correlationId
      * @returns If keys are properly deleted
      */
-    async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
-        return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
+    async removeKeys(
+        publicKeyThumbprint: string,
+        correlationId: string
+    ): Promise<void> {
+        return this.cryptoOps.removeTokenBindingKey(
+            publicKeyThumbprint,
+            correlationId
+        );
     }
 }

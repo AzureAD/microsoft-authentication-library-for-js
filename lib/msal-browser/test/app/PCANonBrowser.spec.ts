@@ -180,6 +180,7 @@ describe("Non-browser environment", () => {
             environment: "login.windows.net",
             tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
             username: "AbeLi@microsoft.com",
+            loginHint: "AbeLiLoginHint",
         };
 
         const instance = new PublicClientApplication({
@@ -304,18 +305,6 @@ describe("Non-browser environment", () => {
         }
     });
 
-    it("getTokenCache returns an ITokenCache", async () => {
-        const instance = new PublicClientApplication({
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            },
-        });
-
-        await instance.initialize();
-        const tokenCache = instance.getTokenCache();
-        expect(typeof tokenCache.loadExternalTokens).toBe("function");
-    });
-
     it("getLogger should not throw", async () => {
         const instance = new PublicClientApplication({
             auth: {
@@ -393,6 +382,7 @@ describe("Non-browser environment", () => {
             environment: "login.windows.net",
             tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
             username: "AbeLi@microsoft.com",
+            loginHint: "AbeLiLoginHint",
         };
         const testAuthenticationResult: AuthenticationResult = {
             authority: TEST_CONFIG.validAuthority,

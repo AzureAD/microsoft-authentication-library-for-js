@@ -29,7 +29,7 @@ import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js"
 import * as UrlUtils from "../utils/UrlUtils.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { ThrottlingUtils } from "../network/ThrottlingUtils.js";
 import { AuthError } from "../error/AuthError.js";
 import {
@@ -66,11 +66,11 @@ export abstract class BaseClient {
     public authority: Authority;
 
     // Performance telemetry client
-    protected performanceClient?: IPerformanceClient;
+    protected performanceClient: IPerformanceClient;
 
     protected constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient: IPerformanceClient
     ) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
@@ -117,8 +117,8 @@ export abstract class BaseClient {
                         ] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
                     } catch (e) {
                         this.logger.verbose(
-                            "Could not parse home account ID for CCS Header: " +
-                                e
+                            `Could not parse home account ID for CCS Header: '${e}'`,
+                            ""
                         );
                     }
                     break;
@@ -179,7 +179,11 @@ export abstract class BaseClient {
         options: NetworkRequestOptions,
         correlationId: string
     ): Promise<NetworkResponse<T>> {
-        ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
+        ThrottlingUtils.preProcess(
+            this.cacheManager,
+            thumbprint,
+            correlationId
+        );
 
         let response;
         try {
@@ -236,7 +240,12 @@ export abstract class BaseClient {
             }
         }
 
-        ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
+        ThrottlingUtils.postProcess(
+            this.cacheManager,
+            thumbprint,
+            response,
+            correlationId
+        );
 
         return response;
     }

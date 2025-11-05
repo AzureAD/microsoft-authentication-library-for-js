@@ -29,6 +29,7 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
@@ -47,7 +48,7 @@ export class ClientCredentialClient extends BaseClient {
         configuration: ClientConfiguration,
         appTokenProvider?: IAppTokenProvider
     ) {
-        super(configuration);
+        super(configuration, new StubPerformanceClient());
         this.appTokenProvider = appTokenProvider;
     }
 
@@ -79,7 +80,8 @@ export class ClientCredentialClient extends BaseClient {
                 Constants.CacheOutcome.PROACTIVELY_REFRESHED
             ) {
                 this.logger.info(
-                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+                    "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed.",
+                    request.correlationId
                 );
 
                 // refresh the access token in the background
@@ -136,7 +138,8 @@ export class ClientCredentialClient extends BaseClient {
             managedIdentityConfiguration.managedIdentityId?.id ||
                 clientConfiguration.authOptions.clientId,
             new ScopeSet(request.scopes || []),
-            cacheManager
+            cacheManager,
+            request.correlationId
         );
 
         if (
@@ -194,7 +197,8 @@ export class ClientCredentialClient extends BaseClient {
                     appMetadata: null,
                 },
                 true,
-                request
+                request,
+                this.performanceClient
             ),
             lastCacheOutcome,
         ];
@@ -207,7 +211,8 @@ export class ClientCredentialClient extends BaseClient {
         authority: Authority,
         id: string,
         scopeSet: ScopeSet,
-        cacheManager: CacheManager
+        cacheManager: CacheManager,
+        correlationId: string
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: "",
@@ -219,8 +224,10 @@ export class ClientCredentialClient extends BaseClient {
             target: ScopeSet.createSearchScopes(scopeSet.asArray()),
         };
 
-        const accessTokens =
-            cacheManager.getAccessTokensByFilter(accessTokenFilter);
+        const accessTokens = cacheManager.getAccessTokensByFilter(
+            accessTokenFilter,
+            correlationId
+        );
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
@@ -245,7 +252,10 @@ export class ClientCredentialClient extends BaseClient {
         let reqTimestamp: number;
 
         if (this.appTokenProvider) {
-            this.logger.info("Using appTokenProvider extensibility.");
+            this.logger.info(
+                "Using appTokenProvider extensibility.",
+                request.correlationId
+            );
 
             const appTokenPropviderParameters = {
                 correlationId: request.correlationId,
@@ -289,7 +299,8 @@ export class ClientCredentialClient extends BaseClient {
             };
 
             this.logger.info(
-                "Sending token request to endpoint: " + authority.tokenEndpoint
+                "Sending token request to endpoint: " + authority.tokenEndpoint,
+                request.correlationId
             );
 
             reqTimestamp = TimeUtils.nowSeconds();
@@ -310,12 +321,14 @@ export class ClientCredentialClient extends BaseClient {
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
+            this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin
         );
 
         responseHandler.validateTokenResponse(
             serverTokenResponse,
+            request.correlationId,
             refreshAccessToken
         );
 

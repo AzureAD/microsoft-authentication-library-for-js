@@ -4,9 +4,7 @@ import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,
     POP_AUTHENTICATION_RESULT,
-    RANDOM_TEST_GUID,
     TEST_CONFIG,
-    TEST_CRYPTO_VALUES,
     TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKEN_LIFETIMES,
@@ -19,7 +17,7 @@ import {
     NetworkRequestOptions,
 } from "../../src/network/INetworkModule.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
-import { MockStorageClass } from "../client/ClientTestUtils.js";
+import { mockCrypto, MockStorageClass } from "../client/ClientTestUtils.js";
 import { TokenClaims } from "../../src/account/TokenClaims.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
@@ -42,9 +40,10 @@ import { InteractionRequiredAuthError } from "../../src/error/InteractionRequire
 import { ServerError } from "../../src/error/ServerError.js";
 import { CacheError, CacheErrorCodes } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
-import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
+import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -54,68 +53,8 @@ const networkInterface: INetworkModule = {
         return {} as T;
     },
 };
-const signedJwt =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-const cryptoInterface: ICrypto = {
-    createNewGuid(): string {
-        return RANDOM_TEST_GUID;
-    },
-    base64Decode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                return TEST_POP_VALUES.DECODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED:
-                return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED;
-            default:
-                return input;
-        }
-    },
-    base64Encode(input: string): string {
-        switch (input) {
-            case TEST_POP_VALUES.DECODED_REQ_CNF:
-                return TEST_POP_VALUES.ENCODED_REQ_CNF;
-            case TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO:
-                return TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
-            case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED:
-                return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED;
-            default:
-                return input;
-        }
-    },
-    base64UrlEncode(input: string): string {
-        switch (input) {
-            case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    encodeKid(input: string): string {
-        switch (input) {
-            case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-            default:
-                return input;
-        }
-    },
-    async getPublicKeyThumbprint(): Promise<string> {
-        return TEST_POP_VALUES.KID;
-    },
-    async signJwt(): Promise<string> {
-        return signedJwt;
-    },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async clearKeystore(): Promise<boolean> {
-        return Promise.resolve(true);
-    },
-    async hashString(): Promise<string> {
-        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-    },
-};
+
+const cryptoInterface: ICrypto = mockCrypto;
 
 const testServerTokenResponse = {
     headers: null,
@@ -140,6 +79,7 @@ const testIdTokenClaims: TokenClaims = {
     oid: "00000000-0000-0000-66f3-3332eca7ea81",
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
+    login_hint: "testLoginHint",
 };
 const testAccount: AccountInfo = {
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
@@ -147,6 +87,7 @@ const testAccount: AccountInfo = {
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
     username: testIdTokenClaims.preferred_username || "",
+    loginHint: testIdTokenClaims.login_hint,
 };
 
 const authorityOptions: AuthorityOptions = {
@@ -173,7 +114,8 @@ const logger = new Logger(loggerOptions);
 const testCacheManager = new MockStorageClass(
     TEST_CONFIG.MSAL_CLIENT_ID,
     cryptoInterface,
-    logger
+    logger,
+    new StubPerformanceClient()
 );
 
 const testAuthority = new Authority(
@@ -182,8 +124,11 @@ const testAuthority = new Authority(
     testCacheManager,
     authorityOptions,
     logger,
-    TEST_CONFIG.CORRELATION_ID
+    TEST_CONFIG.CORRELATION_ID,
+    new StubPerformanceClient()
 );
+
+const stubPerformanceClient = new StubPerformanceClient();
 
 describe("ResponseHandler.ts", () => {
     let preferredCacheStub: jest.SpyInstance;
@@ -203,6 +148,7 @@ describe("ResponseHandler.ts", () => {
             environment: "login.windows.net",
             tenantId: "testTenantId",
             username: "test@contoso.com",
+            loginHint: "testLoginHint",
         });
     });
 
@@ -226,6 +172,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -284,6 +231,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -351,6 +299,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -417,6 +366,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -470,6 +420,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -513,7 +464,8 @@ describe("ResponseHandler.ts", () => {
                     authorityMetadata: "",
                 },
                 logger,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
             );
 
             const timestamp = TimeUtils.nowSeconds();
@@ -529,6 +481,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -582,6 +535,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -629,6 +583,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -641,7 +596,7 @@ describe("ResponseHandler.ts", () => {
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
-            expect(result.accessToken).toBe(signedJwt);
+            expect(result.accessToken).toBe(TEST_TOKENS.POP_TOKEN);
         });
 
         it("Does not sign access token when PoP kid is set and PoP scheme enabled", async () => {
@@ -676,6 +631,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -707,6 +663,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -735,12 +692,16 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
 
             try {
-                responseHandler.validateTokenResponse(testTokenResponse);
+                responseHandler.validateTokenResponse(
+                    testTokenResponse,
+                    TEST_CONFIG.CORRELATION_ID
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -767,12 +728,16 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
 
             try {
-                responseHandler.validateTokenResponse(testTokenResponse);
+                responseHandler.validateTokenResponse(
+                    testTokenResponse,
+                    TEST_CONFIG.CORRELATION_ID
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(InteractionRequiredAuthError);
                 const serverError = e as InteractionRequiredAuthError;
@@ -799,12 +764,16 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
 
             try {
-                responseHandler.validateTokenResponse(testTokenResponse);
+                responseHandler.validateTokenResponse(
+                    testTokenResponse,
+                    TEST_CONFIG.CORRELATION_ID
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -831,12 +800,16 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
 
             try {
-                responseHandler.validateTokenResponse(testTokenResponse);
+                responseHandler.validateTokenResponse(
+                    testTokenResponse,
+                    TEST_CONFIG.CORRELATION_ID
+                );
             } catch (e) {
                 expect(e).toBeInstanceOf(ServerError);
                 const serverError = e as ServerError;
@@ -874,6 +847,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -892,7 +866,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(cacheQuotaExceededErrorCode)
+                    getDefaultErrorMessage(cacheQuotaExceeded)
                 );
             }
         });
@@ -920,6 +894,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -938,7 +913,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(cacheQuotaExceededErrorCode)
+                    getDefaultErrorMessage(cacheQuotaExceeded)
                 );
             }
         });
@@ -966,6 +941,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -1009,6 +985,7 @@ describe("ResponseHandler.ts", () => {
                 testCacheManager,
                 cryptoInterface,
                 logger,
+                stubPerformanceClient,
                 null,
                 null
             );
@@ -1026,12 +1003,10 @@ describe("ResponseHandler.ts", () => {
                 expect(e).toBeInstanceOf(CacheError);
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual(
-                    CacheErrorCodes.cacheUnknownErrorCode
+                    CacheErrorCodes.cacheErrorUnknown
                 );
                 expect(cacheError.errorMessage).toEqual(
-                    getDefaultErrorMessage(
-                        CacheErrorCodes.cacheUnknownErrorCode
-                    )
+                    getDefaultErrorMessage(CacheErrorCodes.cacheErrorUnknown)
                 );
             }
         });

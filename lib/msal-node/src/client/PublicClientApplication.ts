@@ -75,7 +75,8 @@ export class PublicClientApplication
                 );
             } else {
                 this.logger.warning(
-                    "NativeBroker implementation was provided but the broker is unavailable."
+                    "NativeBroker implementation was provided but the broker is unavailable.",
+                    ""
                 );
             }
         }
@@ -99,7 +100,7 @@ export class PublicClientApplication
     ): Promise<AuthenticationResult | null> {
         this.logger.info(
             "acquireTokenByDeviceCode called",
-            request.correlationId
+            request.correlationId || ""
         );
         const validRequest: CommonDeviceCodeRequest = Object.assign(
             request,
@@ -289,7 +290,10 @@ export class PublicClientApplication
             await this.nativeBrokerPlugin.signOut(signoutRequest);
         }
 
-        await this.getTokenCache().removeAccount(request.account);
+        await this.getTokenCache().removeAccount(
+            request.account,
+            request.correlationId
+        );
     }
 
     /**

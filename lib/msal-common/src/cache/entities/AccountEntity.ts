@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TenantProfile } from "../../account/AccountInfo.js";
+import { TenantProfile, DataBoundary } from "../../account/AccountInfo.js";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -35,6 +35,7 @@ export type AccountEntity = {
     localAccountId: string;
     username: string;
     authorityType: string;
+    loginHint?: string;
     clientInfo?: string;
     name?: string;
     lastModificationTime?: string;
@@ -43,4 +44,7 @@ export type AccountEntity = {
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
+    /** Timestamp when the entry was last updated */
+    lastUpdatedAt: string;
+    dataBoundary?: DataBoundary;
 };

@@ -80,6 +80,7 @@ import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
+import { StubPerformanceClient } from "@azure/msal-common";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -160,7 +161,11 @@ describe("PublicClientApplication", () => {
             getMsalCommonAutoMock().AuthorizationCodeClient;
 
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
-            (config) => new MockAuthorizationCodeClient(config)
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
         );
 
         const authApp = new PublicClientApplication(appConfig);
@@ -186,7 +191,11 @@ describe("PublicClientApplication", () => {
             getMsalCommonAutoMock().AuthorizationCodeClient;
 
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
-            (config) => new MockAuthorizationCodeClient(config)
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
         );
 
         const authApp = new PublicClientApplication(appConfig);
@@ -213,7 +222,11 @@ describe("PublicClientApplication", () => {
             getMsalCommonAutoMock().AuthorizationCodeClient;
 
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
-            (config) => new MockAuthorizationCodeClient(config)
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
         );
 
         const authApp = new PublicClientApplication(appConfig);
@@ -231,7 +244,8 @@ describe("PublicClientApplication", () => {
         const mockRefreshTokenClient =
             getMsalCommonAutoMock().RefreshTokenClient;
         jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
-            (config) => new mockRefreshTokenClient(config)
+            (config) =>
+                new mockRefreshTokenClient(config, new StubPerformanceClient())
         );
 
         const authApp = new PublicClientApplication(appConfig);
@@ -254,6 +268,7 @@ describe("PublicClientApplication", () => {
             realm: ID_TOKEN_CLAIMS.tid,
             secret: AUTHENTICATION_RESULT.body.id_token,
             credentialType: CommonConstants.CredentialType.ID_TOKEN,
+            lastUpdatedAt: Date.now().toString(),
         };
         const testAccessTokenEntity: AccessTokenEntity = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -271,6 +286,7 @@ describe("PublicClientApplication", () => {
                 TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
             ).toString(),
             tokenType: CommonConstants.AuthenticationScheme.BEARER,
+            lastUpdatedAt: Date.now().toString(),
         };
         const testRefreshTokenEntity: RefreshTokenEntity = {
             homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -279,6 +295,7 @@ describe("PublicClientApplication", () => {
             realm: ID_TOKEN_CLAIMS.tid,
             secret: AUTHENTICATION_RESULT.body.refresh_token,
             credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
+            lastUpdatedAt: Date.now().toString(),
         };
         testAccessTokenEntity.refreshOn = `${
             Number(testAccessTokenEntity.cachedAt) - 1
@@ -296,7 +313,8 @@ describe("PublicClientApplication", () => {
 
             const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
             jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
-                (config) => new silentFlowClient(config)
+                (config) =>
+                    new silentFlowClient(config, new StubPerformanceClient())
             );
             jest.spyOn(
                 silentFlowClient.prototype,
@@ -416,7 +434,8 @@ describe("PublicClientApplication", () => {
 
             const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
             jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
-                (config) => new silentFlowClient(config)
+                (config) =>
+                    new silentFlowClient(config, new StubPerformanceClient())
             );
 
             let acquireCachedTokenSpy = jest
@@ -450,10 +469,6 @@ describe("PublicClientApplication", () => {
                 RefreshTokenClient.prototype,
                 <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
-            jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
-            ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
             );
@@ -581,10 +596,6 @@ describe("PublicClientApplication", () => {
                 Number(testAccessTokenEntity.cachedAt) +
                 AUTHENTICATION_RESULT.body.expires_in
             }`;
-            jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
-            ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
             );
@@ -648,7 +659,11 @@ describe("PublicClientApplication", () => {
                 msalCommon,
                 "AuthorizationCodeClient"
             ).mockImplementation(
-                (config) => new MockAuthorizationCodeClient(config)
+                (config) =>
+                    new MockAuthorizationCodeClient(
+                        config,
+                        new StubPerformanceClient()
+                    )
             );
 
             jest.spyOn(
@@ -720,7 +735,11 @@ describe("PublicClientApplication", () => {
                 msalCommon,
                 "AuthorizationCodeClient"
             ).mockImplementation(
-                (config) => new MockAuthorizationCodeClient(config)
+                (config) =>
+                    new MockAuthorizationCodeClient(
+                        config,
+                        new StubPerformanceClient()
+                    )
             );
 
             jest.spyOn(
@@ -794,7 +813,11 @@ describe("PublicClientApplication", () => {
                 msalCommon,
                 "AuthorizationCodeClient"
             ).mockImplementation(
-                (config) => new MockAuthorizationCodeClient(config)
+                (config) =>
+                    new MockAuthorizationCodeClient(
+                        config,
+                        new StubPerformanceClient()
+                    )
             );
 
             jest.spyOn(
@@ -945,7 +968,11 @@ describe("PublicClientApplication", () => {
                 msalCommon,
                 "AuthorizationCodeClient"
             ).mockImplementation(
-                (config) => new MockAuthorizationCodeClient(config)
+                (config) =>
+                    new MockAuthorizationCodeClient(
+                        config,
+                        new StubPerformanceClient()
+                    )
             );
 
             jest.spyOn(
@@ -1010,7 +1037,11 @@ describe("PublicClientApplication", () => {
                 msalCommon,
                 "AuthorizationCodeClient"
             ).mockImplementation(
-                (config) => new MockAuthorizationCodeClient(config)
+                (config) =>
+                    new MockAuthorizationCodeClient(
+                        config,
+                        new StubPerformanceClient()
+                    )
             );
 
             jest.spyOn(
@@ -1051,7 +1082,8 @@ describe("PublicClientApplication", () => {
                         new MockStorageClass(
                             TEST_CONFIG.MSAL_CLIENT_ID,
                             cryptoProvider,
-                            new Logger({})
+                            new Logger({}),
+                            new StubPerformanceClient()
                         ),
                         {
                             protocolMode: ProtocolMode.AAD,
@@ -1060,7 +1092,8 @@ describe("PublicClientApplication", () => {
                             authorityMetadata: "",
                         },
                         new Logger({}),
-                        TEST_CONFIG.CORRELATION_ID
+                        TEST_CONFIG.CORRELATION_ID,
+                        new StubPerformanceClient()
                     )
                 );
 
@@ -1263,7 +1296,10 @@ describe("PublicClientApplication", () => {
                 expect(config.authOptions.authority.canonicalAuthority).toEqual(
                     TEST_CONSTANTS.DEFAULT_AUTHORITY
                 );
-                return new mockRefreshTokenClient(config);
+                return new mockRefreshTokenClient(
+                    config,
+                    new StubPerformanceClient()
+                );
             }
         );
 
@@ -1287,7 +1323,10 @@ describe("PublicClientApplication", () => {
                 expect(config.authOptions.authority.canonicalAuthority).toEqual(
                     TEST_CONSTANTS.ALTERNATE_AUTHORITY
                 );
-                return new mockRefreshTokenClient(config);
+                return new mockRefreshTokenClient(
+                    config,
+                    new StubPerformanceClient()
+                );
             }
         );
 
@@ -1321,7 +1360,10 @@ describe("PublicClientApplication", () => {
                 expect(config.authOptions.authority.canonicalAuthority).toEqual(
                     TEST_CONSTANTS.USGOV_AUTHORITY
                 );
-                return new mockRefreshTokenClient(config);
+                return new mockRefreshTokenClient(
+                    config,
+                    new StubPerformanceClient()
+                );
             }
         );
 
@@ -1356,7 +1398,10 @@ describe("PublicClientApplication", () => {
                 expect(config.authOptions.authority.canonicalAuthority).toEqual(
                     TEST_CONSTANTS.USGOV_AUTHORITY
                 );
-                return new mockRefreshTokenClient(config);
+                return new mockRefreshTokenClient(
+                    config,
+                    new StubPerformanceClient()
+                );
             }
         );
 
@@ -1386,14 +1431,14 @@ describe("PublicClientApplication", () => {
 
         expect(authApp.getLogger()).toEqual(logger);
 
-        authApp.getLogger().info("Message");
+        authApp.getLogger().info("Message", "");
     });
 
     test("logger undefined", async () => {
         const authApp = new PublicClientApplication(testAppConfig);
 
         expect(authApp.getLogger()).toBeDefined();
-        expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
+        expect(authApp.getLogger().info("Test logger", "")).toEqual(undefined);
     });
 
     test("should throw an error if state is not provided", async () => {
@@ -1416,7 +1461,11 @@ describe("PublicClientApplication", () => {
             getMsalCommonAutoMock().AuthorizationCodeClient;
 
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
-            (config) => new MockAuthorizationCodeClient(config)
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
         );
 
         const mockInfo = jest.fn();
@@ -1464,7 +1513,11 @@ describe("PublicClientApplication", () => {
             getMsalCommonAutoMock().AuthorizationCodeClient;
 
         jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
-            (config) => new MockAuthorizationCodeClient(config)
+            (config) =>
+                new MockAuthorizationCodeClient(
+                    config,
+                    new StubPerformanceClient()
+                )
         );
 
         const mockInfo = jest.fn();

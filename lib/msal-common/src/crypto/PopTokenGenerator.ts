@@ -7,7 +7,7 @@ import { ICrypto, SignedHttpRequestParameters } from "./ICrypto.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import { UrlString } from "../url/UrlString.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
 
@@ -37,9 +37,9 @@ export type KeyLocation = (typeof KeyLocation)[keyof typeof KeyLocation];
 /** @internal */
 export class PopTokenGenerator {
     private cryptoUtils: ICrypto;
-    private performanceClient?: IPerformanceClient;
+    private performanceClient: IPerformanceClient;
 
-    constructor(cryptoUtils: ICrypto, performanceClient?: IPerformanceClient) {
+    constructor(cryptoUtils: ICrypto, performanceClient: IPerformanceClient) {
         this.cryptoUtils = cryptoUtils;
         this.performanceClient = performanceClient;
     }

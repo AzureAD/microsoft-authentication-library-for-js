@@ -41,13 +41,13 @@ import {
     TemporaryCacheKeys,
     ApiId,
     BrowserConstants,
-    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
+import * as PopupUtils from "../../src/utils/PopupUtils.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
@@ -66,6 +66,7 @@ import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
 import { version } from "../../src/packageMetadata.js";
+import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -111,7 +112,6 @@ describe("PopupClient", () => {
             pca.performanceClient,
             //@ts-ignore
             pca.nativeInternalStorage,
-            undefined,
             TEST_CONFIG.CORRELATION_ID
         );
     });
@@ -214,14 +214,14 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
         });
 
-        it("opens popups asynchronously if configured", async () => {
+        it("opens popups when making network request if configured", async () => {
             const perfClient = getDefaultPerformanceClient();
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
                 telemetry: {
                     client: perfClient,
@@ -256,7 +256,6 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -360,6 +359,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -388,10 +388,7 @@ describe("PopupClient", () => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            jest.spyOn(
-                PopupClient.prototype,
-                "monitorPopupForHash"
-            ).mockResolvedValue(
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
@@ -429,6 +426,7 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID,
                 nativeMessageHandler
             );
             const correlationId = BrowserUtils.createGuid();
@@ -487,6 +485,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -515,10 +514,7 @@ describe("PopupClient", () => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            jest.spyOn(
-                PopupClient.prototype,
-                "monitorPopupForHash"
-            ).mockResolvedValue(
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
@@ -595,6 +591,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -622,10 +619,9 @@ describe("PopupClient", () => {
                     expect(requestUrl).toEqual(testNavUrl);
                     return window;
                 });
-            jest.spyOn(
-                PopupClient.prototype,
-                "monitorPopupForHash"
-            ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+            );
             jest.spyOn(
                 InteractionHandler.prototype,
                 "handleCodeResponse"
@@ -645,10 +641,7 @@ describe("PopupClient", () => {
         });
 
         it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
-            jest.spyOn(
-                PopupClient.prototype,
-                "monitorPopupForHash"
-            ).mockResolvedValue("");
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue("");
 
             popupClient
                 .acquireToken({
@@ -666,10 +659,7 @@ describe("PopupClient", () => {
         });
 
         it("throws hash_does_not_contain_known_properties error if popup returns to redirectUri with unrecognized params in the hash", (done) => {
-            jest.spyOn(
-                PopupClient.prototype,
-                "monitorPopupForHash"
-            ).mockResolvedValue(
+            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
                 "#fakeKey=fakeValue&anotherFakeKey=anotherFakeValue"
             );
 
@@ -696,10 +686,9 @@ describe("PopupClient", () => {
                 jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                     window
                 );
-                jest.spyOn(
-                    PopupClient.prototype,
-                    "monitorPopupForHash"
-                ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+                jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                );
                 jest.spyOn(
                     FetchClient.prototype,
                     "sendPostRequestAsync"
@@ -820,7 +809,7 @@ describe("PopupClient", () => {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(2);
                 expect(
-                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
                 ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
@@ -893,10 +882,7 @@ describe("PopupClient", () => {
                     .mockImplementation(() => {
                         // Suppress navigation
                     });
-                jest.spyOn(
-                    PopupClient.prototype,
-                    "monitorPopupForHash"
-                ).mockResolvedValue(
+                jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
                     `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
                 );
 
@@ -933,13 +919,13 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
         });
 
-        it("opens popups asynchronously if configured", async () => {
+        it("opens popups when making network request if configured", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1022,7 +1008,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1083,7 +1069,7 @@ describe("PopupClient", () => {
                     postLogoutRedirectUri,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1134,7 +1120,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1187,7 +1173,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1238,7 +1224,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1286,6 +1272,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 
@@ -1298,6 +1285,7 @@ describe("PopupClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             // @ts-ignore
@@ -1326,7 +1314,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             });
 
@@ -1375,6 +1363,7 @@ describe("PopupClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 idTokenClaims: testIdTokenClaims,
+                loginHint: testIdTokenClaims.login_hint,
             };
 
             const testAccount: AccountEntity = {
@@ -1386,6 +1375,7 @@ describe("PopupClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             // @ts-ignore
@@ -1420,10 +1410,7 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(
-                PopupClient.prototype,
-                "cleanPopup"
-            ).mockImplementation();
+            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateInternal"
@@ -1450,10 +1437,7 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(
-                PopupClient.prototype,
-                "cleanPopup"
-            ).mockImplementation();
+            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
 
             popupClient.logout().then(() => {
                 done();
@@ -1478,6 +1462,7 @@ describe("PopupClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
 
             const testAccount: AccountEntity = {
@@ -1489,6 +1474,7 @@ describe("PopupClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
@@ -1504,13 +1490,11 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupClient.prototype, "cleanPopup").mockImplementation(
-                (popup) => {
-                    window.sessionStorage.removeItem(
-                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
-                    );
-                }
-            );
+            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation((popup) => {
+                window.sessionStorage.removeItem(
+                    `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
+                );
+            });
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateInternal"
@@ -1806,7 +1790,16 @@ describe("PopupClient", () => {
                 close: () => {},
                 closed: false,
             };
-            popupClient.monitorPopupForHash(popup, window).catch((error) => {
+            const clientImpl = popupClient as any;
+            PopupUtils.monitorPopupForHash(
+                popup,
+                window,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
+                clientImpl.logger,
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
+            ).catch((error) => {
                 expect(error.errorCode).toEqual("user_cancelled");
                 done();
             });
@@ -1827,7 +1820,16 @@ describe("PopupClient", () => {
                 close: () => {},
                 closed: false,
             };
-            popupClient.monitorPopupForHash(popup, window).then((hash) => {
+            const clientImpl = popupClient as any;
+            PopupUtils.monitorPopupForHash(
+                popup,
+                window,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
+                clientImpl.logger,
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
+            ).then((hash) => {
                 expect(hash).toEqual("code=testCode");
                 done();
             });
@@ -1879,17 +1881,22 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
-
-            const result = await popupClient
-                .monitorPopupForHash(popup as Window, window)
-                .catch((e) => {
-                    expect(e.errorCode).toEqual(
-                        BrowserAuthErrorCodes.monitorPopupTimeout
-                    );
-                });
+            const clientImpl = popupClient as any;
+            const result = await PopupUtils.monitorPopupForHash(
+                popup as Window,
+                window,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
+                clientImpl.logger,
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
+            ).catch((e) => {
+                expect(e.errorCode).toEqual(
+                    BrowserAuthErrorCodes.monitorPopupTimeout
+                );
+            });
         });
 
         it("returns hash", (done) => {
@@ -1906,12 +1913,19 @@ describe("PopupClient", () => {
                 close: () => {},
             };
 
-            popupClient
-                .monitorPopupForHash(popup as unknown as Window, window)
-                .then((hash: string) => {
-                    expect(hash).toEqual("#code=hello");
-                    done();
-                });
+            const clientImpl = popupClient as any;
+            PopupUtils.monitorPopupForHash(
+                popup as unknown as Window,
+                window,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
+                clientImpl.logger,
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
+            ).then((hash: string) => {
+                expect(hash).toEqual("#code=hello");
+                done();
+            });
         });
 
         it("returns server code response in query form when responseMode in OIDCOptions is query", async () => {
@@ -1947,7 +1961,6 @@ describe("PopupClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -1964,9 +1977,15 @@ describe("PopupClient", () => {
                 close: () => {},
             };
 
-            const result = await popupClient.monitorPopupForHash(
+            const clientImpl = popupClient as any;
+            const result = await PopupUtils.monitorPopupForHash(
                 popup as unknown as Window,
-                window
+                window,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
+                clientImpl.logger,
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
             );
             expect(result).toEqual("?code=authCode");
         });
@@ -1981,12 +2000,19 @@ describe("PopupClient", () => {
                 closed: true,
             };
 
-            popupClient
-                .monitorPopupForHash(popup as unknown as Window, window)
-                .catch((error: AuthError) => {
-                    expect(error.errorCode).toEqual("user_cancelled");
-                    done();
-                });
+            const clientImpl = popupClient as any;
+            PopupUtils.monitorPopupForHash(
+                popup as unknown as Window,
+                window,
+                clientImpl.config.auth.OIDCOptions.responseMode,
+                clientImpl.config.system.pollIntervalMilliseconds,
+                clientImpl.logger,
+                clientImpl.unloadWindow,
+                TEST_CONFIG.CORRELATION_ID
+            ).catch((error: AuthError) => {
+                expect(error.errorCode).toEqual("user_cancelled");
+                done();
+            });
         });
     });
 
@@ -2009,6 +2035,7 @@ describe("PopupClient", () => {
                 environment: "environment",
                 tenantId: "tenant",
                 username: "user",
+                loginHint: "loginHint",
             };
             const popupName = popupClient.generateLogoutPopupName({
                 account: testAccount,

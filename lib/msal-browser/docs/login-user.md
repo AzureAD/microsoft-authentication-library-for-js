@@ -115,14 +115,23 @@ It is recommended to leverage the [`login_hint` optional ID token claim](https:/
 
 -   `account` (which can be retrieved using on of the [account APIs](./accounts.md))
 -   `sid` (which can be retrieved from the `idTokenClaims` of an `account` object)
--   `login_hint` (which can be retrieved from either the account object `login_hint` ID token claim, `username` property, or the `upn` ID token claim)
+-   `login_hint` (can be retrieved the following ways)
+    - As the account object's `loginHint` property (recommended)
+    - As the account object's `login_hint` ID token claim (recommended)
+    - As the account object's `username` property  (not recommended)
+    - As the account object's `upn` ID token claim (not recommended)
+
+> [!NOTE]
+> The `username` and `upn` properties are partially supported in place of the actual `login_hint` claim, but they are not recommended. Please use the `loginHint` or `idTokenClaims.login_hint` account properties if they are available.
 
 Passing an account will look for the `login_hint` optional ID token claim (preferred), then the `sid` optional id token claim, then fall back to `loginHint` (if provided) or account username.
 
 ```javascript
+const account = msalInstance.getAllAccounts()[0];
+
 const silentRequest = {
     scopes: ["User.Read", "Mail.Read"],
-    loginHint: "user@contoso.com",
+    loginHint: account.loginHint, // alternatively, account.idTokenClaims.login_hint
 };
 
 try {

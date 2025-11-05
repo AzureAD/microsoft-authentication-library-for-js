@@ -8,6 +8,7 @@ import {
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
     TEST_POP_VALUES,
+    TEST_TOKENS,
 } from "../test_kit/StringConstants.js";
 
 import { CacheManager } from "../../src/cache/CacheManager.js";
@@ -29,17 +30,67 @@ import {
     createClientAuthError,
 } from "../../src/error/ClientAuthError.js";
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager.js";
-import { SKU } from "../../src/utils/Constants.js";
+import {
+    AuthenticationScheme,
+    CACHE_KEY_SEPARATOR,
+    CredentialType,
+    SKU,
+    EncodingTypes,
+} from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
-import { EncodingTypes } from "../../src/utils/Constants.js";
+import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
+import { CredentialEntity } from "../../src/cache/entities/CredentialEntity.js";
+import { AccountInfo } from "../../src/account/AccountInfo.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
 
+export function generateCredentialKey(credential: CredentialEntity): string {
+    const familyId =
+        (credential.credentialType === CredentialType.REFRESH_TOKEN &&
+            credential.familyId) ||
+        credential.clientId;
+    const scheme =
+        credential.tokenType &&
+        credential.tokenType.toLowerCase() !==
+            AuthenticationScheme.BEARER.toLowerCase()
+            ? credential.tokenType.toLowerCase()
+            : "";
+    const credentialKey = [
+        credential.homeAccountId,
+        credential.environment,
+        credential.credentialType,
+        familyId,
+        credential.realm || "",
+        credential.target || "",
+        scheme,
+    ];
+
+    return credentialKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
+}
+
+export function generateAccountKey(account: AccountInfo): string {
+    const homeTenantId = account.homeAccountId.split(".")[1];
+    const accountKey = [
+        account.homeAccountId,
+        account.environment,
+        homeTenantId || account.tenantId || "",
+    ];
+    return accountKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
+}
+
 export class MockStorageClass extends CacheManager {
     store = {};
+
+    generateCredentialKey(credential: CredentialEntity): string {
+        return generateCredentialKey(credential);
+    }
+
+    generateAccountKey(account: AccountInfo): string {
+        return generateAccountKey(account);
+    }
 
     // Accounts
     getAccount(key: string): AccountEntity | null {
@@ -51,7 +102,9 @@ export class MockStorageClass extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = AccountEntityUtils.generateAccountKey(value);
+        const key = generateAccountKey(
+            AccountEntityUtils.getAccountInfo(value)
+        );
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
@@ -61,10 +114,12 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+    removeAccount(account: AccountInfo, correlationId: string): void {
+        super.removeAccount(account, correlationId);
         const currentAccounts = this.getAccountKeys();
-        const removalIndex = currentAccounts.indexOf(key);
+        const removalIndex = currentAccounts.indexOf(
+            this.generateAccountKey(account)
+        );
         if (removalIndex > -1) {
             currentAccounts.splice(removalIndex, 1);
             this.store[ACCOUNT_KEYS] = currentAccounts;
@@ -72,17 +127,17 @@ export class MockStorageClass extends CacheManager {
     }
 
     getAccountKeys(): string[] {
-        return this.store[ACCOUNT_KEYS] || [];
+        return [...(this.store[ACCOUNT_KEYS] || [])];
     }
 
     getTokenKeys(): TokenKeys {
-        return (
-            this.store[TOKEN_KEYS] || {
+        return {
+            ...(this.store[TOKEN_KEYS] || {
                 idToken: [],
                 accessToken: [],
                 refreshToken: [],
-            }
-        );
+            }),
+        } as TokenKeys;
     }
 
     // Credentials (idtokens)
@@ -90,7 +145,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as IdTokenEntity) || null;
     }
     async setIdTokenCredential(value: IdTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -105,7 +160,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as AccessTokenEntity) || null;
     }
     async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -120,7 +175,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     async setRefreshTokenCredential(value: RefreshTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -217,11 +272,11 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async removeTokenBindingKey(keyId: string): Promise<boolean> {
-        return Promise.resolve(true);
+    async removeTokenBindingKey(keyId: string): Promise<void> {
+        return Promise.resolve();
     },
     async signJwt(): Promise<string> {
-        return "";
+        return TEST_TOKENS.POP_TOKEN;
     },
     async clearKeystore(): Promise<boolean> {
         return Promise.resolve(true);
@@ -240,6 +295,7 @@ export class ClientTestUtils {
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
             new Logger({}),
+            new StubPerformanceClient(),
             {
                 canonicalAuthority: TEST_CONFIG.validAuthority,
             }
@@ -318,6 +374,7 @@ export async function getDiscoveredAuthority(
         TEST_CONFIG.MSAL_CLIENT_ID,
         mockCrypto,
         new Logger({}),
+        new StubPerformanceClient(),
         {
             canonicalAuthority: TEST_CONFIG.validAuthority,
         }
@@ -352,7 +409,8 @@ export async function getDiscoveredAuthority(
         mockStorage,
         authorityOptions,
         logger,
-        TEST_CONFIG.CORRELATION_ID
+        TEST_CONFIG.CORRELATION_ID,
+        new StubPerformanceClient()
     );
 
     await authority.resolveEndpointsAsync().catch((error) => {

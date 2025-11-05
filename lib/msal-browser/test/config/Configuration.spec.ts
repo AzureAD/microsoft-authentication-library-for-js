@@ -42,7 +42,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         );
         expect(emptyConfig.auth.redirectUri).toBeDefined();
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
-        expect(emptyConfig.auth.navigateToLoginRequestUrl).toBe(true);
         expect(emptyConfig.auth?.azureCloudOptions?.azureCloudInstance).toBe(
             AzureCloudInstance.None
         );
@@ -68,7 +67,7 @@ describe("Configuration.ts Class Unit Tests", () => {
             DEFAULT_IFRAME_TIMEOUT_MS
         );
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
-        expect(emptyConfig.system?.asyncPopups).toBe(false);
+        expect(emptyConfig.system?.navigatePopups).toBe(true);
         expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
     });
 
@@ -234,7 +233,6 @@ describe("Configuration.ts Class Unit Tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                     postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                    navigateToLoginRequestUrl: false,
                 },
                 cache: {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
@@ -246,7 +244,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                         loggerCallback: testLoggerCallback,
                         piiLoggingEnabled: true,
                     },
-                    asyncPopups: true,
+                    navigatePopups: false,
                 },
             },
             true
@@ -261,7 +259,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.auth.postLogoutRedirectUri).toBe(
             TEST_URIS.TEST_LOGOUT_URI
         );
-        expect(newConfig.auth.navigateToLoginRequestUrl).toBe(false);
         // Cache config checks
         expect(newConfig.cache).not.toBeNull();
         expect(newConfig.cache?.cacheLocation).not.toBeNull();
@@ -275,7 +272,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.loggerOptions).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
-        expect(newConfig.system?.asyncPopups).toBe(true);
+        expect(newConfig.system?.navigatePopups).toBe(false);
     });
     it("Setting OIDCOptions when in AAD protocol mode logs a warning", async () => {
         const loggerSpy = jest

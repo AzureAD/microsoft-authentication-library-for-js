@@ -62,6 +62,14 @@ describe("NativeAuthError Unit Tests", () => {
                 expect(isFatalNativeAuthError(error)).toBe(true);
             });
 
+            it("should return true for isFatal when extension throws an error", () => {
+                const error = new NativeAuthError(
+                    NativeAuthErrorCodes.pageException,
+                    "extension threw error"
+                );
+                expect(isFatalNativeAuthError(error)).toBe(true);
+            });
+
             it("should return false for isFatal", () => {
                 const error = new NativeAuthError(
                     "testError",
@@ -115,6 +123,23 @@ describe("NativeAuthError Unit Tests", () => {
                 expect(error).toBeInstanceOf(InteractionRequiredAuthError);
                 expect(error.errorCode).toBe(
                     InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                );
+            });
+
+            it("translates UX_NOT_ALLOWED status into corresponding InteractionRequiredError", () => {
+                const error = createNativeAuthError(
+                    "interaction_required",
+                    "interaction is required",
+                    {
+                        error: 1,
+                        protocol_error: "testProtocolError",
+                        properties: {},
+                        status: NativeStatusCode.UX_NOT_ALLOWED,
+                    }
+                );
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(error.errorCode).toBe(
+                    InteractionRequiredAuthErrorCodes.uxNotAllowed
                 );
             });
 

@@ -30,6 +30,9 @@ import {
     ClientAssertionConfig,
     AccountEntityUtils,
     Constants,
+    StubPerformanceClient,
+    AccountInfo,
+    CredentialEntity,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -44,12 +47,24 @@ import {
 } from "../test_kit/StringConstants.js";
 import { Configuration } from "../../src/config/Configuration.js";
 import { TEST_CONSTANTS } from "../utils/TestConstants.js";
+import {
+    generateAccountKey,
+    generateCredentialKey,
+} from "../../src/cache/CacheHelpers.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class MockStorageClass extends CacheManager {
     store = {};
+
+    generateCredentialKey(credential: CredentialEntity): string {
+        return generateCredentialKey(credential);
+    }
+
+    generateAccountKey(account: AccountInfo): string {
+        return generateAccountKey(account);
+    }
 
     // Accounts
     getAccount(key: string): AccountEntity | null {
@@ -65,7 +80,9 @@ export class MockStorageClass extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = AccountEntityUtils.generateAccountKey(value);
+        const key = this.generateAccountKey(
+            AccountEntityUtils.getAccountInfo(value)
+        );
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
@@ -75,10 +92,12 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+    removeAccount(account: AccountInfo, correlationId: string): void {
+        super.removeAccount(account, correlationId);
         const currentAccounts = this.getAccountKeys();
-        const removalIndex = currentAccounts.indexOf(key);
+        const removalIndex = currentAccounts.indexOf(
+            this.generateAccountKey(account)
+        );
         if (removalIndex > -1) {
             currentAccounts.splice(removalIndex, 1);
             this.store[ACCOUNT_KEYS] = currentAccounts;
@@ -104,7 +123,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as IdTokenEntity) || null;
     }
     async setIdTokenCredential(value: IdTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -119,7 +138,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as AccessTokenEntity) || null;
     }
     async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -134,7 +153,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     async setRefreshTokenCredential(value: RefreshTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -248,8 +267,8 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async removeTokenBindingKey(): Promise<boolean> {
-        return Promise.resolve(true);
+    async removeTokenBindingKey(): Promise<void> {
+        return Promise.resolve();
     },
     async signJwt(): Promise<string> {
         return "";
@@ -270,7 +289,8 @@ export class ClientTestUtils {
         const mockStorage = new MockStorageClass(
             TEST_CONFIG.MSAL_CLIENT_ID,
             mockCrypto,
-            new Logger({})
+            new Logger({}),
+            new StubPerformanceClient()
         );
 
         const testLoggerCallback = (): void => {
@@ -306,7 +326,8 @@ export class ClientTestUtils {
             mockStorage,
             authorityOptions,
             logger,
-            TEST_CONFIG.CORRELATION_ID
+            TEST_CONFIG.CORRELATION_ID,
+            new StubPerformanceClient()
         );
 
         await authority.resolveEndpointsAsync().catch(() => {

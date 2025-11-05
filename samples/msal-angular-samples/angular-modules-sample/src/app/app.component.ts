@@ -25,16 +25,14 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> { 
-    this.authService.handleRedirectObservable().subscribe(); 
-    
     this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
 
     this.msalBroadcastService.msalSubject$
       .pipe(
         filter(
           (msg: EventMessage) =>
-            msg.eventType === EventType.ACCOUNT_ADDED ||
-            msg.eventType === EventType.ACCOUNT_REMOVED
+            msg.eventType === EventType.LOGIN_SUCCESS ||
+            msg.eventType === EventType.LOGOUT_SUCCESS
         )
       )
       .subscribe((result: EventMessage) => {

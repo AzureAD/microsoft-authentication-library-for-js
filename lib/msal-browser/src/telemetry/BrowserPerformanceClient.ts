@@ -4,6 +4,7 @@
  */
 
 import {
+    AccountInfo,
     Constants,
     InProgressPerformanceEvent,
     IPerformanceClient,
@@ -14,11 +15,9 @@ import {
 } from "@azure/msal-common/browser";
 import { Configuration } from "../config/Configuration.js";
 import { name, version } from "../packageMetadata.js";
-import {
-    BROWSER_PERF_ENABLED_KEY,
-    BrowserCacheLocation,
-} from "../utils/BrowserConstants.js";
+import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
+import { BROWSER_PERF_ENABLED_KEY } from "../cache/CacheKeys.js";
 
 /**
  * Returns browser performance measurement module if session flag is enabled. Returns undefined otherwise.
@@ -67,11 +66,7 @@ export class BrowserPerformanceClient
     extends PerformanceClient
     implements IPerformanceClient
 {
-    constructor(
-        configuration: Configuration,
-        intFields?: Set<string>,
-        abbreviations?: Map<string, string>
-    ) {
+    constructor(configuration: Configuration, intFields?: Set<string>) {
         super(
             configuration.auth.clientId,
             configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
@@ -86,8 +81,7 @@ export class BrowserPerformanceClient
                 appName: "",
                 appVersion: "",
             },
-            intFields,
-            abbreviations
+            intFields
         );
     }
 
@@ -163,7 +157,8 @@ export class BrowserPerformanceClient
             ...inProgressEvent,
             end: (
                 event?: Partial<PerformanceEvent>,
-                error?: unknown
+                error?: unknown,
+                account?: AccountInfo
             ): PerformanceEvent | null => {
                 const res = inProgressEvent.end(
                     {
@@ -172,7 +167,8 @@ export class BrowserPerformanceClient
                         endPageVisibility: this.getPageVisibility(),
                         durationMs: getPerfDurationMs(startTime),
                     },
-                    error
+                    error,
+                    account
                 );
                 void browserMeasurement?.then((measurement) =>
                     measurement.endMeasurement()

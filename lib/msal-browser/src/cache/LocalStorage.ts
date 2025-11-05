@@ -7,11 +7,11 @@ import {
     TokenKeys,
     IPerformanceClient,
     invokeAsync,
-    PerformanceEvents,
     Logger,
     invoke,
-    Constants,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import {
     createNewGuid,
     decrypt,
@@ -33,7 +33,8 @@ import { CookieStorage, SameSiteOptions } from "./CookieStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
-import { StaticCacheKeys } from "../utils/BrowserConstants.js";
+import * as CacheKeys from "./CacheKeys.js";
+import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 
 const ENCRYPTION_KEY = "msal.cache.encryption";
 const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
@@ -41,12 +42,6 @@ const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
 type EncryptionCookie = {
     id: string;
     key: CryptoKey;
-};
-
-type EncryptedData = {
-    id: string;
-    nonce: string;
-    data: string;
 };
 
 export class LocalStorage implements IWindowStorage<string> {
@@ -89,7 +84,7 @@ export class LocalStorage implements IWindowStorage<string> {
             // Encryption key already exists, import
             const baseKey = invoke(
                 base64DecToArr,
-                PerformanceEvents.Base64Decode,
+                BrowserPerformanceEvents.Base64Decode,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -98,33 +93,25 @@ export class LocalStorage implements IWindowStorage<string> {
                 id: parsedCookie.id,
                 key: await invokeAsync(
                     generateHKDF,
-                    PerformanceEvents.GenerateHKDF,
+                    BrowserPerformanceEvents.GenerateHKDF,
                     this.logger,
                     this.performanceClient,
                     correlationId
                 )(baseKey),
             };
-            await invokeAsync(
-                this.importExistingCache.bind(this),
-                PerformanceEvents.ImportExistingCache,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(correlationId);
         } else {
-            // Encryption key doesn't exist or is invalid, generate a new one and clear existing cache
-            this.clear();
+            // Encryption key doesn't exist or is invalid, generate a new one
             const id = createNewGuid();
             const baseKey = await invokeAsync(
                 generateBaseKey,
-                PerformanceEvents.GenerateBaseKey,
+                BrowserPerformanceEvents.GenerateBaseKey,
                 this.logger,
                 this.performanceClient,
                 correlationId
             )();
             const keyStr = invoke(
                 urlEncodeArr,
-                PerformanceEvents.UrlEncodeArr,
+                BrowserPerformanceEvents.UrlEncodeArr,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -133,7 +120,7 @@ export class LocalStorage implements IWindowStorage<string> {
                 id: id,
                 key: await invokeAsync(
                     generateHKDF,
-                    PerformanceEvents.GenerateHKDF,
+                    BrowserPerformanceEvents.GenerateHKDF,
                     this.logger,
                     this.performanceClient,
                     correlationId
@@ -154,8 +141,18 @@ export class LocalStorage implements IWindowStorage<string> {
             );
         }
 
+        await invokeAsync(
+            this.importExistingCache.bind(this),
+            BrowserPerformanceEvents.ImportExistingCache,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(correlationId);
+
         // Register listener for cache updates in other tabs
-        this.broadcast.addEventListener("message", this.updateCache.bind(this));
+        this.broadcast.addEventListener("message", (event: MessageEvent) => {
+            this.updateCache(event, correlationId);
+        });
 
         this.initialized = true;
     }
@@ -173,6 +170,57 @@ export class LocalStorage implements IWindowStorage<string> {
         return this.memoryStorage.getItem(key);
     }
 
+    async decryptData(
+        key: string,
+        data: EncryptedData,
+        correlationId: string
+    ): Promise<object | null> {
+        if (!this.initialized || !this.encryptionCookie) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.uninitializedPublicClientApplication
+            );
+        }
+
+        if (data.id !== this.encryptionCookie.id) {
+            // Data was encrypted with a different key. It must be removed because it is from a previous session.
+            this.performanceClient.incrementFields(
+                { encryptedCacheExpiredCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+
+        const decryptedData = await invokeAsync(
+            decrypt,
+            BrowserPerformanceEvents.Decrypt,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            this.encryptionCookie.key,
+            data.nonce,
+            this.getContext(key),
+            data.data
+        );
+
+        if (!decryptedData) {
+            return null;
+        }
+
+        try {
+            return {
+                ...JSON.parse(decryptedData),
+                lastUpdatedAt: data.lastUpdatedAt,
+            };
+        } catch (e) {
+            this.performanceClient.incrementFields(
+                { encryptedCacheCorruptionCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+    }
+
     setItem(key: string, value: string): void {
         window.localStorage.setItem(key, value);
     }
@@ -180,7 +228,9 @@ export class LocalStorage implements IWindowStorage<string> {
     async setUserData(
         key: string,
         value: string,
-        correlationId: string
+        correlationId: string,
+        timestamp: string,
+        kmsi: boolean
     ): Promise<void> {
         if (!this.initialized || !this.encryptionCookie) {
             throw createBrowserAuthError(
@@ -188,21 +238,26 @@ export class LocalStorage implements IWindowStorage<string> {
             );
         }
 
-        const { data, nonce } = await invokeAsync(
-            encrypt,
-            PerformanceEvents.Encrypt,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(this.encryptionCookie.key, value, this.getContext(key));
-        const encryptedData: EncryptedData = {
-            id: this.encryptionCookie.id,
-            nonce: nonce,
-            data: data,
-        };
+        if (kmsi) {
+            this.setItem(key, value);
+        } else {
+            const { data, nonce } = await invokeAsync(
+                encrypt,
+                BrowserPerformanceEvents.Encrypt,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(this.encryptionCookie.key, value, this.getContext(key));
+            const encryptedData: EncryptedData = {
+                id: this.encryptionCookie.id,
+                nonce: nonce,
+                data: data,
+                lastUpdatedAt: timestamp,
+            };
+            this.setItem(key, JSON.stringify(encryptedData));
+        }
 
         this.memoryStorage.setItem(key, value);
-        this.setItem(key, JSON.stringify(encryptedData));
 
         // Notify other frames to update their in-memory cache
         this.broadcast.postMessage({
@@ -249,7 +304,7 @@ export class LocalStorage implements IWindowStorage<string> {
         // Clean up anything left
         this.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.startsWith(Constants.CACHE_PREFIX) ||
+                cacheKey.startsWith(CacheKeys.PREFIX) ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.removeItem(cacheKey);
@@ -269,7 +324,14 @@ export class LocalStorage implements IWindowStorage<string> {
         let accountKeys = getAccountKeys(this);
         accountKeys = await this.importArray(accountKeys, correlationId);
         // Write valid account keys back to map
-        this.setItem(StaticCacheKeys.ACCOUNT_KEYS, JSON.stringify(accountKeys));
+        if (accountKeys.length) {
+            this.setItem(
+                CacheKeys.getAccountKeysCacheKey(),
+                JSON.stringify(accountKeys)
+            );
+        } else {
+            this.removeItem(CacheKeys.getAccountKeysCacheKey());
+        }
 
         const tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
         tokenKeys.idToken = await this.importArray(
@@ -285,10 +347,18 @@ export class LocalStorage implements IWindowStorage<string> {
             correlationId
         );
         // Write valid token keys back to map
-        this.setItem(
-            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
-            JSON.stringify(tokenKeys)
-        );
+        if (
+            tokenKeys.idToken.length ||
+            tokenKeys.accessToken.length ||
+            tokenKeys.refreshToken.length
+        ) {
+            this.setItem(
+                CacheKeys.getTokenKeysCacheKey(this.clientId),
+                JSON.stringify(tokenKeys)
+            );
+        } else {
+            this.removeItem(CacheKeys.getTokenKeysCacheKey(this.clientId));
+        }
     }
 
     /**
@@ -317,13 +387,13 @@ export class LocalStorage implements IWindowStorage<string> {
             return null;
         }
 
-        if (!encObj.id || !encObj.nonce || !encObj.data) {
-            // Data is not encrypted, likely from old version of MSAL. It must be removed because we don't know how old it is.
+        if (!isEncrypted(encObj)) {
+            // Data is not encrypted
             this.performanceClient.incrementFields(
                 { unencryptedCacheCount: 1 },
                 correlationId
             );
-            return null;
+            return rawCache;
         }
 
         if (encObj.id !== this.encryptionCookie.id) {
@@ -335,9 +405,14 @@ export class LocalStorage implements IWindowStorage<string> {
             return null;
         }
 
+        this.performanceClient.incrementFields(
+            { encryptedCacheCount: 1 },
+            correlationId
+        );
+
         return invokeAsync(
             decrypt,
-            PerformanceEvents.Decrypt,
+            BrowserPerformanceEvents.Decrypt,
             this.logger,
             this.performanceClient,
             correlationId
@@ -394,23 +469,27 @@ export class LocalStorage implements IWindowStorage<string> {
         return context;
     }
 
-    private updateCache(event: MessageEvent): void {
-        this.logger.trace("Updating internal cache from broadcast event");
+    private updateCache(event: MessageEvent, correlationId: string): void {
+        this.logger.trace(
+            "Updating internal cache from broadcast event",
+            correlationId
+        );
         const perfMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.LocalStorageUpdated
+            BrowserRootPerformanceEvents.LocalStorageUpdated
         );
         perfMeasurement.add({ isBackground: true });
 
         const { key, value, context } = event.data;
         if (!key) {
-            this.logger.error("Broadcast event missing key");
+            this.logger.error("Broadcast event missing key", correlationId);
             perfMeasurement.end({ success: false, errorCode: "noKey" });
             return;
         }
 
         if (context && context !== this.clientId) {
             this.logger.trace(
-                `Ignoring broadcast event from clientId: ${context}`
+                `Ignoring broadcast event from clientId: '${context}'`,
+                correlationId
             );
             perfMeasurement.end({
                 success: false,
@@ -421,10 +500,16 @@ export class LocalStorage implements IWindowStorage<string> {
 
         if (!value) {
             this.memoryStorage.removeItem(key);
-            this.logger.verbose("Removed item from internal cache");
+            this.logger.verbose(
+                "Removed item from internal cache",
+                correlationId
+            );
         } else {
             this.memoryStorage.setItem(key, value);
-            this.logger.verbose("Updated item in internal cache");
+            this.logger.verbose(
+                "Updated item in internal cache",
+                correlationId
+            );
         }
         perfMeasurement.end({ success: true });
     }

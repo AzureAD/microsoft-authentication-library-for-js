@@ -1,84 +1,17 @@
 import * as AuthToken from "../../src/account/AuthToken";
-import {
-    TEST_DATA_CLIENT_INFO,
-    RANDOM_TEST_GUID,
-    TEST_POP_VALUES,
-    TEST_CRYPTO_VALUES,
-    TEST_TOKENS,
-    ID_TOKEN_CLAIMS,
-} from "../test_kit/StringConstants";
+import { TEST_TOKENS, ID_TOKEN_CLAIMS } from "../test_kit/StringConstants";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthErrorCodes,
     ClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
-
-const TEST_ID_TOKEN_PAYLOAD = TEST_TOKENS.IDTOKEN_V2.split(".")[1];
+import { mockCrypto } from "../client/ClientTestUtils.js";
 
 describe("AuthToken.ts Class Unit Tests", () => {
     let cryptoInterface: ICrypto;
     beforeEach(() => {
-        cryptoInterface = {
-            createNewGuid(): string {
-                return RANDOM_TEST_GUID;
-            },
-            base64Decode(input: string): string {
-                switch (input) {
-                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        return TEST_POP_VALUES.DECODED_REQ_CNF;
-                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    case TEST_ID_TOKEN_PAYLOAD:
-                        return JSON.stringify(ID_TOKEN_CLAIMS);
-                    default:
-                        return input;
-                }
-            },
-            base64Encode(input: string): string {
-                switch (input) {
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-uid":
-                        return "NDU2LXRlc3QtdWlk";
-                    case TEST_POP_VALUES.DECODED_REQ_CNF:
-                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    default:
-                        return input;
-                }
-            },
-            base64UrlEncode(input: string): string {
-                switch (input) {
-                    case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                        return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                    default:
-                        return input;
-                }
-            },
-            encodeKid(input: string): string {
-                switch (input) {
-                    case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                        return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                    default:
-                        return input;
-                }
-            },
-            async getPublicKeyThumbprint(): Promise<string> {
-                return TEST_POP_VALUES.KID;
-            },
-            async signJwt(): Promise<string> {
-                return "";
-            },
-            async removeTokenBindingKey(): Promise<boolean> {
-                return Promise.resolve(true);
-            },
-            async clearKeystore(): Promise<boolean> {
-                return Promise.resolve(true);
-            },
-            async hashString(): Promise<string> {
-                return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-            },
-        };
+        cryptoInterface = mockCrypto;
     });
 
     afterEach(() => {
@@ -195,6 +128,52 @@ describe("AuthToken.ts Class Unit Tests", () => {
                     cryptoInterface.base64Decode
                 )
             ).toEqual(ID_TOKEN_CLAIMS);
+        });
+    });
+
+    describe("isKmsi()", () => {
+        it("Returns false if claims don't contain signin_state", () => {
+            expect(AuthToken.isKmsi({})).toBe(false);
+        });
+
+        it("Returns false if signin_state claim does not contain kmsi", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["not-kmsi", "other-value"],
+                })
+            ).toBe(false);
+        });
+
+        it("Returns true if signin_state claim contains kmsi", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["kmsi", "other-value"],
+                })
+            ).toBe(true);
+        });
+
+        it("Returns true if signin_state contains kmsi in uppercase", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["KMSI"],
+                })
+            ).toBe(true);
+        });
+
+        it("Returns true if signin_state contains kmsi with leading/trailing whitespace", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: [" kmsi ", "other-value"],
+                })
+            ).toBe(true);
+        });
+
+        it("Returns true if signin_state claim contains dvc_dmjd", () => {
+            expect(
+                AuthToken.isKmsi({
+                    signin_state: ["dvc_dmjd", "other-value"],
+                })
+            ).toBe(true);
         });
     });
 });

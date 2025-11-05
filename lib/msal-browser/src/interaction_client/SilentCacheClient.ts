@@ -7,9 +7,9 @@ import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     CommonSilentFlowRequest,
     SilentFlowClient,
-    PerformanceEvents,
     invokeAsync,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { ApiId } from "../utils/BrowserConstants.js";
 import {
     BrowserAuthError,
@@ -17,6 +17,10 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import {
+    clearCacheOnLogout,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -27,13 +31,17 @@ export class SilentCacheClient extends StandardInteractionClient {
         silentRequest: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
         // Telemetry manager only used to increment cacheHits here
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenSilent_silentFlow
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenSilent_silentFlow,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -47,12 +55,12 @@ export class SilentCacheClient extends StandardInteractionClient {
             clientConfig,
             this.performanceClient
         );
-        this.logger.verbose("Silent auth client created");
+        this.logger.verbose("Silent auth client created", this.correlationId);
 
         try {
             const response = await invokeAsync(
                 silentAuthClient.acquireCachedToken.bind(silentAuthClient),
-                PerformanceEvents.SilentFlowClientAcquireCachedToken,
+                BrowserPerformanceEvents.SilentFlowClientAcquireCachedToken,
                 this.logger,
                 this.performanceClient,
                 silentRequest.correlationId
@@ -72,7 +80,8 @@ export class SilentCacheClient extends StandardInteractionClient {
                 error.errorCode === BrowserAuthErrorCodes.cryptoKeyNotFound
             ) {
                 this.logger.verbose(
-                    "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair."
+                    "Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.",
+                    this.correlationId
                 );
             }
             throw error;
@@ -84,8 +93,14 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param logoutRequest
      */
     logout(logoutRequest?: ClearCacheRequest): Promise<void> {
-        this.logger.verbose("logoutRedirect called");
+        this.logger.verbose("logoutRedirect called", this.correlationId);
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        return this.clearCacheOnLogout(validLogoutRequest?.account);
+        return clearCacheOnLogout(
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.correlationId,
+            validLogoutRequest.account
+        );
     }
 }

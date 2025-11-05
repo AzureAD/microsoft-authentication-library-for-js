@@ -19,11 +19,16 @@ import {
     CORS_RESPONSE_HEADERS,
     TEST_SSH_VALUES,
     BAD_TOKEN_ERROR_RESPONSE,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
 import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
-import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils.js";
+import {
+    ClientTestUtils,
+    generateCredentialKey,
+    MockStorageClass,
+} from "./ClientTestUtils.js";
 import { Authority } from "../../src/authority/Authority.js";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient.js";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest.js";
@@ -54,7 +59,6 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
-import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
@@ -65,6 +69,7 @@ const testAccountEntity: AccountEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     username: ID_TOKEN_CLAIMS.preferred_username,
     authorityType: "MSSTS",
+    lastUpdatedAt: Date.now().toString(),
 };
 
 const testAppMetadata: AppMetadataEntity = {
@@ -80,6 +85,7 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.refresh_token,
     credentialType: Constants.CredentialType.REFRESH_TOKEN,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
@@ -90,6 +96,7 @@ const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
     secret: AUTHENTICATION_RESULT.body.refresh_token,
     credentialType: Constants.CredentialType.REFRESH_TOKEN,
     familyId: TEST_CONFIG.THE_FAMILY_ID,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 describe("RefreshTokenClient unit tests", () => {
@@ -221,7 +228,10 @@ describe("RefreshTokenClient unit tests", () => {
                 done();
             });
 
-            const client = new RefreshTokenClient(config);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
 
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -346,17 +356,23 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -970,21 +986,11 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("includes the http version in Refresh token client(AT) measurement when received in server response", async () => {
-            const performanceClient = {
-                startMeasurement: jest.fn(),
-                endMeasurement: jest.fn(),
-                discardMeasurements: jest.fn(),
-                removePerformanceCallback: jest.fn(),
-                addPerformanceCallback: jest.fn(),
-                emitEvents: jest.fn(),
-                generateId: jest.fn(),
-                calculateQueuedTime: jest.fn(),
-                addQueueMeasurement: jest.fn(),
-                setPreQueueTime: jest.fn(),
-                addFields: jest.fn(),
-                incrementFields: jest.fn(),
-            };
-            const client = new RefreshTokenClient(config, performanceClient);
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
@@ -1001,7 +1007,7 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toHaveBeenCalledWith(
+            expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
                     httpVerToken: "xMsHttpVer",
                     refreshTokenSize:
@@ -1014,21 +1020,11 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
-            const performanceClient = {
-                startMeasurement: jest.fn(),
-                endMeasurement: jest.fn(),
-                discardMeasurements: jest.fn(),
-                removePerformanceCallback: jest.fn(),
-                addPerformanceCallback: jest.fn(),
-                emitEvents: jest.fn(),
-                generateId: jest.fn(),
-                calculateQueuedTime: jest.fn(),
-                addQueueMeasurement: jest.fn(),
-                setPreQueueTime: jest.fn(),
-                addFields: jest.fn(),
-                incrementFields: jest.fn(),
-            };
-            const client = new RefreshTokenClient(config, performanceClient);
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
             jest.spyOn(
                 // @ts-ignore
                 client.networkClient,
@@ -1045,7 +1041,7 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await client.acquireToken(refreshTokenRequest);
 
-            expect(performanceClient.addFields).toHaveBeenCalledWith(
+            expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
                     httpVerToken: "",
                     refreshTokenSize:
@@ -1090,17 +1086,23 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -1284,6 +1286,7 @@ describe("RefreshTokenClient unit tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "testname@contoso.com",
+                loginHint: "testLoginHint",
             };
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = {
@@ -1294,6 +1297,7 @@ describe("RefreshTokenClient unit tests", () => {
                 realm: "testTenantId",
                 username: "username@contoso.com",
                 authorityType: "MSSTS",
+                lastUpdatedAt: Date.now().toString(),
             };
             jest.spyOn(
                 MockStorageClass.prototype,
@@ -1337,7 +1341,8 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: rtExpiresOn.toString(), // Set expiration to yesterday
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const mockPerfClient = new MockPerformanceClient();
             const client = new RefreshTokenClient(config, mockPerfClient);
@@ -1378,7 +1383,8 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const client = new RefreshTokenClient(
                 config,
@@ -1398,7 +1404,8 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const rtExpiresOn = TimeUtils.nowSeconds() + 60 * 60;
             const rtEntity = {
@@ -1407,9 +1414,13 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await config.storageInterface!.setRefreshTokenCredential(
                 rtEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             const mockPerfClient = new MockPerformanceClient();
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "test-measurement",
@@ -1453,7 +1464,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(rtEntity);
 
@@ -1463,7 +1475,8 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(null);
 
@@ -1545,7 +1558,10 @@ describe("RefreshTokenClient unit tests", () => {
         it("pick up broker params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new RefreshTokenClient(config);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
 
             const queryString =
                 // @ts-ignore
@@ -1567,7 +1583,10 @@ describe("RefreshTokenClient unit tests", () => {
         it("broker params take precedence over token body params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new RefreshTokenClient(config);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
 
             const queryString =
                 // @ts-ignore

@@ -32,14 +32,14 @@ export class MsalCustomNavigationClient extends NavigationClient {
     url: string,
     options: NavigationOptions
   ): Promise<boolean> {
-    this.authService.getLogger().trace("MsalCustomNavigationClient called");
+    this.authService.getLogger().trace("MsalCustomNavigationClient called", "");
 
     this.authService
       .getLogger()
-      .verbose("MsalCustomNavigationClient - navigating");
+      .verbose("MsalCustomNavigationClient - navigating", "");
     this.authService
       .getLogger()
-      .verbosePii(`MsalCustomNavigationClient - navigating to url: ${url}`);
+      .verbosePii(`MsalCustomNavigationClient - navigating to url: ${url}`, "");
 
     // Prevent hash clearing from causing an issue with Client-side navigation after redirect is handled
     if (options.noHistory) {

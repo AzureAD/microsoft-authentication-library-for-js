@@ -10,11 +10,11 @@ import {
     RefreshTokenClient,
     AuthError,
     AzureCloudOptions,
-    PerformanceEvents,
     invokeAsync,
     AccountInfo,
     StringDict,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { ApiId } from "../utils/BrowserConstants.js";
 import {
     createBrowserAuthError,
@@ -22,6 +22,10 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
+import {
+    getRedirectUri,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
@@ -33,11 +37,17 @@ export class SilentRefreshClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         const baseRequest = await invokeAsync(
             initializeBaseRequest,
-            PerformanceEvents.InitializeBaseRequest,
+            BrowserPerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request, this.config, this.performanceClient, this.logger);
+        )(
+            request,
+            this.config,
+            this.performanceClient,
+            this.logger,
+            this.correlationId
+        );
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...baseRequest,
@@ -45,13 +55,20 @@ export class SilentRefreshClient extends StandardInteractionClient {
 
         if (request.redirectUri) {
             // Make sure any passed redirectUri is converted to an absolute URL - redirectUri is not a required parameter for refresh token redemption so only include if explicitly provided
-            silentRequest.redirectUri = this.getRedirectUri(
-                request.redirectUri
+            silentRequest.redirectUri = getRedirectUri(
+                request.redirectUri,
+                this.config.auth.redirectUri,
+                this.logger,
+                this.correlationId
             );
         }
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenSilent_silentFlow
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenSilent_silentFlow,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const refreshTokenClient = await this.createRefreshTokenClient({
@@ -65,7 +82,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             refreshTokenClient.acquireTokenByRefreshToken.bind(
                 refreshTokenClient
             ),
-            PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
+            BrowserPerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -108,7 +125,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
         // Create auth module.
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
             this.correlationId

@@ -19,7 +19,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 import { StringUtils } from "../utils/StringUtils.js";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
 import { TokenClaims } from "../account/TokenClaims.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { getTenantFromAuthorityString } from "../authority/Authority.js";
 
@@ -27,7 +27,7 @@ import { getTenantFromAuthorityString } from "../authority/Authority.js";
 export class SilentFlowClient extends BaseClient {
     constructor(
         configuration: ClientConfiguration,
-        performanceClient?: IPerformanceClient
+        performanceClient: IPerformanceClient
     ) {
         super(configuration, performanceClient);
     }
@@ -67,9 +67,7 @@ export class SilentFlowClient extends BaseClient {
             request.account,
             request,
             tokenKeys,
-            requestTenantId,
-            this.performanceClient,
-            request.correlationId
+            requestTenantId
         );
 
         if (!cachedAccessToken) {
@@ -109,18 +107,22 @@ export class SilentFlowClient extends BaseClient {
         const environment =
             request.authority || this.authority.getPreferredCache();
         const cacheRecord: CacheRecord = {
-            account: this.cacheManager.readAccountFromCache(request.account),
+            account: this.cacheManager.getAccount(
+                this.cacheManager.generateAccountKey(request.account),
+                request.correlationId
+            ),
             accessToken: cachedAccessToken,
             idToken: this.cacheManager.getIdToken(
                 request.account,
+                request.correlationId,
                 tokenKeys,
-                requestTenantId,
-                this.performanceClient,
-                request.correlationId
+                requestTenantId
             ),
             refreshToken: null,
-            appMetadata:
-                this.cacheManager.readAppMetadataFromCache(environment),
+            appMetadata: this.cacheManager.readAppMetadataFromCache(
+                environment,
+                request.correlationId
+            ),
         };
 
         this.setCacheOutcome(lastCacheOutcome, request.correlationId);
@@ -154,7 +156,8 @@ export class SilentFlowClient extends BaseClient {
         );
         if (cacheOutcome !== CacheOutcome.NOT_APPLICABLE) {
             this.logger.info(
-                `Token refresh is required due to cache outcome: ${cacheOutcome}`
+                `Token refresh is required due to cache outcome: '${cacheOutcome}'`,
+                correlationId
             );
         }
     }
@@ -193,6 +196,7 @@ export class SilentFlowClient extends BaseClient {
             cacheRecord,
             true,
             request,
+            this.performanceClient,
             idTokenClaims
         );
     }

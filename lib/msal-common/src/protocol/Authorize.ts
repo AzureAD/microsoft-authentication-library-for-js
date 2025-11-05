@@ -93,7 +93,8 @@ export function getStandardAuthorizeRequestParameters(
         if (request.sid && request.prompt === PromptValue.NONE) {
             // SessionID is only used in silent calls
             logger.verbose(
-                "createAuthCodeUrlQueryString: Prompt is none, adding sid from request"
+                "createAuthCodeUrlQueryString: Prompt is none, adding sid from request",
+                request.correlationId
             );
             RequestParameterBuilder.addSid(parameters, request.sid);
             performanceClient?.addFields(
@@ -106,7 +107,8 @@ export function getStandardAuthorizeRequestParameters(
 
             if (accountLoginHintClaim && request.domainHint) {
                 logger.warning(
-                    `AuthorizationCodeClient.createAuthCodeUrlQueryString: "domainHint" param is set, skipping opaque "login_hint" claim. Please consider not passing domainHint`
+                    `AuthorizationCodeClient.createAuthCodeUrlQueryString: "domainHint" param is set, skipping opaque "login_hint" claim. Please consider not passing domainHint`,
+                    request.correlationId
                 );
                 accountLoginHintClaim = null;
             }
@@ -114,7 +116,8 @@ export function getStandardAuthorizeRequestParameters(
             // If login_hint claim is present, use it over sid/username
             if (accountLoginHintClaim) {
                 logger.verbose(
-                    "createAuthCodeUrlQueryString: login_hint claim present on account"
+                    "createAuthCodeUrlQueryString: login_hint claim present on account",
+                    request.correlationId
                 );
                 RequestParameterBuilder.addLoginHint(
                     parameters,
@@ -131,7 +134,8 @@ export function getStandardAuthorizeRequestParameters(
                     RequestParameterBuilder.addCcsOid(parameters, clientInfo);
                 } catch (e) {
                     logger.verbose(
-                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
+                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
+                        request.correlationId
                     );
                 }
             } else if (accountSid && request.prompt === PromptValue.NONE) {
@@ -140,7 +144,8 @@ export function getStandardAuthorizeRequestParameters(
                  * SessionId is only used in silent calls
                  */
                 logger.verbose(
-                    "createAuthCodeUrlQueryString: Prompt is none, adding sid from account"
+                    "createAuthCodeUrlQueryString: Prompt is none, adding sid from account",
+                    request.correlationId
                 );
                 RequestParameterBuilder.addSid(parameters, accountSid);
                 performanceClient?.addFields(
@@ -154,12 +159,14 @@ export function getStandardAuthorizeRequestParameters(
                     RequestParameterBuilder.addCcsOid(parameters, clientInfo);
                 } catch (e) {
                     logger.verbose(
-                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
+                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
+                        request.correlationId
                     );
                 }
             } else if (request.loginHint) {
                 logger.verbose(
-                    "createAuthCodeUrlQueryString: Adding login_hint from request"
+                    "createAuthCodeUrlQueryString: Adding login_hint from request",
+                    request.correlationId
                 );
                 RequestParameterBuilder.addLoginHint(
                     parameters,
@@ -176,7 +183,8 @@ export function getStandardAuthorizeRequestParameters(
             } else if (request.account.username) {
                 // Fallback to account username if provided
                 logger.verbose(
-                    "createAuthCodeUrlQueryString: Adding login_hint from account"
+                    "createAuthCodeUrlQueryString: Adding login_hint from account",
+                    request.correlationId
                 );
                 RequestParameterBuilder.addLoginHint(
                     parameters,
@@ -193,13 +201,15 @@ export function getStandardAuthorizeRequestParameters(
                     RequestParameterBuilder.addCcsOid(parameters, clientInfo);
                 } catch (e) {
                     logger.verbose(
-                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
+                        "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header",
+                        request.correlationId
                     );
                 }
             }
         } else if (request.loginHint) {
             logger.verbose(
-                "createAuthCodeUrlQueryString: No account, adding login_hint from request"
+                "createAuthCodeUrlQueryString: No account, adding login_hint from request",
+                request.correlationId
             );
             RequestParameterBuilder.addLoginHint(parameters, request.loginHint);
             RequestParameterBuilder.addCcsUpn(parameters, request.loginHint);
@@ -210,7 +220,8 @@ export function getStandardAuthorizeRequestParameters(
         }
     } else {
         logger.verbose(
-            "createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints"
+            "createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints",
+            request.correlationId
         );
     }
 
@@ -404,5 +415,5 @@ function extractAccountSid(account: AccountInfo): string | null {
 }
 
 function extractLoginHint(account: AccountInfo): string | null {
-    return account.idTokenClaims?.login_hint || null;
+    return account.loginHint || account.idTokenClaims?.login_hint || null;
 }

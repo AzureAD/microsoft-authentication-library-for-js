@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -11,7 +10,10 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
-import { IController } from "../controllers/IController.js";
+import {
+    HandleRedirectPromiseOptions,
+    IController,
+} from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
@@ -35,6 +37,7 @@ import { NestedAppAuthController } from "../controllers/NestedAppAuthController.
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -213,12 +216,13 @@ export class PublicClientApplication implements IPublicClientApplication {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @param options Object containing optional configuration for redirect promise handling.
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     handleRedirectPromise(
-        hash?: string | undefined
+        options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        return this.controller.handleRedirectPromise(hash);
+        return this.controller.handleRedirectPromise(options);
     }
 
     /**
@@ -281,13 +285,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         return this.controller.ssoSilent(request);
-    }
-
-    /**
-     * Gets the token cache for the application.
-     */
-    getTokenCache(): ITokenCache {
-        return this.controller.getTokenCache();
     }
 
     /**
@@ -376,22 +373,29 @@ export class PublicClientApplication implements IPublicClientApplication {
  * falls back to StandardController if NestedAppAuthController is not available
  *
  * @param configuration
+ * @param correlationId
+ * @param pcaFactory
  * @returns IPublicClientApplication
  *
  */
 export async function createNestablePublicClientApplication(
-    configuration: Configuration
+    configuration: Configuration,
+    correlationId?: string,
+    pcaFactory?: (
+        configuration: Configuration,
+        controller: IController
+    ) => IPublicClientApplication
 ): Promise<IPublicClientApplication> {
+    const cid = correlationId || createNewGuid();
     const nestedAppAuth = new NestedAppOperatingContext(configuration);
-    await nestedAppAuth.initialize();
+    await nestedAppAuth.initialize(cid);
 
     if (nestedAppAuth.isAvailable()) {
         const controller = new NestedAppAuthController(nestedAppAuth);
-        const nestablePCA = new PublicClientApplication(
-            configuration,
-            controller
-        );
-        await nestablePCA.initialize();
+        const nestablePCA = pcaFactory
+            ? pcaFactory(configuration, controller)
+            : new PublicClientApplication(configuration, controller);
+        await nestablePCA.initialize({ correlationId: cid });
         return nestablePCA;
     }
 

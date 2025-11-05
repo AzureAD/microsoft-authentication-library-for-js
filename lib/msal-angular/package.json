@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "4.0.12",
+  "version": "5.0.0-alpha.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -17,11 +17,10 @@
     "start": "ng serve",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
-    "build:all": "npm run build:browser && npm run build",
-    "build:all:prod": "npm run build:browser && npm run build:prod",
+    "build:all": "npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser && ng build --configuration production",
     "build:browser": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:pack": "npm run build && cd dist && npm pack",
-    "deploy": "npm run build:all:prod && npm publish ./dist --workspaces=false",
+    "deploy": "npm run build:all && npm publish ./dist --workspaces=false",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "eslint src --ext .ts",
@@ -48,14 +47,14 @@
     "@angular/platform-browser": "^19.2.2",
     "@angular/platform-browser-dynamic": "^19.2.2",
     "@angular/router": "^19.2.2",
-    "@azure/msal-browser": "^4.12.0",
+    "@azure/msal-browser": "^5.0.0-alpha.0",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jasmine-core": "~4.0.0",
     "jasmine-spec-reporter": "~5.0.0",
-    "karma": "~6.3.2",
+    "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "~5.0.0",
@@ -69,7 +68,7 @@
     "zone.js": "~0.15.0"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^4.12.0",
+    "@azure/msal-browser": "^5.0.0-alpha.0",
     "rxjs": "^7.0.0"
   }
 }

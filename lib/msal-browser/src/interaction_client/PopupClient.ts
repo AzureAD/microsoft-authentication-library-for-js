@@ -8,18 +8,22 @@ import {
     CommonEndSessionRequest,
     UrlString,
     AuthError,
-    PerformanceEvents,
     IPerformanceClient,
     Logger,
     ICrypto,
     ProtocolMode,
+    PerformanceEvents,
     Constants,
     invokeAsync,
     invoke,
     PkceCodes,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { StandardInteractionClient } from "./StandardInteractionClient.js";
+import {
+    initializeAuthorizationRequest,
+    StandardInteractionClient,
+} from "./StandardInteractionClient.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { EventType } from "../event/EventType.js";
 import {
     InteractionType,
@@ -47,6 +51,12 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import {
+    clearCacheOnLogout,
+    getDiscoveredAuthority,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
+import { monitorPopupForHash } from "../utils/PopupUtils.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -68,8 +78,8 @@ export class PopupClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        platformAuthHandler?: IPlatformAuthHandler,
-        correlationId?: string
+        correlationId: string,
+        platformAuthHandler?: IPlatformAuthHandler
     ) {
         super(
             config,
@@ -79,8 +89,8 @@ export class PopupClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            platformAuthHandler,
-            correlationId
+            correlationId,
+            platformAuthHandler
         );
         // Properly sets this reference for the unload event.
         this.unloadWindow = this.unloadWindow.bind(this);
@@ -109,13 +119,16 @@ export class PopupClient extends StandardInteractionClient {
             };
 
             this.performanceClient.addFields(
-                { isAsyncPopup: this.config.system.asyncPopups },
+                { isAsyncPopup: !this.config.system.navigatePopups },
                 this.correlationId
             );
 
-            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-            if (this.config.system.asyncPopups) {
-                this.logger.verbose("asyncPopups set to true, acquiring token");
+            // navigatePopups flag is false. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (!this.config.system.navigatePopups) {
+                this.logger.verbose(
+                    "navigatePopups set to false, acquiring token",
+                    this.correlationId
+                );
                 // Passes on popup position and dimensions if in request
                 return this.acquireTokenPopupAsync(
                     request,
@@ -123,9 +136,10 @@ export class PopupClient extends StandardInteractionClient {
                     pkceCodes
                 );
             } else {
-                // asyncPopups flag is set to false. Opens popup before acquiring token.
+                // navigatePopups flag is set to true. Opens popup before acquiring token.
                 this.logger.verbose(
-                    "asyncPopup set to false, opening popup before acquiring token"
+                    "navigatePopups set to true, opening popup before acquiring token",
+                    this.correlationId
                 );
                 popupParams.popup = this.openSizedPopup(
                     "about:blank",
@@ -148,7 +162,7 @@ export class PopupClient extends StandardInteractionClient {
      */
     logout(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try {
-            this.logger.verbose("logoutPopup called");
+            this.logger.verbose("logoutPopup called", this.correlationId);
             const validLogoutRequest =
                 this.initializeLogoutRequest(logoutRequest);
             const popupParams: PopupParams = {
@@ -161,9 +175,12 @@ export class PopupClient extends StandardInteractionClient {
             const mainWindowRedirectUri =
                 logoutRequest && logoutRequest.mainWindowRedirectUri;
 
-            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-            if (this.config.system.asyncPopups) {
-                this.logger.verbose("asyncPopups set to true");
+            // navigatePopups flag set to false. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (!this.config.system.navigatePopups) {
+                this.logger.verbose(
+                    "navigatePopups set to false",
+                    this.correlationId
+                );
                 // Passes on popup position and dimensions if in request
                 return this.logoutPopupAsync(
                     validLogoutRequest,
@@ -172,8 +189,11 @@ export class PopupClient extends StandardInteractionClient {
                     mainWindowRedirectUri
                 );
             } else {
-                // asyncPopups flag is set to false. Opens popup before logging out.
-                this.logger.verbose("asyncPopup set to false, opening popup");
+                // navigatePopups flag is set to true. Opens popup before logging out.
+                this.logger.verbose(
+                    "navigatePopups set to true, opening popup",
+                    this.correlationId
+                );
                 popupParams.popup = this.openSizedPopup(
                     "about:blank",
                     popupParams
@@ -204,15 +224,27 @@ export class PopupClient extends StandardInteractionClient {
         popupParams: PopupParams,
         pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
-        this.logger.verbose("acquireTokenPopupAsync called");
+        this.logger.verbose(
+            "acquireTokenPopupAsync called",
+            this.correlationId
+        );
 
         const validRequest = await invokeAsync(
-            this.initializeAuthorizationRequest.bind(this),
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            initializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request, InteractionType.Popup);
+        )(
+            request,
+            InteractionType.Popup,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        );
 
         /*
          * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid
@@ -225,6 +257,7 @@ export class PopupClient extends StandardInteractionClient {
         const isPlatformBroker = isPlatformAuthAllowed(
             this.config,
             this.logger,
+            this.correlationId,
             this.platformAuthProvider,
             request.authenticationScheme
         );
@@ -250,15 +283,19 @@ export class PopupClient extends StandardInteractionClient {
         pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         const correlationId = request.correlationId;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenPopup
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenPopup,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const pkce =
             pkceCodes ||
             (await invokeAsync(
                 generatePkceCodes,
-                PerformanceEvents.GeneratePkceCodes,
+                BrowserPerformanceEvents.GeneratePkceCodes,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -273,7 +310,7 @@ export class PopupClient extends StandardInteractionClient {
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -313,26 +350,32 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const responseString = await this.monitorPopupForHash(
+            const responseString = await monitorPopupForHash(
                 popupWindow,
-                popupParams.popupWindowParent
+                popupParams.popupWindowParent,
+                this.config.auth.OIDCOptions.responseMode,
+                this.config.system.pollIntervalMilliseconds,
+                this.logger,
+                this.unloadWindow,
+                this.correlationId
             );
 
             const serverParams = invoke(
                 ResponseHandler.deserializeResponse,
-                PerformanceEvents.DeserializeResponse,
+                BrowserPerformanceEvents.DeserializeResponse,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
             )(
                 responseString,
                 this.config.auth.OIDCOptions.responseMode,
-                this.logger
+                this.logger,
+                this.correlationId
             );
 
             return await invokeAsync(
                 Authorize.handleResponseCode,
-                PerformanceEvents.HandleResponseCode,
+                BrowserPerformanceEvents.HandleResponseCode,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -370,24 +413,35 @@ export class PopupClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest,
         popupParams: PopupParams
     ): Promise<AuthenticationResult> {
-        const correlationId = request.correlationId;
+        const {
+            correlationId,
+            authority,
+            azureCloudOptions,
+            extraQueryParameters,
+            account,
+        } = request;
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
-            this.getDiscoveredAuthority.bind(this),
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            getDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             correlationId
-        )({
-            requestAuthority: request.authority,
-            requestAzureCloudOptions: request.azureCloudOptions,
-            requestExtraQueryParameters: request.extraQueryParameters,
-            account: request.account,
-        });
+        )(
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger,
+            authority,
+            azureCloudOptions,
+            extraQueryParameters,
+            account
+        );
 
         const earJwk = await invokeAsync(
             generateEarKey,
-            PerformanceEvents.GenerateEarKey,
+            BrowserPerformanceEvents.GenerateEarKey,
             this.logger,
             this.performanceClient,
             correlationId
@@ -411,28 +465,37 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            this.monitorPopupForHash.bind(this),
-            PerformanceEvents.SilentHandlerMonitorIframeForHash,
+            monitorPopupForHash,
+            BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
-        )(popupWindow, popupParams.popupWindowParent);
+        )(
+            popupWindow,
+            popupParams.popupWindowParent,
+            this.config.auth.OIDCOptions.responseMode,
+            this.config.system.pollIntervalMilliseconds,
+            this.logger,
+            this.unloadWindow,
+            correlationId
+        );
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
-            PerformanceEvents.DeserializeResponse,
+            BrowserPerformanceEvents.DeserializeResponse,
             this.logger,
             this.performanceClient,
             this.correlationId
         )(
             responseString,
             this.config.auth.OIDCOptions.responseMode,
-            this.logger
+            this.logger,
+            this.correlationId
         );
 
         return invokeAsync(
             Authorize.handleResponseEAR,
-            PerformanceEvents.HandleResponseEar,
+            BrowserPerformanceEvents.HandleResponseEar,
             this.logger,
             this.performanceClient,
             correlationId
@@ -466,25 +529,35 @@ export class PopupClient extends StandardInteractionClient {
         requestAuthority?: string,
         mainWindowRedirectUri?: string
     ): Promise<void> {
-        this.logger.verbose("logoutPopupAsync called");
+        this.logger.verbose("logoutPopupAsync called", this.correlationId);
         this.eventHandler.emitEvent(
             EventType.LOGOUT_START,
             InteractionType.Popup,
             validRequest
         );
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.logoutPopup
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.logoutPopup,
+            this.config.auth.clientId,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {
             // Clear cache on logout
-            await this.clearCacheOnLogout(validRequest.account);
+            await clearCacheOnLogout(
+                this.browserStorage,
+                this.browserCrypto,
+                this.logger,
+                this.correlationId,
+                validRequest.account
+            );
 
             // Initialize the client
             const authClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
@@ -502,10 +575,6 @@ export class PopupClient extends StandardInteractionClient {
                     validRequest.postLogoutRedirectUri &&
                     authClient.authority.protocolMode === ProtocolMode.OIDC
                 ) {
-                    void this.browserStorage.removeAccount(
-                        validRequest.account?.homeAccountId
-                    );
-
                     this.eventHandler.emitEvent(
                         EventType.LOGOUT_SUCCESS,
                         InteractionType.Popup,
@@ -553,9 +622,14 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await this.monitorPopupForHash(
+            await monitorPopupForHash(
                 popupWindow,
-                popupParams.popupWindowParent
+                popupParams.popupWindowParent,
+                this.config.auth.OIDCOptions.responseMode,
+                this.config.system.pollIntervalMilliseconds,
+                this.logger,
+                this.unloadWindow,
+                this.correlationId
             ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
@@ -572,17 +646,22 @@ export class PopupClient extends StandardInteractionClient {
                 );
 
                 this.logger.verbose(
-                    "Redirecting main window to url specified in the request"
+                    "Redirecting main window to url specified in the request",
+                    this.correlationId
                 );
                 this.logger.verbosePii(
-                    `Redirecting main window to: ${absoluteUrl}`
+                    `Redirecting main window to: '${absoluteUrl}'`,
+                    this.correlationId
                 );
                 await this.navigationClient.navigateInternal(
                     absoluteUrl,
                     navigationOptions
                 );
             } else {
-                this.logger.verbose("No main window navigation requested");
+                this.logger.verbose(
+                    "No main window navigation requested",
+                    this.correlationId
+                );
             }
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered
@@ -618,82 +697,19 @@ export class PopupClient extends StandardInteractionClient {
     initiateAuthRequest(requestUrl: string, params: PopupParams): Window {
         // Check that request url is not empty.
         if (requestUrl) {
-            this.logger.infoPii(`Navigate to: ${requestUrl}`);
+            this.logger.infoPii(
+                `Navigate to: '${requestUrl}'`,
+                this.correlationId
+            );
             // Open the popup window to requestUrl.
             return this.openPopup(requestUrl, params);
         } else {
             // Throw error if request URL is empty.
-            this.logger.error("Navigate url is empty");
+            this.logger.error("Navigate url is empty", this.correlationId);
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.emptyNavigateUri
             );
         }
-    }
-
-    /**
-     * Monitors a window until it loads a url with the same origin.
-     * @param popupWindow - window that is being monitored
-     * @param timeout - timeout for processing hash once popup is redirected back to application
-     */
-    monitorPopupForHash(
-        popupWindow: Window,
-        popupWindowParent: Window
-    ): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            this.logger.verbose(
-                "PopupHandler.monitorPopupForHash - polling started"
-            );
-
-            const intervalId = setInterval(() => {
-                // Window is closed
-                if (popupWindow.closed) {
-                    this.logger.error(
-                        "PopupHandler.monitorPopupForHash - window closed"
-                    );
-                    clearInterval(intervalId);
-                    reject(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.userCancelled
-                        )
-                    );
-                    return;
-                }
-
-                let href = "";
-                try {
-                    /*
-                     * Will throw if cross origin,
-                     * which should be caught and ignored
-                     * since we need the interval to keep running while on STS UI.
-                     */
-                    href = popupWindow.location.href;
-                } catch (e) {}
-
-                // Don't process blank pages or cross domain
-                if (!href || href === "about:blank") {
-                    return;
-                }
-                clearInterval(intervalId);
-
-                let responseString = "";
-                const responseType = this.config.auth.OIDCOptions.responseMode;
-                if (popupWindow) {
-                    if (responseType === Constants.ResponseMode.QUERY) {
-                        responseString = popupWindow.location.search;
-                    } else {
-                        responseString = popupWindow.location.hash;
-                    }
-                }
-
-                this.logger.verbose(
-                    "PopupHandler.monitorPopupForHash - popup window is on same origin as caller"
-                );
-
-                resolve(responseString);
-            }, this.config.system.pollIntervalMilliseconds);
-        }).finally(() => {
-            this.cleanPopup(popupWindow, popupWindowParent);
-        });
     }
 
     /**
@@ -716,13 +732,15 @@ export class PopupClient extends StandardInteractionClient {
             if (popupParams.popup) {
                 popupWindow = popupParams.popup;
                 this.logger.verbosePii(
-                    `Navigating popup window to: ${urlNavigate}`
+                    `Navigating popup window to: '${urlNavigate}'`,
+                    this.correlationId
                 );
                 popupWindow.location.assign(urlNavigate);
             } else if (typeof popupParams.popup === "undefined") {
                 // Popup will be undefined if it was not passed in
                 this.logger.verbosePii(
-                    `Opening popup window to: ${urlNavigate}`
+                    `Opening popup window to: '${urlNavigate}'`,
+                    this.correlationId
                 );
                 popupWindow = this.openSizedPopup(urlNavigate, popupParams);
             }
@@ -745,7 +763,8 @@ export class PopupClient extends StandardInteractionClient {
             return popupWindow;
         } catch (e) {
             this.logger.error(
-                "error opening popup " + (e as AuthError).message
+                `error opening popup '${(e as AuthError).message}'`,
+                this.correlationId
             );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.popupWindowError
@@ -794,21 +813,24 @@ export class PopupClient extends StandardInteractionClient {
 
         if (!width || width < 0 || width > winWidth) {
             this.logger.verbose(
-                "Default popup window width used. Window width not configured or invalid."
+                "Default popup window width used. Window width not configured or invalid.",
+                this.correlationId
             );
             width = BrowserConstants.POPUP_WIDTH;
         }
 
         if (!height || height < 0 || height > winHeight) {
             this.logger.verbose(
-                "Default popup window height used. Window height not configured or invalid."
+                "Default popup window height used. Window height not configured or invalid.",
+                this.correlationId
             );
             height = BrowserConstants.POPUP_HEIGHT;
         }
 
         if (!top || top < 0 || top > winHeight) {
             this.logger.verbose(
-                "Default popup window top position used. Window top not configured or invalid."
+                "Default popup window top position used. Window top not configured or invalid.",
+                this.correlationId
             );
             top = Math.max(
                 0,
@@ -818,7 +840,8 @@ export class PopupClient extends StandardInteractionClient {
 
         if (!left || left < 0 || left > winWidth) {
             this.logger.verbose(
-                "Default popup window left position used. Window left not configured or invalid."
+                "Default popup window left position used. Window left not configured or invalid.",
+                this.correlationId
             );
             left = Math.max(
                 0,
@@ -842,21 +865,6 @@ export class PopupClient extends StandardInteractionClient {
         }
         // Guarantees browser unload will happen, so no other errors will be thrown.
         e.preventDefault();
-    }
-
-    /**
-     * Closes popup, removes any state vars created during popup calls.
-     * @param popupWindow
-     */
-    cleanPopup(popupWindow: Window, popupWindowParent: Window): void {
-        // Close window.
-        popupWindow.close();
-
-        // Remove window unload function
-        popupWindowParent.removeEventListener(
-            "beforeunload",
-            this.unloadWindow
-        );
     }
 
     /**

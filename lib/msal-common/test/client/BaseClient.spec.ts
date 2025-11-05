@@ -25,10 +25,11 @@ import {
     ClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
+import { StubPerformanceClient } from "../../src/index.js";
 
 class TestClient extends BaseClient {
     constructor(config: ClientConfiguration) {
-        super(config);
+        super(config, new StubPerformanceClient());
     }
 
     getLogger() {
@@ -223,7 +224,8 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 ThrottlingUtils.preProcess(
                     // @ts-ignore
                     client.cacheManager,
-                    thumbprint
+                    thumbprint,
+                    RANDOM_TEST_GUID
                 )
             ).toThrowError(ServerError);
         });

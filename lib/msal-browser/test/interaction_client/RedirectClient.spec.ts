@@ -33,31 +33,27 @@ import {
     AuthorizationCodeClient,
     ProtocolUtils,
     Logger,
-    ServerTelemetryEntity,
     LogLevel,
     NetworkResponse,
     ServerAuthorizationTokenResponse,
     CommonEndSessionRequest,
     ServerTelemetryManager,
     AccountEntity,
-    AuthError,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     IdTokenEntity,
     InProgressPerformanceEvent,
     StubPerformanceClient,
     ProtocolMode,
-    AccessTokenEntity,
     AccountEntityUtils,
     Constants,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
     TemporaryCacheKeys,
     ApiId,
     BrowserCacheLocation,
     InteractionType,
-    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
@@ -70,7 +66,6 @@ import {
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
-import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
@@ -89,9 +84,11 @@ import {
 } from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { version } from "../../src/packageMetadata.js";
+import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
+    cacheRetentionDays: 5,
 };
 
 const testRequest: CommonAuthorizationUrlRequest = {
@@ -174,7 +171,8 @@ describe("RedirectClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage
+            pca.nativeInternalStorage,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         rootMeasurement = new BrowserPerformanceClient(
@@ -195,17 +193,19 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
                     expect(window.sessionStorage.length).toEqual(1);
                     expect(
-                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                        window.sessionStorage.getItem(
+                            CacheKeys.VERSION_CACHE_KEY
+                        )
                     ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     done();
                 });
@@ -216,17 +216,19 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "#code=ThisIsAnAuthCode",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "#code=ThisIsAnAuthCode" }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
                     expect(window.sessionStorage.length).toEqual(1);
                     expect(
-                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                        window.sessionStorage.getItem(
+                            CacheKeys.VERSION_CACHE_KEY
+                        )
                     ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     done();
                 });
@@ -237,17 +239,19 @@ describe("RedirectClient", () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
                     expect(window.sessionStorage.length).toEqual(1);
                     expect(
-                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                        window.sessionStorage.getItem(
+                            CacheKeys.VERSION_CACHE_KEY
+                        )
                     ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     expect(window.location.hash).toEqual(
                         TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
@@ -260,10 +264,10 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(true);
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -285,10 +289,10 @@ describe("RedirectClient", () => {
             ).mockRejectedValue("Error in handleResponse");
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -315,10 +319,10 @@ describe("RedirectClient", () => {
             ).mockRejectedValue("Error in handleResponse");
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -346,7 +350,6 @@ describe("RedirectClient", () => {
                         auth: {
                             // @ts-ignore
                             ...pca.config.auth,
-                            navigateToLoginRequestUrl: false,
                         },
                     },
                     browserStorage,
@@ -365,10 +368,13 @@ describe("RedirectClient", () => {
                 );
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    {
+                        hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                        navigateToLoginRequestUrl: false,
+                    }
                 )
                 .catch((e) => {
                     expect(e).toEqual("Error in handleResponse");
@@ -378,15 +384,15 @@ describe("RedirectClient", () => {
 
         it("gets hash from cache and processes response", async () => {
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -400,7 +406,7 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
                 base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
@@ -455,10 +461,10 @@ describe("RedirectClient", () => {
             ).mockResolvedValue(testServerTokenResponse);
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -517,6 +523,7 @@ describe("RedirectClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID,
                 nativeMessageHandler
             );
 
@@ -528,15 +535,15 @@ describe("RedirectClient", () => {
             ).libraryState.id;
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -550,7 +557,7 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
                 base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
@@ -607,10 +614,10 @@ describe("RedirectClient", () => {
             ).mockResolvedValue(testTokenResponse);
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -670,15 +677,15 @@ describe("RedirectClient", () => {
             ).libraryState.id;
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -692,16 +699,16 @@ describe("RedirectClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
                 base64Encode(JSON.stringify(testTokenReq))
             );
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
@@ -735,28 +742,28 @@ describe("RedirectClient", () => {
             ).libraryState.id;
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
                 browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest))
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_ERROR_HASH
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .catch((err) => {
                     expect(err instanceof ServerError).toBeTruthy();
@@ -774,11 +781,11 @@ describe("RedirectClient", () => {
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
 
@@ -794,7 +801,7 @@ describe("RedirectClient", () => {
             };
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
                 base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
@@ -850,7 +857,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -880,10 +886,13 @@ describe("RedirectClient", () => {
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    hash: "",
+                    navigateToLoginRequestUrl: false,
+                }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -914,11 +923,11 @@ describe("RedirectClient", () => {
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
 
@@ -934,7 +943,7 @@ describe("RedirectClient", () => {
             };
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
                 base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse: NetworkResponse<ServerAuthorizationTokenResponse> =
@@ -1034,10 +1043,10 @@ describe("RedirectClient", () => {
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             if (!tokenResponse) {
                 expect(tokenResponse).not.toBe(null);
@@ -1071,11 +1080,11 @@ describe("RedirectClient", () => {
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 TEST_CONFIG.MSAL_CLIENT_ID
             );
 
@@ -1091,7 +1100,7 @@ describe("RedirectClient", () => {
             };
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
                 base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse = {
@@ -1147,7 +1156,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -1177,10 +1185,13 @@ describe("RedirectClient", () => {
             );
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    hash: "",
+                    navigateToLoginRequestUrl: false,
+                }
             );
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
@@ -1205,15 +1216,15 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(false);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI
             );
             expect(
                 await redirectClient.handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
             ).toBe(null);
         });
@@ -1233,7 +1244,7 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(false);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI
             );
             expect(browserStorage.isInteractionInProgress(true)).toBe(false);
@@ -1246,10 +1257,10 @@ describe("RedirectClient", () => {
             );
             expect(
                 await redirectClient.handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
             ).toBe(null);
         });
@@ -1258,7 +1269,7 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI
             );
             jest.spyOn(
@@ -1278,14 +1289,14 @@ describe("RedirectClient", () => {
                 }
             );
             await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
                 )
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
@@ -1333,7 +1344,7 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI
             );
             jest.spyOn(
@@ -1353,14 +1364,14 @@ describe("RedirectClient", () => {
                 }
             );
             await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
                 )
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
@@ -1381,7 +1392,7 @@ describe("RedirectClient", () => {
                     expect(urlNavigate).toEqual("https://localhost:8081/");
                     expect(
                         window.sessionStorage.getItem(
-                            `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
+                            `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
                         )
                     ).toEqual("https://localhost:8081/");
                     done();
@@ -1389,14 +1400,14 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
                 )
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
@@ -1405,7 +1416,7 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 "null"
             );
             jest.spyOn(
@@ -1421,7 +1432,7 @@ describe("RedirectClient", () => {
                     expect(urlNavigate).toEqual("https://localhost:8081/");
                     expect(
                         window.sessionStorage.getItem(
-                            `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
+                            `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
                         )
                     ).toEqual("https://localhost:8081/");
                     done();
@@ -1429,14 +1440,14 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
                 )
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
@@ -1446,7 +1457,7 @@ describe("RedirectClient", () => {
             const loginRequestUrl = window.location.href + "?testQueryString=1";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
             jest.spyOn(
@@ -1465,14 +1476,14 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
                 )
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
@@ -1483,7 +1494,7 @@ describe("RedirectClient", () => {
                 window.location.href + "?testQueryString=1#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
             jest.spyOn(
@@ -1502,14 +1513,14 @@ describe("RedirectClient", () => {
                 }
             );
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(
                 window.sessionStorage.getItem(
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
                 )
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
@@ -1519,7 +1530,7 @@ describe("RedirectClient", () => {
             const loginRequestUrl = window.location.href + "#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
             jest.spyOn(
@@ -1534,10 +1545,10 @@ describe("RedirectClient", () => {
             });
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then(() => {
                     expect(window.location.href).toEqual(loginRequestUrl);
@@ -1548,7 +1559,7 @@ describe("RedirectClient", () => {
             browserStorage.setInteractionInProgress(true);
             const loginRequestUrl = window.location.href + "#testHash";
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
             jest.spyOn(
@@ -1563,10 +1574,10 @@ describe("RedirectClient", () => {
             });
             redirectClient
                 .handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 )
                 .then(() => {
                     expect(window.location.href).toEqual(loginRequestUrl);
@@ -1576,11 +1587,11 @@ describe("RedirectClient", () => {
         it("Does not clear custom hash if response hash is retrieved from temporary cache", () => {
             browserStorage.setInteractionInProgress(true);
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 window.location.href
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
 
@@ -1600,10 +1611,10 @@ describe("RedirectClient", () => {
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then(() => {
                     expect(clearHashSpy).not.toHaveBeenCalled();
@@ -1618,7 +1629,7 @@ describe("RedirectClient", () => {
                 : window.location.href + "/";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
             jest.spyOn(
@@ -1633,10 +1644,10 @@ describe("RedirectClient", () => {
                 done();
             });
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
         });
 
@@ -1646,16 +1657,16 @@ describe("RedirectClient", () => {
             const loginRequestUrl = window.location.href + "/testPage";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
 
             redirectClient
                 .handleRedirectPromise(
-                    "",
                     testRequest,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: "" }
                 )
                 .then((response) => {
                     expect(response).toBe(null);
@@ -1667,7 +1678,6 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false,
                 },
             });
 
@@ -1698,7 +1708,7 @@ describe("RedirectClient", () => {
             const loginRequestUrl = window.location.href + "#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
             jest.spyOn(
@@ -1714,10 +1724,13 @@ describe("RedirectClient", () => {
                 done();
             });
             redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                {
+                    hash: "",
+                    navigateToLoginRequestUrl: false,
+                }
             );
         });
 
@@ -1731,14 +1744,14 @@ describe("RedirectClient", () => {
             const loginRequestUrl = window.location.href;
             window.location.hash = "";
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
             const res = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(res).toBeNull();
             expect(rootMeasurement.event.errorCode).toBeUndefined();
@@ -1754,14 +1767,14 @@ describe("RedirectClient", () => {
             const loginRequestUrl = window.location.href;
             window.location.hash = "";
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 loginRequestUrl
             );
             const res = await redirectClient.handleRedirectPromise(
-                "",
                 testRequest,
                 TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement
+                rootMeasurement,
+                { hash: "" }
             );
             expect(res).toBeNull();
             expect(rootMeasurement.event.errorCode).toEqual(
@@ -1956,7 +1969,7 @@ describe("RedirectClient", () => {
             );
             await redirectClient.acquireToken(tokenRequest);
             const [cachedRequest, codeVerifier] =
-                browserStorage.getCachedRequest();
+                browserStorage.getCachedRequest(TEST_CONFIG.CORRELATION_ID);
             expect(cachedRequest.scopes).toEqual([]);
             expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
             expect(cachedRequest.authority).toEqual(
@@ -1993,7 +2006,7 @@ describe("RedirectClient", () => {
             redirectClient.acquireToken(loginRequest);
         });
 
-        it("passes onRedirectNavigate callback", (done) => {
+        it("passes onRedirectNavigate callback from config", (done) => {
             const onRedirectNavigate = (url: string) => {
                 verifyUrl(url, ["user.read"]);
                 done();
@@ -2030,7 +2043,8 @@ describe("RedirectClient", () => {
                     //@ts-ignore
                     pca.performanceClient,
                     //@ts-ignore
-                    pca.nativeInternalStorage
+                    pca.nativeInternalStorage,
+                    TEST_CONFIG.CORRELATION_ID
                 );
 
                 let initiateAuthRequestSpy = jest.spyOn(
@@ -2090,10 +2104,10 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     request,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -2131,10 +2145,10 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     request,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -2172,10 +2186,10 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
                     request,
                     TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
+                    rootMeasurement,
+                    { hash: TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT }
                 );
                 if (!tokenResp) {
                     throw "Response should not be null!";
@@ -2434,6 +2448,7 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 
@@ -2446,6 +2461,7 @@ describe("RedirectClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             jest.spyOn(
@@ -2464,7 +2480,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({ account: testAccountInfo })
                 );
@@ -2491,6 +2507,7 @@ describe("RedirectClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 idTokenClaims: testIdTokenClaims,
             };
 
@@ -2503,6 +2520,7 @@ describe("RedirectClient", () => {
                 name: testAccountInfo.name,
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             jest.spyOn(
@@ -2524,237 +2542,12 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({
                         account: testAccountInfo,
                         logoutHint: logoutHint,
                     })
-                );
-        });
-
-        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
-                    done();
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            redirectClient
-                .logout({
-                    onRedirectNavigate: (url: string) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return false;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeFalsy();
-
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                });
-        });
-
-        it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
-            const testAccountInfo: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
-
-            const testAccount: AccountEntity = {
-                homeAccountId: testAccountInfo.homeAccountId,
-                localAccountId: testAccountInfo.localAccountId,
-                environment: testAccountInfo.environment,
-                realm: testAccountInfo.tenantId,
-                username: testAccountInfo.username,
-                name: testAccountInfo.name,
-                authorityType: "MSSTS",
-                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
-            };
-
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
-                    done();
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
-                .then(() =>
-                    redirectClient
-                        .logout({
-                            account: testAccountInfo,
-                            onRedirectNavigate: (url: string) => {
-                                expect(url).toEqual(testLogoutUrl);
-                                return false;
-                            },
-                        })
-                        .then(() => {
-                            expect(
-                                browserStorage.getInteractionInProgress()
-                            ).toBeFalsy();
-
-                            const validatedLogoutRequest: CommonEndSessionRequest =
-                                {
-                                    correlationId: RANDOM_TEST_GUID,
-                                    postLogoutRedirectUri:
-                                        TEST_URIS.TEST_REDIR_URI,
-                                };
-                            expect(logoutUriSpy).toHaveBeenCalledWith(
-                                expect.objectContaining(validatedLogoutRequest)
-                            );
-                            done();
-                        })
-                );
-        });
-
-        it("does navigate if onRedirectNavigate returns true", (done) => {
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeTruthy();
-                    expect(urlNavigate).toEqual(testLogoutUrl);
-
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            redirectClient
-                .logout({
-                    onRedirectNavigate: (url) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return true;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeTruthy();
-
-                    // Reset after testing it was properly set
-                    browserStorage.setInteractionInProgress(false);
-
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                });
-        });
-
-        it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
-            const testAccountInfo: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-            };
-
-            const testAccount: AccountEntity = {
-                homeAccountId: testAccountInfo.homeAccountId,
-                localAccountId: testAccountInfo.localAccountId,
-                environment: testAccountInfo.environment,
-                realm: testAccountInfo.tenantId,
-                username: testAccountInfo.username,
-                name: testAccountInfo.name,
-                authorityType: "MSSTS",
-                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
-            };
-
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(urlNavigate).toEqual(testLogoutUrl);
-
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
-                .then(() =>
-                    redirectClient
-                        .logout({
-                            account: testAccountInfo,
-                            onRedirectNavigate: (url) => {
-                                expect(url).toEqual(testLogoutUrl);
-                                return true;
-                            },
-                        })
-                        .then(() => {
-                            expect(
-                                browserStorage.getInteractionInProgress()
-                            ).toBeTruthy();
-
-                            // Reset after testing it was properly set
-                            browserStorage.setInteractionInProgress(false);
-
-                            const validatedLogoutRequest: CommonEndSessionRequest =
-                                {
-                                    correlationId: RANDOM_TEST_GUID,
-                                    postLogoutRedirectUri:
-                                        TEST_URIS.TEST_REDIR_URI,
-                                };
-                            expect(logoutUriSpy).toHaveBeenCalledWith(
-                                expect.objectContaining(validatedLogoutRequest)
-                            );
-                            done();
-                        })
                 );
         });
 
@@ -2839,11 +2632,13 @@ describe("RedirectClient", () => {
 
             await browserStorage.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await browserStorage.setIdTokenCredential(
                 testIdToken,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
 
             pca.setActiveAccount(testAccountInfo);
@@ -2852,6 +2647,327 @@ describe("RedirectClient", () => {
             await redirectClient.logout(validatedLogoutRequest).then(() => {
                 expect(pca.getActiveAccount()).toBe(null);
                 expect(pca.getAllAccounts().length).toBe(0);
+            });
+        });
+
+        describe("onRedirectNavigate tests", () => {
+            let pca2: PublicClientApplication,
+                pca3: PublicClientApplication,
+                redirectClient2: RedirectClient,
+                redirectClient3: RedirectClient,
+                browserStorage2: BrowserCacheManager,
+                browserStorage3: BrowserCacheManager;
+            beforeEach(async () => {
+                const onRedirectNavigateFalse = (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return false;
+                };
+                pca2 = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        onRedirectNavigate: onRedirectNavigateFalse,
+                    },
+                    telemetry: {
+                        application: {
+                            appName: TEST_CONFIG.applicationName,
+                            appVersion: TEST_CONFIG.applicationVersion,
+                        },
+                    },
+                });
+
+                await pca2.initialize();
+                pca2 = (pca2 as any).controller;
+                // @ts-ignore
+                redirectClient2 = new RedirectClient(
+                    //@ts-ignore
+                    pca2.config,
+                    //@ts-ignore
+                    pca2.browserStorage,
+                    //@ts-ignore
+                    pca2.browserCrypto,
+                    //@ts-ignore
+                    pca2.logger,
+                    //@ts-ignore
+                    pca2.eventHandler,
+                    //@ts-ignore
+                    pca2.navigationClient,
+                    //@ts-ignore
+                    pca2.performanceClient,
+                    //@ts-ignore
+                    pca2.nativeInternalStorage
+                );
+
+                // @ts-ignore
+                browserStorage2 = pca2.browserStorage;
+
+                const onRedirectNavigateTrue = (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return true;
+                };
+                pca3 = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        onRedirectNavigate: onRedirectNavigateTrue,
+                    },
+                    telemetry: {
+                        application: {
+                            appName: TEST_CONFIG.applicationName,
+                            appVersion: TEST_CONFIG.applicationVersion,
+                        },
+                    },
+                });
+
+                await pca3.initialize();
+                pca3 = (pca3 as any).controller;
+                // @ts-ignore
+                redirectClient3 = new RedirectClient(
+                    //@ts-ignore
+                    pca3.config,
+                    //@ts-ignore
+                    pca3.browserStorage,
+                    //@ts-ignore
+                    pca3.browserCrypto,
+                    //@ts-ignore
+                    pca3.logger,
+                    //@ts-ignore
+                    pca3.eventHandler,
+                    //@ts-ignore
+                    pca3.navigationClient,
+                    //@ts-ignore
+                    pca3.performanceClient,
+                    //@ts-ignore
+                    pca3.nativeInternalStorage
+                );
+
+                // @ts-ignore
+                browserStorage3 = pca3.browserStorage;
+            });
+
+            it("doesnt navigate if onRedirectNavigate returns false", (done) => {
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        done(
+                            "Navigation should not happen if onRedirectNavigate returns false"
+                        );
+                        return Promise.reject();
+                    }
+                );
+
+                browserStorage2.setInteractionInProgress(true);
+
+                redirectClient2
+                    .logout({ correlationId: RANDOM_TEST_GUID })
+                    .then(() => {
+                        expect(
+                            browserStorage2.getInteractionInProgress()
+                        ).toBeFalsy();
+
+                        const validatedLogoutRequest: CommonEndSessionRequest =
+                            {
+                                correlationId: RANDOM_TEST_GUID,
+                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                            };
+                        expect(logoutUriSpy).toHaveBeenCalledWith(
+                            expect.objectContaining(validatedLogoutRequest)
+                        );
+                        done();
+                    });
+            });
+
+            it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    loginHint: "loginHint",
+                };
+
+                const testAccount: AccountEntity = {
+                    homeAccountId: testAccountInfo.homeAccountId,
+                    localAccountId: testAccountInfo.localAccountId,
+                    environment: testAccountInfo.environment,
+                    realm: testAccountInfo.tenantId,
+                    username: testAccountInfo.username,
+                    name: testAccountInfo.name,
+                    authorityType: "MSSTS",
+                    clientInfo:
+                        TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                    lastUpdatedAt: Date.now().toString(),
+                };
+
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        done(
+                            "Navigation should not happen if onRedirectNavigate returns false"
+                        );
+                        return Promise.reject();
+                    }
+                );
+
+                browserStorage2.setInteractionInProgress(true);
+                browserStorage2
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                    .then(() =>
+                        redirectClient2
+                            .logout({
+                                account: testAccountInfo,
+                                correlationId: RANDOM_TEST_GUID,
+                            })
+                            .then(() => {
+                                expect(
+                                    browserStorage2.getInteractionInProgress()
+                                ).toBeFalsy();
+
+                                const validatedLogoutRequest: CommonEndSessionRequest =
+                                    {
+                                        correlationId: RANDOM_TEST_GUID,
+                                        postLogoutRedirectUri:
+                                            TEST_URIS.TEST_REDIR_URI,
+                                    };
+                                expect(logoutUriSpy).toHaveBeenCalledWith(
+                                    expect.objectContaining(
+                                        validatedLogoutRequest
+                                    )
+                                );
+                                done();
+                            })
+                    );
+            });
+
+            it("does navigate if onRedirectNavigate returns true", (done) => {
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        expect(
+                            browserStorage.getInteractionInProgress()
+                        ).toBeTruthy();
+                        expect(urlNavigate).toEqual(testLogoutUrl);
+                        return Promise.resolve(true);
+                    }
+                );
+
+                browserStorage3.setInteractionInProgress(true);
+
+                redirectClient
+                    .logout({ correlationId: RANDOM_TEST_GUID })
+                    .then(() => {
+                        expect(
+                            browserStorage3.getInteractionInProgress()
+                        ).toBeTruthy();
+                        browserStorage3.setInteractionInProgress(false);
+
+                        const validatedLogoutRequest: CommonEndSessionRequest =
+                            {
+                                correlationId: RANDOM_TEST_GUID,
+                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                            };
+                        expect(logoutUriSpy).toHaveBeenCalledWith(
+                            expect.objectContaining(validatedLogoutRequest)
+                        );
+                        done();
+                    });
+            });
+
+            it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    loginHint: "loginHint",
+                };
+
+                const testAccount: AccountEntity = {
+                    homeAccountId: testAccountInfo.homeAccountId,
+                    localAccountId: testAccountInfo.localAccountId,
+                    environment: testAccountInfo.environment,
+                    realm: testAccountInfo.tenantId,
+                    username: testAccountInfo.username,
+                    name: testAccountInfo.name,
+                    authorityType: "MSSTS",
+                    clientInfo:
+                        TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                    lastUpdatedAt: Date.now().toString(),
+                };
+
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        expect(urlNavigate).toEqual(testLogoutUrl);
+                        return Promise.resolve(true);
+                    }
+                );
+
+                browserStorage3.setInteractionInProgress(true);
+                browserStorage3
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                    .then(() =>
+                        redirectClient3
+                            .logout({
+                                account: testAccountInfo,
+                                correlationId: RANDOM_TEST_GUID,
+                            })
+                            .then(() => {
+                                expect(
+                                    browserStorage3.getInteractionInProgress()
+                                ).toBeTruthy();
+                                browserStorage3.setInteractionInProgress(false);
+
+                                const validatedLogoutRequest: CommonEndSessionRequest =
+                                    {
+                                        correlationId: RANDOM_TEST_GUID,
+                                        postLogoutRedirectUri:
+                                            TEST_URIS.TEST_REDIR_URI,
+                                    };
+                                expect(logoutUriSpy).toHaveBeenCalledWith(
+                                    expect.objectContaining(
+                                        validatedLogoutRequest
+                                    )
+                                );
+                                done();
+                            })
+                    );
             });
         });
     });
@@ -3007,14 +3123,6 @@ describe("RedirectClient", () => {
     });
 
     describe("EAR Flow Tests", () => {
-        beforeAll(() => {
-            jest.useFakeTimers();
-        });
-
-        afterAll(() => {
-            jest.useRealTimers();
-        });
-
         beforeEach(async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -3022,6 +3130,7 @@ describe("RedirectClient", () => {
                 },
                 system: {
                     protocolMode: ProtocolMode.EAR,
+                    redirectNavigationTimeout: 1000,
                 },
             });
             await pca.initialize();
@@ -3031,7 +3140,7 @@ describe("RedirectClient", () => {
             );
         });
 
-        it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+        it("Invokes EAR flow when protocolMode is set to EAR", (done) => {
             const validRequest: RedirectRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["openid", "profile", "offline_access"],
@@ -3043,18 +3152,40 @@ describe("RedirectClient", () => {
             jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
             );
+            jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
+                () => {
+                    // Supress navigation
+                    pca.handleRedirectPromise({
+                        hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+                    }).then((result) => {
+                        expect(result).toEqual(getTestAuthenticationResult());
+                        done();
+                    });
+                }
+            );
+
+            pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
+        it("Throws a timeout error if the form post failed to redirect within the alloted time", async () => {
+            const validRequest: RedirectRequest = {
+                scopes: ["openid", "profile", "offline_access"],
+            };
             const earFormSpy = jest
                 .spyOn(HTMLFormElement.prototype, "submit")
                 .mockImplementation(() => {
                     // Supress navigation
                 });
 
-            await pca.acquireTokenRedirect(validRequest);
-            expect(earFormSpy).toHaveBeenCalled();
-            const result = await pca.handleRedirectPromise(
-                `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+            await expect(
+                pca.acquireTokenRedirect(validRequest)
+            ).rejects.toEqual(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "failed_to_redirect"
+                )
             );
-            expect(result).toEqual(getTestAuthenticationResult());
+            expect(earFormSpy).toHaveBeenCalled();
         });
     });
 });

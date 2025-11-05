@@ -21,6 +21,9 @@ import {
     StaticAuthorityOptions,
     CacheHelpers,
     AccountEntityUtils,
+    CredentialEntity,
+    AccountInfo,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -30,6 +33,7 @@ import {
     JsonCache,
     CacheKVStore,
 } from "./serializer/SerializerTypes.js";
+import { generateAccountKey, generateCredentialKey } from "./CacheHelpers.js";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -47,7 +51,13 @@ export class NodeStorage extends CacheManager {
         cryptoImpl: ICrypto,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
-        super(clientId, cryptoImpl, logger, staticAuthorityOptions);
+        super(
+            clientId,
+            cryptoImpl,
+            logger,
+            new StubPerformanceClient(),
+            staticAuthorityOptions
+        );
         this.logger = logger;
     }
 
@@ -127,7 +137,7 @@ export class NodeStorage extends CacheManager {
      * gets the current in memory cache for the client
      */
     getInMemoryCache(): InMemoryCache {
-        this.logger.trace("Getting in-memory cache");
+        this.logger.trace("Getting in-memory cache", "");
 
         // convert the cache key value store to inMemoryCache
         const inMemoryCache = this.cacheToInMemoryCache(this.getCache());
@@ -139,7 +149,7 @@ export class NodeStorage extends CacheManager {
      * @param inMemoryCache - key value map in memory
      */
     setInMemoryCache(inMemoryCache: InMemoryCache): void {
-        this.logger.trace("Setting in-memory cache");
+        this.logger.trace("Setting in-memory cache", "");
 
         // convert and append the inMemoryCache to cacheKVStore
         const cache = this.inMemoryCacheToCache(inMemoryCache);
@@ -152,7 +162,7 @@ export class NodeStorage extends CacheManager {
      * get the current cache key-value store
      */
     getCache(): CacheKVStore {
-        this.logger.trace("Getting cache key-value store");
+        this.logger.trace("Getting cache key-value store", "");
         return this.cache;
     }
 
@@ -161,7 +171,7 @@ export class NodeStorage extends CacheManager {
      * @param cacheMap - key value map
      */
     setCache(cache: CacheKVStore): void {
-        this.logger.trace("Setting cache key value store");
+        this.logger.trace("Setting cache key value store", "");
         this.cache = cache;
 
         // mark change in cache
@@ -173,7 +183,7 @@ export class NodeStorage extends CacheManager {
      * @param key - lookup key for the cache entry
      */
     getItem(key: string): ValidCacheType {
-        this.logger.tracePii(`Item key: ${key}`);
+        this.logger.tracePii(`Item key: ${key}`, "");
 
         // read cache
         const cache = this.getCache();
@@ -186,7 +196,7 @@ export class NodeStorage extends CacheManager {
      * @param value - value of the cache entry
      */
     setItem(key: string, value: ValidCacheType): void {
-        this.logger.tracePii(`Item key: ${key}`);
+        this.logger.tracePii(`Item key: ${key}`, "");
 
         // read cache
         const cache = this.getCache();
@@ -194,6 +204,14 @@ export class NodeStorage extends CacheManager {
 
         // write to cache
         this.setCache(cache);
+    }
+
+    generateCredentialKey(credential: CredentialEntity): string {
+        return generateCredentialKey(credential);
+    }
+
+    generateAccountKey(account: AccountInfo): string {
+        return generateAccountKey(account);
     }
 
     getAccountKeys(): string[] {
@@ -231,7 +249,9 @@ export class NodeStorage extends CacheManager {
      * @param account - cache value to be set of type AccountEntity
      */
     async setAccount(account: AccountEntity): Promise<void> {
-        const accountKey = AccountEntityUtils.generateAccountKey(account);
+        const accountKey = this.generateAccountKey(
+            AccountEntityUtils.getAccountInfo(account)
+        );
         this.setItem(accountKey, account);
     }
 
@@ -252,7 +272,7 @@ export class NodeStorage extends CacheManager {
      * @param idToken - cache value to be set of type IdTokenEntity
      */
     async setIdTokenCredential(idToken: IdTokenEntity): Promise<void> {
-        const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
+        const idTokenKey = this.generateCredentialKey(idToken);
         this.setItem(idTokenKey, idToken);
     }
 
@@ -275,7 +295,7 @@ export class NodeStorage extends CacheManager {
     async setAccessTokenCredential(
         accessToken: AccessTokenEntity
     ): Promise<void> {
-        const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
+        const accessTokenKey = this.generateCredentialKey(accessToken);
         this.setItem(accessTokenKey, accessToken);
     }
 
@@ -302,8 +322,7 @@ export class NodeStorage extends CacheManager {
     async setRefreshTokenCredential(
         refreshToken: RefreshTokenEntity
     ): Promise<void> {
-        const refreshTokenKey =
-            CacheHelpers.generateCredentialKey(refreshToken);
+        const refreshTokenKey = this.generateCredentialKey(refreshToken);
         this.setItem(refreshTokenKey, refreshToken);
     }
 
@@ -434,7 +453,7 @@ export class NodeStorage extends CacheManager {
      * @param inMemory - key value map of the cache
      */
     removeItem(key: string): boolean {
-        this.logger.tracePii(`Item key: ${key}`);
+        this.logger.tracePii(`Item key: ${key}`, "");
 
         // read inMemoryCache
         let result: boolean = false;
@@ -473,7 +492,7 @@ export class NodeStorage extends CacheManager {
      * Gets all keys in window.
      */
     getKeys(): string[] {
-        this.logger.trace("Retrieving all cache keys");
+        this.logger.trace("Retrieving all cache keys", "");
 
         // read cache
         const cache = this.getCache();
@@ -484,7 +503,7 @@ export class NodeStorage extends CacheManager {
      * Clears all cache entries created by MSAL (except tokens).
      */
     clear(): void {
-        this.logger.trace("Clearing cache entries created by MSAL");
+        this.logger.trace("Clearing cache entries created by MSAL", "");
 
         // read inMemoryCache
         const cacheKeys = this.getKeys();
@@ -521,7 +540,7 @@ export class NodeStorage extends CacheManager {
         currentCacheKey: string,
         credential: ValidCredentialType
     ): string {
-        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
+        const updatedCacheKey = this.generateCredentialKey(credential);
 
         if (currentCacheKey !== updatedCacheKey) {
             const cacheItem = this.getItem(currentCacheKey);
@@ -529,12 +548,14 @@ export class NodeStorage extends CacheManager {
                 this.removeItem(currentCacheKey);
                 this.setItem(updatedCacheKey, cacheItem);
                 this.logger.verbose(
-                    `Updated an outdated ${credential.credentialType} cache key`
+                    `Updated an outdated ${credential.credentialType} cache key`,
+                    ""
                 );
                 return updatedCacheKey;
             } else {
                 this.logger.error(
-                    `Attempted to update an outdated ${credential.credentialType} cache key but no item matching the outdated key was found in storage`
+                    `Attempted to update an outdated ${credential.credentialType} cache key but no item matching the outdated key was found in storage`,
+                    ""
                 );
             }
         }

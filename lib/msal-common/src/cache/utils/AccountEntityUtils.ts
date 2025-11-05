@@ -11,6 +11,7 @@ import {
     AccountInfo,
     TenantProfile,
     buildTenantProfile,
+    DataBoundary,
 } from "../../account/AccountInfo.js";
 import {
     createClientAuthError,
@@ -37,19 +38,6 @@ export function generateAccountId(accountEntity: AccountEntity): string {
 }
 
 /**
- * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
- */
-export function generateAccountKey(accountEntity: AccountEntity): string {
-    return generateAccountCacheKey({
-        homeAccountId: accountEntity.homeAccountId,
-        environment: accountEntity.environment,
-        tenantId: accountEntity.realm,
-        username: accountEntity.username,
-        localAccountId: accountEntity.localAccountId,
-    });
-}
-
-/**
  * Returns the AccountInfo interface for this account.
  */
 export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
@@ -59,6 +47,7 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
         tenantId: accountEntity.realm,
         username: accountEntity.username,
         localAccountId: accountEntity.localAccountId,
+        loginHint: accountEntity.loginHint,
         name: accountEntity.name,
         nativeAccountId: accountEntity.nativeAccountId,
         authorityType: accountEntity.authorityType,
@@ -68,6 +57,7 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
                 return [tenantProfile.tenantId, tenantProfile];
             })
         ),
+        dataBoundary: accountEntity.dataBoundary,
     };
 }
 
@@ -76,21 +66,6 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
  */
 export function isSingleTenant(accountEntity: AccountEntity): boolean {
     return !accountEntity.tenantProfiles;
-}
-
-/**
- * Generates account key from interface
- * @param accountInterface
- */
-export function generateAccountCacheKey(accountInterface: AccountInfo): string {
-    const homeTenantId = accountInterface.homeAccountId.split(".")[1];
-    const accountKey = [
-        accountInterface.homeAccountId,
-        accountInterface.environment || "",
-        homeTenantId || accountInterface.tenantId || "",
-    ];
-
-    return accountKey.join(Constants.CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -121,9 +96,13 @@ export function createAccountEntity(
     }
 
     let clientInfo: ClientInfo | undefined;
+    let dataBoundary: DataBoundary | undefined;
 
     if (accountDetails.clientInfo && base64Decode) {
         clientInfo = buildClientInfo(accountDetails.clientInfo, base64Decode);
+        if (clientInfo.xms_tdbr) {
+            dataBoundary = clientInfo.xms_tdbr === "EU" ? "EU" : "None";
+        }
     }
 
     const env =
@@ -149,6 +128,8 @@ export function createAccountEntity(
         : null;
 
     const username = preferredUsername || email || "";
+
+    const loginHint = accountDetails.idTokenClaims?.login_hint;
 
     const realm =
         clientInfo?.utid ||
@@ -180,6 +161,7 @@ export function createAccountEntity(
         localAccountId: localAccountId,
         username: username,
         authorityType: authorityType,
+        loginHint: loginHint,
         clientInfo: accountDetails.clientInfo,
         name: accountDetails.idTokenClaims?.name || "",
         lastModificationTime: undefined,
@@ -188,6 +170,7 @@ export function createAccountEntity(
         msGraphHost: accountDetails.msGraphHost,
         nativeAccountId: accountDetails.nativeAccountId,
         tenantProfiles: tenantProfiles,
+        dataBoundary,
     } as AccountEntity;
 }
 
@@ -212,10 +195,12 @@ export function createAccountEntityFromAccountInfo(
         realm: accountInfo.tenantId,
         environment: accountInfo.environment,
         username: accountInfo.username,
+        loginHint: accountInfo.loginHint,
         name: accountInfo.name,
         cloudGraphHostName: cloudGraphHostName,
         msGraphHost: msGraphHost,
         tenantProfiles: Array.from(accountInfo.tenantProfiles?.values() || []),
+        dataBoundary: accountInfo.dataBoundary,
     } as AccountEntity;
 }
 
@@ -229,6 +214,7 @@ export function generateHomeAccountId(
     authType: AuthorityType,
     logger: Logger,
     cryptoObj: ICrypto,
+    correlationId: string,
     idTokenClaims?: TokenClaims
 ): string {
     // since ADFS/DSTS do not have tid and does not set client_info
@@ -245,7 +231,7 @@ export function generateHomeAccountId(
                 }
             } catch (e) {}
         }
-        logger.warning("No client info in response");
+        logger.warning("No client info in response", correlationId);
     }
 
     // default to "sub" claim
@@ -256,7 +242,7 @@ export function generateHomeAccountId(
  * Validates an entity: checks for all expected params
  * @param entity
  */
-export function isAccountEntity(entity: object): boolean {
+export function isAccountEntity(entity: object): entity is AccountEntity {
     if (!entity) {
         return false;
     }

@@ -14,6 +14,12 @@ import { version } from "../../src/packageMetadata.js";
 import { base64Decode, base64DecToArr } from "../../src/encode/Base64Decode.js";
 import { urlEncodeArr } from "../../src/encode/Base64Encode.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import {
+    AccessTokenEntity,
+    AccountEntity,
+    IdTokenEntity,
+    RefreshTokenEntity,
+} from "@azure/msal-common/browser";
 
 /**
  * This file contains the string constants used by the test classes.
@@ -528,6 +534,8 @@ const testTenantProfilesMap = new Map();
 testTenantProfilesMap.set(ID_TOKEN_CLAIMS.tid, {
     isHomeTenant: true,
     localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    loginHint: ID_TOKEN_CLAIMS.login_hint,
     name: ID_TOKEN_CLAIMS.name,
     tenantId: ID_TOKEN_CLAIMS.tid,
 });
@@ -539,6 +547,7 @@ export const TEST_ACCOUNT_INFO: AccountInfo = {
     environment: "login.windows.net",
     tenantId: ID_TOKEN_CLAIMS.tid,
     username: ID_TOKEN_CLAIMS.preferred_username,
+    loginHint: ID_TOKEN_CLAIMS.login_hint,
     idToken: TEST_TOKENS.IDTOKEN_V2,
     idTokenClaims: ID_TOKEN_CLAIMS,
     name: ID_TOKEN_CLAIMS.name,
@@ -570,7 +579,7 @@ export function getTestAuthenticationResult(): AuthenticationResult {
             (TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) *
                 1000
         ),
-        fromNativeBroker: false,
+        fromPlatformBroker: false,
         msGraphHost: "",
         refreshOn: undefined,
         requestId: "",
@@ -620,4 +629,52 @@ export const PlatformDOMTestErrorResponseObject = {
         status: "PERSISTENT_ERROR",
         protocolError: "",
     },
+};
+
+export const TEST_ID_TOKEN_ENTITY: IdTokenEntity = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    environment: "login.windows.net",
+    credentialType: Constants.CredentialType.ID_TOKEN,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.IDTOKEN_V2,
+    lastUpdatedAt: Date.now().toString(),
+};
+
+export const TEST_ACCESS_TOKEN_ENTITY: AccessTokenEntity = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    environment: "login.windows.net",
+    credentialType: Constants.CredentialType.ACCESS_TOKEN,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    realm: ID_TOKEN_CLAIMS.tid,
+    target: "user.read mail.read",
+    secret: TEST_TOKENS.ACCESS_TOKEN,
+    expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
+    cachedAt: Date.now().toString(),
+    tokenType: "Bearer",
+    lastUpdatedAt: Date.now().toString(),
+};
+
+export const TEST_REFRESH_TOKEN_ENTITY: RefreshTokenEntity = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    environment: "login.windows.net",
+    credentialType: Constants.CredentialType.REFRESH_TOKEN,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: TEST_TOKENS.REFRESH_TOKEN,
+    expiresOn: (TimeUtils.nowSeconds() + 3600).toString(),
+    lastUpdatedAt: Date.now().toString(),
+};
+
+export const TEST_ACCOUNT_ENTITY: AccountEntity = {
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    environment: "login.windows.net",
+    realm: ID_TOKEN_CLAIMS.tid,
+    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    authorityType: "MSSTS",
+    name: ID_TOKEN_CLAIMS.name,
+    clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+    lastUpdatedAt: Date.now().toString(),
+    tenantProfiles: [testTenantProfilesMap.get(ID_TOKEN_CLAIMS.tid)],
 };

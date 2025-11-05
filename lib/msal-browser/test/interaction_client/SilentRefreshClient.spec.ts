@@ -47,6 +47,7 @@ const testAccount: AccountInfo = {
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
     username: testIdTokenClaims.preferred_username || "",
+    loginHint: testIdTokenClaims.login_hint,
 };
 
 describe("SilentRefreshClient", () => {
@@ -215,6 +216,7 @@ describe("SilentRefreshClient", () => {
                     environment: "login.windows.net",
                     realm: testIdTokenClaims.tid || "",
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    lastUpdatedAt: Date.now().toString(),
                 };
                 const accountEntity = {} as AccountEntity;
                 jest.spyOn(

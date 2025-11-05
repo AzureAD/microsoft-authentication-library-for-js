@@ -10,11 +10,8 @@ import {
     Configuration,
 } from "../config/Configuration.js";
 import { version, name } from "../packageMetadata.js";
-import {
-    BrowserCacheLocation,
-    LOG_LEVEL_CACHE_KEY,
-    LOG_PII_CACHE_KEY,
-} from "../utils/BrowserConstants.js";
+import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
+import { LOG_LEVEL_CACHE_KEY, LOG_PII_CACHE_KEY } from "../cache/CacheKeys.js";
 
 /**
  * Base class for operating context
@@ -110,8 +107,9 @@ export abstract class BaseOperatingContext {
 
     /**
      * returns a boolean indicating whether this operating context is present
+     * @param correlationId
      */
-    abstract initialize(): Promise<boolean>;
+    abstract initialize(correlationId: string): Promise<boolean>;
 
     /**
      * Return the MSAL config

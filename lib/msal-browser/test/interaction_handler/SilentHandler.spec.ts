@@ -16,6 +16,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
+import { StubPerformanceClient } from "@azure/msal-common/browser";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 const DEFAULT_POLL_INTERVAL_MS = 30;
@@ -30,17 +31,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             piiLoggingEnabled: true,
         };
         browserRequestLogger = new Logger(loggerOptions);
-        performanceClient = {
-            startMeasurement: jest.fn(),
-            endMeasurement: jest.fn(),
-            discardMeasurements: jest.fn(),
-            removePerformanceCallback: jest.fn(),
-            addPerformanceCallback: jest.fn(),
-            emitEvents: jest.fn(),
-            generateId: jest.fn(),
-            addFields: jest.fn(),
-            incrementFields: jest.fn(),
-        };
+        performanceClient = new StubPerformanceClient();
     });
 
     afterEach(() => {

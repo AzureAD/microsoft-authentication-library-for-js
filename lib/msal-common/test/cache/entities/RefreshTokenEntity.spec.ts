@@ -4,22 +4,19 @@ import {
     mockAppMetaDataEntity,
 } from "./cacheConstants";
 import { CacheHelpers } from "../../../src";
+import { generateCredentialKey } from "../../client/ClientTestUtils.js";
 
 describe("RefreshTokenEntity.ts Unit Tests", () => {
     it("Create a RefreshTokenEntity", () => {
-        expect(
-            CacheHelpers.generateCredentialKey(mockRefreshTokenEntity)
-        ).toEqual(
-            "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id----"
+        expect(generateCredentialKey(mockRefreshTokenEntity)).toEqual(
+            "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id---"
         );
     });
 
     it("Create a RefreshTokenEntity with familyId", () => {
         expect(
-            CacheHelpers.generateCredentialKey(
-                mockRefreshTokenEntityWithFamilyId
-            )
-        ).toEqual("uid.utid-login.microsoftonline.com-refreshtoken-1----");
+            generateCredentialKey(mockRefreshTokenEntityWithFamilyId)
+        ).toEqual("uid.utid-login.microsoftonline.com-refreshtoken-1---");
     });
 
     it("verify if an object is a refresh token entity", () => {

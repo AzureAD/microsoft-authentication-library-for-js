@@ -18,6 +18,7 @@ import {
     AuthenticationResult,
     UrlString,
     Constants,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -151,7 +152,8 @@ export abstract class BaseManagedIdentitySource {
 
         if (managedIdentityRequest.revokedTokenSha256Hash) {
             this.logger.info(
-                `[Managed Identity] The following claims are present in the request: ${managedIdentityRequest.claims}`
+                `[Managed Identity] The following claims are present in the request: ${managedIdentityRequest.claims}`,
+                ""
             );
 
             networkRequest.queryParameters[
@@ -164,7 +166,8 @@ export abstract class BaseManagedIdentitySource {
                 managedIdentityRequest.clientCapabilities.toString();
 
             this.logger.info(
-                `[Managed Identity] The following client capabilities are present in the request: ${clientCapabilities}`
+                `[Managed Identity] The following client capabilities are present in the request: ${clientCapabilities}`,
+                ""
             );
 
             networkRequest.queryParameters[
@@ -227,6 +230,7 @@ export abstract class BaseManagedIdentitySource {
             this.nodeStorage,
             this.cryptoProvider,
             this.logger,
+            new StubPerformanceClient(),
             null,
             null
         );
@@ -241,6 +245,7 @@ export abstract class BaseManagedIdentitySource {
 
         responseHandler.validateTokenResponse(
             serverTokenResponse,
+            serverTokenResponse.correlation_id || "",
             refreshAccessToken
         );
 
@@ -263,7 +268,8 @@ export abstract class BaseManagedIdentitySource {
                 this.logger.info(
                     `[Managed Identity] [API version ${
                         usesApi2017 ? "2017+" : "2019+"
-                    }] Adding user assigned client id to the request.`
+                    }] Adding user assigned client id to the request.`,
+                    ""
                 );
                 // The Machine Learning source uses the 2017-09-01 API version, which uses "clientid" instead of "client_id"
                 return usesApi2017
@@ -272,7 +278,8 @@ export abstract class BaseManagedIdentitySource {
 
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
                 this.logger.info(
-                    "[Managed Identity] Adding user assigned resource id to the request."
+                    "[Managed Identity] Adding user assigned resource id to the request.",
+                    ""
                 );
                 return isImds
                     ? ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_IMDS
@@ -280,7 +287,8 @@ export abstract class BaseManagedIdentitySource {
 
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
                 this.logger.info(
-                    "[Managed Identity] Adding user assigned object id to the request."
+                    "[Managed Identity] Adding user assigned object id to the request.",
+                    ""
                 );
                 return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_OBJECT_ID;
             default:
@@ -300,7 +308,8 @@ export abstract class BaseManagedIdentitySource {
             return new UrlString(envVariable).urlString;
         } catch (error) {
             logger.info(
-                `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable is malformed.`
+                `[Managed Identity] ${sourceName} managed identity is unavailable because the '${envVariableStringName}' environment variable is malformed.`,
+                ""
             );
 
             throw createManagedIdentityError(

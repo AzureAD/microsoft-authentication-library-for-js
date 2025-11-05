@@ -12,7 +12,6 @@ import {
     ICrypto,
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
-    PerformanceEvents,
     TimeUtils,
     buildStaticAuthorityOptions,
     Constants,
@@ -20,8 +19,9 @@ import {
     AccountFilter,
     AuthError,
     AccountEntityUtils,
+    AuthToken,
 } from "@azure/msal-common/browser";
-import { ITokenCache } from "../cache/ITokenCache.js";
+import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
@@ -38,7 +38,7 @@ import {
     DEFAULT_REQUEST,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
-import { IController } from "./IController.js";
+import { IController, HandleRedirectPromiseOptions } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -57,7 +57,6 @@ import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-
 export class NestedAppAuthController implements IController {
     // OperatingContext
     protected readonly operatingContext: NestedAppOperatingContext;
@@ -199,6 +198,7 @@ export class NestedAppAuthController implements IController {
         request: PopupRequest | RedirectRequest
     ): Promise<AuthenticationResult> {
         const validRequest = this.ensureValidRequest(request);
+        const correlationId = validRequest.correlationId || createNewGuid();
 
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
@@ -207,11 +207,11 @@ export class NestedAppAuthController implements IController {
         );
 
         const atPopupMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenPopup,
-            validRequest.correlationId
+            RootPerformanceEvents.AcquireTokenPopup,
+            correlationId
         );
 
-        atPopupMeasurement?.add({ nestedAppAuthRequest: true });
+        atPopupMeasurement.add({ nestedAppAuthRequest: true });
 
         try {
             const naaRequest =
@@ -229,7 +229,15 @@ export class NestedAppAuthController implements IController {
             };
 
             // cache the tokens in the response
-            await this.hydrateCache(result, request);
+            try {
+                // cache hydration can fail in JS Runtime scenario that doesn't support full crypto API
+                await this.hydrateCache(result, request);
+            } catch (error) {
+                this.logger.warningPii(
+                    `Failed to hydrate cache. Error: ${error}`,
+                    correlationId
+                );
+            }
 
             // cache the account context in memory after successful token fetch
             this.currentAccountContext = {
@@ -249,10 +257,14 @@ export class NestedAppAuthController implements IController {
                 idTokenSize: result.idToken.length,
             });
 
-            atPopupMeasurement.end({
-                success: true,
-                requestId: result.requestId,
-            });
+            atPopupMeasurement.end(
+                {
+                    success: true,
+                    requestId: result.requestId,
+                },
+                undefined,
+                result.account
+            );
 
             return result;
         } catch (e) {
@@ -271,7 +283,8 @@ export class NestedAppAuthController implements IController {
                 {
                     success: false,
                 },
-                e
+                e,
+                request.account
             );
 
             throw error;
@@ -287,6 +300,7 @@ export class NestedAppAuthController implements IController {
         request: SilentRequest
     ): Promise<AuthenticationResult> {
         const validRequest = this.ensureValidRequest(request);
+        const correlationId = validRequest.correlationId || createNewGuid();
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,
@@ -306,21 +320,21 @@ export class NestedAppAuthController implements IController {
 
         // proceed with acquiring tokens via the host
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.SsoSilent,
-            validRequest.correlationId
+            RootPerformanceEvents.SsoSilent,
+            correlationId
         );
 
-        ssoSilentMeasurement?.increment({
+        ssoSilentMeasurement.increment({
             visibilityChangeCount: 0,
         });
-
-        ssoSilentMeasurement?.add({
+        ssoSilentMeasurement.add({
             nestedAppAuthRequest: true,
         });
 
         try {
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
+            naaRequest.forceRefresh = validRequest.forceRefresh;
             const reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.bridgeProxy.getTokenSilent(naaRequest);
 
@@ -332,7 +346,15 @@ export class NestedAppAuthController implements IController {
                 );
 
             // cache the tokens in the response
-            await this.hydrateCache(result, request);
+            try {
+                // cache hydration can fail in JS Runtime scenario that doesn't support full crypto API
+                await this.hydrateCache(result, request);
+            } catch (error) {
+                this.logger.warningPii(
+                    `Failed to hydrate cache. Error: ${error}`,
+                    correlationId
+                );
+            }
 
             // cache the account context in memory after successful token fetch
             this.currentAccountContext = {
@@ -350,10 +372,14 @@ export class NestedAppAuthController implements IController {
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
             });
-            ssoSilentMeasurement?.end({
-                success: true,
-                requestId: result.requestId,
-            });
+            ssoSilentMeasurement?.end(
+                {
+                    success: true,
+                    requestId: result.requestId,
+                },
+                undefined,
+                result.account
+            );
             return result;
         } catch (e) {
             const error =
@@ -370,7 +396,8 @@ export class NestedAppAuthController implements IController {
                 {
                     success: false,
                 },
-                e
+                e,
+                request.account
             );
             throw error;
         }
@@ -384,9 +411,10 @@ export class NestedAppAuthController implements IController {
     private async acquireTokenFromCache(
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
+        const correlationId = request.correlationId || createNewGuid();
         const atsMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
-            request.correlationId
+            RootPerformanceEvents.AcquireTokenSilent,
+            correlationId
         );
 
         atsMeasurement?.add({
@@ -396,7 +424,8 @@ export class NestedAppAuthController implements IController {
         // if the request has claims, we cannot look up in the cache
         if (request.claims) {
             this.logger.verbose(
-                "Claims are present in the request, skipping cache lookup"
+                "Claims are present in the request, skipping cache lookup",
+                correlationId
             );
             return null;
         }
@@ -404,7 +433,8 @@ export class NestedAppAuthController implements IController {
         // if the request has forceRefresh, we cannot look up in the cache
         if (request.forceRefresh) {
             this.logger.verbose(
-                "forceRefresh is set to true, skipping cache lookup"
+                "forceRefresh is set to true, skipping cache lookup",
+                correlationId
             );
             return null;
         }
@@ -431,18 +461,23 @@ export class NestedAppAuthController implements IController {
                 InteractionType.Silent,
                 result
             );
-            atsMeasurement?.add({
-                accessTokenSize: result?.accessToken.length,
-                idTokenSize: result?.idToken.length,
+            atsMeasurement.add({
+                accessTokenSize: result.accessToken.length,
+                idTokenSize: result.idToken.length,
             });
-            atsMeasurement?.end({
-                success: true,
-            });
+            atsMeasurement.end(
+                {
+                    success: true,
+                },
+                undefined,
+                result.account
+            );
             return result;
         }
 
         this.logger.warning(
-            "Cached tokens are not found for the account, proceeding with silent token request."
+            "Cached tokens are not found for the account, proceeding with silent token request.",
+            correlationId
         );
 
         this.eventHandler.emitEvent(
@@ -450,9 +485,13 @@ export class NestedAppAuthController implements IController {
             InteractionType.Silent,
             null
         );
-        atsMeasurement?.end({
-            success: false,
-        });
+        atsMeasurement.end(
+            {
+                success: false,
+            },
+            undefined,
+            request.account
+        );
 
         return null;
     }
@@ -468,31 +507,34 @@ export class NestedAppAuthController implements IController {
         // always prioritize the account context from the bridge
         const accountContext =
             this.bridgeProxy.getAccountContext() || this.currentAccountContext;
+        const correlationId = request.correlationId || createNewGuid();
         let currentAccount: AccountInfo | null = null;
         if (accountContext) {
             currentAccount = AccountManager.getAccount(
                 accountContext,
                 this.logger,
-                this.browserStorage
+                this.browserStorage,
+                correlationId
             );
         }
 
         // fall back to brokering if no cached account is found
         if (!currentAccount) {
             this.logger.verbose(
-                "No active account found, falling back to the host"
+                "No active account found, falling back to the host",
+                correlationId
             );
             return Promise.resolve(null);
         }
 
         this.logger.verbose(
-            "active account found, attempting to acquire token silently"
+            "active account found, attempting to acquire token silently",
+            correlationId
         );
 
         const authRequest: BaseAuthRequest = {
             ...request,
-            correlationId:
-                request.correlationId || this.browserCrypto.createNewGuid(),
+            correlationId: correlationId,
             authority: request.authority || currentAccount.environment,
             scopes: request.scopes?.length
                 ? request.scopes
@@ -505,14 +547,12 @@ export class NestedAppAuthController implements IController {
             currentAccount,
             authRequest,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         // If there is no access token, log it and return null
         if (!cachedAccessToken) {
-            this.logger.verbose("No cached access token found");
+            this.logger.verbose("No cached access token found", correlationId);
             return Promise.resolve(null);
         } else if (
             TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
@@ -521,20 +561,22 @@ export class NestedAppAuthController implements IController {
                 this.config.system.tokenRenewalOffsetSeconds
             )
         ) {
-            this.logger.verbose("Cached access token has expired");
+            this.logger.verbose(
+                "Cached access token has expired",
+                correlationId
+            );
             return Promise.resolve(null);
         }
 
         const cachedIdToken = this.browserStorage.getIdToken(
             currentAccount,
+            authRequest.correlationId,
             tokenKeys,
-            currentAccount.tenantId,
-            this.performanceClient,
-            authRequest.correlationId
+            currentAccount.tenantId
         );
 
         if (!cachedIdToken) {
-            this.logger.verbose("No cached id token found");
+            this.logger.verbose("No cached id token found", correlationId);
             return Promise.resolve(null);
         }
 
@@ -601,7 +643,6 @@ export class NestedAppAuthController implements IController {
             | Partial<
                   Omit<
                       CommonAuthorizationUrlRequest,
-                      | "requestedClaimsHash"
                       | "responseMode"
                       | "earJwk"
                       | "codeChallenge"
@@ -670,6 +711,7 @@ export class NestedAppAuthController implements IController {
             this.logger,
             this.browserStorage,
             this.isBrowserEnv(),
+            createNewGuid(),
             accountFilter
         );
     }
@@ -683,7 +725,8 @@ export class NestedAppAuthController implements IController {
         return AccountManager.getAccount(
             accountFilter,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            createNewGuid()
         );
     }
 
@@ -696,20 +739,27 @@ export class NestedAppAuthController implements IController {
          * StandardController uses this to allow the developer to set the active account
          * in the nested app auth scenario the active account is controlled by the app hosting the nested app
          */
-        return AccountManager.setActiveAccount(account, this.browserStorage);
+        return AccountManager.setActiveAccount(
+            account,
+            this.browserStorage,
+            createNewGuid()
+        );
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return AccountManager.getActiveAccount(this.browserStorage);
+        return AccountManager.getActiveAccount(
+            this.browserStorage,
+            createNewGuid()
+        );
     }
 
     // #endregion
 
     handleRedirectPromise(
-        hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
+        options?: HandleRedirectPromiseOptions // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {
         return Promise.resolve(null);
     }
@@ -737,7 +787,6 @@ export class NestedAppAuthController implements IController {
         request: Partial<
             Omit<
                 CommonAuthorizationUrlRequest,
-                | "requestedClaimsHash"
                 | "responseMode"
                 | "earJwk"
                 | "codeChallenge"
@@ -747,9 +796,6 @@ export class NestedAppAuthController implements IController {
         >
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(request as SilentRequest);
-    }
-    getTokenCache(): ITokenCache {
-        throw NestedAppAuthError.createUnsupportedError();
     }
 
     /**
@@ -779,7 +825,8 @@ export class NestedAppAuthController implements IController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setNavigationClient(navigationClient: INavigationClient): void {
         this.logger.warning(
-            "setNavigationClient is not supported in nested app auth"
+            "setNavigationClient is not supported in nested app auth",
+            ""
         );
     }
 
@@ -816,7 +863,7 @@ export class NestedAppAuthController implements IController {
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
-        this.logger.verbose("hydrateCache called");
+        this.logger.verbose("hydrateCache called", result.correlationId);
 
         const accountEntity =
             AccountEntityUtils.createAccountEntityFromAccountInfo(
@@ -826,7 +873,8 @@ export class NestedAppAuthController implements IController {
             );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims)
         );
         return this.browserStorage.hydrateCache(result, request);
     }

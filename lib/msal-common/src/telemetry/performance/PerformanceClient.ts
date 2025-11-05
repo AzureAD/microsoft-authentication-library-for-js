@@ -4,7 +4,7 @@
  */
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration.js";
-import { Logger } from "../../logger/Logger.js";
+import { getAndFlushLogsFromCache, Logger } from "../../logger/Logger.js";
 import {
     InProgressPerformanceEvent,
     IPerformanceClient,
@@ -13,7 +13,6 @@ import {
 import {
     IntFields,
     PerformanceEvent,
-    PerformanceEventAbbreviations,
     PerformanceEventContext,
     PerformanceEventStackedContext,
     PerformanceEventStatus,
@@ -22,16 +21,15 @@ import { AuthError } from "../../error/AuthError.js";
 import { CacheError } from "../../error/CacheError.js";
 import { ServerError } from "../../error/ServerError.js";
 import { InteractionRequiredAuthError } from "../../error/InteractionRequiredAuthError.js";
+import { AccountInfo } from "../../account/AccountInfo.js";
 
 /**
  * Starts context by adding payload to the stack
  * @param event {PerformanceEvent}
- * @param abbreviations {Map<string, string>} event name abbreviations
  * @param stack {?PerformanceEventStackedContext[]} stack
  */
 export function startContext(
     event: PerformanceEvent,
-    abbreviations: Map<string, string>,
     stack?: PerformanceEventStackedContext[]
 ): void {
     if (!stack) {
@@ -39,7 +37,7 @@ export function startContext(
     }
 
     stack.push({
-        name: abbreviations.get(event.name) || event.name,
+        name: event.name,
     });
 }
 
@@ -47,13 +45,11 @@ export function startContext(
  * Ends context by removing payload from the stack and returning parent or self, if stack is empty, payload
  *
  * @param event {PerformanceEvent}
- * @param abbreviations {Map<string, string>} event name abbreviations
  * @param stack {?PerformanceEventStackedContext[]} stack
  * @param error {?unknown} error
  */
 export function endContext(
     event: PerformanceEvent,
-    abbreviations: Map<string, string>,
     stack?: PerformanceEventStackedContext[],
     error?: unknown
 ): PerformanceEventContext | undefined {
@@ -65,7 +61,7 @@ export function endContext(
         return stack.length ? stack[stack.length - 1] : undefined;
     };
 
-    const abbrEventName = abbreviations.get(event.name) || event.name;
+    const abbrEventName = event.name;
     const top = peek(stack);
     if (top?.name !== abbrEventName) {
         return;
@@ -255,6 +251,22 @@ export function compactStackLine(line: string): string {
     return line.trimStart();
 }
 
+export function getAccountType(
+    account?: AccountInfo
+): "AAD" | "MSA" | "B2C" | undefined {
+    const idTokenClaims = account?.idTokenClaims;
+    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
+        return "B2C";
+    }
+
+    if (!idTokenClaims?.tid) {
+        return undefined;
+    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+        return "MSA";
+    }
+    return "AAD";
+}
+
 export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
     protected libraryName: string;
@@ -281,13 +293,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected eventStack: Map<string, PerformanceEventStackedContext[]>;
 
     /**
-     * Event name abbreviations
-     *
-     * @protected
-     */
-    protected abbreviations: Map<string, string>;
-
-    /**
      * Creates an instance of PerformanceClient,
      * an abstract class containing core performance telemetry logic.
      *
@@ -299,7 +304,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} libraryVersion Version of the library
      * @param {ApplicationTelemetry} applicationTelemetry application name and version
      * @param {Set<String>} intFields integer fields to be truncated
-     * @param {Map<string, string>} abbreviations event name abbreviations
      */
     constructor(
         clientId: string,
@@ -308,8 +312,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         libraryName: string,
         libraryVersion: string,
         applicationTelemetry: ApplicationTelemetry,
-        intFields?: Set<string>,
-        abbreviations?: Map<string, string>
+        intFields?: Set<string>
     ) {
         this.authority = authority;
         this.libraryName = libraryName;
@@ -323,10 +326,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.intFields = intFields || new Set();
         for (const item of IntFields) {
             this.intFields.add(item);
-        }
-        this.abbreviations = abbreviations || new Map();
-        for (const [key, value] of PerformanceEventAbbreviations) {
-            this.abbreviations.set(key, value);
         }
     }
 
@@ -353,13 +352,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const eventCorrelationId = correlationId || this.generateId();
         if (!correlationId) {
             this.logger.info(
-                `PerformanceClient: No correlation id provided for ${measureName}, generating`,
+                `PerformanceClient: No correlation id provided for '${measureName}', generating`,
                 eventCorrelationId
             );
         }
 
         this.logger.trace(
-            `PerformanceClient: Performance measurement started for ${measureName}`,
+            `PerformanceClient: Performance measurement started for '${measureName}'`,
             eventCorrelationId
         );
 
@@ -379,17 +378,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
-        startContext(
-            inProgressEvent,
-            this.abbreviations,
-            this.eventStack.get(eventCorrelationId)
-        );
+        startContext(inProgressEvent, this.eventStack.get(eventCorrelationId));
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
             end: (
                 event?: Partial<PerformanceEvent>,
-                error?: unknown
+                error?: unknown,
+                account?: AccountInfo
             ): PerformanceEvent | null => {
                 return this.endMeasurement(
                     {
@@ -398,7 +394,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         // Properties set when event ends
                         ...event,
                     },
-                    error
+                    error,
+                    account
                 );
             },
             discard: () => {
@@ -425,17 +422,19 @@ export abstract class PerformanceClient implements IPerformanceClient {
      *
      * @param {PerformanceEvent} event
      * @param {unknown} error
+     * @param {AccountInfo?} account
      * @returns {(PerformanceEvent | null)}
      */
     endMeasurement(
         event: PerformanceEvent,
-        error?: unknown
+        error?: unknown,
+        account?: AccountInfo
     ): PerformanceEvent | null {
         const rootEvent: PerformanceEvent | undefined =
             this.eventsByCorrelationId.get(event.correlationId);
         if (!rootEvent) {
             this.logger.trace(
-                `PerformanceClient: Measurement not found for ${event.eventId}`,
+                `PerformanceClient: Measurement not found for '${event.eventId}'`,
                 event.correlationId
             );
             return null;
@@ -450,7 +449,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const context = JSON.stringify(
             endContext(
                 event,
-                this.abbreviations,
                 this.eventStack.get(rootEvent.correlationId),
                 error
             )
@@ -463,7 +461,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
 
         this.logger.trace(
-            `PerformanceClient: Performance measurement ended for ${event.name}: ${event.durationMs} ms`,
+            `PerformanceClient: Performance measurement ended for '${event.name}': '${event.durationMs}' ms`,
             event.correlationId
         );
 
@@ -483,7 +481,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             (rootEvent.errorCode || rootEvent.subErrorCode)
         ) {
             this.logger.trace(
-                `PerformanceClient: Remove error and sub-error codes for root event ${event.name} as intermediate error was successfully handled`,
+                `PerformanceClient: Remove error and sub-error codes for root event '${event.name}' as intermediate error was successfully handled`,
                 event.correlationId
             );
             rootEvent.errorCode = undefined;
@@ -495,19 +493,33 @@ export abstract class PerformanceClient implements IPerformanceClient {
         // Incomplete sub-measurements are discarded. They are likely an instrumentation bug that should be fixed.
         finalEvent.incompleteSubMeasurements?.forEach((subMeasurement) => {
             this.logger.trace(
-                `PerformanceClient: Incomplete submeasurement ${subMeasurement.name} found for ${event.name}`,
+                `PerformanceClient: Incomplete submeasurement '${subMeasurement.name}' found for '${event.name}'`,
                 finalEvent.correlationId
             );
             incompleteSubsCount++;
         });
         finalEvent.incompleteSubMeasurements = undefined;
 
+        const logs = getAndFlushLogsFromCache(event.correlationId);
+        // Format logs: [millis1,hash1;millis2,hash2;...]
+        const formattedLogs = logs
+            .map(
+                (logMessage) => `${logMessage.milliseconds},${logMessage.hash}`
+            )
+            .join(";");
+
         finalEvent = {
             ...finalEvent,
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
             context,
+            logs: formattedLogs,
         };
+        if (account) {
+            finalEvent.accountType = getAccountType(account);
+            finalEvent.dataBoundary = account.dataBoundary;
+        }
+
         this.truncateIntegralFields(finalEvent);
         this.emitEvents([finalEvent], event.correlationId);
 
@@ -523,7 +535,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         fields: { [key: string]: {} | undefined },
         correlationId: string
     ): void {
-        this.logger.trace("PerformanceClient: Updating static fields");
+        this.logger.trace(
+            "PerformanceClient: Updating static fields",
+            correlationId
+        );
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             this.eventsByCorrelationId.set(correlationId, {
@@ -547,7 +562,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         fields: { [key: string]: number | undefined },
         correlationId: string
     ): void {
-        this.logger.trace("PerformanceClient: Updating counters");
+        this.logger.trace(
+            "PerformanceClient: Updating counters",
+            correlationId
+        );
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             for (const counter in fields) {
@@ -579,7 +597,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const rootEvent = this.eventsByCorrelationId.get(event.correlationId);
         if (rootEvent) {
             this.logger.trace(
-                `PerformanceClient: Performance measurement for ${event.name} added/updated`,
+                `PerformanceClient: Performance measurement for '${event.name}' added/updated`,
                 event.correlationId
             );
             rootEvent.incompleteSubMeasurements =
@@ -590,7 +608,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             });
         } else {
             this.logger.trace(
-                `PerformanceClient: Performance measurement for ${event.name} started`,
+                `PerformanceClient: Performance measurement for '${event.name}' started`,
                 event.correlationId
             );
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
@@ -627,7 +645,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         for (const [id, cb] of this.callbacks) {
             if (cb.toString() === callback.toString()) {
                 this.logger.warning(
-                    `PerformanceClient: Performance callback is already registered with id: ${id}`
+                    `PerformanceClient: Performance callback is already registered with id: ${id}`,
+                    ""
                 );
                 return id;
             }
@@ -636,7 +655,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const callbackId = this.generateId();
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(
-            `PerformanceClient: Performance callback registered with id: ${callbackId}`
+            `PerformanceClient: Performance callback registered with id: '${callbackId}'`,
+            ""
         );
 
         return callbackId;
@@ -653,11 +673,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         if (result) {
             this.logger.verbose(
-                `PerformanceClient: Performance callback ${callbackId} removed.`
+                `PerformanceClient: Performance callback '${callbackId}' removed.`,
+                ""
             );
         } else {
             this.logger.verbose(
-                `PerformanceClient: Performance callback ${callbackId} not removed.`
+                `PerformanceClient: Performance callback '${callbackId}' not removed.`,
+                ""
             );
         }
 
@@ -679,7 +701,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks.forEach(
             (callback: PerformanceCallbackFunction, callbackId: string) => {
                 this.logger.trace(
-                    `PerformanceClient: Emitting event to callback ${callbackId}`,
+                    `PerformanceClient: Emitting event to callback '${callbackId}'`,
                     correlationId
                 );
                 callback.apply(null, [events]);

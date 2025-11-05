@@ -44,7 +44,7 @@ export class AppComponent implements OnInit, OnDestroy {
         
         this.msalBroadcastService.msalSubject$
             .pipe(
-                filter((msg: EventMessage) => msg.eventType === EventType.ACCOUNT_ADDED || msg.eventType === EventType.ACCOUNT_REMOVED),
+                filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.LOGOUT_SUCCESS),
             )
             .subscribe((result: EventMessage) => {
                 if (this.authService.instance.getAllAccounts().length === 0) {
@@ -67,9 +67,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.msalBroadcastService.msalSubject$
             .pipe(
-                filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS 
-                    || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS 
-                    || msg.eventType === EventType.SSO_SILENT_SUCCESS),
+                filter((msg: EventMessage) => msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
                 takeUntil(this._destroying$)
             )
             .subscribe((result: EventMessage) => {
@@ -130,7 +128,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.msalBroadcastService.msalSubject$
             .pipe(
-                filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_FAILURE || msg.eventType === EventType.ACQUIRE_TOKEN_FAILURE),
+                filter((msg: EventMessage) => msg.eventType === EventType.ACQUIRE_TOKEN_FAILURE),
                 takeUntil(this._destroying$)
             )
             .subscribe((result: EventMessage) => {

@@ -15,10 +15,13 @@ export function getAllAccounts(
     logger: Logger,
     browserStorage: BrowserCacheManager,
     isInBrowser: boolean,
+    correlationId: string,
     accountFilter?: AccountFilter
 ): AccountInfo[] {
-    logger.verbose("getAllAccounts called");
-    return isInBrowser ? browserStorage.getAllAccounts(accountFilter) : [];
+    logger.verbose("getAllAccounts called", correlationId);
+    return isInBrowser
+        ? browserStorage.getAllAccounts(accountFilter, correlationId)
+        : [];
 }
 
 /**
@@ -29,24 +32,31 @@ export function getAllAccounts(
 export function getAccount(
     accountFilter: AccountFilter,
     logger: Logger,
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): AccountInfo | null {
-    logger.trace("getAccount called");
+    logger.trace("getAccount called", correlationId);
     if (Object.keys(accountFilter).length === 0) {
-        logger.warning("getAccount: No accountFilter provided");
+        logger.warning("getAccount: No accountFilter provided", correlationId);
         return null;
     }
 
-    const account: AccountInfo | null =
-        browserStorage.getAccountInfoFilteredBy(accountFilter);
+    const account: AccountInfo | null = browserStorage.getAccountInfoFilteredBy(
+        accountFilter,
+        correlationId
+    );
 
     if (account) {
         logger.verbose(
-            "getAccount: Account matching provided filter found, returning"
+            "getAccount: Account matching provided filter found, returning",
+            correlationId
         );
         return account;
     } else {
-        logger.verbose("getAccount: No matching account found, returning null");
+        logger.verbose(
+            "getAccount: No matching account found, returning null",
+            correlationId
+        );
         return null;
     }
 }
@@ -57,16 +67,18 @@ export function getAccount(
  */
 export function setActiveAccount(
     account: AccountInfo | null,
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): void {
-    browserStorage.setActiveAccount(account);
+    browserStorage.setActiveAccount(account, correlationId);
 }
 
 /**
  * Gets the currently active account
  */
 export function getActiveAccount(
-    browserStorage: BrowserCacheManager
+    browserStorage: BrowserCacheManager,
+    correlationId: string
 ): AccountInfo | null {
-    return browserStorage.getActiveAccount();
+    return browserStorage.getActiveAccount(correlationId);
 }

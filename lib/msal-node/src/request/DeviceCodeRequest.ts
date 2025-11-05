@@ -23,7 +23,6 @@ export type DeviceCodeRequest = Partial<
         | "deviceCodeCallback"
         | "resourceRequestMethod"
         | "resourceRequestUri"
-        | "requestedClaimsHash"
         | "storeInCache"
     >
 > & {

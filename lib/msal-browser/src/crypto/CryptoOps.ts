@@ -4,15 +4,17 @@
  */
 
 import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
     ICrypto,
     IPerformanceClient,
     JoseHeader,
     Logger,
-    PerformanceEvents,
     ShrOptions,
     SignedHttpRequest,
     SignedHttpRequestParameters,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     base64Encode,
     urlEncode,
@@ -114,7 +116,7 @@ export class CryptoOps implements ICrypto {
     ): Promise<string> {
         const publicKeyThumbMeasurement =
             this.performanceClient?.startMeasurement(
-                PerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
+                BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
                 request.correlationId
             );
 
@@ -148,12 +150,16 @@ export class CryptoOps implements ICrypto {
             await BrowserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
-        await this.cache.setItem(publicJwkHash, {
-            privateKey: unextractablePrivateKey,
-            publicKey: keyPair.publicKey,
-            requestMethod: request.resourceRequestMethod,
-            requestUri: request.resourceRequestUri,
-        });
+        await this.cache.setItem(
+            publicJwkHash,
+            {
+                privateKey: unextractablePrivateKey,
+                publicKey: keyPair.publicKey,
+                requestMethod: request.resourceRequestMethod,
+                requestUri: request.resourceRequestUri,
+            },
+            request.correlationId
+        );
 
         if (publicKeyThumbMeasurement) {
             publicKeyThumbMeasurement.end({
@@ -167,35 +173,46 @@ export class CryptoOps implements ICrypto {
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid
+     * @param correlationId
      */
-    async removeTokenBindingKey(kid: string): Promise<boolean> {
-        await this.cache.removeItem(kid);
-        const keyFound = await this.cache.containsKey(kid);
-        return !keyFound;
+    async removeTokenBindingKey(
+        kid: string,
+        correlationId: string
+    ): Promise<void> {
+        await this.cache.removeItem(kid, correlationId);
+        const keyFound = await this.cache.containsKey(kid, correlationId);
+        if (keyFound) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.bindingKeyNotRemoved
+            );
+        }
     }
 
     /**
      * Removes all cryptographic keys from IndexedDB storage
+     * @param correlationId
      */
-    async clearKeystore(): Promise<boolean> {
+    async clearKeystore(correlationId: string): Promise<boolean> {
         // Delete in-memory keystores
-        this.cache.clearInMemory();
+        this.cache.clearInMemory(correlationId);
 
         /**
          * There is only one database, so calling clearPersistent on asymmetric keystore takes care of
          * every persistent keystore
          */
         try {
-            await this.cache.clearPersistent();
+            await this.cache.clearPersistent(correlationId);
             return true;
         } catch (e) {
             if (e instanceof Error) {
                 this.logger.error(
-                    `Clearing keystore failed with error: ${e.message}`
+                    `Clearing keystore failed with error: '${e.message}'`,
+                    correlationId
                 );
             } else {
                 this.logger.error(
-                    "Clearing keystore failed with unknown error"
+                    "Clearing keystore failed with unknown error",
+                    correlationId
                 );
             }
 
@@ -215,10 +232,13 @@ export class CryptoOps implements ICrypto {
         correlationId?: string
     ): Promise<string> {
         const signJwtMeasurement = this.performanceClient?.startMeasurement(
-            PerformanceEvents.CryptoOptsSignJwt,
+            BrowserPerformanceEvents.CryptoOptsSignJwt,
             correlationId
         );
-        const cachedKeyPair = await this.cache.getItem(kid);
+        const cachedKeyPair = await this.cache.getItem(
+            kid,
+            correlationId || ""
+        );
 
         if (!cachedKeyPair) {
             throw createBrowserAuthError(

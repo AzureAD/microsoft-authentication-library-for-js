@@ -26,6 +26,9 @@ export class Screenshot {
         await page.screenshot({
             path: `${this.folderName}/${++this
                 .screenshotNum}_${screenshotName}.png`,
+            fullPage: true
+        }).catch((e) => {
+            console.error(`Error taking screenshot ${screenshotName}: ${e}`);
         });
     }
 }
@@ -217,6 +220,7 @@ export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
 export async function fillPassword(page: Page, screenshot: Screenshot, password: string): Promise<void> {
     try {
+        await page.locator('span ::-p-text(Use your password)').setTimeout(1000).click().catch(() => {});
         await screenshot.takeScreenshot(page, "passwordPage");
         await page.locator(`${Object.values(PasswordInputSelectors).join(", ")}`).setTimeout(2000).fill(password);
         await screenshot.takeScreenshot(page, "loginPagePasswordFilled");

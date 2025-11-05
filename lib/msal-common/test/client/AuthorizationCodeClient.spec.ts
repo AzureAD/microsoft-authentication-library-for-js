@@ -32,10 +32,16 @@ import {
     CcsCredentialType,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
+    StubPerformanceClient,
 } from "../../src/index.js";
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 
 describe("AuthorizationCodeClient unit tests", () => {
+    let stubPerformanceClient: StubPerformanceClient;
+    beforeEach(async () => {
+        stubPerformanceClient = new StubPerformanceClient();
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
@@ -48,7 +54,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             expect(client).not.toBeNull();
             expect(client instanceof AuthorizationCodeClient).toBe(true);
             expect(client instanceof BaseClient).toBe(true);
@@ -67,7 +76,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             await expect(
                 // @ts-ignore
@@ -95,7 +107,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                     "configuration storageInterface not initialized correctly."
                 );
             }
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const codeRequest: CommonAuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -209,7 +224,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -330,7 +348,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -446,7 +467,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -540,7 +564,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -637,7 +664,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -736,7 +766,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -920,7 +953,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -1052,7 +1088,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             });
 
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -1095,7 +1134,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             });
 
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -1139,7 +1181,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                     "configuration cryptoInterface or systemOptions not initialized correctly."
                 );
             }
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1182,7 +1227,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                     "configuration cryptoInterface or systemOptions not initialized correctly."
                 );
             }
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1207,7 +1255,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Doesnt add redirect_uri when hybridSpa flag is set", (done) => {
             class TestAuthorizationCodeClient extends AuthorizationCodeClient {
                 constructor(config: ClientConfiguration) {
-                    super(config);
+                    super(config, stubPerformanceClient);
                     this.includeRedirectUri = false;
                 }
             }
@@ -1354,7 +1402,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                     }
                 }
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: Constants.AuthenticationScheme.POP,
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1543,7 +1594,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                     }
                 }
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: Constants.AuthenticationScheme.SSH,
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1727,7 +1781,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                     }
                 }
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: Constants.AuthenticationScheme.SSH,
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1834,7 +1891,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -1941,7 +2001,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -1969,7 +2032,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .find((value) => value.indexOf("accesstoken") >= 0);
             const accessTokenCacheItem = accessTokenKey
                 ? config.storageInterface?.getAccessTokenCredential(
-                      accessTokenKey
+                      accessTokenKey,
+                      RANDOM_TEST_GUID
                   )
                 : null;
 
@@ -2024,7 +2088,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -2088,7 +2155,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -2121,24 +2191,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("includes the http version in Authorization code client measurement(AT) when received in server response", async () => {
-            const performanceClient = {
-                startMeasurement: jest.fn(),
-                endMeasurement: jest.fn(),
-                addFields: jest.fn(),
-                incrementFields: jest.fn(),
-                discardMeasurements: jest.fn(),
-                removePerformanceCallback: jest.fn(),
-                addPerformanceCallback: jest.fn(),
-                emitEvents: jest.fn(),
-                generateId: jest.fn(),
-                calculateQueuedTime: jest.fn(),
-                addQueueMeasurement: jest.fn(),
-                setPreQueueTime: jest.fn(),
-            };
-
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient
+                stubPerformanceClient
             );
             jest.spyOn(
                 Authority.prototype,
@@ -2189,7 +2245,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: idTokenClaims.nonce,
             });
 
-            expect(performanceClient.addFields).toHaveBeenCalledWith(
+            expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
                     httpVerToken: "xMsHttpVer",
                     refreshTokenSize:
@@ -2202,23 +2258,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("does not add http version to the measurement when not received in server response", async () => {
-            const performanceClient = {
-                startMeasurement: jest.fn(),
-                endMeasurement: jest.fn(),
-                addFields: jest.fn(),
-                incrementFields: jest.fn(),
-                discardMeasurements: jest.fn(),
-                removePerformanceCallback: jest.fn(),
-                addPerformanceCallback: jest.fn(),
-                emitEvents: jest.fn(),
-                generateId: jest.fn(),
-                calculateQueuedTime: jest.fn(),
-                addQueueMeasurement: jest.fn(),
-                setPreQueueTime: jest.fn(),
-            };
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
             const client = new AuthorizationCodeClient(
                 config,
-                performanceClient
+                stubPerformanceClient
             );
             jest.spyOn(
                 Authority.prototype,
@@ -2269,7 +2312,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: idTokenClaims.nonce,
             });
 
-            expect(performanceClient.addFields).toHaveBeenCalledWith(
+            expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
                     httpVerToken: "",
                     refreshTokenSize:
@@ -2479,7 +2522,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const logoutUri = client.getLogoutUri({
                 account: null,
@@ -2501,7 +2547,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
@@ -2539,7 +2588,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
@@ -2568,7 +2620,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("pick up default client_id", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const queryString =
                 // @ts-ignore
@@ -2585,7 +2640,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("pick up extra query client_id param", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const queryString =
                 // @ts-ignore
@@ -2603,7 +2661,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("pick up broker params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const queryString =
                 // @ts-ignore
@@ -2625,7 +2686,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("broker params take precedence over token body params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
 
             const queryString =
                 // @ts-ignore

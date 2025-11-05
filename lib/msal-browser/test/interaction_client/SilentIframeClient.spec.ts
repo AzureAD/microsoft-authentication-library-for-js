@@ -54,11 +54,13 @@ import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { SsoSilentRequest } from "../../src/index.js";
+import * as StandardInteractionClientExports from "../../src/interaction_client/StandardInteractionClient.js";
 
 describe("SilentIframeClient", () => {
     let silentIframeClient: SilentIframeClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
+    let clientProperties: SilentIframeClient;
 
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -92,9 +94,10 @@ describe("SilentIframeClient", () => {
             pca.performanceClient,
             //@ts-ignore
             pca.nativeInternalStorage,
-            undefined,
             TEST_CONFIG.CORRELATION_ID
         );
+
+        clientProperties = silentIframeClient as any;
     });
 
     afterEach(() => {
@@ -131,6 +134,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -168,8 +172,7 @@ describe("SilentIframeClient", () => {
             );
 
             const initializeAuthorizationRequestSpy = jest.spyOn(
-                SilentIframeClient.prototype,
-                // @ts-ignore
+                StandardInteractionClientExports,
                 "initializeAuthorizationRequest"
             );
             const tokenResp = await silentIframeClient.acquireToken({
@@ -178,13 +181,25 @@ describe("SilentIframeClient", () => {
                 prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(tokenResp).toEqual(testTokenResponse);
-            expect(initializeAuthorizationRequestSpy).toBeCalledWith(
+            expect(initializeAuthorizationRequestSpy).toHaveBeenCalledWith(
                 {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
                     prompt: Constants.PromptValue.NONE,
                 },
-                InteractionType.Silent
+                InteractionType.Silent,
+                // @ts-ignore
+                clientProperties.config,
+                //@ts-ignore
+                clientProperties.browserCrypto,
+                //@ts-ignore
+                clientProperties.browserStorage,
+                //@ts-ignore
+                clientProperties.logger,
+                //@ts-ignore
+                clientProperties.performanceClient,
+                //@ts-ignore
+                clientProperties.correlationId
             );
         });
 
@@ -284,6 +299,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -353,6 +369,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -436,6 +453,7 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID,
                 nativeMessageHandler
             );
             const testServerTokenResponse = {
@@ -464,6 +482,7 @@ describe("SilentIframeClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 nativeAccountId: "test-nativeAccountId",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -566,6 +585,7 @@ describe("SilentIframeClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 nativeAccountId: "test-nativeAccountId",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -685,6 +705,7 @@ describe("SilentIframeClient", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                loginHint: ID_TOKEN_CLAIMS.login_hint,
                 name: ID_TOKEN_CLAIMS.name,
                 nativeAccountId: undefined,
                 authorityType: "MSSTS",
@@ -694,6 +715,8 @@ describe("SilentIframeClient", () => {
                         {
                             isHomeTenant: false,
                             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                            username: ID_TOKEN_CLAIMS.preferred_username,
+                            loginHint: ID_TOKEN_CLAIMS.login_hint,
                             name: ID_TOKEN_CLAIMS.name,
                             tenantId: ID_TOKEN_CLAIMS.tid,
                         },
@@ -711,7 +734,7 @@ describe("SilentIframeClient", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
-                fromNativeBroker: false,
+                fromPlatformBroker: false,
                 code: undefined,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 expiresOn: TestTimeUtils.calculateExpiresDate(
@@ -842,7 +865,6 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -871,6 +893,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -906,11 +929,6 @@ describe("SilentIframeClient", () => {
                 "generateAuthority"
             );
 
-            const initializeAuthorizationRequestSpy = jest.spyOn(
-                SilentIframeClient.prototype,
-                // @ts-ignore
-                "initializeAuthorizationRequest"
-            );
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
@@ -945,7 +963,6 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -974,6 +991,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1013,11 +1031,6 @@ describe("SilentIframeClient", () => {
                 "generateAuthority"
             );
 
-            const initializeAuthorizationRequestSpy = jest.spyOn(
-                SilentIframeClient.prototype,
-                // @ts-ignore
-                "initializeAuthorizationRequest"
-            );
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
@@ -1055,7 +1068,6 @@ describe("SilentIframeClient", () => {
                 pca.performanceClient,
                 //@ts-ignore
                 pca.nativeInternalStorage,
-                undefined,
                 TEST_CONFIG.CORRELATION_ID
             );
 
@@ -1084,6 +1096,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1124,11 +1137,6 @@ describe("SilentIframeClient", () => {
                 "generateAuthority"
             );
 
-            const initializeAuthorizationRequestSpy = jest.spyOn(
-                SilentIframeClient.prototype,
-                // @ts-ignore
-                "initializeAuthorizationRequest"
-            );
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",

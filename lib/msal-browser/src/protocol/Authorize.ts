@@ -27,6 +27,7 @@ import {
     ServerAuthorizationTokenResponse,
     Constants,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants.js";
 import { version } from "../packageMetadata.js";
@@ -87,7 +88,10 @@ async function getStandardParameters(
             request.authenticationScheme === Constants.AuthenticationScheme.POP
         ) {
             const cryptoOps = new CryptoOps(logger, performanceClient);
-            const popTokenGenerator = new PopTokenGenerator(cryptoOps);
+            const popTokenGenerator = new PopTokenGenerator(
+                cryptoOps,
+                performanceClient
+            );
 
             // req_cnf is always sent as a string for SPAs
             let reqCnfData;
@@ -140,7 +144,7 @@ export async function getAuthCodeRequestUrl(
 
     const parameters = await invokeAsync(
         getStandardParameters,
-        PerformanceEvents.GetStandardParams,
+        BrowserPerformanceEvents.GetStandardParams,
         logger,
         performanceClient,
         request.correlationId
@@ -258,7 +262,10 @@ export async function handleResponsePlatformBroker(
     performanceClient: IPerformanceClient,
     platformAuthProvider?: IPlatformAuthHandler
 ): Promise<AuthenticationResult> {
-    logger.verbose("Account id found, calling WAM for token");
+    logger.verbose(
+        "Account id found, calling WAM for token",
+        request.correlationId
+    );
 
     if (!platformAuthProvider) {
         throw createBrowserAuthError(
@@ -286,7 +293,7 @@ export async function handleResponsePlatformBroker(
     );
     return invokeAsync(
         nativeInteractionClient.acquireToken.bind(nativeInteractionClient),
-        PerformanceEvents.NativeInteractionClientAcquireToken,
+        BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
         logger,
         performanceClient,
         request.correlationId
@@ -331,7 +338,7 @@ export async function handleResponseCode(
     if (response.accountId) {
         return invokeAsync(
             handleResponsePlatformBroker,
-            PerformanceEvents.HandleResponsePlatformBroker,
+            BrowserPerformanceEvents.HandleResponsePlatformBroker,
             logger,
             performanceClient,
             request.correlationId
@@ -364,7 +371,7 @@ export async function handleResponseCode(
     // Handle response from hash string.
     const result = await invokeAsync(
         interactionHandler.handleCodeResponse.bind(interactionHandler),
-        PerformanceEvents.HandleCodeResponse,
+        BrowserPerformanceEvents.HandleCodeResponse,
         logger,
         performanceClient,
         request.correlationId
@@ -422,7 +429,7 @@ export async function handleResponseEAR(
     const decryptedData = JSON.parse(
         await invokeAsync(
             decryptEarResponse,
-            PerformanceEvents.DecryptEarResponse,
+            BrowserPerformanceEvents.DecryptEarResponse,
             logger,
             performanceClient,
             request.correlationId
@@ -432,7 +439,7 @@ export async function handleResponseEAR(
     if (decryptedData.accountId) {
         return invokeAsync(
             handleResponsePlatformBroker,
-            PerformanceEvents.HandleResponsePlatformBroker,
+            BrowserPerformanceEvents.HandleResponsePlatformBroker,
             logger,
             performanceClient,
             request.correlationId
@@ -455,12 +462,13 @@ export async function handleResponseEAR(
         browserStorage,
         new CryptoOps(logger, performanceClient),
         logger,
+        performanceClient,
         null,
         null
     );
 
     // Validate response. This function throws a server error if an error is returned by the server.
-    responseHandler.validateTokenResponse(decryptedData);
+    responseHandler.validateTokenResponse(decryptedData, request.correlationId);
 
     // Temporary until response handler is refactored to be more flow agnostic.
     const additionalData: AuthorizationCodePayload = {

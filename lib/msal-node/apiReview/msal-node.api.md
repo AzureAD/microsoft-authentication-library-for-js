@@ -25,13 +25,12 @@ import { AuthorizationCodePayload } from '@azure/msal-common/node';
 import { AuthorizeResponse } from '@azure/msal-common/node';
 import { AzureCloudInstance } from '@azure/msal-common/node';
 import { AzureCloudOptions } from '@azure/msal-common/node';
-import { AzureRegion } from '@azure/msal-common';
+import { AzureRegion } from '@azure/msal-common/node';
 import { AzureRegionConfiguration } from '@azure/msal-common/node';
-import { BaseAuthRequest } from '@azure/msal-common';
-import { BaseAuthRequest as BaseAuthRequest_2 } from '@azure/msal-common/node';
+import { BaseAuthRequest } from '@azure/msal-common/node';
 import { BaseClient } from '@azure/msal-common/node';
 import { CacheManager } from '@azure/msal-common/node';
-import { ClientAssertion as ClientAssertion_2 } from '@azure/msal-common';
+import { ClientAssertion as ClientAssertion_2 } from '@azure/msal-common/node';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
 import { ClientAuthErrorCodes } from '@azure/msal-common/node';
@@ -43,8 +42,8 @@ import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
 import { Constants } from '@azure/msal-common/node';
-import { DeviceCodeResponse } from '@azure/msal-common';
-import { DeviceCodeResponse as DeviceCodeResponse_2 } from '@azure/msal-common/node';
+import { CredentialEntity } from '@azure/msal-common/node';
+import { DeviceCodeResponse } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
 import { IAppTokenProvider } from '@azure/msal-common/node';
@@ -71,7 +70,7 @@ import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
-import { StringDict } from '@azure/msal-common';
+import { StringDict } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
@@ -93,7 +92,7 @@ export { AuthErrorCodes }
 export { AuthorizationCodePayload }
 
 // @public
-export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     scopes: Array<string>;
     redirectUri: string;
     code: string;
@@ -101,7 +100,7 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
 };
 
 // @public
-export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme" | "requestedClaimsHash" | "storeInCache">> & {
+export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme" | "storeInCache">> & {
     scopes: Array<string>;
     redirectUri: string;
 };
@@ -147,7 +146,7 @@ export abstract class ClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     getLogger(): Logger;
     getTokenCache(): TokenCache;
-    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest_2>): Promise<BaseAuthRequest_2>;
+    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): Promise<BaseAuthRequest>;
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
     setLogger(logger: Logger): void;
@@ -185,7 +184,7 @@ export class ClientCredentialClient extends BaseClient {
 }
 
 // @public
-export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "clientAssertion" | "storeInCache">> & {
+export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "clientAssertion" | "storeInCache">> & {
     clientAssertion?: string | ClientAssertionCallback;
 };
 
@@ -218,7 +217,7 @@ export class CryptoProvider implements ICrypto {
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    removeTokenBindingKey(): Promise<boolean>;
+    removeTokenBindingKey(): Promise<void>;
     signJwt(): Promise<string>;
 }
 
@@ -242,9 +241,9 @@ export class DeviceCodeClient extends BaseClient {
 }
 
 // @public
-export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     scopes: Array<string>;
-    deviceCodeCallback: (response: DeviceCodeResponse_2) => void;
+    deviceCodeCallback: (response: DeviceCodeResponse) => void;
 };
 
 // @public
@@ -311,7 +310,7 @@ export { InteractionRequiredAuthError }
 export { InteractionRequiredAuthErrorCodes }
 
 // @public
-export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "storeInCache">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
@@ -463,7 +462,7 @@ export class OnBehalfOfClient extends BaseClient {
 }
 
 // @public
-export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     oboAssertion: string;
     scopes: Array<string>;
 };
@@ -493,7 +492,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 }
 
 // @public
-export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     scopes: Array<string>;
     refreshToken: string;
     forceCache?: boolean;
@@ -523,8 +522,6 @@ export type SerializedAccessTokenEntity = {
     refresh_on?: string;
     key_id?: string;
     token_type?: string;
-    requestedClaims?: string;
-    requestedClaimsHash?: string;
     userAssertionHash?: string;
 };
 
@@ -592,7 +589,7 @@ export type SignOutRequest = {
 };
 
 // @public
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "requestedClaimsHash" | "storeInCache">> & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "storeInCache">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
@@ -603,14 +600,14 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
-    getAllAccounts(): Promise<AccountInfo[]>;
+    getAllAccounts(correlationId?: string): Promise<AccountInfo[]>;
     getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
     overwriteCache(): Promise<void>;
     // (undocumented)
     readonly persistence: ICachePlugin;
-    removeAccount(account: AccountInfo): Promise<void>;
+    removeAccount(account: AccountInfo, correlationId?: string): Promise<void>;
     serialize(): string;
 }
 
@@ -624,7 +621,7 @@ export class UsernamePasswordClient extends BaseClient {
 }
 
 // @public
-export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "requestedClaimsHash" | "storeInCache">> & {
+export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "storeInCache">> & {
     scopes: Array<string>;
     username: string;
     password: string;
@@ -635,7 +632,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.6.0";
+export const version = "5.0.0-alpha.0";
 
 // Warnings were encountered during analysis:
 //

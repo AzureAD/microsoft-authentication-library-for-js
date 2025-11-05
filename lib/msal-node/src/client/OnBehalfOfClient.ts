@@ -28,6 +28,7 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
+    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
@@ -41,7 +42,7 @@ export class OnBehalfOfClient extends BaseClient {
     private userAssertionHash: string;
 
     constructor(configuration: ClientConfiguration) {
-        super(configuration);
+        super(configuration, new StubPerformanceClient());
     }
 
     /**
@@ -100,7 +101,8 @@ export class OnBehalfOfClient extends BaseClient {
                 Constants.CacheOutcome.NO_CACHED_ACCESS_TOKEN
             );
             this.logger.info(
-                "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties."
+                "SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties.",
+                request.correlationId
             );
             throw createClientAuthError(
                 ClientAuthErrorCodes.tokenRefreshRequired
@@ -116,7 +118,8 @@ export class OnBehalfOfClient extends BaseClient {
                 Constants.CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED
             );
             this.logger.info(
-                `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`
+                `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`,
+                request.correlationId
             );
             throw createClientAuthError(
                 ClientAuthErrorCodes.tokenRefreshRequired
@@ -125,7 +128,8 @@ export class OnBehalfOfClient extends BaseClient {
 
         // fetch the idToken from cache
         const cachedIdToken = this.readIdTokenFromCacheForOBO(
-            cachedAccessToken.homeAccountId
+            cachedAccessToken.homeAccountId,
+            request.correlationId
         );
         let idTokenClaims: TokenClaims | undefined;
         let cachedAccount: AccountEntity | null = null;
@@ -143,7 +147,10 @@ export class OnBehalfOfClient extends BaseClient {
                 localAccountId: localAccountId || "",
             };
 
-            cachedAccount = this.cacheManager.readAccountFromCache(accountInfo);
+            cachedAccount = this.cacheManager.getAccount(
+                this.cacheManager.generateAccountKey(accountInfo),
+                request.correlationId
+            );
         }
 
         // increment telemetry cache hit counter
@@ -163,6 +170,7 @@ export class OnBehalfOfClient extends BaseClient {
             },
             true,
             request,
+            this.performanceClient,
             idTokenClaims
         );
     }
@@ -173,7 +181,8 @@ export class OnBehalfOfClient extends BaseClient {
      * @param atHomeAccountId - account id
      */
     private readIdTokenFromCacheForOBO(
-        atHomeAccountId: string
+        atHomeAccountId: string,
+        correlationId: string
     ): IdTokenEntity | null {
         const idTokenFilter: CredentialFilter = {
             homeAccountId: atHomeAccountId,
@@ -185,7 +194,7 @@ export class OnBehalfOfClient extends BaseClient {
         };
 
         const idTokenMap: Map<string, IdTokenEntity> =
-            this.cacheManager.getIdTokensByFilter(idTokenFilter);
+            this.cacheManager.getIdTokensByFilter(idTokenFilter, correlationId);
 
         // When acquiring a token on behalf of an application, there might not be an id token in the cache
         if (Object.values(idTokenMap).length < 1) {
@@ -223,12 +232,13 @@ export class OnBehalfOfClient extends BaseClient {
             target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
             tokenType: authScheme,
             keyId: request.sshKid,
-            requestedClaimsHash: request.requestedClaimsHash,
             userAssertionHash: this.userAssertionHash,
         };
 
-        const accessTokens =
-            this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
+        const accessTokens = this.cacheManager.getAccessTokensByFilter(
+            accessTokenFilter,
+            request.correlationId
+        );
 
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
@@ -286,11 +296,15 @@ export class OnBehalfOfClient extends BaseClient {
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
+            this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin
         );
 
-        responseHandler.validateTokenResponse(response.body);
+        responseHandler.validateTokenResponse(
+            response.body,
+            request.correlationId
+        );
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,

@@ -18,7 +18,10 @@ export {
     createStandardPublicClientApplication,
 } from "./app/PublicClientApplication.js";
 export { PublicClientNext } from "./app/PublicClientNext.js";
-export { IController } from "./controllers/IController.js";
+export {
+    IController,
+    HandleRedirectPromiseOptions,
+} from "./controllers/IController.js";
 export {
     Configuration,
     BrowserAuthOptions,
@@ -65,7 +68,7 @@ export { InitializeApplicationRequest } from "./request/InitializeApplicationReq
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";
-export { ITokenCache } from "./cache/ITokenCache.js";
+export { loadExternalTokens } from "./cache/TokenCache.js";
 
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";
@@ -149,13 +152,13 @@ export {
     AuthenticationHeaderParser,
     PerformanceCallbackFunction,
     PerformanceEvent,
-    PerformanceEvents,
     // Telemetry
     InProgressPerformanceEvent,
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
+export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 
 export { version } from "./packageMetadata.js";
 

@@ -18,7 +18,7 @@ import {
     AuthorizeProtocol,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import {
     createBrowserAuthError,
@@ -90,9 +90,8 @@ export class InteractionHandler {
     /**
      * Process auth code response from AAD
      * @param authCodeResponse
-     * @param state
-     * @param authority
-     * @param networkModule
+     * @param request
+     * @param validateNonce
      * @returns
      */
     async handleCodeResponseFromServer(
@@ -101,7 +100,8 @@ export class InteractionHandler {
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
         this.logger.trace(
-            "InteractionHandler.handleCodeResponseFromServer called"
+            "InteractionHandler.handleCodeResponseFromServer called",
+            request.correlationId
         );
 
         // Assign code to request
@@ -111,7 +111,7 @@ export class InteractionHandler {
         if (authCodeResponse.cloud_instance_host_name) {
             await invokeAsync(
                 this.authModule.updateAuthority.bind(this.authModule),
-                PerformanceEvents.UpdateTokenEndpointAuthority,
+                BrowserPerformanceEvents.UpdateTokenEndpointAuthority,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -139,7 +139,7 @@ export class InteractionHandler {
         // Acquire token with retrieved code.
         const tokenResponse = (await invokeAsync(
             this.authModule.acquireToken.bind(this.authModule),
-            PerformanceEvents.AuthClientAcquireToken,
+            BrowserPerformanceEvents.AuthClientAcquireToken,
             this.logger,
             this.performanceClient,
             request.correlationId

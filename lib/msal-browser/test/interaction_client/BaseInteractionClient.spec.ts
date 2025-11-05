@@ -22,7 +22,11 @@ import {
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
 } from "../utils/StringConstants.js";
-import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient.js";
+import {
+    BaseInteractionClient,
+    clearCacheOnLogout,
+    getDiscoveredAuthority,
+} from "../../src/interaction_client/BaseInteractionClient.js";
 import {
     EndSessionRequest,
     PublicClientApplication,
@@ -36,7 +40,13 @@ class testInteractionClient extends BaseInteractionClient {
     }
 
     logout(request: EndSessionRequest): Promise<void> {
-        return this.clearCacheOnLogout(request.account);
+        return clearCacheOnLogout(
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.correlationId,
+            request.account
+        );
     }
 }
 
@@ -87,6 +97,8 @@ describe("BaseInteractionClient", () => {
             const tenantProfile1: TenantProfile = {
                 tenantId: testIdTokenClaims.tid || "",
                 localAccountId: testIdTokenClaims.oid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 name: testIdTokenClaims.name,
                 isHomeTenant: true,
             };
@@ -97,6 +109,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
                 tenantProfiles: new Map([
                     [tenantProfile1.tenantId, tenantProfile1],
                 ]),
@@ -109,6 +122,7 @@ describe("BaseInteractionClient", () => {
                 secret: TEST_TOKENS.IDTOKEN_V2,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo1.homeAccountId,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testAccount1: AccountEntity = {
@@ -121,12 +135,15 @@ describe("BaseInteractionClient", () => {
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
                 tenantProfiles: [tenantProfile1],
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testIdTokenClaims2: TokenClaims = ID_TOKEN_ALT_CLAIMS;
             const tenantProfile2: TenantProfile = {
                 tenantId: testIdTokenClaims2.tid || "",
                 localAccountId: testIdTokenClaims2.oid || "",
+                username: testIdTokenClaims2.preferred_username || "",
+                loginHint: testIdTokenClaims2.login_hint,
                 name: testIdTokenClaims2.name,
                 isHomeTenant: true,
             };
@@ -137,6 +154,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims2.tid || "",
                 username: testIdTokenClaims2.preferred_username || "",
+                loginHint: testIdTokenClaims2.login_hint,
                 tenantProfiles: new Map([
                     [tenantProfile2.tenantId, tenantProfile2],
                 ]),
@@ -149,6 +167,7 @@ describe("BaseInteractionClient", () => {
                 secret: TEST_TOKENS.IDTOKEN_V2_ALT,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 homeAccountId: testAccountInfo2.homeAccountId,
+                lastUpdatedAt: Date.now().toString(),
             };
 
             const testAccount2: AccountEntity = {
@@ -161,6 +180,7 @@ describe("BaseInteractionClient", () => {
                 authorityType: "MSSTS",
                 clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
                 tenantProfiles: [tenantProfile2],
+                lastUpdatedAt: Date.now().toString(),
             };
 
             pca.setActiveAccount(testAccountInfo1);
@@ -242,15 +262,22 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows-ppe.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
-            await testClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                    account: testAccount,
-                })
+            let clientInst = testClient as any;
+
+            await getDiscoveredAuthority(
+                clientInst.config,
+                clientInst.correlationId,
+                clientInst.performanceClient,
+                clientInst.browserStorage,
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
+            )
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
                 })
@@ -270,15 +297,22 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
-            testClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                    account: testAccount,
-                })
+            const clientInst = testClient as any;
+
+            getDiscoveredAuthority(
+                clientInst.config,
+                clientInst.correlationId,
+                clientInst.performanceClient,
+                clientInst.browserStorage,
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
+            )
                 .then(() => {
                     done();
                 })
@@ -294,6 +328,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
             // @ts-ignore
@@ -313,14 +348,22 @@ describe("BaseInteractionClient", () => {
                 // @ts-ignore
                 pca.navigationClient,
                 // @ts-ignore
-                pca.performanceClient
+                pca.performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             );
 
-            interactionClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
-                    account: testAccount,
-                })
+            const clientInst = interactionClient as any;
+            getDiscoveredAuthority(
+                clientInst.config,
+                clientInst.correlationId,
+                clientInst.performanceClient,
+                clientInst.browserStorage,
+                clientInst.logger,
+                undefined,
+                undefined,
+                undefined,
+                testAccount
+            )
                 .then(() => {
                     done();
                 })
@@ -336,6 +379,7 @@ describe("BaseInteractionClient", () => {
                 environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
             };
 
             // @ts-ignore
@@ -355,16 +399,22 @@ describe("BaseInteractionClient", () => {
                 // @ts-ignore
                 pca.navigationClient,
                 // @ts-ignore
-                pca.performanceClient
+                pca.performanceClient,
+                TEST_CONFIG.CORRELATION_ID
             );
 
-            interactionClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
-                    account: testAccount,
-                    requestAuthority:
-                        "https://login.microsoftonline.com/common",
-                })
+            const clientInst = interactionClient as any;
+            getDiscoveredAuthority(
+                clientInst.config,
+                clientInst.correlationId,
+                clientInst.performanceClient,
+                clientInst.browserStorage,
+                clientInst.logger,
+                "https://login.microsoftonline.com/common",
+                undefined,
+                undefined,
+                testAccount
+            )
                 .then(() => {
                     done();
                 })

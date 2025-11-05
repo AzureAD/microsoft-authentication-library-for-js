@@ -146,6 +146,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 environment: NAA_APP_CONSTANTS.environment,
                 tenantId: NAA_APP_CONSTANTS.tenantId,
                 username: NAA_APP_CONSTANTS.username,
+                loginHint: NAA_APP_CONSTANTS.loginHint,
             };
 
             testTokenResponse = {
@@ -380,6 +381,271 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             ).rejects.toMatchObject(
                 createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
             );
+        });
+
+        it("acquireTokenSilent forwards forceRefresh flag to bridge token params", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                forceRefresh: true,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            await pca.acquireTokenSilent(testRequest);
+
+            const bridgeRequest = JSON.parse(
+                mockBridge.getBridgeRequests().at(-1)!
+            ) as any;
+            expect(bridgeRequest.tokenParams?.forceRefresh).toBe(true);
+        });
+
+        it("acquireTokenSilent does not set forceRefresh on bridge token params when not provided", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                correlationId: NAA_CORRELATION_ID,
+                cacheLookupPolicy: CacheLookupPolicy.Skip,
+            };
+
+            await pca.acquireTokenSilent(testRequest);
+
+            const bridgeRequest = JSON.parse(
+                mockBridge.getBridgeRequests().at(-1)!
+            ) as any;
+            expect(bridgeRequest.tokenParams?.forceRefresh).toBeUndefined();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+    });
+
+    describe("Performance telemetry with accountInfo", () => {
+        let localPca: IPublicClientApplication;
+        let performanceClient: any;
+        let mockBridge: MockBridge;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+
+            // Set up mock bridge
+            mockBridge = window.nestedAppAuthBridge as MockBridge;
+
+            // Create config with BrowserPerformanceClient like the working tests
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    client: new (require("../../src/telemetry/BrowserPerformanceClient.js").BrowserPerformanceClient)(
+                        {
+                            auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                            system: { loggerOptions: {} },
+                        }
+                    ),
+                },
+            };
+
+            localPca = await createNestablePublicClientApplication(config);
+            performanceClient = config.telemetry.client;
+        });
+
+        it("should pass account to measurement.end() in acquireTokenPopup", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: "test-home-account-id",
+                localAccountId: "test-local-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+            };
+
+            const testRequest = {
+                scopes: ["user.read"],
+                account: testAccount,
+            };
+
+            // Mock measurement object with end method
+            const mockMeasurement = {
+                end: jest.fn().mockReturnValue({}),
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {
+                    eventId: "test-event-id",
+                    status: "InProgress" as any,
+                    authority: TEST_CONFIG.validAuthority,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    correlationId: RANDOM_TEST_GUID,
+                    name: "test-event",
+                    startTimeMs: Date.now(),
+                    libraryName: "msal-browser",
+                    libraryVersion: "test-version",
+                },
+                measurement: {},
+            };
+
+            // Spy on startMeasurement to return our mock measurement
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
+
+            // Mock the bridge response for interactive token request
+            mockBridge.addAuthResultResponse("GetTokenPopup", {
+                ...SILENT_TOKEN_RESPONSE,
+                account: {
+                    ...SILENT_TOKEN_RESPONSE.account,
+                    homeAccountId: testAccount.homeAccountId,
+                    localAccountId: testAccount.localAccountId,
+                    environment: testAccount.environment,
+                    tenantId: testAccount.tenantId,
+                    username: testAccount.username,
+                },
+            });
+
+            const result = await localPca.acquireTokenPopup(testRequest);
+
+            // Verify measurement.end was called with account parameter
+            expect(mockMeasurement.end).toHaveBeenCalledWith(
+                expect.objectContaining({ success: true }),
+                undefined,
+                expect.objectContaining({
+                    homeAccountId: testAccount.homeAccountId,
+                    localAccountId: testAccount.localAccountId,
+                    environment: testAccount.environment,
+                    tenantId: testAccount.tenantId,
+                    username: testAccount.username,
+                })
+            );
+
+            expect(result).toBeDefined();
+            expect(result.account).toBeDefined();
+        });
+
+        it("should pass account to measurement.end() in acquireTokenSilent", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: "test-home-account-id",
+                localAccountId: "test-local-account-id",
+                environment: "login.microsoftonline.com",
+                tenantId: "test-tenant-id",
+                username: "test@example.com",
+            };
+
+            const silentRequest = {
+                scopes: ["user.read"],
+                account: testAccount,
+            };
+
+            // Mock measurement object with end method
+            const mockMeasurement = {
+                end: jest.fn().mockReturnValue({}),
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {
+                    eventId: "test-event-id",
+                    status: "InProgress" as any,
+                    authority: TEST_CONFIG.validAuthority,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    correlationId: RANDOM_TEST_GUID,
+                    name: "test-event",
+                    startTimeMs: Date.now(),
+                    libraryName: "msal-browser",
+                    libraryVersion: "test-version",
+                },
+                measurement: {},
+            };
+
+            // Spy on startMeasurement to return our mock measurement
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
+
+            // Mock the bridge response for silent token request
+            mockBridge.addAuthResultResponse("GetToken", {
+                ...SILENT_TOKEN_RESPONSE,
+                account: {
+                    ...SILENT_TOKEN_RESPONSE.account,
+                    homeAccountId: testAccount.homeAccountId,
+                    localAccountId: testAccount.localAccountId,
+                    environment: testAccount.environment,
+                    tenantId: testAccount.tenantId,
+                    username: testAccount.username,
+                },
+            });
+
+            const result = await localPca.acquireTokenSilent(silentRequest);
+
+            // Verify measurement.end was called with account parameter
+            expect(mockMeasurement.end).toHaveBeenCalledWith(
+                expect.objectContaining({ success: true }),
+                undefined,
+                expect.objectContaining({
+                    homeAccountId: testAccount.homeAccountId,
+                    localAccountId: testAccount.localAccountId,
+                    environment: testAccount.environment,
+                    tenantId: testAccount.tenantId,
+                    username: testAccount.username,
+                })
+            );
+
+            expect(result).toBeDefined();
+            expect(result.account).toBeDefined();
+        });
+
+        it("should not pass account when account is not provided in request", async () => {
+            const silentRequest = {
+                scopes: ["user.read"],
+                // No account provided
+            };
+
+            // Mock measurement object with end method
+            const mockMeasurement = {
+                end: jest.fn().mockReturnValue({}),
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {
+                    eventId: "test-event-id",
+                    status: "InProgress" as any,
+                    authority: TEST_CONFIG.validAuthority,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    correlationId: RANDOM_TEST_GUID,
+                    name: "test-event",
+                    startTimeMs: Date.now(),
+                    libraryName: "msal-browser",
+                    libraryVersion: "test-version",
+                },
+                measurement: {},
+            };
+
+            // Spy on startMeasurement to return our mock measurement
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
+
+            // Mock the bridge response for silent token request without account in request
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const result = await localPca.acquireTokenSilent(silentRequest);
+
+            // Verify measurement.end was called without account parameter (undefined as third argument)
+            // We expect the successful call to have the account as undefined since request.account was undefined
+            const successfulCalls = mockMeasurement.end.mock.calls.filter(
+                (call) => call[0] && call[0].success === true
+            );
+            expect(successfulCalls.length).toBeGreaterThan(0);
+
+            // At least one successful call should have undefined as the third parameter (account)
+            const callWithUndefinedAccount = successfulCalls.find(
+                (call) => call[2] === undefined
+            );
+            expect(callWithUndefinedAccount).toBeDefined();
+
+            expect(result).toBeDefined();
         });
 
         afterEach(() => {

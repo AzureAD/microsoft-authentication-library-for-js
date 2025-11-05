@@ -1,0 +1,27 @@
+<div class="page-header">
+    <h1 class="page-title">500 - Server Error</h1>
+    <p class="page-subtitle">Something went wrong on our end</p>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Internal Server Error</h2>
+        <p class="card-description">We encountered an unexpected error</p>
+    </div>
+
+    <p>We're sorry, but something went wrong. Please try again later or contact support if the problem persists.</p>
+
+    {{#if error}}
+    <div style="margin-top: 2rem;">
+        <h3>Error Details:</h3>
+        <div class="json-content">
+            <pre>{{error.stack}}</pre>
+        </div>
+    </div>
+    {{/if}}
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <a href="/" class="btn">← Return to Home</a>
+        <button onclick="window.location.reload()" class="btn btn-secondary">Try Again</button>
+    </div>
+</div>

@@ -437,7 +437,7 @@ export const MANAGED_IDENTITY_RESOURCE_ID_2: string =
 
 export const getCacheKey = (resource?: string): string => {
     const resourceHelper = resource || DEFAULT_MANAGED_IDENTITY_ID;
-    return `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+    return `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}-`;
 };
 
 // SHA256 hash of the DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
@@ -457,7 +457,7 @@ export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
     extExpiresOn: new Date(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
     familyId: "",
     fromCache: false,
-    fromNativeBroker: false,
+    fromPlatformBroker: false,
     idToken: "",
     idTokenClaims: {},
     msGraphHost: "",

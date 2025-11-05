@@ -69,10 +69,7 @@ export type BrowserAuthOptions = {
      * The redirect URI where the window navigates after a successful logout.
      */
     postLogoutRedirectUri?: string | null;
-    /**
-     * Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
-     */
-    navigateToLoginRequestUrl?: boolean;
+
     /**
      * Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
      */
@@ -112,6 +109,10 @@ export type CacheOptions = {
      * Used to specify the cacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     cacheLocation?: BrowserCacheLocation | string;
+    /**
+     * Used to specify the number of days cache entries written by previous versions of MSAL.js should be retained in the browser. Defaults to 5 days.
+     */
+    cacheRetentionDays?: number;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -144,9 +145,9 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     redirectNavigationTimeout?: number;
     /**
-     * Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
+     * Sets whether popups are opened and navigated to later. By default, this flag is set to true. When set to true, blank popups are opened and navigates to login domain. When set to false, popups are opened directly to the login domain.
      */
-    asyncPopups?: boolean;
+    navigatePopups?: boolean;
     /**
      * Flag to enable redirect opertaions when the app is rendered in an iframe (to support scenarios such as embedded B2C login).
      */
@@ -241,7 +242,6 @@ export function buildConfiguration(
         redirectUri:
             typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
         postLogoutRedirectUri: "",
-        navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         OIDCOptions: {
             responseMode: Constants.ResponseMode.FRAGMENT,
@@ -261,6 +261,7 @@ export function buildConfiguration(
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
+        cacheRetentionDays: 5,
     };
 
     // Default logger options for browser
@@ -288,8 +289,8 @@ export function buildConfiguration(
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
-        asyncPopups: false,
         allowRedirectInIframe: false,
+        navigatePopups: true,
         allowPlatformBroker: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
@@ -323,7 +324,8 @@ export function buildConfiguration(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.cannotSetOIDCOptions
                 )
-            )
+            ),
+            ""
         );
     }
 
