@@ -140,7 +140,7 @@ export class AuthorizationCodeClient {
         if (authCodePayload && authCodePayload.cloud_instance_host_name) {
             await invokeAsync(
                 this.updateTokenEndpointAuthority.bind(this),
-                PerformanceEvents.AuthorizationCodeClientUpdateTokenEndpointAuthority,
+                PerformanceEvents.UpdateTokenEndpointAuthority,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
