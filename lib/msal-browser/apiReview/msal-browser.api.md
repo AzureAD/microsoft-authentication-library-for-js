@@ -1205,9 +1205,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     // (undocumented)
     protected controller: IController;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    static createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
     getActiveAccount(): AccountInfo | null;
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];

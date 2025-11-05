@@ -19,7 +19,6 @@ import {
 } from "@azure/msal-common/browser";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import * as ControllerFactory from "../controllers/ControllerFactory.js";
 import { StandardController } from "../controllers/StandardController.js";
 import {
     BrowserConfiguration,
@@ -43,22 +42,6 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
  */
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
-
-    /**
-     * Creates StandardController and passes it to the PublicClientApplication
-     *
-     * @param configuration {Configuration}
-     */
-    public static async createPublicClientApplication(
-        configuration: Configuration
-    ): Promise<IPublicClientApplication> {
-        const controller = await ControllerFactory.createV3Controller(
-            configuration
-        );
-        const pca = new PublicClientApplication(configuration, controller);
-
-        return pca;
-    }
 
     /**
      * @constructor
