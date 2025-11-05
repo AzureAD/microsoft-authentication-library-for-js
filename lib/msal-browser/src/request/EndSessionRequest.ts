@@ -14,8 +14,6 @@ import { CommonEndSessionRequest } from "@azure/msal-common/browser";
  * - idTokenHint            - ID Token used by B2C to validate logout if required by the policy
  * - logoutHint             - A string that specifies the account that is being logged out in order to skip the server account picker on logout
  */
-export type EndSessionRequest = Partial<
-    Omit<CommonEndSessionRequest, "tokenQueryParameters">
-> & {
+export type EndSessionRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
 };

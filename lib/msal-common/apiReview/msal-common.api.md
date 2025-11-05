@@ -322,11 +322,10 @@ function addDomainHint(parameters: Map<string, string>, domainHint: string): voi
 // @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "addExtraQueryParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "addExtraParameters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function addExtraQueryParameters(parameters: Map<string, string>, eQParams: StringDict): void;
+function addExtraParameters(parameters: Map<string, string>, extraParams: StringDict): void;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "addGrantType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -955,12 +954,13 @@ export type BaseAuthRequest = {
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
     maxAge?: number;
-    tokenBodyParameters?: StringDict;
-    tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
     embeddedClientId?: string;
+    httpMethod?: HttpMethod;
+    extraQueryParameters?: StringDict;
+    extraParameters?: StringDict;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "BaseClient" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1575,7 +1575,8 @@ declare namespace ClientConfigurationErrorCodes {
         invalidAuthenticationHeader,
         cannotSetOIDCOptions,
         cannotAllowPlatformBroker,
-        authorityMismatch
+        authorityMismatch,
+        invalidRequestMethodForEAR
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1655,7 +1656,6 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;
-    extraQueryParameters?: StringDict;
     extraScopesToConsent?: Array<string>;
     loginHint?: string;
     nonce: string;
@@ -1754,6 +1754,7 @@ declare namespace Constants {
         HTTP_GATEWAY_TIMEOUT,
         HTTP_SERVER_ERROR_RANGE_END,
         HTTP_MULTI_SIDED_ERROR,
+        HttpMethod,
         OIDC_DEFAULT_SCOPES,
         OIDC_SCOPES,
         HeaderNames,
@@ -2436,6 +2437,18 @@ const HTTP_TOO_MANY_REQUESTS: number;
 // @public (undocumented)
 const HTTP_UNAUTHORIZED: number;
 
+// Warning: (ae-missing-release-tag) "HttpMethod" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "HttpMethod" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const HttpMethod: {
+    readonly GET: "GET";
+    readonly POST: "POST";
+};
+
+// @public (undocumented)
+type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
+
 // Warning: (ae-missing-release-tag) "IAppTokenProvider" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -2673,6 +2686,11 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 //
 // @public (undocumented)
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
+
+// Warning: (ae-missing-release-tag) "invalidRequestMethodForEAR" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
 
 // Warning: (ae-missing-release-tag) "invalidState" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3769,7 +3787,7 @@ declare namespace RequestParameterBuilder {
         addGrantType,
         addClientInfo,
         addInstanceAware,
-        addExtraQueryParameters,
+        addExtraParameters,
         addClientCapabilitiesToClaims,
         addUsername,
         addPassword,
@@ -4658,7 +4676,7 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/client/AuthorizationCodeClient.ts:151:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:152:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:210:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:446:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:444:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:183:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:270:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:271:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
