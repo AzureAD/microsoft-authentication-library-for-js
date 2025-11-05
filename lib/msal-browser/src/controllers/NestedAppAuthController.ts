@@ -19,6 +19,7 @@ import {
     AccountFilter,
     AuthError,
     AccountEntityUtils,
+    AuthToken,
 } from "@azure/msal-common/browser";
 import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -921,7 +922,8 @@ export class NestedAppAuthController implements IController {
             );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims)
         );
         return this.browserStorage.hydrateCache(result, request);
     }

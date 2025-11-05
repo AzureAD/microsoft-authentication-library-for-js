@@ -168,7 +168,8 @@ describe("TokenCache tests", () => {
             expect(result.idToken).toEqual(testIdToken);
             expect(setSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testIdToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
         });
 
@@ -198,7 +199,8 @@ describe("TokenCache tests", () => {
             expect(result.idToken).toEqual(testIdToken);
             expect(setSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testIdToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
         });
 
@@ -236,7 +238,8 @@ describe("TokenCache tests", () => {
             expect(result.account).toEqual(testAccountInfo);
             expect(setSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testIdToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
             expect(
                 browserStorage.getAccount(testAccountKey, RANDOM_TEST_GUID)
@@ -268,7 +271,8 @@ describe("TokenCache tests", () => {
             expect(result.idToken).toEqual(testIdToken);
             expect(setSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testIdToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
         });
 
@@ -351,7 +355,8 @@ describe("TokenCache tests", () => {
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(idSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testIdToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
             expect(result.accessToken).toEqual("");
             expect(accessSpy).not.toHaveBeenCalled();
@@ -392,7 +397,8 @@ describe("TokenCache tests", () => {
             expect(result.accessToken).toEqual(testAccessToken);
             expect(accessSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testAccessToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
         });
 
@@ -444,7 +450,8 @@ describe("TokenCache tests", () => {
 
             expect(refreshSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testRefreshToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
         });
 
@@ -486,7 +493,8 @@ describe("TokenCache tests", () => {
             // Validate tokens can be retrieved
             expect(refreshSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testRefreshToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
         });
 
@@ -528,11 +536,13 @@ describe("TokenCache tests", () => {
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(idSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testIdToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
             expect(refreshSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testRefreshToken }),
-                expect.anything()
+                expect.anything(),
+                false
             );
         });
     });
