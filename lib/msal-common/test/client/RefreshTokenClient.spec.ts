@@ -454,15 +454,18 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
@@ -1312,15 +1315,18 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
@@ -1564,7 +1570,8 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: rtExpiresOn.toString(), // Set expiration to yesterday
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const mockPerfClient = new MockPerformanceClient();
             const client = new RefreshTokenClient(config, mockPerfClient);
@@ -1605,7 +1612,8 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const client = new RefreshTokenClient(
                 config,
@@ -1625,7 +1633,8 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const rtExpiresOn = TimeUtils.nowSeconds() + 60 * 60;
             const rtEntity = {
@@ -1634,7 +1643,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await config.storageInterface!.setRefreshTokenCredential(
                 rtEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
