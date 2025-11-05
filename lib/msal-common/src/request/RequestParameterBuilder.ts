@@ -455,14 +455,14 @@ export function addInstanceAware(parameters: Map<string, string>): void {
 }
 
 /**
- * add extraQueryParams
- * @param eQParams
+ * Add extraParameters
+ * @param extraParams - String dictionary containing extra parameters to be added.
  */
-export function addExtraQueryParameters(
+export function addExtraParameters(
     parameters: Map<string, string>,
-    eQParams: StringDict
+    extraParams: StringDict
 ): void {
-    Object.entries(eQParams).forEach(([key, value]) => {
+    Object.entries(extraParams).forEach(([key, value]) => {
         if (!parameters.has(key) && value) {
             parameters.set(key, value);
         }

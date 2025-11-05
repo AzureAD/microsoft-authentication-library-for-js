@@ -286,10 +286,10 @@ export abstract class BaseClient {
             );
         }
 
-        if (request.tokenQueryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+        if (request.extraQueryParameters) {
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
-                request.tokenQueryParameters
+                request.extraQueryParameters
             );
         }
 
