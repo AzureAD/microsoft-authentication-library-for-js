@@ -157,7 +157,7 @@ Example:
 const account = msalInstance.getAccount({ username: "SEARCH_USERNAME" });
 ```
 
-See the [`@azure/msal-browser` docs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_browser.publicclientapplication.html) for more details on account methods.
+See the [`@azure/msal-browser` Accounts doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-v5/lib/msal-browser/docs/accounts.md#account-filter-object) for more details on account methods.
 
 We recommend subscribing to the `inProgress$` observable of `MsalBroadcastService` and filtering for `InteractionStatus.None` before retrieving account information. This ensures that all interactions have completed before getting account information. See [our sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.component.ts#L45) for an example of this use.
 
