@@ -9,7 +9,7 @@ import { AuthError } from "./AuthError.js";
 /**
  * Error class for MSAL Runtime errors that preserves detailed broker information
  */
-export class NativeAuthError extends AuthError {
+export class PlatformBrokerError extends AuthError {
     /**
      * Numeric error code from MSAL Runtime
      */
@@ -27,9 +27,9 @@ export class NativeAuthError extends AuthError {
         errorTag: number
     ) {
         super(errorStatus, errorContext);
-        this.name = "NativeAuthError";
+        this.name = "PlatformBrokerError";
         this.statusCode = errorCode;
         this.tag = NativeBrokerStringUtils.tagToString(errorTag);
-        Object.setPrototypeOf(this, NativeAuthError.prototype);
+        Object.setPrototypeOf(this, PlatformBrokerError.prototype);
     }
 }

@@ -18,7 +18,7 @@ import {
     InteractionRequiredAuthError,
     Logger,
     LoggerOptions,
-    NativeAuthError,
+    PlatformBrokerError,
     NativeBrokerStringUtils,
     NativeRequest,
     NativeSignOutRequest,
@@ -648,7 +648,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         );
     }
 
-    private wrapError(error: unknown): NativeAuthError | Object | null {
+    private wrapError(error: unknown): PlatformBrokerError | Object | null {
         if (
             error &&
             typeof error === "object" &&
@@ -661,7 +661,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 ? `${errorContext} (Error Code: ${errorCode}, Tag: ${tagString})`
                 : `(Error Code: ${errorCode}, Tag: ${tagString})`;
 
-            const nativeAuthError = new NativeAuthError(
+            const platformBrokerError = new PlatformBrokerError(
                 ErrorStatus[errorStatus],
                 enhancedErrorContext,
                 errorCode,
@@ -709,9 +709,9 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     );
                     break;
                 default:
-                    wrappedError = nativeAuthError;
+                    wrappedError = platformBrokerError;
                     // Clone error to avoid circular reference
-                    const clonedError = new NativeAuthError(
+                    const clonedError = new PlatformBrokerError(
                         ErrorStatus[errorStatus],
                         enhancedErrorContext,
                         errorCode,
@@ -721,7 +721,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     return wrappedError;
             }
 
-            wrappedError.msalNodeRuntimeError = nativeAuthError;
+            wrappedError.msalNodeRuntimeError = platformBrokerError;
             return wrappedError;
         }
         throw error;
