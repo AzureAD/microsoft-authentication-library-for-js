@@ -29,7 +29,6 @@ import {
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     ID_TOKEN_CLAIMS,
-    TEST_AUTHORIZE_BODY_PARAMS,
 } from "../utils/StringConstants.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
