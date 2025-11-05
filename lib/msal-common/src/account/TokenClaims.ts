@@ -47,6 +47,10 @@ export type TokenClaims = {
     upn?: string;
     preferred_username?: string;
     login_hint?: string;
+    /**
+     * Contains KMSI (Keep Me Signed In) status among other things
+     */
+    signin_state?: Array<string>;
     emails?: string[];
     name?: string;
     nonce?: string;
