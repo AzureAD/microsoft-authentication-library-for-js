@@ -105,6 +105,67 @@ The following functions in `PublicClientApplication` have been removed:
 
 `startPerformanceMeasurement()` has been removed. Please use `startMeasurement()` instead.
 
+### Removal of `PublicClientNext`
+
+The `PublicClientNext` class and its static method `createPublicClientApplication()` have been removed in MSAL v5. You should use one of the following alternatives depending on your application's requirements:
+
+- **`PublicClientApplication`**: Use this for standard single-app scenarios. This is the default and most common usage.
+- **`createNestablePublicClientApplication`**: Use this if you need to support nested apps (NAA). This function will automatically fall back to a standard PublicClientApplication if the nested app bridge is unavailable or the Hub is not configured to support nested app authentication. See [Nested App Configuration](./initialization.md#nested-app-configuration) for more details.
+- **`createStandardPublicClientApplication`**: Use this to instantiate and initialize a standard (non-NAA) PublicClientApplication instance.
+
+#### Migration Example
+
+```typescript
+// BEFORE (using PublicClientNext)
+import { PublicClientNext } from "@azure/msal-browser";
+
+const pca = PublicClientNext.createPublicClientApplication(config);
+```
+
+```typescript
+// AFTER (standard usage)
+import { PublicClientApplication } from "@azure/msal-browser";
+
+const pca = new PublicClientApplication(config);
+await pca.initialize();
+```
+
+```typescript
+// AFTER (nested app support)
+import { createNestablePublicClientApplication } from "@azure/msal-browser";
+
+const pca = await createNestablePublicClientApplication(config);
+```
+
+```typescript
+// AFTER (standard)
+import { createStandardPublicClientApplication } from "@azure/msal-browser";
+
+const pca = await createStandardPublicClientApplication(config);
+```
+
+For most applications, replacing `PublicClientNext.createPublicClientApplication(config)` with `new PublicClientApplication(config)` will be sufficient. If you previously used the `supportsNestedAppAuth` configuration option, migrate to `createNestablePublicClientApplication(config)` instead.
+
+### Removal of PublicClientApplication.createPublicClientApplication static function
+
+The `createPublicClientApplication` static function on `PublicClientApplication` has been removed and replaced with a separately exported `createStandardPublicClientApplication`.
+
+#### Migration Example
+
+```typescript
+// BEFORE
+import { PublicClientApplication } from "@azure/msal-browser";
+
+const pca = await PublicClientApplication.createPublicClientApplication(config);
+```
+
+```typescript
+// AFTER
+import { createStandardPublicClientApplication } from "@azure/msal-browser";
+
+const pca = await createStandardPublicClientApplication(config);
+```
+
 ## Configuration changes
 
 ### BrowserAuthOptions changes

@@ -5,7 +5,6 @@
 
 import {
     CommonAuthorizationUrlRequest,
-    CommonSilentFlowRequest,
     PerformanceCallbackFunction,
     AccountInfo,
     Logger,
@@ -28,8 +27,8 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
-import { IController, HandleRedirectPromiseOptions } from "./IController.js";
+import { WrapperSKU } from "../utils/BrowserConstants.js";
+import { IController } from "./IController.js";
 import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
@@ -40,6 +39,7 @@ import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 /**
  * UnknownOperatingContextController class
@@ -120,24 +120,9 @@ export class UnknownOperatingContextController implements IController {
                   this.eventHandler
               );
     }
-    getBrowserStorage(): BrowserCacheManager {
-        return this.browserStorage;
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
-        return null;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return null;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        return null;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getAccountByUsername(username: string): AccountInfo | null {
         return null;
     }
     getAllAccounts(): AccountInfo[] {
@@ -170,40 +155,6 @@ export class UnknownOperatingContextController implements IController {
     acquireTokenByCode(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request: AuthorizationCodeRequest
-    ): Promise<AuthenticationResult> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as Promise<AuthenticationResult>;
-    }
-    acquireTokenNative(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request:
-            | PopupRequest
-            | SilentRequest
-            | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "responseMode"
-                      | "earJwk"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "platformBroker"
-                  >
-              >,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        apiId: ApiId,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        accountId?: string | undefined
-    ): Promise<AuthenticationResult> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as Promise<AuthenticationResult>;
-    }
-    acquireTokenByRefreshToken(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        commonRequest: CommonSilentFlowRequest,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
@@ -323,26 +274,6 @@ export class UnknownOperatingContextController implements IController {
     }
     getConfiguration(): BrowserConfiguration {
         return this.config;
-    }
-    isBrowserEnv(): boolean {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return true;
-    }
-    getBrowserCrypto(): ICrypto {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as ICrypto;
-    }
-    getPerformanceClient(): IPerformanceClient {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as IPerformanceClient;
-    }
-    getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as Map<string, Promise<AuthenticationResult | null>>;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

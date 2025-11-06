@@ -17,7 +17,6 @@ import {
   BrowserConfigurationAuthError,
   InteractionStatus,
   InteractionType,
-  StringUtils,
 } from "@azure/msal-browser";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError, take, filter } from "rxjs/operators";
@@ -300,9 +299,7 @@ export class MsalInterceptor implements HttpInterceptor {
     for (const property of urlProperties) {
       if (keyComponents[property]) {
         const decodedInput = decodeURIComponent(keyComponents[property]);
-        if (
-          !StringUtils.matchPattern(decodedInput, endpointComponents[property])
-        ) {
+        if (!this.matchPattern(decodedInput, endpointComponents[property])) {
           return false;
         }
       }
@@ -392,5 +389,26 @@ export class MsalInterceptor implements HttpInterceptor {
     }
 
     return null;
+  }
+
+  /**
+   * Tests if a given string matches a given pattern, with support for wildcards and queries.
+   * @param pattern Wildcard pattern to string match. Supports "*" for wildcards and "?" for queries
+   * @param input String to match against
+   */
+  private matchPattern(pattern: string, input: string): boolean {
+    /**
+     * Wildcard support: https://stackoverflow.com/a/3117248/4888559
+     * Queries: replaces "?" in string with escaped "\?" for regex test
+     */
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    const regex: RegExp = new RegExp(
+      pattern
+        .replace(/\\/g, "\\\\")
+        .replace(/\*/g, "[^ ]*")
+        .replace(/\?/g, "\\?")
+    );
+
+    return regex.test(input);
   }
 }
