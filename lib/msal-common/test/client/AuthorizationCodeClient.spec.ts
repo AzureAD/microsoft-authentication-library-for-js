@@ -1202,8 +1202,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
@@ -1265,8 +1265,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {

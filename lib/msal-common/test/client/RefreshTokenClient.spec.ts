@@ -252,8 +252,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
@@ -302,8 +302,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Does not overwrite extraQueryParameters with extraParameters when they have the same parameter name", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
@@ -682,8 +682,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).toContain("testParam=testValue");
@@ -715,8 +715,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
@@ -765,8 +765,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Does not overwrite extraQueryParameters with extraParameters when they have the same parameter name", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
