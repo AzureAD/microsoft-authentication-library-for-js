@@ -56,7 +56,7 @@ export class AuthError extends Error {
     /**
      * Default PlatformBrokerError from MsalNodeRuntime when broker is enabled
      */
-    msalNodeRuntimeError?: PlatformBrokerError;
+    platformBrokerError?: PlatformBrokerError;
 
     constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
         const errorString = errorMessage

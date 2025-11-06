@@ -53,7 +53,6 @@ import {
     AuthenticationScheme,
     TimeUtils,
     PlatformBrokerError,
-    NativeBrokerStringUtils,
 } from "@azure/msal-common";
 import { randomUUID } from "crypto";
 import {
@@ -87,20 +86,9 @@ function createMockAuthResult(
 
 if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
-        const enhancedErrorContext = msalRuntimeExampleError.errorContext
-            ? `${msalRuntimeExampleError.errorContext} (Error Code: ${
-                  msalRuntimeExampleError.errorCode
-              }, Tag: ${NativeBrokerStringUtils.tagToString(
-                  msalRuntimeExampleError.errorTag
-              )})`
-            : `(Error Code: ${
-                  msalRuntimeExampleError.errorCode
-              }, Tag: ${NativeBrokerStringUtils.tagToString(
-                  msalRuntimeExampleError.errorTag
-              )})`;
         const testPlatformBrokerError = new PlatformBrokerError(
             ErrorStatus[msalRuntimeExampleError.errorStatus],
-            enhancedErrorContext,
+            msalRuntimeExampleError.errorContext,
             msalRuntimeExampleError.errorCode,
             msalRuntimeExampleError.errorTag
         );
@@ -2258,7 +2246,7 @@ if (process.platform === "win32") {
                     });
             });
 
-            it("Attaches msalNodeRuntimeError with runtime details to wrapped MSAL.js errors", (done) => {
+            it("Attaches platformBrokerError with runtime details to wrapped MSAL.js errors", (done) => {
                 const testCorrelationId = generateCorrelationId();
 
                 jest.spyOn(
@@ -2313,8 +2301,8 @@ if (process.platform === "win32") {
                         expect(error).toBeInstanceOf(
                             InteractionRequiredAuthError
                         );
-                        expect(error.msalNodeRuntimeError).toBeDefined();
-                        expect(error.msalNodeRuntimeError).toBeInstanceOf(
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
                             PlatformBrokerError
                         );
                         done();

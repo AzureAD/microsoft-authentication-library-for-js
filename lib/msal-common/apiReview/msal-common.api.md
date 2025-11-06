@@ -598,7 +598,7 @@ export class AuthError extends Error {
     correlationId: string;
     errorCode: string;
     errorMessage: string;
-    msalNodeRuntimeError?: NativeAuthError;
+    platformBrokerError?: PlatformBrokerError;
     // (undocumented)
     setCorrelationId(correlationId: string): void;
     subError: string;
@@ -3063,20 +3063,13 @@ const NATIVE_BROKER = "nativebroker";
 // @public (undocumented)
 const nativeAccountUnavailable = "native_account_unavailable";
 
-// Warning: (ae-missing-release-tag) "NativeAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "PlatformBrokerError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export class NativeAuthError extends AuthError {
+export class PlatformBrokerError extends AuthError {
     constructor(errorStatus: string, errorContext: string, errorCode: number, errorTag: number);
     statusCode: number;
     tag: string;
-}
-
-// Warning: (ae-missing-release-tag) "NativeBrokerStringUtils" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export class NativeBrokerStringUtils {
-    static tagToString(tag: number): string;
 }
 
 // Warning: (ae-missing-release-tag) "NativeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

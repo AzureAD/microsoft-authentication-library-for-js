@@ -3,8 +3,34 @@
  * Licensed under the MIT License.
  */
 
-import { NativeBrokerStringUtils } from "../utils/NativeBrokerStringUtils.js";
 import { AuthError } from "./AuthError.js";
+
+/**
+ * Converts a numeric tag to a string representation
+ * @param tag - The numeric tag to convert
+ * @returns The string representation of the tag
+ */
+function tagToString(tag: number): string {
+    if (tag === 0) {
+        return "UNTAG";
+    }
+
+    const tagSymbolSpace =
+        "abcdefghijklmnopqrstuvwxyz0123456789****************************";
+    let tagBuffer = "*****";
+
+    const chars = [
+        tagSymbolSpace[(tag >> 24) & 0x3f],
+        tagSymbolSpace[(tag >> 18) & 0x3f],
+        tagSymbolSpace[(tag >> 12) & 0x3f],
+        tagSymbolSpace[(tag >> 6) & 0x3f],
+        tagSymbolSpace[(tag >> 0) & 0x3f],
+    ];
+
+    tagBuffer = chars.join("");
+
+    return tagBuffer;
+}
 
 /**
  * Error class for MSAL Runtime errors that preserves detailed broker information
@@ -26,10 +52,15 @@ export class PlatformBrokerError extends AuthError {
         errorCode: number,
         errorTag: number
     ) {
-        super(errorStatus, errorContext);
+        const tagString = tagToString(errorTag);
+        const enhancedErrorContext = errorContext
+            ? `${errorContext} (Error Code: ${errorCode}, Tag: ${tagString})`
+            : `(Error Code: ${errorCode}, Tag: ${tagString})`;
+        
+        super(errorStatus, enhancedErrorContext);
         this.name = "PlatformBrokerError";
         this.statusCode = errorCode;
-        this.tag = NativeBrokerStringUtils.tagToString(errorTag);
+        this.tag = tagString;
         Object.setPrototypeOf(this, PlatformBrokerError.prototype);
     }
 }

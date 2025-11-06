@@ -190,7 +190,6 @@ export {
     EncodingTypes,
 } from "./utils/Constants.js";
 export { StringUtils } from "./utils/StringUtils.js";
-export { NativeBrokerStringUtils } from "./utils/NativeBrokerStringUtils.js";
 export { StringDict } from "./utils/MsalTypes.js";
 export {
     ProtocolUtils,

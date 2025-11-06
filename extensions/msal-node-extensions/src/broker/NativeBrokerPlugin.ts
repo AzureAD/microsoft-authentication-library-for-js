@@ -19,7 +19,6 @@ import {
     Logger,
     LoggerOptions,
     PlatformBrokerError,
-    NativeBrokerStringUtils,
     NativeRequest,
     NativeSignOutRequest,
     PromptValue,
@@ -656,14 +655,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         ) {
             const { errorCode, errorStatus, errorContext, errorTag } =
                 error as MsalRuntimeError;
-            const tagString = NativeBrokerStringUtils.tagToString(errorTag);
-            const enhancedErrorContext = errorContext
-                ? `${errorContext} (Error Code: ${errorCode}, Tag: ${tagString})`
-                : `(Error Code: ${errorCode}, Tag: ${tagString})`;
 
-            const platformBrokerError = new PlatformBrokerError(
+            const msalNodeRuntimeError = new PlatformBrokerError(
                 ErrorStatus[errorStatus],
-                enhancedErrorContext,
+                errorContext,
                 errorCode,
                 errorTag
             );
@@ -675,7 +670,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 case ErrorStatus.AccountUnusable:
                     wrappedError = new InteractionRequiredAuthError(
                         ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
-                        enhancedErrorContext
+                        msalNodeRuntimeError.message
                     );
                     break;
                 case ErrorStatus.NoNetwork:
@@ -709,19 +704,19 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     );
                     break;
                 default:
-                    wrappedError = platformBrokerError;
+                    wrappedError = msalNodeRuntimeError;
                     // Clone error to avoid circular reference
                     const clonedError = new PlatformBrokerError(
                         ErrorStatus[errorStatus],
-                        enhancedErrorContext,
+                        errorContext,
                         errorCode,
                         errorTag
                     );
-                    wrappedError.msalNodeRuntimeError = clonedError;
+                    wrappedError.platformBrokerError = clonedError;
                     return wrappedError;
             }
 
-            wrappedError.msalNodeRuntimeError = platformBrokerError;
+            wrappedError.platformBrokerError = msalNodeRuntimeError;
             return wrappedError;
         }
         throw error;
