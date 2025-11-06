@@ -231,7 +231,7 @@ describe("OnBehalfOf unit tests", () => {
             );
         });
 
-        it("Adds tokenQueryParameters to the /token request", async () => {
+        it("Adds extraQueryParameters to the /token request", async () => {
             const badExecutePostToTokenEndpointMock = jest.spyOn(
                 OnBehalfOfClient.prototype,
                 <any>"executePostToTokenEndpoint"
@@ -249,7 +249,7 @@ describe("OnBehalfOf unit tests", () => {
                 oboAssertion: "user_assertion_hash",
                 skipCache: true,
                 claims: TEST_CONFIG.CLAIMS,
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
                     testParam3: "testValue3",

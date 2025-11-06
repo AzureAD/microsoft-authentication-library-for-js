@@ -4,8 +4,6 @@
 
 ```ts
 
-import { AccountEntity } from '@azure/msal-common/browser';
-import { AccountEntityUtils } from '@azure/msal-common/browser';
 import { AccountFilter } from '@azure/msal-common/browser';
 import { AccountInfo } from '@azure/msal-common/browser';
 import { ApplicationTelemetry } from '@azure/msal-common/browser';
@@ -25,7 +23,6 @@ import { CommonEndSessionRequest } from '@azure/msal-common/browser';
 import { CommonSilentFlowRequest } from '@azure/msal-common/browser';
 import { Constants } from '@azure/msal-common/browser';
 import { ExternalTokenResponse } from '@azure/msal-common/browser';
-import { ICrypto } from '@azure/msal-common/browser';
 import { IdTokenClaims } from '@azure/msal-common/browser';
 import { ILoggerCallback } from '@azure/msal-common/browser';
 import { INetworkModule } from '@azure/msal-common/browser';
@@ -50,16 +47,10 @@ import { RequestParameterBuilder } from '@azure/msal-common/browser';
 import { ServerError } from '@azure/msal-common/browser';
 import { SignedHttpRequestParameters } from '@azure/msal-common/browser';
 import { StringDict } from '@azure/msal-common/browser';
-import { StringUtils } from '@azure/msal-common/browser';
 import { StubPerformanceClient } from '@azure/msal-common/browser';
 import { SubMeasurement } from '@azure/msal-common/browser';
 import { SystemOptions } from '@azure/msal-common/browser';
 import { TenantProfile } from '@azure/msal-common/browser';
-import { UrlString } from '@azure/msal-common/browser';
-
-export { AccountEntity }
-
-export { AccountEntityUtils }
 
 export { AccountInfo }
 
@@ -237,7 +228,8 @@ declare namespace BrowserAuthErrorCodes {
         popupWindowError,
         emptyWindowError,
         userCancelled,
-        redirectBridgeTimeout,
+        monitorPopupTimeout,
+        monitorWindowTimeout,
         redirectInIframe,
         blockIframeReload,
         blockNestedPopups,
@@ -325,6 +317,15 @@ export class BrowserConfigurationAuthError extends AuthError {
     constructor(errorCode: string, errorMessage?: string);
 }
 
+declare namespace BrowserConfigurationAuthErrorCodes {
+    export {
+        storageNotSupported,
+        stubbedPublicClientApplicationCalled,
+        inMemRedirectUnavailable
+    }
+}
+export { BrowserConfigurationAuthErrorCodes }
+
 // Warning: (ae-missing-release-tag) "BrowserPerformanceClient" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -383,8 +384,9 @@ export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     navigationClient?: INavigationClient;
-    popupBridgeTimeout?: number;
-    iframeBridgeTimeout?: number;
+    windowHashTimeout?: number;
+    iframeHashTimeout?: number;
+    loadFrameTimeout?: number;
     redirectNavigationTimeout?: number;
     navigatePopups?: boolean;
     allowRedirectInIframe?: boolean;
@@ -408,7 +410,6 @@ declare namespace BrowserUtils {
         replaceHash,
         isInIframe,
         isInPopup,
-        waitForBridgeResponse,
         getCurrentUri,
         getHomepage,
         blockReloadInHiddenIframes,
@@ -551,7 +552,7 @@ const emptyWindowError = "empty_window_error";
 // Warning: (ae-missing-release-tag) "EndSessionPopupRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type EndSessionPopupRequest = Partial<Omit<CommonEndSessionRequest, "tokenQueryParameters">> & {
+export type EndSessionPopupRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
     mainWindowRedirectUri?: string;
     popupWindowAttributes?: PopupWindowAttributes;
@@ -561,7 +562,7 @@ export type EndSessionPopupRequest = Partial<Omit<CommonEndSessionRequest, "toke
 // Warning: (ae-missing-release-tag) "EndSessionRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type EndSessionRequest = Partial<Omit<CommonEndSessionRequest, "tokenQueryParameters">> & {
+export type EndSessionRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
 };
 
@@ -705,72 +706,7 @@ const hashEmptyError = "hash_empty_error";
 // Warning: (ae-missing-release-tag) "IController" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export interface IController {
-    // (undocumented)
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
-    // (undocumented)
-    acquireTokenNative(request: PopupRequest | SilentRequest | SsoSilentRequest, apiId: ApiId, accountId?: string): Promise<AuthenticationResult>;
-    // (undocumented)
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
-    // (undocumented)
-    acquireTokenRedirect(request: RedirectRequest): Promise<void>;
-    // (undocumented)
-    acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
-    // (undocumented)
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
-    // (undocumented)
-    addPerformanceCallback(callback: PerformanceCallbackFunction): string;
-    // (undocumented)
-    clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
-    // (undocumented)
-    getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    // (undocumented)
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-    // (undocumented)
-    getAccountByLocalId(localId: string): AccountInfo | null;
-    // (undocumented)
-    getAccountByUsername(userName: string): AccountInfo | null;
-    // (undocumented)
-    getActiveAccount(): AccountInfo | null;
-    // (undocumented)
-    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
-    // @internal (undocumented)
-    getConfiguration(): BrowserConfiguration;
-    // (undocumented)
-    getLogger(): Logger;
-    // @internal (undocumented)
-    getPerformanceClient(): IPerformanceClient;
-    // (undocumented)
-    handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
-    // (undocumented)
-    hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
-    // (undocumented)
-    initialize(request?: InitializeApplicationRequest, isBroker?: boolean): Promise<void>;
-    // (undocumented)
-    initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
-    // @internal (undocumented)
-    isBrowserEnv(): boolean;
-    // (undocumented)
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
-    // (undocumented)
-    loginRedirect(request?: RedirectRequest): Promise<void>;
-    // (undocumented)
-    logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
-    // (undocumented)
-    logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
-    // (undocumented)
-    removeEventCallback(callbackId: string): void;
-    // (undocumented)
-    removePerformanceCallback(callbackId: string): boolean;
-    // (undocumented)
-    setActiveAccount(account: AccountInfo | null): void;
-    // (undocumented)
-    setLogger(logger: Logger): void;
-    // (undocumented)
-    setNavigationClient(navigationClient: INavigationClient): void;
-    // (undocumented)
-    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
-}
+export type IController = IPublicClientApplication;
 
 export { IdTokenClaims }
 
@@ -806,6 +742,11 @@ export type InitializeApplicationRequest = {
 //
 // @public (undocumented)
 const InitializeClientApplication = "initializeClientApplication";
+
+// Warning: (ae-missing-release-tag) "inMemRedirectUnavailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const inMemRedirectUnavailable = "in_mem_redirect_unavailable";
 
 export { InProgressPerformanceEvent }
 
@@ -887,7 +828,7 @@ export interface IPublicClientApplication {
     // (undocumented)
     getActiveAccount(): AccountInfo | null;
     // (undocumented)
-    getAllAccounts(): AccountInfo[];
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
     // @internal (undocumented)
     getConfiguration(): BrowserConfiguration;
     // (undocumented)
@@ -1054,6 +995,16 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     // (undocumented)
     setUserData(key: string, value: T): Promise<void>;
 }
+
+// Warning: (ae-missing-release-tag) "monitorPopupTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const monitorPopupTimeout = "monitor_popup_timeout";
+
+// Warning: (ae-missing-release-tag) "monitorWindowTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const monitorWindowTimeout = "monitor_window_timeout";
 
 // Warning: (ae-missing-release-tag) "nativeConnectionNotEstablished" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1254,9 +1205,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     // (undocumented)
     protected controller: IController;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    static createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
     getActiveAccount(): AccountInfo | null;
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
@@ -1274,8 +1222,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
-    // (undocumented)
-    protected isBroker: boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1300,80 +1246,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }
-
-// Warning: (ae-missing-release-tag) "PublicClientNext" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export class PublicClientNext implements IPublicClientApplication {
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    acquireTokenRedirect(request: RedirectRequest): Promise<void>;
-    // Warning: (tsdoc-param-tag-with-invalid-name) The @param block should be followed by a parameter name
-    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-    acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-    addPerformanceCallback(callback: PerformanceCallbackFunction): string;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
-    // (undocumented)
-    protected configuration: Configuration;
-    // (undocumented)
-    protected controller: IController;
-    // (undocumented)
-    static createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    getActiveAccount(): AccountInfo | null;
-    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
-    // @internal
-    getConfiguration(): BrowserConfiguration;
-    getLogger(): Logger;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
-    initialize(): Promise<void>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    loginRedirect(request?: RedirectRequest | undefined): Promise<void>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    logoutPopup(logoutRequest?: EndSessionRequest): Promise<void>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    removeEventCallback(callbackId: string): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-    removePerformanceCallback(callbackId: string): boolean;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    setActiveAccount(account: AccountInfo | null): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    setLogger(logger: Logger): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    setNavigationClient(navigationClient: INavigationClient): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
-}
-
-// Warning: (ae-missing-release-tag) "redirectBridgeTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const redirectBridgeTimeout = "redirect_bridge_timeout";
 
 // Warning: (ae-missing-release-tag) "redirectInIframe" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1509,12 +1381,20 @@ export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "resp
 // @public (undocumented)
 const stateInteractionTypeMismatch = "state_interaction_type_mismatch";
 
-export { StringUtils }
+// Warning: (ae-missing-release-tag) "storageNotSupported" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const storageNotSupported = "storage_not_supported";
 
 // Warning: (ae-missing-release-tag) "stubbedPublicClientApplication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
 export const stubbedPublicClientApplication: IPublicClientApplication;
+
+// Warning: (ae-missing-release-tag) "stubbedPublicClientApplicationCalled" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const stubbedPublicClientApplicationCalled = "stubbed_public_client_application_called";
 
 export { StubPerformanceClient }
 
@@ -1550,8 +1430,6 @@ const unableToParseTokenRequestCacheError = "unable_to_parse_token_request_cache
 // @public (undocumented)
 const uninitializedPublicClientApplication = "uninitialized_public_client_application";
 
-export { UrlString }
-
 // Warning: (ae-missing-release-tag) "userCancelled" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1561,11 +1439,6 @@ const userCancelled = "user_cancelled";
 //
 // @public (undocumented)
 export const version = "5.0.0-alpha.0";
-
-// Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function waitForBridgeResponse(pollIntervalMilliseconds: number, timeoutMs: number, logger: Logger, browserCrypto: ICrypto, request: CommonAuthorizationUrlRequest | CommonEndSessionRequest): Promise<string>;
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1581,21 +1454,10 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 
 // Warnings were encountered during analysis:
 //
-// src/app/PublicClientNext.ts:72:8 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
-// src/app/PublicClientNext.ts:81:87 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:81:60 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:87:64 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:87:77 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:87:90 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:87:55 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:87:70 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:87:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:90:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/app/PublicClientNext.ts:91:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:366:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:429:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:460:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:207:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:211:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:114:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:141:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

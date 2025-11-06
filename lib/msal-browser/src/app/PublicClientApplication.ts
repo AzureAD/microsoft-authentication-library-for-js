@@ -10,10 +10,7 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
-import {
-    HandleRedirectPromiseOptions,
-    IController,
-} from "../controllers/IController.js";
+import { IController } from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
@@ -22,7 +19,6 @@ import {
 } from "@azure/msal-common/browser";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import * as ControllerFactory from "../controllers/ControllerFactory.js";
 import { StandardController } from "../controllers/StandardController.js";
 import {
     BrowserConfiguration,
@@ -38,6 +34,7 @@ import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatin
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -45,23 +42,6 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
  */
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
-    protected isBroker: boolean = false;
-
-    /**
-     * Creates StandardController and passes it to the PublicClientApplication
-     *
-     * @param configuration {Configuration}
-     */
-    public static async createPublicClientApplication(
-        configuration: Configuration
-    ): Promise<IPublicClientApplication> {
-        const controller = await ControllerFactory.createV3Controller(
-            configuration
-        );
-        const pca = new PublicClientApplication(configuration, controller);
-
-        return pca;
-    }
 
     /**
      * @constructor
@@ -96,7 +76,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request {?InitializeApplicationRequest}
      */
     async initialize(request?: InitializeApplicationRequest): Promise<void> {
-        return this.controller.initialize(request, this.isBroker);
+        return this.controller.initialize(request);
     }
 
     /**

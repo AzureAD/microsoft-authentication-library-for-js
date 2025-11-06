@@ -262,6 +262,9 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
+### `invalid_request_method_for_EAR`
+- The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`. 
+
 ## Interaction required errors
 
 ### `no_tokens_found`

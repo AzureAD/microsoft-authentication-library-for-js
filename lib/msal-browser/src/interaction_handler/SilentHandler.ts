@@ -16,7 +16,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import { getEARForm } from "../protocol/Authorize.js";
+import { getCodeForm, getEARForm } from "../protocol/Authorize.js";
 
 /**
  * Creates a hidden iframe to given URL using user-requested scopes as an id.
@@ -42,6 +42,29 @@ export async function initiateCodeRequest(
         performanceClient,
         correlationId
     )(requestUrl);
+}
+
+export async function initiateCodeFlowWithPost(
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLIFrameElement> {
+    const frame = createHiddenIframe();
+    if (!frame.contentDocument) {
+        throw "No document associated with iframe!";
+    }
+    const form = await getCodeForm(
+        frame.contentDocument,
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+    form.submit();
+    return frame;
 }
 
 export async function initiateEarRequest(

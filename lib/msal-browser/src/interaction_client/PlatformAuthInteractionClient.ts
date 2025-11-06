@@ -77,7 +77,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -963,8 +963,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
-                ...request.extraQueryParameters,
-                ...request.tokenQueryParameters,
+                ...request.extraParameters,
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
