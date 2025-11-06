@@ -25,6 +25,7 @@ import { CommonEndSessionRequest } from '@azure/msal-common/browser';
 import { CommonSilentFlowRequest } from '@azure/msal-common/browser';
 import { Constants } from '@azure/msal-common/browser';
 import { ExternalTokenResponse } from '@azure/msal-common/browser';
+import { ICrypto } from '@azure/msal-common/browser';
 import { IdTokenClaims } from '@azure/msal-common/browser';
 import { ILoggerCallback } from '@azure/msal-common/browser';
 import { INetworkModule } from '@azure/msal-common/browser';
@@ -236,8 +237,7 @@ declare namespace BrowserAuthErrorCodes {
         popupWindowError,
         emptyWindowError,
         userCancelled,
-        monitorPopupTimeout,
-        monitorWindowTimeout,
+        redirectBridgeTimeout,
         redirectInIframe,
         blockIframeReload,
         blockNestedPopups,
@@ -383,9 +383,8 @@ export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     navigationClient?: INavigationClient;
-    windowHashTimeout?: number;
-    iframeHashTimeout?: number;
-    loadFrameTimeout?: number;
+    popupBridgeTimeout?: number;
+    iframeBridgeTimeout?: number;
     redirectNavigationTimeout?: number;
     navigatePopups?: boolean;
     allowRedirectInIframe?: boolean;
@@ -409,6 +408,7 @@ declare namespace BrowserUtils {
         replaceHash,
         isInIframe,
         isInPopup,
+        waitForBridgeResponse,
         getCurrentUri,
         getHomepage,
         blockReloadInHiddenIframes,
@@ -1055,16 +1055,6 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     setUserData(key: string, value: T): Promise<void>;
 }
 
-// Warning: (ae-missing-release-tag) "monitorPopupTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const monitorPopupTimeout = "monitor_popup_timeout";
-
-// Warning: (ae-missing-release-tag) "monitorWindowTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const monitorWindowTimeout = "monitor_window_timeout";
-
 // Warning: (ae-missing-release-tag) "nativeConnectionNotEstablished" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1380,6 +1370,11 @@ export class PublicClientNext implements IPublicClientApplication {
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }
 
+// Warning: (ae-missing-release-tag) "redirectBridgeTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const redirectBridgeTimeout = "redirect_bridge_timeout";
+
 // Warning: (ae-missing-release-tag) "redirectInIframe" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1567,6 +1562,11 @@ const userCancelled = "user_cancelled";
 // @public (undocumented)
 export const version = "5.0.0-alpha.0";
 
+// Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function waitForBridgeResponse(pollIntervalMilliseconds: number, timeoutMs: number, logger: Logger, browserCrypto: ICrypto, request: CommonAuthorizationUrlRequest | CommonEndSessionRequest): Promise<string>;
+
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1595,7 +1595,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:366:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:429:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:460:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:211:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:207:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:114:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:141:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

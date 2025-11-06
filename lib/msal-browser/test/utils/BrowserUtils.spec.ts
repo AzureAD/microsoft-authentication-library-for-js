@@ -63,31 +63,6 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         expect(BrowserUtils.isInIframe()).toBe(true);
     });
 
-    it("isInPopup() returns false if window is undefined", () => {
-        // @ts-ignore
-        jest.spyOn(global, "window", "get").mockReturnValue(undefined);
-        expect(BrowserUtils.isInPopup()).toBe(false);
-    });
-
-    it("isInPopup() returns false if window opener is not the same as the current window but window name does not starts with 'msal.'", () => {
-        window.opener = { ...window };
-        window.name = "non-msal-popup";
-        expect(BrowserUtils.isInPopup()).toBe(false);
-    });
-
-    it("isInPopup() returns false if window opener is the same as the current window", () => {
-        window.opener = window;
-        window.name = "msal.";
-        expect(BrowserUtils.isInPopup()).toBe(false);
-    });
-
-    it("isInPopup() returns true if window opener is not the same as the current window and the window name starts with 'msal.'", () => {
-        expect(BrowserUtils.isInPopup()).toBe(false);
-        window.opener = { ...window };
-        window.name = "msal.popupwindow";
-        expect(BrowserUtils.isInPopup()).toBe(true);
-    });
-
     it("getCurrentUri() returns current location uri of browser", () => {
         expect(BrowserUtils.getCurrentUri()).toBe(TEST_URIS.TEST_REDIR_URI);
     });

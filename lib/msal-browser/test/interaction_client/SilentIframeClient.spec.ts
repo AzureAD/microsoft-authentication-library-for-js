@@ -53,14 +53,25 @@ import {
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { SsoSilentRequest } from "../../src/index.js";
+import { BrowserUtils, SsoSilentRequest } from "../../src/index.js";
 import * as StandardInteractionClientExports from "../../src/interaction_client/StandardInteractionClient.js";
+
+jest.mock("@azure/msal-common/browser", () => ({
+    ...jest.requireActual("@azure/msal-common/browser"),
+    ProtocolUtils: {
+        ...jest.requireActual("@azure/msal-common/browser").ProtocolUtils,
+        setRequestState: jest.fn(),
+    },
+}));
 
 describe("SilentIframeClient", () => {
     let silentIframeClient: SilentIframeClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
     let clientProperties: SilentIframeClient;
+    let mockSetRequestState: jest.MockedFunction<
+        typeof ProtocolUtils.setRequestState
+    >;
 
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -98,6 +109,14 @@ describe("SilentIframeClient", () => {
         );
 
         clientProperties = silentIframeClient as any;
+
+        mockSetRequestState =
+            ProtocolUtils.setRequestState as jest.MockedFunction<
+                typeof ProtocolUtils.setRequestState
+            >;
+        mockSetRequestState.mockReturnValue(
+            TEST_STATE_VALUES.TEST_STATE_SILENT
+        );
     });
 
     afterEach(() => {
@@ -156,7 +175,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             jest.spyOn(
@@ -208,9 +227,9 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockRejectedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.monitorWindowTimeout
+                    BrowserAuthErrorCodes.redirectBridgeTimeout
                 )
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -225,7 +244,7 @@ describe("SilentIframeClient", () => {
                 .mockImplementation((e) => {
                     expect(e).toMatchObject(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.monitorWindowTimeout
+                            BrowserAuthErrorCodes.redirectBridgeTimeout
                         )
                     );
                 });
@@ -250,7 +269,7 @@ describe("SilentIframeClient", () => {
                 errorCode: "Unexpected error",
                 errorDesc: "Unexpected error",
             };
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockRejectedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 testError
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -321,7 +340,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             jest.spyOn(
@@ -391,7 +410,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             jest.spyOn(
@@ -504,7 +523,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
             );
             jest.spyOn(
@@ -607,7 +626,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
             );
             jest.spyOn(
@@ -639,7 +658,7 @@ describe("SilentIframeClient", () => {
         });
 
         it("Throws hash empty error", (done) => {
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 ""
             );
             silentIframeClient
@@ -657,7 +676,7 @@ describe("SilentIframeClient", () => {
         });
 
         it("Throws hashDoesNotContainKnownProperties error", (done) => {
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 "myCustomHash"
             );
             silentIframeClient
@@ -757,7 +776,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const sendPostRequestSpy = jest
@@ -809,7 +828,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const sendPostRequestSpy = jest
@@ -911,7 +930,7 @@ describe("SilentIframeClient", () => {
                 account: testAccount,
                 tokenType: Constants.AuthenticationScheme.BEARER,
             };
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const handleCodeResponseSpy = jest
@@ -1013,7 +1032,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const handleCodeResponseSpy = jest
@@ -1118,7 +1137,7 @@ describe("SilentIframeClient", () => {
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
-            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             jest.spyOn(
@@ -1153,12 +1172,9 @@ describe("SilentIframeClient", () => {
 
         describe("storeInCache tests", () => {
             beforeEach(() => {
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_SILENT
-                );
                 jest.spyOn(
-                    SilentHandler,
-                    "monitorIframeForHash"
+                    BrowserUtils,
+                    "waitForBridgeResponse"
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
                 jest.spyOn(
                     FetchClient.prototype,
@@ -1283,15 +1299,12 @@ describe("SilentIframeClient", () => {
                     state: TEST_STATE_VALUES.USER_STATE,
                     nonce: ID_TOKEN_CLAIMS.nonce,
                 };
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_SILENT
-                );
                 const earFormSpy = jest
                     .spyOn(SilentHandler, "initiateEarRequest")
                     .mockResolvedValue(document.createElement("iframe"));
                 jest.spyOn(
-                    SilentHandler,
-                    "monitorIframeForHash"
+                    BrowserUtils,
+                    "waitForBridgeResponse"
                 ).mockResolvedValue(
                     `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
                 );

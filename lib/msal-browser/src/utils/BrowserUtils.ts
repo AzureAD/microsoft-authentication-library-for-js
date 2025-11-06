@@ -26,6 +26,7 @@ import {
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
 import type { BrowserConfiguration } from "../config/Configuration.js";
+import { redirectBridgeTimeout } from "../error/BrowserAuthErrorCodes.js";
 
 /**
  * Clears hash from window url.
@@ -66,7 +67,7 @@ export function isInPopup(): boolean {
     return (
         !isInIframe() &&
         (new URLSearchParams(location.search).has("client_info") ||
-         new URLSearchParams(location.hash).has("client_info"))
+            new URLSearchParams(location.hash).has("client_info"))
     );
 }
 
@@ -87,11 +88,11 @@ export async function waitForBridgeResponse(
     timeoutMs: number,
     logger: Logger,
     browserCrypto: ICrypto,
-    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         logger.verbose(
-            "BrowserUtils.monitorWindowForHash - monitoring started",
+            "BrowserUtils.waitForBridgeResponse - started",
             request.correlationId
         );
 
@@ -108,7 +109,7 @@ export async function waitForBridgeResponse(
         const timeoutId = window.setTimeout(() => {
             window.clearInterval(intervalId);
             channel.close();
-            reject(createBrowserAuthError(""));
+            reject(createBrowserAuthError(redirectBridgeTimeout));
         }, timeoutMs);
 
         const intervalId = setInterval(() => {

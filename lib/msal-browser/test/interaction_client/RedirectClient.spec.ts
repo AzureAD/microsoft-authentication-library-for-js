@@ -31,7 +31,6 @@ import {
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
-    ProtocolUtils,
     Logger,
     LogLevel,
     NetworkResponse,
@@ -48,6 +47,7 @@ import {
     AccountEntityUtils,
     Constants,
 } from "@azure/msal-common/browser";
+import * as ProtocolUtils from "../../../msal-common/src/utils/ProtocolUtils.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
     TemporaryCacheKeys,
@@ -530,7 +530,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -672,7 +672,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -737,7 +737,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -775,7 +775,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -917,7 +917,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -1074,7 +1074,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 

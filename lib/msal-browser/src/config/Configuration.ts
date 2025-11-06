@@ -129,17 +129,13 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     navigationClient?: INavigationClient;
     /**
-     * Sets the timeout for waiting for a response hash in a popup. Will take precedence over loadFrameTimeout if both are set.
+     * Sets the timeout for waiting for response from a popup using BroadcastChannel
      */
-    windowHashTimeout?: number;
+    popupBridgeTimeout?: number;
     /**
-     * Sets the timeout for waiting for a response hash in an iframe. Will take precedence over loadFrameTimeout if both are set.
+     * Sets the timeout for waiting for response from an iframe using BroadcastChannel
      */
-    iframeHashTimeout?: number;
-    /**
-     * Sets the timeout for waiting for a response hash in an iframe or popup
-     */
-    loadFrameTimeout?: number;
+    iframeBridgeTimeout?: number;
     /**
      * Time to wait for redirection to occur before resolving promise
      */
@@ -282,12 +278,10 @@ export function buildConfiguration(
             ? new FetchClient()
             : StubbedNetworkModule,
         navigationClient: new NavigationClient(),
-        loadFrameTimeout: 0,
-        // If loadFrameTimeout is provided, use that as default.
-        windowHashTimeout:
-            userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
-        iframeHashTimeout:
-            userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
+        popupBridgeTimeout:
+            userInputSystem?.popupBridgeTimeout || DEFAULT_POPUP_TIMEOUT_MS,
+        iframeBridgeTimeout:
+            userInputSystem?.iframeBridgeTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         allowRedirectInIframe: false,
         navigatePopups: true,

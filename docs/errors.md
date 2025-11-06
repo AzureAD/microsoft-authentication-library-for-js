@@ -567,43 +567,53 @@ If you are unable to figure out why this error is being thrown please [open an i
 
 -   User cancelled the flow.
 
-### `monitor_popup_timeout`
+### `redirect_bridge_timeout`
 
--   Token acquisition in popup failed due to timeout.
-
-### `monitor_window_timeout`
-
--   Token acquisition in iframe failed due to timeout.
+- Communication with the redirect page (popup or iframe) timed out while waiting for authentication response.
 
 **Error Messages**:
 
--   Token acquisition in iframe failed due to timeout.
+- Token acquisition in popup failed due to timeout.
+- Token acquisition in iframe failed due to timeout.
 
-This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` and there are several reasons this could happen. These are a few of the most common:
+This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period. This typically occurs for the following reasons:
 
-1. The page you use as your `redirectUri` is removing or manipulating the hash
-1. The page you use as your `redirectUri` is automatically navigating to a different page
-1. You are being throttled by your identity provider. The identity provider may throttle clients that make too many similar requests in a short period of time. Never implement an endless retry mechanism or retry more than once. Attempts to retry non-network errors typically yield the same result. See [throttling guide](#Throttling) for more details.
-1. Your identity provider did not redirect back to your `redirectUri`.
+1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
+1. The redirect page is removing or manipulating the hash before the bridge script can process it
+1. The redirect page is automatically navigating to a different page before the bridge can communicate the response
+1. Your identity provider is being slow to redirect back to your `redirectUri` (network latency)
+1. You are being throttled by your identity provider due to too many requests in a short period
+
+**Resolution Steps:**
+
+✔️ **Ensure the redirect bridge script is loaded:**
+
+Your `redirectUri` page must include the redirect bridge script to enable communication back to the main window:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirect</title>
+</head>
+<body>
+    <script src="path/to/msal-redirect-bridge.js"></script>
+    <script>
+        msalRedirectBridge.sendRedirectPayloadToMainFrame();
+    </script>
+</body>
+</html>
+```
 
 **Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
 
 #### Issues caused by the redirectUri page
 
-When you make a silent call, in some cases, an iframe will be opened and will navigate to your identity provider's authorization page. After the identity provider has authorized the user it will redirect the iframe back to the `redirectUri` with the authorization code or error information in the hash fragment. The MSAL instance running in the frame or window that originally made the request will extract this response hash and process it. If your `redirectUri` is removing or manipulating this hash or navigating to a different page before MSAL has extracted it you will receive this timeout error.
+When you make a silent call, in some cases, an iframe will be opened and will navigate to your identity provider's authorization page. After the identity provider has authorized the user it will redirect the iframe back to the `redirectUri` with the authorization code or error information in the hash fragment. The MSAL redirect bridge running in the iframe will broadcast response to MSAL instance running in the frame or window that originally made the request. If your `redirectUri` is removing or manipulating this hash or navigating to a different page before MSAL redirect bridge has extracted it you will receive this timeout error.
 
-✔️ To solve this problem you should ensure that the page you use as your `redirectUri` is not doing any of these things, at the very least, when loaded in a popup or iframe. We recommend using a blank page as your `redirectUri` for silent and popup flows to ensure none of these things can occur.
+✔️ To solve this problem you should ensure that the page you use as your `redirectUri` is not doing any of these things, at the very least, when loaded in a popup or iframe.
 
-You can do this on a per request basis, for example:
-
-```javascript
-msalInstance.acquireTokenSilent({
-    scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank.html",
-});
-```
-
-Remember that you will need to register this new `redirectUri` on your App Registration.
+Remember that you will need to register `redirectUri` on your App Registration.
 
 **Notes regarding Angular and React:**
 
@@ -638,7 +648,7 @@ Some B2C flows are expected to throw this error due to their need for user inter
 
 Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency.
 
-✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect you can increase this timeout in the MSAL config with either the `iframeHashTimeout`, `windowHashTimeout` or `loadFrameTimeout` configuration parameters.
+✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect you can increase this timeout in the MSAL config with either the `iframeBridgeTimeout` or `popupBridgeTimeout` configuration parameters.
 
 ```javascript
 const msalConfig = {
@@ -646,9 +656,8 @@ const msalConfig = {
         clientId: "your-client-id",
     },
     system: {
-        windowHashTimeout: 9000, // Applies just to popup calls - In milliseconds
-        iframeHashTimeout: 9000, // Applies just to silent calls - In milliseconds
-        loadFrameTimeout: 9000, // Applies to both silent and popup calls - In milliseconds
+        popupBridgeTimeout: 50000, // Applies just to popup calls - In milliseconds
+        iframeBridgeTimeout: 9000, // Applies just to silent calls - In milliseconds
     },
 };
 ```

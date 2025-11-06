@@ -15,9 +15,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import {
-    BrowserConfiguration,
-} from "../config/Configuration.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
 import { getEARForm } from "../protocol/Authorize.js";
 
 /**
@@ -104,15 +102,4 @@ function createHiddenIframe(): HTMLIFrameElement {
     document.body.appendChild(authFrame);
 
     return authFrame;
-}
-
-/**
- * @hidden
- * Removes a hidden iframe from the page.
- * @ignore
- */
-function removeHiddenIframe(iframe: HTMLIFrameElement): void {
-    if (document.body === iframe.parentNode) {
-        document.body.removeChild(iframe);
-    }
 }

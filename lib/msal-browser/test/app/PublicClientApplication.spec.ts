@@ -50,7 +50,6 @@ import {
     AccountEntityUtils,
     Constants,
 } from "@azure/msal-common/browser";
-import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 import {
     ApiId,
     BrowserCacheLocation,
@@ -203,9 +202,20 @@ const testRequest: CommonAuthorizationUrlRequest = {
     nonce: ID_TOKEN_CLAIMS.nonce,
 };
 
+jest.mock("@azure/msal-common/browser", () => ({
+    ...jest.requireActual("@azure/msal-common/browser"),
+    ProtocolUtils: {
+        ...jest.requireActual("@azure/msal-common/browser").ProtocolUtils,
+        setRequestState: jest.fn(),
+    },
+}));
+
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca: PublicClientApplication;
     let browserStorage: BrowserCacheManager;
+    let mockSetRequestState: jest.MockedFunction<
+        typeof ProtocolUtils.setRequestState
+    >;
     beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
@@ -258,6 +268,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             return authorityMetadata;
         });
+
+        mockSetRequestState =
+            ProtocolUtils.setRequestState as jest.MockedFunction<
+                typeof ProtocolUtils.setRequestState
+            >;
+        mockSetRequestState.mockReturnValue(
+            TEST_STATE_VALUES.TEST_STATE_SILENT
+        );
     });
 
     afterEach(() => {
@@ -1897,18 +1915,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if called in a popup", (done) => {
-            const oldWindowOpener = window.opener;
-            const oldWindowName = window.name;
-            const newWindow = {
-                ...window,
-            };
-
-            // @ts-ignore
-            delete window.opener;
-            // @ts-ignore
-            delete window.name;
-            window.opener = newWindow;
-            window.name = "msal.testPopup";
+            const originalWindowUrl = window.URL;
+            Object.defineProperty(window, "location", {
+                configurable: true,
+                enumerable: true,
+                writable: true,
+                value: new URL(
+                    `http://localhost?client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+                ),
+            });
 
             jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(false);
             pca.acquireTokenRedirect({ scopes: ["openid"] })
@@ -1925,8 +1940,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     done();
                 })
                 .finally(() => {
-                    window.name = oldWindowName;
-                    window.opener = oldWindowOpener;
+                    Object.defineProperty(window, "location", {
+                        configurable: true,
+                        enumerable: true,
+                        value: { ...originalWindowUrl, href: "localhost" },
+                    });
                 });
         });
 
@@ -3004,19 +3022,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if called in a popup", (done) => {
-            const oldWindowOpener = window.opener;
-            const oldWindowName = window.name;
-
-            const newWindow = {
-                ...window,
-            };
-
-            // @ts-ignore
-            delete window.opener;
-            // @ts-ignore
-            delete window.name;
-            window.opener = newWindow;
-            window.name = "msal.testPopup";
+            const originalWindowUrl = window.URL;
+            Object.defineProperty(window, "location", {
+                configurable: true,
+                enumerable: true,
+                writable: true,
+                value: new URL(
+                    `http://localhost?client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+                ),
+            });
 
             pca.acquireTokenPopup({ scopes: ["openid"] })
                 .catch((e) => {
@@ -3032,8 +3046,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     done();
                 })
                 .finally(() => {
-                    window.name = oldWindowName;
-                    window.opener = oldWindowOpener;
+                    Object.defineProperty(window, "location", {
+                        configurable: true,
+                        enumerable: true,
+                        value: { ...originalWindowUrl, href: "localhost" },
+                    });
                 });
         });
 
@@ -3119,7 +3136,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockRejectedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 "Not important for this test"
             );
 
@@ -3176,7 +3193,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockRejectedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 "Not important for this test"
             );
             try {
@@ -3388,6 +3405,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("does not mutate request correlation id", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    iframeBridgeTimeout: 100,
+                },
+            });
+
             const request: SilentRequest = {
                 scopes: [],
             };
@@ -5240,9 +5266,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
             );
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_SILENT
-            );
             const CommonSilentFlowRequest: SilentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -5307,9 +5330,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: { ...testIdTokenClaims },
             };
 
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_SILENT
-            );
             const silentRequest: SilentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -5488,9 +5508,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             };
 
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_SILENT
-            );
             const silentRequest: SilentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -7220,6 +7237,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
+                },
+                system: {
+                    iframeBridgeTimeout: 100,
                 },
             };
             pca = new PublicClientApplication(config);

@@ -290,7 +290,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )(
             this.config.system.pollIntervalMilliseconds,
-            this.config.system.iframeHashTimeout,
+            this.config.system.iframeBridgeTimeout,
             this.logger,
             this.browserCrypto,
             request
@@ -395,7 +395,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )(
             this.config.system.pollIntervalMilliseconds,
-            this.config.system.iframeHashTimeout,
+            this.config.system.iframeBridgeTimeout,
             this.logger,
             this.browserCrypto,
             request

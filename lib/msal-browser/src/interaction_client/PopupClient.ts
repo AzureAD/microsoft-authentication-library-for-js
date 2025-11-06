@@ -351,7 +351,7 @@ export class PopupClient extends StandardInteractionClient {
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const responseString = await BrowserUtils.waitForBridgeResponse(
                 this.config.system.pollIntervalMilliseconds,
-                this.config.system.windowHashTimeout,
+                this.config.system.popupBridgeTimeout,
                 this.logger,
                 this.browserCrypto,
                 request
@@ -469,7 +469,7 @@ export class PopupClient extends StandardInteractionClient {
             correlationId
         )(
             this.config.system.pollIntervalMilliseconds,
-            this.config.system.windowHashTimeout,
+            this.config.system.popupBridgeTimeout,
             this.logger,
             this.browserCrypto,
             popupRequest
@@ -619,7 +619,7 @@ export class PopupClient extends StandardInteractionClient {
 
             await BrowserUtils.waitForBridgeResponse(
                 this.config.system.pollIntervalMilliseconds,
-                this.config.system.windowHashTimeout,
+                this.config.system.popupBridgeTimeout,
                 this.logger,
                 this.browserCrypto,
                 validRequest
