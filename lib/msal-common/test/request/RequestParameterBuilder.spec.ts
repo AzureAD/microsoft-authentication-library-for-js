@@ -223,7 +223,7 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("Encodes extra params", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addExtraQueryParameters(parameters, {
+        RequestParameterBuilder.addExtraParameters(parameters, {
             extra_params: "param1,param2",
         });
 
@@ -648,7 +648,7 @@ describe("RequestParameterBuilder unit tests", () => {
         });
     });
 
-    describe("addExtraQueryParameters tests", () => {
+    describe("addExtraParameters tests", () => {
         it("adds extra query parameters to the request", () => {
             const parameters = new Map<string, string>();
             RequestParameterBuilder.addClientId(
@@ -660,7 +660,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 testKey2: "testVal2",
             };
 
-            RequestParameterBuilder.addExtraQueryParameters(parameters, eqp);
+            RequestParameterBuilder.addExtraParameters(parameters, eqp);
             const expectedString = `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}&testKey1=testVal1&testKey2=testVal2`;
 
             expect(UrlUtils.mapToQueryString(parameters)).toBe(expectedString);
@@ -678,7 +678,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 testKey3: "",
             };
 
-            RequestParameterBuilder.addExtraQueryParameters(parameters, eqp);
+            RequestParameterBuilder.addExtraParameters(parameters, eqp);
             const expectedString = `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}&testKey1=testVal1&testKey2=testVal2`;
 
             expect(UrlUtils.mapToQueryString(parameters)).toBe(expectedString);
@@ -696,7 +696,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 client_id: "some-other-client-id",
             };
 
-            RequestParameterBuilder.addExtraQueryParameters(parameters, eqp);
+            RequestParameterBuilder.addExtraParameters(parameters, eqp);
             const expectedString = `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}&testKey1=testVal1&testKey2=testVal2`;
 
             expect(UrlUtils.mapToQueryString(parameters)).toBe(expectedString);
@@ -714,7 +714,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 client_id: "some-other-client-id",
             };
 
-            RequestParameterBuilder.addExtraQueryParameters(parameters, eqp);
+            RequestParameterBuilder.addExtraParameters(parameters, eqp);
 
             expect(Object.keys(eqp)).toEqual([
                 "testKey1",
@@ -790,7 +790,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 TEST_CONFIG.CORRELATION_ID
             );
 
-            RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            RequestParameterBuilder.addExtraParameters(parameters, {
                 client_id: "embedded-client-id",
             });
             RequestParameterBuilder.instrumentBrokerParams(

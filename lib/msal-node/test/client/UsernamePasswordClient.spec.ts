@@ -116,7 +116,7 @@ describe("Username Password unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Adds tokenQueryParameters to the /token request", async () => {
+    it("Adds extraQueryParameters to the /token request", async () => {
         const badExecutePostToTokenEndpointMock = jest.spyOn(
             UsernamePasswordClient.prototype,
             <any>"executePostToTokenEndpoint"
@@ -136,7 +136,7 @@ describe("Username Password unit tests", () => {
             password: MOCK_PASSWORD,
             claims: TEST_CONFIG.CLAIMS,
             correlationId: RANDOM_TEST_GUID,
-            tokenQueryParameters: {
+            extraQueryParameters: {
                 testParam1: "testValue1",
                 testParam2: "",
                 testParam3: "testValue3",

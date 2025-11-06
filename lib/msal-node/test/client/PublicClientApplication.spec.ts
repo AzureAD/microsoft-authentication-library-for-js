@@ -556,7 +556,7 @@ describe("PublicClientApplication", () => {
             );
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds extraQueryParameters to the /token request", (done) => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             jest.spyOn(HttpClient.prototype, "sendPostRequestAsync")
@@ -611,7 +611,7 @@ describe("PublicClientApplication", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
                     testParam3: "testValue3",

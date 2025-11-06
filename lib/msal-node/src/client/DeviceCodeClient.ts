@@ -115,7 +115,7 @@ export class DeviceCodeClient extends BaseClient {
         const parameters = new Map<string, string>();
 
         if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 request.extraQueryParameters
             );
@@ -182,7 +182,7 @@ export class DeviceCodeClient extends BaseClient {
         );
 
         if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 request.extraQueryParameters
             );

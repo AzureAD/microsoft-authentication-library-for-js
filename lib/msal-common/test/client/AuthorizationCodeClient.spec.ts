@@ -1099,7 +1099,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds extraQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
@@ -1138,7 +1138,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
                     testParam3: "testValue3",
@@ -1150,7 +1150,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it("Adds tokenBodyParameters to the /token request", (done) => {
+        it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
@@ -1186,8 +1186,134 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                tokenBodyParameters: {
+                extraParameters: {
                     extra_body_parameter: "true",
+                },
+            };
+
+            client.acquireToken(authCodeRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    // Verify extraQueryParameters are in the URL
+                    expect(
+                        url.includes(
+                            "/token?queryParam1=queryValue1&queryParam2=queryValue2"
+                        )
+                    ).toBeTruthy();
+                    // Verify extraParameters are in the body
+                    expect(body).toContain("bodyParam1=bodyValue1");
+                    expect(body).toContain("bodyParam2=bodyValue2");
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            if (!config.cryptoInterface || !config.systemOptions) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                );
+            }
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                extraQueryParameters: {
+                    queryParam1: "queryValue1",
+                    queryParam2: "queryValue2",
+                },
+                extraParameters: {
+                    bodyParam1: "bodyValue1",
+                    bodyParam2: "bodyValue2",
+                },
+            };
+
+            client.acquireToken(authCodeRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Does not overwrite extraQueryParameters with extraParameters in /token request when they have the same parameter name", (done) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    // Verify extraQueryParameters value is in the URL (not overwritten)
+                    expect(url.includes("sharedParam=queryValue")).toBeTruthy();
+                    expect(!url.includes("sharedParam=bodyValue")).toBeTruthy();
+                    // Verify extraParameters value is in the body
+                    expect(body).toContain("sharedParam=bodyValue");
+                    // Verify the body doesn't contain the query value
+                    expect(
+                        !body.includes("sharedParam=queryValue")
+                    ).toBeTruthy();
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            if (!config.cryptoInterface || !config.systemOptions) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                );
+            }
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                extraQueryParameters: {
+                    sharedParam: "queryValue",
+                    uniqueQueryParam: "uniqueQueryValue",
+                },
+                extraParameters: {
+                    sharedParam: "bodyValue",
+                    uniqueBodyParam: "uniqueBodyValue",
                 },
             };
 
@@ -1279,7 +1405,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                tokenBodyParameters: {
+                extraParameters: {
                     extra_body_parameter: "true",
                 },
             };
@@ -2711,7 +2837,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 await client.createTokenRequestBody({
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
-                    tokenBodyParameters: {
+                    extraParameters: {
                         client_id: "child_client_id",
                     },
                 });
@@ -2758,7 +2884,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
                     embeddedClientId: "child_client_id_1",
-                    tokenBodyParameters: {
+                    extraParameters: {
                         client_id: "child_client_id_2",
                         brk_client_id: "broker_client_id_2",
                         brk_redirect_uri: "broker_redirect_uri_2",

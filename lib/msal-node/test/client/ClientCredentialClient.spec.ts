@@ -119,7 +119,7 @@ describe("ClientCredentialClient unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Adds tokenQueryParameters to the /token request", async () => {
+    it("Adds extraQueryParameters to the /token request", async () => {
         const badExecutePostToTokenEndpointMock = jest.spyOn(
             ClientCredentialClient.prototype,
             <any>"executePostToTokenEndpoint"
@@ -136,7 +136,7 @@ describe("ClientCredentialClient unit tests", () => {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            tokenQueryParameters: {
+            extraQueryParameters: {
                 testParam1: "testValue1",
                 testParam2: "",
                 testParam3: "testValue3",

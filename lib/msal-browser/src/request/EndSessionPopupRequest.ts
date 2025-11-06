@@ -18,9 +18,7 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
  * - logoutHint             - A string that specifies the account that is being logged out in order to skip the server account picker on logout
  * - popupWindowParent      - Optional window object to use as the parent when opening popup windows. Uses global `window` if not given.
  */
-export type EndSessionPopupRequest = Partial<
-    Omit<CommonEndSessionRequest, "tokenQueryParameters">
-> & {
+export type EndSessionPopupRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
     mainWindowRedirectUri?: string;
     popupWindowAttributes?: PopupWindowAttributes;

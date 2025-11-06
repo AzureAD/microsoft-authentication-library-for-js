@@ -175,7 +175,7 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam: "testValue",
                 },
             };
@@ -185,7 +185,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds extraQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 TokenProtocol,
                 "executePostToTokenEndpoint"
@@ -207,7 +207,7 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam: "testValue",
                 },
             };
@@ -217,7 +217,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Adds tokenBodyParameters to the /token request", (done) => {
+        it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
                 TokenProtocol,
                 "executePostToTokenEndpoint"
@@ -240,8 +240,106 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
-                tokenBodyParameters: {
+                extraParameters: {
                     testParam: "testValue",
+                },
+            };
+
+            client.acquireToken(refreshTokenRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    // Verify extraQueryParameters are in the URL
+                    expect(
+                        url.includes(
+                            "/token?queryParam1=queryValue1&queryParam2=queryValue2"
+                        )
+                    ).toBe(true);
+                    // Verify extraParameters are in the body
+                    expect(body).toContain("bodyParam1=bodyValue1");
+                    expect(body).toContain("bodyParam2=bodyValue2");
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                extraQueryParameters: {
+                    queryParam1: "queryValue1",
+                    queryParam2: "queryValue2",
+                },
+                extraParameters: {
+                    bodyParam1: "bodyValue1",
+                    bodyParam2: "bodyValue2",
+                },
+            };
+
+            client.acquireToken(refreshTokenRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Does not overwrite extraQueryParameters with extraParameters when they have the same parameter name", (done) => {
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    // Verify extraQueryParameters value is in the URL (not overwritten)
+                    expect(url.includes("sharedParam=queryValue")).toBe(true);
+                    expect(url.includes("sharedParam=bodyValue")).toBe(false);
+                    // Verify extraParameters value is in the body
+                    expect(body).toContain("sharedParam=bodyValue");
+                    // Verify the body doesn't contain the query value
+                    expect(body.includes("sharedParam=queryValue")).toBe(false);
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                extraQueryParameters: {
+                    sharedParam: "queryValue",
+                    uniqueQueryParam: "uniqueQueryValue",
+                },
+                extraParameters: {
+                    sharedParam: "bodyValue",
+                    uniqueBodyParam: "uniqueBodyValue",
                 },
             };
 
@@ -355,15 +453,18 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
@@ -536,7 +637,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds extraQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 TokenProtocol,
                 "executePostToTokenEndpoint"
@@ -567,10 +668,141 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
                     testParam3: "testValue3",
+                },
+            };
+
+            client.acquireToken(refreshTokenRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Adds extraParameters to the /token request", (done) => {
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                expect(body).toContain("testParam=testValue");
+                done();
+            });
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                extraParameters: {
+                    testParam: "testValue",
+                },
+            };
+
+            client.acquireToken(refreshTokenRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    // Verify extraQueryParameters are in the URL
+                    expect(
+                        url.includes(
+                            "/token?queryParam1=queryValue1&queryParam2=queryValue2"
+                        )
+                    ).toBe(true);
+                    // Verify extraParameters are in the body
+                    expect(body).toContain("bodyParam1=bodyValue1");
+                    expect(body).toContain("bodyParam2=bodyValue2");
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                extraQueryParameters: {
+                    queryParam1: "queryValue1",
+                    queryParam2: "queryValue2",
+                },
+                extraParameters: {
+                    bodyParam1: "bodyValue1",
+                    bodyParam2: "bodyValue2",
+                },
+            };
+
+            client.acquireToken(refreshTokenRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Does not overwrite extraQueryParameters with extraParameters when they have the same parameter name", (done) => {
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    // Verify extraQueryParameters value is in the URL (not overwritten)
+                    expect(url.includes("sharedParam=queryValue")).toBe(true);
+                    expect(url.includes("sharedParam=bodyValue")).toBe(false);
+                    // Verify extraParameters value is in the body
+                    expect(body).toContain("sharedParam=bodyValue");
+                    // Verify the body doesn't contain the query value
+                    expect(body.includes("sharedParam=queryValue")).toBe(false);
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                extraQueryParameters: {
+                    sharedParam: "queryValue",
+                    uniqueQueryParam: "uniqueQueryValue",
+                },
+                extraParameters: {
+                    sharedParam: "bodyValue",
+                    uniqueBodyParam: "uniqueBodyValue",
                 },
             };
 
@@ -1081,15 +1313,18 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
@@ -1333,7 +1568,8 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: rtExpiresOn.toString(), // Set expiration to yesterday
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const mockPerfClient = new MockPerformanceClient();
             const client = new RefreshTokenClient(config, mockPerfClient);
@@ -1374,7 +1610,8 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const client = new RefreshTokenClient(
                 config,
@@ -1394,7 +1631,8 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const rtExpiresOn = TimeUtils.nowSeconds() + 60 * 60;
             const rtEntity = {
@@ -1403,7 +1641,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await config.storageInterface!.setRefreshTokenCredential(
                 rtEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             config.storageInterface!.setAppMetadata(
                 testAppMetadata,
@@ -1568,7 +1807,7 @@ describe("RefreshTokenClient unit tests", () => {
             );
         });
 
-        it("broker params take precedence over token body params", async () => {
+        it("broker params take precedence over extra params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
@@ -1582,7 +1821,7 @@ describe("RefreshTokenClient unit tests", () => {
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
                     embeddedClientId: "child_client_id_1",
-                    tokenBodyParameters: {
+                    extraParameters: {
                         client_id: "child_client_id_2",
                         brk_client_id: "broker_client_id_2",
                         brk_redirect_uri: "broker_redirect_uri_2",

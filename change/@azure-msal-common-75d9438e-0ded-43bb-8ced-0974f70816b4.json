@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "KMSI Support #8123",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

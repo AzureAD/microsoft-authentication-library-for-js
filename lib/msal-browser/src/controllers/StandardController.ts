@@ -27,6 +27,7 @@ import {
     PkceCodes,
     AccountEntityUtils,
     Constants,
+    AuthToken,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -77,7 +78,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js
 import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
-import { HandleRedirectPromiseOptions, IController } from "./IController.js";
+import { IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
@@ -90,6 +91,7 @@ import {
 } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -286,10 +288,7 @@ export class StandardController implements IController {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      * @param request {?InitializeApplicationRequest} correlation id
      */
-    async initialize(
-        request?: InitializeApplicationRequest,
-        isBroker?: boolean
-    ): Promise<void> {
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("initialize called", correlationId);
         if (this.initialized) {
@@ -320,11 +319,7 @@ export class StandardController implements IController {
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
         // Broker applications are initialized twice, so we avoid double-counting it
-        if (!isBroker) {
-            try {
-                this.logMultipleInstances(initMeasurement, initCorrelationId);
-            } catch {}
-        }
+        this.logMultipleInstances(initMeasurement, initCorrelationId);
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
@@ -1392,55 +1387,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the signed in account matching username.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found.
-     * This API is provided for convenience but getAccountById should be used for best reliability
-     * @param username
-     * @returns The account object stored in MSAL
-     */
-    getAccountByUsername(username: string): AccountInfo | null {
-        return AccountManager.getAccountByUsername(
-            username,
-            this.logger,
-            this.browserStorage,
-            this.getRequestCorrelationId()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching homeAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param homeAccountId
-     * @returns The account object stored in MSAL
-     */
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByHomeId(
-            homeAccountId,
-            this.logger,
-            this.browserStorage,
-            this.getRequestCorrelationId()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching localAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param localAccountId
-     * @returns The account object stored in MSAL
-     */
-    getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByLocalId(
-            localAccountId,
-            this.logger,
-            this.browserStorage,
-            this.getRequestCorrelationId()
-        );
-    }
-
-    /**
      * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
      * @param account
      */
@@ -1489,7 +1435,8 @@ export class StandardController implements IController {
             );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims)
         );
 
         if (result.fromPlatformBroker) {
