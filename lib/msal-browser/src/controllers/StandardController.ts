@@ -1387,55 +1387,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the signed in account matching username.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found.
-     * This API is provided for convenience but getAccountById should be used for best reliability
-     * @param username
-     * @returns The account object stored in MSAL
-     */
-    getAccountByUsername(username: string): AccountInfo | null {
-        return AccountManager.getAccountByUsername(
-            username,
-            this.logger,
-            this.browserStorage,
-            this.getRequestCorrelationId()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching homeAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param homeAccountId
-     * @returns The account object stored in MSAL
-     */
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByHomeId(
-            homeAccountId,
-            this.logger,
-            this.browserStorage,
-            this.getRequestCorrelationId()
-        );
-    }
-
-    /**
-     * Returns the signed in account matching localAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param localAccountId
-     * @returns The account object stored in MSAL
-     */
-    getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByLocalId(
-            localAccountId,
-            this.logger,
-            this.browserStorage,
-            this.getRequestCorrelationId()
-        );
-    }
-
-    /**
      * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
      * @param account
      */
