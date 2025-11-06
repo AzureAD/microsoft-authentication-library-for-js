@@ -5,7 +5,6 @@
 
 import {
     CommonAuthorizationUrlRequest,
-    CommonSilentFlowRequest,
     PerformanceCallbackFunction,
     AccountInfo,
     Logger,
@@ -32,13 +31,12 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import {
-    ApiId,
     WrapperSKU,
     InteractionType,
     DEFAULT_REQUEST,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
-import { IController, HandleRedirectPromiseOptions } from "./IController.js";
+import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -57,6 +55,8 @@ import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+
 export class NestedAppAuthController implements IController {
     // OperatingContext
     protected readonly operatingContext: NestedAppOperatingContext;
@@ -627,44 +627,6 @@ export class NestedAppAuthController implements IController {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenByCode(
         request: AuthorizationCodeRequest // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<AuthenticationResult> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    /**
-     * acquireTokenNative flow is not currently supported in nested app auth
-     * @param request
-     * @param apiId
-     * @param accountId
-     */
-    acquireTokenNative(
-        request: // eslint-disable-line @typescript-eslint/no-unused-vars
-        | SilentRequest
-            | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "responseMode"
-                      | "earJwk"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "platformBroker"
-                  >
-              >
-            | PopupRequest,
-        apiId: ApiId, // eslint-disable-line @typescript-eslint/no-unused-vars
-        accountId?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<AuthenticationResult> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    /**
-     * acquireTokenByRefreshToken flow is not currently supported in nested app auth
-     * @param commonRequest
-     * @param silentRequest
-     */
-    acquireTokenByRefreshToken(
-        commonRequest: CommonSilentFlowRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }

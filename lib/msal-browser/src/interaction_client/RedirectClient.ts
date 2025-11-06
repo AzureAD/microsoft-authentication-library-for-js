@@ -57,7 +57,7 @@ import {
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
-import { HandleRedirectPromiseOptions } from "../controllers/IController.js";
+import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (

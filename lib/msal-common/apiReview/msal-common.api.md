@@ -158,8 +158,7 @@ declare namespace AccountEntityUtils {
         createAccountEntity,
         createAccountEntityFromAccountInfo,
         generateHomeAccountId,
-        isAccountEntity,
-        accountInfoIsEqual
+        isAccountEntity
     }
 }
 export { AccountEntityUtils }
@@ -198,13 +197,6 @@ export type AccountInfo = {
     tenantProfiles?: Map<string, TenantProfile>;
     dataBoundary?: DataBoundary;
 };
-
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "accountInfoIsEqual" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null, compareClaims?: boolean): boolean;
 
 // Warning: (ae-missing-release-tag) "ActiveAccountFilters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
