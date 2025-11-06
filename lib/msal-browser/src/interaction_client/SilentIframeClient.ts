@@ -362,10 +362,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             codeChallenge: pkceCodes.challenge,
         };
 
-        let msalFrame: HTMLIFrameElement;
-
         if (request.httpMethod === Constants.HttpMethod.POST) {
-            msalFrame = await invokeAsync(
+            await invokeAsync(
                 initiateCodeFlowWithPost,
                 BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
                 this.logger,
@@ -394,17 +392,18 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.performanceClient
             );
 
-        // Get the frame handle for the silent request
-        await invokeAsync(
-            initiateCodeRequest,
-            BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(navigateUrl, this.performanceClient, this.logger, correlationId);
+            // Get the frame handle for the silent request
+            await invokeAsync(
+                initiateCodeRequest,
+                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(navigateUrl, this.performanceClient, this.logger, correlationId);
+        }
 
         const responseType = this.config.auth.OIDCOptions.responseMode;
-        // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+        // Wait for response from the redirect bridge.
         const responseString = await invokeAsync(
             BrowserUtils.waitForBridgeResponse,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,

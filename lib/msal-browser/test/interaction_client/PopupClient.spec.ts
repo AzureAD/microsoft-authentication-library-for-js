@@ -67,7 +67,6 @@ import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
-import * as Authorize from "../../src/protocol/Authorize.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -741,7 +740,7 @@ describe("PopupClient", () => {
                 account: testAccount,
                 tokenType: Constants.AuthenticationScheme.BEARER,
             };
-            jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
             );
             jest.spyOn(

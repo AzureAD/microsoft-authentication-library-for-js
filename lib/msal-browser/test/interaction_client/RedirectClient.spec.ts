@@ -47,8 +47,8 @@ import {
     ProtocolMode,
     AccountEntityUtils,
     Constants,
+    ProtocolUtils,
 } from "@azure/msal-common/browser";
-import * as ProtocolUtils from "../../../msal-common/src/utils/ProtocolUtils.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
     TemporaryCacheKeys,
@@ -88,6 +88,14 @@ import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformance
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
+jest.mock("@azure/msal-common/browser", () => ({
+    ...jest.requireActual("@azure/msal-common/browser"),
+    ProtocolUtils: {
+        ...jest.requireActual("@azure/msal-common/browser").ProtocolUtils,
+        setRequestState: jest.fn(),
+    },
+}));
+
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
     cacheRetentionDays: 5,
@@ -123,6 +131,9 @@ describe("RedirectClient", () => {
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;
     let rootMeasurement: InProgressPerformanceEvent;
+    let mockSetRequestState: jest.MockedFunction<
+        typeof ProtocolUtils.setRequestState
+    >;
 
     beforeEach(async () => {
         pca = new PublicClientApplication({
@@ -180,6 +191,14 @@ describe("RedirectClient", () => {
         rootMeasurement = new BrowserPerformanceClient(
             pca.getConfiguration()
         ).startMeasurement("test-measurement", "test-correlation-id");
+
+        mockSetRequestState =
+            ProtocolUtils.setRequestState as jest.MockedFunction<
+                typeof ProtocolUtils.setRequestState
+            >;
+        mockSetRequestState.mockReturnValue(
+            TEST_STATE_VALUES.TEST_STATE_REDIRECT
+        );
     });
 
     afterEach(() => {
@@ -2158,9 +2177,6 @@ describe("RedirectClient", () => {
 
         describe("storeInCache tests", () => {
             beforeEach(() => {
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                );
                 jest.spyOn(
                     FetchClient.prototype,
                     "sendPostRequestAsync"
@@ -3236,9 +3252,6 @@ describe("RedirectClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 nonce: ID_TOKEN_CLAIMS.nonce,
             };
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
             jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
                 () => {
                     // Supress navigation

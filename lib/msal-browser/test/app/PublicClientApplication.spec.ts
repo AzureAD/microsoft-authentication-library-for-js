@@ -1884,7 +1884,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if called in a popup", (done) => {
-            const originalWindowUrl = window.URL;
             Object.defineProperty(window, "location", {
                 configurable: true,
                 enumerable: true,
@@ -1910,9 +1909,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })
                 .finally(() => {
                     Object.defineProperty(window, "location", {
-                        configurable: true,
-                        enumerable: true,
-                        value: { ...originalWindowUrl, href: "localhost" },
+                        value: {
+                            hash: "",
+                            origin: "https://localhost:8081",
+                            pathname: "/",
+                            search: "",
+                            href: "https://localhost:8081/index.html",
+                            protocol: "http:",
+                            hostname: "localhost",
+                            port: "8081",
+                        },
+                        writable: true,
                     });
                 });
         });
@@ -2991,7 +2998,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if called in a popup", (done) => {
-            const originalWindowUrl = window.URL;
             Object.defineProperty(window, "location", {
                 configurable: true,
                 enumerable: true,
@@ -3016,9 +3022,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })
                 .finally(() => {
                     Object.defineProperty(window, "location", {
-                        configurable: true,
-                        enumerable: true,
-                        value: { ...originalWindowUrl, href: "localhost" },
+                        value: {
+                            hash: "",
+                            origin: "https://localhost:8081",
+                            pathname: "/",
+                            search: "",
+                            href: "https://localhost:8081/index.html",
+                            protocol: "http:",
+                            hostname: "localhost",
+                            port: "8081",
+                        },
+                        writable: true,
                     });
                 });
         });
