@@ -138,17 +138,13 @@ export class AuthorizationCodeClient {
 
         // Check for new cloud instance
         if (authCodePayload && authCodePayload.cloud_instance_host_name) {
-            const cloudInstanceAuthorityUri = `https://${authCodePayload.cloud_instance_host_name}/${this.authority.tenant}/`;
-            const cloudInstanceAuthority = await createDiscoveredInstance(
-                cloudInstanceAuthorityUri,
-                this.networkClient,
-                this.cacheManager,
-                this.authority.options,
+            await invokeAsync(
+                this.updateTokenEndpointAuthority.bind(this),
+                PerformanceEvents.UpdateTokenEndpointAuthority,
                 this.logger,
-                request.correlationId,
-                this.performanceClient
-            );
-            this.authority = cloudInstanceAuthority;
+                this.performanceClient,
+                request.correlationId
+            )(authCodePayload.cloud_instance_host_name, request.correlationId);
         }
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -585,5 +581,27 @@ export class AuthorizationCodeClient {
         }
 
         return UrlUtils.mapToQueryString(parameters);
+    }
+
+    /**
+     * Updates the authority to the cloud instance provided in the authorization response
+     * @param cloudInstanceHostName - cloud instance host name from authorization code payload
+     * @param correlationId - request correlation id
+     */
+    private async updateTokenEndpointAuthority(
+        cloudInstanceHostName: string,
+        correlationId: string
+    ): Promise<void> {
+        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostName}/${this.authority.tenant}/`;
+        const cloudInstanceAuthority = await createDiscoveredInstance(
+            cloudInstanceAuthorityUri,
+            this.networkClient,
+            this.cacheManager,
+            this.authority.options,
+            this.logger,
+            correlationId,
+            this.performanceClient
+        );
+        this.authority = cloudInstanceAuthority;
     }
 }
