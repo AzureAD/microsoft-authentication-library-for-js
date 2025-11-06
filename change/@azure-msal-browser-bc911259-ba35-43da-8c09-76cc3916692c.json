@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add allow=\"local-network-access *\" attribute to iframe for Chrome 142 compatibility",
-  "packageName": "@azure/msal-browser",
-  "email": "198982749+Copilot@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}
