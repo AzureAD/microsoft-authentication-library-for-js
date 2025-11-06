@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonOnBehalfOfRequest } from "@azure/msal-common/node";
+import { 
+    CommonOnBehalfOfRequest, 
+    StringDict,
+} from "@azure/msal-common/node";
 
 /**
  * - scopes                  - Array of scopes the application is requesting access to.
@@ -23,8 +26,15 @@ export type OnBehalfOfRequest = Partial<
         | "resourceRequestUri"
         | "requestedClaimsHash"
         | "storeInCache"
+        | "tokenQueryParameters"
     >
 > & {
     oboAssertion: string;
     scopes: Array<string>;
+    /**
+     * @deprecated String to string map of custom query parameters added to the /token call.
+     * This feature is being deprecated and not recommended for production scenarios.
+     * It will be removed in a future release, and the behavior may be replaced by a new API.
+     */
+    tokenQueryParameters?: StringDict;
 };

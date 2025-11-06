@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common/node";
+import { AccountInfo, CommonSilentFlowRequest, StringDict } from "@azure/msal-common/node";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -19,9 +19,15 @@ import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common/node";
 export type SilentFlowRequest = Partial<
     Omit<
         CommonSilentFlowRequest,
-        "account" | "scopes" | "requestedClaimsHash" | "storeInCache"
+        "account" | "scopes" | "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters"
     >
 > & {
     account: AccountInfo;
     scopes: Array<string>;
+    /**
+     * @deprecated String to string map of custom query parameters added to the /token call. 
+     * This feature is being deprecated and not recommended for production scenarios. 
+     * It will be removed in a future release, and the behavior may be replaced by a new API.
+     */
+    tokenQueryParameters?: StringDict;
 };

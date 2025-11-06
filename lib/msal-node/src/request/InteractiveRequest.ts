@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
+import {
+    CommonAuthorizationUrlRequest,
+    StringDict,
+} from "@azure/msal-common/node";
 import { ILoopbackClient } from "../network/ILoopbackClient.js";
 
 /**
@@ -20,7 +23,10 @@ import { ILoopbackClient } from "../network/ILoopbackClient.js";
 export type InteractiveRequest = Partial<
     Omit<
         CommonAuthorizationUrlRequest,
-        "scopes" | "requestedClaimsHash" | "storeInCache"
+        | "scopes"
+        | "requestedClaimsHash"
+        | "storeInCache"
+        | "tokenQueryParameters"
     >
 > & {
     openBrowser: (url: string) => Promise<void>;
@@ -29,4 +35,10 @@ export type InteractiveRequest = Partial<
     errorTemplate?: string;
     windowHandle?: Buffer; // Relevant only to brokered requests
     loopbackClient?: ILoopbackClient;
+    /**
+     * @deprecated String to string map of custom query parameters added to the /token call.
+     * This feature is being deprecated and not recommended for production scenarios.
+     * It will be removed in a future release, and the behavior may be replaced by a new API.
+     */
+    tokenQueryParameters?: StringDict;
 };

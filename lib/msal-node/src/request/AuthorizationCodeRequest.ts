@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationCodeRequest } from "@azure/msal-common/node";
+import {
+    CommonAuthorizationCodeRequest,
+    StringDict,
+} from "@azure/msal-common/node";
 
 /**
  * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)
@@ -30,10 +33,17 @@ export type AuthorizationCodeRequest = Partial<
         | "resourceRequestUri"
         | "requestedClaimsHash"
         | "storeInCache"
+        | "tokenQueryParameters"
     >
 > & {
     scopes: Array<string>;
     redirectUri: string;
     code: string;
     state?: string;
+    /**
+     * @deprecated String to string map of custom query parameters added to the /token call.
+     * This feature is being deprecated and not recommended for production scenarios.
+     * It will be removed in a future release, and the behavior may be replaced by a new API.
+     */
+    tokenQueryParameters?: StringDict;
 };

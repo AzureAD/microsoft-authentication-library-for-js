@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
+import {
+    CommonAuthorizationUrlRequest,
+    StringDict,
+} from "@azure/msal-common/node";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
@@ -43,8 +46,15 @@ export type AuthorizationUrlRequest = Partial<
         | "authenticationScheme"
         | "requestedClaimsHash"
         | "storeInCache"
+        | "tokenQueryParameters"
     >
 > & {
     scopes: Array<string>;
     redirectUri: string;
+    /**
+     * @deprecated String to string map of custom query parameters added to the /token call.
+     * This feature is being deprecated and not recommended for production scenarios.
+     * It will be removed in a future release, and the behavior may be replaced by a new API.
+     */
+    tokenQueryParameters?: StringDict;
 };

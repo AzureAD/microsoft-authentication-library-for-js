@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonRefreshTokenRequest } from "@azure/msal-common/node";
+import { CommonRefreshTokenRequest, StringDict } from "@azure/msal-common/node";
 
 /**
  * CommonRefreshTokenRequest
@@ -12,7 +12,7 @@ import { CommonRefreshTokenRequest } from "@azure/msal-common/node";
  * - authority               - URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - refreshToken            - A refresh token returned from a previous request to the Identity provider.
- * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
+ * - tokenQueryParameters    - @deprecated String to string map of custom query parameters added to the /token call. This feature is being deprecated and not recommended for production scenarios. It will be removed in a future release, and the behavior may be replaced by a new API.
  * - forceCache              - Force MSAL to cache a refresh token flow response when there is no account in the cache. Used for migration scenarios.
  * @public
  */
@@ -26,9 +26,16 @@ export type RefreshTokenRequest = Partial<
         | "resourceRequestUri"
         | "requestedClaimsHash"
         | "storeInCache"
+        | "tokenQueryParameters"
     >
 > & {
     scopes: Array<string>;
     refreshToken: string;
     forceCache?: boolean;
+    /**
+     * @deprecated String to string map of custom query parameters added to the /token call.
+     * This feature is being deprecated and not recommended for production scenarios.
+     * It will be removed in a future release, and the behavior may be replaced by a new API.
+     */
+    tokenQueryParameters?: StringDict;
 };

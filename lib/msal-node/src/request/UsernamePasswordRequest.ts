@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonUsernamePasswordRequest } from "@azure/msal-common/node";
+import {
+    CommonUsernamePasswordRequest,
+    StringDict,
+} from "@azure/msal-common/node";
 
 /**
  * UsernamePassword parameters passed by the user to retrieve credentials
@@ -15,7 +18,7 @@ import { CommonUsernamePasswordRequest } from "@azure/msal-common/node";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - username               - username of the client
  * - password               - credentials
- * - tokenQueryParameters   - String to string map of custom query parameters added to the /token call
+ * - tokenQueryParameters   - @deprecated String to string map of custom query parameters added to the /token call. This feature is being deprecated and not recommended for production scenarios. It will be removed in a future release, and the behavior may be replaced by a new API.
  * @public
  */
 export type UsernamePasswordRequest = Partial<
@@ -28,9 +31,16 @@ export type UsernamePasswordRequest = Partial<
         | "password"
         | "requestedClaimsHash"
         | "storeInCache"
+        | "tokenQueryParameters"
     >
 > & {
     scopes: Array<string>;
     username: string;
     password: string;
+    /**
+     * @deprecated String to string map of custom query parameters added to the /token call.
+     * This feature is being deprecated and not recommended for production scenarios.
+     * It will be removed in a future release, and the behavior may be replaced by a new API.
+     */
+    tokenQueryParameters?: StringDict;
 };
