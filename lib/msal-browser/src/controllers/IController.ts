@@ -64,12 +64,6 @@ export interface IController {
 
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
 
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-
-    getAccountByLocalId(localId: string): AccountInfo | null;
-
-    getAccountByUsername(userName: string): AccountInfo | null;
-
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
     handleRedirectPromise(

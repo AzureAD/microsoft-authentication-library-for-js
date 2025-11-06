@@ -128,18 +128,6 @@ export class UnknownOperatingContextController implements IController {
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
         return null;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return null;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        return null;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getAccountByUsername(username: string): AccountInfo | null {
-        return null;
-    }
     getAllAccounts(): AccountInfo[] {
         return [];
     }
