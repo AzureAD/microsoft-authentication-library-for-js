@@ -26,7 +26,10 @@ import {
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
 import type { BrowserConfiguration } from "../config/Configuration.js";
-import { redirectBridgeTimeout } from "../error/BrowserAuthErrorCodes.js";
+import {
+    redirectBridgeEmptyResponse,
+    redirectBridgeTimeout,
+} from "../error/BrowserAuthErrorCodes.js";
 
 /**
  * Clears hash from window url.
@@ -76,7 +79,6 @@ export function isInPopup(): boolean {
  * This unified function works for both popup and iframe scenarios by listening on a
  * BroadcastChannel for the server payload.
  *
- * @param pollIntervalMilliseconds - The interval, in milliseconds, at which to poll for responses.
  * @param timeoutMs - Timeout in milliseconds.
  * @param logger - Logger instance for logging monitoring events.
  * @param browserCrypto - Browser crypto instance for decoding state.
@@ -84,7 +86,6 @@ export function isInPopup(): boolean {
  * @returns Promise<string> - Resolves with the response string (query or hash) from the window.
  */
 export async function waitForBridgeResponse(
-    pollIntervalMilliseconds: number,
     timeoutMs: number,
     logger: Logger,
     browserCrypto: ICrypto,
@@ -102,27 +103,22 @@ export async function waitForBridgeResponse(
         );
         const channel = new BroadcastChannel(libraryState.id);
         let responseString: string | undefined = undefined;
-        channel.onmessage = (event) => {
-            responseString = event.data.payload;
-        };
 
         const timeoutId = window.setTimeout(() => {
-            window.clearInterval(intervalId);
             channel.close();
             reject(createBrowserAuthError(redirectBridgeTimeout));
         }, timeoutMs);
 
-        const intervalId = setInterval(() => {
-            // Response not yet received
-            if (!responseString) {
-                return;
-            }
-
-            clearInterval(intervalId);
+        channel.onmessage = (event) => {
+            responseString = event.data.payload;
             clearTimeout(timeoutId);
             channel.close();
-            resolve(responseString);
-        }, pollIntervalMilliseconds);
+            if (responseString) {
+                resolve(responseString);
+            } else {
+                reject(createBrowserAuthError(redirectBridgeEmptyResponse));
+            }
+        };
     });
 }
 

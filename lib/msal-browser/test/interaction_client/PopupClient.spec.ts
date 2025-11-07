@@ -1913,7 +1913,6 @@ describe("PopupClient", () => {
             );
 
             const response = await BrowserUtils.waitForBridgeResponse(
-                clientImpl.config.system.pollIntervalMilliseconds,
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
@@ -1950,7 +1949,6 @@ describe("PopupClient", () => {
             );
 
             const response = await BrowserUtils.waitForBridgeResponse(
-                clientImpl.config.system.pollIntervalMilliseconds,
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
@@ -1990,7 +1988,6 @@ describe("PopupClient", () => {
 
             await expect(
                 BrowserUtils.waitForBridgeResponse(
-                    clientImpl.config.system.pollIntervalMilliseconds,
                     100,
                     clientImpl.logger,
                     clientImpl.browserCrypto,
@@ -2047,7 +2044,6 @@ describe("PopupClient", () => {
                 .mockResolvedValueOnce("code=code2&state=state2");
 
             const promise1 = BrowserUtils.waitForBridgeResponse(
-                clientImpl.config.system.pollIntervalMilliseconds,
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
@@ -2055,7 +2051,6 @@ describe("PopupClient", () => {
             );
 
             const promise2 = BrowserUtils.waitForBridgeResponse(
-                clientImpl.config.system.pollIntervalMilliseconds,
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,

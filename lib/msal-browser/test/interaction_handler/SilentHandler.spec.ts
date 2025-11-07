@@ -106,7 +106,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             );
 
             const response = await BrowserUtils.waitForBridgeResponse(
-                DEFAULT_POLL_INTERVAL_MS,
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
@@ -142,7 +141,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             );
 
             const response = await BrowserUtils.waitForBridgeResponse(
-                DEFAULT_POLL_INTERVAL_MS,
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
@@ -181,7 +179,6 @@ describe("SilentHandler.ts Unit Tests", () => {
 
             await expect(
                 BrowserUtils.waitForBridgeResponse(
-                    DEFAULT_POLL_INTERVAL_MS,
                     100,
                     browserRequestLogger,
                     browserCrypto,
@@ -237,7 +234,6 @@ describe("SilentHandler.ts Unit Tests", () => {
                 .mockResolvedValueOnce("code=code2&state=state2");
 
             const promise1 = BrowserUtils.waitForBridgeResponse(
-                DEFAULT_POLL_INTERVAL_MS,
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,
@@ -245,7 +241,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             );
 
             const promise2 = BrowserUtils.waitForBridgeResponse(
-                DEFAULT_POLL_INTERVAL_MS,
                 DEFAULT_IFRAME_TIMEOUT_MS,
                 browserRequestLogger,
                 browserCrypto,

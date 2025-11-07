@@ -370,7 +370,6 @@ export class PopupClient extends StandardInteractionClient {
 
                 // Wait for the redirect bridge response
                 const responseString = await BrowserUtils.waitForBridgeResponse(
-                    this.config.system.pollIntervalMilliseconds,
                     this.config.system.popupBridgeTimeout,
                     this.logger,
                     this.browserCrypto,
@@ -489,7 +488,6 @@ export class PopupClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            this.config.system.pollIntervalMilliseconds,
             this.config.system.popupBridgeTimeout,
             this.logger,
             this.browserCrypto,
@@ -574,7 +572,6 @@ export class PopupClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            this.config.system.pollIntervalMilliseconds,
             this.config.system.popupBridgeTimeout,
             this.logger,
             this.browserCrypto,
@@ -725,7 +722,6 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             await BrowserUtils.waitForBridgeResponse(
-                this.config.system.pollIntervalMilliseconds,
                 this.config.system.popupBridgeTimeout,
                 this.logger,
                 this.browserCrypto,
