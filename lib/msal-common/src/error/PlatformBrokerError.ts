@@ -56,7 +56,7 @@ export class PlatformBrokerError extends AuthError {
         const enhancedErrorContext = errorContext
             ? `${errorContext} (Error Code: ${errorCode}, Tag: ${tagString})`
             : `(Error Code: ${errorCode}, Tag: ${tagString})`;
-        
+
         super(errorStatus, enhancedErrorContext);
         this.name = "PlatformBrokerError";
         this.statusCode = errorCode;
