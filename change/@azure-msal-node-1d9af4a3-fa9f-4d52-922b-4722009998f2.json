@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Deprecate tokenQueryParameters in msal-node",
+  "comment": "Deprecate tokenQueryParameters in msal-node (#8134)",
   "packageName": "@azure/msal-node",
   "email": "avdunn@microsoft.com",
   "dependentChangeType": "patch"
