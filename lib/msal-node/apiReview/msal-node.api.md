@@ -78,6 +78,7 @@ import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
+import { StringDict } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
@@ -101,17 +102,19 @@ export { AuthErrorMessage }
 export { AuthorizationCodePayload }
 
 // @public
-export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters">> & {
     scopes: Array<string>;
     redirectUri: string;
     code: string;
     state?: string;
+    tokenQueryParameters?: StringDict;
 };
 
 // @public
-export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme" | "requestedClaimsHash" | "storeInCache">> & {
+export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme" | "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters">> & {
     scopes: Array<string>;
     redirectUri: string;
+    tokenQueryParameters?: StringDict;
 };
 
 export { AuthorizeResponse }
@@ -198,8 +201,9 @@ export class ClientCredentialClient extends BaseClient {
 }
 
 // @public
-export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "clientAssertion" | "storeInCache">> & {
+export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "clientAssertion" | "storeInCache" | "tokenQueryParameters">> & {
     clientAssertion?: string | ClientAssertionCallback;
+    tokenQueryParameters?: StringDict;
 };
 
 // @public
@@ -325,13 +329,14 @@ export { InteractionRequiredAuthErrorCodes }
 export { InteractionRequiredAuthErrorMessage }
 
 // @public
-export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "requestedClaimsHash" | "storeInCache">> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
     errorTemplate?: string;
     windowHandle?: Buffer;
     loopbackClient?: ILoopbackClient;
+    tokenQueryParameters?: StringDict;
 };
 
 declare namespace internals {
@@ -478,9 +483,10 @@ export class OnBehalfOfClient extends BaseClient {
 }
 
 // @public
-export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters">> & {
     oboAssertion: string;
     scopes: Array<string>;
+    tokenQueryParameters?: StringDict;
 };
 
 export { PromptValue }
@@ -497,11 +503,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     signOut(request: SignOutRequest): Promise<void>;
 }
 
-// @public
-export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+// @public @deprecated
+export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters">> & {
     scopes: Array<string>;
     refreshToken: string;
     forceCache?: boolean;
+    tokenQueryParameters?: StringDict;
 };
 
 export { ResponseMode }
@@ -590,9 +597,10 @@ export type SignOutRequest = {
 };
 
 // @public
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "requestedClaimsHash" | "storeInCache">> & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters">> & {
     account: AccountInfo;
     scopes: Array<string>;
+    tokenQueryParameters?: StringDict;
 };
 
 // @public
@@ -620,11 +628,12 @@ export class UsernamePasswordClient extends BaseClient {
     acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
 }
 
-// @public
-export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "requestedClaimsHash" | "storeInCache">> & {
+// @public @deprecated
+export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters">> & {
     scopes: Array<string>;
     username: string;
     password: string;
+    tokenQueryParameters?: StringDict;
 };
 
 export { ValidCacheType }
