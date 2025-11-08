@@ -276,9 +276,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 });
             const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                extraQueryParameters: {
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                extraParameters: {
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                 },
             });
 
@@ -286,8 +286,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "mock.calls[0][0].extraParameters",
                 {
                     telemetry: "MATS",
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                     "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
                 }
             );
@@ -343,9 +343,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 });
             const response = await testInterctionClient.acquireToken({
                 scopes: ["User.Read"],
-                extraQueryParameters: {
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                extraParameters: {
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                 },
             });
 
@@ -353,8 +353,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "mock.calls[0][0].extraParameters",
                 {
                     telemetry: "MATS",
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                     "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
                 }
             );
@@ -382,9 +382,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 });
             const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                extraQueryParameters: {
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                extraParameters: {
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                 },
             });
 
@@ -392,8 +392,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "mock.calls[0][0].extraParameters",
                 {
                     telemetry: "MATS",
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                     "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
                 }
             );
@@ -449,9 +449,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 });
             const response = await testInterctionClient.acquireToken({
                 scopes: ["User.Read"],
-                extraQueryParameters: {
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                extraParameters: {
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                 },
             });
 
@@ -459,8 +459,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "mock.calls[0][0].extraParameters",
                 {
                     telemetry: "MATS",
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                     "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
                 }
             );
@@ -488,9 +488,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 });
             const response = await platformAuthInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                extraQueryParameters: {
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                extraParameters: {
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                 },
             });
 
@@ -498,8 +498,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "mock.calls[0][0].extraParameters",
                 {
                     telemetry: "MATS",
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                     "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
                 }
             );
@@ -555,9 +555,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 });
             const response = await testInterctionClient.acquireToken({
                 scopes: ["User.Read"],
-                extraQueryParameters: {
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                extraParameters: {
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                 },
             });
 
@@ -565,8 +565,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "mock.calls[0][0].extraParameters",
                 {
                     telemetry: "MATS",
-                    testQP1: "testQP1",
-                    testQP2: "testQP2",
+                    testEP1: "testEP1",
+                    testEP2: "testEP2",
                     "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
                 }
             );
@@ -871,7 +871,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 .acquireToken({
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
-                    extraQueryParameters: {
+                    extraParameters: {
                         brk_client_id: "broker_client_id",
                         brk_redirect_uri: "https://broker_redirect_uri.com",
                         client_id: "parent_client_id",
@@ -1679,7 +1679,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     scopes: ["User.Read"],
                     prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
-                    extraQueryParameters: {
+                    extraParameters: {
                         brk_client_id: "broker_client_id",
                         brk_redirect_uri: "https://broker_redirect_uri.com",
                         client_id: "parent_client_id",
@@ -1698,14 +1698,14 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
-        it("pick up user input extra query parameters", async () => {
+        it("pick up user input extra parameters", async () => {
             const nativeRequest =
                 // @ts-ignore
                 await platformAuthInteractionClient.initializeNativeRequest({
                     scopes: ["User.Read"],
                     prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
-                    extraQueryParameters: {
+                    extraParameters: {
                         userEQP1: "customUserParam1",
                         userEQP2: "customUserParam2",
                     },

@@ -160,10 +160,11 @@ export async function getAuthCodeRequestUrl(
         Constants.S256_CODE_CHALLENGE_METHOD
     );
 
-    RequestParameterBuilder.addExtraQueryParameters(
-        parameters,
-        request.extraQueryParameters || {}
-    );
+    // Merge extraQueryParameters and extraParameters to be appended to request URL
+    RequestParameterBuilder.addExtraParameters(parameters, {
+        ...request.extraQueryParameters,
+        ...request.extraParameters,
+    });
 
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }
@@ -197,11 +198,62 @@ export async function getEARForm(
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
+    RequestParameterBuilder.addExtraParameters(parameters, {
+        ...request.extraParameters,
+    });
+
     const queryParams = new Map<string, string>();
-    RequestParameterBuilder.addExtraQueryParameters(
+    RequestParameterBuilder.addExtraParameters(
         queryParams,
         request.extraQueryParameters || {}
     );
+    const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+
+    return createForm(frame, url, parameters);
+}
+
+/**
+ * Gets the form that will be posted to /authorize with request parameters when using POST method
+ */
+export async function getCodeForm(
+    frame: Document,
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLFormElement> {
+    const parameters = await getStandardParameters(
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+
+    RequestParameterBuilder.addResponseType(
+        parameters,
+        Constants.OAuthResponseType.CODE
+    );
+
+    RequestParameterBuilder.addCodeChallengeParams(
+        parameters,
+        request.codeChallenge,
+        request.codeChallengeMethod || Constants.S256_CODE_CHALLENGE_METHOD
+    );
+
+    // Add extraParameters to the request body
+    RequestParameterBuilder.addExtraParameters(parameters, {
+        ...request.extraParameters,
+    });
+
+    // Add extraQueryParameters to be appended to request URL
+    const queryParams = new Map<string, string>();
+    RequestParameterBuilder.addExtraParameters(
+        queryParams,
+        request.extraQueryParameters || {}
+    );
+
     const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
 
     return createForm(frame, url, parameters);

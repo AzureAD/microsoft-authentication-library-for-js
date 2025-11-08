@@ -54,7 +54,7 @@ function getGraphMeEndpoint(msGraphHost) {
 }
 
 async function seeProfile() {
-    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
+    const currentAcc = myMSALObj.getAccount({ homeAccountId: accountId });
     if (currentAcc) {
         const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
             console.log(error);
