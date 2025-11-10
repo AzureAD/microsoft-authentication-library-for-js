@@ -4,10 +4,10 @@
  */
 
 import {
+    Constants as CommonConstants,
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-    HttpStatus,
     Logger,
     LoggerOptions,
 } from "@azure/msal-common/node";
@@ -429,14 +429,14 @@ export class HttpClient implements INetworkModule {
             let errorType;
             let errorDescriptionHelper;
             if (
-                statusCode >= HttpStatus.CLIENT_ERROR_RANGE_START &&
-                statusCode <= HttpStatus.CLIENT_ERROR_RANGE_END
+                statusCode >= CommonConstants.HTTP_CLIENT_ERROR_RANGE_START &&
+                statusCode <= CommonConstants.HTTP_CLIENT_ERROR_RANGE_END
             ) {
                 errorType = "client_error";
                 errorDescriptionHelper = "A client";
             } else if (
-                statusCode >= HttpStatus.SERVER_ERROR_RANGE_START &&
-                statusCode <= HttpStatus.SERVER_ERROR_RANGE_END
+                statusCode >= CommonConstants.HTTP_SERVER_ERROR_RANGE_START &&
+                statusCode <= CommonConstants.HTTP_SERVER_ERROR_RANGE_END
             ) {
                 errorType = "server_error";
                 errorDescriptionHelper = "A server";
@@ -495,8 +495,8 @@ export class HttpClient implements INetworkModule {
         networkResponse: NetworkResponse<T>
     ): boolean => {
         return (
-            (statusCode < HttpStatus.SUCCESS_RANGE_START ||
-                statusCode > HttpStatus.SUCCESS_RANGE_END) &&
+            (statusCode < CommonConstants.HTTP_SUCCESS_RANGE_START ||
+                statusCode > CommonConstants.HTTP_SUCCESS_RANGE_END) &&
             // do not destroy the request for the device code flow
             !(
                 networkResponse.body &&
