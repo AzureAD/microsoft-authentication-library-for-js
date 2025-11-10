@@ -35,7 +35,8 @@ export interface IWindowStorage<T> {
         key: string,
         value: T,
         correlationId: string,
-        timestamp: string
+        timestamp: string,
+        kmsi: boolean
     ): Promise<void>;
 
     /**

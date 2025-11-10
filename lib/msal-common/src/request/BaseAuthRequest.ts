@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme } from "../utils/Constants.js";
+import { AuthenticationScheme, HttpMethod } from "../utils/Constants.js";
 import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { StringDict } from "../utils/MsalTypes.js";
 import { StoreInCache } from "./StoreInCache.js";
@@ -24,12 +24,13 @@ import { ShrOptions } from "../crypto/SignedHttpRequest.js";
  * - sshJwk                  - A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
  * - sshKid                  - Key ID that uniquely identifies the SSH public key mentioned above.
  * - azureCloudOptions       - Convenience string enums for users to provide public/sovereign cloud ids
- * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
- * - tokenBodyParameters     - String to string map of custom parameters added to the body of the /token call
+ * - extraQueryParameters    - String to string map of custom query parameters added to outgoing token service requests
  * - storeInCache            - Object containing boolean values indicating whether to store tokens in the cache or not (default is true)
  * - scenarioId              - Scenario id to track custom user prompts
  * - popKid                  - Key ID to identify the public key for PoP token request
  * - embeddedClientId        - Embedded client id. When specified, broker client id (brk_client_id) and redirect uri (brk_redirect_uri) params are set with values from the config, overriding the corresponding extra parameters, if present.
+ * - httpMethod              - HTTP method to use for the /authorize request. Defaults to GET, but can be set to POST if the request requires body parameters
+ * - extraParameters             - String to string map of custom parameters added to outgoing token service requests
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -46,10 +47,11 @@ export type BaseAuthRequest = {
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
     maxAge?: number;
-    tokenBodyParameters?: StringDict;
-    tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
     embeddedClientId?: string;
+    httpMethod?: HttpMethod;
+    extraQueryParameters?: StringDict;
+    extraParameters?: StringDict;
 };

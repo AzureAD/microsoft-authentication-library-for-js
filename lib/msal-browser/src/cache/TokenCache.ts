@@ -66,6 +66,7 @@ export async function loadExternalTokens(
     const idTokenClaims = response.id_token
         ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
         : undefined;
+    const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
     const authorityOptions: AuthorityOptions = {
         protocolMode: browserConfig.system.protocolMode,
@@ -117,6 +118,7 @@ export async function loadExternalTokens(
         cacheRecordAccount.homeAccountId,
         cacheRecordAccount.environment,
         cacheRecordAccount.realm,
+        kmsi,
         correlationId,
         storage,
         logger,
@@ -129,6 +131,7 @@ export async function loadExternalTokens(
         cacheRecordAccount.homeAccountId,
         cacheRecordAccount.environment,
         cacheRecordAccount.realm,
+        kmsi,
         options,
         correlationId,
         storage,
@@ -140,6 +143,7 @@ export async function loadExternalTokens(
         response,
         cacheRecordAccount.homeAccountId,
         cacheRecordAccount.environment,
+        kmsi,
         correlationId,
         storage,
         logger,
@@ -185,7 +189,11 @@ async function loadAccount(
             AccountEntityUtils.createAccountEntityFromAccountInfo(
                 request.account
             );
-        await storage.setAccount(accountEntity, correlationId);
+        await storage.setAccount(
+            accountEntity,
+            correlationId,
+            AuthToken.isKmsi(idTokenClaims || {})
+        );
         return accountEntity;
     } else if (!authority || (!clientInfo && !idTokenClaims)) {
         logger.error(
@@ -221,7 +229,11 @@ async function loadAccount(
         logger
     );
 
-    await storage.setAccount(cachedAccount, correlationId);
+    await storage.setAccount(
+        cachedAccount,
+        correlationId,
+        AuthToken.isKmsi(idTokenClaims || {})
+    );
     return cachedAccount;
 }
 
@@ -238,6 +250,7 @@ async function loadIdToken(
     homeAccountId: string,
     environment: string,
     tenantId: string,
+    kmsi: boolean,
     correlationId: string,
     storage: BrowserCacheManager,
     logger: Logger,
@@ -260,7 +273,7 @@ async function loadIdToken(
         tenantId
     );
 
-    await storage.setIdTokenCredential(idTokenEntity, correlationId);
+    await storage.setIdTokenCredential(idTokenEntity, correlationId, kmsi);
     return idTokenEntity;
 }
 
@@ -279,6 +292,7 @@ async function loadAccessToken(
     homeAccountId: string,
     environment: string,
     tenantId: string,
+    kmsi: boolean,
     options: LoadTokenOptions,
     correlationId: string,
     storage: BrowserCacheManager,
@@ -330,7 +344,11 @@ async function loadAccessToken(
         base64Decode
     );
 
-    await storage.setAccessTokenCredential(accessTokenEntity, correlationId);
+    await storage.setAccessTokenCredential(
+        accessTokenEntity,
+        correlationId,
+        kmsi
+    );
     return accessTokenEntity;
 }
 
@@ -346,6 +364,7 @@ async function loadRefreshToken(
     response: ExternalTokenResponse,
     homeAccountId: string,
     environment: string,
+    kmsi: boolean,
     correlationId: string,
     storage: BrowserCacheManager,
     logger: Logger,
@@ -370,7 +389,11 @@ async function loadRefreshToken(
         response.refresh_token_expires_in
     );
 
-    await storage.setRefreshTokenCredential(refreshTokenEntity, correlationId);
+    await storage.setRefreshTokenCredential(
+        refreshTokenEntity,
+        correlationId,
+        kmsi
+    );
     return refreshTokenEntity;
 }
 

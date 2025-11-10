@@ -23,11 +23,11 @@ const pca = new PublicClientApplication({
 
 By default, MSAL stores the various authentication artifacts it obtains from the IdP in browser storage using the [Web Storage API](https://developer.mozilla.org/docs/Web/API/Web_Storage_API) supported by all modern browsers. Accordingly, MSAL offers two methods of persistent storage: `sessionStorage` (default) and `localStorage`. In addition, MSAL provides `memoryStorage` option which allows you to opt-out of storing the cache in browser storage.
 
-| Cache Location   | Cleared on              | Shared between windows/tabs | Redirect flow supported |
-|------------------|-------------------------|-----------------------------|-------------------------|
-| `sessionStorage` | window/tab close        | No                          | Yes                     |
-| `localStorage`   | browser close           | Yes                         | Yes                     |
-| `memoryStorage`  | page refresh/navigation | No                          | No                      |
+| Cache Location   | Cleared on                                             | Shared between windows/tabs | Redirect flow supported |
+|------------------|--------------------------------------------------------|-----------------------------|-------------------------|
+| `sessionStorage` | window/tab close                                       | No                          | Yes                     |
+| `localStorage`   | browser close (unless user selected keep me signed in) | Yes                         | Yes                     |
+| `memoryStorage`  | page refresh/navigation                                | No                          | No                      |
 
 > :bulb: While the authentication state may be lost in session and memory storage due to window/tab close or page refresh/navigation, respectively, users will still have an active session with the IdP as long as the session cookie is not expired and might be able to re-authenticate without any prompts.
 
@@ -35,9 +35,9 @@ The choice between different storage locations reflects a trade-off between bett
 
 ### LocalStorage Notes
 
-Starting in v4, if you are using the `localStorage` cache location, auth artifacts will be encrypted with [AES-GCM](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm) using [HKDF](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#hkdf) to derive the key. The base key is stored in a session cookie titled `msal.cache.encryption`.
+Starting in v4, if you are using the `localStorage` cache location, auth artifacts will be encrypted unless the user selects "Keep me signed in" during sign in. The encryption algorithm used is [AES-GCM](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm) using [HKDF](https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/deriveKey#hkdf) to derive the key. The base key is stored in a session cookie titled `msal.cache.encryption`.
 
-This cookie will be automatically removed when the browser instance (not tab) is closed, thus making it impossible to decrypt any auth artifacts after the session has ended. These expired auth artifacts will be removed the next time MSAL is initialized and the user may need to reauthenticate. The `localStorage` location still provides cross-tab cache persistence but will no longer persist across browser sessions.  
+This cookie will be automatically removed when the browser instance (not tab) is closed, thus making it impossible to decrypt any auth artifacts after the session has ended. These expired auth artifacts will be removed the next time MSAL is initialized and the user may need to reauthenticate. The `localStorage` location still provides cross-tab cache persistence for all users but will only persist across browser sessions for users who selected "Keep me signed in" (KMSI).
 
 > [!Important] The purpose of this encryption is to reduce the persistence of auth artifacts, **not** to provide additional security. If a bad actor gains access to browser storage they would also have access to the key or have the ability to request tokens on your behalf without the need for cache at all. It is your responsibility to ensure your application is not vulnerable to XSS attacks [see below](#security)
 
