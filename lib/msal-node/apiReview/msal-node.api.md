@@ -70,7 +70,6 @@ import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
-import { StringDict } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
@@ -92,7 +91,7 @@ export { AuthErrorCodes }
 export { AuthorizationCodePayload }
 
 // @public
-export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
+export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache" | "extraQueryParameters" | "extraParameters">> & {
     scopes: Array<string>;
     redirectUri: string;
     code: string;
@@ -100,7 +99,7 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
 };
 
 // @public
-export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme" | "storeInCache">> & {
+export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme" | "storeInCache" | "extraQueryParameters" | "extraParameters">> & {
     scopes: Array<string>;
     redirectUri: string;
 };
@@ -237,7 +236,6 @@ export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
     // Warning: (ae-forgotten-export) The symbol "CommonDeviceCodeRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonDeviceCodeRequest): Promise<AuthenticationResult | null>;
-    createExtraQueryParameters(request: CommonDeviceCodeRequest): string;
 }
 
 // @public
@@ -310,7 +308,7 @@ export { InteractionRequiredAuthError }
 export { InteractionRequiredAuthErrorCodes }
 
 // @public
-export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "storeInCache">> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "storeInCache" | "extraQueryParameters" | "extraParameters">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
@@ -492,7 +490,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 }
 
 // @public
-export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
+export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache" | "extraQueryParameters" | "extraParameters">> & {
     scopes: Array<string>;
     refreshToken: string;
     forceCache?: boolean;
@@ -589,7 +587,7 @@ export type SignOutRequest = {
 };
 
 // @public
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "storeInCache">> & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "storeInCache" | "extraQueryParameters" | "extraParameters">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
