@@ -15,8 +15,6 @@ import { CommonUsernamePasswordRequest } from "./CommonUsernamePasswordRequest.j
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - username               - username of the client
  * - password               - credentials
- * - extraQueryParameters   - String to string map of custom query parameters added to outgoing token service requests
- * - extraParameters        - String to string map of custom query parameters added to outgoing token service requests
  * @public
  */
 export type UsernamePasswordRequest = Partial<

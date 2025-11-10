@@ -78,11 +78,7 @@ export class DeviceCodeClient extends BaseClient {
     private async getDeviceCode(
         request: CommonDeviceCodeRequest
     ): Promise<DeviceCodeResponse> {
-        const queryParametersString = this.createExtraQueryParameters(request);
-        const endpoint = UrlString.appendQueryString(
-            this.authority.deviceCodeEndpoint,
-            queryParametersString
-        );
+        const endpoint = this.authority.deviceCodeEndpoint;
         const queryString = this.createQueryString(request);
         const headers = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -104,25 +100,6 @@ export class DeviceCodeClient extends BaseClient {
             thumbprint,
             request.correlationId
         );
-    }
-
-    /**
-     * Creates query string for the device code request
-     * @param request - developer provided CommonDeviceCodeRequest
-     */
-    public createExtraQueryParameters(
-        request: CommonDeviceCodeRequest
-    ): string {
-        const parameters = new Map<string, string>();
-
-        if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraParameters(
-                parameters,
-                request.extraQueryParameters
-            );
-        }
-
-        return UrlUtils.mapToQueryString(parameters);
     }
 
     /**
@@ -181,13 +158,6 @@ export class DeviceCodeClient extends BaseClient {
             parameters,
             this.config.authOptions.clientId
         );
-
-        if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraParameters(
-                parameters,
-                request.extraQueryParameters
-            );
-        }
 
         if (
             request.claims ||

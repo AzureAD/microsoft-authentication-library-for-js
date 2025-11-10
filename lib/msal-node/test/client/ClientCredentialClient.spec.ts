@@ -121,45 +121,6 @@ describe("ClientCredentialClient unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Adds extraQueryParameters to the /token request", async () => {
-        const badExecutePostToTokenEndpointMock = jest.spyOn(
-            ClientCredentialClient.prototype,
-            <any>"executePostToTokenEndpoint"
-        );
-        // no implementation has been mocked, the acquireToken call will fail
-
-        const fakeConfig: ClientConfiguration =
-            await ClientTestUtils.createTestClientConfiguration();
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            fakeConfig
-        );
-
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            extraQueryParameters: {
-                testParam1: "testValue1",
-                testParam2: "",
-                testParam3: "testValue3",
-            },
-        };
-
-        await expect(
-            client.acquireToken(clientCredentialRequest)
-        ).rejects.toThrow();
-
-        if (!badExecutePostToTokenEndpointMock.mock.lastCall) {
-            fail("executePostToTokenEndpointMock was not called");
-        }
-        const url: string = badExecutePostToTokenEndpointMock.mock
-            .lastCall[0] as string;
-        expect(
-            url.includes("/token?testParam1=testValue1&testParam3=testValue3")
-        ).toBeTruthy();
-        expect(!url.includes("/token?testParam2=")).toBeTruthy();
-    });
-
     it("acquireToken's interactionRequiredAuthError error contains claims", async () => {
         const errorResponse = {
             error: "interaction_required",
