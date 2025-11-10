@@ -217,7 +217,7 @@ export class AuthorizationCodeClient extends BaseClient {
         RequestParameterBuilder.addClientId(
             parameters,
             request.embeddedClientId ||
-                request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+                request.extraParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
 
@@ -413,22 +413,20 @@ export class AuthorizationCodeClient extends BaseClient {
             );
         }
 
-        if (request.tokenBodyParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+        if (request.extraParameters) {
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
-                request.tokenBodyParameters
+                request.extraParameters
             );
         }
 
         // Add hybrid spa parameters if not already provided
         if (
             request.enableSpaAuthorizationCode &&
-            (!request.tokenBodyParameters ||
-                !request.tokenBodyParameters[
-                    AADServerParamKeys.RETURN_SPA_CODE
-                ])
+            (!request.extraParameters ||
+                !request.extraParameters[AADServerParamKeys.RETURN_SPA_CODE])
         ) {
-            RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            RequestParameterBuilder.addExtraParameters(parameters, {
                 [AADServerParamKeys.RETURN_SPA_CODE]: "1",
             });
         }
@@ -483,7 +481,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 request.extraQueryParameters
             );

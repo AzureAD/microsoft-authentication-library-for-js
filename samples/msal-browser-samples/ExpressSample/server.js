@@ -49,6 +49,11 @@ let availableVersions = {
         path: '/lib/msal-browser/msal-browser.min.js',
         description: 'Locally built version from repository'
     },
+    'local-debug': {
+        name: 'Local Build (Debug)',
+        path: '/lib/msal-browser/msal-browser.js',
+        description: 'Locally built debug version from repository'
+    },
     'latest': {
         name: 'Latest',
         path: 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@latest/lib/msal-browser.min.js',

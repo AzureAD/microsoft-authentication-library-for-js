@@ -23,6 +23,7 @@ import {
     validEarJWK,
     getTestAuthenticationResult,
     validEarJWE,
+    testNavUrl,
 } from "../utils/StringConstants.js";
 import {
     ServerError,
@@ -45,10 +46,9 @@ import {
     InProgressPerformanceEvent,
     StubPerformanceClient,
     ProtocolMode,
-    AccessTokenEntity,
     AccountEntityUtils,
     Constants,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
     TemporaryCacheKeys,
@@ -64,10 +64,10 @@ import {
     BrowserAuthError,
     getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
-import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
@@ -1799,7 +1799,9 @@ describe("RedirectClient", () => {
                 authenticationScheme: Constants.AuthenticationScheme.SSH,
             };
 
-            expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
+            await expect(
+                redirectClient.acquireToken(loginRequest)
+            ).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
                 )
@@ -1820,7 +1822,7 @@ describe("RedirectClient", () => {
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
-            expect(redirectClient.acquireToken(request)).rejects.toThrow(
+            await expect(redirectClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshKid
                 )
@@ -2069,6 +2071,89 @@ describe("RedirectClient", () => {
                     expect(initiateAuthRequestSpy).toHaveBeenCalled();
                 });
             });
+        });
+
+        it("executes authorize request as GET when httpMethod is set to GET", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
+                nonce: "",
+                httpMethod: Constants.HttpMethod.GET,
+            };
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const getFlowSpy = jest
+                .spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                .mockImplementation(() => {
+                    return Promise.resolve(testNavUrl);
+                });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(getFlowSpy).toHaveBeenCalled();
+        });
+
+        it("executes authorize request as GET when httpMethod is not explicitly set", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
+                nonce: "",
+            };
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const getFlowSpy = jest
+                .spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                .mockImplementation(() => {
+                    return Promise.resolve(testNavUrl);
+                });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(getFlowSpy).toHaveBeenCalled();
+        });
+
+        it("executes authorize request as POST when httpMethod is set to POST", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
+                nonce: "",
+                httpMethod: Constants.HttpMethod.POST,
+            };
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const postFlowSpy = jest
+                .spyOn(RedirectClient.prototype, "executeCodeFlowWithPost")
+                .mockImplementation(() => {
+                    return Promise.resolve();
+                });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(postFlowSpy).toHaveBeenCalled();
         });
 
         describe("storeInCache tests", () => {
@@ -2482,7 +2567,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({ account: testAccountInfo })
                 );
@@ -2544,7 +2629,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({
                         account: testAccountInfo,
@@ -2634,11 +2719,13 @@ describe("RedirectClient", () => {
 
             await browserStorage.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await browserStorage.setIdTokenCredential(
                 testIdToken,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
 
             pca.setActiveAccount(testAccountInfo);
@@ -2828,7 +2915,7 @@ describe("RedirectClient", () => {
 
                 browserStorage2.setInteractionInProgress(true);
                 browserStorage2
-                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                     .then(() =>
                         redirectClient2
                             .logout({
@@ -2941,7 +3028,7 @@ describe("RedirectClient", () => {
 
                 browserStorage3.setInteractionInProgress(true);
                 browserStorage3
-                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                     .then(() =>
                         redirectClient3
                             .logout({
