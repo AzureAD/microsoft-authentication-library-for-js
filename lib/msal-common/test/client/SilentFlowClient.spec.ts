@@ -12,7 +12,6 @@ import {
     TEST_URIS,
     TEST_TOKENS,
 } from "../test_kit/StringConstants.js";
-import { BaseClient } from "../../src/client/BaseClient.js";
 import {
     AuthenticationScheme,
     CredentialType,
@@ -48,6 +47,7 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import { Logger } from "../../src/logger/Logger.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import * as TokenProtocol from "../../src/protocol/Token.js";
 
 const testAccountEntity: AccountEntity =
     buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
@@ -120,7 +120,6 @@ describe("SilentFlowClient unit tests", () => {
             const client = new SilentFlowClient(config, stubPerformanceClient);
             expect(client).not.toBeNull();
             expect(client instanceof SilentFlowClient).toBe(true);
-            expect(client instanceof BaseClient).toBe(true);
         });
     });
 
@@ -692,8 +691,8 @@ describe("SilentFlowClient unit tests", () => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(
                 MockStorageClass.prototype,

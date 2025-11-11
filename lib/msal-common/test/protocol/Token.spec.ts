@@ -1,10 +1,8 @@
-import { BaseClient } from "../../src/client/BaseClient.js";
+import * as TokenProtocol from "../../src/protocol/Token.js";
 import {
     HeaderNames,
     URL_FORM_CONTENT_TYPE,
 } from "../../src/utils/Constants.js";
-import { ClientTestUtils } from "./ClientTestUtils.js";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     AUTHENTICATION_RESULT,
@@ -12,6 +10,7 @@ import {
     THUMBPRINT,
     THROTTLING_ENTITY,
     RANDOM_TEST_GUID,
+    TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
 import { Authority } from "../../src/authority/Authority.js";
 
@@ -26,69 +25,27 @@ import {
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
 import { StubPerformanceClient } from "../../src/index.js";
-
-class TestClient extends BaseClient {
-    constructor(config: ClientConfiguration) {
-        super(config, new StubPerformanceClient());
-    }
-
-    getLogger() {
-        return this.logger;
-    }
-
-    getConfig() {
-        return this.config;
-    }
-
-    getCryptoUtils() {
-        return this.cryptoUtils;
-    }
-
-    getNetworkClient() {
-        return this.networkClient;
-    }
-
-    getDefaultAuthorityInstance() {
-        return this.authority;
-    }
-
-    createTokenRequestHeaders(): Record<string, string> {
-        return super.createTokenRequestHeaders();
-    }
-}
+import { Logger } from "../../src/logger/Logger.js";
+import {
+    mockCrypto,
+    mockNetworkClient,
+    MockStorageClass,
+} from "../client/ClientTestUtils.js";
+import { CacheManager } from "../../src/cache/CacheManager.js";
 
 describe("BaseClient.ts Class Unit Tests", () => {
-    afterEach(() => {
-        jest.restoreAllMocks();
+    let mockCache: CacheManager;
+    beforeEach(() => {
+        mockCache = new MockStorageClass(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            mockCrypto,
+            new Logger({}),
+            new StubPerformanceClient()
+        );
     });
 
-    describe("Constructor", () => {
-        it("Creates a valid BaseClient object", async () => {
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new TestClient(config);
-            expect(client).not.toBeNull();
-            expect(client instanceof BaseClient).toBe(true);
-        });
-
-        it("Sets fields on BaseClient object", async () => {
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new TestClient(config);
-
-            expect(client.getConfig()).not.toBeNull();
-            expect(client.getCryptoUtils()).not.toBeNull();
-            expect(client.getDefaultAuthorityInstance()).not.toBeNull();
-            expect(client.getNetworkClient()).not.toBeNull();
-        });
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     describe("Header utils", () => {
@@ -100,10 +57,21 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("Creates default token request headers", async () => {
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new TestClient(config);
-            const headers = client.createTokenRequestHeaders();
+            const headers = TokenProtocol.createTokenRequestHeaders(
+                new Logger({}),
+                false
+            );
+
+            expect(headers[HeaderNames.CONTENT_TYPE]).toBe(
+                URL_FORM_CONTENT_TYPE
+            );
+        });
+
+        it("Creates default token request headers", async () => {
+            const headers = TokenProtocol.createTokenRequestHeaders(
+                new Logger({}),
+                true
+            );
 
             expect(headers[HeaderNames.CONTENT_TYPE]).toBe(
                 URL_FORM_CONTENT_TYPE
@@ -113,10 +81,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
 
     describe("sendPostRequest tests", () => {
         it("returns a response", async () => {
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new TestClient(config);
-
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
@@ -125,41 +89,42 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 status: 200,
             };
             const networkStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.networkClient,
-                    "sendPostRequestAsync"
-                )
+                .spyOn(mockNetworkClient, "sendPostRequestAsync")
+                // @ts-ignore
                 .mockResolvedValue(mockRes);
             const getThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
-                    client.cacheManager,
+                    mockCache,
                     "getThrottlingCache"
                 )
                 .mockImplementation();
             const setThrottlingStub = jest
                 .spyOn(
                     // @ts-ignore
-                    client.cacheManager,
+                    mockCache,
                     "setThrottlingCache"
                 )
                 .mockImplementation();
             const removeItemStub = jest
                 .spyOn(
                     // @ts-ignore
-                    client.cacheManager,
+                    mockCache,
                     "removeItem"
                 )
                 .mockImplementation();
             jest.spyOn(Date, "now").mockReturnValue(1);
 
             const res =
-                await client.sendPostRequest<ServerAuthorizationTokenResponse>(
+                await TokenProtocol.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
+                    mockCache,
+                    mockNetworkClient,
+                    new Logger({}),
+                    new StubPerformanceClient()
                 );
 
             expect(networkStub).toHaveBeenCalledTimes(1);
@@ -170,49 +135,34 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("blocks the request if item is found in the cache", async () => {
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new TestClient(config);
-
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockThrottlingEntity = THROTTLING_ENTITY;
             const networkStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.networkClient,
-                    "sendPostRequestAsync"
-                )
+                .spyOn(mockNetworkClient, "sendPostRequestAsync")
+                // @ts-ignore
                 .mockImplementation();
             const getThrottlingStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "getThrottlingCache"
-                )
+                .spyOn(mockCache, "getThrottlingCache")
                 .mockReturnValue(mockThrottlingEntity);
             const setThrottlingStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "setThrottlingCache"
-                )
+                .spyOn(mockCache, "setThrottlingCache")
                 .mockImplementation();
             const removeItemStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "removeItem"
-                )
+                .spyOn(mockCache, "removeItem")
                 .mockImplementation();
             jest.spyOn(Date, "now").mockReturnValue(1);
 
             try {
-                await client.sendPostRequest<ServerAuthorizationTokenResponse>(
+                await TokenProtocol.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
+                    mockCache,
+                    mockNetworkClient,
+                    new Logger({}),
+                    new StubPerformanceClient()
                 );
             } catch {}
 
@@ -222,8 +172,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             expect(removeItemStub).toHaveBeenCalledTimes(0);
             expect(() =>
                 ThrottlingUtils.preProcess(
-                    // @ts-ignore
-                    client.cacheManager,
+                    mockCache,
                     thumbprint,
                     RANDOM_TEST_GUID
                 )
@@ -231,10 +180,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("passes request through if expired item in cache", async () => {
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new TestClient(config);
-
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
@@ -244,41 +189,30 @@ describe("BaseClient.ts Class Unit Tests", () => {
             };
             const mockThrottlingEntity = THROTTLING_ENTITY;
             const networkStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.networkClient,
-                    "sendPostRequestAsync"
-                )
+                .spyOn(mockNetworkClient, "sendPostRequestAsync")
+                // @ts-ignore
                 .mockResolvedValue(mockRes);
             const getThrottlingStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "getThrottlingCache"
-                )
+                .spyOn(mockCache, "getThrottlingCache")
                 .mockReturnValue(mockThrottlingEntity);
             const setThrottlingStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "setThrottlingCache"
-                )
+                .spyOn(mockCache, "setThrottlingCache")
                 .mockImplementation();
             const removeItemStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "removeItem"
-                )
+                .spyOn(mockCache, "removeItem")
                 .mockImplementation();
             jest.spyOn(Date, "now").mockReturnValue(10);
 
             const res =
-                await client.sendPostRequest<ServerAuthorizationTokenResponse>(
+                await TokenProtocol.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
+                    mockCache,
+                    mockNetworkClient,
+                    new Logger({}),
+                    new StubPerformanceClient()
                 );
 
             expect(networkStub).toHaveBeenCalledTimes(1);
@@ -289,10 +223,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("creates cache entry on error", async () => {
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new TestClient(config);
-
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
@@ -301,41 +231,30 @@ describe("BaseClient.ts Class Unit Tests", () => {
                 status: 500,
             };
             const networkStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.networkClient,
-                    "sendPostRequestAsync"
-                )
+                .spyOn(mockNetworkClient, "sendPostRequestAsync")
+                // @ts-ignore
                 .mockResolvedValue(mockRes);
             const getThrottlingStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "getThrottlingCache"
-                )
+                .spyOn(mockCache, "getThrottlingCache")
                 .mockImplementation();
             const setThrottlingStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "setThrottlingCache"
-                )
+                .spyOn(mockCache, "setThrottlingCache")
                 .mockImplementation();
             const removeItemStub = jest
-                .spyOn(
-                    // @ts-ignore
-                    client.cacheManager,
-                    "removeItem"
-                )
+                .spyOn(mockCache, "removeItem")
                 .mockImplementation();
             jest.spyOn(Date, "now").mockReturnValue(1);
 
             const res =
-                await client.sendPostRequest<ServerAuthorizationTokenResponse>(
+                await TokenProtocol.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
+                    mockCache,
+                    mockNetworkClient,
+                    new Logger({}),
+                    new StubPerformanceClient()
                 );
 
             expect(networkStub).toHaveBeenCalledTimes(1);
@@ -349,22 +268,22 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
 
-            const config =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client = new TestClient(config);
-
             jest.spyOn(
-                // @ts-ignore
-                client.networkClient,
+                mockNetworkClient,
                 "sendPostRequestAsync"
+                // @ts-ignore
             ).mockRejectedValue(new Error("Fetch failed"));
 
             try {
-                await client.sendPostRequest<ServerAuthorizationTokenResponse>(
+                await TokenProtocol.sendPostRequest<ServerAuthorizationTokenResponse>(
                     thumbprint,
                     "tokenEndpoint",
                     options,
-                    RANDOM_TEST_GUID
+                    RANDOM_TEST_GUID,
+                    mockCache,
+                    mockNetworkClient,
+                    new Logger({}),
+                    new StubPerformanceClient()
                 );
                 throw new Error("Function did not throw");
             } catch (e) {
