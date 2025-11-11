@@ -68,7 +68,7 @@ MSAL Node supports self-service sign-up in the auth code flow. Please see our do
 
 ### Why doesn't my app function correctly when it's running behind a proxy?
 
-MSAL-Node's HttpClient utilizes NodeJS's native fetch method for network requests, which currently doesn't have native proxy support. Developers can implement their own NetworkManager by instantiating an [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.INetworkModule.html) and building proxy support in it. A sample for this can be found [here](../../../samples/msal-node-samples/custom-INetworkModule-and-network-tracing/README.md).
+MSAL-Node's HttpClient utilizes NodeJS's native fetch API for network requests, which currently doesn't have native proxy support. Developers can implement their own NetworkManager by instantiating an [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.INetworkModule.html) and building proxy support in it. A sample for this can be found [here](../../../samples/msal-node-samples/custom-INetworkModule-and-network-tracing/README.md).
 
 ## B2C
 
