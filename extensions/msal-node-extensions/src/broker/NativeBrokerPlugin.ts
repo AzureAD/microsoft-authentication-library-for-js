@@ -704,16 +704,9 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     );
                     break;
                 default:
-                    wrappedError = msalNodeRuntimeError;
-                    // Clone error to avoid circular reference
-                    const clonedError = new PlatformBrokerError(
-                        ErrorStatus[errorStatus],
-                        errorContext,
-                        errorCode,
-                        errorTag
+                    wrappedError = createClientAuthError(
+                        ClientAuthErrorCodes.platformBrokerError
                     );
-                    wrappedError.platformBrokerError = clonedError;
-                    return wrappedError;
             }
 
             wrappedError.platformBrokerError = msalNodeRuntimeError;

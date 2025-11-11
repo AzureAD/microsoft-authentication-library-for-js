@@ -53,6 +53,7 @@ import {
     AuthenticationScheme,
     TimeUtils,
     PlatformBrokerError,
+    ClientAuthError,
 } from "@azure/msal-common";
 import { randomUUID } from "crypto";
 import {
@@ -92,6 +93,12 @@ if (process.platform === "win32") {
             msalRuntimeExampleError.errorCode,
             msalRuntimeExampleError.errorTag
         );
+
+        // Expected wrapped error for the default case (Unexpected status)
+        const testWrappedBrokerError = createClientAuthError(
+            ClientAuthErrorCodes.platformBrokerError
+        );
+        testWrappedBrokerError.platformBrokerError = testPlatformBrokerError;
 
         const generateCorrelationId = () => {
             return randomUUID();
@@ -179,8 +186,13 @@ if (process.platform === "win32") {
                         testCorrelationId
                     )
                     .catch((error) => {
-                        expect(error).toStrictEqual<PlatformBrokerError>(
-                            testPlatformBrokerError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -221,8 +233,13 @@ if (process.platform === "win32") {
                         testCorrelationId
                     )
                     .catch((error) => {
-                        expect(error).toStrictEqual<PlatformBrokerError>(
-                            testPlatformBrokerError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -277,8 +294,13 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .getAllAccounts(TEST_CLIENT_ID, testCorrelationId)
                     .catch((error) => {
-                        expect(error).toStrictEqual<PlatformBrokerError>(
-                            testPlatformBrokerError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -314,8 +336,13 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .getAllAccounts(TEST_CLIENT_ID, testCorrelationId)
                     .catch((error) => {
-                        expect(error).toStrictEqual<PlatformBrokerError>(
-                            testPlatformBrokerError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -558,8 +585,13 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
                     .catch((error) => {
-                        expect(error).toStrictEqual<PlatformBrokerError>(
-                            testPlatformBrokerError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -586,8 +618,13 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
                     .catch((error) => {
-                        expect(error).toStrictEqual<PlatformBrokerError>(
-                            testPlatformBrokerError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -636,8 +673,11 @@ if (process.platform === "win32") {
                 };
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
-                    .catch((error) => {
-                        expect(error).toStrictEqual<PlatformBrokerError>(
+                    .catch((error: ClientAuthError) => {
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toStrictEqual(
                             testPlatformBrokerError
                         );
                         done();
@@ -1221,7 +1261,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testPlatformBrokerError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if AcquireTokenInteractivelyAsync returns error", async () => {
@@ -1291,7 +1331,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testPlatformBrokerError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if SignInAsync returns error", async () => {
@@ -1336,7 +1376,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testPlatformBrokerError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if AcquireTokenSilentlyAsync returns error", async () => {
@@ -1405,7 +1445,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testPlatformBrokerError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if SignInSilentlyAsync returns error", async () => {
@@ -1452,7 +1492,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testPlatformBrokerError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if MsalRuntime API throws", async () => {
@@ -1474,7 +1514,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testPlatformBrokerError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
@@ -1669,7 +1709,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.signOut(request)
-                ).rejects.toThrowError(testPlatformBrokerError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if SignOutSilentlyAsync API throws", async () => {
@@ -1710,7 +1750,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.signOut(request)
-                ).rejects.toThrowError(testPlatformBrokerError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
         });
 
