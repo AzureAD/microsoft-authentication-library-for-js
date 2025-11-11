@@ -44,8 +44,6 @@ import { CommonSilentFlowRequest } from '@azure/msal-common/node';
 import { Constants } from '@azure/msal-common/node';
 import { CredentialEntity } from '@azure/msal-common/node';
 import { DeviceCodeResponse } from '@azure/msal-common/node';
-import http from 'http';
-import https from 'https';
 import { IAppTokenProvider } from '@azure/msal-common/node';
 import { ICachePlugin } from '@azure/msal-common/node';
 import { ICrypto } from '@azure/msal-common/node';
@@ -443,8 +441,6 @@ export type NodeAuthOptions = {
 export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
-    proxyUrl?: string;
-    customAgentOptions?: http.AgentOptions | https.AgentOptions;
     disableInternalRetries?: boolean;
     protocolMode?: ProtocolMode;
 };
