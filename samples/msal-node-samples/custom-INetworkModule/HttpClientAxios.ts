@@ -11,8 +11,8 @@ import {
 import axios, { AxiosRequestConfig } from "axios";
 
 enum HttpMethod {
-    GET = "get",
-    POST = "post",
+    GET = "GET",
+    POST = "POST",
 }
 
 /**
