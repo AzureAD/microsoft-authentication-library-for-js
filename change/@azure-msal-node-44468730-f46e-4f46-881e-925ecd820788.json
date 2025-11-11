@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Re-wrote HttpClient to use Node's native fetch client.",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
