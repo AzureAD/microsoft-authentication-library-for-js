@@ -39,8 +39,8 @@ const mockPostResponseBody = {
     client_info: "clientInfo",
 };
 
-const createMockResponse = (
-    body: any,
+const createMockResponse = <T>(
+    body: T,
     status: number,
     statusText: string = "OK"
 ): Response => {
@@ -60,12 +60,12 @@ const createMockResponse = (
 };
 
 const createExpectedResponse = <T>(
-    body: any,
+    body: T,
     status: number
 ): NetworkResponse<T> => {
     return {
         headers: headers as Record<string, string>,
-        body: body as T,
+        body: body,
         status,
     };
 };
