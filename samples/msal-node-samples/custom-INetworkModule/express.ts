@@ -50,7 +50,7 @@ app.get("/", async (req, res) => {
         await confidentialClientApplication.acquireTokenByClientCredential(
             request
         );
-    console.log(response);
+    return res.json(response);
 });
 
 app.listen(SERVER_PORT, () =>

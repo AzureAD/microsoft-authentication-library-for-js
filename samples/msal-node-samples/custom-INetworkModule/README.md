@@ -91,4 +91,4 @@ The token returned from Microsoft Entra ID should be immediately displayed in th
 
 http://localhost:3000 must be navigated to in a browser.
 
-The token should then be returned from Microsoft Entra ID and displayed in the terminal.
+The token should then be returned from Microsoft Entra ID and be displayed in the browser.
