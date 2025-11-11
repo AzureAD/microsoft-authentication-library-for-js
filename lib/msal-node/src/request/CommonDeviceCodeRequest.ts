@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    DeviceCodeResponse,
-    BaseAuthRequest,
-} from "@azure/msal-common/node";
+import { DeviceCodeResponse, BaseAuthRequest } from "@azure/msal-common/node";
 
 /**
  * Parameters for Oauth2 device code flow.
