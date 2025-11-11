@@ -6,7 +6,7 @@ MSAL Node v5 no longer provides optional configuration for the HttpClient.
 
 ## Configuration Changes
 
-`proxyUrl` and `customAgentOptions` parameter are no longer configuration options.
+`proxyUrl` and `customAgentOptions` parameters are no longer configuration options.
 
 ```ts
 // BEFORE
