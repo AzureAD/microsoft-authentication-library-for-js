@@ -21,7 +21,6 @@ import {
     BAD_TOKEN_ERROR_RESPONSE,
     RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
-import { BaseClient } from "../../src/client/BaseClient.js";
 import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import {
@@ -61,6 +60,7 @@ import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import * as TokenProtocol from "../../src/protocol/Token.js";
 
 const testAccountEntity: AccountEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -123,7 +123,6 @@ describe("RefreshTokenClient unit tests", () => {
             );
             expect(client).not.toBeNull();
             expect(client instanceof RefreshTokenClient).toBe(true);
-            expect(client instanceof BaseClient).toBe(true);
         });
     });
 
@@ -150,8 +149,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds correlationId to the /token query string", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
@@ -188,8 +187,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds extraQueryParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 expect(url.includes("/token?testParam=testValue")).toBe(true);
@@ -220,8 +219,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).toContain("testParam=testValue");
@@ -253,8 +252,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
@@ -303,8 +302,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Does not overwrite extraQueryParameters with extraParameters when they have the same parameter name", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
@@ -357,8 +356,8 @@ describe("RefreshTokenClient unit tests", () => {
                 stubPerformanceClient
             );
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             await client.acquireToken(refreshTokenRequest);
@@ -477,10 +476,9 @@ describe("RefreshTokenClient unit tests", () => {
         it("Does not add headers that do not qualify for a simple request", (done) => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockImplementation(
-                // @ts-expect-error
                 (
                     tokenEndpoint: string,
                     queryString: string,
@@ -519,8 +517,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("acquires a token", async () => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
@@ -641,8 +639,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds extraQueryParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
@@ -684,8 +682,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).toContain("testParam=testValue");
@@ -717,8 +715,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
@@ -767,8 +765,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Does not overwrite extraQueryParameters with extraParameters when they have the same parameter name", (done) => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 try {
@@ -815,8 +813,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("acquireTokenByRefreshToken refreshes a token", async () => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -849,8 +847,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("acquireTokenByRefreshToken refreshes a POP token", async () => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -883,8 +881,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("acquireTokenByRefreshToken refreshes an SSH Cert", async () => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(SSH_AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -917,8 +915,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("does not add claims if none are provided", async () => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
@@ -1038,8 +1036,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("does not add claims if empty object is provided", async () => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 RefreshTokenClient.prototype,
@@ -1160,8 +1158,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("includes the requestId in the result when received in server response", async () => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
             const client = new RefreshTokenClient(
                 config,
@@ -1189,8 +1187,8 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("does not include the requestId in the result when none in server response", async () => {
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const client = new RefreshTokenClient(
                 config,
@@ -1304,8 +1302,8 @@ describe("RefreshTokenClient unit tests", () => {
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_FOCI);
             jest.spyOn(
                 CacheManager.prototype,
@@ -1665,8 +1663,8 @@ describe("RefreshTokenClient unit tests", () => {
             );
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(BAD_TOKEN_ERROR_RESPONSE);
 
             const serverResponse = BAD_TOKEN_ERROR_RESPONSE.body;
