@@ -15,6 +15,8 @@ Because Azure AD session cookies within an iframe are considered [3rd party cook
 
 Additionally, when 3rd party cookies are disabled in **Chrome**, iframed MSAL apps will not have access to local or session storage. MSAL will fallback to in-memory storage in this case.
 
+**Chrome 142+** enables [Local Network Access Restrictions](https://chromestatus.com/feature/5152728072060928) by default, which can affect `ssoSilent()` when the iframe needs to access authorization servers on local networks (e.g., corporate networks). MSAL includes the `allow="local-network-access *"` iframe attribute to address this restriction. Users may still need to consent to local network access in their browser, but the authentication flow will no longer timeout with `BrowserAuthError: monitor_window_timeout`.
+
 ## Single sign-on
 
 You **can** achieve [single sign-on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso) between iframed and parent apps with the [same-origin](https://developer.mozilla.org/docs/Web/Security/Same-origin_policy) **and** with [cross-origin](https://developer.mozilla.org/docs/Web/Security/Same-origin_policy#cross-origin_script_api_access) **if** you pass an [account hint](./login-user.md#silent-login-with-ssosilent) from the parent app to the iframed app.
