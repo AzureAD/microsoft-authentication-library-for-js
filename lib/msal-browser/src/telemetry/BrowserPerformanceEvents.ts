@@ -139,7 +139,6 @@ export const HandleCodeResponse = "handleCodeResponse";
 export const HandleResponseEar = "handleResponseEar";
 export const HandleResponsePlatformBroker = "handleResponsePlatformBroker";
 export const HandleResponseCode = "handleResponseCode";
-export const UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority";
 
 export const AuthClientAcquireToken = "authClientAcquireToken";
 
