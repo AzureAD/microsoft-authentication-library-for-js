@@ -31,23 +31,24 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 ### Library Version Support Status
 
 
-| Package Name | Current Version | LTS Version | Critical Security Support |
-|--------------|-----------------|-------------|---------------------------|
-| @azure/msal-browser |v5 | v4 | v3, v2 |
-| @azure/msal-node | v5 | v3 | v2, v1 |
-| @azure/msal-react | v5 | v3 | v2, v1 |
-| @azure/msal-angular | v5 | v4 | v3, v2, v1 |
-| @azure/msal-node-extensions | v5 | v1 | - |
-| ~~@azure/msal (msal-core)~~|  | Fully Deprecated  |  |
-| ~~@azure/msal-angularjs~~ |  | Fully Deprecated  |  |
+| Package Name | Current Version | LTS Version | 
+|--------------|-----------------|-------------|
+| @azure/msal-browser |v5 | v4 |
+| @azure/msal-node | v5 | v3 | 
+| @azure/msal-react | v5 | v3 | 
+| @azure/msal-angular | v5 | v4 |
+| @azure/msal-node-extensions | v5 | v1 |
+| ~~@azure/msal (msal-core)~~|  | Fully Deprecated  |
+| ~~@azure/msal-angularjs~~ |  | Fully Deprecated  |
 
 **Disambiguation:**
 - The MSAL team provides full support to the current version for each package in the table below.
 - LTS (long-term support) versions will still receive support and bug-fixes but will not ship new features.
-- Versions in Critical Security Support will only receive fixes for critical security bugs.
 - All supported packages were brought up to version parity as of `v5`. Packages with versions lower than `v4` in the LTS column skipped as many versions as required to jump directly to `v5`.
 
-> :warning: The `@azure/msal-browser` CDN has been fully deprecated as of `@azure/msal-browser@3.0.0` and is no longer supported. App developers using the MSAL CDN must upgrade to the latest possible version and consume MSAL through a package manager or bundling tool of their choice. For more information on version support, conslut the table in the project [README.md](../../README.md#library-version-support-status).
+#### MSAL Browser CDN Deprecation
+
+> :warning: The `@azure/msal-browser` CDN has been fully deprecated as of `@azure/msal-browser@3.0.0` and is no longer supported. App developers using the MSAL CDN must upgrade to the latest possible version and consume MSAL through a package manager or bundling tool of their choice. For more information on version support, consult the table above.
 
 
 ### Package Structure

@@ -49,7 +49,7 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 
 ### CDN Deprecation
 
-> :warning: The `@azure/msal-browser` CDN has been fully deprecated as of `@azure/msal-browser@3.0.0` and is no longer supported. App developers using the MSAL CDN must upgrade to the latest possible version and consume MSAL through a package manager or bundling tool of their choice. For more information on version support, conslut the table in the project [README.md](../../README.md#library-version-support-status).
+> :warning: The `@azure/msal-browser` CDN has been fully deprecated as of `@azure/msal-browser@3.0.0` and is no longer supported. App developers using the MSAL CDN must upgrade to the latest possible version and consume MSAL through a package manager or bundling tool of their choice. For more information on version support, consult the table in the project [README.md](../../README.md#library-version-support-status).
 
 ### Via NPM
 
