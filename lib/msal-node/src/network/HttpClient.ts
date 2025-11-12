@@ -107,7 +107,7 @@ export class HttpClient implements INetworkModule {
         }
 
         const fetchOptions: RequestInit = {
-            method: method.toUpperCase(),
+            method: method,
             headers: getFetchHeaders(options),
             signal: controller.signal, // Enable cancellation via AbortController
         };
