@@ -1,12 +1,8 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 11 Nov 2025 23:19:44 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 06 Nov 2025 00:32:05 GMT and should not be manually modified. -->
 
 <!-- Start content -->
-
-## 4.26.1
-
-Tue, 11 Nov 2025 23:19:44 GMT
 
 ## 4.26.1
 
