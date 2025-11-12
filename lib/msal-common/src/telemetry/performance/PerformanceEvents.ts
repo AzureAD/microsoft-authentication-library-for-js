@@ -55,6 +55,7 @@ export const HandleCodeResponseFromServer = "handleCodeResponseFromServer";
 export const AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest";
 export const AuthClientCreateTokenRequestBody =
     "authClientCreateTokenRequestBody";
+export const UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority";
 
 /**
  * Generate functions in PopTokenGenerator (msal-common)

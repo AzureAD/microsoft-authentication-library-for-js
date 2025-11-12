@@ -8,15 +8,14 @@ import {
     AccountEntity,
     Constants,
     AuthToken,
-    BaseClient,
     CacheManager,
     ClientConfiguration,
     AccountEntityUtils,
     IdTokenEntity,
     ScopeSet,
     TimeUtils,
+    AuthenticationResult,
 } from "@azure/msal-common";
-import { AuthenticationResult, OnBehalfOfClient } from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT,
     CAE_CONSTANTS,
@@ -33,6 +32,8 @@ import {
 import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest.js";
+import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
 
 describe("OnBehalfOf unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
