@@ -53,7 +53,7 @@ export class HttpClientAxios implements INetworkModule {
             // proxy: proxy,
         };
 
-        const response: AxiosResponse<T> = await axios(request);
+        const response: AxiosResponse = await axios(request);
         return {
             headers: response.headers as Record<string, string>,
             body: response.data as T,
@@ -79,7 +79,7 @@ export class HttpClientAxios implements INetworkModule {
             // proxy: proxy,
         };
 
-        const response: AxiosResponse<T> = await axios(request);
+        const response: AxiosResponse = await axios(request);
         return {
             headers: response.headers as Record<string, string>,
             body: response.data as T,
