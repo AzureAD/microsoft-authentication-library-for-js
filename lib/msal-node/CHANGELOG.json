@@ -2,6 +2,33 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 11 Nov 2025 23:19:44 GMT",
+      "version": "3.8.2",
+      "tag": "@azure/msal-node_v3.8.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0d0c13972fc03345b4b474725f955877d2e95fe5",
+            "comment": "Added logging to HttpClient (#8101)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 29 Oct 2025 00:04:33 GMT",
       "version": "3.8.1",
       "tag": "@azure/msal-node_v3.8.1",

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Added logging to HttpClient (#8101)",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
