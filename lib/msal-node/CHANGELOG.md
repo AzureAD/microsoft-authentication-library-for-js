@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 29 Oct 2025 00:04:33 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 11 Nov 2025 23:19:44 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.8.2
+
+Tue, 11 Nov 2025 23:19:44 GMT
+
+### Patches
+
+- Added logging to HttpClient (#8101) (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.8.1
 
