@@ -1,4 +1,8 @@
-# Migrating from MSAL Node v4 to v5
+# Migrating from MSAL Node v3 to v5 (v4 is being skipped)
+
+## Dropped support for Node 16 and 18
+
+MSAL Node v4 no longer supports Node.js 16 or 18; you must use Node.js 20 or greater.
 
 ## Dropped support for `proxyUrl` and `customAgentOptions`
 
@@ -31,3 +35,37 @@ NodeSystemOptions = {
 ```
 
 Developers must now write their own custom HttpClient when proxy support is needed. We have an [existing sample](../../../samples/msal-node-samples/custom-INetworkModule-and-network-tracing/README.md) which showcases how to do this.
+
+The `protocolMode` parameter is no longer an auth config option and is instead a system config option.
+
+```ts
+// BEFORE
+
+const msalConfig = {
+    auth: {
+        clientId: "your_client_id",
+        authority: "https://login.live.com",
+        protocolMode: "OIDC",
+    },
+};
+
+// AFTER
+
+const msalConfig = {
+    auth: {
+        clientId: "your_client_id",
+        authority: "https://login.live.com",
+    },
+    system: {
+        protocolMode: "OIDC",
+    },
+};
+```
+
+The `skipAuthorityMetadataFlag` parameter has been removed and applications will not use the local metadata cache during authority initialization.
+
+The `encodeExtraQueryParams` parameter has been removed and all extra query parameters are automatically encoded.
+
+## `fromNativeBroker` field is now called `fromPlatformBroker`
+
+In the `AuthenticationResult` object, the `fromNativeBroker` field has been renamed to `fromPlatformBroker`.
