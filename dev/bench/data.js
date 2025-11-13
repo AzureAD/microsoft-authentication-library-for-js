@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1762993004977,
+  "lastUpdate": 1763069455132,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -18603,6 +18603,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.96%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "137432604+Ugonnaak1@users.noreply.github.com",
+            "name": "Ugonna Akali",
+            "username": "Ugonnaak1"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3c83743c458d8c49f7421fb232eca77ea4a2a7d2",
+          "message": "Handle MsalRuntime Error Surfacing  (#8120)\n\nAimed to solve the problem discussed\n[here:](https://identitydivision.visualstudio.com/DevEx/_git/AuthLibrariesApiReview/pullrequest/20409?path=/MSALJS/%5Bmsal-node%5D%20MsalRuntime/Surface_MsalRuntime_Errors.md)\nSolution 5 implementation",
+          "timestamp": "2025-11-13T13:24:18-08:00",
+          "tree_id": "32c0065af8970f35a8f83dc6acd2954b1201d484",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3c83743c458d8c49f7421fb232eca77ea4a2a7d2"
+        },
+        "date": 1763069452265,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252228,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 251147,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
