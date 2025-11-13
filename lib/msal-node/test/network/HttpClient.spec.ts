@@ -4,7 +4,13 @@
  */
 
 import { HttpClient } from "../../src/network/HttpClient.js";
-import { NetworkResponse, NetworkRequestOptions } from "@azure/msal-common";
+import {
+    AuthError,
+    ClientAuthErrorCodes,
+    NetworkError,
+    NetworkRequestOptions,
+    NetworkResponse,
+} from "@azure/msal-common";
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -151,17 +157,36 @@ describe("HttpClient", () => {
                 })
             );
 
-            await expect(
-                httpClient.sendGetRequestAsync(url, undefined, 100)
-            ).rejects.toThrow("Request timeout");
+            try {
+                await httpClient.sendGetRequestAsync(url, undefined, 100);
+                fail("Expected timeout error to be thrown");
+            } catch (error) {
+                expect(error).toBeInstanceOf(AuthError);
+                expect((error as AuthError).errorCode).toBe(
+                    ClientAuthErrorCodes.networkError
+                );
+                expect((error as AuthError).errorMessage).toBe(
+                    "Request timeout"
+                );
+            }
         });
 
         test("GET request network error", async () => {
             mockFetch.mockRejectedValueOnce(new Error("Network failure"));
 
-            await expect(httpClient.sendGetRequestAsync(url)).rejects.toThrow(
-                "Network request failed: Network failure"
-            );
+            try {
+                await httpClient.sendGetRequestAsync(url);
+                fail("Expected network error to be thrown");
+            } catch (error) {
+                expect(error).toBeInstanceOf(NetworkError);
+                expect((error as NetworkError).error).toBeInstanceOf(AuthError);
+                expect((error as NetworkError).error.errorCode).toBe(
+                    ClientAuthErrorCodes.networkError
+                );
+                expect((error as NetworkError).error.errorMessage).toBe(
+                    "Network request failed: Network failure, additionalErrorInfo: error.name:Error, error.message:Network failure"
+                );
+            }
         });
 
         test("GET request with 400 client error", async () => {
@@ -207,9 +232,18 @@ describe("HttpClient", () => {
 
             mockFetch.mockResolvedValueOnce(mockResponse);
 
-            await expect(httpClient.sendGetRequestAsync(url)).rejects.toThrow(
-                "Failed to parse response: Invalid JSON"
-            );
+            try {
+                await httpClient.sendGetRequestAsync(url);
+                fail("Expected JSON parsing error to be thrown");
+            } catch (error) {
+                expect(error).toBeInstanceOf(AuthError);
+                expect((error as AuthError).errorCode).toBe(
+                    ClientAuthErrorCodes.tokenParsingError
+                );
+                expect((error as AuthError).errorMessage).toBe(
+                    "Failed to parse response: Invalid JSON"
+                );
+            }
         });
     });
 
@@ -263,9 +297,50 @@ describe("HttpClient", () => {
         test("POST request network error", async () => {
             mockFetch.mockRejectedValueOnce(new Error("Network failure"));
 
-            await expect(
-                httpClient.sendPostRequestAsync(url, postNetworkRequestOptions)
-            ).rejects.toThrow("Network request failed: Network failure");
+            try {
+                await httpClient.sendPostRequestAsync(
+                    url,
+                    postNetworkRequestOptions
+                );
+                fail("Expected network error to be thrown");
+            } catch (error) {
+                expect(error).toBeInstanceOf(NetworkError);
+                expect((error as NetworkError).error).toBeInstanceOf(AuthError);
+                expect((error as NetworkError).error.errorCode).toBe(
+                    ClientAuthErrorCodes.networkError
+                );
+                expect((error as NetworkError).error.errorMessage).toBe(
+                    "Network request failed: Network failure, additionalErrorInfo: error.name:Error, error.message:Network failure"
+                );
+            }
+        });
+
+        test("POST request JSON parsing error", async () => {
+            const mockResponse = {
+                status: 200,
+                statusText: "OK",
+                headers: new Headers(),
+                json: jest.fn().mockRejectedValue(new Error("Invalid JSON")),
+                text: jest.fn().mockResolvedValue("invalid json"),
+            } as unknown as Response;
+
+            mockFetch.mockResolvedValueOnce(mockResponse);
+
+            try {
+                await httpClient.sendPostRequestAsync(
+                    url,
+                    postNetworkRequestOptions
+                );
+                fail("Expected JSON parsing error to be thrown");
+            } catch (error) {
+                expect(error).toBeInstanceOf(AuthError);
+                expect((error as AuthError).errorCode).toBe(
+                    ClientAuthErrorCodes.tokenParsingError
+                );
+                expect((error as AuthError).errorMessage).toBe(
+                    "Failed to parse response: Invalid JSON"
+                );
+            }
         });
 
         test("POST request with 400 client error", async () => {

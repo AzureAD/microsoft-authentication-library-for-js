@@ -4,9 +4,13 @@
  */
 
 import {
+    AuthError,
+    ClientAuthErrorCodes,
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
+    createAuthError,
+    createNetworkError,
 } from "@azure/msal-common/node";
 import { HttpMethod } from "../utils/Constants.js";
 
@@ -30,7 +34,8 @@ export class HttpClient implements INetworkModule {
      * @param timeout - Optional timeout in milliseconds. If specified, the request
      *                  will be aborted if it doesn't complete within this time
      * @returns Promise that resolves to a NetworkResponse containing headers, body, and status
-     * @throws {Error} When the request fails, times out, or response parsing fails
+     * @throws {AuthError} When the request times out or response parsing fails
+     * @throws {NetworkError} When the network request fails
      */
     async sendGetRequestAsync<T>(
         url: string,
@@ -50,7 +55,8 @@ export class HttpClient implements INetworkModule {
      * @param url - The target URL for the POST request
      * @param options - Optional request configuration including headers and body
      * @returns Promise that resolves to a NetworkResponse containing headers, body, and status
-     * @throws {Error} When the request fails or response parsing fails
+     * @throws {AuthError} When the request times out or response parsing fails
+     * @throws {NetworkError} When the network request fails
      */
     async sendPostRequestAsync<T>(
         url: string,
@@ -80,7 +86,8 @@ export class HttpClient implements INetworkModule {
      * @param options - Optional request configuration (headers, body)
      * @param timeout - Optional timeout in milliseconds for request cancellation
      * @returns Promise resolving to NetworkResponse with parsed JSON body
-     * @throws {Error} For network failures, timeouts, or JSON parsing errors
+     * @throws {AuthError} For timeouts or JSON parsing errors
+     * @throws {NetworkError} For network failures
      */
     private async sendRequest<T>(
         url: string,
@@ -126,13 +133,23 @@ export class HttpClient implements INetworkModule {
             }
 
             if (error instanceof Error && error.name === "AbortError") {
-                throw new Error("Request timeout");
+                throw createAuthError(
+                    ClientAuthErrorCodes.networkError,
+                    "Request timeout"
+                );
             }
 
-            throw new Error(
+            const baseAuthError: AuthError = createAuthError(
+                ClientAuthErrorCodes.networkError,
                 `Network request failed: ${
-                    error instanceof Error ? error.message : String(error)
+                    error instanceof Error ? error.message : "unknown"
                 }`
+            );
+            throw createNetworkError(
+                baseAuthError,
+                undefined,
+                undefined,
+                error instanceof Error ? error : undefined
             );
         }
 
@@ -148,9 +165,10 @@ export class HttpClient implements INetworkModule {
                 status: response.status,
             };
         } catch (error) {
-            throw new Error(
+            throw createAuthError(
+                ClientAuthErrorCodes.tokenParsingError,
                 `Failed to parse response: ${
-                    error instanceof Error ? error.message : String(error)
+                    error instanceof Error ? error.message : "unknown"
                 }`
             );
         }
