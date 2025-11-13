@@ -598,6 +598,7 @@ export class AuthError extends Error {
     correlationId: string;
     errorCode: string;
     errorMessage: string;
+    platformBrokerError?: PlatformBrokerError;
     // (undocumented)
     setCorrelationId(correlationId: string): void;
     subError: string;
@@ -1448,7 +1449,8 @@ declare namespace ClientAuthErrorCodes {
         userCanceled,
         missingTenantIdError,
         methodNotImplemented,
-        nestedAppAuthBridgeDisabled
+        nestedAppAuthBridgeDisabled,
+        platformBrokerError
     }
 }
 export { ClientAuthErrorCodes }
@@ -1626,6 +1628,10 @@ export const ClientAuthErrorMessage: {
         desc: string;
     };
     nestedAppAuthBridgeDisabled: {
+        code: string;
+        desc: string;
+    };
+    platformBrokerError: {
         code: string;
         desc: string;
     };
@@ -3661,6 +3667,20 @@ export type PkceCodes = {
 //
 // @public (undocumented)
 const pkceParamsMissing = "pkce_params_missing";
+
+// Warning: (ae-missing-release-tag) "PlatformBrokerError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export class PlatformBrokerError extends AuthError {
+    constructor(errorStatus: string, errorContext: string, errorCode: number, errorTag: number);
+    statusCode: number;
+    tag: string;
+}
+
+// Warning: (ae-missing-release-tag) "platformBrokerError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const platformBrokerError = "platform_broker_error";
 
 // Warning: (ae-internal-missing-underscore) The name "PopTokenGenerator" should be prefixed with an underscore because the declaration is marked as @internal
 //
