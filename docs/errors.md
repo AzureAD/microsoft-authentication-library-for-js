@@ -172,6 +172,9 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   The nested app auth bridge is disabled.
 
+### `platform_broker_error`
+-   An error occurred in the native broker. See the platformBrokerError property for details.
+
 ## Client configuration errors
 
 ### `redirect_uri_empty`
