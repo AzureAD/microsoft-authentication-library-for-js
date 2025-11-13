@@ -348,6 +348,13 @@ app.get('/logout', (req, res) => {
     });
 });
 
+app.get('/playground', (req, res) => {
+    res.render('playground', {
+        title: 'MSAL Express Sample - Playground',
+        envConfig: getEnvConfigWithVersion()
+    });
+});
+
 // API endpoints for SPA routing
 app.get('/api/content/home', (req, res) => {
     res.render('partials/home-content', {
@@ -365,6 +372,13 @@ app.get('/api/content/profile', (req, res) => {
 
 app.get('/api/content/logout', (req, res) => {
     res.render('logout', {
+        layout: false,  // Don't use main layout for partial content
+        envConfig: getEnvConfigWithVersion()
+    });
+});
+
+app.get('/api/content/playground', (req, res) => {
+    res.render('partials/playground-content', {
         layout: false,  // Don't use main layout for partial content
         envConfig: getEnvConfigWithVersion()
     });
