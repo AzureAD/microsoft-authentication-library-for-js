@@ -1,6 +1,8 @@
-# MSAL Node Standalone Sample: Custom INetworkModule Implementation
+# MSAL Node Standalone Sample: Custom INetworkModule Implementation and Network Tracing Via "Fiddler Everywhere"
 
-This sample demonstrates how to implement a custom [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.INetworkModule.html) that makes it simple for developers to debug network errors and write custom proxy support. There are two ways to run the sample: one is "as-is" in app.ts, the other is via an express server in express.ts.
+This sample demonstrates how to implement a custom [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.INetworkModule.html) that makes it simple for developers to debug network errors and write custom proxy support. There are two ways to run the sample: one is "as-is" in `app.ts`, the other is via an express server in `express.ts`. Additionally, instructions are provided on how to use [Fiddler Everywhere](https://www.telerik.com/fiddler/fiddler-everywhere) to perform a network trace of the application.
+
+Fiddler Everywhere is not supported on all operating systems. [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic) is a free Windows-only version of Fiddler Everywhere. It's important to note that Microsoft Entra ID no longer supports TLS 1.0, which is the default TLS version in Fiddler Classic. The TLS version can be configured via navigating to Tools > Options > HTTPS, then set TLS to 1.2.
 
 ## Note
 
@@ -29,7 +31,7 @@ In a terminal, navigate to the directory where `package.json` resides. Then type
     - Select one of the available key durations (6 months, 12 months or Custom).
     - The generated key value will be displayed when the **Add** button is selected. Copy and save the generated value for use in later steps.
 
-Before running the sample, the values in the configuration object in app.ts or express.ts will need to be replaced:
+Before running the sample, the values in the configuration object in `app.ts` or `express.ts` will need to be replaced:
 
 ```javascript
 const config = {
@@ -46,8 +48,15 @@ const config = {
 
 There are two approaches to implementing a custom INetworkModule in this sample.
 
-2. A custom INetworkModule that uses Axios for network requests resides in HttpClientAxios.ts and can be imported to app.ts or express.ts. HttpClientAxios.ts can be edited to include console.log()'s to see how network traffic is processed. `NOTE: Axios does not support proxy functionality. Therefore, neither does HttpClientAxios. Proxy support must be written by the developer.`
-3. A custom INetworkModule can be implemeted inline in the system configuration. Stubs to mock the default implementation of INetworkModule have been provided.
+1. A custom INetworkModule that uses Axios for network requests resides in `HttpClientAxios.ts` and is imported to `app.ts` and `express.ts`. `HttpClientAxios.ts` can be edited to include console.log()'s to see how network traffic is processed. Axios provides basic proxy functionality. This functionality is used in this sample to enable network tracing in Fiddler Everywhere.
+2. A custom INetworkModule can be implemeted inline in the system configuration. Stubs to mock the default implementation of INetworkModule have been provided.
+
+## Use Fiddler Everywhere to perform a network trace
+
+Fiddler acts as a proxy and monitors all traffic on a local network
+
+1. Download and install [Fiddler Everywhere](https://www.telerik.com/download/fiddler-everywhere)
+2. In `HttpClientAxios.ts`, uncomment the proxy lines - this tells Axios (and therefore the sample app) to route all traffic through the proxy that Fiddler Everywhere operates on (the port can be configured in the settings of Fiddler Everywhere)
 
 ## Run the app
 
@@ -92,3 +101,7 @@ The token returned from Microsoft Entra ID should be immediately displayed in th
 http://localhost:3000 must be navigated to in a browser.
 
 The token should then be returned from Microsoft Entra ID and be displayed in the browser.
+
+## Fiddler Everywhere
+
+If Fiddler Everywhere was downloaded and installed, and the proxy lines were uncommented: the network requests will be displayed inside of Fiddler Everywhere.
