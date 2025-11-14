@@ -4,10 +4,11 @@
  */
 
 import {
+    buildClientConfiguration,
     ClientConfiguration,
+    CommonClientConfiguration,
     isOidcProtocolMode,
 } from "../config/ClientConfiguration.js";
-import { BaseClient } from "./BaseClient.js";
 import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest.js";
 import { Authority } from "../authority/Authority.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
@@ -45,6 +46,17 @@ import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
+import {
+    createTokenQueryParameters,
+    createTokenRequestHeaders,
+    executePostToTokenEndpoint,
+} from "../protocol/Token.js";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { INetworkModule } from "../network/INetworkModule.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { Logger } from "../logger/Logger.js";
+import { version, name } from "../packageMetadata.js";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 
@@ -52,12 +64,58 @@ const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
  * OAuth2.0 refresh token client
  * @internal
  */
-export class RefreshTokenClient extends BaseClient {
+export class RefreshTokenClient {
+    // Logger object
+    public logger: Logger;
+
+    // Application config
+    protected config: CommonClientConfiguration;
+
+    // Crypto Interface
+    protected cryptoUtils: ICrypto;
+
+    // Storage Interface
+    protected cacheManager: CacheManager;
+
+    // Network Interface
+    protected networkClient: INetworkModule;
+
+    // Server Telemetry Manager
+    protected serverTelemetryManager: ServerTelemetryManager | null;
+
+    // Default authority object
+    public authority: Authority;
+
+    // Performance telemetry client
+    protected performanceClient: IPerformanceClient;
+
     constructor(
         configuration: ClientConfiguration,
         performanceClient: IPerformanceClient
     ) {
-        super(configuration, performanceClient);
+        // Set the configuration
+        this.config = buildClientConfiguration(configuration);
+
+        // Initialize the logger
+        this.logger = new Logger(this.config.loggerOptions, name, version);
+
+        // Initialize crypto
+        this.cryptoUtils = this.config.cryptoInterface;
+
+        // Initialize storage interface
+        this.cacheManager = this.config.storageInterface;
+
+        // Set the network interface
+        this.networkClient = this.config.networkInterface;
+
+        // Set TelemetryManager
+        this.serverTelemetryManager = this.config.serverTelemetryManager;
+
+        // set Authority
+        this.authority = this.config.authOptions.authority;
+
+        // set performance telemetry client
+        this.performanceClient = performanceClient;
     }
     public async acquireToken(
         request: CommonRefreshTokenRequest
@@ -274,7 +332,12 @@ export class RefreshTokenClient extends BaseClient {
         request: CommonRefreshTokenRequest,
         authority: Authority
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const queryParametersString = this.createTokenQueryParameters(request);
+        const queryParametersString = createTokenQueryParameters(
+            request,
+            this.config.authOptions.clientId,
+            this.config.authOptions.redirectUri,
+            this.performanceClient
+        );
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
             queryParametersString
@@ -287,7 +350,9 @@ export class RefreshTokenClient extends BaseClient {
             this.performanceClient,
             request.correlationId
         )(request);
-        const headers: Record<string, string> = this.createTokenRequestHeaders(
+        const headers: Record<string, string> = createTokenRequestHeaders(
+            this.logger,
+            this.config.systemOptions.preventCorsPreflight,
             request.ccsCredential
         );
 
@@ -297,12 +362,23 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         return invokeAsync(
-            this.executePostToTokenEndpoint.bind(this),
+            executePostToTokenEndpoint,
             PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint,
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
+        )(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint,
+            request.correlationId,
+            this.cacheManager,
+            this.networkClient,
+            this.logger,
+            this.performanceClient,
+            this.serverTelemetryManager
+        );
     }
 
     /**
