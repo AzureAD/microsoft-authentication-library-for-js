@@ -1,6 +1,6 @@
 {
   "type": "major",
-  "comment": "Remove extraQueryParameters and extraParameters fields from Request types (#8136)",
+  "comment": "Remove extraQueryParameters and extraParameters fields from Request types [#8136](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8136)",
   "packageName": "@azure/msal-node",
   "email": "avdunn@microsoft.com",
   "dependentChangeType": "patch"
