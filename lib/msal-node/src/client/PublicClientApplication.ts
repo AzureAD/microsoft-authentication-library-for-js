@@ -261,6 +261,8 @@ export class PublicClientApplication
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
+                    ...request.extraQueryParameters,
+                    ...request.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: request.account.nativeAccountId,

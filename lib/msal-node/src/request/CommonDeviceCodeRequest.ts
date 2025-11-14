@@ -22,8 +22,7 @@ import {
  * - extraQueryParameters       - String to string map of custom query parameters added to outgoing token service requests
  * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests
  */
-export type CommonDeviceCodeRequest = 
-BaseAuthRequest & {
+export type CommonDeviceCodeRequest = BaseAuthRequest & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
     timeout?: number;

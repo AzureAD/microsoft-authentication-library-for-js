@@ -182,6 +182,13 @@ export class DeviceCodeClient extends BaseClient {
             this.config.authOptions.clientId
         );
 
+        if (request.extraQueryParameters) {
+            RequestParameterBuilder.addExtraParameters(
+                parameters,
+                request.extraQueryParameters
+            );
+        }
+
         if (
             request.claims ||
             (this.config.authOptions.clientCapabilities &&
