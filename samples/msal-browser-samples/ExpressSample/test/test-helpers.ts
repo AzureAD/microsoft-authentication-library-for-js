@@ -89,6 +89,21 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
     await screenshot.takeScreenshot(page, `${version} version selected`);
 }
 
+export async function setPCAConfiguration(config: object, page: puppeteer.Page, screenshot: Screenshot) {
+    await screenshot.takeScreenshot(page, "Filling in PCA config");
+    await page.locator("textarea#msalConfig").fill(JSON.stringify(config));
+    await screenshot.takeScreenshot(page, "Config filled");
+    await page.locator("button#applyConfig").click();
+}
+
+export async function setRequestConfiguration(request: object, page: puppeteer.Page, screenshot: Screenshot) {
+    // Set a longer timeout for the fill operation
+    await screenshot.takeScreenshot(page, "Filling in request config");
+    await page.locator("textarea#tokenRequest").fill(JSON.stringify(request));
+    await screenshot.takeScreenshot(page, "Request filled");
+    await page.locator("button#applyConfig").click();
+}
+
 /**
  * Sign a user in
  * @param page 
@@ -112,4 +127,47 @@ export async function signIn(
     !ssoExpected && await enterCredentials(page, screenshot, username, accountPwd);
     await page.locator("a#viewProfileButton").waitHandle();
     await screenshot.takeScreenshot(page, "Logged In");
+}
+
+/**
+ * Sign in with a popup on the playground page
+ * @param page 
+ * @param screenshot 
+ * @param username 
+ * @param accountPwd 
+ */
+export async function signInPopup(
+    page: puppeteer.Page, 
+    screenshot: Screenshot, 
+    username: string, 
+    accountPwd: string
+) {
+    const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
+        page.once("popup", resolve)
+    );
+    await page.locator("button#btnAcquireTokenPopup").click();
+    const popupPage = await newPopupWindowPromise;
+    if (!popupPage) {
+        throw new Error('Popup window was not opened');
+    }
+    const popupWindowClosed = new Promise<void>((resolve) =>
+        popupPage.once("close", resolve)
+    );
+    await enterCredentials(popupPage, screenshot, username, accountPwd);
+    await popupWindowClosed;
+}
+
+export const defaultTokenRequest = {
+    scopes: ["User.Read"]
+}
+
+export const defaultPcaConfig = {
+    auth: {
+        clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
+        authority: "https://login.microsoftonline.com/common",
+        redirectUri: "/"
+    },
+    cache: {
+        cacheLocation: "localStorage"
+    }
 }

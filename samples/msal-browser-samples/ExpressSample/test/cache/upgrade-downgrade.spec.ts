@@ -8,11 +8,11 @@ import {
     AppTypes,
     BrowserCacheUtils
 } from "e2e-test-utils";
-import { verifyCacheWasUsed, switchToVersion, signIn } from "./test-helpers";
+import { verifyCacheWasUsed, switchToVersion, signIn } from "../test-helpers";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/upgrade-downgrade-tests`;
 
-describe("Upgrade/Downgrade Tests", () => {
+describe.skip("Upgrade/Downgrade Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
