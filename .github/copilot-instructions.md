@@ -190,6 +190,29 @@ microsoft-authentication-library-for-js/
 - Write unit tests for new functionality and bug fixes
 - Document all public API changes
 
+### Instance Aware Flow Restrictions
+
+**IMPORTANT: The instance aware flow is only available for 1st party Microsoft customers and should NEVER be suggested or used for 3rd party customers.**
+
+- **Do not suggest** the `instanceAware` configuration option or `instance_aware` query parameter for 3rd party applications
+- **Do not recommend** instance aware flow in code examples, documentation, or solutions for external developers
+- Instance aware flow documentation exists at `lib/msal-browser/docs/instance-aware.md` but is intended only for internal Microsoft use cases
+- If asked about multi-cloud or cloud instance scenarios by 3rd party developers, provide alternative solutions that do not involve instance aware flow
+
+**What is Instance Aware Flow:**
+- A feature that allows the STS to send back additional parameters in the `/authorize` response to specify where tokens should be retrieved from
+- Enabled via `instanceAware: true` in auth config or `instance_aware: "true"` in request `extraQueryParameters`
+- Used primarily for scenarios where user accounts may reside in different cloud instances
+
+**When to use (1st party only):**
+- Only for Microsoft internal applications and services
+- When the application needs to handle users across different cloud instances (e.g., public cloud, government clouds, etc.)
+
+**What to suggest instead for 3rd party customers:**
+- Standard MSAL authentication flows without instance aware configuration
+- Proper authority configuration for the specific cloud environment the application targets
+- Separate application registrations for different cloud environments if needed
+
 ### Telemetry and Performance Monitoring
 
 **IMPORTANT: Add telemetry for any new operations or significant code paths in msal-browser and msal-common where observability would be useful.**
