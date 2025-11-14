@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeResponse, BaseAuthRequest } from "@azure/msal-common/node";
+import {
+    DeviceCodeResponse,
+    StringDict,
+    BaseAuthRequest,
+} from "@azure/msal-common/node";
 
 /**
  * Parameters for Oauth2 device code flow.
@@ -18,11 +22,10 @@ import { DeviceCodeResponse, BaseAuthRequest } from "@azure/msal-common/node";
  * - extraQueryParameters       - String to string map of custom query parameters added to outgoing token service requests
  * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests
  */
-export type CommonDeviceCodeRequest = Omit<
-    BaseAuthRequest,
-    "extraQueryParameters" | "extraParameters"
-> & {
+export type CommonDeviceCodeRequest = 
+BaseAuthRequest & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
     timeout?: number;
+    extraQueryParameters?: StringDict;
 };

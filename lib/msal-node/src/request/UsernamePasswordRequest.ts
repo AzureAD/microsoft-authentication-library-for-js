@@ -14,6 +14,8 @@ import { CommonUsernamePasswordRequest } from "./CommonUsernamePasswordRequest.j
  * - authority              - Url of the authority which the application acquires tokens from.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - username               - username of the client
+ * - extraQueryParameters   - String to string map of custom query parameters added to outgoing token service requests
+ * - extraParameters        - String to string map of custom query parameters added to outgoing token service requests
  * - password               - credentials
  * @public
  */

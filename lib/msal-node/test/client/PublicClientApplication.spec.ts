@@ -559,6 +559,77 @@ describe("PublicClientApplication", () => {
                 testAccessTokenEntity.clientId
             );
         });
+
+        it("Adds extraQueryParameters to the /token request", (done) => {
+            AUTHENTICATION_RESULT.body.client_info =
+                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            )
+                // @ts-expect-error
+                .mockImplementation((url: string) => {
+                    try {
+                        expect(
+                            url.includes(
+                                "/token?testParam1=testValue1&testParam3=testValue3"
+                            )
+                        ).toBeTruthy();
+                        expect(
+                            !url.includes("/token?testParam2=")
+                        ).toBeTruthy();
+                        done();
+                        return AUTHENTICATION_RESULT;
+                    } catch (error) {
+                        done(error);
+                        return error;
+                    }
+                });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            testAccessTokenEntity.refreshOn = `${
+                Number(testAccessTokenEntity.cachedAt) - 1
+            }`;
+            testAccessTokenEntity.expiresOn = `${
+                Number(testAccessTokenEntity.cachedAt) +
+                AUTHENTICATION_RESULT.body.expires_in
+            }`;
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                testIdToken
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(testAccessTokenEntity);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(testRefreshTokenEntity);
+            jest.spyOn(
+                MockStorageClass.prototype,
+                "getAccount"
+            ).mockReturnValue(testAccountEntity);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                extraQueryParameters: {
+                    testParam1: "testValue1",
+                    testParam2: "",
+                    testParam3: "testValue3",
+                },
+            };
+
+            const authApp = new PublicClientApplication(appConfig);
+            authApp.acquireTokenSilent(silentFlowRequest).catch(() => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
     });
 
     describe("acquireTokenInteractive tests", () => {

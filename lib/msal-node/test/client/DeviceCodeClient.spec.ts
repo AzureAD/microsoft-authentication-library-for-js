@@ -154,6 +154,41 @@ describe("DeviceCodeClient unit tests", () => {
             checkMockedNetworkRequest(returnVal, returnValChecks);
         }, 6000);
 
+        it("Adds extraQueryParameters to the /devicecode url", async () => {
+            const deviceCodeRequest: CommonDeviceCodeRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: "test-correlationId",
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                extraQueryParameters: {
+                    testParam1: "testValue1",
+                    testParam2: "",
+                    testParam3: "testValue3",
+                },
+                deviceCodeCallback: () => {},
+            };
+
+            const client = new DeviceCodeClient(config);
+            await client.acquireToken(deviceCodeRequest);
+
+            if (!executePostRequestToDeviceCodeEndpointSpy.mock.lastCall) {
+                fail("executePostRequestToDeviceCodeEndpoint was not called");
+            }
+            const deviceCodeUrl: string =
+                executePostRequestToDeviceCodeEndpointSpy.mock
+                    .lastCall[0] as string;
+            expect(
+                deviceCodeUrl.includes(
+                    "/devicecode?testParam1=testValue1&testParam3=testValue3"
+                )
+            ).toBeTruthy();
+            expect(
+                !deviceCodeUrl.includes("/devicecode?testParam2=")
+            ).toBeTruthy();
+        });
+
         it("Adds claims to request", async () => {
             let deviceCodeResponse = null;
             const request: CommonDeviceCodeRequest = {
