@@ -15,7 +15,7 @@ import { defaultPcaConfig, defaultTokenRequest, setPCAConfiguration, setRequestC
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../screenshots/core-scenarios/popup");
 let sampleHomeUrl = "";
 
-describe.skip("Popup tests", () => {
+describe("Popup tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;

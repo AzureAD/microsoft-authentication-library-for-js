@@ -71,7 +71,7 @@ describe("Silent tests", () => {
 
         await page.locator("button#btnAcquireTokenSilent").click();
         const response = await page.locator("div#responseContent")
-            .filter((value) => !!value.textContent && !value.textContent.includes("Executing..."))
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
             .map(value => value.textContent)
             .wait();
         expect(JSON.parse(response || "{}").result.fromCache).toBe(true);
@@ -96,10 +96,9 @@ describe("Silent tests", () => {
 
         await page.locator("button#btnAcquireTokenSilent").click();
         await screenshot.takeScreenshot(page, "button pushed");
-        try {
         const response = await page.locator("div#responseContent")
-            .setTimeout(10000)
-            .filter((value) => !!value.textContent && !value.textContent.includes("Executing..."))
+            .setTimeout(5000)
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
             .map(value => value.textContent)
             .wait();
         expect(JSON.parse(response || "{}").result.fromCache).toBe(false);
@@ -111,10 +110,6 @@ describe("Silent tests", () => {
         await BrowserCache.verifyTokenStore({
             scopes: defaultTokenRequest.scopes,
         });
-    } catch (e) {
-        screenshot.takeScreenshot(page, "acquireTokenSilent-forceRefresh-Error");
-        throw e;
-    }
     });
 
     it("acquireTokenSilent via RefreshToken with accessToken not found", async () => {
@@ -139,8 +134,46 @@ describe("Silent tests", () => {
         await setRequestConfiguration(defaultTokenRequest, page, screenshot);
         await page.locator("button#btnAcquireTokenSilent").click();
         const response = await page.locator("div#responseContent")
-            .setTimeout(10000)
-            .filter((value) => !!value.textContent && !value.textContent.includes("Executing..."))
+            .setTimeout(5000)
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
+            .map(value => value.textContent)
+            .wait();
+        expect(JSON.parse(response || "{}").result.fromCache).toBe(false);
+        await screenshot.takeScreenshot(
+            page,
+            "acquireTokenSilent-NoAT-GotTokens"
+        );
+        // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+        await BrowserCache.verifyTokenStore({
+            scopes: defaultTokenRequest.scopes,
+        });
+    });
+
+    it("acquireTokenSilent via RefreshToken with accessToken and refresh token not found", async () => {
+        const testName = "acquireTokenSilentNoAT";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+        // Login to ensure an RT exists
+        await signInPopup(page, screenshot, username, accountPwd);
+
+        // Remove Access Token from cache to force RT flow
+        let tokenKeys = await BrowserCache.getTokens();
+        await BrowserCache.removeTokens(tokenKeys.accessTokens);
+        await BrowserCache.removeTokens(tokenKeys.refreshTokens);
+        tokenKeys = await BrowserCache.getTokens();
+        expect(tokenKeys.accessTokens.length).toBe(0);
+        expect(tokenKeys.refreshTokens.length).toBe(0);
+        page.reload();
+
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+        await page.locator("button#btnAcquireTokenSilent").click();
+        const response = await page.locator("div#responseContent")
+            .setTimeout(5000)
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
             .map(value => value.textContent)
             .wait();
         expect(JSON.parse(response || "{}").result.fromCache).toBe(false);
