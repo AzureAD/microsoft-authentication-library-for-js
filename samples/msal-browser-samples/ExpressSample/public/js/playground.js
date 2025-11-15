@@ -251,37 +251,13 @@ function displayResponse(data, type = 'success') {
 
     // Create response content
     const responseContent = document.createElement('div');
+    responseContent.id = 'responseContent';
     responseContent.className = `response-content response-${type}`;
 
-    // Simple syntax highlighting
-    const highlighted = syntaxHighlight(jsonString);
-    responseContent.innerHTML = highlighted;
+    responseContent.innerHTML = jsonString;
 
     responseDisplay.innerHTML = '';
     responseDisplay.appendChild(responseContent);
-}
-
-function syntaxHighlight(json) {
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-        let cls = 'number';
-        if (/^"/.test(match)) {
-            if (/:$/.test(match)) {
-                cls = 'key';
-                return '<span style="color: #9cdcfe;">' + match + '</span>';
-            } else {
-                cls = 'string';
-                return '<span style="color: #ce9178;">' + match + '</span>';
-            }
-        } else if (/true|false/.test(match)) {
-            cls = 'boolean';
-            return '<span style="color: #569cd6;">' + match + '</span>';
-        } else if (/null/.test(match)) {
-            cls = 'null';
-            return '<span style="color: #569cd6;">' + match + '</span>';
-        }
-        return '<span style="color: #b5cea8;">' + match + '</span>';
-    });
 }
 
 function copyResponse() {
