@@ -91,7 +91,7 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
 
 export async function setPCAConfiguration(config: object, page: puppeteer.Page, screenshot: Screenshot) {
     await screenshot.takeScreenshot(page, "Filling in PCA config");
-    await page.locator("textarea#msalConfig").fill(JSON.stringify(config));
+    await page.locator("textarea#msalConfig").fill(JSON.stringify(config, null, 2));
     await screenshot.takeScreenshot(page, "Config filled");
     await page.locator("button#applyConfig").click();
 }
@@ -99,7 +99,7 @@ export async function setPCAConfiguration(config: object, page: puppeteer.Page, 
 export async function setRequestConfiguration(request: object, page: puppeteer.Page, screenshot: Screenshot) {
     // Set a longer timeout for the fill operation
     await screenshot.takeScreenshot(page, "Filling in request config");
-    await page.locator("textarea#tokenRequest").fill(JSON.stringify(request));
+    await page.locator("textarea#tokenRequest").fill(JSON.stringify(request, null, 2));
     await screenshot.takeScreenshot(page, "Request filled");
     await page.locator("button#applyConfig").click();
 }

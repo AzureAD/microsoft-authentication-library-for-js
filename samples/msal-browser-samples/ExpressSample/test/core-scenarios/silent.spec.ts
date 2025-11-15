@@ -70,11 +70,11 @@ describe("Silent tests", () => {
         await signInPopup(page, screenshot, username, accountPwd);
 
         await page.locator("button#btnAcquireTokenSilent").click();
-        const response = await page.locator("div#responseDisplay").filter((value) => {
-            console.log(value.textContent);
-            return !!value.textContent && value.textContent.includes("Executing...")
-        }).map(value => value.textContent).wait();
-        expect(JSON.parse(response || "{}").fromCache).toBe(true);
+        const response = await page.locator("div#responseContent")
+            .filter((value) => !!value.textContent && !value.textContent.includes("Executing..."))
+            .map(value => value.textContent)
+            .wait();
+        expect(JSON.parse(response || "{}").result.fromCache).toBe(true);
         await screenshot.takeScreenshot(
             page,
             "acquireTokenSilent-fromCache-GotTokens"
@@ -85,24 +85,69 @@ describe("Silent tests", () => {
         });
     });
 
-    it("acquireTokenSilent via RefreshToken", async () => {
-        const testName = "acquireTokenSilentRT";
+    it("acquireTokenSilent via RefreshToken with forceRefresh", async () => {
+        const testName = "acquireTokenSilentForceRefresh";
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
         );
-        await page.waitForSelector("#acquireTokenSilent");
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration({...defaultTokenRequest, forceRefresh: true}, page, screenshot);
+        await signInPopup(page, screenshot, username, accountPwd);
 
-        // Remove access_tokens from cache so we can verify acquisition
-        const tokenStore = await BrowserCache.getTokens();
-        await BrowserCache.removeTokens(tokenStore.accessTokens);
-
-        await page.click("#acquireTokenSilent");
-        await page.waitForSelector("#scopes-acquired");
+        await page.locator("button#btnAcquireTokenSilent").click();
+        await screenshot.takeScreenshot(page, "button pushed");
+        try {
+        const response = await page.locator("div#responseContent")
+            .setTimeout(10000)
+            .filter((value) => !!value.textContent && !value.textContent.includes("Executing..."))
+            .map(value => value.textContent)
+            .wait();
+        expect(JSON.parse(response || "{}").result.fromCache).toBe(false);
         await screenshot.takeScreenshot(
             page,
-            "acquireTokenSilent-viaRefresh-GotTokens"
+            "acquireTokenSilent-forceRefresh-GotTokens"
         );
+        // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+        await BrowserCache.verifyTokenStore({
+            scopes: defaultTokenRequest.scopes,
+        });
+    } catch (e) {
+        screenshot.takeScreenshot(page, "acquireTokenSilent-forceRefresh-Error");
+        throw e;
+    }
+    });
 
+    it("acquireTokenSilent via RefreshToken with accessToken not found", async () => {
+        const testName = "acquireTokenSilentNoAT";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+        // Login to ensure an RT exists
+        await signInPopup(page, screenshot, username, accountPwd);
+
+        // Remove Access Token from cache to force RT flow
+        let tokenKeys = await BrowserCache.getTokens();
+        await BrowserCache.removeTokens(tokenKeys.accessTokens);
+        tokenKeys = await BrowserCache.getTokens();
+        expect(tokenKeys.accessTokens.length).toBe(0);
+        expect(tokenKeys.refreshTokens.length).toBe(1);
+        page.reload();
+
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+        await page.locator("button#btnAcquireTokenSilent").click();
+        const response = await page.locator("div#responseContent")
+            .setTimeout(10000)
+            .filter((value) => !!value.textContent && !value.textContent.includes("Executing..."))
+            .map(value => value.textContent)
+            .wait();
+        expect(JSON.parse(response || "{}").result.fromCache).toBe(false);
+        await screenshot.takeScreenshot(
+            page,
+            "acquireTokenSilent-NoAT-GotTokens"
+        );
         // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
         await BrowserCache.verifyTokenStore({
             scopes: defaultTokenRequest.scopes,

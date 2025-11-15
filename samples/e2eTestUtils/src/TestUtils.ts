@@ -23,6 +23,9 @@ export class Screenshot {
     }
 
     async takeScreenshot(page: Page, screenshotName: string): Promise<void> {
+        if (page.isClosed()) {
+            return;
+        }
         await page.screenshot({
             path: `${this.folderName}/${++this
                 .screenshotNum}_${screenshotName}.png`,
