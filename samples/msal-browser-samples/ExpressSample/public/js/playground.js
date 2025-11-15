@@ -240,7 +240,7 @@ async function handleApiCall(apiName) {
 function displayResponse(data, type = 'success') {
     const responseDisplay = document.getElementById('responseDisplay');
 
-    // Create formatted JSON string with syntax highlighting
+    // Create formatted JSON string
     const jsonString = JSON.stringify(data, null, 2);
 
     // Remove placeholder if it exists
@@ -249,15 +249,17 @@ function displayResponse(data, type = 'success') {
         placeholder.remove();
     }
 
-    // Create response content
-    const responseContent = document.createElement('div');
-    responseContent.id = 'responseContent';
+    // Check if responseContent already exists, update it instead of recreating
+    let responseContent = document.getElementById('responseContent');
+    if (!responseContent) {
+        responseContent = document.createElement('div');
+        responseContent.id = 'responseContent';
+        responseDisplay.appendChild(responseContent);
+    }
+
+    // Update the content and class
     responseContent.className = `response-content response-${type}`;
-
-    responseContent.innerHTML = jsonString;
-
-    responseDisplay.innerHTML = '';
-    responseDisplay.appendChild(responseContent);
+    responseContent.textContent = jsonString;
 }
 
 function copyResponse() {
