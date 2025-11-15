@@ -108,6 +108,13 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 20px;
+        overflow: hidden;
+    }
+
+    .config-panel,
+    .actions-panel {
+        min-width: 0;
+        overflow: hidden;
     }
 
     .card {
@@ -116,6 +123,7 @@
         border-radius: 8px;
         padding: 20px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        min-width: 0;
     }
 
     .card h2 {
@@ -246,6 +254,7 @@
         font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         font-size: 13px;
         line-height: 1.6;
+        white-space: pre;
     }
 
     .response-placeholder {
@@ -275,8 +284,7 @@
     }
 
     .response-content {
-        white-space: pre-wrap;
-        word-wrap: break-word;
+        display: block;
     }
 
     .response-error {
