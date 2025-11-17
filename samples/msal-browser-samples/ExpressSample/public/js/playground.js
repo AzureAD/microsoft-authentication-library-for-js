@@ -30,6 +30,8 @@ function setupEventListeners() {
     document.getElementById('btnSsoSilent')?.addEventListener('click', () => handleApiCall('ssoSilent'));
     document.getElementById('btnGetAllAccounts')?.addEventListener('click', () => handleApiCall('getAllAccounts'));
     document.getElementById('btnGetActiveAccount')?.addEventListener('click', () => handleApiCall('getActiveAccount'));
+    document.getElementById('btnLogoutRedirect')?.addEventListener('click', () => handleApiCall('logoutRedirect'));
+    document.getElementById('btnLogoutPopup')?.addEventListener('click', () => handleApiCall('logoutPopup'));
 
     // Response actions
     document.getElementById('copyResponse')?.addEventListener('click', copyResponse);
@@ -216,6 +218,26 @@ async function handleApiCall(apiName) {
                 if (result) {
                     showSuccess('Active account retrieved');
                 }
+                break;
+
+            case 'logoutRedirect':
+                displayResponse({
+                    status: 'Logging out...',
+                    api: apiName,
+                    message: 'Browser will redirect for logout',
+                    timestamp: new Date().toISOString()
+                }, 'info');
+                await playgroundMsalInstance.logoutRedirect();
+                break;
+
+            case 'logoutPopup':
+                await playgroundMsalInstance.logoutPopup();
+                displayResponse({
+                    api: apiName,
+                    message: 'Logged out successfully',
+                    timestamp: new Date().toISOString()
+                }, 'success');
+                showSuccess('Logged out via popup!');
                 break;
 
             default:
