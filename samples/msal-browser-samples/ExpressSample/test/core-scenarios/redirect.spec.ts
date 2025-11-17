@@ -166,4 +166,48 @@ describe("Redirect tests", () => {
             scopes: defaultTokenRequest.scopes,
         });
     });
+
+    it("logoutRedirect", async () => {
+        const testName = "logoutRedirect";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+
+        await page.locator("button#btnAcquireTokenRedirect").click();
+        await enterCredentials(page, screenshot, username, accountPwd);
+        await page.locator("div#responseDisplay").wait();
+        await screenshot.takeScreenshot(page, "Returned to app");
+        // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+        await BrowserCache.verifyTokenStore({
+            scopes: defaultTokenRequest.scopes,
+        });
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration({}, page, screenshot);
+        await page.locator("button#btnLogoutRedirect").click();
+        // Verify redirect to logout page
+        expect(
+            page
+                .url()
+                .startsWith("https://login.microsoftonline.com/common/")
+        ).toBeTruthy();
+        expect(page.url()).toContain("logout");
+        // Verify tokens were cleared
+        await page.goto(sampleHomeUrl);
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration({}, page, screenshot);
+        await page.locator("button#btnGetAllAccounts").click();
+        const response = await page.locator("div#responseContent")
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
+            .map(value => value.textContent)
+            .wait();
+        expect(JSON.parse(response || "{}").result).toBe([]);
+
+        const tokenStore = await BrowserCache.getTokens();
+        expect(tokenStore.idTokens.length).toEqual(0);
+        expect(tokenStore.accessTokens.length).toEqual(0);
+        expect(tokenStore.refreshTokens.length).toEqual(0);
+    });
 });

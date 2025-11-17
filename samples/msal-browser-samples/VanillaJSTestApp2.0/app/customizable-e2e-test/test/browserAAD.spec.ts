@@ -114,21 +114,6 @@ describe("AAD-Prod Tests", () => {
             await page.close();
         });
 
-        it("logoutRedirect", async () => {
-            await clickLogoutRedirect(screenshot, page);
-            expect(
-                page
-                    .url()
-                    .startsWith("https://login.microsoftonline.com/common/")
-            ).toBeTruthy();
-            expect(page.url()).toContain("logout");
-            // Skip server sign-out
-            const tokenStore = await BrowserCache.getTokens();
-            expect(tokenStore.idTokens.length).toEqual(0);
-            expect(tokenStore.accessTokens.length).toEqual(0);
-            expect(tokenStore.refreshTokens.length).toEqual(0);
-        });
-
         it("logoutPopup", async () => {
             const [popupWindow, popupWindowClosed] = await clickLogoutPopup(
                 screenshot,
