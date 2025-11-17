@@ -1,8 +1,31 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 17 Oct 2025 17:09:06 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 06 Nov 2025 00:32:05 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.26.1
+
+Thu, 06 Nov 2025 00:32:05 GMT
+
+### Patches
+
+- Add allow="local-network-access *" attribute to iframe for Chrome 142 compatibility (198982749+Copilot@users.noreply.github.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.26.0
+
+Wed, 29 Oct 2025 00:04:33 GMT
+
+### Minor changes
+
+- Don't encrypt localStorage when KMSI returned in idToken (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.13.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.25.1
 

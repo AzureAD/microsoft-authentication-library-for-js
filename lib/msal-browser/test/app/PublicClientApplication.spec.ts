@@ -6919,7 +6919,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-        const testAccountInfo: AccountInfo = testAccount.getAccountInfo();
+        const testAccountInfo: AccountInfo =
+            AccountEntity.getAccountInfo(testAccount);
         const matchAccount: AccountInfo = {
             ...testAccountInfo,
             idTokenClaims: ID_TOKEN_CLAIMS,
@@ -6972,7 +6973,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         // Account 1
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccountInfo1: AccountInfo = testAccount1.getAccountInfo();
+        const testAccountInfo1: AccountInfo =
+            AccountEntity.getAccountInfo(testAccount1);
         testAccountInfo1.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccountInfo1.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -6989,7 +6991,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-        const testAccountInfo2: AccountInfo = testAccount2.getAccountInfo();
+        const testAccountInfo2: AccountInfo =
+            AccountEntity.getAccountInfo(testAccount2);
         testAccountInfo2.idTokenClaims = ID_TOKEN_ALT_CLAIMS;
         testAccountInfo2.idToken = TEST_TOKENS.IDTOKEN_V2_ALT;
 
@@ -7344,7 +7347,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccountInfo1: AccountInfo = {
-            ...testAccount1.getAccountInfo(),
+            ...AccountEntity.getAccountInfo(testAccount1),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -7360,7 +7363,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
         const testAccountInfo2: AccountInfo = {
-            ...testAccount2.getAccountInfo(),
+            ...AccountEntity.getAccountInfo(testAccount2),
             idTokenClaims: ID_TOKEN_ALT_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
         };
@@ -7651,7 +7654,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("hydrateCache tests", () => {
         const testAccount: AccountInfo = {
-            ...buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo(),
+            ...AccountEntity.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            ),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -8008,7 +8013,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         let secondBrowserStorageInstance: BrowserCacheManager;
         const accountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountInfo: AccountInfo = accountEntity.getAccountInfo();
+        const accountInfo: AccountInfo =
+            AccountEntity.getAccountInfo(accountEntity);
         let callbackId: string | null;
 
         beforeEach(async () => {
@@ -8070,7 +8076,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             secondBrowserStorageInstance.setAccount(
                 accountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
         });
 
@@ -8096,7 +8103,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.enableAccountStorageEvents();
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() => {
                     // Ensure account is present in the cache before removing it
                     secondBrowserStorageInstance.removeAccount(
@@ -8124,7 +8131,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.enableAccountStorageEvents();
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() => {
                     // Ensure account is present in the cache before setting it as active
                     secondBrowserStorageInstance.setActiveAccount(

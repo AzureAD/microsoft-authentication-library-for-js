@@ -2,6 +2,78 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 06 Nov 2025 00:32:05 GMT",
+      "version": "4.26.1",
+      "tag": "@azure/msal-browser_v4.26.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "5530b414c566237514092b005373890d4ac860f3",
+            "comment": "Add allow=\"local-network-access *\" attribute to iframe for Chrome 142 compatibility"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 29 Oct 2025 00:04:33 GMT",
+      "version": "4.26.0",
+      "tag": "@azure/msal-browser_v4.26.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5a25c350f0e7a18e1d88ae6393fd6e847595da83",
+            "comment": "Don't encrypt localStorage when KMSI returned in idToken"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.13.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 17 Oct 2025 17:09:06 GMT",
       "version": "4.25.1",
       "tag": "@azure/msal-browser_v4.25.1",

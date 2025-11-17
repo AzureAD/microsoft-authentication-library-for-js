@@ -58,7 +58,6 @@ import {
 import http from "http";
 
 import * as msalNode from "../../src/index.js";
-import { setupServerTelemetryManagerMock } from "./test-fixtures.js";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils.js";
 
 import { version, name } from "../../src/packageMetadata.js";
@@ -93,10 +92,6 @@ jest.mock("../../src/client/OnBehalfOfClient");
 jest.mock("../../src/client/UsernamePasswordClient");
 
 describe("PublicClientApplication", () => {
-    // @ts-ignore
-    const mockTelemetryManager: msalCommon.ServerTelemetryManager =
-        setupServerTelemetryManagerMock();
-
     let appConfig: Configuration = {
         auth: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -114,10 +109,6 @@ describe("PublicClientApplication", () => {
             loggerOptions: void 0,
         },
     };
-
-    beforeEach(() => {
-        mockTelemetryManager;
-    });
 
     afterEach(() => {
         jest.restoreAllMocks();
@@ -245,7 +236,7 @@ describe("PublicClientApplication", () => {
         const testAccountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccount: AccountInfo = {
-            ...testAccountEntity.getAccountInfo(),
+            ...AccountEntity.getAccountInfo(testAccountEntity),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };

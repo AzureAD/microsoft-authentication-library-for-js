@@ -31,6 +31,29 @@ export function extractTokenClaims(
 }
 
 /**
+ * Check if the signin_state claim contains "kmsi"
+ * @param idTokenClaims
+ * @returns
+ */
+export function isKmsi(idTokenClaims: TokenClaims): boolean {
+    if (!idTokenClaims.signin_state) {
+        return false;
+    }
+    /**
+     * Signin_state claim known values:
+     * dvc_mngd - device is managed
+     * dvc_dmjd - device is domain joined
+     * kmsi - user opted to "keep me signed in"
+     * inknownntwk - Request made inside a known network. Don't use this, use CAE instead.
+     */
+    const kmsiClaims = ["kmsi", "dvc_dmjd"]; // There are some cases where kmsi may not be returned but persistent storage is still OK - allow dvc_dmjd as well
+    const kmsi = idTokenClaims.signin_state.some((value) =>
+        kmsiClaims.includes(value.trim().toLowerCase())
+    );
+    return kmsi;
+}
+
+/**
  * decode a JWT
  *
  * @param authToken

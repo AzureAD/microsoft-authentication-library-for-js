@@ -18,6 +18,7 @@ import {
     InteractionRequiredAuthError,
     Logger,
     LoggerOptions,
+    PlatformBrokerError,
     NativeRequest,
     NativeSignOutRequest,
     PromptValue,
@@ -38,8 +39,6 @@ import {
     LogLevel as MsalRuntimeLogLevel,
 } from "@azure/msal-node-runtime";
 import { ErrorCodes } from "../utils/Constants.js";
-import { StringUtils } from "../utils/StringUtils.js";
-import { NativeAuthError } from "../error/NativeAuthError.js";
 import { version, name } from "../packageMetadata.js";
 
 export class NativeBrokerPlugin implements INativeBrokerPlugin {
@@ -199,7 +198,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 this.chooseRedirectUriByPlatform(platformRequest);
             this.logger.info(
                 "NativeBrokerPlugin - No Redirect URI provided, using default",
-                platformRequest.redirectUri
+                platformRequest.correlationId
             );
         }
         const authParams = this.generateRequestParameters(platformRequest);
@@ -263,7 +262,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 this.chooseRedirectUriByPlatform(platformRequest);
             this.logger.info(
                 "NativeBrokerPlugin - No Redirect URI provided, using default",
-                platformRequest.redirectUri
+                platformRequest.correlationId
             );
         }
         const authParams = this.generateRequestParameters(platformRequest);
@@ -648,7 +647,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         );
     }
 
-    private wrapError(error: unknown): NativeAuthError | Object | null {
+    private wrapError(error: unknown): PlatformBrokerError | Object | null {
         if (
             error &&
             typeof error === "object" &&
@@ -656,50 +655,62 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         ) {
             const { errorCode, errorStatus, errorContext, errorTag } =
                 error as MsalRuntimeError;
-            const tagString = StringUtils.tagToString(errorTag);
-            const enhancedErrorContext = errorContext
-                ? `${errorContext} (Error Code: ${errorCode}, Tag: ${tagString})`
-                : `(Error Code: ${errorCode}, Tag: ${tagString})`;
+
+            const msalNodeRuntimeError = new PlatformBrokerError(
+                ErrorStatus[errorStatus],
+                errorContext,
+                errorCode,
+                errorTag
+            );
+
+            let wrappedError;
+
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
                 case ErrorStatus.AccountUnusable:
-                    return new InteractionRequiredAuthError(
+                    wrappedError = new InteractionRequiredAuthError(
                         ErrorCodes.INTERATION_REQUIRED_ERROR_CODE,
-                        enhancedErrorContext
+                        msalNodeRuntimeError.message
                     );
+                    break;
                 case ErrorStatus.NoNetwork:
                 case ErrorStatus.NetworkTemporarilyUnavailable:
-                    return createClientAuthError(
+                    wrappedError = createClientAuthError(
                         ClientAuthErrorCodes.noNetworkConnectivity
                     );
+                    break;
                 case ErrorStatus.ServerTemporarilyUnavailable:
-                    return new ServerError(
+                    wrappedError = new ServerError(
                         ErrorCodes.SERVER_UNAVAILABLE,
                         errorContext
                     );
+                    break;
                 case ErrorStatus.UserCanceled:
-                    return createClientAuthError(
+                    wrappedError = createClientAuthError(
                         ClientAuthErrorCodes.userCanceled
                     );
+                    break;
                 case ErrorStatus.AuthorityUntrusted:
-                    return createClientConfigurationError(
+                    wrappedError = createClientConfigurationError(
                         ClientConfigurationErrorCodes.untrustedAuthority
                     );
+                    break;
                 case ErrorStatus.UserSwitched:
                     // Not an error case, if there's customer demand we can surface this as a response property
                     return null;
                 case ErrorStatus.AccountNotFound:
-                    return createClientAuthError(
+                    wrappedError = createClientAuthError(
                         ClientAuthErrorCodes.noAccountFound
                     );
+                    break;
                 default:
-                    return new NativeAuthError(
-                        ErrorStatus[errorStatus],
-                        enhancedErrorContext,
-                        errorCode,
-                        errorTag
+                    wrappedError = createClientAuthError(
+                        ClientAuthErrorCodes.platformBrokerError
                     );
             }
+
+            wrappedError.platformBrokerError = msalNodeRuntimeError;
+            return wrappedError;
         }
         throw error;
     }
