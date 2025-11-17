@@ -420,11 +420,11 @@ samples/*/test/                 # Sample application tests
 
 When reviewing, provide specific, actionable suggestions with code examples where helpful. Focus on maintainability, security, performance, and user experience.
 
-## Pull Request Review Guidelines
+### Code Suggestion Guidelines
 
-### Always Provide Code Suggestions When Applicable
+#### Always Provide Code Suggestions When Applicable
 
-**IMPORTANT: Use GitHub's code suggestion feature (```suggestion blocks) instead of plain text descriptions whenever possible.**
+**IMPORTANT: Use GitHub's code suggestion feature (i.e., suggestion code blocks) instead of plain text descriptions whenever possible.**
 
 This allows PR authors to accept suggestions with a single click, making reviews more efficient.
 
