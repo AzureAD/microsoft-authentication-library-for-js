@@ -419,3 +419,44 @@ samples/*/test/                 # Sample application tests
 **Specific Areas to Focus On:**
 
 When reviewing, provide specific, actionable suggestions with code examples where helpful. Focus on maintainability, security, performance, and user experience.
+
+## Pull Request Review Guidelines
+
+### Always Provide Code Suggestions When Applicable
+
+**IMPORTANT: Use GitHub's code suggestion feature (```suggestion blocks) instead of plain text descriptions whenever possible.**
+
+This allows PR authors to accept suggestions with a single click, making reviews more efficient.
+
+#### When to Use Code Suggestions
+
+**Always use code suggestions for:**
+- Formatting issues (indentation, spacing, line breaks, JSON/YAML formatting)
+- Simple fixes (typos, missing semicolons, incorrect imports)
+- Standard patterns (changefile format, conventional commits, linting rules)
+- Refactoring suggestions for small code blocks
+- Any change that can be directly applied to the code
+
+**Examples:**
+- Changefile format issues → Provide corrected JSON as a suggestion
+- Import statement errors → Suggest the correct import
+- Formatting inconsistencies → Suggest properly formatted code
+- Simple bug fixes → Suggest the fix
+
+#### When to Use Text Comments
+
+**Use text comments (not code suggestions) for:**
+- Design discussions or architectural questions
+- Multiple alternative approaches
+- Questions requiring clarification from the author
+- Complex changes requiring significant context or explanation
+- Issues that span multiple files or locations
+
+### Code Suggestion Best Practices
+
+1. **Be specific**: Each suggestion should target a specific issue
+2. **Include context**: Briefly explain why the change is needed
+3. **Keep it simple**: Break complex changes into multiple suggestions
+4. **Link documentation**: Reference relevant docs or standards when applicable
+5. **Suggest liberally**: Code suggestions are easy to accept or decline
+
