@@ -43,7 +43,7 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 
 **Disambiguation:**
 - The MSAL team provides full support to the current version for each package in the table below.
-- LTS (long-term support) versions will still receive support and bug-fixes but will not ship new features.
+- LTS (long-term support) versions will still receive some support and critical bug-fixes but will not ship new features. Our recommendation if you encounter any issues will always be to upgrade to the latest version of the library.
 - All supported packages were brought up to version parity as of `v5`. Packages with versions lower than `v4` in the LTS column skipped as many versions as required to jump directly to `v5`.
 
 #### MSAL Browser CDN Deprecation
