@@ -42,7 +42,7 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 | ~~@azure/msal-angularjs~~ |  | Fully Deprecated  |
 
 **Disambiguation:**
-- The MSAL team provides full support to the current version for each package in the table below.
+- The MSAL team provides full support to the current version for each package in the table above.
 - LTS (long-term support) versions will still receive support and bug-fixes but will not ship new features.
 - All supported packages were brought up to version parity as of `v5`. Packages with versions lower than `v4` in the LTS column skipped as many versions as required to jump directly to `v5`.
 
