@@ -22,7 +22,6 @@ export { AccountEntityUtils };
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient.js";
 export { RefreshTokenClient } from "./client/RefreshTokenClient.js";
 export { SilentFlowClient } from "./client/SilentFlowClient.js";
-export { BaseClient } from "./client/BaseClient.js";
 export {
     AuthOptions,
     SystemOptions,
@@ -108,6 +107,8 @@ export {
 } from "./crypto/ICrypto.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";
+export * as TokenProtocol from "./protocol/Token.js";
+
 export { BaseAuthRequest } from "./request/BaseAuthRequest.js";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest.js";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest.js";

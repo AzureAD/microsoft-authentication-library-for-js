@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Remove internal classes from public exports #8119",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
