@@ -21,12 +21,13 @@ import {
     createJitCompletedResult,
 } from "../../../../../../src/custom_auth/core/interaction_client/jit/result/JitActionResult.js";
 import { AuthenticationMethod } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiResponseTypes.js";
+import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("JitState", () => {
     let mockJitClient: jest.Mocked<JitClient>;
     let mockCacheClient: jest.Mocked<CustomAuthSilentCacheClient>;
     let mockConfig: CustomAuthBrowserConfiguration;
-    let mockLogger: jest.Mocked<Logger>;
+    let mockLogger: Logger;
     let correlationId: string;
 
     const mockAuthMethod: AuthenticationMethod = {
@@ -52,10 +53,7 @@ describe("JitState", () => {
             },
         } as any;
 
-        mockLogger = {
-            verbose: jest.fn(),
-            error: jest.fn(),
-        } as any;
+        mockLogger = getDefaultLogger();
     });
 
     describe("AuthMethodRegistrationRequiredState", () => {
