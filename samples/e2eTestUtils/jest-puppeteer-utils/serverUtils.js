@@ -91,7 +91,11 @@ async function isServerUp(port, timeout) {
  * Spawns a child process to serve the sample
  */
 function startServer(cmd, directory) {
-    const serverProcess = spawn(cmd, { shell: true, cwd: directory });
+    const serverProcess = spawn(cmd, {
+        shell: true,
+        cwd: directory,
+        detached: false // Keep as child process for better cleanup
+    });
 
     serverProcess.on("error", (err) => {
         console.error("Failed to start sample.");
@@ -103,12 +107,14 @@ function startServer(cmd, directory) {
     });
 
     serverProcess.stderr.on("data", (data) => {
-        console.error(`stderr: ${data}`);
+        //console.error(`stderr: ${data}`);
     });
 
     serverProcess.on("close", (code) => {
         console.log(`child process exited with code ${code}`);
     });
+
+    return serverProcess; // Return the process so it can be killed gracefully
 }
 
 /**
@@ -118,7 +124,22 @@ async function killServer(port) {
     return find("port", port).then((list) => {
         list.forEach((proc) => {
             console.log(`Killing server on port ${port}`);
-            process.kill(proc.pid);
+            try {
+                // Try SIGTERM first (graceful shutdown)
+                process.kill(proc.pid, 'SIGTERM');
+
+                // If still running after 2 seconds, force kill
+                setTimeout(() => {
+                    try {
+                        process.kill(proc.pid, 'SIGKILL');
+                    } catch (e) {
+                        // Process already terminated, ignore
+                    }
+                }, 500);
+            } catch (e) {
+                // Process doesn't exist or already terminated
+                console.log(`Process ${proc.pid} already terminated`);
+            }
         });
     });
 }

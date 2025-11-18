@@ -9,10 +9,11 @@ import {
     BrowserCacheUtils
 } from "e2e-test-utils";
 import { verifyCacheWasUsed, switchToVersion, signIn } from "../test-helpers";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/upgrade-downgrade-tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../screenshots/upgrade-downgrade");
 
-describe.skip("Upgrade/Downgrade Tests", () => {
+describe("Upgrade/Downgrade Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;

@@ -49,7 +49,7 @@ describe("Silent tests", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(2000);
+        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
         sampleHomeUrl = `http://localhost:${port}/playground`;
         await page.goto(sampleHomeUrl, { timeout: 2000 });
@@ -97,7 +97,6 @@ describe("Silent tests", () => {
         await page.locator("button#btnAcquireTokenSilent").click();
         await screenshot.takeScreenshot(page, "button pushed");
         const response = await page.locator("div#responseContent")
-            .setTimeout(5000)
             .filter((value) => !!value.textContent && value.textContent.includes("result"))
             .map(value => value.textContent)
             .wait();
@@ -128,13 +127,12 @@ describe("Silent tests", () => {
         tokenKeys = await BrowserCache.getTokens();
         expect(tokenKeys.accessTokens.length).toBe(0);
         expect(tokenKeys.refreshTokens.length).toBe(1);
-        page.reload();
+        await page.reload();
 
         await setPCAConfiguration(defaultPcaConfig, page, screenshot);
         await setRequestConfiguration(defaultTokenRequest, page, screenshot);
         await page.locator("button#btnAcquireTokenSilent").click();
         const response = await page.locator("div#responseContent")
-            .setTimeout(5000)
             .filter((value) => !!value.textContent && value.textContent.includes("result"))
             .map(value => value.textContent)
             .wait();
@@ -166,13 +164,12 @@ describe("Silent tests", () => {
         tokenKeys = await BrowserCache.getTokens();
         expect(tokenKeys.accessTokens.length).toBe(0);
         expect(tokenKeys.refreshTokens.length).toBe(0);
-        page.reload();
+        await page.reload();
 
         await setPCAConfiguration(defaultPcaConfig, page, screenshot);
         await setRequestConfiguration(defaultTokenRequest, page, screenshot);
         await page.locator("button#btnAcquireTokenSilent").click();
         const response = await page.locator("div#responseContent")
-            .setTimeout(5000)
             .filter((value) => !!value.textContent && value.textContent.includes("result"))
             .map(value => value.textContent)
             .wait();

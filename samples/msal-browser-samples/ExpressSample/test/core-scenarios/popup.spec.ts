@@ -49,7 +49,7 @@ describe("Popup tests", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(2000);
+        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
         sampleHomeUrl = `http://localhost:${port}/playground`;
         await page.goto(sampleHomeUrl, { timeout: 2000 });

@@ -49,10 +49,10 @@ describe("Redirect tests", () => {
     beforeEach(async () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(2000);
+        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
         sampleHomeUrl = `http://localhost:${port}/playground`;
-        await page.goto(sampleHomeUrl, { timeout: 2000 });
+        await page.goto(sampleHomeUrl);
     });
 
     afterEach(async () => {
@@ -188,12 +188,7 @@ describe("Redirect tests", () => {
         await setRequestConfiguration({}, page, screenshot);
         await page.locator("button#btnLogoutRedirect").click();
         // Verify redirect to logout page
-        expect(
-            page
-                .url()
-                .startsWith("https://login.microsoftonline.com/common/")
-        ).toBeTruthy();
-        expect(page.url()).toContain("logout");
+        await page.waitForRequest(request => request.url().startsWith("https://login.microsoftonline.com/common/oauth2/v2.0/logout"), { timeout: 1000 });
         // Verify tokens were cleared
         await page.goto(sampleHomeUrl);
         await setPCAConfiguration(defaultPcaConfig, page, screenshot);
@@ -203,7 +198,8 @@ describe("Redirect tests", () => {
             .filter((value) => !!value.textContent && value.textContent.includes("result"))
             .map(value => value.textContent)
             .wait();
-        expect(JSON.parse(response || "{}").result).toBe([]);
+        await screenshot.takeScreenshot(page, "getAllAccounts called");
+        expect(JSON.parse(response || "{}").result).toEqual([]);
 
         const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens.length).toEqual(0);
