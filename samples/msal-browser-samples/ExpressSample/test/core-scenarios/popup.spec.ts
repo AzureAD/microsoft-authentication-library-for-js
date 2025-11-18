@@ -126,4 +126,59 @@ describe("Popup tests", () => {
             scopes: defaultTokenRequest.scopes,
         });
     });
+
+    it("Performs logoutPopup", async () => {
+        const testName = "logoutPopup";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+
+        // First, sign in
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
+            page.once("popup", resolve)
+        );
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+
+        await page.locator("button#btnAcquireTokenPopup").click();
+        const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+        }
+        const popupWindowClosed = new Promise<void>((resolve) =>
+            popupPage.once("close", resolve)
+        );
+        await enterCredentials(popupPage, screenshot, username, accountPwd);
+        await popupWindowClosed;
+        await screenshot.takeScreenshot(page, "Logged in");
+
+        // Verify tokens are in cache
+        await BrowserCache.verifyTokenStore({
+            scopes: defaultTokenRequest.scopes,
+        });
+
+        // Now perform logout
+        const logoutPopupPromise = new Promise<puppeteer.Page|null>((resolve) =>
+            page.once("popup", resolve)
+        );
+        await page.locator("button#btnLogoutPopup").click();
+        const popup = await logoutPopupPromise;
+        if (!popup) {
+            throw new Error('Logout popup window was not opened');
+        }
+        
+        // Wait for the popup URL to change from about:blank to the logout URL
+        await popup.waitForFunction(
+            () => window.location.href.startsWith("https://login.microsoftonline.com/common/oauth2/v2.0/logout"),
+            { timeout: 2000 }
+        );
+        await popup.close();
+        await screenshot.takeScreenshot(page, "Logged out");
+
+        // Verify cache is cleared
+        const tokenStore = await BrowserCache.getTokens();
+        expect(tokenStore.idTokens.length).toBe(0);
+        expect(tokenStore.accessTokens.length).toBe(0);
+        expect(tokenStore.refreshTokens.length).toBe(0);
+    });
 });

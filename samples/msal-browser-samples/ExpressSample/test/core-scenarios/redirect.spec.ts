@@ -188,7 +188,7 @@ describe("Redirect tests", () => {
         await setRequestConfiguration({}, page, screenshot);
         await page.locator("button#btnLogoutRedirect").click();
         // Verify redirect to logout page
-        await page.waitForRequest(request => request.url().startsWith("https://login.microsoftonline.com/common/oauth2/v2.0/logout"), { timeout: 1000 });
+        await page.waitForRequest(request => request.url().startsWith("https://login.microsoftonline.com/common/oauth2/v2.0/logout"), { timeout: 2000 });
         // Verify tokens were cleared
         await page.goto(sampleHomeUrl);
         await setPCAConfiguration(defaultPcaConfig, page, screenshot);
