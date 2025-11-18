@@ -18,7 +18,7 @@ You can consult the [EventPayload](https://azuread.github.io/microsoft-authentic
 
 ## How events are emitted in MSAL Browser
 
-Msal browser has a protected function `emitEvent`, and emits events in major APIs. For the list of currently emitted events, see the table below.
+Msal Browser has a protected function `emitEvent`, and emits events in major APIs. For the list of currently emitted events, see the table below.
 
 Here is an example of how MSAL Browser emits an event with a payload, or with an error:
 
