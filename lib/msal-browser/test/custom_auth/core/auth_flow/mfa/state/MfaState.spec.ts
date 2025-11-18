@@ -15,7 +15,7 @@ import {
 } from "../../../../../../src/custom_auth/core/interaction_client/mfa/result/MfaActionResult.js";
 import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { customAuthConfig } from "../../../../test_resources/CustomAuthConfig.js";
-import { TestAccounDetails } from "../../../../test_resources/TestConstants.js";
+import { TestAccountDetails } from "../../../../test_resources/TestConstants.js";
 import {
     MfaAwaitingState,
     MfaVerificationRequiredState,
@@ -280,7 +280,7 @@ describe("MfaVerificationRequiredState", () => {
                     authority: "https://test-authority.com",
                     tenantId: "test-tenant-id",
                     scopes: ["openid", "profile"],
-                    account: TestAccounDetails,
+                    account: TestAccountDetails,
                     idTokenClaims: {},
                     fromCache: false,
                     uniqueId: "test-unique-id",
