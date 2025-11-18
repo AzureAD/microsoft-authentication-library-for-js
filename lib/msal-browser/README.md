@@ -69,6 +69,8 @@ yarn add @azure/msal-browser
 
 ### Migrating from Previous MSAL Versions
 
+Select the guide that matches your current MSAL version:
+
 -   [Migrating from MSAL v4.x to MSAL v5.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md)
 -   [Migrating from MSAL v3.x to MSAL v4.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md)
 -   [Migrating from MSAL v2.x to MSAL v3.x](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v2-migration.md)
