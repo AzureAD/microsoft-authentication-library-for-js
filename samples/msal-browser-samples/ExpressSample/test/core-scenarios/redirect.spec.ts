@@ -79,6 +79,36 @@ describe("Redirect tests", () => {
         });
     });
 
+    it("Going back to app during redirect clears cache", async () => {
+        const testName = "redirectBrowserBackButton";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+        
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+
+        await page.locator("button#btnAcquireTokenRedirect").click();
+        await page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
+        
+        // Navigate back to home page
+        await page.goto(sampleHomeUrl);
+        
+        // Wait a moment for processing
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Temporary Cache always uses sessionStorage
+        const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
+        const sessionStorage = await sessionBrowserStorage.getWindowStorage();
+        const localStorage = await BrowserCache.getWindowStorage();
+        
+        expect(Object.keys(localStorage).length).toBeLessThanOrEqual(3);
+        Object.keys(localStorage).forEach((key) => {
+            expect(key.startsWith("msal.token.keys") || key === "msal.account.keys" || key === "msal.version").toBe(true);
+        });
+        expect(Object.keys(sessionStorage).length).toEqual(0);
+    });
+
     it("Performs loginRedirect from url with test query string", async () => {
         const testUrl = sampleHomeUrl + "?test";
         await page.goto(testUrl);

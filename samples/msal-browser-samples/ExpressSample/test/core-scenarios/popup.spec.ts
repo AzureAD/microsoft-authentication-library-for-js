@@ -89,6 +89,45 @@ describe("Popup tests", () => {
         });
     });
 
+    it("Closing popup before login resolves clears cache", async () => {
+        const testName = "popupCloseWindow";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+        
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
+            page.once("popup", resolve)
+        );
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+
+        await page.locator("button#btnAcquireTokenPopup").click();
+        const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+        }
+        const popupWindowClosed = new Promise<void>((resolve) =>
+            popupPage.once("close", resolve)
+        );
+        
+        await popupPage.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
+        await popupPage.close();
+        
+        // Wait until popup window closes
+        await popupWindowClosed;
+        
+        // Wait a moment for processing
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Temporary Cache always uses sessionStorage
+        const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
+        const sessionStorage = await sessionBrowserStorage.getWindowStorage();
+        const localStorage = await BrowserCache.getWindowStorage();
+        
+        expect(Object.keys(localStorage).length).toEqual(2); // Telemetry
+        expect(Object.keys(sessionStorage).length).toEqual(0);
+    });
+
     it("acquireTokenPopup with httpMethod = POST", async () => {
         const testName = "acquireTokenPopupUsingPost";
         const screenshot = new Screenshot(
@@ -180,5 +219,70 @@ describe("Popup tests", () => {
         expect(tokenStore.idTokens.length).toBe(0);
         expect(tokenStore.accessTokens.length).toBe(0);
         expect(tokenStore.refreshTokens.length).toBe(0);
+    });
+
+    it("Logging in on one tab updates cache/UI in another tab", async () => {
+        const testName = "multi-tab";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+
+        const tab1 = page;
+        await setPCAConfiguration(defaultPcaConfig, tab1, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, tab1, screenshot);
+
+        const tab2 = await context.newPage();
+        tab2.setDefaultTimeout(5000);
+        await tab2.goto(sampleHomeUrl);
+        await setPCAConfiguration(defaultPcaConfig, tab2, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, tab2, screenshot);
+
+        const checkAccountsExist = async (page: puppeteer.Page): Promise<boolean> => {
+            await page.bringToFront();
+            await page.locator("button#btnGetAllAccounts").click();
+            const responseText = await page.locator("div#responseDisplay").map(el => el.textContent).wait();
+            await screenshot.takeScreenshot(page, "getAllAccounts response");
+            const response = JSON.parse(responseText || "{}");
+            return Array.isArray(response.result) && response.result.length > 0;
+        };
+
+        // Check that both tabs start with no accounts
+        expect(await checkAccountsExist(tab1)).toBe(false);
+        expect(await checkAccountsExist(tab2)).toBe(false);
+
+        // Sign in on tab1
+        await tab1.bringToFront();
+
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
+            tab1.once("popup", resolve)
+        );
+        await tab1.locator("button#btnAcquireTokenPopup").click();
+        const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+        }
+        const popupWindowClosed = new Promise<void>((resolve) =>
+            popupPage.once("close", resolve)
+        );
+        await enterCredentials(popupPage, screenshot, username, accountPwd);
+        await popupWindowClosed;
+        
+        // Check that tab1 has accounts
+        expect(await checkAccountsExist(tab1)).toBe(true);
+        await tab1.locator("button#btnAcquireTokenSilent").click();
+        const tab1ResponseText = await tab1.locator("div#responseDisplay").map(el => el.textContent).wait();
+        const tab1Response = JSON.parse(tab1ResponseText || "{}");
+        expect(tab1Response.result).toHaveProperty("accessToken");
+        await screenshot.takeScreenshot(tab1, "tab1AcquiredToken");
+
+        // Check that tab2 also has accounts from the shared cache
+        await tab2.bringToFront();
+        expect(await checkAccountsExist(tab2)).toBe(true);
+        await tab2.locator("button#btnAcquireTokenSilent").click();
+        const tab2ResponseText = await tab2.locator("div#responseDisplay").map(el => el.textContent).wait();
+        const tab2Response = JSON.parse(tab2ResponseText || "{}");
+        expect(tab2Response.result).toHaveProperty("accessToken");
+        await screenshot.takeScreenshot(tab2, "tab2AcquiredToken");
+        await tab2.close();
     });
 });
