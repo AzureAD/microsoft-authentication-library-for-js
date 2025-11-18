@@ -18,10 +18,11 @@ import {
  * - preferredAzureRegionOptions        - Options of the user's preferred azure region
  * - clientAssertion                  - An assertion string or a callback function that returns an assertion string (both are Base64Url-encoded signed JWTs) used in the Client Credential flow
  * - azureRegion                       - Azure region to be used for regional authentication
- * - extraQueryParameters              - String to string map of custom query parameters added to outgoing token service requests
- * - extraParameters                   - String to string map of custom query parameters added to outgoing token service requests
  */
-export type CommonClientCredentialRequest = BaseAuthRequest & {
+export type CommonClientCredentialRequest = Omit<
+    BaseAuthRequest,
+    "extraQueryParameters" | "extraParameters"
+> & {
     skipCache?: boolean;
     azureRegion?: AzureRegion;
     clientAssertion?: ClientAssertion;
