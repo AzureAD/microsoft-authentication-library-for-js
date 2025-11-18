@@ -2,7 +2,17 @@ window.name = "STS Window";
 const channel = new BroadcastChannel('sts-channel');
 
 function performAuthentication() {
+    
     console.log("STS: Performing authentication (simulated)");
+    console.log("STS: Adding 3 second delay...");
+    
+    // Add 3 second delay
+    setTimeout(() => {
+        continueAuthentication();
+    }, 3000);
+}
+
+function continueAuthentication() {
     console.log("STS: window.opener", window.opener);
     console.log("STS: window.location.search", window.location.search);
 
