@@ -107,17 +107,6 @@ export class InteractionHandler {
         // Assign code to request
         this.authCodeRequest.code = authCodeResponse.code;
 
-        // Check for new cloud instance
-        if (authCodeResponse.cloud_instance_host_name) {
-            await invokeAsync(
-                this.authModule.updateAuthority.bind(this.authModule),
-                BrowserPerformanceEvents.UpdateTokenEndpointAuthority,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(authCodeResponse.cloud_instance_host_name, request.correlationId);
-        }
-
         // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
         if (validateNonce) {
             // TODO: Assigning "response nonce" to "request nonce" is confusing. Refactor the function doing validation to accept request nonce directly

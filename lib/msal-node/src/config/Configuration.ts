@@ -17,8 +17,6 @@ import {
     Constants,
 } from "@azure/msal-common/node";
 import { HttpClient } from "../network/HttpClient.js";
-import http from "http";
-import https from "https";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 
@@ -85,8 +83,6 @@ export type BrokerOptions = {
 export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
-    proxyUrl?: string;
-    customAgentOptions?: http.AgentOptions | https.AgentOptions;
     disableInternalRetries?: boolean;
     protocolMode?: ProtocolMode;
 };
@@ -160,8 +156,6 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
-    proxyUrl: "",
-    customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
     disableInternalRetries: false,
     protocolMode: ProtocolMode.AAD,
 };
@@ -202,10 +196,7 @@ export function buildAppConfiguration({
 }: Configuration): NodeConfiguration {
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
-        networkClient: new HttpClient(
-            system?.proxyUrl,
-            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
-        ),
+        networkClient: new HttpClient(),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
         disableInternalRetries: system?.disableInternalRetries || false,
     };
@@ -256,10 +247,7 @@ export function buildManagedIdentityConfiguration({
         networkClient = system.networkClient;
         // otherwise, create a new one
     } else {
-        networkClient = new HttpClient(
-            system?.proxyUrl,
-            system?.customAgentOptions as http.AgentOptions | https.AgentOptions
-        );
+        networkClient = new HttpClient();
     }
 
     return {
