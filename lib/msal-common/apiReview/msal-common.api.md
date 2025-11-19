@@ -3552,10 +3552,6 @@ export type PkceCodes = {
 // @public (undocumented)
 const pkceParamsMissing = "pkce_params_missing";
 
-// Warning: (ae-missing-release-tag) "PopTokenGenerateCnf" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-const PopTokenGenerateCnf = "popTokenGenerateCnf";
 // Warning: (ae-missing-release-tag) "PlatformBrokerError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -3569,6 +3565,11 @@ export class PlatformBrokerError extends AuthError {
 //
 // @public (undocumented)
 const platformBrokerError = "platform_broker_error";
+
+// Warning: (ae-missing-release-tag) "PopTokenGenerateCnf" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+const PopTokenGenerateCnf = "popTokenGenerateCnf";
 
 // Warning: (ae-internal-missing-underscore) The name "PopTokenGenerator" should be prefixed with an underscore because the declaration is marked as @internal
 //

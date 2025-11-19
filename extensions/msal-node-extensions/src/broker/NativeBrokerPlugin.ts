@@ -684,7 +684,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 case ErrorStatus.ServerTemporarilyUnavailable:
                     wrappedError = new ServerError(
                         ErrorCodes.SERVER_UNAVAILABLE,
-                        errorContext
+                        msalNodeRuntimeError.message
                     );
                     break;
                 case ErrorStatus.UserCanceled:

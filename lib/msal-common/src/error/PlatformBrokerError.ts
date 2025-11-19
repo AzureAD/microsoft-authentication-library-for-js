@@ -6,7 +6,8 @@
 import { AuthError } from "./AuthError.js";
 
 /**
- * Converts a numeric tag to a string representation
+ * Converts a numeric tag from MSAL Runtime to a 5-character string representation.
+ * Tags are encoded as 30-bit values (6 bits per character) using a custom symbol space.
  * @param tag - The numeric tag to convert
  * @returns The string representation of the tag
  */
