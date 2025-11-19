@@ -226,6 +226,7 @@ declare namespace BrowserAuthErrorCodes {
         unableToParseState,
         stateInteractionTypeMismatch,
         interactionInProgress,
+        interactionInProgressOverridden,
         popupWindowError,
         emptyWindowError,
         userCancelled,
@@ -409,6 +410,7 @@ declare namespace BrowserUtils {
         replaceHash,
         isInIframe,
         isInPopup,
+        cancelPendingBridgeResponse,
         waitForBridgeResponse,
         getCurrentUri,
         getHomepage,
@@ -451,6 +453,11 @@ export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     cacheRetentionDays?: number;
 };
+
+// Warning: (ae-missing-release-tag) "cancelPendingBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function cancelPendingBridgeResponse(logger: Logger, correlationId: string): void;
 
 // Warning: (ae-missing-release-tag) "ClearCacheRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -754,6 +761,11 @@ export { InProgressPerformanceEvent }
 //
 // @public (undocumented)
 const interactionInProgress = "interaction_in_progress";
+
+// Warning: (ae-missing-release-tag) "interactionInProgressOverridden" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const interactionInProgressOverridden = "interaction_in_progress_overridden";
 
 export { InteractionRequiredAuthError }
 
@@ -1102,6 +1114,7 @@ export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "response
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
+    overrideInteractionInProgress?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "PopupSize" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1442,7 +1455,7 @@ export const version = "5.0.0-alpha.0";
 
 // Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public
+// @public (undocumented)
 function waitForBridgeResponse(timeoutMs: number, logger: Logger, browserCrypto: ICrypto, request: CommonAuthorizationUrlRequest | CommonEndSessionRequest): Promise<string>;
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

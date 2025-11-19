@@ -558,6 +558,40 @@ If you are unable to figure out why this error is being thrown please [open an i
 -   Refresh the page. Does the error go away?
 -   Open your application in a new tab. Does the error go away?
 
+### `interaction_in_progress_overridden`
+
+-   The current interaction was overridden by a new interaction request with `overrideInteractionInProgress` set to `true`.
+
+This error is thrown when an existing popup interaction is cancelled because a new popup request was initiated with the `overrideInteractionInProgress` flag set to `true`. This is not necessarily an error condition - it indicates that the previous interaction was intentionally cancelled to allow a new one to proceed.
+
+**When This Occurs:**
+
+This error is thrown for the **previous/cancelled** interaction when:
+1. A popup interaction is in progress (e.g., `acquireTokenPopup`)
+2. A new popup request is made with `overrideInteractionInProgress: true`
+3. The library cancels the pending interaction and starts the new one
+
+**Example:**
+
+```javascript
+// First popup request starts
+const request1 = { scopes: ["User.Read"] };
+const promise1 = msalInstance.acquireTokenPopup(request1);
+
+// User closes the popup or something goes wrong
+// App decides to retry with override flag
+const request2 = {
+    scopes: ["User.Read"],
+    overrideInteractionInProgress: true  // Override the previous interaction
+};
+const promise2 = msalInstance.acquireTokenPopup(request2);
+
+// promise1 will reject with interaction_in_progress_overridden
+// promise2 will proceed normally
+```
+
+**Note:** This error should only be seen when you explicitly use the `overrideInteractionInProgress` flag. Under normal circumstances, concurrent interaction attempts will throw `interaction_in_progress` instead.
+
 ### `popup_window_error`
 
 -   Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.

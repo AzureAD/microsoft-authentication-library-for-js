@@ -107,6 +107,41 @@ export function isInPopup(): boolean {
  * @param request - The authorization or end session request.
  * @returns Promise<string> - Resolves with the response string (query or hash) from the window.
  */
+
+// Track the active bridge monitor to allow cancellation when overriding interactions
+let activeBridgeMonitor: {
+    timeoutId: number;
+    channel: BroadcastChannel;
+    reject: (reason?: unknown) => void;
+} | null = null;
+
+/**
+ * Cancels the pending bridge response monitor if one exists.
+ * This is called when overrideInteractionInProgress is used to cancel
+ * any pending popup interaction before starting a new one.
+ */
+export function cancelPendingBridgeResponse(
+    logger: Logger,
+    correlationId: string
+): void {
+    if (activeBridgeMonitor) {
+        logger.verbose(
+            "BrowserUtils.cancelPendingBridgeResponse - Cancelling pending bridge monitor",
+            correlationId
+        );
+
+        clearTimeout(activeBridgeMonitor.timeoutId);
+        activeBridgeMonitor.channel.close();
+        activeBridgeMonitor.reject(
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.interactionInProgressOverridden
+            )
+        );
+
+        activeBridgeMonitor = null;
+    }
+}
+
 export async function waitForBridgeResponse(
     timeoutMs: number,
     logger: Logger,
@@ -127,12 +162,26 @@ export async function waitForBridgeResponse(
         let responseString: string | undefined = undefined;
 
         const timeoutId = window.setTimeout(() => {
+            // Clear the active monitor
+            activeBridgeMonitor = null;
+
             channel.close();
             reject(createBrowserAuthError(redirectBridgeTimeout));
         }, timeoutMs);
 
+        // Track this monitor so it can be cancelled if needed
+        activeBridgeMonitor = {
+            timeoutId,
+            channel,
+            reject,
+        };
+
         channel.onmessage = (event) => {
             responseString = event.data.payload;
+
+            // Clear the active monitor
+            activeBridgeMonitor = null;
+
             clearTimeout(timeoutId);
             channel.close();
             if (responseString) {
