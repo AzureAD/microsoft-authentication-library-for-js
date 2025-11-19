@@ -290,7 +290,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            this.config.system.pollIntervalMilliseconds,
             this.config.system.iframeBridgeTimeout,
             this.logger,
             this.browserCrypto,
@@ -411,7 +410,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            this.config.system.pollIntervalMilliseconds,
             this.config.system.iframeBridgeTimeout,
             this.logger,
             this.browserCrypto,

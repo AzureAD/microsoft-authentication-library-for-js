@@ -22,10 +22,7 @@ import {
     Logger,
     Constants,
 } from "@azure/msal-common/browser";
-import {
-    BrowserCacheLocation,
-    BrowserConstants,
-} from "../utils/BrowserConstants.js";
+import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
@@ -157,10 +154,6 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     nativeBrokerHandshakeTimeout?: number;
     /**
-     * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
-     */
-    pollIntervalMilliseconds?: number;
-    /**
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
     protocolMode?: ProtocolMode;
@@ -289,7 +282,6 @@ export function buildConfiguration(
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
-        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
         protocolMode: ProtocolMode.AAD,
     };
 

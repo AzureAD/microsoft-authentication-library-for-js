@@ -11,8 +11,6 @@ import { CommonOnBehalfOfRequest } from "./CommonOnBehalfOfRequest.js";
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - oboAssertion            - The access token that was sent to the middle-tier API. This token must have an audience of the app making this OBO request.
  * - skipCache               - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
- * - extraQueryParameters    - String to string map of custom query parameters added to outgoing token service requests
- * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests
  * @public
  */
 export type OnBehalfOfRequest = Partial<
