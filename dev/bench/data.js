@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763509185197,
+  "lastUpdate": 1763574465045,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -18717,6 +18717,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.89%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8c5f422e30152d4970d70da2882b38ffc0224a2c",
+          "message": "EAR auth code fallback (#8111)\n\nThis pull request introduces enhancements to the authentication flow to\nsupport fallback from Encrypted Authorize Response (EAR) to standard\nauthorization code flow, working around lack of support for symmetric\nEAR in MSA.\n\n**Authentication flow fallback and PKCE improvements:**\n\n* Updated `PopupClient` and `SilentIframeClient` to detect when the\nserver does not support EAR and automatically fallback to the\nauthorization code flow, passing the PKCE verifier as needed. This\nensures authentication succeeds even if EAR is unsupported.\n[[1]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593R466-R504)\n[[2]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faR290-R329)\n* Refactored PKCE code generation and propagation: PKCE codes are now\ngenerated and passed through the EAR flow across all clients\n(`PopupClient`, `RedirectClient`, `SilentIframeClient`). The code\nchallenge is included in requests and cached with the verifier for later\nuse.\n[[1]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593L392-R393)\n[[2]](diffhunk://#diff-3f43afd5556603a80064728bd701519ec2e22979f09ae6095b7fdea0507ad593R417-R430)\n[[3]](diffhunk://#diff-06ec3818a1cb128320c6ece84eed04190a54c03a09a455ca2d5c6947e29d5de1R275-R292)\n[[4]](diffhunk://#diff-379febb046eaaa641bafb36c0a72f4c585eda5881b889dd8942919112539e5faR238-R248)\n\n**Protocol and test updates:**\n\n* Modified the protocol logic in `Authorize.ts` to always include the\nPKCE code challenge in EAR requests as a backup, improving compatibility\nwith servers that may not support EAR.\n* Updated protocol tests to verify that the code challenge and method\nare correctly included in authorization requests, ensuring test coverage\nfor the new fallback and PKCE logic.\n[[1]](diffhunk://#diff-383f979b9a05a2d7fe02052138e8087f6ca2167e78d44dc4d41c391463d4da04R72)\n[[2]](diffhunk://#diff-383f979b9a05a2d7fe02052138e8087f6ca2167e78d44dc4d41c391463d4da04R184-R191)",
+          "timestamp": "2025-11-19T09:40:19-08:00",
+          "tree_id": "d2ae46a94920e5c427e7212e129dd5183988d884",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8c5f422e30152d4970d70da2882b38ffc0224a2c"
+        },
+        "date": 1763574461872,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 236274,
+            "range": "±0.82%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 238126,
+            "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
