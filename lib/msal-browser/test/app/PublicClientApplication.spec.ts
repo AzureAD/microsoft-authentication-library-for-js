@@ -1888,7 +1888,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 enumerable: true,
                 writable: true,
                 value: new URL(
-                    `http://localhost?client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+                    `http://localhost?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
                 ),
             });
 
@@ -3002,7 +3002,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 enumerable: true,
                 writable: true,
                 value: new URL(
-                    `http://localhost?client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+                    `http://localhost?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
                 ),
             });
 
