@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "[Native Auth] Remove preview warning and typo fix",
+  "packageName": "@azure/msal-browser",
+  "email": "shen.jian@live.com",
+  "dependentChangeType": "patch"
+}
