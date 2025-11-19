@@ -19,17 +19,18 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { BrowserCacheLocation } from "./BrowserConstants.js";
+import { BrowserCacheLocation, InteractionType } from "./BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import type { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
 import {
     redirectBridgeEmptyResponse,
     redirectBridgeTimeout,
 } from "../error/BrowserAuthErrorCodes.js";
+import { base64Decode } from "../encode/Base64Decode.js";
 
 /**
  * Clears hash from window url.
@@ -67,11 +68,32 @@ export function isInIframe(): boolean {
  * Returns boolean of whether or not the current window is a popup opened by msal
  */
 export function isInPopup(): boolean {
-    return (
-        !isInIframe() &&
-        (new URLSearchParams(location.search).has("client_info") ||
-            new URLSearchParams(location.hash).has("client_info"))
+    if (isInIframe()) {
+        return false;
+    }
+
+    const hasHash = !!window.location.hash && window.location.hash.length > 1;
+    const hash = hasHash ? window.location.hash : window.location.search;
+    if (!hash) {
+        return false;
+    }
+
+    // Strip leading ? / #
+    const payload = hash.substring(1);
+    const params = new URLSearchParams(payload);
+
+    const state = params.get("state");
+    if (!state) {
+        return false;
+    }
+
+    const { libraryState } = ProtocolUtils.parseRequestState(
+        base64Decode,
+        state
     );
+
+    const { meta } = libraryState;
+    return !!(meta && meta["interactionType"] === InteractionType.Popup);
 }
 
 /**
