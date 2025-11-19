@@ -92,8 +92,6 @@ export class PopupClient extends StandardInteractionClient {
             correlationId,
             platformAuthHandler
         );
-        // Properly sets this reference for the unload event.
-        this.unloadWindow = this.unloadWindow.bind(this);
         this.nativeStorage = nativeStorageImpl;
         this.eventHandler = eventHandler;
     }
@@ -370,7 +368,6 @@ export class PopupClient extends StandardInteractionClient {
 
                 // Wait for the redirect bridge response
                 const responseString = await BrowserUtils.waitForBridgeResponse(
-                    this.config.system.pollIntervalMilliseconds,
                     this.config.system.popupBridgeTimeout,
                     this.logger,
                     this.browserCrypto,
@@ -489,7 +486,6 @@ export class PopupClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            this.config.system.pollIntervalMilliseconds,
             this.config.system.popupBridgeTimeout,
             this.logger,
             this.browserCrypto,
@@ -574,7 +570,6 @@ export class PopupClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(
-            this.config.system.pollIntervalMilliseconds,
             this.config.system.popupBridgeTimeout,
             this.logger,
             this.browserCrypto,
@@ -725,7 +720,6 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             await BrowserUtils.waitForBridgeResponse(
-                this.config.system.pollIntervalMilliseconds,
                 this.config.system.popupBridgeTimeout,
                 this.logger,
                 this.browserCrypto,
@@ -855,10 +849,6 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindow.focus();
             }
             this.currentWindow = popupWindow;
-            popupParams.popupWindowParent.addEventListener(
-                "beforeunload",
-                this.unloadWindow
-            );
 
             return popupWindow;
         } catch (e) {
@@ -954,17 +944,6 @@ export class PopupClient extends StandardInteractionClient {
             popupName,
             `width=${width}, height=${height}, top=${top}, left=${left}, scrollbars=yes`
         );
-    }
-
-    /**
-     * Event callback to unload main window.
-     */
-    unloadWindow(e: Event): void {
-        if (this.currentWindow) {
-            this.currentWindow.close();
-        }
-        // Guarantees browser unload will happen, so no other errors will be thrown.
-        e.preventDefault();
     }
 
     /**

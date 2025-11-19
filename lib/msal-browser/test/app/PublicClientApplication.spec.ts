@@ -83,7 +83,6 @@ import {
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
-import * as PopupUtils from "../../src/utils/PopupUtils.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
@@ -6376,7 +6375,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     PopupClient.prototype,
                     "openSizedPopup"
                 ).mockReturnValue(popupWindow);
-                jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {
