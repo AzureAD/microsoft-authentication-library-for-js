@@ -9,7 +9,7 @@ function performAuthentication() {
     // Add 3 second delay
     setTimeout(() => {
         continueAuthentication();
-    }, 3000);
+    }, 2000);
 }
 
 function continueAuthentication() {
