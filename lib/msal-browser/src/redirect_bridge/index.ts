@@ -68,6 +68,7 @@ export async function broadcastResponseToMainFrame(
             navigateToUrl || BrowserUtils.getHomepage()
         }${hash}`;
         await navigationClient.navigateInternal(homepage, navigationOptions);
+        return;
     }
 
     clearHash(window);
