@@ -3074,6 +3074,37 @@ describe("RedirectClient", () => {
             pca.acquireTokenRedirect(validRequest).catch(() => {});
         });
 
+        it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", (done) => {
+            const validRequest: RedirectRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["openid", "profile", "offline_access"],
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                redirectUri: window.location.href,
+                state: TEST_STATE_VALUES.USER_STATE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            jest.spyOn(
+                AuthorizeProtocol,
+                "handleResponseCode"
+            ).mockResolvedValue(getTestAuthenticationResult());
+            jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
+                () => {
+                    // Supress navigation
+                    pca.handleRedirectPromise(
+                        `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+                    ).then((result) => {
+                        expect(result).toEqual(getTestAuthenticationResult());
+                        done();
+                    });
+                }
+            );
+
+            pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
         it("Throws a timeout error if the form post failed to redirect within the alloted time", async () => {
             const validRequest: RedirectRequest = {
                 scopes: ["openid", "profile", "offline_access"],
