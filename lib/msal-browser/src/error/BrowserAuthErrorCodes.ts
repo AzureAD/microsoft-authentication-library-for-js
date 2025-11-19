@@ -15,10 +15,13 @@ export const hashDoesNotContainKnownProperties =
 export const unableToParseState = "unable_to_parse_state";
 export const stateInteractionTypeMismatch = "state_interaction_type_mismatch";
 export const interactionInProgress = "interaction_in_progress";
+export const interactionInProgressOverridden =
+    "interaction_in_progress_overridden";
 export const popupWindowError = "popup_window_error";
 export const emptyWindowError = "empty_window_error";
 export const userCancelled = "user_cancelled";
 export const redirectBridgeTimeout = "redirect_bridge_timeout";
+export const redirectBridgeEmptyResponse = "redirect_bridge_empty_response";
 export const redirectInIframe = "redirect_in_iframe";
 export const blockIframeReload = "block_iframe_reload";
 export const blockNestedPopups = "block_nested_popups";

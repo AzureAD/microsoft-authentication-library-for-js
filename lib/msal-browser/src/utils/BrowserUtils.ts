@@ -19,14 +19,18 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { BrowserCacheLocation } from "./BrowserConstants.js";
+import { BrowserCacheLocation, InteractionType } from "./BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import type { BrowserConfiguration } from "../config/Configuration.js";
-import { redirectBridgeTimeout } from "../error/BrowserAuthErrorCodes.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import {
+    redirectBridgeEmptyResponse,
+    redirectBridgeTimeout,
+} from "../error/BrowserAuthErrorCodes.js";
+import { base64Decode } from "../encode/Base64Decode.js";
 
 /**
  * Clears hash from window url.
@@ -64,11 +68,32 @@ export function isInIframe(): boolean {
  * Returns boolean of whether or not the current window is a popup opened by msal
  */
 export function isInPopup(): boolean {
-    return (
-        !isInIframe() &&
-        (new URLSearchParams(location.search).has("client_info") ||
-            new URLSearchParams(location.hash).has("client_info"))
+    if (isInIframe()) {
+        return false;
+    }
+
+    const hasHash = !!window.location.hash && window.location.hash.length > 1;
+    const hash = hasHash ? window.location.hash : window.location.search;
+    if (!hash) {
+        return false;
+    }
+
+    // Strip leading ? / #
+    const payload = hash.substring(1);
+    const params = new URLSearchParams(payload);
+
+    const state = params.get("state");
+    if (!state) {
+        return false;
+    }
+
+    const { libraryState } = ProtocolUtils.parseRequestState(
+        base64Decode,
+        state
     );
+
+    const { meta } = libraryState;
+    return !!(meta && meta["interactionType"] === InteractionType.Popup);
 }
 
 /**
@@ -76,15 +101,48 @@ export function isInPopup(): boolean {
  * This unified function works for both popup and iframe scenarios by listening on a
  * BroadcastChannel for the server payload.
  *
- * @param pollIntervalMilliseconds - The interval, in milliseconds, at which to poll for responses.
  * @param timeoutMs - Timeout in milliseconds.
  * @param logger - Logger instance for logging monitoring events.
  * @param browserCrypto - Browser crypto instance for decoding state.
  * @param request - The authorization or end session request.
  * @returns Promise<string> - Resolves with the response string (query or hash) from the window.
  */
+
+// Track the active bridge monitor to allow cancellation when overriding interactions
+let activeBridgeMonitor: {
+    timeoutId: number;
+    channel: BroadcastChannel;
+    reject: (reason?: unknown) => void;
+} | null = null;
+
+/**
+ * Cancels the pending bridge response monitor if one exists.
+ * This is called when overrideInteractionInProgress is used to cancel
+ * any pending popup interaction before starting a new one.
+ */
+export function cancelPendingBridgeResponse(
+    logger: Logger,
+    correlationId: string
+): void {
+    if (activeBridgeMonitor) {
+        logger.verbose(
+            "BrowserUtils.cancelPendingBridgeResponse - Cancelling pending bridge monitor",
+            correlationId
+        );
+
+        clearTimeout(activeBridgeMonitor.timeoutId);
+        activeBridgeMonitor.channel.close();
+        activeBridgeMonitor.reject(
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.interactionInProgressOverridden
+            )
+        );
+
+        activeBridgeMonitor = null;
+    }
+}
+
 export async function waitForBridgeResponse(
-    pollIntervalMilliseconds: number,
     timeoutMs: number,
     logger: Logger,
     browserCrypto: ICrypto,
@@ -102,27 +160,36 @@ export async function waitForBridgeResponse(
         );
         const channel = new BroadcastChannel(libraryState.id);
         let responseString: string | undefined = undefined;
-        channel.onmessage = (event) => {
-            responseString = event.data.payload;
-        };
 
         const timeoutId = window.setTimeout(() => {
-            window.clearInterval(intervalId);
+            // Clear the active monitor
+            activeBridgeMonitor = null;
+
             channel.close();
             reject(createBrowserAuthError(redirectBridgeTimeout));
         }, timeoutMs);
 
-        const intervalId = setInterval(() => {
-            // Response not yet received
-            if (!responseString) {
-                return;
-            }
+        // Track this monitor so it can be cancelled if needed
+        activeBridgeMonitor = {
+            timeoutId,
+            channel,
+            reject,
+        };
 
-            clearInterval(intervalId);
+        channel.onmessage = (event) => {
+            responseString = event.data.payload;
+
+            // Clear the active monitor
+            activeBridgeMonitor = null;
+
             clearTimeout(timeoutId);
             channel.close();
-            resolve(responseString);
-        }, pollIntervalMilliseconds);
+            if (responseString) {
+                resolve(responseString);
+            } else {
+                reject(createBrowserAuthError(redirectBridgeEmptyResponse));
+            }
+        };
     });
 }
 

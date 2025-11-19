@@ -47,7 +47,6 @@ import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
-import * as PopupUtils from "../../src/utils/PopupUtils.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
@@ -1516,7 +1515,6 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateInternal"
@@ -1543,7 +1541,6 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation();
 
             popupClient.logout().then(() => {
                 done();
@@ -1596,11 +1593,6 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
                 popupWindow
             );
-            jest.spyOn(PopupUtils, "cleanPopup").mockImplementation((popup) => {
-                window.sessionStorage.removeItem(
-                    `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
-                );
-            });
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateInternal"
@@ -1848,43 +1840,6 @@ describe("PopupClient", () => {
         });
     });
 
-    describe("unloadWindow", () => {
-        it("closes window and removes temporary cache", (done) => {
-            // @ts-ignore
-            pca.browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.INTERACTION_STATUS_KEY,
-                BrowserConstants.INTERACTION_IN_PROGRESS_VALUE,
-                true
-            );
-            const popupWindow: Window = {
-                ...window,
-                //@ts-ignore
-                location: {
-                    assign: () => {},
-                },
-                focus: () => {},
-                close: () => {
-                    // @ts-ignore
-                    expect(
-                        //@ts-ignore
-                        pca.browserStorage.getTemporaryCache(
-                            TemporaryCacheKeys.INTERACTION_STATUS_KEY
-                        )
-                    ).toBe(null);
-                    done();
-                },
-            };
-            const popupParams = {
-                popupName: "name",
-                popupWindowAttributes: {},
-                popup: popupWindow,
-                popupWindowParent: window,
-            };
-            popupClient.openPopup("http://localhost", popupParams);
-            popupClient.unloadWindow(new Event("test"));
-        });
-    });
-
     describe("waitForBridgeResponse", () => {
         it("resolves when BroadcastChannel receives hash response", async () => {
             const testLibraryState = { id: "test-channel-id" };
@@ -1913,7 +1868,6 @@ describe("PopupClient", () => {
             );
 
             const response = await BrowserUtils.waitForBridgeResponse(
-                clientImpl.config.system.pollIntervalMilliseconds,
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
@@ -1950,7 +1904,6 @@ describe("PopupClient", () => {
             );
 
             const response = await BrowserUtils.waitForBridgeResponse(
-                clientImpl.config.system.pollIntervalMilliseconds,
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
@@ -1990,7 +1943,6 @@ describe("PopupClient", () => {
 
             await expect(
                 BrowserUtils.waitForBridgeResponse(
-                    clientImpl.config.system.pollIntervalMilliseconds,
                     100,
                     clientImpl.logger,
                     clientImpl.browserCrypto,
@@ -2047,7 +1999,6 @@ describe("PopupClient", () => {
                 .mockResolvedValueOnce("code=code2&state=state2");
 
             const promise1 = BrowserUtils.waitForBridgeResponse(
-                clientImpl.config.system.pollIntervalMilliseconds,
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
@@ -2055,7 +2006,6 @@ describe("PopupClient", () => {
             );
 
             const promise2 = BrowserUtils.waitForBridgeResponse(
-                clientImpl.config.system.pollIntervalMilliseconds,
                 5000,
                 clientImpl.logger,
                 clientImpl.browserCrypto,
@@ -2274,10 +2224,6 @@ describe("PopupClient", () => {
             expect(popupWindowParent.open).toHaveBeenCalledWith(
                 "http://localhost/#/code=hello",
                 "name",
-                expect.anything()
-            );
-            expect(popupWindowParent.addEventListener).toHaveBeenCalledWith(
-                "beforeunload",
                 expect.anything()
             );
         });

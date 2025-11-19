@@ -32,6 +32,7 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - popupWindowAttributes      - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  * - popupWindowParent          - Optional window object to use as the parent when opening popup windows. Uses global `window` if not given.
+ * - overrideInteractionInProgress - Optional flag to allow overriding an existing interaction_in_progress state for popup flows. When set to true, if another interaction is in progress, it will be cancelled and the new popup flow will proceed. This is useful when a user has cancelled a popup or when recovering from errors. Default is false.
  */
 
 export type PopupRequest = Partial<
@@ -48,4 +49,5 @@ export type PopupRequest = Partial<
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
+    overrideInteractionInProgress?: boolean;
 };

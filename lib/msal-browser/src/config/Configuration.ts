@@ -22,14 +22,10 @@ import {
     Logger,
     Constants,
 } from "@azure/msal-common/browser";
-import {
-    BrowserCacheLocation,
-    BrowserConstants,
-} from "../utils/BrowserConstants.js";
+import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
-import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -157,10 +153,6 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     nativeBrokerHandshakeTimeout?: number;
     /**
-     * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
-     */
-    pollIntervalMilliseconds?: number;
-    /**
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
     protocolMode?: ProtocolMode;
@@ -236,7 +228,9 @@ export function buildConfiguration(
         cloudDiscoveryMetadata: "",
         authorityMetadata: "",
         redirectUri:
-            typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
+            typeof window !== "undefined" && window.location
+                ? window.location.href.split("?")[0].split("#")[0]
+                : "",
         postLogoutRedirectUri: "",
         clientCapabilities: [],
         OIDCOptions: {
@@ -289,7 +283,6 @@ export function buildConfiguration(
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
-        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
         protocolMode: ProtocolMode.AAD,
     };
 
