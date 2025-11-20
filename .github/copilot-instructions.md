@@ -192,23 +192,13 @@ microsoft-authentication-library-for-js/
 
 ### Instance Aware Flow Restrictions
 
-**IMPORTANT: The instance aware flow is only available for 1st party Microsoft customers and should NEVER be suggested or used for 3rd party customers.**
+**IMPORTANT: The instance aware flow is not supported and should NEVER be suggested or used with this library**
 
-- **Do not suggest** the `instanceAware` configuration option or `instance_aware` query parameter for 3rd party applications
-- **Do not recommend** instance aware flow in code examples, documentation, or solutions for external developers
-- Instance aware flow documentation exists at `lib/msal-browser/docs/instance-aware.md` but is intended only for internal Microsoft use cases
-- If asked about multi-cloud or cloud instance scenarios by 3rd party developers, provide alternative solutions that do not involve instance aware flow
+- **Do not suggest** the `instanceAware` configuration option or `instance_aware` query parameter
+- **Do not recommend** instance aware flow in code examples, documentation, or solutions
+- If asked about multi-cloud or cloud instance scenarios, provide alternative solutions that do not involve instance aware flow
 
-**What Is Instance Aware Flow:**
-- A feature that allows the STS to send back additional parameters in the `/authorize` response to specify where tokens should be retrieved from
-- Enabled via `instanceAware: true` in auth config or `instance_aware: "true"` in request `extraQueryParameters`
-- Used primarily for scenarios where user accounts may reside in different cloud instances
-
-**When to Use (1st Party Only):**
-- Only for Microsoft internal applications and services
-- When the application needs to handle users across different cloud instances (e.g., public cloud, government clouds, etc.)
-
-**What to Suggest Instead for 3rd Party Customers:**
+**What to Suggest Instead:**
 - Standard MSAL authentication flows without instance aware configuration
 - Proper authority configuration for the specific cloud environment the application targets
 - Separate application registrations for different cloud environments if needed
