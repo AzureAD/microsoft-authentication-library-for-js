@@ -2,6 +2,39 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 19 Nov 2025 23:13:10 GMT",
+      "version": "15.13.2",
+      "tag": "@azure/msal-common_v15.13.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "akaliugonna@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8c5f422e30152d4970d70da2882b38ffc0224a2c",
+            "comment": "error surfacing changes"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 29 Oct 2025 00:04:33 GMT",
       "version": "15.13.1",
       "tag": "@azure/msal-common_v15.13.1",
