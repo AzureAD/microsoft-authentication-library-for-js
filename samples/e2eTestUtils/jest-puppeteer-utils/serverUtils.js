@@ -128,7 +128,7 @@ async function killServer(port) {
                 // Try SIGTERM first (graceful shutdown)
                 process.kill(proc.pid, 'SIGTERM');
 
-                // If still running after 2 seconds, force kill
+                // If still running after 500ms, force kill
                 setTimeout(() => {
                     try {
                         process.kill(proc.pid, 'SIGKILL');

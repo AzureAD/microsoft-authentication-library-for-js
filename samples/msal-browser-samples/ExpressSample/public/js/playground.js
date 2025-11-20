@@ -104,7 +104,7 @@ async function applyConfiguration() {
             displayResponse({
                 success: true,
                 message: 'Redirect response received',
-                response: redirectResponse,
+                result: redirectResponse,
                 timestamp: new Date().toISOString()
             }, 'success');
             showSuccess('Configuration applied and redirect response received!');

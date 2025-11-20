@@ -181,6 +181,7 @@ export async function b2cLocalAccountEnterCredentials(
     username: string,
     accountPwd: string
 ) {
+    await page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {});
     await fillUsername(page, screenshot, username);
     await fillPassword(page, screenshot, accountPwd);
     await clickSubmitButton(page, screenshot);
