@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 06 Nov 2025 00:32:05 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 19 Nov 2025 23:13:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.26.2
+
+Wed, 19 Nov 2025 23:13:10 GMT
+
+### Patches
+
+- EAR flow falls back to auth code when /authorize returns code #8111 (thomas.norling@microsoft.com)
+- [Native Auth] Remove preview warning and typo fix (shen.jian@live.com)
+- Bump @azure/msal-common to v15.13.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.26.1
 
