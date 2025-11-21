@@ -61,6 +61,18 @@ describe("SilentHandler.ts Unit Tests", () => {
             );
             expect(authFrame instanceof HTMLIFrameElement).toBe(true);
         });
+
+        it("Sets the allow attribute for local network access on iframe", async () => {
+            const authFrame = await SilentHandler.initiateCodeRequest(
+                testNavUrl,
+                performanceClient,
+                browserRequestLogger,
+                RANDOM_TEST_GUID
+            );
+            expect(authFrame.getAttribute("allow")).toBe(
+                "local-network-access *"
+            );
+        });
     });
 
     describe("monitorIframeForHash", () => {
