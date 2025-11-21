@@ -52,6 +52,8 @@ export function parseAuthResponseFromUrl(): {
     payload: string;
     urlHash: string;
     urlQuery: string;
+    hasResponseInHash: boolean;
+    hasResponseInQuery: boolean;
     libraryState: {
         id: string;
         meta: Record<string, string>;
@@ -61,30 +63,47 @@ export function parseAuthResponseFromUrl(): {
     const urlHash = window.location.hash;
     const urlQuery = window.location.search;
 
-    // Combine query string and hash for full payload
+    // Determine which part contains the auth response by checking for 'state' parameter
+    let hasResponseInHash = false;
+    let hasResponseInQuery = false;
     let payload = "";
-    if (urlQuery && urlQuery.length > 1) {
-        // Verify it starts with '?' before stripping
-        if (urlQuery.charAt(0) === "?") {
-            payload = urlQuery.substring(1);
-        } else {
-            payload = urlQuery;
-        }
-    }
+    let params: URLSearchParams | undefined = undefined;
+
     if (urlHash && urlHash.length > 1) {
-        // Verify it starts with '#' before stripping
         const hashContent =
             urlHash.charAt(0) === "#" ? urlHash.substring(1) : urlHash;
-        // Append hash fragment
-        payload = payload ? `${payload}${hashContent}` : hashContent;
+        const hashParams = new URLSearchParams(hashContent);
+        if (hashParams.has("state")) {
+            hasResponseInHash = true;
+            payload = hashContent;
+            params = hashParams;
+        }
     }
 
-    if (!payload) {
+    if (urlQuery && urlQuery.length > 1) {
+        const queryContent =
+            urlQuery.charAt(0) === "?" ? urlQuery.substring(1) : urlQuery;
+        const queryParams = new URLSearchParams(queryContent);
+        if (queryParams.has("state")) {
+            hasResponseInQuery = true;
+            payload = queryContent;
+            params = queryParams;
+        }
+    }
+
+    // If response is in both, combine them (hybrid format)
+    if (hasResponseInHash && hasResponseInQuery) {
+        const queryContent =
+            urlQuery.charAt(0) === "?" ? urlQuery.substring(1) : urlQuery;
+        const hashContent =
+            urlHash.charAt(0) === "#" ? urlHash.substring(1) : urlHash;
+        payload = `${queryContent}${hashContent}`;
+        params = new URLSearchParams(payload);
+    }
+
+    if (!payload || !params) {
         throw new Error("No auth payload found on URL (hash or query)");
     }
-
-    // Parse state from URL parameters
-    const params = new URLSearchParams(payload);
 
     const state = params.get("state");
     if (!state) {
@@ -106,6 +125,8 @@ export function parseAuthResponseFromUrl(): {
         payload,
         urlHash,
         urlQuery,
+        hasResponseInHash,
+        hasResponseInQuery,
         libraryState: {
             id,
             meta,

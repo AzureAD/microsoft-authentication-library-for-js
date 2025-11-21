@@ -35,12 +35,26 @@ export async function broadcastResponseToMainFrame(
     try {
         parsedResponse = parseAuthResponseFromUrl();
     } catch (error) {
-        // Clear hash before re-throwing parse errors
-        BrowserUtils.clearHash(window);
+        // Clear hash and query string before re-throwing parse errors
+        if (typeof window.history.replaceState === "function") {
+            window.history.replaceState(
+                null,
+                "",
+                `${window.location.origin}${window.location.pathname}`
+            );
+        }
         throw error;
     }
 
-    const { params, payload, urlHash, urlQuery, libraryState } = parsedResponse;
+    const {
+        params,
+        payload,
+        urlHash,
+        urlQuery,
+        hasResponseInHash,
+        hasResponseInQuery,
+        libraryState,
+    } = parsedResponse;
 
     const { id, meta } = libraryState;
 
@@ -66,16 +80,42 @@ export async function broadcastResponseToMainFrame(
             }
         }
 
-        // Reconstruct full URL with auth response
-        const fullUrlHash = `${urlQuery}${urlHash}`;
+        // Reconstruct full URL with auth response (preserve original format)
+        let fullUrlResponse = "";
+        if (hasResponseInHash && hasResponseInQuery) {
+            // Hybrid format
+            fullUrlResponse = `${urlQuery}${urlHash}`;
+        } else if (hasResponseInHash) {
+            // Hash only
+            fullUrlResponse = urlHash;
+        } else {
+            // Query only
+            fullUrlResponse = urlQuery;
+        }
+
         const homepage = `${
             navigateToUrl || BrowserUtils.getHomepage()
-        }${fullUrlHash}`;
+        }${fullUrlResponse}`;
         await navClient.navigateInternal(homepage, navigationOptions);
+
+        // Do NOT clear URL for redirect flow - we're navigating away anyway
         return;
     }
 
-    BrowserUtils.clearHash(window);
+    // Clear only the part(s) containing the auth response from redirect bridge URL
+    if (typeof window.history.replaceState === "function") {
+        let newUrl = `${window.location.origin}${window.location.pathname}`;
+        // Preserve hash if it didn't contain the response
+        if (!hasResponseInHash && urlHash) {
+            newUrl += urlHash;
+        }
+        // Preserve query if it didn't contain the response
+        if (!hasResponseInQuery && urlQuery) {
+            newUrl += urlQuery;
+        }
+        window.history.replaceState(null, "", newUrl);
+    }
+
     // Send the raw URL payload to the main frame
     const channel = new BroadcastChannel(id);
     channel.postMessage({

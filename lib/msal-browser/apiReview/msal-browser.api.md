@@ -1110,6 +1110,8 @@ function parseAuthResponseFromUrl(): {
     payload: string;
     urlHash: string;
     urlQuery: string;
+    hasResponseInHash: boolean;
+    hasResponseInQuery: boolean;
     libraryState: {
         id: string;
         meta: Record<string, string>;

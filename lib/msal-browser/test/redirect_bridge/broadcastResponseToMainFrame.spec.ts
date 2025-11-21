@@ -5,26 +5,20 @@
 
 import { broadcastResponseToMainFrame } from "../../src/redirect_bridge/index.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
-import {
-    clearHash,
-    parseAuthResponseFromUrl,
-} from "../../src/utils/BrowserUtils.js";
+import { parseAuthResponseFromUrl } from "../../src/utils/BrowserUtils.js";
 import {
     TEST_HASHES,
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
 
-jest.mock("../../src/utils/BrowserUtils.js", () => ({
-    ...jest.requireActual("../../src/utils/BrowserUtils.js"),
-    clearHash: jest.fn(),
-}));
 jest.mock("../../src/navigation/NavigationClient.js");
 
 describe("broadcastResponseToMainFrame", () => {
     let mockNavigationClient: jest.Mocked<NavigationClient>;
     let mockSessionStorage: { [key: string]: string };
     let originalLocation: Location;
+    let mockHistoryReplaceState: jest.Mock;
 
     beforeAll(() => {
         // Save original location
@@ -40,6 +34,10 @@ describe("broadcastResponseToMainFrame", () => {
             search: "",
         };
 
+        // Mock history.replaceState
+        mockHistoryReplaceState = jest.fn();
+        window.history.replaceState = mockHistoryReplaceState;
+
         // Mock window.close
         window.close = jest.fn();
 
@@ -50,9 +48,6 @@ describe("broadcastResponseToMainFrame", () => {
         (NavigationClient as unknown as jest.Mock).mockImplementation(
             () => mockNavigationClient
         );
-
-        // Mock clearHash
-        (clearHash as jest.Mock).mockImplementation(() => {});
 
         // Mock sessionStorage
         mockSessionStorage = {};
@@ -99,10 +94,10 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "#code=testCode&client_info=testClientInfo";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "Missing state on redirect URL"
+                "No auth payload found on URL (hash or query)"
             );
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("throws error when state is missing 'id' attribute", async () => {
@@ -115,7 +110,7 @@ describe("broadcastResponseToMainFrame", () => {
                 "Missing state 'id' and/or 'meta' attributes"
             );
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("throws error when state is missing 'meta' attribute", async () => {
@@ -126,7 +121,7 @@ describe("broadcastResponseToMainFrame", () => {
                 "Missing state 'id' and/or 'meta' attributes"
             );
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
     });
 
@@ -137,7 +132,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Verify hash was cleared (indicates broadcast path was taken)
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
 
             // Verify window.close was called
             expect(window.close).toHaveBeenCalled();
@@ -154,7 +149,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Verify hash was cleared (indicates broadcast path was taken)
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
 
             // Verify window.close was called
             expect(window.close).toHaveBeenCalled();
@@ -173,7 +168,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Should still broadcast the error response (verify via hash clearing)
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
 
             // Verify window.close was called
             expect(window.close).toHaveBeenCalled();
@@ -204,8 +199,8 @@ describe("broadcastResponseToMainFrame", () => {
                 })
             );
 
-            // Hash should NOT be cleared for redirect (early return before clearHash)
-            expect(clearHash).not.toHaveBeenCalled();
+            // URL should NOT be cleared for redirect flow (we're navigating away)
+            expect(mockHistoryReplaceState).not.toHaveBeenCalled();
 
             // window.close should NOT be called for redirect (early return)
             expect(window.close).not.toHaveBeenCalled();
@@ -273,7 +268,7 @@ describe("broadcastResponseToMainFrame", () => {
 
             // Should still navigate successfully using homepage fallback
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
-            expect(clearHash).not.toHaveBeenCalled();
+            expect(mockHistoryReplaceState).not.toHaveBeenCalled();
         });
 
         it("falls back to homepage when client_id is not in URL", async () => {
@@ -299,7 +294,7 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            expect(clearHash).toHaveBeenCalled();
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
             expect(window.close).toHaveBeenCalled();
         });
 
@@ -316,7 +311,7 @@ describe("broadcastResponseToMainFrame", () => {
                 mockNavigationClient.navigateInternal as jest.Mock
             ).mock.calls[0][0];
             expect(callArgs).toContain("?state=");
-            expect(callArgs).toContain("#app_hash_fragment");
+            expect(callArgs).toContain("&code=test_code");
         });
 
         it("strips leading ? from query string", async () => {
@@ -326,7 +321,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Should successfully parse state (indicates ? was stripped)
-            expect(clearHash).toHaveBeenCalled();
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("strips leading # from hash", async () => {
@@ -335,7 +330,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Should successfully parse state (indicates # was stripped)
-            expect(clearHash).toHaveBeenCalled();
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("handles query string without leading ?", async () => {
@@ -345,7 +340,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Should still work even without leading ?
-            expect(clearHash).toHaveBeenCalled();
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("handles hash without leading #", async () => {
@@ -354,7 +349,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Should still work even without leading #
-            expect(clearHash).toHaveBeenCalled();
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("throws when both query and hash are empty", async () => {
@@ -363,6 +358,47 @@ describe("broadcastResponseToMainFrame", () => {
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
                 "No auth payload found on URL (hash or query)"
+            );
+        });
+
+        it("preserves hash fragment when auth response is in query string (popup/silent flow)", async () => {
+            // Scenario: redirectUri is https://contoso.com/redirect#myReplyUrl
+            // Auth response comes in query string, hash should be preserved
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+            window.location.hash = "#myReplyUrl";
+
+            await broadcastResponseToMainFrame();
+
+            // Should clear query string but preserve hash
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                null,
+                "",
+                expect.stringContaining("#myReplyUrl")
+            );
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                null,
+                "",
+                expect.not.stringContaining("?state=")
+            );
+        });
+
+        it("preserves query string when auth response is in hash (popup/silent flow)", async () => {
+            // Scenario: redirectUri has query params, auth response in hash
+            window.location.search = "?app_param=value";
+            window.location.hash = `#state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+
+            await broadcastResponseToMainFrame();
+
+            // Should clear hash but preserve query string
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                null,
+                "",
+                expect.stringContaining("?app_param=value")
+            );
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                null,
+                "",
+                expect.not.stringContaining("#state=")
             );
         });
 
@@ -399,17 +435,17 @@ describe("broadcastResponseToMainFrame", () => {
             ).resolves.toBeUndefined();
 
             // Verify clearHash was still called (indicates broadcast completed)
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
     });
 
-    describe("Hash clearing", () => {
+    describe("URL clearing", () => {
         it("clears hash before throwing error when state is missing", async () => {
             window.location.hash = "#code=testCode";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow();
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("clears hash before throwing error when state attributes are missing", async () => {
@@ -418,7 +454,7 @@ describe("broadcastResponseToMainFrame", () => {
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow();
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("clears hash after successful broadcast", async () => {
@@ -426,7 +462,7 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
     });
 });
@@ -446,9 +482,6 @@ describe("parseAuthResponseFromUrl", () => {
             hash: "",
             search: "",
         };
-
-        // Mock clearHash
-        (clearHash as jest.Mock).mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -496,7 +529,11 @@ describe("parseAuthResponseFromUrl", () => {
         expect(result.urlQuery).toContain("?state=");
         expect(result.urlHash).toBe("#app_fragment");
         expect(result.payload).toContain("state=");
-        expect(result.payload).toContain("app_fragment");
+        expect(result.payload).toContain("code=test_code");
+        // Hash fragment without state should NOT be in payload
+        expect(result.payload).not.toContain("app_fragment");
+        expect(result.hasResponseInQuery).toBe(true);
+        expect(result.hasResponseInHash).toBe(false);
         expect(result.libraryState.meta["interactionType"]).toBe("redirect");
     });
 
@@ -557,7 +594,7 @@ describe("parseAuthResponseFromUrl", () => {
         window.location.hash = "#code=testCode&client_info=testClientInfo";
 
         expect(() => parseAuthResponseFromUrl()).toThrow(
-            "Missing state on redirect URL"
+            "No auth payload found on URL (hash or query)"
         );
     });
 
