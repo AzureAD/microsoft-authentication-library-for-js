@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "EAR flow falls back to auth code when /authorize returns code",
+  "comment": "EAR flow falls back to auth code when /authorize returns code [#8156](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8156)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

@@ -319,6 +319,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         this.browserStorage.cacheAuthorizeRequest(
             redirectRequest,
+            this.correlationId,
             pkceCodes.verifier
         );
 
