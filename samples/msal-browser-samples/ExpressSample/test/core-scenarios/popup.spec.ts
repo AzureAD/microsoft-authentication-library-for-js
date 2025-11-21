@@ -9,7 +9,7 @@ import {
     AppTypes,
     LabClient,
 } from "e2e-test-utils";
-import { JWT } from "jose";
+import { JWT, JWK } from "jose";
 import path from "path";
 import { defaultPcaConfig, defaultTokenRequest, setPCAConfiguration, setRequestConfiguration } from "../test-helpers";
 
@@ -391,5 +391,102 @@ describe("Popup tests", () => {
         expect(decodedToken.xms_cc).toEqual(["CP1"]);
         expect(typeof decodedToken.cnf.kid).toEqual("string");
         expect(typeof decodedToken.cnf.xms_ksl).toEqual("string");
+    });
+
+    it("Performs loginPopup, acquires and validates PoP token", async () => {
+        const testName = "popupPopToken";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+
+        const popTokenRequest = {
+            ...defaultTokenRequest,
+            authenticationScheme: "pop",
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://graph.microsoft.com/v1.0/me"
+        };
+
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(popTokenRequest, page, screenshot);
+
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
+            page.once("popup", resolve)
+        );
+        await page.locator("button#btnAcquireTokenPopup").click();
+        const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+        }
+        const popupWindowClosed = new Promise<void>((resolve) =>
+            popupPage.once("close", resolve)
+        );
+        await enterCredentials(popupPage, screenshot, username, accountPwd);
+        await popupWindowClosed;
+
+        // Get the response from the display
+        const responseText = await page.locator("div#responseContent")
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
+            .map(value => value.textContent)
+            .wait();
+        await screenshot.takeScreenshot(page, "Returned to app with PoP token");
+
+        const response = JSON.parse(responseText || "{}");
+        expect(response.result).toHaveProperty("accessToken");
+        expect(response.result).toHaveProperty("idToken");
+
+        // Verify PoP token - outer layer is the signed JWT wrapper
+        const token = response.result.accessToken;
+        const decodedToken: any = JWT.decode(token);
+        const pubKey = decodedToken.cnf.jwk;
+        const pubKeyJwk = JWK.asKey(pubKey);
+        expect(JWT.verify(token, pubKeyJwk)).toEqual(decodedToken);
+    });
+
+    it("Performs loginPopup, acquires and verifies a PoP token is unsigned if PoP kid is provided in request", async () => {
+        const testName = "popupPopTokenWithKid";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+
+        const popTokenWithKidRequest = {
+            ...defaultTokenRequest,
+            authenticationScheme: "pop",
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            popKid: "test-kid-123"
+        };
+
+        await setPCAConfiguration(defaultPcaConfig, page, screenshot);
+        await setRequestConfiguration(popTokenWithKidRequest, page, screenshot);
+
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
+            page.once("popup", resolve)
+        );
+        await page.locator("button#btnAcquireTokenPopup").click();
+        const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+        }
+        const popupWindowClosed = new Promise<void>((resolve) =>
+            popupPage.once("close", resolve)
+        );
+        await enterCredentials(popupPage, screenshot, username, accountPwd);
+        await popupWindowClosed;
+
+        // Get the response from the display
+        const responseText = await page.locator("div#responseContent")
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
+            .map(value => value.textContent)
+            .wait();
+        await screenshot.takeScreenshot(page, "Returned to app with PoP token with kid");
+
+        const response = JSON.parse(responseText || "{}");
+        expect(response.result).toHaveProperty("accessToken");
+        expect(response.result).toHaveProperty("idToken");
+
+        // Verify token was acquired successfully
+        const token = response.result.accessToken;
+        const decodedToken: any = JWT.decode(token);
+        expect(decodedToken).toBeDefined();
     });
 });
