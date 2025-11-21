@@ -90,10 +90,14 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
 }
 
 export async function setPCAConfiguration(config: object, page: puppeteer.Page, screenshot: Screenshot) {
+    await page.locator("button#clearResponse").wait();
     await screenshot.takeScreenshot(page, "Filling in PCA config");
     await page.locator("textarea#msalConfig").fill(JSON.stringify(config, null, 2));
     await screenshot.takeScreenshot(page, "Config filled");
     await page.locator("button#applyConfig").click();
+    await page.locator("div#responseContent")
+        .filter((value) => !!value.textContent && value.textContent.includes("MSAL instance created and initialized"))
+        .wait();
 }
 
 export async function setRequestConfiguration(request: object, page: puppeteer.Page, screenshot: Screenshot) {

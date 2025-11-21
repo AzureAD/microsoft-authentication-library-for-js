@@ -9,6 +9,7 @@ import {
     AppTypes,
     LabClient,
 } from "e2e-test-utils";
+import { JWT } from "jose";
 import path from "path";
 import { defaultPcaConfig, defaultTokenRequest, setPCAConfiguration, setRequestConfiguration } from "../test-helpers";
 
@@ -284,5 +285,111 @@ describe("Popup tests", () => {
         expect(tab2Response.result).toHaveProperty("accessToken");
         await screenshot.takeScreenshot(tab2, "tab2AcquiredToken");
         await tab2.close();
+    });
+
+    it("Performs loginPopup and validates CAE token with client capabilities", async () => {
+        const testName = "popupCAEToken";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+
+        const caeConfig = {
+            ...defaultPcaConfig,
+            auth: {
+                ...defaultPcaConfig.auth,
+                clientCapabilities: ["CP1"]
+            }
+        };
+
+        await setPCAConfiguration(caeConfig, page, screenshot);
+        await setRequestConfiguration(defaultTokenRequest, page, screenshot);
+
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
+            page.once("popup", resolve)
+        );
+        await page.locator("button#btnAcquireTokenPopup").click();
+        const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+        }
+        const popupWindowClosed = new Promise<void>((resolve) =>
+            popupPage.once("close", resolve)
+        );
+        await enterCredentials(popupPage, screenshot, username, accountPwd);
+        await popupWindowClosed;
+
+        // Get the response from the display
+        const responseText = await page.locator("div#responseContent")
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
+            .map(value => value.textContent)
+            .wait();
+        await screenshot.takeScreenshot(page, "Returned to app with CAE token");
+
+        const response = JSON.parse(responseText || "{}");
+        expect(response.result).toHaveProperty("accessToken");
+        expect(response.result).toHaveProperty("idToken");
+
+        // Verify CAE claim in access token
+        const accessToken = response.result.accessToken;
+        const decodedToken: any = JWT.decode(accessToken);
+        expect(decodedToken.xms_cc).toEqual(["CP1"]);
+    });
+
+    it("Performs loginPopup and validates CAE PoP token", async () => {
+        const testName = "popupCAEPopToken";
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+        );
+
+        const caeConfig = {
+            ...defaultPcaConfig,
+            auth: {
+                ...defaultPcaConfig.auth,
+                clientCapabilities: ["CP1"]
+            }
+        };
+
+        const popTokenRequest = {
+            ...defaultTokenRequest,
+            authenticationScheme: "pop",
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://graph.microsoft.com/v1.0/me"
+        };
+
+        await setPCAConfiguration(caeConfig, page, screenshot);
+        await setRequestConfiguration(popTokenRequest, page, screenshot);
+
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
+            page.once("popup", resolve)
+        );
+        await page.locator("button#btnAcquireTokenPopup").click();
+        const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+        }
+        const popupWindowClosed = new Promise<void>((resolve) =>
+            popupPage.once("close", resolve)
+        );
+        await enterCredentials(popupPage, screenshot, username, accountPwd);
+        await popupWindowClosed;
+
+        // Get the response from the display
+        const responseText = await page.locator("div#responseContent")
+            .filter((value) => !!value.textContent && value.textContent.includes("result"))
+            .map(value => value.textContent)
+            .wait();
+        await screenshot.takeScreenshot(page, "Returned to app with CAE PoP token");
+
+        const response = JSON.parse(responseText || "{}");
+        expect(response.result).toHaveProperty("accessToken");
+        expect(response.result).toHaveProperty("idToken");
+
+        // Verify CAE PoP token - PoP tokens are JWT wrappers around the actual token
+        const accessToken = response.result.accessToken;
+        const popToken: any = JWT.decode(accessToken);
+        const decodedToken: any = JWT.decode(popToken.at);
+        expect(decodedToken.xms_cc).toEqual(["CP1"]);
+        expect(typeof decodedToken.cnf.kid).toEqual("string");
+        expect(typeof decodedToken.cnf.xms_ksl).toEqual("string");
     });
 });

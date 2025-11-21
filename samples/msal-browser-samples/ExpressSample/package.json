@@ -13,7 +13,8 @@
         "@azure/msal-browser": "^5.0.0-alpha.0",
         "dotenv": "^16.0.3",
         "express": "^4.18.2",
-        "express-handlebars": "^7.0.7"
+        "express-handlebars": "^7.0.7",
+        "jose": "^2.0.7"
     },
     "devDependencies": {
         "@types/jest": "^30.0.0",
