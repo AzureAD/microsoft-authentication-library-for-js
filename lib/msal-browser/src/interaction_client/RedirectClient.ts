@@ -303,13 +303,23 @@ export class RedirectClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )();
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            BrowserPerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.performanceClient, this.logger, correlationId);
+
         const redirectRequest = {
             ...request,
             earJwk: earJwk,
+            codeChallenge: pkceCodes.challenge,
         };
+
         this.browserStorage.cacheAuthorizeRequest(
             redirectRequest,
-            this.correlationId
+            pkceCodes.verifier
         );
 
         const form = await Authorize.getEARForm(
