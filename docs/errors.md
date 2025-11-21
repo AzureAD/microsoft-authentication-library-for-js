@@ -613,7 +613,15 @@ const promise2 = msalInstance.acquireTokenPopup(request2);
 - Token acquisition in popup failed due to timeout.
 - Token acquisition in iframe failed due to timeout.
 
-This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period. This typically occurs for the following reasons:
+This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period.
+
+**What is the redirect bridge?**
+
+The redirect bridge is a mechanism that enables authentication flows in COOP (Cross-Origin-Opener-Policy) enabled applications. When COOP headers are present, popup and iframe windows cannot directly communicate with the main application window. The redirect bridge solves this by using the BroadcastChannel API to transmit authentication responses from the redirect page back to the main window. For more details on COOP support and the redirect bridge, see the [COOP Migration Guide](../lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
+
+**Common Causes:**
+
+This timeout typically occurs for the following reasons:
 
 1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
 1. The redirect page is removing or manipulating the hash before the bridge script can process it
