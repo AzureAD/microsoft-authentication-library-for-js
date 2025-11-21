@@ -281,7 +281,7 @@ export class PublicClientApplication
         }
 
         if (request.redirectUri) {
-            // If its not a broker fallback scenario, we throw a error
+            // If it's not a broker fallback scenario, we throw an error
             if (!this.config.broker.nativeBrokerPlugin) {
                 throw NodeAuthError.createRedirectUriNotSupportedError();
             }
