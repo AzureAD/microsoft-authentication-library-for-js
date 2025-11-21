@@ -651,14 +651,14 @@ describe("PublicClientApplication", () => {
 
             const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
             jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
-                (config) => new silentFlowClient(config)
+                (config) => new silentFlowClient(config, new StubPerformanceClient())
             );
             jest.spyOn(
                 silentFlowClient.prototype,
                 "acquireCachedToken"
             ).mockResolvedValue([
                 mockAuthenticationResult,
-                CacheOutcome.NOT_APPLICABLE,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
             ]);
 
             const request: SilentFlowRequest = {
