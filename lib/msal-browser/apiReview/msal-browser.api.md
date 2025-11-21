@@ -226,7 +226,7 @@ declare namespace BrowserAuthErrorCodes {
         unableToParseState,
         stateInteractionTypeMismatch,
         interactionInProgress,
-        interactionInProgressOverridden,
+        interactionInProgressCancelled,
         popupWindowError,
         emptyWindowError,
         userCancelled,
@@ -406,6 +406,7 @@ export type BrowserTelemetryOptions = {
 
 declare namespace BrowserUtils {
     export {
+        parseAuthResponseFromUrl,
         clearHash,
         replaceHash,
         isInIframe,
@@ -762,10 +763,10 @@ export { InProgressPerformanceEvent }
 // @public (undocumented)
 const interactionInProgress = "interaction_in_progress";
 
-// Warning: (ae-missing-release-tag) "interactionInProgressOverridden" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "interactionInProgressCancelled" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-const interactionInProgressOverridden = "interaction_in_progress_overridden";
+const interactionInProgressCancelled = "interaction_in_progress_cancelled";
 
 export { InteractionRequiredAuthError }
 
@@ -1083,6 +1084,38 @@ const noTokenRequestCacheError = "no_token_request_cache_error";
 // @public (undocumented)
 export const OIDC_DEFAULT_SCOPES: string[];
 
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (ae-missing-release-tag) "parseAuthResponseFromUrl" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function parseAuthResponseFromUrl(): {
+    params: URLSearchParams;
+    payload: string;
+    urlHash: string;
+    urlQuery: string;
+    libraryState: {
+        id: string;
+        meta: Record<string, string>;
+    };
+};
+
 export { PerformanceCallbackFunction }
 
 export { PerformanceEvent }
@@ -1107,6 +1140,16 @@ export type PopupPosition = {
     left: number;
 };
 
+// Warning: (tsdoc-code-fence-opening-indent) The opening backtick for a code fence must appear at the start of the line
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-code-fence-opening-indent) The opening backtick for a code fence must appear at the start of the line
 // Warning: (ae-missing-release-tag) "PopupRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public

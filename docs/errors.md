@@ -558,9 +558,9 @@ If you are unable to figure out why this error is being thrown please [open an i
 -   Refresh the page. Does the error go away?
 -   Open your application in a new tab. Does the error go away?
 
-### `interaction_in_progress_overridden`
+### `interaction_in_progress_cancelled`
 
--   The current interaction was overridden by a new interaction request with `overrideInteractionInProgress` set to `true`.
+-   The current interaction was cancelled by a new interaction request with `overrideInteractionInProgress` set to `true`.
 
 This error is thrown when an existing popup interaction is cancelled because a new popup request was initiated with the `overrideInteractionInProgress` flag set to `true`. This is not necessarily an error condition - it indicates that the previous interaction was intentionally cancelled to allow a new one to proceed.
 
@@ -586,7 +586,7 @@ const request2 = {
 };
 const promise2 = msalInstance.acquireTokenPopup(request2);
 
-// promise1 will reject with interaction_in_progress_overridden
+// promise1 will reject with interaction_in_progress_cancelled
 // promise2 will proceed normally
 ```
 
@@ -704,7 +704,7 @@ const msalConfig = {
 
 ### `redirect_bridge_empty_response`
 
--   The redirect bridge returned an empty, indicating the redirect bridge script may have been modified or replaced.
+-   The redirect bridge returned an empty response, indicating the redirect bridge script may have been modified or replaced.
 
 ### `redirect_in_iframe`
 

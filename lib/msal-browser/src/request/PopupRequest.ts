@@ -32,7 +32,37 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - popupWindowAttributes      - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  * - popupWindowParent          - Optional window object to use as the parent when opening popup windows. Uses global `window` if not given.
- * - overrideInteractionInProgress - Optional flag to allow overriding an existing interaction_in_progress state for popup flows. When set to true, if another interaction is in progress, it will be cancelled and the new popup flow will proceed. This is useful when a user has cancelled a popup or when recovering from errors. Default is false.
+ * - overrideInteractionInProgress - Optional flag to allow overriding an existing interaction_in_progress state for popup flows.
+ *
+ *   **WARNING**: Use with caution! Setting this to true will cancel any pending popup interaction and start a new one.
+ *   This can lead to unexpected behavior if not handled carefully.
+ *
+ *   When set to true:
+ *   - If another popup interaction is currently in progress, it will be forcefully cancelled
+ *   - The pending interaction will reject with an `interaction_in_progress_cancelled` error
+ *   - The new popup flow will proceed immediately
+ *
+ *   Valid use cases:
+ *   - Recovering from errors where the user cancelled a popup (popup was closed without completing auth)
+ *   - Implementing custom error recovery flows
+ *   - Providing a "retry" mechanism after a failed popup interaction
+ *
+ *   Default: false
+ *
+ *   Example usage:
+ *   ```typescript
+ *   try {
+ *       await msalInstance.loginPopup(loginRequest);
+ *   } catch (error) {
+ *       if (error.errorCode === 'interaction_in_progress') {
+ *           // User wants to retry - override the existing interaction
+ *           await msalInstance.loginPopup({
+ *               ...loginRequest,
+ *               overrideInteractionInProgress: true
+ *           });
+ *       }
+ *   }
+ *   ```
  */
 
 export type PopupRequest = Partial<
