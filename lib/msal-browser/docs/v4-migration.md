@@ -317,11 +317,13 @@ const authRequest = {
 
 ### Cross-Origin-Opener-Policy (COOP) Support
 
-MSAL Browser v5 introduces built-in support for Cross-Origin-Opener-Policy (COOP), which enhances security by isolating your browsing context. When COOP is enabled on your application, popup and iframe-based authentication flows are restricted. MSAL v5 provides a redirect bridge mechanism to handle authentication in COOP-enabled environments.
+MSAL Browser v5 introduces built-in support for Cross-Origin-Opener-Policy (COOP), which enhances security by isolating browsing contexts. When the authentication service (Microsoft Entra ID or Azure AD B2C) returns COOP headers, traditional popup and silent iframe authentication flows are restricted. MSAL v5 provides a redirect bridge mechanism to handle authentication in COOP-enabled environments.
+
+**Note:** Microsoft Entra ID (formerly Azure AD) has COOP enabled by default. For Azure AD B2C, COOP availability depends on your backend configuration and the authentication endpoints being used.
 
 #### What Changed
 
-When your application has COOP headers enabled (e.g., `Cross-Origin-Opener-Policy: same-origin`), traditional popup and silent iframe authentication flows will fail because the authentication window cannot communicate back to the main application window. MSAL v5 solves this by introducing a redirect bridge pattern.
+When COOP headers are present on the authentication service response (e.g., `Cross-Origin-Opener-Policy: same-origin`), traditional popup and silent iframe authentication flows will fail because the authentication window cannot communicate back to the main application window. MSAL v5 solves this by introducing a redirect bridge pattern.
 
 **All authentication flows** (`acquireTokenSilent()`, `ssoSilent()`, `loginPopup()`, and `loginRedirect()`) now use the redirect bridge when COOP is enabled. The redirect bridge handles the authentication response differently based on the flow:
 
