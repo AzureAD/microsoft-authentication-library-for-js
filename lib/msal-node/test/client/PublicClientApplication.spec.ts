@@ -651,7 +651,8 @@ describe("PublicClientApplication", () => {
 
             const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
             jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
-                (config) => new silentFlowClient(config, new StubPerformanceClient())
+                (config) =>
+                    new silentFlowClient(config, new StubPerformanceClient())
             );
             jest.spyOn(
                 silentFlowClient.prototype,
