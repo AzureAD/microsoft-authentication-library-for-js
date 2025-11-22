@@ -73,10 +73,6 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-browser-samples"
                         samples:
-                            - "client-capabilities"
-                            - "onPageLoad"
-                            - "pop"
-                            - "customizable-e2e-test"
                             - "ExpressSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
