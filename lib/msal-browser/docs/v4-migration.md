@@ -217,7 +217,7 @@ The following parameters were deprecated in MSAL Browser v4 and have been remove
 
 1. The `protocolMode` parameter has been moved to `SystemOptions` from `BrowserAuthOptions` in Configuration. There are no changes to its options or functionality.
 1. The `navigateFrameWait` parameter has been removed. This was previously needed by older browsers which are no longer supported by MSAL.js.
-1. The `iframeHashTimeout` and `windowHashTimeout` parameters have been replaced with `iframeBridgeTimeout` and `popupBridgeTimeout` respectively. These timeouts now control how long to wait for a response from the redirect bridge via BroadcastChannel API when COOP is enabled.
+1. The `iframeHashTimeout` and `windowHashTimeout` parameters have been replaced with `iframeBridgeTimeout` and `popupBridgeTimeout` respectively. These timeouts now control how long to wait for a response from the redirect bridge via BroadcastChannel API.
 
 #### `asyncPopups`
 
