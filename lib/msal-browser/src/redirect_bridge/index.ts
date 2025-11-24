@@ -67,18 +67,20 @@ export async function broadcastResponseToMainFrame(
 
         let navigateToUrl = "";
         const interactionKey = `${PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}}`;
-            try {
-                /*
-                 * Retrieve the original navigation URL from sessionStorage
-                 */
-                const { clientId } = JSON.parse(window.sessionStorage.getItem(interactionKey) || "");
-                if (clientId) {
-                    const cacheKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
-                    navigateToUrl = window.sessionStorage.getItem(cacheKey) || "";
-                }
-            } catch (e) {
-                // SessionStorage access may fail in some contexts, use default
+        try {
+            /*
+             * Retrieve the original navigation URL from sessionStorage
+             */
+            const { clientId } = JSON.parse(
+                window.sessionStorage.getItem(interactionKey) || ""
+            );
+            if (clientId) {
+                const cacheKey = `${PREFIX}.${clientId}.${TemporaryCacheKeys.ORIGIN_URI}`;
+                navigateToUrl = window.sessionStorage.getItem(cacheKey) || "";
             }
+        } catch (e) {
+            // SessionStorage access may fail in some contexts, use default
+        }
 
         // Reconstruct full URL with auth response (preserve original format)
         let fullUrlResponse = "";
