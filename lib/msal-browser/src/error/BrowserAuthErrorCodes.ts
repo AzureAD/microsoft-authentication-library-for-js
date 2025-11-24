@@ -15,8 +15,8 @@ export const hashDoesNotContainKnownProperties =
 export const unableToParseState = "unable_to_parse_state";
 export const stateInteractionTypeMismatch = "state_interaction_type_mismatch";
 export const interactionInProgress = "interaction_in_progress";
-export const interactionInProgressOverridden =
-    "interaction_in_progress_overridden";
+export const interactionInProgressCancelled =
+    "interaction_in_progress_cancelled";
 export const popupWindowError = "popup_window_error";
 export const emptyWindowError = "empty_window_error";
 export const userCancelled = "user_cancelled";
@@ -63,3 +63,4 @@ export const failedToBuildHeaders = "failed_to_build_headers";
 export const failedToParseHeaders = "failed_to_parse_headers";
 export const failedToDecryptEarResponse = "failed_to_decrypt_ear_response";
 export const timedOut = "timed_out";
+export const emptyResponse = "empty_response";

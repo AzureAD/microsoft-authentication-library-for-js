@@ -14,6 +14,7 @@ import {
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
     ProtocolUtils,
+    AuthError,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -31,6 +32,117 @@ import {
     redirectBridgeTimeout,
 } from "../error/BrowserAuthErrorCodes.js";
 import { base64Decode } from "../encode/Base64Decode.js";
+
+/**
+ * Extracts and parses the authentication response from URL (hash and/or query string).
+ * This is a shared utility used across multiple components in msal-browser.
+ *
+ * @returns {Object} An object containing the parsed state information and URL parameters.
+ * @returns {URLSearchParams} params - The parsed URL parameters from the payload.
+ * @returns {string} payload - The combined query string and hash content.
+ * @returns {string} urlHash - The original URL hash.
+ * @returns {string} urlQuery - The original URL query string.
+ * @returns {LibraryStateObject} libraryState - The decoded library state from the state parameter.
+ *
+ * @throws {AuthError} If no authentication payload is found in the URL.
+ * @throws {AuthError} If the state parameter is missing.
+ * @throws {AuthError} If the state is missing required 'id' or 'meta' attributes.
+ */
+export function parseAuthResponseFromUrl(): {
+    params: URLSearchParams;
+    payload: string;
+    urlHash: string;
+    urlQuery: string;
+    hasResponseInHash: boolean;
+    hasResponseInQuery: boolean;
+    libraryState: {
+        id: string;
+        meta: Record<string, string>;
+    };
+} {
+    // Extract both hash and query string to support hybrid response format
+    const urlHash = window.location.hash;
+    const urlQuery = window.location.search;
+
+    // Determine which part contains the auth response by checking for 'state' parameter
+    let hasResponseInHash = false;
+    let hasResponseInQuery = false;
+    let payload = "";
+    let params: URLSearchParams | undefined = undefined;
+
+    if (urlHash && urlHash.length > 1) {
+        const hashContent =
+            urlHash.charAt(0) === "#" ? urlHash.substring(1) : urlHash;
+        const hashParams = new URLSearchParams(hashContent);
+        if (hashParams.has("state")) {
+            hasResponseInHash = true;
+            payload = hashContent;
+            params = hashParams;
+        }
+    }
+
+    if (urlQuery && urlQuery.length > 1) {
+        const queryContent =
+            urlQuery.charAt(0) === "?" ? urlQuery.substring(1) : urlQuery;
+        const queryParams = new URLSearchParams(queryContent);
+        if (queryParams.has("state")) {
+            hasResponseInQuery = true;
+            payload = queryContent;
+            params = queryParams;
+        }
+    }
+
+    // If response is in both, combine them (hybrid format)
+    if (hasResponseInHash && hasResponseInQuery) {
+        const queryContent =
+            urlQuery.charAt(0) === "?" ? urlQuery.substring(1) : urlQuery;
+        const hashContent =
+            urlHash.charAt(0) === "#" ? urlHash.substring(1) : urlHash;
+        payload = `${queryContent}${hashContent}`;
+        params = new URLSearchParams(payload);
+    }
+
+    if (!payload || !params) {
+        throw new AuthError(
+            BrowserAuthErrorCodes.emptyResponse,
+            "No auth payload found on URL (hash or query)"
+        );
+    }
+
+    const state = params.get("state");
+    if (!state) {
+        throw new AuthError(
+            BrowserAuthErrorCodes.noStateInHash,
+            "Missing state on redirect URL"
+        );
+    }
+
+    const { libraryState } = ProtocolUtils.parseRequestState(
+        base64Decode,
+        state
+    );
+
+    const { id, meta } = libraryState;
+    if (!id || !meta) {
+        throw new AuthError(
+            BrowserAuthErrorCodes.unableToParseState,
+            "Missing state 'id' and/or 'meta' attributes"
+        );
+    }
+
+    return {
+        params,
+        payload,
+        urlHash,
+        urlQuery,
+        hasResponseInHash,
+        hasResponseInQuery,
+        libraryState: {
+            id,
+            meta,
+        },
+    };
+}
 
 /**
  * Clears hash from window url.
@@ -72,28 +184,14 @@ export function isInPopup(): boolean {
         return false;
     }
 
-    const hasHash = !!window.location.hash && window.location.hash.length > 1;
-    const hash = hasHash ? window.location.hash : window.location.search;
-    if (!hash) {
+    try {
+        const { libraryState } = parseAuthResponseFromUrl();
+        const { meta } = libraryState;
+        return meta["interactionType"] === InteractionType.Popup;
+    } catch (e) {
+        // If parsing fails (no state, invalid URL, etc.), we're not in a popup
         return false;
     }
-
-    // Strip leading ? / #
-    const payload = hash.substring(1);
-    const params = new URLSearchParams(payload);
-
-    const state = params.get("state");
-    if (!state) {
-        return false;
-    }
-
-    const { libraryState } = ProtocolUtils.parseRequestState(
-        base64Decode,
-        state
-    );
-
-    const { meta } = libraryState;
-    return !!(meta && meta["interactionType"] === InteractionType.Popup);
 }
 
 /**
@@ -134,7 +232,7 @@ export function cancelPendingBridgeResponse(
         activeBridgeMonitor.channel.close();
         activeBridgeMonitor.reject(
             createBrowserAuthError(
-                BrowserAuthErrorCodes.interactionInProgressOverridden
+                BrowserAuthErrorCodes.interactionInProgressCancelled
             )
         );
 

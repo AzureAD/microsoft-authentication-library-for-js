@@ -123,7 +123,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             expect(logger.verbose).not.toHaveBeenCalled();
         });
 
-        it("cancels active bridge monitor and rejects with interactionInProgressOverridden error", async () => {
+        it("cancels active bridge monitor and rejects with interactionInProgressCancelled error", async () => {
             const logger = {
                 verbose: jest.fn(),
                 info: jest.fn(),
@@ -155,10 +155,9 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 TEST_CONFIG.CORRELATION_ID
             );
 
-            // Should reject with interactionInProgressOverridden error
+            // Should reject with interactionInProgressCancelled error
             await expect(waitPromise).rejects.toMatchObject({
-                errorCode:
-                    BrowserAuthErrorCodes.interactionInProgressOverridden,
+                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
             });
 
             expect(logger.verbose).toHaveBeenCalledWith(
@@ -203,8 +202,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             expect(clearTimeoutSpy).toHaveBeenCalled();
 
             await expect(waitPromise).rejects.toMatchObject({
-                errorCode:
-                    BrowserAuthErrorCodes.interactionInProgressOverridden,
+                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
             });
 
             jest.useRealTimers();
@@ -241,8 +239,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
             // Verify the promise was rejected with the correct error
             await expect(waitPromise).rejects.toMatchObject({
-                errorCode:
-                    BrowserAuthErrorCodes.interactionInProgressOverridden,
+                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
             });
 
             // Verify verbose logging occurred for cancellation
@@ -285,8 +282,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             );
 
             await expect(waitPromise).rejects.toMatchObject({
-                errorCode:
-                    BrowserAuthErrorCodes.interactionInProgressOverridden,
+                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
             });
 
             // Advance time to when timeout would have fired

@@ -1430,6 +1430,31 @@ describe("SilentIframeClient", () => {
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
+            it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
+                jest.restoreAllMocks();
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockResolvedValue(
+                    `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                );
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "handleResponseCode"
+                ).mockResolvedValue(getTestAuthenticationResult());
+                const earFormSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockResolvedValue(document.createElement("iframe"));
+
+                const result = await pca.ssoSilent(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
+            });
+
             it("throws if protocolMode is set to EAR and httpMethod is set to GET", async () => {
                 await expect(
                     pca.ssoSilent({

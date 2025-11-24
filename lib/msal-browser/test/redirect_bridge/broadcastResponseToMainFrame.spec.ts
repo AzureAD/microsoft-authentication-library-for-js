@@ -5,20 +5,39 @@
 
 import { broadcastResponseToMainFrame } from "../../src/redirect_bridge/index.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
-import { clearHash } from "../../src/utils/BrowserUtils.js";
+import { parseAuthResponseFromUrl } from "../../src/utils/BrowserUtils.js";
 import {
     TEST_HASHES,
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
 } from "../utils/StringConstants.js";
 
-jest.mock("../../src/utils/BrowserUtils.js");
 jest.mock("../../src/navigation/NavigationClient.js");
 
 describe("broadcastResponseToMainFrame", () => {
     let mockNavigationClient: jest.Mocked<NavigationClient>;
+    let mockSessionStorage: { [key: string]: string };
+    let originalLocation: Location;
+    let mockHistoryReplaceState: jest.Mock;
+
+    beforeAll(() => {
+        // Save original location
+        originalLocation = window.location;
+    });
 
     beforeEach(() => {
+        // Mock window.location with a fresh object for each test
+        delete (window as any).location;
+        (window as any).location = {
+            ...originalLocation,
+            hash: "",
+            search: "",
+        };
+
+        // Mock history.replaceState
+        mockHistoryReplaceState = jest.fn();
+        window.history.replaceState = mockHistoryReplaceState;
+
         // Mock window.close
         window.close = jest.fn();
 
@@ -30,14 +49,36 @@ describe("broadcastResponseToMainFrame", () => {
             () => mockNavigationClient
         );
 
-        // Mock clearHash
-        (clearHash as jest.Mock).mockImplementation(() => {});
+        // Mock sessionStorage
+        mockSessionStorage = {};
+        Object.defineProperty(window, "sessionStorage", {
+            value: {
+                getItem: jest.fn(
+                    (key: string) => mockSessionStorage[key] || null
+                ),
+                setItem: jest.fn((key: string, value: string) => {
+                    mockSessionStorage[key] = value;
+                }),
+                removeItem: jest.fn((key: string) => {
+                    delete mockSessionStorage[key];
+                }),
+                clear: jest.fn(() => {
+                    mockSessionStorage = {};
+                }),
+            },
+            writable: true,
+        });
     });
 
     afterEach(() => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
-        window.location.hash = "";
+        mockSessionStorage = {};
+    });
+
+    afterAll(() => {
+        // Restore original location
+        (window as any).location = originalLocation;
     });
 
     describe("Error cases", () => {
@@ -53,10 +94,10 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "#code=testCode&client_info=testClientInfo";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "Missing state on redirect URL"
+                "No auth payload found on URL (hash or query)"
             );
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("throws error when state is missing 'id' attribute", async () => {
@@ -69,7 +110,7 @@ describe("broadcastResponseToMainFrame", () => {
                 "Missing state 'id' and/or 'meta' attributes"
             );
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("throws error when state is missing 'meta' attribute", async () => {
@@ -80,7 +121,7 @@ describe("broadcastResponseToMainFrame", () => {
                 "Missing state 'id' and/or 'meta' attributes"
             );
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
     });
 
@@ -91,7 +132,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Verify hash was cleared (indicates broadcast path was taken)
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
 
             // Verify window.close was called
             expect(window.close).toHaveBeenCalled();
@@ -108,7 +149,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Verify hash was cleared (indicates broadcast path was taken)
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
 
             // Verify window.close was called
             expect(window.close).toHaveBeenCalled();
@@ -127,7 +168,7 @@ describe("broadcastResponseToMainFrame", () => {
             await broadcastResponseToMainFrame();
 
             // Should still broadcast the error response (verify via hash clearing)
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
 
             // Verify window.close was called
             expect(window.close).toHaveBeenCalled();
@@ -158,34 +199,216 @@ describe("broadcastResponseToMainFrame", () => {
                 })
             );
 
-            // Hash should NOT be cleared for redirect (early return before clearHash)
-            expect(clearHash).not.toHaveBeenCalled();
+            // URL should NOT be cleared for redirect flow (we're navigating away)
+            expect(mockHistoryReplaceState).not.toHaveBeenCalled();
 
             // window.close should NOT be called for redirect (early return)
             expect(window.close).not.toHaveBeenCalled();
         });
 
-        it("navigates to custom URL for redirect flow when navigateToUrl is provided", async () => {
-            const customUrl = "https://localhost:8081/custom-page.html";
+        it("uses sessionStorage URL when client_id is present in interaction status", async () => {
+            const testClientId = "test-client-id-123";
+            const cachedOriginUrl = "https://localhost:8081/custom-page.html";
+
+            // Set up sessionStorage with interaction status containing clientId and type
+            mockSessionStorage[`msal.interaction.status}`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+
+            // Set up sessionStorage with cached origin URL
+            mockSessionStorage[`msal.${testClientId}.request.origin`] =
+                cachedOriginUrl;
+
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
-            await broadcastResponseToMainFrame(customUrl);
+            await broadcastResponseToMainFrame();
 
-            // Verify navigation was called with custom URL + hash
+            // Verify navigation was called with cached URL from sessionStorage
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalledWith(
-                `${customUrl}${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT}`,
-                expect.objectContaining({
-                    apiId: expect.any(Number),
-                    noHistory: true,
-                    timeout: expect.any(Number),
-                })
+                expect.stringContaining(cachedOriginUrl),
+                expect.any(Object)
+            );
+        });
+
+        it("uses custom NavigationClient when provided", async () => {
+            const customNavClient = {
+                navigateInternal: jest.fn().mockResolvedValue(undefined),
+            } as any;
+
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame(customNavClient);
+
+            // Verify custom navigation client was used, not the default
+            expect(customNavClient.navigateInternal).toHaveBeenCalled();
+            expect(
+                mockNavigationClient.navigateInternal
+            ).not.toHaveBeenCalled();
+        });
+
+        it("falls back to homepage when sessionStorage access fails", async () => {
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            // Make sessionStorage.getItem throw
+            jest.spyOn(window.sessionStorage, "getItem").mockImplementation(
+                () => {
+                    throw new Error("SessionStorage unavailable");
+                }
             );
 
-            // Hash should NOT be cleared for redirect
-            expect(clearHash).not.toHaveBeenCalled();
+            await broadcastResponseToMainFrame();
 
-            // window.close should NOT be called for redirect
-            expect(window.close).not.toHaveBeenCalled();
+            // Should still navigate successfully using homepage fallback
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
+            expect(mockHistoryReplaceState).not.toHaveBeenCalled();
+        });
+
+        it("falls back to homepage when client_id is not in interaction status", async () => {
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await broadcastResponseToMainFrame();
+
+            // Should navigate using homepage since no clientId in session storage means no cached origin URL lookup
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            expect(callArgs).toContain(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
+        });
+    });
+
+    describe("Hybrid response format (query + hash)", () => {
+        it("handles query string only response", async () => {
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+            window.location.hash = "";
+
+            await broadcastResponseToMainFrame();
+
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
+            expect(window.close).toHaveBeenCalled();
+        });
+
+        it("handles hybrid query + hash response", async () => {
+            const testClientId = "hybrid-client-id";
+
+            // Set up sessionStorage with interaction status containing clientId and type
+            mockSessionStorage[`msal.interaction.status}`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
+            window.location.hash = "#app_hash_fragment";
+
+            await broadcastResponseToMainFrame();
+
+            // For redirect flow, should navigate with full query + hash
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
+            const callArgs = (
+                mockNavigationClient.navigateInternal as jest.Mock
+            ).mock.calls[0][0];
+            expect(callArgs).toContain("?state=");
+            expect(callArgs).toContain("&code=test_code");
+        });
+
+        it("strips leading ? from query string", async () => {
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+            window.location.hash = "";
+
+            await broadcastResponseToMainFrame();
+
+            // Should successfully parse state (indicates ? was stripped)
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
+        });
+
+        it("strips leading # from hash", async () => {
+            window.location.hash = `#state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+
+            await broadcastResponseToMainFrame();
+
+            // Should successfully parse state (indicates # was stripped)
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
+        });
+
+        it("handles query string without leading ?", async () => {
+            window.location.search = `state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+            window.location.hash = "";
+
+            await broadcastResponseToMainFrame();
+
+            // Should still work even without leading ?
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
+        });
+
+        it("handles hash without leading #", async () => {
+            window.location.hash = `state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+
+            await broadcastResponseToMainFrame();
+
+            // Should still work even without leading #
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
+        });
+
+        it("throws when both query and hash are empty", async () => {
+            window.location.search = "";
+            window.location.hash = "";
+
+            await expect(broadcastResponseToMainFrame()).rejects.toThrow(
+                "No auth payload found on URL (hash or query)"
+            );
+        });
+
+        it("preserves hash fragment when auth response is in query string (popup/silent flow)", async () => {
+            // Scenario: redirectUri is https://contoso.com/redirect#myReplyUrl
+            // Auth response comes in query string, hash should be preserved
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+            window.location.hash = "#myReplyUrl";
+
+            await broadcastResponseToMainFrame();
+
+            // Should clear query string but preserve hash
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                null,
+                "",
+                expect.stringContaining("#myReplyUrl")
+            );
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                null,
+                "",
+                expect.not.stringContaining("?state=")
+            );
+        });
+
+        it("preserves query string when auth response is in hash (popup/silent flow)", async () => {
+            // Scenario: redirectUri has query params, auth response in hash
+            window.location.search = "?app_param=value";
+            window.location.hash = `#state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+
+            await broadcastResponseToMainFrame();
+
+            // Should clear hash but preserve query string
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                null,
+                "",
+                expect.stringContaining("?app_param=value")
+            );
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                null,
+                "",
+                expect.not.stringContaining("#state=")
+            );
+        });
+
+        it("throws when query and hash contain only delimiters", async () => {
+            window.location.search = "?";
+            window.location.hash = "#";
+
+            await expect(broadcastResponseToMainFrame()).rejects.toThrow(
+                "No auth payload found on URL (hash or query)"
+            );
         });
     });
 
@@ -212,17 +435,17 @@ describe("broadcastResponseToMainFrame", () => {
             ).resolves.toBeUndefined();
 
             // Verify clearHash was still called (indicates broadcast completed)
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
     });
 
-    describe("Hash clearing", () => {
+    describe("URL clearing", () => {
         it("clears hash before throwing error when state is missing", async () => {
             window.location.hash = "#code=testCode";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow();
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("clears hash before throwing error when state attributes are missing", async () => {
@@ -231,7 +454,7 @@ describe("broadcastResponseToMainFrame", () => {
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow();
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
 
         it("clears hash after successful broadcast", async () => {
@@ -239,7 +462,159 @@ describe("broadcastResponseToMainFrame", () => {
 
             await broadcastResponseToMainFrame();
 
-            expect(clearHash).toHaveBeenCalledWith(window);
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
         });
+    });
+});
+
+describe("parseAuthResponseFromUrl", () => {
+    let originalLocation: Location;
+
+    beforeAll(() => {
+        originalLocation = window.location;
+    });
+
+    beforeEach(() => {
+        // Mock window.location with a fresh object for each test
+        delete (window as any).location;
+        (window as any).location = {
+            ...originalLocation,
+            hash: "",
+            search: "",
+        };
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        (window as any).location = originalLocation;
+    });
+
+    it("parses auth response from hash only", () => {
+        window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
+
+        const result = parseAuthResponseFromUrl();
+
+        expect(result.urlHash).toBe(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+        expect(result.urlQuery).toBe("");
+        expect(result.payload).toContain("state=");
+        expect(result.params.get("state")).toBeTruthy();
+        expect(result.libraryState.id).toBeTruthy();
+        expect(result.libraryState.meta).toBeTruthy();
+    });
+
+    it("parses auth response from query string only", () => {
+        window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+        window.location.hash = "";
+
+        const result = parseAuthResponseFromUrl();
+
+        expect(result.urlQuery).toContain("?state=");
+        expect(result.urlHash).toBe("");
+        expect(result.payload).toContain("state=");
+        expect(result.params.get("state")).toBe(
+            TEST_STATE_VALUES.TEST_STATE_POPUP
+        );
+        expect(result.libraryState.meta["interactionType"]).toBe("popup");
+    });
+
+    it("parses hybrid response (query + hash)", () => {
+        window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
+        window.location.hash = "#app_fragment";
+
+        const result = parseAuthResponseFromUrl();
+
+        expect(result.urlQuery).toContain("?state=");
+        expect(result.urlHash).toBe("#app_fragment");
+        expect(result.payload).toContain("state=");
+        expect(result.payload).toContain("code=test_code");
+        // Hash fragment without state should NOT be in payload
+        expect(result.payload).not.toContain("app_fragment");
+        expect(result.hasResponseInQuery).toBe(true);
+        expect(result.hasResponseInHash).toBe(false);
+        expect(result.libraryState.meta["interactionType"]).toBe("redirect");
+    });
+
+    it("strips leading ? from query string", () => {
+        window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+
+        const result = parseAuthResponseFromUrl();
+
+        // Payload should not have leading ?
+        expect(result.payload.charAt(0)).not.toBe("?");
+        expect(result.payload).toContain("state=");
+    });
+
+    it("strips leading # from hash", () => {
+        window.location.hash = `#state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+
+        const result = parseAuthResponseFromUrl();
+
+        // Payload should not have leading # (when hash is the only content)
+        expect(result.payload).toContain("state=");
+        expect(result.params.get("state")).toBe(
+            TEST_STATE_VALUES.TEST_STATE_POPUP
+        );
+    });
+
+    it("handles query without leading ?", () => {
+        window.location.search = `state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+
+        const result = parseAuthResponseFromUrl();
+
+        expect(result.payload).toContain("state=");
+        expect(result.params.get("state")).toBe(
+            TEST_STATE_VALUES.TEST_STATE_POPUP
+        );
+    });
+
+    it("handles hash without leading #", () => {
+        window.location.hash = `state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&code=test_code`;
+
+        const result = parseAuthResponseFromUrl();
+
+        expect(result.payload).toContain("state=");
+        expect(result.params.get("state")).toBe(
+            TEST_STATE_VALUES.TEST_STATE_POPUP
+        );
+    });
+
+    it("throws when both query and hash are empty", () => {
+        window.location.search = "";
+        window.location.hash = "";
+
+        expect(() => parseAuthResponseFromUrl()).toThrow(
+            "No auth payload found on URL (hash or query)"
+        );
+    });
+
+    it("throws when state parameter is missing", () => {
+        window.location.hash = "#code=testCode&client_info=testClientInfo";
+
+        expect(() => parseAuthResponseFromUrl()).toThrow(
+            "No auth payload found on URL (hash or query)"
+        );
+    });
+
+    it("throws when state is missing id attribute", () => {
+        const invalidState = btoa(
+            JSON.stringify({ meta: { interactionType: "popup" } })
+        );
+        window.location.hash = `#code=testCode&state=${invalidState}`;
+
+        expect(() => parseAuthResponseFromUrl()).toThrow(
+            "Missing state 'id' and/or 'meta' attributes"
+        );
+    });
+
+    it("throws when state is missing meta attribute", () => {
+        const invalidState = btoa(JSON.stringify({ id: RANDOM_TEST_GUID }));
+        window.location.hash = `#code=testCode&state=${invalidState}`;
+
+        expect(() => parseAuthResponseFromUrl()).toThrow(
+            "Missing state 'id' and/or 'meta' attributes"
+        );
     });
 });

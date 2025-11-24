@@ -183,11 +183,11 @@ function getCurrentVersionInfo() {
 }
 
 // Helper function to pass environment variables and version info to templates
-const getEnvConfig = () => {
+const getEnvConfig = (version) => {
     const config = {
         CLIENT_ID: process.env.CLIENT_ID,
         AUTHORITY: process.env.AUTHORITY,
-        REDIRECT_URI: process.env.REDIRECT_URI,
+        REDIRECT_URI: parseInt(version.current.substr(0,1)) < 5 ? process.env.REDIRECT_URI : `${process.env.REDIRECT_URI}/redirect`,
         POST_LOGOUT_REDIRECT_URI: process.env.POST_LOGOUT_REDIRECT_URI
     };
 
@@ -214,7 +214,7 @@ const getEnvConfig = () => {
 
 // Enhanced environment config with version info
 const getEnvConfigWithVersion = () => ({
-    ...getEnvConfig(),
+    ...getEnvConfig(getCurrentVersionInfo()),
     version: getCurrentVersionInfo()
 });
 
@@ -332,6 +332,10 @@ app.get('/', (req, res) => {
         title: 'MSAL Express Sample - Home',
         envConfig: getEnvConfigWithVersion()
     });
+});
+
+app.get('/redirect', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'redirect.html'));
 });
 
 app.get('/profile', (req, res) => {

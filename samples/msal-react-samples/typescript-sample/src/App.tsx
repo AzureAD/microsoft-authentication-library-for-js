@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 // Material-UI imports
 import Grid from "@mui/material/Grid";
 
@@ -11,6 +11,7 @@ import { CustomNavigationClient } from "./utils/NavigationClient";
 import { PageLayout } from "./ui-components/PageLayout";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
+import { Redirect } from "./pages/Redirect";
 
 type AppProps = {
     pca: IPublicClientApplication;
@@ -19,8 +20,16 @@ type AppProps = {
 function App({ pca }: AppProps) {
     // The next 3 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
     const navigate = useNavigate();
+    const location = useLocation();
     const navigationClient = new CustomNavigationClient(navigate);
     pca.setNavigationClient(navigationClient);
+
+    // Don't wrap redirect page in MsalProvider to prevent MSAL from consuming the auth response
+    const isRedirectPage = location.pathname === "/redirect";
+
+    if (isRedirectPage) {
+        return <Redirect />;
+    }
 
     return (
         <MsalProvider instance={pca}>

@@ -751,7 +751,8 @@ export class StandardController implements IController {
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN,
-                request.overrideInteractionInProgress
+                request.overrideInteractionInProgress,
+                correlationId
             );
         } catch (e) {
             // Since this function is syncronous we need to reject
