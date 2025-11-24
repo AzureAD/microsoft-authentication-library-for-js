@@ -206,26 +206,21 @@ describe("broadcastResponseToMainFrame", () => {
             expect(window.close).not.toHaveBeenCalled();
         });
 
-        it("uses sessionStorage URL when client_id is present", async () => {
+        it("uses sessionStorage URL when client_id is present in interaction status", async () => {
             const testClientId = "test-client-id-123";
             const cachedOriginUrl = "https://localhost:8081/custom-page.html";
+
+            // Set up sessionStorage with interaction status containing clientId and type
+            mockSessionStorage[`msal.interaction.status}`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
 
             // Set up sessionStorage with cached origin URL
             mockSessionStorage[`msal.${testClientId}.request.origin`] =
                 cachedOriginUrl;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-
-            // Mock URLSearchParams to return our test client_id
-            const originalURLSearchParams = global.URLSearchParams;
-            global.URLSearchParams = jest.fn().mockImplementation((query) => {
-                const params = new originalURLSearchParams(query);
-                params.get = jest.fn((key) => {
-                    if (key === "client_id") return testClientId;
-                    return new originalURLSearchParams(query).get(key);
-                });
-                return params;
-            }) as any;
 
             await broadcastResponseToMainFrame();
 
@@ -234,8 +229,6 @@ describe("broadcastResponseToMainFrame", () => {
                 expect.stringContaining(cachedOriginUrl),
                 expect.any(Object)
             );
-
-            global.URLSearchParams = originalURLSearchParams;
         });
 
         it("uses custom NavigationClient when provided", async () => {
@@ -271,12 +264,12 @@ describe("broadcastResponseToMainFrame", () => {
             expect(mockHistoryReplaceState).not.toHaveBeenCalled();
         });
 
-        it("falls back to homepage when client_id is not in URL", async () => {
+        it("falls back to homepage when client_id is not in interaction status", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
             await broadcastResponseToMainFrame();
 
-            // Should navigate using homepage since no client_id means no sessionStorage lookup
+            // Should navigate using homepage since no clientId in session storage means no cached origin URL lookup
             expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
             const callArgs = (
                 mockNavigationClient.navigateInternal as jest.Mock
@@ -300,7 +293,14 @@ describe("broadcastResponseToMainFrame", () => {
 
         it("handles hybrid query + hash response", async () => {
             const testClientId = "hybrid-client-id";
-            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code&client_id=${testClientId}`;
+
+            // Set up sessionStorage with interaction status containing clientId and type
+            mockSessionStorage[`msal.interaction.status}`] = JSON.stringify({
+                clientId: testClientId,
+                type: "redirect",
+            });
+
+            window.location.search = `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&code=test_code`;
             window.location.hash = "#app_hash_fragment";
 
             await broadcastResponseToMainFrame();
