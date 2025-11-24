@@ -4,6 +4,8 @@ First, please read about how to [initialize the `PublicClientApplication` object
 
 The MSAL Browser library has a set of configuration options that can be used to customize the behavior of your authentication flows. Some of these options can be set in the [constructor of the `PublicClientApplication` object](./configuration.md), and most of them can be set on a per-request basis. The table below details the configuration objects that can be passed to the login and acquireToken APIs, and the objects returned representing the response.
 
+> **Important**: When using the `state` parameter in request objects, do not put URLs directly in it. Instead, store URLs in browser storage and use a reference key. See [State Parameter Best Practices](./state-parameter-best-practices.md) for detailed guidance.
+
 | API | Request Object | Response Object |
 |-----|----------------|-----------------|
 | `acquireTokenPopup` | [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) | [AuthenticationResult](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#authenticationresult) |

@@ -3,6 +3,16 @@
 ## About this sample
 This developer sample is used to run basic use cases for the MSAL library. You can also alter the configuration in `./app/<sample-name>/authConfig.js` to execute other behaviors.
 
+## Available Samples
+
+### Featured Samples
+
+- **[state-management-best-practice](./app/state-management-best-practice/)** - Demonstrates the recommended pattern for using the OAuth state parameter when preserving user location during authentication. Shows how to securely store URLs in browser storage instead of directly in the state parameter.
+
+### Additional Samples
+
+Explore other samples in the `./app/` directory to see various MSAL.js use cases and patterns.
+
 ## How to run the sample:
 
 ### Pre-requisites

@@ -170,6 +170,52 @@ This indicates that the server could not determine which account to sign into, a
 > [!WARNING]
 > When using `ssoSilent`, the service will attempt to load your redirect URI page in an invisible embedded iframe. Content security policies and HTTP header values present in your app's redirect URI page response, such as `X-FRAME-OPTIONS: DENY` and `X-FRAME-OPTIONS: SAMEORIGIN`, can prevent your app from loading in said iframe, effectively blocking silent SSO. If you intend you use `ssoSilent`, please make sure the redirect URI points to a page that does not implement any such policies.
 
+## State Parameter Best Practices
+
+The OAuth `state` parameter can be used to preserve application state during authentication flows. **Important**: Do not put URLs directly in the state parameter. Instead, store URLs in browser storage and use a reference key in the state parameter.
+
+### ❌ Incorrect Pattern (Security Risk)
+
+```javascript
+// DON'T DO THIS - exposes URLs in OAuth flow
+msalInstance.loginRedirect({
+    scopes: ["user.read"],
+    state: window.location.pathname  // ❌ Security risk!
+});
+```
+
+### ✅ Recommended Pattern
+
+```javascript
+// Store URL in browser storage, use reference key in state
+const stateKey = saveReturnUrl(window.location.pathname);
+
+msalInstance.loginRedirect({
+    scopes: ["user.read"],
+    state: stateKey  // ✅ Secure reference key
+});
+
+// In your redirect handler
+msalInstance.handleRedirectPromise().then((response) => {
+    if (response && response.state) {
+        const returnUrl = getReturnUrl(response.state);
+        if (returnUrl) {
+            window.location.href = returnUrl;
+        }
+    }
+});
+```
+
+**Benefits:**
+- Enhanced security: URLs not exposed in OAuth flow
+- Better privacy: User paths remain private
+- Prevents open redirect vulnerabilities
+- Supports complex state preservation
+
+For detailed guidance and a complete implementation, see:
+- [State Parameter Best Practices](./state-parameter-best-practices.md)
+- [State Management Sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/state-management-best-practice/)
+
 ## RedirectUri Considerations
 
 When using popup and silent APIs we recommend setting the `redirectUri` to a blank page or a page that does not implement MSAL. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis. For more information, see the [React Router](../../../samples/msal-react-samples/react-router-sample) sample:
