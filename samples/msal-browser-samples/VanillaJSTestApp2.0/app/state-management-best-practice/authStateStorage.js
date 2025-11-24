@@ -35,13 +35,18 @@ class AuthStateStorage {
 
     /**
      * Generates a unique, unpredictable reference key for storing state
+     * Uses cryptographically secure random number generation
      * @returns {string} A unique state key
      * @private
      */
     static generateStateKey() {
         const timestamp = Date.now();
-        const randomPart = Math.random().toString(36).substring(2, 15) + 
-                          Math.random().toString(36).substring(2, 15);
+        
+        // Use cryptographically secure random number generation
+        const array = new Uint8Array(16);
+        crypto.getRandomValues(array);
+        const randomPart = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+        
         return `${this.STATE_KEY_PREFIX}${timestamp}.${randomPart}`;
     }
 
@@ -60,8 +65,14 @@ class AuthStateStorage {
 
         try {
             // Only allow relative URLs (same origin)
-            // URLs starting with / but not // are relative
-            if (url.startsWith('/') && !url.startsWith('//')) {
+            // URLs starting with / but not // and not /\ are relative
+            // This prevents open redirect attacks via protocol-relative URLs and backslash tricks
+            if (url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\')) {
+                // Additional check: ensure no backslashes anywhere in the path
+                // to prevent bypass attempts like '/\example.com'
+                if (url.includes('\\')) {
+                    return false;
+                }
                 return true;
             }
 

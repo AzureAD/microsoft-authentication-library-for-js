@@ -62,8 +62,11 @@ const msalInstance = new PublicClientApplication(config);
  * @returns {string} - A unique reference key for the state parameter
  */
 function saveReturnUrl(url) {
-    // Generate a unique, unpredictable key
-    const stateKey = `msal.return.url.${Date.now()}.${Math.random().toString(36).substring(2)}`;
+    // Generate a unique, unpredictable key using cryptographically secure random
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    const randomPart = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+    const stateKey = `msal.return.url.${Date.now()}.${randomPart}`;
     
     // Store the URL in sessionStorage (cleared when tab closes)
     sessionStorage.setItem(stateKey, url);
@@ -102,7 +105,12 @@ function getReturnUrl(stateKey) {
 function isValidReturnUrl(url) {
     try {
         // Only allow relative URLs (same origin)
-        if (url.startsWith('/') && !url.startsWith('//')) {
+        // Prevent protocol-relative URLs (//example.com) and backslash tricks (/\example.com)
+        if (url.startsWith('/') && !url.startsWith('//') && !url.startsWith('/\\')) {
+            // Additional check: ensure no backslashes anywhere in the path
+            if (url.includes('\\')) {
+                return false;
+            }
             return true;
         }
         
