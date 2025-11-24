@@ -122,6 +122,7 @@ function createHiddenIframe(): HTMLIFrameElement {
         "sandbox",
         "allow-scripts allow-same-origin allow-forms"
     );
+    authFrame.setAttribute("allow", "local-network-access *");
     document.body.appendChild(authFrame);
 
     return authFrame;
