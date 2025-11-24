@@ -40,9 +40,9 @@ The correct authority URL that you need pass to MSAL is ultimately determined by
 - Who are the users you want your app to sign-in?
 - What are the web APIs you want your app to acquire tokens for?
 
-### Azure AD
+### Microsoft Entra ID
 
-The authority domain for the global Azure AD instance is `login.microsoftonline.com`. This domain has several aliases (e.g. `login.microsoft.com`) published on the [discovery endpoint](https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize). For resiliency and performance, MSAL keeps a record of these in cache (see: [AuthorityMetadata.ts](../src/authority/AuthorityMetadata.ts)). MSAL trusts authority URLs with any of these aliases by default.
+The authority domain for the global Entra ID instance is `login.microsoftonline.com`. This domain has several aliases (e.g. `login.microsoft.com`) published on the [discovery endpoint](https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize). For resiliency and performance, MSAL keeps a record of these in cache (see: [AuthorityMetadata.ts](../src/authority/AuthorityMetadata.ts)). MSAL trusts authority URLs with any of these aliases by default.
 
 > :warning: The authority domain differs for national/regional Azure deployments, such as Azure China. See [National clouds](https://docs.microsoft.com/azure/active-directory/develop/authentication-national-cloud) for more.
 
