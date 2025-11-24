@@ -263,7 +263,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 -   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
 ### `invalid_request_method_for_EAR`
-- The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`. 
+- The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
 
 ## Interaction required errors
 
@@ -558,6 +558,40 @@ If you are unable to figure out why this error is being thrown please [open an i
 -   Refresh the page. Does the error go away?
 -   Open your application in a new tab. Does the error go away?
 
+### `interaction_in_progress_cancelled`
+
+-   The current interaction was cancelled by a new interaction request with `overrideInteractionInProgress` set to `true`.
+
+This error is thrown when an existing popup interaction is cancelled because a new popup request was initiated with the `overrideInteractionInProgress` flag set to `true`. This is not necessarily an error condition - it indicates that the previous interaction was intentionally cancelled to allow a new one to proceed.
+
+**When This Occurs:**
+
+This error is thrown for the **previous/cancelled** interaction when:
+1. A popup interaction is in progress (e.g., `acquireTokenPopup`)
+2. A new popup request is made with `overrideInteractionInProgress: true`
+3. The library cancels the pending interaction and starts the new one
+
+**Example:**
+
+```javascript
+// First popup request starts
+const request1 = { scopes: ["User.Read"] };
+const promise1 = msalInstance.acquireTokenPopup(request1);
+
+// User closes the popup or something goes wrong
+// App decides to retry with override flag
+const request2 = {
+    scopes: ["User.Read"],
+    overrideInteractionInProgress: true  // Override the previous interaction
+};
+const promise2 = msalInstance.acquireTokenPopup(request2);
+
+// promise1 will reject with interaction_in_progress_cancelled
+// promise2 will proceed normally
+```
+
+**Note:** This error should only be seen when you explicitly use the `overrideInteractionInProgress` flag. Under normal circumstances, concurrent interaction attempts will throw `interaction_in_progress` instead.
+
 ### `popup_window_error`
 
 -   Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.
@@ -579,7 +613,15 @@ If you are unable to figure out why this error is being thrown please [open an i
 - Token acquisition in popup failed due to timeout.
 - Token acquisition in iframe failed due to timeout.
 
-This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period. This typically occurs for the following reasons:
+This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period.
+
+**What is the redirect bridge?**
+
+The redirect bridge is a mechanism that enables authentication flows in COOP (Cross-Origin-Opener-Policy) enabled applications. When COOP headers are present, popup and iframe windows cannot directly communicate with the main application window. The redirect bridge solves this by using the BroadcastChannel API to transmit authentication responses from the redirect page back to the main window. For more details on COOP support and the redirect bridge, see the [COOP Migration Guide](../lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
+
+**Common Causes:**
+
+This timeout typically occurs for the following reasons:
 
 1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
 1. The redirect page is removing or manipulating the hash before the bridge script can process it
@@ -651,7 +693,7 @@ Some B2C flows are expected to throw this error due to their need for user inter
 
 Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency.
 
-✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect you can increase this timeout in the MSAL config with either the `iframeBridgeTimeout` or `popupBridgeTimeout` configuration parameters.
+✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect, you can increase this timeout in the MSAL config with either the `iframeBridgeTimeout` (for aquireTokenSilent() or ssoSilent()) or `popupBridgeTimeout` (acquireTokenPopup()) configuration parameters.
 
 ```javascript
 const msalConfig = {
@@ -667,6 +709,10 @@ const msalConfig = {
 
 > [!IMPORTANT]
 > Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
+
+### `redirect_bridge_empty_response`
+
+-   The redirect bridge returned an empty response, indicating the redirect bridge script may have been modified or replaced.
 
 ### `redirect_in_iframe`
 

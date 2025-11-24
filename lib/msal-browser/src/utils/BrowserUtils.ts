@@ -14,22 +14,135 @@ import {
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
     ProtocolUtils,
+    AuthError,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { BrowserCacheLocation } from "./BrowserConstants.js";
+import { BrowserCacheLocation, InteractionType } from "./BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import type { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
 import {
     redirectBridgeEmptyResponse,
     redirectBridgeTimeout,
 } from "../error/BrowserAuthErrorCodes.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+
+/**
+ * Extracts and parses the authentication response from URL (hash and/or query string).
+ * This is a shared utility used across multiple components in msal-browser.
+ *
+ * @returns {Object} An object containing the parsed state information and URL parameters.
+ * @returns {URLSearchParams} params - The parsed URL parameters from the payload.
+ * @returns {string} payload - The combined query string and hash content.
+ * @returns {string} urlHash - The original URL hash.
+ * @returns {string} urlQuery - The original URL query string.
+ * @returns {LibraryStateObject} libraryState - The decoded library state from the state parameter.
+ *
+ * @throws {AuthError} If no authentication payload is found in the URL.
+ * @throws {AuthError} If the state parameter is missing.
+ * @throws {AuthError} If the state is missing required 'id' or 'meta' attributes.
+ */
+export function parseAuthResponseFromUrl(): {
+    params: URLSearchParams;
+    payload: string;
+    urlHash: string;
+    urlQuery: string;
+    hasResponseInHash: boolean;
+    hasResponseInQuery: boolean;
+    libraryState: {
+        id: string;
+        meta: Record<string, string>;
+    };
+} {
+    // Extract both hash and query string to support hybrid response format
+    const urlHash = window.location.hash;
+    const urlQuery = window.location.search;
+
+    // Determine which part contains the auth response by checking for 'state' parameter
+    let hasResponseInHash = false;
+    let hasResponseInQuery = false;
+    let payload = "";
+    let params: URLSearchParams | undefined = undefined;
+
+    if (urlHash && urlHash.length > 1) {
+        const hashContent =
+            urlHash.charAt(0) === "#" ? urlHash.substring(1) : urlHash;
+        const hashParams = new URLSearchParams(hashContent);
+        if (hashParams.has("state")) {
+            hasResponseInHash = true;
+            payload = hashContent;
+            params = hashParams;
+        }
+    }
+
+    if (urlQuery && urlQuery.length > 1) {
+        const queryContent =
+            urlQuery.charAt(0) === "?" ? urlQuery.substring(1) : urlQuery;
+        const queryParams = new URLSearchParams(queryContent);
+        if (queryParams.has("state")) {
+            hasResponseInQuery = true;
+            payload = queryContent;
+            params = queryParams;
+        }
+    }
+
+    // If response is in both, combine them (hybrid format)
+    if (hasResponseInHash && hasResponseInQuery) {
+        const queryContent =
+            urlQuery.charAt(0) === "?" ? urlQuery.substring(1) : urlQuery;
+        const hashContent =
+            urlHash.charAt(0) === "#" ? urlHash.substring(1) : urlHash;
+        payload = `${queryContent}${hashContent}`;
+        params = new URLSearchParams(payload);
+    }
+
+    if (!payload || !params) {
+        throw new AuthError(
+            BrowserAuthErrorCodes.emptyResponse,
+            "No auth payload found on URL (hash or query)"
+        );
+    }
+
+    const state = params.get("state");
+    if (!state) {
+        throw new AuthError(
+            BrowserAuthErrorCodes.noStateInHash,
+            "Missing state on redirect URL"
+        );
+    }
+
+    const { libraryState } = ProtocolUtils.parseRequestState(
+        base64Decode,
+        state
+    );
+
+    const { id, meta } = libraryState;
+    if (!id || !meta) {
+        throw new AuthError(
+            BrowserAuthErrorCodes.unableToParseState,
+            "Missing state 'id' and/or 'meta' attributes"
+        );
+    }
+
+    return {
+        params,
+        payload,
+        urlHash,
+        urlQuery,
+        hasResponseInHash,
+        hasResponseInQuery,
+        libraryState: {
+            id,
+            meta,
+        },
+    };
+}
 
 /**
  * Clears hash from window url.
@@ -67,11 +180,18 @@ export function isInIframe(): boolean {
  * Returns boolean of whether or not the current window is a popup opened by msal
  */
 export function isInPopup(): boolean {
-    return (
-        !isInIframe() &&
-        (new URLSearchParams(location.search).has("client_info") ||
-            new URLSearchParams(location.hash).has("client_info"))
-    );
+    if (isInIframe()) {
+        return false;
+    }
+
+    try {
+        const { libraryState } = parseAuthResponseFromUrl();
+        const { meta } = libraryState;
+        return meta["interactionType"] === InteractionType.Popup;
+    } catch (e) {
+        // If parsing fails (no state, invalid URL, etc.), we're not in a popup
+        return false;
+    }
 }
 
 /**
@@ -85,6 +205,41 @@ export function isInPopup(): boolean {
  * @param request - The authorization or end session request.
  * @returns Promise<string> - Resolves with the response string (query or hash) from the window.
  */
+
+// Track the active bridge monitor to allow cancellation when overriding interactions
+let activeBridgeMonitor: {
+    timeoutId: number;
+    channel: BroadcastChannel;
+    reject: (reason?: unknown) => void;
+} | null = null;
+
+/**
+ * Cancels the pending bridge response monitor if one exists.
+ * This is called when overrideInteractionInProgress is used to cancel
+ * any pending popup interaction before starting a new one.
+ */
+export function cancelPendingBridgeResponse(
+    logger: Logger,
+    correlationId: string
+): void {
+    if (activeBridgeMonitor) {
+        logger.verbose(
+            "BrowserUtils.cancelPendingBridgeResponse - Cancelling pending bridge monitor",
+            correlationId
+        );
+
+        clearTimeout(activeBridgeMonitor.timeoutId);
+        activeBridgeMonitor.channel.close();
+        activeBridgeMonitor.reject(
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.interactionInProgressCancelled
+            )
+        );
+
+        activeBridgeMonitor = null;
+    }
+}
+
 export async function waitForBridgeResponse(
     timeoutMs: number,
     logger: Logger,
@@ -105,12 +260,26 @@ export async function waitForBridgeResponse(
         let responseString: string | undefined = undefined;
 
         const timeoutId = window.setTimeout(() => {
+            // Clear the active monitor
+            activeBridgeMonitor = null;
+
             channel.close();
             reject(createBrowserAuthError(redirectBridgeTimeout));
         }, timeoutMs);
 
+        // Track this monitor so it can be cancelled if needed
+        activeBridgeMonitor = {
+            timeoutId,
+            channel,
+            reject,
+        };
+
         channel.onmessage = (event) => {
             responseString = event.data.payload;
+
+            // Clear the active monitor
+            activeBridgeMonitor = null;
+
             clearTimeout(timeoutId);
             channel.close();
             if (responseString) {

@@ -132,12 +132,8 @@ describe("/profile", () => {
         if (!popupPage) {
             throw new Error('Popup window was not opened');
           }
-        const popupWindowClosed = new Promise<void>((resolve) =>
-            popupPage.once("close", resolve)
-        );
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
-        await popupWindowClosed;
         await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 
@@ -155,7 +151,7 @@ describe("/profile", () => {
 
         // Go to protected page
         await page.goto(`http://localhost:${port}/profile`);
-        
+
         // Wait for Graph data to display
         await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
