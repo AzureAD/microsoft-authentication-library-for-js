@@ -20,6 +20,7 @@ import {
     ICrypto,
     Logger,
     IPerformanceClient,
+    Authority,
 } from "@azure/msal-common/browser";
 import {
     BaseInteractionClient,
@@ -199,6 +200,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestAzureCloudOptions?: AzureCloudOptions;
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
+        authority?: Authority;
     }): Promise<AuthorizationCodeClient> {
         // Create auth module.
         const clientConfig = await invokeAsync(
@@ -231,6 +233,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestAzureCloudOptions?: AzureCloudOptions;
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
+        authority?: Authority;
     }): Promise<ClientConfiguration> {
         const {
             serverTelemetryManager,
@@ -240,23 +243,25 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             account,
         } = params;
 
-        const discoveredAuthority = await invokeAsync(
-            getDiscoveredAuthority,
-            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(
-            this.config,
-            this.correlationId,
-            this.performanceClient,
-            this.browserStorage,
-            this.logger,
-            requestAuthority,
-            requestAzureCloudOptions,
-            requestExtraQueryParameters,
-            account
-        );
+        const discoveredAuthority =
+            params.authority ||
+            (await invokeAsync(
+                getDiscoveredAuthority,
+                BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                this.config,
+                this.correlationId,
+                this.performanceClient,
+                this.browserStorage,
+                this.logger,
+                requestAuthority,
+                requestAzureCloudOptions,
+                requestExtraQueryParameters,
+                account
+            ));
         const logger = this.config.system.loggerOptions;
 
         return {
