@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <title>State Management Best Practice | MSAL.JS</title>
+
+  <script src="../../lib/msal-browser.js" type="text/javascript"></script>
+
+  <!-- adding Bootstrap 4 for UI components  -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="SHORTCUT ICON" href="https://c.s-microsoft.com/favicon.ico?v2" type="image/x-icon">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <a class="navbar-brand" href="/">MS Identity Platform - State Management Demo</a>
+    <div class="btn-group ml-auto dropleft">
+      <button type="button" id="SignIn" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        Sign In
+      </button>
+      <div class="dropdown-menu">
+        <button class="dropdown-item" id="popup" onclick="signIn(this.id)">Sign in using Popup</button>
+        <button class="dropdown-item" id="redirect" onclick="signIn(this.id)">Sign in using Redirect</button>
+      </div>
+    </div>
+  </nav>
+  <br>
+  <h5 id="welcomeMessage" class="card-header text-center">Please sign-in to see your profile information</h5>
+  <br>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">State Management Best Practice</h5>
+      <div class="alert alert-info" role="alert">
+        <h6 class="alert-heading">What this sample demonstrates:</h6>
+        <p>This sample shows the <strong>recommended pattern</strong> for using the OAuth state parameter when you need to preserve the user's location during authentication flows.</p>
+        
+        <hr>
+        
+        <h6 class="text-danger">❌ ANTI-PATTERN (Do NOT do this):</h6>
+        <pre><code>msalInstance.loginRedirect({
+    scopes: ["user.read"],
+    state: window.location.pathname  // Security risk!
+});</code></pre>
+        
+        <hr>
+        
+        <h6 class="text-success">✅ RECOMMENDED PATTERN (Use this instead):</h6>
+        <pre><code>// Save URL to storage, get reference key
+const stateKey = AuthStateStorage.saveReturnUrl(window.location.pathname);
+
+msalInstance.loginRedirect({
+    scopes: ["user.read"],
+    state: stateKey  // Secure reference key
+});</code></pre>
+        
+        <hr>
+        
+        <h6>Why is this better?</h6>
+        <ul>
+          <li><strong>Security:</strong> URLs with sensitive info aren't exposed in OAuth flow</li>
+          <li><strong>Privacy:</strong> User paths remain private, not logged by auth servers</li>
+          <li><strong>Flexibility:</strong> Can store complex state, not just URLs</li>
+          <li><strong>Validation:</strong> URLs are validated to prevent open redirect attacks</li>
+        </ul>
+      </div>
+      
+      <div class="alert alert-warning" role="alert">
+        <strong>Try it out:</strong> Navigate to different pages (use browser back/forward), then sign in. You'll be returned to the page you were on.
+      </div>
+      
+      <div class="row">
+        <div class="col-md-4">
+          <a href="?page=profile" class="btn btn-primary btn-block">Go to Profile Page</a>
+        </div>
+        <div class="col-md-4">
+          <a href="?page=settings" class="btn btn-primary btn-block">Go to Settings Page</a>
+        </div>
+        <div class="col-md-4">
+          <a href="?page=dashboard" class="btn btn-primary btn-block">Go to Dashboard Page</a>
+        </div>
+      </div>
+      
+      <br>
+      
+      <div id="currentPage" class="alert alert-secondary">
+        <strong>Current page:</strong> <span id="pageInfo"></span>
+      </div>
+    </div>
+  </div>
+  
+  <br>
+  <div class="row">
+    <div class="col-md-12">
+      <div id="card-div" class="card text-center" style="display: none;">
+        <div class="card-body">
+          <h5 class="card-title" id="cardTitle"></h5>
+          <button type="button" class="btn btn-success" id="seeProfile" onclick="seeProfile()">See Profile</button>
+          <button type="button" class="btn btn-warning" id="signOut" onclick="signOut()">Sign Out</button>
+        </div>
+      </div>
+      <div id="profile-div" class="card text-center" style="display: none;"></div>
+    </div>
+  </div>
+  <br>
+  <br>
+
+  <!-- importing bootstrap.js and supporting js libraries -->
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
+
+  <!-- importing app scripts (load order is important) -->
+  <script type="text/javascript" src="../default/authConfig.js"></script>
+  <script type="text/javascript" src="./authStateStorage.js"></script>
+  <script type="text/javascript" src="./auth.js"></script>
+  <script type="text/javascript" src="../default/ui.js"></script>
+  <script type="text/javascript" src="../default/graph.js"></script>
+  
+  <script>
+    // Display current page info
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page') || 'home';
+    document.getElementById('pageInfo').textContent = page;
+  </script>
+</body>
+
+</html>
