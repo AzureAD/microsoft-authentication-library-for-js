@@ -332,7 +332,7 @@ When COOP headers are present on the authentication service response (e.g., `Cro
 
 #### How It Works
 
-1. **Main application**: Your COOP-enabled application initiates authentication using `loginPopup()`, `ssoSilent()`, or `loginRedirect()`
+1. **Main application**: Your application initiates authentication using `loginPopup()`, `ssoSilent()`, or `loginRedirect()`
 2. **Redirect**: MSAL opens a popup/iframe/window to an authority page
 3. **Authentication flow**: The authority page completes the OAuth flow and receives the auth response
 4. **Response handling**: The redirect page uses the new `broadcastResponseToMainFrame()` function which:
