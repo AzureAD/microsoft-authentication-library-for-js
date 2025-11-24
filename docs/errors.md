@@ -693,7 +693,7 @@ Some B2C flows are expected to throw this error due to their need for user inter
 
 Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency.
 
-✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect you can increase this timeout in the MSAL config with either the `iframeBridgeTimeout` or `popupBridgeTimeout` configuration parameters.
+✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect, you can increase this timeout in the MSAL config with either the `iframeBridgeTimeout` (for aquireTokenSilent() or ssoSilent()) or `popupBridgeTimeout` (acquireTokenPopup()) configuration parameters.
 
 ```javascript
 const msalConfig = {
