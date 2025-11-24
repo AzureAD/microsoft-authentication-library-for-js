@@ -325,7 +325,7 @@ MSAL Browser v5 introduces built-in support for Cross-Origin-Opener-Policy (COOP
 
 When COOP headers are present on the authentication service response (e.g., `Cross-Origin-Opener-Policy: same-origin`), traditional popup and silent iframe authentication flows will fail because the authentication window cannot communicate back to the main application window. MSAL v5 solves this by introducing a redirect bridge pattern.
 
-**All authentication flows** (`acquireTokenSilent()`, `ssoSilent()`, `loginPopup()`, and `loginRedirect()`) now use the redirect bridge when COOP is enabled. The redirect bridge handles the authentication response differently based on the flow:
+**All authentication flows** (`acquireTokenSilent()`, `ssoSilent()`, `loginPopup()`, and `loginRedirect()`) now use the redirect bridge. The redirect bridge handles the authentication response differently based on the flow:
 
 - **Popup and silent flows**: The redirect bridge broadcasts the authentication response to the main application window using the BroadcastChannel API
 - **Redirect flow**: The redirect bridge navigates back to your application's home page with the authentication response in the URL
