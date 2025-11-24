@@ -17,7 +17,7 @@ import {
 } from "@azure/msal-common/browser";
 import {
     TestTokenResponse,
-    TestAccounDetails,
+    TestAccountDetails,
     TestServerTokenResponse,
     TestHomeAccountId,
     TestTenantId,
@@ -156,7 +156,7 @@ describe("CustomAuthSilentCacheClient", () => {
             authority: customAuthConfig.auth.authority,
             correlationId: "test-correlation-id",
             scopes: defaultScopes,
-            account: TestAccounDetails,
+            account: TestAccountDetails,
             forceRefresh: false,
             storeInCache: {
                 idToken: true,
@@ -167,7 +167,7 @@ describe("CustomAuthSilentCacheClient", () => {
 
         beforeEach(() => {
             accountEntityToCache =
-                AccountEntity.createFromAccountInfo(TestAccounDetails);
+                AccountEntity.createFromAccountInfo(TestAccountDetails);
             accessTokenEntityToCache = createAccessTokenEntity(mockCrypto);
             refreshTokenEntityToCache = createRefreshTokenEntity();
 
@@ -406,18 +406,20 @@ async function saveTokensIntoCache(
     refreshTokenEntity?: RefreshTokenEntity
 ): Promise<void> {
     accountEntity
-        ? await cacheManager.setAccount(accountEntity, correlationId)
+        ? await cacheManager.setAccount(accountEntity, correlationId, true)
         : null;
     accessTokenEntity
         ? await cacheManager.setAccessTokenCredential(
               accessTokenEntity,
-              correlationId
+              correlationId,
+              true
           )
         : null;
     refreshTokenEntity
         ? await cacheManager.setRefreshTokenCredential(
               refreshTokenEntity,
-              correlationId
+              correlationId,
+              true
           )
         : null;
 }
@@ -429,7 +431,7 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
 
     return CacheHelpers.createAccessTokenEntity(
         TestHomeAccountId,
-        TestAccounDetails.environment,
+        TestAccountDetails.environment,
         TestTokenResponse.ACCESS_TOKEN,
         customAuthConfig.auth.clientId,
         TestTenantId,
@@ -445,7 +447,7 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
 function createRefreshTokenEntity(): RefreshTokenEntity {
     return CacheHelpers.createRefreshTokenEntity(
         TestHomeAccountId,
-        TestAccounDetails.environment,
+        TestAccountDetails.environment,
         TestServerTokenResponse.refresh_token,
         customAuthConfig.auth.clientId
     );

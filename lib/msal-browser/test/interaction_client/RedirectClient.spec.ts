@@ -429,8 +429,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -578,11 +579,13 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo = buildAccountFromIdTokenClaims(
+            const accountEntity = buildAccountFromIdTokenClaims(
                 ID_TOKEN_CLAIMS,
                 undefined,
                 { nativeAccountId: "test-nativeAccountId" }
-            ).getAccountInfo();
+            );
+            const testAccount: AccountInfo =
+                AccountEntity.getAccountInfo(accountEntity);
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -822,8 +825,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -962,8 +966,9 @@ describe("RedirectClient", () => {
                     },
                 };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1117,8 +1122,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -2548,7 +2554,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({ account: testAccountInfo })
                 );
@@ -2609,7 +2615,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({
                         account: testAccountInfo,
@@ -2698,7 +2704,7 @@ describe("RedirectClient", () => {
             );
             browserStorage.setInteractionInProgress(true);
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient
                         .logout({
@@ -2813,7 +2819,7 @@ describe("RedirectClient", () => {
             );
             browserStorage.setInteractionInProgress(true);
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient
                         .logout({
@@ -2895,7 +2901,7 @@ describe("RedirectClient", () => {
             const testAccountEntity =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
             const testAccountInfo: AccountInfo = {
-                ...testAccountEntity.getAccountInfo(),
+                ...AccountEntity.getAccountInfo(testAccountEntity),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
             };
@@ -2926,11 +2932,13 @@ describe("RedirectClient", () => {
 
             await browserStorage.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await browserStorage.setIdTokenCredential(
                 testIdToken,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
 
             pca.setActiveAccount(testAccountInfo);
@@ -3056,6 +3064,37 @@ describe("RedirectClient", () => {
                     // Supress navigation
                     pca.handleRedirectPromise(
                         `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+                    ).then((result) => {
+                        expect(result).toEqual(getTestAuthenticationResult());
+                        done();
+                    });
+                }
+            );
+
+            pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
+        it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", (done) => {
+            const validRequest: RedirectRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["openid", "profile", "offline_access"],
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                redirectUri: window.location.href,
+                state: TEST_STATE_VALUES.USER_STATE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            jest.spyOn(
+                AuthorizeProtocol,
+                "handleResponseCode"
+            ).mockResolvedValue(getTestAuthenticationResult());
+            jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
+                () => {
+                    // Supress navigation
+                    pca.handleRedirectPromise(
+                        `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
                     ).then((result) => {
                         expect(result).toEqual(getTestAuthenticationResult());
                         done();

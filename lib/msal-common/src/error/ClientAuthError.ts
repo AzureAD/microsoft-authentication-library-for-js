@@ -91,6 +91,8 @@ export const ClientAuthErrorMessages = {
         "This method has not been implemented",
     [ClientAuthErrorCodes.nestedAppAuthBridgeDisabled]:
         "The nested app auth bridge is disabled",
+    [ClientAuthErrorCodes.platformBrokerError]:
+        "An error occurred in the native broker. See the platformBrokerError property for details.",
 };
 
 /**
@@ -313,6 +315,10 @@ export const ClientAuthErrorMessage = {
         desc: ClientAuthErrorMessages[
             ClientAuthErrorCodes.nestedAppAuthBridgeDisabled
         ],
+    },
+    platformBrokerError: {
+        code: ClientAuthErrorCodes.platformBrokerError,
+        desc: ClientAuthErrorMessages[ClientAuthErrorCodes.platformBrokerError],
     },
 };
 

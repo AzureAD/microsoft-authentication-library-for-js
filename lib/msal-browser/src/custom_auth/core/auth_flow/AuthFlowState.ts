@@ -19,7 +19,12 @@ export interface AuthFlowActionRequiredStateParameters {
 /**
  * Base class for the state of an authentication flow.
  */
-export abstract class AuthFlowStateBase {}
+export abstract class AuthFlowStateBase {
+    /**
+     * The type of the state.
+     */
+    abstract stateType: string;
+}
 
 /**
  * Base class for the action requried state in an authentication flow.
@@ -31,7 +36,7 @@ export abstract class AuthFlowActionRequiredStateBase<
      * Creates a new instance of AuthFlowActionRequiredStateBase.
      * @param stateParameters The parameters for the auth state.
      */
-    protected constructor(protected readonly stateParameters: TParameter) {
+    constructor(protected readonly stateParameters: TParameter) {
         ensureArgumentIsNotEmptyString(
             "correlationId",
             stateParameters.correlationId

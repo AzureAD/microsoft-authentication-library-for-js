@@ -8,11 +8,17 @@ import { ResetPasswordSubmitCodeResult } from "../result/ResetPasswordSubmitCode
 import { ResetPasswordCodeRequiredStateParameters } from "./ResetPasswordStateParameters.js";
 import { ResetPasswordState } from "./ResetPasswordState.js";
 import { ResetPasswordPasswordRequiredState } from "./ResetPasswordPasswordRequiredState.js";
+import { RESET_PASSWORD_CODE_REQUIRED_STATE_TYPE } from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Reset password code required state.
  */
 export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPasswordCodeRequiredStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = RESET_PASSWORD_CODE_REQUIRED_STATE_TYPE;
+
     /**
      * Submits a one-time passcode that the customer user received in their email in order to continue password reset flow.
      * @param {string} code - The code to submit.
@@ -55,6 +61,8 @@ export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPass
                         this.stateParameters.resetPasswordClient,
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
+                    jitClient: this.stateParameters.jitClient,
+                    mfaClient: this.stateParameters.mfaClient,
                     username: this.stateParameters.username,
                 })
             );
@@ -106,6 +114,8 @@ export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPass
                         this.stateParameters.resetPasswordClient,
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
+                    jitClient: this.stateParameters.jitClient,
+                    mfaClient: this.stateParameters.mfaClient,
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
                 })

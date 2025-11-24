@@ -20,6 +20,7 @@ import {
     BaseAuthRequest,
     StringDict,
     CommonAuthorizationUrlRequest,
+    Authority,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import {
@@ -186,6 +187,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestAzureCloudOptions?: AzureCloudOptions;
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
+        authority?: Authority;
     }): Promise<AuthorizationCodeClient> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
@@ -222,6 +224,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestAzureCloudOptions?: AzureCloudOptions;
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
+        authority?: Authority;
     }): Promise<ClientConfiguration> {
         const {
             serverTelemetryManager,
@@ -235,18 +238,20 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.correlationId
         );
-        const discoveredAuthority = await invokeAsync(
-            this.getDiscoveredAuthority.bind(this),
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )({
-            requestAuthority,
-            requestAzureCloudOptions,
-            requestExtraQueryParameters,
-            account,
-        });
+        const discoveredAuthority =
+            params.authority ||
+            (await invokeAsync(
+                this.getDiscoveredAuthority.bind(this),
+                PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )({
+                requestAuthority,
+                requestAzureCloudOptions,
+                requestExtraQueryParameters,
+                account,
+            }));
         const logger = this.config.system.loggerOptions;
 
         return {

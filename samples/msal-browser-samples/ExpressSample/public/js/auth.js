@@ -34,7 +34,7 @@ export async function initializeMsal() {
 // Handle authentication for protected routes
 export async function handleProtectedRouteAuth(path) {
     console.log(`Attempting authentication for protected route: ${path}`);
-    
+
     // First attempt SSO silent
     return msalInstance.ssoSilent({
         scopes: loginRequest.scopes
@@ -83,7 +83,7 @@ export async function signOutPopup() {
         const logoutRequest = {
             account: msalInstance.getActiveAccount()
         };
-        
+
         await msalInstance.logoutPopup(logoutRequest);
         updateUI(null);
         showSuccess('Successfully signed out!');
@@ -99,7 +99,7 @@ export async function signOutRedirect() {
         const logoutRequest = {
             account: msalInstance.getActiveAccount()
         };
-        
+
         await msalInstance.logoutRedirect(logoutRequest);
     } catch (error) {
         console.error('Redirect sign out failed:', error);
@@ -112,10 +112,10 @@ export async function getAccessToken() {
     return msalInstance.acquireTokenSilent({
         ...loginRequest
     }).then((response) => {
-        return response.accessToken;
+        return response;
     }).catch(async (error) => {
         console.error('Silent token acquisition failed:', error);
-        
+
         if (error instanceof msal.InteractionRequiredAuthError) {
             // Fallback to redirect
             await msalInstance.acquireTokenRedirect({

@@ -1,8 +1,54 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Tue, 19 Aug 2025 21:26:21 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 19 Nov 2025 23:13:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.5.25
+
+Wed, 19 Nov 2025 23:13:10 GMT
+
+### Patches
+
+- error surfacing changes (akaliugonna@microsoft.com)
+- Bump @azure/msal-common to v15.13.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.24
+
+Wed, 29 Oct 2025 00:04:34 GMT
+
+### Patches
+
+- Bump msal-node-runtime to v0.20.0 (akaliugonna@microsoft.com)
+- Bump @azure/msal-common to v15.13.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.23
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.22
+
+Wed, 27 Aug 2025 00:59:59 GMT
+
+### Patches
+
+- enable passing of redirect uri (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 1.5.21
 

@@ -203,6 +203,13 @@ export async function getEARForm(
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
+    // Also add codeChallenge as backup in case EAR is not supported
+    RequestParameterBuilder.addCodeChallengeParams(
+        parameters,
+        request.codeChallenge,
+        Constants.S256_CODE_CHALLENGE_METHOD
+    );
+
     const queryParams = new Map<string, string>();
     RequestParameterBuilder.addExtraQueryParameters(
         queryParams,

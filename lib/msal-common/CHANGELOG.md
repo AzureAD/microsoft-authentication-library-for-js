@@ -1,8 +1,41 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 19 Aug 2025 21:26:21 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 19 Nov 2025 23:13:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.13.2
+
+Wed, 19 Nov 2025 23:13:10 GMT
+
+### Patches
+
+- error surfacing changes (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.13.1
+
+Wed, 29 Oct 2025 00:04:33 GMT
+
+### Patches
+
+- Respect KMSI (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.13.0
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Minor changes
+
+- Instrument data boundary claim #8054 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.12.0
 
