@@ -328,7 +328,7 @@ When COOP headers are present on the authentication service response (e.g., `Cro
 **All authentication flows** (`acquireTokenSilent()`, `ssoSilent()`, `loginPopup()`, and `loginRedirect()`) now use the redirect bridge. The redirect bridge handles the authentication response differently based on the flow:
 
 - **Popup and silent flows**: The redirect bridge broadcasts the authentication response to the main application window using the BroadcastChannel API
-- **Redirect flow**: The redirect bridge navigates back to your application's home page with the authentication response in the URL
+- **Redirect flow**: The redirect bridge navigates back to your application's page that initiated the redirect with the authentication response in the URL
 
 #### How It Works
 
