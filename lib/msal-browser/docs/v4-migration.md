@@ -401,7 +401,6 @@ const msalConfig = {
 const pca = new PublicClientApplication(msalConfig);
 ```
 
-- For a complete working example of COOP support with the redirect bridge, see the [COOP Sample Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/COOP).
 - For more details on COOP and security considerations, see the [Cross-Origin-Opener-Policy documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy).
 
 
