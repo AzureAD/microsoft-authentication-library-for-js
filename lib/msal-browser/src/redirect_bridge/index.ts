@@ -24,9 +24,9 @@ import { PREFIX } from "../cache/CacheKeys.js";
  *
  * @returns {Promise<void>} A promise that resolves when the response has been broadcast and cleanup is complete.
  *
- * @throws {Error} If no authentication payload is found in the URL (hash or query string).
- * @throws {Error} If the state parameter is missing from the redirect URL.
- * @throws {Error} If the state is missing required 'id' or 'meta' attributes.
+ * @throws {AuthError} If no authentication payload is found in the URL (hash or query string).
+ * @throws {AuthError} If the state parameter is missing from the redirect URL.
+ * @throws {AuthError} If the state is missing required 'id' or 'meta' attributes.
  */
 export async function broadcastResponseToMainFrame(
     navigationClient?: NavigationClient

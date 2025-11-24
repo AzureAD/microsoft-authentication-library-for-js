@@ -14,6 +14,7 @@ import {
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
     ProtocolUtils,
+    AuthError,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -43,9 +44,9 @@ import { base64Decode } from "../encode/Base64Decode.js";
  * @returns {string} urlQuery - The original URL query string.
  * @returns {LibraryStateObject} libraryState - The decoded library state from the state parameter.
  *
- * @throws {Error} If no authentication payload is found in the URL.
- * @throws {Error} If the state parameter is missing.
- * @throws {Error} If the state is missing required 'id' or 'meta' attributes.
+ * @throws {AuthError} If no authentication payload is found in the URL.
+ * @throws {AuthError} If the state parameter is missing.
+ * @throws {AuthError} If the state is missing required 'id' or 'meta' attributes.
  */
 export function parseAuthResponseFromUrl(): {
     params: URLSearchParams;
@@ -102,12 +103,12 @@ export function parseAuthResponseFromUrl(): {
     }
 
     if (!payload || !params) {
-        throw new Error("No auth payload found on URL (hash or query)");
+        throw new AuthError(BrowserAuthErrorCodes.emptyResponse, "No auth payload found on URL (hash or query)");
     }
 
     const state = params.get("state");
     if (!state) {
-        throw new Error("Missing state on redirect URL");
+        throw new AuthError(BrowserAuthErrorCodes.noStateInHash, "Missing state on redirect URL");
     }
 
     const { libraryState } = ProtocolUtils.parseRequestState(
@@ -117,7 +118,7 @@ export function parseAuthResponseFromUrl(): {
 
     const { id, meta } = libraryState;
     if (!id || !meta) {
-        throw new Error("Missing state 'id' and/or 'meta' attributes");
+        throw new AuthError(BrowserAuthErrorCodes.unableToParseState, "Missing state 'id' and/or 'meta' attributes");
     }
 
     return {

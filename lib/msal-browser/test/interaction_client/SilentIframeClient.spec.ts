@@ -1437,8 +1437,8 @@ describe("SilentIframeClient", () => {
                 );
 
                 jest.spyOn(
-                    SilentHandler,
-                    "monitorIframeForHash"
+                    BrowserUtils,
+                    "waitForBridgeResponse"
                 ).mockResolvedValue(
                     `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
                 );
