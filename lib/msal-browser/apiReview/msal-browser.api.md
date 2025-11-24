@@ -266,7 +266,8 @@ declare namespace BrowserAuthErrorCodes {
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
-        timedOut
+        timedOut,
+        emptyResponse
     }
 }
 export { BrowserAuthErrorCodes }
@@ -551,6 +552,11 @@ const earJwkEmpty = "ear_jwk_empty";
 //
 // @public (undocumented)
 const emptyNavigateUri = "empty_navigate_uri";
+
+// Warning: (ae-missing-release-tag) "emptyResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const emptyResponse = "empty_response";
 
 // Warning: (ae-missing-release-tag) "emptyWindowError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
