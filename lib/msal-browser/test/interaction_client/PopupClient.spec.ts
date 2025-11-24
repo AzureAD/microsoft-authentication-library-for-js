@@ -997,7 +997,10 @@ describe("PopupClient", () => {
                     .mockImplementation(() => {
                         // Suppress navigation
                     });
-                jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockResolvedValue(
                     `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
                 );
                 jest.spyOn(

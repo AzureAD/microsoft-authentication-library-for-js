@@ -103,12 +103,18 @@ export function parseAuthResponseFromUrl(): {
     }
 
     if (!payload || !params) {
-        throw new AuthError(BrowserAuthErrorCodes.emptyResponse, "No auth payload found on URL (hash or query)");
+        throw new AuthError(
+            BrowserAuthErrorCodes.emptyResponse,
+            "No auth payload found on URL (hash or query)"
+        );
     }
 
     const state = params.get("state");
     if (!state) {
-        throw new AuthError(BrowserAuthErrorCodes.noStateInHash, "Missing state on redirect URL");
+        throw new AuthError(
+            BrowserAuthErrorCodes.noStateInHash,
+            "Missing state on redirect URL"
+        );
     }
 
     const { libraryState } = ProtocolUtils.parseRequestState(
@@ -118,7 +124,10 @@ export function parseAuthResponseFromUrl(): {
 
     const { id, meta } = libraryState;
     if (!id || !meta) {
-        throw new AuthError(BrowserAuthErrorCodes.unableToParseState, "Missing state 'id' and/or 'meta' attributes");
+        throw new AuthError(
+            BrowserAuthErrorCodes.unableToParseState,
+            "Missing state 'id' and/or 'meta' attributes"
+        );
     }
 
     return {
