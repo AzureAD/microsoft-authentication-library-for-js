@@ -604,111 +604,6 @@ const promise2 = msalInstance.acquireTokenPopup(request2);
 
 -   User cancelled the flow.
 
-### `redirect_bridge_timeout`
-
-- Communication with the redirect page (popup or iframe) timed out while waiting for authentication response.
-
-**Error Messages**:
-
-- Token acquisition in popup failed due to timeout.
-- Token acquisition in iframe failed due to timeout.
-
-This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period.
-
-**What is the redirect bridge?**
-
-The redirect bridge is a mechanism that enables authentication flows in COOP (Cross-Origin-Opener-Policy) enabled applications. When COOP headers are present, popup and iframe windows cannot directly communicate with the main application window. The redirect bridge solves this by using the BroadcastChannel API to transmit authentication responses from the redirect page back to the main window. For more details on COOP support and the redirect bridge, see the [COOP Migration Guide](../lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
-
-**Common Causes:**
-
-This timeout typically occurs for the following reasons:
-
-1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
-1. The redirect page is removing or manipulating the hash before the bridge script can process it
-1. The redirect page is automatically navigating to a different page before the bridge can communicate the response
-1. Your identity provider is being slow to redirect back to your `redirectUri` (network latency)
-1. You are being throttled by your identity provider due to too many requests in a short period
-
-**Resolution Steps:**
-
-✔️ **Ensure the redirect bridge script is loaded:**
-
-Your `redirectUri` page must include the redirect bridge script to enable communication back to the main window:
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Redirect</title>
-</head>
-<body>
-    <script src="path/to/msal-redirect-bridge.js"></script>
-    <script>
-        msalRedirectBridge.sendRedirectPayloadToMainFrame();
-    </script>
-</body>
-</html>
-```
-
-**Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
-
-#### Issues caused by the redirectUri page
-
-When you make a silent call, in some cases, an iframe will be opened and will navigate to your identity provider's authorization page. After the identity provider has authorized the user it will redirect the iframe back to the `redirectUri` with the authorization code or error information in the hash fragment. The MSAL redirect bridge running in the iframe will broadcast response to MSAL instance running in the frame or window that originally made the request. If your `redirectUri` is removing or manipulating this hash or navigating to a different page before MSAL redirect bridge has extracted it you will receive this timeout error.
-
-✔️ To solve this problem you should ensure that the page you use as your `redirectUri` is not doing any of these things, at the very least, when loaded in a popup or iframe.
-
-Remember that you will need to register `redirectUri` on your App Registration.
-
-**Notes regarding Angular and React:**
-
--   If you are using `@azure/msal-angular` your `redirectUri` page should not be protected by the `MsalGuard`.
--   If you are using `@azure/msal-react` your `redirectUri` page should not render the `MsalAuthenticationComponent` or use the `useMsalAuthentication` hook.
-
-#### Issues caused by the Identity Provider
-
-#### Throttling
-
-One of the most common reasons this error can be thrown is that your application has gotten stuck in a loop or made too many token requests in a short amount of time. When this happens the identity provider may throttle subsequent requests for a short time which will result in not being redirected back to your `redirectUri` and ultimately this error.
-
-✔️ To resolve throttling based issues you have 2 options:
-
-1. Stop making requests for a short time before trying again.
-1. Invoke an interactive API, such as `acquireTokenPopup` or `acquireTokenRedirect`.
-
-##### X-Frame-Options Deny
-
-You can also get this error if the Identity Provider fails to redirect back to your application. In silent scenarios this error is sometimes accompanied by an X-Frame-Options: Deny error indicating that your identity provider is attempting to either show you an error message or is expecting interaction.
-
-✔️ The X-Frame-Options error will usually have a url in it and opening this url in a new tab may help you discern what is happening. If interaction is required consider using an interactive API instead. If an error is being displayed, address the error.
-
-Some B2C flows are expected to throw this error due to their need for user interaction. These flows include:
-
--   Password reset
--   Profile edit
--   Sign up
--   Some custom policies depending on how they are configured
-
-##### Network Latency
-
-Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency.
-
-✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect, you can increase this timeout in the MSAL config with either the `iframeBridgeTimeout` (for aquireTokenSilent() or ssoSilent()) or `popupBridgeTimeout` (acquireTokenPopup()) configuration parameters.
-
-```javascript
-const msalConfig = {
-    auth: {
-        clientId: "your-client-id",
-    },
-    system: {
-        popupBridgeTimeout: 50000, // Applies just to popup calls - In milliseconds
-        iframeBridgeTimeout: 9000, // Applies just to silent calls - In milliseconds
-    },
-};
-```
-
-> [!IMPORTANT]
-> Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
 
 ### `redirect_bridge_empty_response`
 
@@ -915,6 +810,115 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 #### acquireTokenRedirect timed out
 
 If this error is thrown from `acquireTokenRedirect` it means your application failed to redirect to your identity provider's /authorize endpoint in time. Review the network trace to identify potential causes.
+
+#### redirect_bridge_timeout (suberror)
+
+**Error Code**: `timed_out`
+**SubError**: `redirect_bridge_timeout`
+
+Communication with the redirect page (popup or iframe) timed out while waiting for authentication response.
+
+**Error Messages**:
+
+- Token acquisition in popup failed due to timeout.
+- Token acquisition in iframe failed due to timeout.
+
+This suberror is thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period.
+
+**What is the redirect bridge?**
+
+The redirect bridge is a mechanism that enables authentication flows in COOP (Cross-Origin-Opener-Policy) enabled applications. When COOP headers are present, popup and iframe windows cannot directly communicate with the main application window. The redirect bridge solves this by using the BroadcastChannel API to transmit authentication responses from the redirect page back to the main window. For more details on COOP support and the redirect bridge, see the [COOP Migration Guide](../lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
+
+**Common Causes:**
+
+This timeout typically occurs for the following reasons:
+
+1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
+1. The redirect page is removing or manipulating the hash before the bridge script can process it
+1. The redirect page is automatically navigating to a different page before the bridge can communicate the response
+1. Your identity provider is being slow to redirect back to your `redirectUri` (network latency)
+1. You are being throttled by your identity provider due to too many requests in a short period
+
+**Resolution Steps:**
+
+✔️ **Ensure the redirect bridge script is loaded:**
+
+Your `redirectUri` page must include the redirect bridge script to enable communication back to the main window:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirect</title>
+</head>
+<body>
+    <script src="path/to/msal-redirect-bridge.js"></script>
+    <script>
+        msalRedirectBridge.sendRedirectPayloadToMainFrame();
+    </script>
+</body>
+</html>
+```
+
+**Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
+
+**Issues caused by the redirectUri page:**
+
+When you make a silent call, in some cases, an iframe will be opened and will navigate to your identity provider's authorization page. After the identity provider has authorized the user it will redirect the iframe back to the `redirectUri` with the authorization code or error information in the hash fragment. The MSAL redirect bridge running in the iframe will broadcast response to MSAL instance running in the frame or window that originally made the request. If your `redirectUri` is removing or manipulating this hash or navigating to a different page before MSAL redirect bridge has extracted it you will receive this timeout error.
+
+✔️ To solve this problem you should ensure that the page you use as your `redirectUri` is not doing any of these things.
+
+Remember that you will need to register `redirectUri` on your App Registration. We recommend using the HTML code shown above as the content for your registered redirect page.
+
+**Notes regarding Angular and React:**
+
+-   If you are using `@azure/msal-angular` your `redirectUri` page should not be protected by the `MsalGuard`.
+-   If you are using `@azure/msal-react` your `redirectUri` page should not render the `MsalAuthenticationComponent` or use the `useMsalAuthentication` hook.
+
+**Issues caused by the Identity Provider:**
+
+**Throttling:**
+
+One of the most common reasons this error can be thrown is that your application has gotten stuck in a loop or made too many token requests in a short amount of time. When this happens the identity provider may throttle subsequent requests for a short time which will result in not being redirected back to your `redirectUri` and ultimately this error.
+
+✔️ To resolve throttling based issues you have 2 options:
+
+1. Stop making requests for a short time before trying again.
+1. Invoke an interactive API, such as `acquireTokenPopup` or `acquireTokenRedirect`.
+
+**X-Frame-Options Deny:**
+
+You can also get this error if the Identity Provider fails to redirect back to your application. In silent scenarios this error is sometimes accompanied by an X-Frame-Options: Deny error indicating that your identity provider is attempting to either show you an error message or is expecting interaction.
+
+✔️ The X-Frame-Options error will usually have a url in it and opening this url in a new tab may help you discern what is happening. If interaction is required consider using an interactive API instead. If an error is being displayed, address the error.
+
+Some B2C flows are expected to throw this error due to their need for user interaction. These flows include:
+
+-   Password reset
+-   Profile edit
+-   Sign up
+-   Some custom policies depending on how they are configured
+
+**Network Latency:**
+
+Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency.
+
+✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect, you can increase this timeout in the MSAL config with either the `iframeBridgeTimeout` (for aquireTokenSilent() or ssoSilent()) or `popupBridgeTimeout` (acquireTokenPopup()) configuration parameters.
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+    },
+    system: {
+        popupBridgeTimeout: 50000, // Applies just to popup calls - In milliseconds
+        iframeBridgeTimeout: 9000, // Applies just to silent calls - In milliseconds
+    },
+};
+```
+
+> [!IMPORTANT]
+> Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
 
 ## Browser configuration errors
 

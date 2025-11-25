@@ -27,10 +27,7 @@ import {
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import {
-    redirectBridgeEmptyResponse,
-    redirectBridgeTimeout,
-} from "../error/BrowserAuthErrorCodes.js";
+import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 
 /**
@@ -264,7 +261,12 @@ export async function waitForBridgeResponse(
             activeBridgeMonitor = null;
 
             channel.close();
-            reject(createBrowserAuthError(redirectBridgeTimeout));
+            reject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.timedOut,
+                    "redirect_bridge_timeout"
+                )
+            );
         }, timeoutMs);
 
         // Track this monitor so it can be cancelled if needed

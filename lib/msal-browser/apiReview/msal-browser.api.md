@@ -230,7 +230,6 @@ declare namespace BrowserAuthErrorCodes {
         popupWindowError,
         emptyWindowError,
         userCancelled,
-        redirectBridgeTimeout,
         redirectBridgeEmptyResponse,
         redirectInIframe,
         blockIframeReload,
@@ -1091,8 +1090,8 @@ const noTokenRequestCacheError = "no_token_request_cache_error";
 export const OIDC_DEFAULT_SCOPES: string[];
 
 // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
@@ -1295,11 +1294,6 @@ export class PublicClientApplication implements IPublicClientApplication {
 //
 // @public (undocumented)
 const redirectBridgeEmptyResponse = "redirect_bridge_empty_response";
-
-// Warning: (ae-missing-release-tag) "redirectBridgeTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const redirectBridgeTimeout = "redirect_bridge_timeout";
 
 // Warning: (ae-missing-release-tag) "redirectInIframe" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
