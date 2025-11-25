@@ -12,7 +12,7 @@
         <div class="container">
             <div class="header-content">
                 <a href="/" class="logo">MSAL Express Sample</a>
-                
+
                 <nav>
                     <ul>
                         <li><a href="/" class="nav-link spa-link">Home</a></li>
@@ -31,12 +31,12 @@
                         </li>
                     </ul>
                 </nav>
-                
+
                 <div class="auth-section">
                     <div class="user-info" data-auth-required style="display: none;">
                         Welcome, <span data-user-name></span>!
                     </div>
-                    
+
                     <div data-unauth-required>
                         <div class="dropdown">
                             <button id="signInButton" class="btn dropdown-toggle" style="display: none;">
@@ -49,7 +49,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div data-auth-required style="display: none;">
                         <div class="dropdown">
                             <button id="accountButton" class="btn btn-account dropdown-toggle">
@@ -72,12 +72,12 @@
         <div class="container">
             <div id="error-message" class="message error-message"></div>
             <div id="success-message" class="message success-message"></div>
-            
+
             <!-- SPA Content Area -->
             <div id="spa-content">
                 {{{body}}}
             </div>
-            
+
             <!-- Loading indicator for SPA navigation -->
             <div id="spa-loading" class="loading" style="display: none;">
                 Loading page content...
@@ -117,19 +117,19 @@
                 <div class="custom-version-form">
                     <div class="form-group">
                         <label for="customVersionInput">Version Number:</label>
-                        <input 
-                            type="text" 
-                            id="customVersionInput" 
-                            class="form-input" 
+                        <input
+                            type="text"
+                            id="customVersionInput"
+                            class="form-input"
                             placeholder="e.g., 4.0.0, 3.5.1-beta, 2.38.0"
                         >
                         <div class="input-help">
-                            Enter a semantic version number (major.minor.patch). 
+                            Enter a semantic version number (major.minor.patch).
                             Pre-release versions can include suffixes like -beta, -alpha.
                         </div>
                         <div id="customVersionError" class="error-text" style="display: none;"></div>
                     </div>
-                    
+
                     <div class="form-actions">
                         <button id="customVersionCancel" class="btn btn-secondary">Cancel</button>
                         <button id="customVersionSubmit" class="btn btn-primary">Switch to Version</button>
@@ -139,18 +139,54 @@
         </div>
     </div>
 
+    <!-- Popup Warning Alert -->
+    <div id="popup-warning" class="popup-warning" style="display: none;">
+        <div class="popup-warning-content">
+            <div class="popup-warning-icon">ℹ️</div>
+            <div class="popup-warning-text">
+                <strong>Authentication in Progress</strong>
+                <p>Please complete authentication in the popup window. Do not close the popup until authentication is complete.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Retry Modal -->
+    <div id="retry-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Authentication Already in Progress</h2>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>An authentication request is already in progress. This may happen if:</p>
+                <ul>
+                    <li>You closed the popup window before completing authentication</li>
+                    <li>The previous authentication attempt is still pending</li>
+                </ul>
+                <p class="retry-question">Would you like to cancel the pending authentication and try again?</p>
+                <div class="warning-box">
+                    <strong>⚠️ Warning:</strong> Retrying will cancel the pending authentication request.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelRetryButton" class="btn btn-secondary">Cancel</button>
+                <button id="retryButton" class="btn btn-primary">Retry Authentication</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Inject environment configuration -->
     <script>
         window.envConfig = {{{json envConfig}}};
         window.currentMsalVersion = '{{envConfig.version.current}}';
     </script>
-    
+
     <!-- MSAL Browser library - dynamically loaded based on version -->
     <script id="msal-script" src="{{envConfig.version.info.path}}"></script>
-    
+
     <!-- Version Switcher Script (load before app scripts) -->
     <script src="/js/versionSwitcher.js"></script>
-    
+
     <!-- Application module scripts (ES6 modules) -->
     <script type="module" src="/js/authConfig.js"></script>
     <script type="module" src="/js/app.js"></script>
