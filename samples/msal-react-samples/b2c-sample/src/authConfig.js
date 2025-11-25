@@ -38,7 +38,7 @@ export const msalConfig = {
         clientId: "e3b9ad76-9763-4827-b088-80c7a7888f79",
         authority: b2cPolicies.authorities.signUpSignIn.authority,
         knownAuthorities: [b2cPolicies.authorityDomain],
-        redirectUri: "/",
+        redirectUri: "/redirect",
         postLogoutRedirectUri: "/",
         onRedirectNavigate: () => !BrowserUtils.isInIframe()
     },
