@@ -337,7 +337,7 @@ When COOP headers are present on the authentication service response (e.g., `Cro
 3. **Authentication flow**: The authority page completes the OAuth flow and receives the auth response
 4. **Response handling**: The redirect page uses the new `broadcastResponseToMainFrame()` function which:
     - For **popup/silent flows**: Broadcasts the response to the main window via BroadcastChannel API
-    - For **redirect flows**: Navigates to your application's home page with the auth response
+    - For **redirect flows**: Navigates to the page where the `acquireTokenRedirect` is initiated from with the auth response
 5. **Token acquisition**: The main application receives the response and completes token acquisition
 
 #### Migration Steps
@@ -401,6 +401,8 @@ const msalConfig = {
 const pca = new PublicClientApplication(msalConfig);
 ```
 
+- For more details on redirect URI configuration, see [here](./login-user.md#redirecturi-considerations)
+- For more details on handling popup interaction_in_progress errors, see [here](./login-user.md#handling-popup-interaction_in_progress-errors)
 - For more details on COOP and security considerations, see the [Cross-Origin-Opener-Policy documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy).
 
 

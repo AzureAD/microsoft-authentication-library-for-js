@@ -337,7 +337,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
 
-To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
+To resolve this error we recommend using a dedicated redirectUri page that implements the MSAL redirect bridge. This page should not include any router logic that could interfere with hash handling. For detailed setup instructions, see the [redirectUri considerations](../lib/msal-browser/docs/login-user.md#redirecturi-considerations). Please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
 
 ### `no_state_in_hash`
 
@@ -618,14 +618,14 @@ const promise2 = msalInstance.acquireTokenPopup(request2);
 -   Request was blocked inside an iframe because MSAL detected an authentication response.
 
 This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
-Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
+Our recommended mitigation for this is to set your `redirectUri` to a dedicated page that implements the MSAL redirect bridge and does not invoke any MSAL APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page. For setup instructions, see [RedirectUri Considerations](../lib/msal-browser/docs/login-user.md#redirecturi-considerations).
 
 ✔️ You can do this on a per request basis, for example:
 
 ```javascript
 msalInstance.acquireTokenSilent({
     scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank.html",
+    redirectUri: "http://localhost:3000/redirect",
 });
 ```
 

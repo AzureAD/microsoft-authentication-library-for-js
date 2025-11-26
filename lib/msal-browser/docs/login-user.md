@@ -172,15 +172,65 @@ This indicates that the server could not determine which account to sign into, a
 
 ## RedirectUri Considerations
 
-When using popup and silent APIs we recommend setting the `redirectUri` to a blank page or a page that does not implement MSAL. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis. For more information, see the [React Router](../../../samples/msal-react-samples/react-router-sample) sample:
+**All authentication flows now require a dedicated redirect page** that implements the MSAL redirect bridge. This is necessary to support COOP (Cross-Origin-Opener-Policy) headers and enable secure communication between popup/iframe windows and the main application.
 
-Note: This does not apply for `loginRedirect` or `acquireTokenRedirect`. When using those APIs please see the directions on handling redirects [here](./initialization.md#redirect-apis)
+### Setting up the redirect page
+
+Your `redirectUri` must point to a dedicated page that loads the redirect bridge script. This page should:
+
+1. **Load the redirect bridge script** - This script handles communication with the main window
+2. **Not implement any MSAL logic** - The redirect page should only run the bridge script
+3. **Not include routing logic** - Avoid router libraries that might interfere with hash handling
+4. **Be registered in your App Registration** - The URI must match exactly what's registered in Azure portal
+
+**Example redirect page:**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirect</title>
+</head>
+<body>
+    <p>Processing authentication...</p>
+    <script src="path/to/msal-redirect-bridge.js"></script>
+    <script>
+        msalRedirectBridge.sendRedirectPayloadToMainFrame();
+    </script>
+</body>
+</html>
+```
+
+### Configuration
+
+You can set the `redirectUri` globally in your MSAL configuration or on a per-request basis:
+
+**Global configuration:**
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://login.microsoftonline.com/common",
+        redirectUri: "http://localhost:3000/redirect"
+    }
+};
+
+const msalInstance = new PublicClientApplication(msalConfig);
+```
+
+**Per-request configuration:**
 
 ```javascript
 msalInstance.loginPopup({
-    redirectUri: "http://localhost:3000/blank.html",
+    scopes: ["user.read"],
+    redirectUri: "http://localhost:3000/redirect"
 });
 ```
+
+For more information and complete sample implementations, see:
+- [React Router Sample](../../../samples/msal-react-samples/react-router-sample)
+- [Express Sample](../../../samples/msal-browser-samples/ExpressSample)
 
 ## Handling popup `interaction_in_progress` errors
 
@@ -212,8 +262,8 @@ For popup flows, you can use the `overrideInteractionInProgress` flag to cancel 
 ### Example: Proper error handling with user-triggered retry
 
 For complete implementations with visual feedback, see:
-- **[ExpressSample](../../../samples/msal-browser-samples/ExpressSample)** - Demonstrates JavaScript implementation with custom CSS
-- **[React Router Sample](../../../samples/msal-react-samples/react-router-sample)** - Demonstrates React implementation with Material-UI components
+- [ExpressSample](../../../samples/msal-browser-samples/ExpressSample) - Demonstrates JavaScript implementation with custom CSS
+- [React Router Sample](../../../samples/msal-react-samples/react-router-sample) - Demonstrates React implementation with Material-UI components
 
 Both samples demonstrate:
 - Warning message displayed during popup authentication
