@@ -3,11 +3,10 @@
 # https://learn.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet
 
 # login - you should have permission already to ready the necessary keyvault
-# if not, ask your manager to help with onboarding
 az login --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" --output none
 
 # get the config file
-$base64Config = (az keyvault secret show --vault-name "buildautomation" -n "js-native-auth-config").value
+$base64Config = az keyvault secret show --vault-name "buildautomation" -n "js-native-auth-config" --query "value" --output tsv
 
 $outputFile = (Get-Location).Path + "\nativeAuthConfig.json"
 
