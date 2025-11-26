@@ -20,7 +20,6 @@ export const interactionInProgressCancelled =
 export const popupWindowError = "popup_window_error";
 export const emptyWindowError = "empty_window_error";
 export const userCancelled = "user_cancelled";
-export const redirectBridgeTimeout = "redirect_bridge_timeout";
 export const redirectBridgeEmptyResponse = "redirect_bridge_empty_response";
 export const redirectInIframe = "redirect_in_iframe";
 export const blockIframeReload = "block_iframe_reload";

@@ -13,6 +13,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 export class AppComponent implements OnInit, OnDestroy {
   title = 'Angular Modules Sample - MSAL Angular';
   isIframe = false;
+  isRedirectRoute = false;
   loginDisplay = false;
   private readonly _destroying$ = new Subject<void>();
 
@@ -21,11 +22,19 @@ export class AppComponent implements OnInit, OnDestroy {
     private authService: MsalService,
     private msalBroadcastService: MsalBroadcastService
   ) {
-    
+
   }
 
-  async ngOnInit(): Promise<void> { 
+  async ngOnInit(): Promise<void> {
     this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
+
+    // Only initialize MSAL if we're NOT on the redirect route
+    // The redirect route should be handled by the RedirectComponent which calls broadcastResponseToMainFrame
+    this.isRedirectRoute = window.location.pathname === '/redirect';
+    if (!this.isRedirectRoute) {
+      // Initialize MSAL and handle redirect responses
+      this.authService.handleRedirectObservable().subscribe();
+    }
 
     this.msalBroadcastService.msalSubject$
       .pipe(

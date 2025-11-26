@@ -182,6 +182,131 @@ msalInstance.loginPopup({
 });
 ```
 
+## Handling popup `interaction_in_progress` errors
+
+For popup flows, you can use the `overrideInteractionInProgress` flag to cancel a pending interaction and start a new one. This is useful for recovery scenarios where the user cancelled a popup or an interaction failed.
+
+> **Note:** This feature is **only available for popup flows** and is **not supported for redirect flows**. With the COOP (Cross-Origin-Opener-Policy) header, the traditional `window.opener` connection is severed, allowing popup windows to communicate with the main frame only via BroadcastChannel.
+
+**WARNING**: Use with extreme caution! Setting this to `true` will forcefully cancel any pending popup interaction.
+
+**When set to `true`:**
+- If another popup interaction is currently in progress, it will be forcefully cancelled
+- The pending interaction will reject with an `interaction_in_progress_cancelled` error
+- The new popup flow will proceed immediately
+
+**Valid use cases:**
+- Recovering from errors where the user cancelled a popup (popup was closed without completing auth)
+- Implementing custom error recovery flows
+- Providing a "retry" mechanism after a failed popup interaction
+
+**Default:** `false`
+
+### Important: Only Use on Button Click
+
+**Do NOT automatically retry** when catching an `interaction_in_progress` error. The override should **only** be triggered by an explicit user action (such as clicking a "Retry" button). Automatically overriding interactions can lead to:
+- Race conditions between multiple authentication flows
+- Unexpected cancellations of legitimate authentication attempts
+- Poor user experience with authentication flows starting and stopping unexpectedly
+
+### Example: Proper error handling with user-triggered retry
+
+For complete implementations with visual feedback, see:
+- **[ExpressSample](../../../samples/msal-browser-samples/ExpressSample)** - Demonstrates JavaScript implementation with custom CSS
+- **[React Router Sample](../../../samples/msal-react-samples/react-router-sample)** - Demonstrates React implementation with Material-UI components
+
+Both samples demonstrate:
+- Warning message displayed during popup authentication
+- Retry modal/dialog with clear explanation when `interaction_in_progress` error occurs
+- Proper state management for user-triggered retry
+- Production-ready UI components
+
+```typescript
+// State to track if user wants to retry
+let userWantsRetry = false;
+
+// Button click handler
+async function handleLoginClick() {
+    try {
+        const loginRequest = {
+            scopes: ["user.read"]
+        };
+
+        // If user explicitly clicked retry, override the existing interaction
+        if (userWantsRetry) {
+            loginRequest.overrideInteractionInProgress = true;
+            userWantsRetry = false; // Reset flag
+        }
+
+        const response = await msalInstance.loginPopup(loginRequest);
+        // Handle successful login
+    } catch (error) {
+        if (error.errorCode === 'interaction_in_progress') {
+            // Show retry button to user - DO NOT automatically retry
+            showRetryButton();
+        } else {
+            // Handle other errors
+            console.error(error);
+        }
+    }
+}
+
+// Retry button click handler
+function handleRetryClick() {
+    userWantsRetry = true; // Set flag for next login attempt
+    handleLoginClick(); // User explicitly requested retry
+}
+```
+
+### Example: React component with user-triggered retry
+
+
+```jsx
+function LoginButton() {
+    const { instance } = useMsal();
+    const [showRetry, setShowRetry] = useState(false);
+    const [retryRequested, setRetryRequested] = useState(false);
+
+    const handleLogin = async () => {
+        try {
+            const loginRequest = {
+                scopes: ["user.read"],
+                // Only override if user clicked the retry button
+                overrideInteractionInProgress: retryRequested
+            };
+
+            setRetryRequested(false); // Reset retry flag
+
+            const response = await instance.loginPopup(loginRequest);
+            setShowRetry(false);
+        } catch (error) {
+            if (error.errorCode === 'interaction_in_progress') {
+                // Show retry button - let user decide whether to retry
+                setShowRetry(true);
+            } else {
+                console.error(error);
+            }
+        }
+    };
+
+    const handleRetry = () => {
+        setRetryRequested(true); // User explicitly requested retry
+        handleLogin();
+    };
+
+    return (
+        <div>
+            <button onClick={handleLogin}>Login</button>
+            {showRetry && (
+                <button onClick={handleRetry}>
+                    Retry Login (Cancel Pending)
+                </button>
+            )}
+        </div>
+    );
+}
+```
+
 # Next Steps
 
 Learn how to [acquire and use an access token](./acquire-token.md)!

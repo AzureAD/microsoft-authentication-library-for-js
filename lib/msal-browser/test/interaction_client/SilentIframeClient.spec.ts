@@ -231,7 +231,8 @@ describe("SilentIframeClient", () => {
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.redirectBridgeTimeout
+                    BrowserAuthErrorCodes.timedOut,
+                    "redirect_bridge_timeout"
                 )
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -246,7 +247,8 @@ describe("SilentIframeClient", () => {
                 .mockImplementation((e) => {
                     expect(e).toMatchObject(
                         createBrowserAuthError(
-                            BrowserAuthErrorCodes.redirectBridgeTimeout
+                            BrowserAuthErrorCodes.timedOut,
+                            "redirect_bridge_timeout"
                         )
                     );
                 });

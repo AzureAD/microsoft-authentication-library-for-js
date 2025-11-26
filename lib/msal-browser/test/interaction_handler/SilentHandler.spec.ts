@@ -185,7 +185,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             // Mock waitForBridgeResponse to simulate a timeout error
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.redirectBridgeTimeout
+                    BrowserAuthErrorCodes.timedOut,
+                    "redirect_bridge_timeout"
                 )
             );
 
@@ -197,7 +198,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                     request
                 )
             ).rejects.toMatchObject({
-                errorCode: BrowserAuthErrorCodes.redirectBridgeTimeout,
+                errorCode: BrowserAuthErrorCodes.timedOut,
+                subError: "redirect_bridge_timeout",
             });
         });
 

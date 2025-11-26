@@ -374,7 +374,8 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             jest.advanceTimersByTime(1001);
 
             await expect(waitPromise).rejects.toMatchObject({
-                errorCode: BrowserAuthErrorCodes.redirectBridgeTimeout,
+                errorCode: BrowserAuthErrorCodes.timedOut,
+                subError: "redirect_bridge_timeout",
             });
 
             // Try to cancel after timeout - should do nothing
