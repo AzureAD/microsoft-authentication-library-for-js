@@ -39,7 +39,7 @@ function handleResponse(resp) {
             const successDiv = document.getElementById("successAuthCode");
             if (successDiv) {
                 successDiv.innerHTML = `
-                    <div style="padding: 15px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; margin-top: 10px;">
+                    <div id="successMsg" style="padding: 15px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; margin-top: 10px;">
                         <h5 style="color: #155724;">✅ Authentication Successful!</h5>
                         <p><strong>User:</strong> ${resp.account.name || resp.account.username}</p>
                         <p><strong>ID Token:</strong> ${resp.idToken.substring(0, 30)}...</p>
@@ -64,14 +64,18 @@ function handleResponse(resp) {
     }
 }
 
-function logoutPopup(interactionType) {
+function signOut(interactionType) {
     const logoutRequest = {
-        account: myMSALObj.getAccountByHomeId(accountId)
+        account: myMSALObj.getAccount({accountId})
     };
 
-    myMSALObj.logoutPopup(logoutRequest).then(() => {
-        window.location.reload();
-    });
+    if (interactionType === "popup") {
+        myMSALObj.logoutPopup(logoutRequest).then(() => {
+            window.location.reload();
+        });
+    } else {
+        myMSALObj.logoutRedirect(logoutRequest);
+    }
 }
 
 async function loginPopup(request, account) {
