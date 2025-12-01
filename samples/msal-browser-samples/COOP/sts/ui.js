@@ -4,9 +4,9 @@ const channel = new BroadcastChannel('sts-channel');
 function performAuthentication() {
     
     console.log("STS: Performing authentication (simulated)");
-    console.log("STS: Adding 3 second delay...");
+    console.log("STS: Adding 2 second delay...");
     
-    // Add 3 second delay
+    // Since the STS response is mocked, the popup opens and closes before the e2e tests can capture a screenshot. Add a 2 second delay to capture popup screenshot before the popup closes itself.
     setTimeout(() => {
         continueAuthentication();
     }, 2000);
