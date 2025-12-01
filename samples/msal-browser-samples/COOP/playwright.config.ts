@@ -73,8 +73,8 @@ const config: PlaywrightTestConfig = {
         // },
     ],
 
-    timeout: 50000,
-    globalTimeout: 5400000,
+    timeout: 20000,
+    globalTimeout: 80000,
 
     /* Run your local dev servers before starting the tests */
     webServer: [
