@@ -276,7 +276,7 @@ export class PopupClient extends StandardInteractionClient {
         validRequest.platformBroker = isPlatformBroker;
 
         if (this.config.system.protocolMode === ProtocolMode.EAR) {
-            return this.executeEarFlow(validRequest, popupParams);
+            return this.executeEarFlow(validRequest, popupParams, pkceCodes);
         } else {
             return this.executeCodeFlow(validRequest, popupParams, pkceCodes);
         }
@@ -432,7 +432,8 @@ export class PopupClient extends StandardInteractionClient {
      */
     async executeEarFlow(
         request: CommonAuthorizationUrlRequest,
-        popupParams: PopupParams
+        popupParams: PopupParams,
+        pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         const {
             correlationId,
@@ -467,9 +468,19 @@ export class PopupClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )();
+        const pkce =
+            pkceCodes ||
+            (await invokeAsync(
+                generatePkceCodes,
+                BrowserPerformanceEvents.GeneratePkceCodes,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(this.performanceClient, this.logger, correlationId));
         const popupRequest = {
             ...request,
             earJwk: earJwk,
+            codeChallenge: pkce.challenge,
         };
         const popupWindow =
             popupParams.popup || this.openPopup("about:blank", popupParams);
@@ -514,25 +525,69 @@ export class PopupClient extends StandardInteractionClient {
             this.correlationId
         );
 
-        return invokeAsync(
-            Authorize.handleResponseEAR,
-            BrowserPerformanceEvents.HandleResponseEar,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            popupRequest,
-            serverParams,
-            ApiId.acquireTokenPopup,
-            this.config,
-            discoveredAuthority,
-            this.browserStorage,
-            this.nativeStorage,
-            this.eventHandler,
-            this.logger,
-            this.performanceClient,
-            this.platformAuthProvider
-        );
+        if (!serverParams.ear_jwe && serverParams.code) {
+            const authClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )({
+                serverTelemetryManager: initializeServerTelemetryManager(
+                    ApiId.acquireTokenPopup,
+                    this.config.auth.clientId,
+                    correlationId,
+                    this.browserStorage,
+                    this.logger
+                ),
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+                authority: discoveredAuthority,
+            });
+
+            return invokeAsync(
+                Authorize.handleResponseCode,
+                BrowserPerformanceEvents.HandleResponseCode,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                popupRequest,
+                serverParams,
+                pkce.verifier,
+                ApiId.acquireTokenPopup,
+                this.config,
+                authClient,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider
+            );
+        } else {
+            return invokeAsync(
+                Authorize.handleResponseEAR,
+                BrowserPerformanceEvents.HandleResponseEar,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                popupRequest,
+                serverParams,
+                ApiId.acquireTokenPopup,
+                this.config,
+                discoveredAuthority,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider
+            );
+        }
     }
 
     async executeCodeFlowWithPost(
