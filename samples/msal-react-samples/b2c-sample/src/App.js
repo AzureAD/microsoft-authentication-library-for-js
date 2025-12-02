@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 // Material-UI imports
 import Grid from "@mui/material/Grid";
 
@@ -13,10 +13,20 @@ import { PageLayout } from "./ui-components/PageLayout";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 import { Logout } from "./pages/Logout";
+import { Redirect } from "./pages/Redirect";
 
 import { b2cPolicies, loginRequest } from "./authConfig";
 
 function App({ pca }) {
+  const location = useLocation();
+
+  // Don't wrap redirect page in MsalProvider to prevent MSAL from consuming the auth response
+  const isRedirectPage = location.pathname === "/redirect";
+
+  if (isRedirectPage) {
+    return <Redirect />;
+  }
+
   return (
     <ClientSideNavigation pca={pca}>
       <MsalProvider instance={pca}>
@@ -32,7 +42,7 @@ function App({ pca }) {
 
 /**
  *  This component is optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
- */ 
+ */
 function ClientSideNavigation({ pca, children }) {
   const navigate = useNavigate();
   const navigationClient = new CustomNavigationClient(navigate);
@@ -59,8 +69,8 @@ function Pages() {
       const callbackId = instance.addEventCallback((event) => {
         if (event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS && event.payload) {
             /**
-             * For the purpose of setting an active account for UI update, we want to consider only the auth 
-             * response resulting from SUSI flow. "tfp" claim in the id token tells us the policy (NOTE: legacy 
+             * For the purpose of setting an active account for UI update, we want to consider only the auth
+             * response resulting from SUSI flow. "tfp" claim in the id token tells us the policy (NOTE: legacy
              * policies may use "acr" instead of "tfp"). To learn more about B2C tokens, visit:
              * https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
              */
@@ -74,14 +84,14 @@ function Pages() {
                     &&
                     account.idTokenClaims['tfp'] === b2cPolicies.names.signUpSignIn
                   );
-              
+
               let signUpSignInFlowRequest = {
                   scopes: [...loginRequest.scopes],
                   authority: b2cPolicies.authorities.signUpSignIn.authority,
                   account: originalSignInAccount,
                   prompt: PromptValue.NONE
               };
-              
+
               // To get the updated account information
               instance.acquireTokenPopup(signUpSignInFlowRequest).then(() => {
                 setStatus("update success")
@@ -95,7 +105,7 @@ function Pages() {
               instance.removeEventCallback(callbackId);
           }
       }
-  // eslint-disable-next-line  
+  // eslint-disable-next-line
   }, []);
 
   return (

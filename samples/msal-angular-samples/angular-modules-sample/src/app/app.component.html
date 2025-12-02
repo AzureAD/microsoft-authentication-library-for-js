@@ -1,4 +1,4 @@
-<mat-toolbar color="primary">
+<mat-toolbar color="primary" *ngIf="!isRedirectRoute">
   <a class="title" href="/">{{ title }}</a>
 
   <div class="toolbar-spacer"></div>
@@ -18,7 +18,7 @@
   </mat-menu>
 
 </mat-toolbar>
-<div class="container">
-  <!--This is to avoid reload during acquireTokenSilent() because of hidden iframe -->
-  <router-outlet *ngIf="!isIframe"></router-outlet>
+<!-- Show router-outlet always, but conditionally wrap in container -->
+<div [ngClass]="{'container': !isRedirectRoute && !isIframe}">
+  <router-outlet></router-outlet>
 </div>
