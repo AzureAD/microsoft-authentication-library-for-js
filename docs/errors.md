@@ -356,6 +356,12 @@ Please see explanation for [hash_empty_error](#hash_empty_error) above. The root
 
 -   Unable to parse state. Please verify that the request originated from MSAL.
 
+#### Sub-errors
+
+##### `missing_library_state`
+
+-   Missing state 'id' and/or 'meta' attributes.
+
 ### `state_interaction_type_mismatch`
 
 -   Hash contains state but the interaction type does not match the caller.
