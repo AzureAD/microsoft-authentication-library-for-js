@@ -32,10 +32,6 @@ export const BrowserConstants = {
      */
     POPUP_NAME_PREFIX: "msal",
     /**
-     * Default popup monitor poll interval in milliseconds
-     */
-    DEFAULT_POLL_INTERVAL_MS: 30,
-    /**
      * Msal-browser SKU
      */
     MSAL_SKU: "msal.js.browser",

@@ -347,7 +347,7 @@ export async function handleResponsePlatformBroker(
         request.correlationId
     );
     const { userRequestState } = ProtocolUtils.parseRequestState(
-        browserCrypto,
+        browserCrypto.base64Decode,
         request.state
     );
     return invokeAsync(

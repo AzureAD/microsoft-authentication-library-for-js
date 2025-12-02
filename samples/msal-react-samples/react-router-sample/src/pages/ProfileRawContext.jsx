@@ -51,7 +51,7 @@ class ProfileContent extends Component {
     componentDidUpdate() {
         this.setGraphData();
     }
-  
+
     render() {
         return (
             <Paper>
@@ -62,23 +62,22 @@ class ProfileContent extends Component {
 }
 
 /**
- * This class is using "withMsal" HOC. It passes down the msalContext 
+ * This class is using "withMsal" HOC. It passes down the msalContext
  * as a prop to its children.
  */
 class Profile extends Component {
 
     render() {
-        
+
         const authRequest = {
-            ...loginRequest,
-            redirectUri: process.env.REACT_APP_POPUP_REDIRECT_URI // e.g. /redirect
+            ...loginRequest
         };
 
         return (
-            <MsalAuthenticationTemplate 
-                interactionType={InteractionType.Popup} 
-                authenticationRequest={authRequest} 
-                errorComponent={ErrorComponent} 
+            <MsalAuthenticationTemplate
+                interactionType={InteractionType.Popup}
+                authenticationRequest={authRequest}
+                errorComponent={ErrorComponent}
                 loadingComponent={Loading}
             >
                 <ProfileContent />
