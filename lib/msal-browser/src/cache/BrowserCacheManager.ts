@@ -66,6 +66,7 @@ import { base64Encode } from "../encode/Base64Encode.js";
 import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
@@ -2215,23 +2216,41 @@ export class BrowserCacheManager extends CacheManager {
 
     setInteractionInProgress(
         inProgress: boolean,
-        type: INTERACTION_TYPE = INTERACTION_TYPE.SIGNIN
+        type: INTERACTION_TYPE = INTERACTION_TYPE.SIGNIN,
+        allowOverride: boolean = false,
+        correlationId: string = ""
     ): void {
         // Ensure we don't overwrite interaction in progress for a different clientId
         const key = `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
-            if (this.getInteractionInProgress()) {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.interactionInProgress
-                );
-            } else {
-                // No interaction is in progress
-                this.setTemporaryCache(
-                    key,
-                    JSON.stringify({ clientId: this.clientId, type }),
-                    false
-                );
+            const existingInteraction = this.getInteractionInProgress();
+            if (existingInteraction) {
+                if (allowOverride) {
+                    this.logger.warning(
+                        `Overriding existing interaction_in_progress for clientId: ${existingInteraction.clientId}, type: ${existingInteraction.type}`,
+                        correlationId
+                    );
+
+                    // Cancel any active bridge monitor from the previous interaction
+                    BrowserUtils.cancelPendingBridgeResponse(
+                        this.logger,
+                        correlationId
+                    );
+
+                    // Clear existing interaction to allow new one
+                    this.removeTemporaryItem(key);
+                } else {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.interactionInProgress
+                    );
+                }
             }
+            // Set new interaction
+            this.setTemporaryCache(
+                key,
+                JSON.stringify({ clientId: this.clientId, type }),
+                false
+            );
         } else if (
             !inProgress &&
             this.getInteractionInProgress()?.clientId === this.clientId

@@ -162,11 +162,8 @@ export * as Constants from "./utils/Constants.js";
 
 export { StringUtils } from "./utils/StringUtils.js";
 export { StringDict } from "./utils/MsalTypes.js";
-export {
-    ProtocolUtils,
-    RequestStateObject,
-    LibraryStateObject,
-} from "./utils/ProtocolUtils.js";
+export { RequestStateObject, LibraryStateObject } from "./utils/StateTypes.js";
+export * as ProtocolUtils from "./utils/ProtocolUtils.js";
 export * from "./utils/FunctionWrappers.js";
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager.js";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest.js";
