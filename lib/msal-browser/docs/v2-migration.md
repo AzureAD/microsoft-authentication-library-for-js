@@ -104,4 +104,4 @@ Module/target versions were bumped from `es6`/`es5` to `es2020`/`es2020` respect
 
 ### CDN
 
-MSAL.js is no longer hosted on a CDN. Check [this doc](cdn-usage.md) for more details.
+> :warning: The `@azure/msal-browser` CDN has been fully deprecated as of `@azure/msal-browser@3.0.0` and is no longer supported. App developers using the MSAL CDN must upgrade to the latest possible version and consume MSAL through a package manager or bundling tool of their choice. For more information on version support, consult the table in the project [README.md](../../../README.md#library-version-support-status).
