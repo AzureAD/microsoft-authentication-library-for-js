@@ -190,6 +190,19 @@ microsoft-authentication-library-for-js/
 - Write unit tests for new functionality and bug fixes
 - Document all public API changes
 
+### Instance Aware Flow Restrictions
+
+**IMPORTANT: The instance aware flow is not supported and should NEVER be suggested or used with this library**
+
+- **Do not suggest** the `instanceAware` configuration option or `instance_aware` query parameter
+- **Do not recommend** instance aware flow in code examples, documentation, or solutions
+- If asked about multi-cloud or cloud instance scenarios, provide alternative solutions that do not involve instance aware flow
+
+**What to Suggest Instead:**
+- Standard MSAL authentication flows without instance aware configuration
+- Proper authority configuration for the specific cloud environment the application targets
+- Separate application registrations for different cloud environments if needed
+
 ### Telemetry and Performance Monitoring
 
 **IMPORTANT: Add telemetry for any new operations or significant code paths in msal-browser and msal-common where observability would be useful.**
@@ -207,7 +220,8 @@ Add performance measurements for:
 **1. To Measure Duration of Async Functions - Use `invokeAsync` wrapper:**
 
 ```typescript
-import { invokeAsync, PerformanceEvents } from '@azure/msal-common';
+import { invokeAsync } from '@azure/msal-common';
+import { PerformanceEvents } from '@azure/msal-common';
 
 // Example: Wrapping an async function
 const result = await invokeAsync(
@@ -222,7 +236,7 @@ const result = await invokeAsync(
 **2. To Measure Duration of Sync Functions - Use `invoke` wrapper:**
 
 ```typescript
-import { invoke, PerformanceEvents } from '@azure/msal-common';
+import { invoke } from '@azure/msal-common';
 
 // Example: Wrapping a sync function
 const result = invoke(
@@ -246,13 +260,17 @@ this.performanceClient.addFields({
 
 **4. Adding New Performance Events:**
 
-If you need a new performance event that will be referenced in msal-common, you may define it in `lib/msal-common/src/telemetry/performance/PerformanceEvents.ts`
-If you need a new performance event that will be referenced in msal-browser only, you may define it in `lib/msal-browser/src/telemetry/BrowserPerformanceEvents.ts`:
+If you need a new performance event, add it to the `PerformanceEvents` object in `lib/msal-common/src/telemetry/performance/PerformanceEvent.ts`:
+
 ```typescript
-/**
- * Your new event description
- */
-export const YourNewEventName = "yourNewEventName";
+export const PerformanceEvents = {
+    // ... existing events
+    
+    /**
+     * Your new event description
+     */
+    YourNewEventName: "yourNewEventName",
+};
 ```
 
 #### Performance Event Naming Convention
