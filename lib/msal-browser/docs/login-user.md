@@ -238,7 +238,8 @@ For popup flows, you can use the `overrideInteractionInProgress` flag to cancel 
 
 > **Note:** This feature is **only available for popup flows** and is **not supported for redirect flows**. With the COOP (Cross-Origin-Opener-Policy) header, the traditional `window.opener` connection is severed, allowing popup windows to communicate with the main frame only via BroadcastChannel.
 
-**WARNING**: Use with extreme caution! Setting this to `true` will forcefully cancel any pending popup interaction.
+> [!CAUTION] 
+> Setting this to `true` will forcefully cancel any pending popup authentication request but **will not** close any open popups.
 
 **When set to `true`:**
 - If another popup interaction is currently in progress, it will be forcefully cancelled
