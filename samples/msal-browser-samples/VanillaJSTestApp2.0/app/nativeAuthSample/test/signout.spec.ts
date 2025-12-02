@@ -25,13 +25,11 @@ import {
     getTestUsers, 
     getTestData, 
     nativeAuthConfig 
-} from "./testConfig";
+} from "./configUtils";
 
 // Use configuration instead of hardcoded values
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/signout");
-const STANDARD_TIMEOUT = testConfig.timeouts.standard;
 const AUTH_TIMEOUT = testConfig.timeouts.auth;
-const TEST_TIMEOUT = testConfig.timeouts.test;
 let sampleHomeUrl = "";
 
 describe("Native Auth Sample - Sign Out Tests", () => {
@@ -58,12 +56,9 @@ describe("Native Auth Sample - Sign Out Tests", () => {
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
         
-        const labClient = new LabClient();
-
         // Use configuration for test user emails from JSON config
         signInEmailUsername = nativeAuthConfig.signInEmailPasswordUsername;
-        const accountCredential = await labClient.getSecret(testConfig.testUsers.labSecretName);
-        accountPwd = accountCredential.value;
+        accountPwd = nativeAuthConfig.passwordSignInEmailCode;
     });
 
     afterAll(async () => {

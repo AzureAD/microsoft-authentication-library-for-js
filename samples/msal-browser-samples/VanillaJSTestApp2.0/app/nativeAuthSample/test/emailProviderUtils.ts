@@ -44,7 +44,7 @@ export class MailTmClient {
   /**
    * Create a new Mail.tm account with retry logic
    */
-  async createInbox(address?: string, password?: string, maxRetries = 3, delaySeconds = 5): Promise<{ address: string; password: string }> {
+  async createInbox(address?: string, password?: string, maxRetries = 5, delaySeconds = 5): Promise<{ address: string; password: string }> {
     const usePassword = password || this.password;
     if (!usePassword) {
       throw new Error("No password found in configuration.");

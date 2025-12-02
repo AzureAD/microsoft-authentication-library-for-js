@@ -150,12 +150,11 @@ export const nativeAuthConfig = {
  */
 export const testData = {
     // Negative test case emails
-    invalidUserEmail: "test123@test.com",
+    invalidUserEmail: "test123@test",
     nonRegisteredEmail: "non-registered@test.com",
-    
-    // Other test-specific data
     incorrectPassword: "incorrect-password",
-    invalidOtpCode: "000000"
+    invalidPassword: "invalid-password!",
+    invalidOtpCode: "12345678"
 };
 
 

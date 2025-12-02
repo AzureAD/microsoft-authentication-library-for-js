@@ -22,7 +22,7 @@ import {
     getTenantInfo, 
     getProxyPort, 
     nativeAuthConfig,
-    getTestData 
+    testData
 } from "./configUtils";
 
 // Use configuration instead of hardcoded values
@@ -615,9 +615,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             }
 
-            // Get test data for invalid password
-            const invalidTestData = getTestData();
-
             // Create a new email inbox using password_provider
             const emailClient = new MailTmClient(nativeAuthConfig.passwordProvider);
             const { address: signUpEmail } = await emailClient.createInbox();
@@ -696,10 +693,10 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             }
 
             // Phase 6: Enter invalid password (from test data)
-            console.log(`Using invalid password: ${invalidTestData.invalidPassword}`);
+            console.log(`Using invalid password: ${testData.invalidPassword}`);
             
             await page.waitForSelector("#signUpPassword", { visible: true });
-            await page.type("#signUpPassword", invalidTestData.invalidPassword);
+            await page.type("#signUpPassword", testData.invalidPassword);
             if (screenshot) {
                 await screenshot.takeScreenshot(page, "6_invalidPasswordEntered");
             }
@@ -1001,7 +998,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             // Phase 3: Enter incorrect OTP and handle error
             await page.waitForSelector("#verificationCode", { visible: true });
             await page.click("#verificationCode", { clickCount: 3 });
-            await page.type("#verificationCode", "12345678"); // Incorrect OTP
+            await page.type("#verificationCode", testData.invalidOtpCode); // Incorrect OTP
             await screenshot.takeScreenshot(page, "3_incorrectOtpEntered");
 
             await page.waitForSelector("#submitCodeBtn:enabled", {
