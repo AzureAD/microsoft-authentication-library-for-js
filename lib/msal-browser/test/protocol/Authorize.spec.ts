@@ -68,6 +68,7 @@ describe("Authorize Protocol Tests", () => {
             nonce: ID_TOKEN_CLAIMS.nonce,
             responseMode: Constants.ResponseMode.FRAGMENT,
             earJwk: validEarJWK,
+            codeChallenge: "code-challenge",
             extraQueryParameters: {
                 extraKey1: "extraVal1",
                 extraKey2: "extraVal2",
@@ -178,6 +179,14 @@ describe("Authorize Protocol Tests", () => {
                 checkInputProperties(
                     AADServerParamKeys.EAR_JWE_CRYPTO,
                     "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0"
+                );
+                checkInputProperties(
+                    AADServerParamKeys.CODE_CHALLENGE,
+                    validRequest.codeChallenge!
+                );
+                checkInputProperties(
+                    AADServerParamKeys.CODE_CHALLENGE_METHOD,
+                    "S256"
                 );
                 checkInputProperties(
                     AADServerParamKeys.X_CLIENT_SKU,

@@ -961,6 +961,40 @@ describe("PopupClient", () => {
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
+            it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
+                const validRequest: PopupRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_POPUP
+                );
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue(popupWindow);
+                const earFormSpy = jest
+                    .spyOn(HTMLFormElement.prototype, "submit")
+                    .mockImplementation(() => {
+                        // Suppress navigation
+                    });
+                jest.spyOn(PopupUtils, "monitorPopupForHash").mockResolvedValue(
+                    `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                );
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "handleResponseCode"
+                ).mockResolvedValue(getTestAuthenticationResult());
+
+                const result = await pca.acquireTokenPopup(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
+            });
+
             it("throws error when ProtocolMode is set to EAR and httpMethod is set to GET", async () => {
                 const validRequest: PopupRequest = {
                     authority: TEST_CONFIG.validAuthority,
