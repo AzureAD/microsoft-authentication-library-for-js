@@ -140,6 +140,7 @@ export {
     AuthErrorCodes,
     createAuthError,
 } from "./error/AuthError.js";
+export { PlatformBrokerError } from "./error/PlatformBrokerError.js";
 export { ServerError } from "./error/ServerError.js";
 export { NetworkError, createNetworkError } from "./error/NetworkError.js";
 export {
