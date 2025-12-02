@@ -282,7 +282,9 @@ When you attempt to authenticate MSAL will navigate to your IDP's sign in page e
 
 ### RedirectUri for popup and silent flows
 
-When using popup and silent APIs we recommend setting the `redirectUri` to a blank page, a page that does not implement MSAL, or a page that does not itself require a user be authenticated. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis.
+When using popup and silent APIs, the `redirectUri` must point to a dedicated page that implements the MSAL redirect bridge. This page handles the authentication response and communicates it back to the main application using the BroadcastChannel API. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis.
+
+For detailed setup instructions, see [redirectUri considerations](./docs/login-user.md#redirecturi-considerations).
 
 ### RedirectUri for redirect flows
 

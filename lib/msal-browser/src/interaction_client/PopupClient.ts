@@ -56,7 +56,6 @@ import {
     getDiscoveredAuthority,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
-import { monitorPopupForHash } from "../utils/PopupUtils.js";
 import { validateRequestMethod } from "../request/RequestHelpers.js";
 
 export type PopupParams = {
@@ -93,8 +92,6 @@ export class PopupClient extends StandardInteractionClient {
             correlationId,
             platformAuthHandler
         );
-        // Properly sets this reference for the unload event.
-        this.unloadWindow = this.unloadWindow.bind(this);
         this.nativeStorage = nativeStorageImpl;
         this.eventHandler = eventHandler;
     }
@@ -276,7 +273,7 @@ export class PopupClient extends StandardInteractionClient {
         validRequest.platformBroker = isPlatformBroker;
 
         if (this.config.system.protocolMode === ProtocolMode.EAR) {
-            return this.executeEarFlow(validRequest, popupParams);
+            return this.executeEarFlow(validRequest, popupParams, pkceCodes);
         } else {
             return this.executeCodeFlow(validRequest, popupParams, pkceCodes);
         }
@@ -369,15 +366,12 @@ export class PopupClient extends StandardInteractionClient {
                     null
                 );
 
-                // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-                const responseString = await monitorPopupForHash(
-                    popupWindow,
-                    popupParams.popupWindowParent,
-                    this.config.auth.OIDCOptions.responseMode,
-                    this.config.system.pollIntervalMilliseconds,
+                // Wait for the redirect bridge response
+                const responseString = await BrowserUtils.waitForBridgeResponse(
+                    this.config.system.popupBridgeTimeout,
                     this.logger,
-                    this.unloadWindow,
-                    this.correlationId
+                    this.browserCrypto,
+                    request
                 );
 
                 const serverParams = invoke(
@@ -432,7 +426,8 @@ export class PopupClient extends StandardInteractionClient {
      */
     async executeEarFlow(
         request: CommonAuthorizationUrlRequest,
-        popupParams: PopupParams
+        popupParams: PopupParams,
+        pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         const {
             correlationId,
@@ -467,9 +462,19 @@ export class PopupClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )();
+        const pkce =
+            pkceCodes ||
+            (await invokeAsync(
+                generatePkceCodes,
+                BrowserPerformanceEvents.GeneratePkceCodes,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(this.performanceClient, this.logger, correlationId));
         const popupRequest = {
             ...request,
             earJwk: earJwk,
+            codeChallenge: pkce.challenge,
         };
         const popupWindow =
             popupParams.popup || this.openPopup("about:blank", popupParams);
@@ -486,19 +491,16 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            monitorPopupForHash,
+            BrowserUtils.waitForBridgeResponse,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
         )(
-            popupWindow,
-            popupParams.popupWindowParent,
-            this.config.auth.OIDCOptions.responseMode,
-            this.config.system.pollIntervalMilliseconds,
+            this.config.system.popupBridgeTimeout,
             this.logger,
-            this.unloadWindow,
-            correlationId
+            this.browserCrypto,
+            popupRequest
         );
 
         const serverParams = invoke(
@@ -514,25 +516,69 @@ export class PopupClient extends StandardInteractionClient {
             this.correlationId
         );
 
-        return invokeAsync(
-            Authorize.handleResponseEAR,
-            BrowserPerformanceEvents.HandleResponseEar,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            popupRequest,
-            serverParams,
-            ApiId.acquireTokenPopup,
-            this.config,
-            discoveredAuthority,
-            this.browserStorage,
-            this.nativeStorage,
-            this.eventHandler,
-            this.logger,
-            this.performanceClient,
-            this.platformAuthProvider
-        );
+        if (!serverParams.ear_jwe && serverParams.code) {
+            const authClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )({
+                serverTelemetryManager: initializeServerTelemetryManager(
+                    ApiId.acquireTokenPopup,
+                    this.config.auth.clientId,
+                    correlationId,
+                    this.browserStorage,
+                    this.logger
+                ),
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+                authority: discoveredAuthority,
+            });
+
+            return invokeAsync(
+                Authorize.handleResponseCode,
+                BrowserPerformanceEvents.HandleResponseCode,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                popupRequest,
+                serverParams,
+                pkce.verifier,
+                ApiId.acquireTokenPopup,
+                this.config,
+                authClient,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider
+            );
+        } else {
+            return invokeAsync(
+                Authorize.handleResponseEAR,
+                BrowserPerformanceEvents.HandleResponseEar,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                popupRequest,
+                serverParams,
+                ApiId.acquireTokenPopup,
+                this.config,
+                discoveredAuthority,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider
+            );
+        }
     }
 
     async executeCodeFlowWithPost(
@@ -573,19 +619,16 @@ export class PopupClient extends StandardInteractionClient {
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
-            monitorPopupForHash,
+            BrowserUtils.waitForBridgeResponse,
             BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
         )(
-            popupWindow,
-            popupParams.popupWindowParent,
-            this.config.auth.OIDCOptions.responseMode,
-            this.config.system.pollIntervalMilliseconds,
+            this.config.system.popupBridgeTimeout,
             this.logger,
-            this.unloadWindow,
-            this.correlationId
+            this.browserCrypto,
+            request
         );
 
         const serverParams = invoke(
@@ -731,14 +774,11 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await monitorPopupForHash(
-                popupWindow,
-                popupParams.popupWindowParent,
-                this.config.auth.OIDCOptions.responseMode,
-                this.config.system.pollIntervalMilliseconds,
+            await BrowserUtils.waitForBridgeResponse(
+                this.config.system.popupBridgeTimeout,
                 this.logger,
-                this.unloadWindow,
-                this.correlationId
+                this.browserCrypto,
+                validRequest
             ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
@@ -864,10 +904,6 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindow.focus();
             }
             this.currentWindow = popupWindow;
-            popupParams.popupWindowParent.addEventListener(
-                "beforeunload",
-                this.unloadWindow
-            );
 
             return popupWindow;
         } catch (e) {
@@ -963,17 +999,6 @@ export class PopupClient extends StandardInteractionClient {
             popupName,
             `width=${width}, height=${height}, top=${top}, left=${left}, scrollbars=yes`
         );
-    }
-
-    /**
-     * Event callback to unload main window.
-     */
-    unloadWindow(e: Event): void {
-        if (this.currentWindow) {
-            this.currentWindow.close();
-        }
-        // Guarantees browser unload will happen, so no other errors will be thrown.
-        e.preventDefault();
     }
 
     /**
