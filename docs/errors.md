@@ -172,6 +172,9 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   The nested app auth bridge is disabled.
 
+### `platform_broker_error`
+-   An error occurred in the native broker. When this error is thrown, check the `platformBrokerError` property on the error object for detailed information.
+
 ## Client configuration errors
 
 ### `redirect_uri_empty`
@@ -337,7 +340,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
 
-To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
+To resolve this error we recommend using a dedicated redirectUri page that implements the MSAL redirect bridge. This page should not include any router logic that could interfere with hash handling. For detailed setup instructions, see the [redirectUri considerations](../lib/msal-browser/docs/login-user.md#redirecturi-considerations). Please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
 
 ### `no_state_in_hash`
 
@@ -352,6 +355,12 @@ Please see explanation for [hash_empty_error](#hash_empty_error) above. The root
 ### `unable_to_parse_state`
 
 -   Unable to parse state. Please verify that the request originated from MSAL.
+
+#### Sub-errors
+
+##### `missing_library_state`
+
+-   Missing state 'id' and/or 'meta' attributes.
 
 ### `state_interaction_type_mismatch`
 
@@ -618,14 +627,14 @@ const promise2 = msalInstance.acquireTokenPopup(request2);
 -   Request was blocked inside an iframe because MSAL detected an authentication response.
 
 This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
-Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
+Our recommended mitigation for this is to set your `redirectUri` to a dedicated page that implements the MSAL redirect bridge and does not invoke any MSAL APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page. For setup instructions, see [RedirectUri Considerations](../lib/msal-browser/docs/login-user.md#redirecturi-considerations).
 
 ✔️ You can do this on a per request basis, for example:
 
 ```javascript
 msalInstance.acquireTokenSilent({
     scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank.html",
+    redirectUri: "http://localhost:3000/redirect",
 });
 ```
 
@@ -834,7 +843,7 @@ The redirect bridge is a mechanism that enables authentication flows in COOP (Cr
 This timeout typically occurs for the following reasons:
 
 1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
-1. The redirect page is removing or manipulating the hash before the bridge script can process it
+1. The redirect page is removing or manipulating the URL hash before the bridge script can process it
 1. The redirect page is automatically navigating to a different page before the bridge can communicate the response
 1. Your identity provider is being slow to redirect back to your `redirectUri` (network latency)
 1. You are being throttled by your identity provider due to too many requests in a short period

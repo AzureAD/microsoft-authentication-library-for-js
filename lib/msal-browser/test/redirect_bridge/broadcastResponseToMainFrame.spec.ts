@@ -86,7 +86,7 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "No auth payload found on URL (hash or query)"
+                "empty_response: See https://aka.ms/msal.js.errors#empty_response for details"
             );
         });
 
@@ -94,7 +94,7 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "#code=testCode&client_info=testClientInfo";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "No auth payload found on URL (hash or query)"
+                "empty_response: See https://aka.ms/msal.js.errors#empty_response for details"
             );
 
             expect(mockHistoryReplaceState).toHaveBeenCalled();
@@ -107,7 +107,7 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = `#code=testCode&state=${invalidState}`;
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "Missing state 'id' and/or 'meta' attributes"
+                "unable_to_parse_state: See https://aka.ms/msal.js.errors#unable_to_parse_state for details"
             );
 
             expect(mockHistoryReplaceState).toHaveBeenCalled();
@@ -118,7 +118,7 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = `#code=testCode&state=${invalidState}`;
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "Missing state 'id' and/or 'meta' attributes"
+                "unable_to_parse_state: See https://aka.ms/msal.js.errors#unable_to_parse_state for details"
             );
 
             expect(mockHistoryReplaceState).toHaveBeenCalled();
@@ -357,7 +357,7 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "No auth payload found on URL (hash or query)"
+                "empty_response: See https://aka.ms/msal.js.errors#empty_response for details"
             );
         });
 
@@ -407,7 +407,7 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "#";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "No auth payload found on URL (hash or query)"
+                "empty_response: See https://aka.ms/msal.js.errors#empty_response for details"
             );
         });
     });
@@ -417,7 +417,7 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "#";
 
             await expect(broadcastResponseToMainFrame()).rejects.toThrow(
-                "No auth payload found on URL (hash or query)"
+                "empty_response: See https://aka.ms/msal.js.errors#empty_response for details"
             );
         });
 
@@ -586,7 +586,7 @@ describe("parseAuthResponseFromUrl", () => {
         window.location.hash = "";
 
         expect(() => parseAuthResponseFromUrl()).toThrow(
-            "No auth payload found on URL (hash or query)"
+            "empty_response: See https://aka.ms/msal.js.errors#empty_response for details"
         );
     });
 
@@ -594,7 +594,7 @@ describe("parseAuthResponseFromUrl", () => {
         window.location.hash = "#code=testCode&client_info=testClientInfo";
 
         expect(() => parseAuthResponseFromUrl()).toThrow(
-            "No auth payload found on URL (hash or query)"
+            "empty_response: See https://aka.ms/msal.js.errors#empty_response for details"
         );
     });
 
@@ -605,7 +605,7 @@ describe("parseAuthResponseFromUrl", () => {
         window.location.hash = `#code=testCode&state=${invalidState}`;
 
         expect(() => parseAuthResponseFromUrl()).toThrow(
-            "Missing state 'id' and/or 'meta' attributes"
+            "unable_to_parse_state: See https://aka.ms/msal.js.errors#unable_to_parse_state for details"
         );
     });
 
@@ -614,7 +614,7 @@ describe("parseAuthResponseFromUrl", () => {
         window.location.hash = `#code=testCode&state=${invalidState}`;
 
         expect(() => parseAuthResponseFromUrl()).toThrow(
-            "Missing state 'id' and/or 'meta' attributes"
+            "unable_to_parse_state: See https://aka.ms/msal.js.errors#unable_to_parse_state for details"
         );
     });
 });

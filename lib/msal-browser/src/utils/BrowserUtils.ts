@@ -14,7 +14,6 @@ import {
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
     ProtocolUtils,
-    AuthError,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -100,18 +99,12 @@ export function parseAuthResponseFromUrl(): {
     }
 
     if (!payload || !params) {
-        throw new AuthError(
-            BrowserAuthErrorCodes.emptyResponse,
-            "No auth payload found on URL (hash or query)"
-        );
+        throw createBrowserAuthError(BrowserAuthErrorCodes.emptyResponse);
     }
 
     const state = params.get("state");
     if (!state) {
-        throw new AuthError(
-            BrowserAuthErrorCodes.noStateInHash,
-            "Missing state on redirect URL"
-        );
+        throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
     }
 
     const { libraryState } = ProtocolUtils.parseRequestState(
@@ -121,9 +114,9 @@ export function parseAuthResponseFromUrl(): {
 
     const { id, meta } = libraryState;
     if (!id || !meta) {
-        throw new AuthError(
+        throw createBrowserAuthError(
             BrowserAuthErrorCodes.unableToParseState,
-            "Missing state 'id' and/or 'meta' attributes"
+            "missing_library_state"
         );
     }
 
