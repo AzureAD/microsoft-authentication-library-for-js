@@ -250,7 +250,7 @@ export { InteractionRequiredAuthError }
 export { InteractionRequiredAuthErrorCodes }
 
 // @public
-export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "storeInCache">> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "storeInCache">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
