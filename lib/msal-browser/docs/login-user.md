@@ -243,7 +243,7 @@ For popup flows, you can use the `overrideInteractionInProgress` flag to cancel 
 > Setting this to `true` will forcefully cancel any pending popup authentication request but **will not** close any open popups.
 
 **When set to `true`:**
-- If another popup interaction is currently in progress, it will be forcefully cancelled
+- If another popup interaction is currently in progress, it will be forcefully cancelled but any open popups will not be closed
 - The pending interaction will reject with an `interaction_in_progress_cancelled` error
 - The new popup flow will proceed immediately
 
