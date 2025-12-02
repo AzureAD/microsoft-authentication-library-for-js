@@ -220,8 +220,7 @@ Add performance measurements for:
 **1. To Measure Duration of Async Functions - Use `invokeAsync` wrapper:**
 
 ```typescript
-import { invokeAsync } from '@azure/msal-common';
-import { PerformanceEvents } from '@azure/msal-common';
+import { invokeAsync, PerformanceEvents } from '@azure/msal-common';
 
 // Example: Wrapping an async function
 const result = await invokeAsync(
@@ -236,7 +235,7 @@ const result = await invokeAsync(
 **2. To Measure Duration of Sync Functions - Use `invoke` wrapper:**
 
 ```typescript
-import { invoke } from '@azure/msal-common';
+import { invoke, PerformanceEvents } from '@azure/msal-common';
 
 // Example: Wrapping a sync function
 const result = invoke(
@@ -260,17 +259,13 @@ this.performanceClient.addFields({
 
 **4. Adding New Performance Events:**
 
-If you need a new performance event, add it to the `PerformanceEvents` object in `lib/msal-common/src/telemetry/performance/PerformanceEvent.ts`:
-
+If you need a new performance event that will be referenced in msal-common, you may define it in `lib/msal-common/src/telemetry/performance/PerformanceEvents.ts`
+If you need a new performance event that will be referenced in msal-browser only, you may define it in `lib/msal-browser/src/telemetry/BrowserPerformanceEvents.ts`:
 ```typescript
-export const PerformanceEvents = {
-    // ... existing events
-    
-    /**
-     * Your new event description
-     */
-    YourNewEventName: "yourNewEventName",
-};
+/**
+ * Your new event description
+ */
+export const YourNewEventName = "yourNewEventName";
 ```
 
 #### Performance Event Naming Convention
