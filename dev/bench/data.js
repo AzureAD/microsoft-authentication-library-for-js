@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763609948509,
+  "lastUpdate": 1764706249581,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -18793,6 +18793,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.75%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "198982749+Copilot@users.noreply.github.com",
+            "name": "Copilot",
+            "username": "Copilot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c87be7346aa72968504272253f0ef82ef752c53f",
+          "message": "Add instance aware flow restriction to copilot-instructions.md (#8144)\n\nInstance aware flow is a 1st party-only feature that should not be\nsuggested to 3rd party customers. This PR adds explicit guidance to\nprevent Copilot from recommending it incorrectly.\n\n## Changes\n\n- **New section \"Instance Aware Flow Restrictions\"** in\n`.github/copilot-instructions.md`:\n- Marks `instanceAware` config and `instance_aware` query parameter as\n1st party-only\n  - Prohibits suggesting this feature for 3rd party applications\n- Clarifies existing docs at `lib/msal-browser/docs/instance-aware.md`\nare for internal use\n- Provides alternative solutions for 3rd party multi-cloud scenarios\n(standard flows, proper authority config, separate app registrations)\n\n## Context\n\nInstance aware flow enables dynamic cloud instance selection via STS\nparameters in the `/authorize` response. While available in the public\nAPI surface, it's designed exclusively for Microsoft internal\napplications handling users across cloud boundaries.\n\n<!-- START COPILOT CODING AGENT SUFFIX -->\n\n\n\n<details>\n\n<summary>Original prompt</summary>\n\n> Please create a PR for me that updates the \"copilot-instructions.md\"\nfile that states that the instance aware flow is only available for 1st\nparty customers, and not to suggest or use instance aware for 3rd party\ncustomers. Please use the instructions located at\n.github/copilot-instructions.md for the PR.\n\n\n</details>\n\n\n\n<!-- START COPILOT CODING AGENT TIPS -->\n---\n\n💬 We'd love your input! Share your thoughts on Copilot coding agent in\nour [2 minute survey](https://gh.io/copilot-coding-agent-survey).\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: jo-arroyo <45890484+jo-arroyo@users.noreply.github.com>\nCo-authored-by: Jo Arroyo <joarroyo@microsoft.com>\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2025-12-02T12:05:02-08:00",
+          "tree_id": "bf15a35df4440e88992386b987874e1f238f2f78",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c87be7346aa72968504272253f0ef82ef752c53f"
+        },
+        "date": 1764706245728,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 225933,
+            "range": "±0.99%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 227232,
+            "range": "±1.04%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
