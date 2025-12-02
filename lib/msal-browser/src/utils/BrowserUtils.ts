@@ -100,7 +100,7 @@ export function parseAuthResponseFromUrl(): {
     }
 
     if (!payload || !params) {
-        throw new AuthError(
+        throw createBrowserAuthError(
             BrowserAuthErrorCodes.emptyResponse,
             "No auth payload found on URL (hash or query)"
         );
