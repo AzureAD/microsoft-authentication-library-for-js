@@ -9,6 +9,8 @@ import {
     Logger,
     AuthenticationScheme,
     StubPerformanceClient,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/browser";
 import { name, version } from "../../packageMetadata.js";
 import {
@@ -19,8 +21,6 @@ import { PlatformAuthExtensionHandler } from "./PlatformAuthExtensionHandler.js"
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import { PlatformAuthDOMHandler } from "./PlatformAuthDOMHandler.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
-import { BrowserCacheLocation } from "../../utils/BrowserConstants.js";
-import { PLATFORM_AUTH_DOM_SUPPORT } from "../../cache/CacheKeys.js";
 
 /**
  * Checks if the platform broker is available in the current environment.
@@ -55,11 +55,10 @@ export async function getPlatformAuthProvider(
     logger: Logger,
     performanceClient: IPerformanceClient,
     correlationId: string,
-    nativeBrokerHandshakeTimeout?: number
+    nativeBrokerHandshakeTimeout?: number,
+    enablePlatformBrokerDOMSupport?: boolean
 ): Promise<IPlatformAuthHandler | undefined> {
     logger.trace("getPlatformAuthProvider called", correlationId);
-
-    const enablePlatformBrokerDOMSupport = isDomEnabledForPlatformAuth();
 
     logger.trace(
         "Has client allowed platform auth via DOM API: " +
@@ -98,22 +97,6 @@ export async function getPlatformAuthProvider(
 }
 
 /**
- * Returns true if the DOM API support for platform auth is enabled in session storage
- * @returns boolean
- * @deprecated
- */
-export function isDomEnabledForPlatformAuth(): boolean {
-    let sessionStorage: Storage | undefined;
-    try {
-        sessionStorage = window[BrowserCacheLocation.SessionStorage];
-        // Mute errors if it's a non-browser environment or cookies are blocked.
-        return sessionStorage?.getItem(PLATFORM_AUTH_DOM_SUPPORT) === "true";
-    } catch (e) {
-        return false;
-    }
-}
-
-/**
  * Returns boolean indicating whether or not the request should attempt to use native broker
  * @param logger
  * @param config
@@ -127,6 +110,17 @@ export function isPlatformAuthAllowed(
     authenticationScheme?: AuthenticationScheme
 ): boolean {
     logger.trace("isPlatformAuthAllowed called");
+
+    // throw an error if allowPlaftformBroker is not enabled and allowPlatformBrokerWithDOM is enabled
+    if (
+        !config.system.allowPlatformBroker &&
+        config.system.allowPlatformBrokerWithDOM
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration
+        );
+    }
+
     if (!config.system.allowPlatformBroker) {
         logger.trace(
             "isPlatformAuthAllowed: allowPlatformBroker is not enabled, returning false"
