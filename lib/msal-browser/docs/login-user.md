@@ -236,7 +236,8 @@ For more information and complete sample implementations, see:
 
 For popup flows, you can use the `overrideInteractionInProgress` flag to cancel a pending interaction and start a new one. This is useful for recovery scenarios where the user cancelled a popup or an interaction failed.
 
-> **Note:** This feature is **only available for popup flows** and is **not supported for redirect flows**. With the COOP (Cross-Origin-Opener-Policy) header, the traditional `window.opener` connection is severed, allowing popup windows to communicate with the main frame only via BroadcastChannel.
+> [!NOTE] 
+> This feature is **only available for popup flows** and is **not supported for redirect flows**. With the COOP (Cross-Origin-Opener-Policy) header, the traditional `window.opener` connection is severed, allowing popup windows to communicate with the main frame only via BroadcastChannel.
 
 > [!CAUTION] 
 > Setting this to `true` will forcefully cancel any pending popup authentication request but **will not** close any open popups.
