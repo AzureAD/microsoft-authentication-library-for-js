@@ -40,9 +40,9 @@ The correct authority URL that you need pass to MSAL is ultimately determined by
 - Who are the users you want your app to sign-in?
 - What are the web APIs you want your app to acquire tokens for?
 
-### Azure AD
+### Microsoft Entra ID
 
-The authority domain for the global Azure AD instance is `login.microsoftonline.com`. This domain has several aliases (e.g. `login.microsoft.com`) published on the [discovery endpoint](https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize). For resiliency and performance, MSAL keeps a record of these in cache (see: [AuthorityMetadata.ts](../src/authority/AuthorityMetadata.ts)). MSAL trusts authority URLs with any of these aliases by default.
+The authority domain for the global Entra ID instance is `login.microsoftonline.com`. This domain has several aliases (e.g. `login.microsoft.com`) published on the [discovery endpoint](https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize). For resiliency and performance, MSAL keeps a record of these in cache (see: [AuthorityMetadata.ts](../src/authority/AuthorityMetadata.ts)). MSAL trusts authority URLs with any of these aliases by default.
 
 > :warning: The authority domain differs for national/regional Azure deployments, such as Azure China. See [National clouds](https://docs.microsoft.com/azure/active-directory/develop/authentication-national-cloud) for more.
 
@@ -135,7 +135,6 @@ MSAL can be configured to acquire tokens from any OIDC-compliant IdP. See [initi
 
 - You can obtain the authority URL required for your app via the **Endpoints** panel on the Azure portal [App Registration](https://aka.ms/appregistrations) experience.
 - You can improve MSAL's performance during token acquisition by providing authority information out-of-band. See [Performance](./performance.md) for how to do so.
-- When working with national/regional clouds, consider using the [instance-aware](../../msal-browser/docs/instance-aware.md) flow, which indicates the particular instance the tokens are obtained from and Microsoft Graph hosts that they can be used with.
 
 ## More information
 

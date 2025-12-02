@@ -8,12 +8,27 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-node";
-import axios, { AxiosRequestConfig } from "axios";
+import axios, {
+    // AxiosProxyConfig,
+    AxiosRequestConfig,
+    AxiosResponse,
+} from "axios";
 
 enum HttpMethod {
-    GET = "get",
-    POST = "post",
+    GET = "GET",
+    POST = "POST",
 }
+
+/*const proxy: AxiosProxyConfig = {
+    protocol: "http", // Can also be "https"
+    host: "localhost",
+    port: 8866, // Fiddler Everywhere default port; configurable inside of Fiddler's settings
+    // port: 8888, // Fiddler Classic default port; configurable inside of Fiddler's settings
+    // auth: { // Optional: for authenticated proxies
+    //     username: "username",
+    //     password: "password",
+    // }
+};*/
 
 /**
  * This class implements the API for network requests.
@@ -26,18 +41,19 @@ export class HttpClientAxios implements INetworkModule {
      */
     async sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
+        timeout?: number
     ): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.GET,
             url: url,
-            /* istanbul ignore next */
+            timeout: timeout,
             headers: options && options.headers,
-            /* istanbul ignore next */
             validateStatus: () => true,
+            // proxy: proxy,
         };
 
-        const response = await axios(request);
+        const response: AxiosResponse = await axios(request);
         return {
             headers: response.headers as Record<string, string>,
             body: response.data as T,
@@ -52,22 +68,18 @@ export class HttpClientAxios implements INetworkModule {
      */
     async sendPostRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions,
-        cancellationToken?: number
+        options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
             url: url,
-            /* istanbul ignore next */
             data: (options && options.body) || "",
-            timeout: cancellationToken,
-            /* istanbul ignore next */
             headers: options && options.headers,
-            /* istanbul ignore next */
             validateStatus: () => true,
+            // proxy: proxy,
         };
 
-        const response = await axios(request);
+        const response: AxiosResponse = await axios(request);
         return {
             headers: response.headers as Record<string, string>,
             body: response.data as T,

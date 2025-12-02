@@ -42,21 +42,17 @@ import {
 } from "@azure/msal-common/node";
 import {
     Configuration,
-    DeviceCodeClient,
     ILoopbackClient,
     InteractiveRequest,
     PublicClientApplication,
-    CryptoProvider,
     DeviceCodeRequest,
     AuthorizationCodeRequest,
     RefreshTokenRequest,
     AuthorizationUrlRequest,
-    UsernamePasswordRequest,
     SilentFlowRequest,
 } from "../../src/index.js";
 import http from "http";
 
-import * as msalNode from "../../src/index.js";
 import { setupServerTelemetryManagerMock } from "./test-fixtures.js";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils.js";
 
@@ -81,6 +77,8 @@ import { TokenCache } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { StubPerformanceClient } from "@azure/msal-common";
+import { DeviceCodeClient } from "../../src/client/DeviceCodeClient.js";
+import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -135,7 +133,6 @@ describe("PublicClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
-        const deviceCodeClientSpy = jest.spyOn(msalNode, "DeviceCodeClient");
         const fakeAuthResult = { foo: "bar" };
         jest.spyOn(
             DeviceCodeClient.prototype,
@@ -146,7 +143,6 @@ describe("PublicClientApplication", () => {
 
         const authApp = new PublicClientApplication(appConfig);
         const result = await authApp.acquireTokenByDeviceCode(request);
-        expect(deviceCodeClientSpy).toHaveBeenCalledTimes(1);
         expect(result).toEqual(fakeAuthResult);
     });
 
@@ -466,8 +462,8 @@ describe("PublicClientApplication", () => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                HttpClient.prototype,
+                "sendPostRequestAsync"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken
@@ -563,10 +559,7 @@ describe("PublicClientApplication", () => {
         it("Adds extraQueryParameters to the /token request", (done) => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            jest.spyOn(
-                RefreshTokenClient.prototype,
-                <any>"executePostToTokenEndpoint"
-            )
+            jest.spyOn(HttpClient.prototype, "sendPostRequestAsync")
                 // @ts-expect-error
                 .mockImplementation((url: string) => {
                     try {
@@ -629,6 +622,57 @@ describe("PublicClientApplication", () => {
             authApp.acquireTokenSilent(silentFlowRequest).catch(() => {
                 // Catch errors thrown after the function call this test is testing
             });
+        });
+
+        test("acquireTokenSilent throws error when redirectUri is provided", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                redirectUri: "http://localhost:3000/redirect",
+            };
+
+            await expect(authApp.acquireTokenSilent(request)).rejects.toThrow(
+                "RedirectUri is not supported in this scenario"
+            );
+        });
+
+        test("acquireTokenSilent resets redirectUri when broker fallback occurs", async () => {
+            // Create a broker plugin with broker unavailable
+            const mockBrokerPlugin = new MockNativeBrokerPlugin();
+            mockBrokerPlugin.isBrokerAvailable = false;
+
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                broker: {
+                    nativeBrokerPlugin: mockBrokerPlugin,
+                },
+            });
+
+            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                (config) =>
+                    new silentFlowClient(config, new StubPerformanceClient())
+            );
+            jest.spyOn(
+                silentFlowClient.prototype,
+                "acquireCachedToken"
+            ).mockResolvedValue([
+                mockAuthenticationResult,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
+            ]);
+
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                redirectUri: "http://localhost:3000/redirect",
+            };
+
+            // This should not throw and should reset redirectUri to empty string and continue with the request
+            const response = await authApp.acquireTokenSilent(request);
+
+            expect(response).toEqual(mockAuthenticationResult);
+            expect(request.redirectUri).toBe("");
         });
     });
 
@@ -1058,6 +1102,64 @@ describe("PublicClientApplication", () => {
                 done();
             });
         });
+
+        test("acquireTokenInteractive throws error when redirectUri is provided", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: "http://localhost:3000/redirect",
+                openBrowser: jest.fn(),
+            };
+
+            await expect(
+                authApp.acquireTokenInteractive(request)
+            ).rejects.toThrow("RedirectUri is not supported in this scenario");
+        });
+
+        test("acquireTokenInteractive resets redirectUri when broker fallback occurs", async () => {
+            // Create a broker plugin with broker unavailable to simulate fallback scenario
+            const mockBrokerPlugin = new MockNativeBrokerPlugin();
+            mockBrokerPlugin.isBrokerAvailable = false;
+
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                broker: {
+                    nativeBrokerPlugin: mockBrokerPlugin,
+                },
+            });
+
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: "http://localhost:3000/redirect",
+                openBrowser: jest.fn(),
+            };
+
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "listenForAuthCode"
+            ).mockResolvedValue({
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            });
+
+            jest.spyOn(
+                LoopbackClient.prototype,
+                "getRedirectUri"
+            ).mockReturnValue(TEST_CONSTANTS.REDIRECT_URI);
+
+            jest.spyOn(authApp, "acquireTokenByCode").mockResolvedValue(
+                mockAuthenticationResult
+            );
+
+            jest.spyOn(authApp, "getAuthCodeUrl").mockResolvedValue(
+                TEST_CONSTANTS.AUTH_CODE_URL
+            );
+
+            // This should not throw and should reset redirectUri to empty string
+            const response = await authApp.acquireTokenInteractive(request);
+
+            expect(response).toEqual(mockAuthenticationResult);
+            expect(request.redirectUri).toBe("");
+        });
     });
 
     describe("signOut tests", () => {
@@ -1257,23 +1359,6 @@ describe("PublicClientApplication", () => {
         expect(url).toContain(appConfig.auth.clientId);
         expect(url).toContain(encodeURIComponent(request.redirectUri));
         expect(url).toContain(encodeURIComponent(request.scopes.join(" ")));
-    });
-
-    test("acquireTokenByUsernamePassword", async () => {
-        const request: UsernamePasswordRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            username: TEST_CONSTANTS.USERNAME,
-            password: TEST_CONSTANTS.PASSWORD,
-        };
-
-        const usernamePasswordClientSpy = jest.spyOn(
-            msalNode,
-            "UsernamePasswordClient"
-        );
-
-        const authApp = new PublicClientApplication(appConfig);
-        await authApp.acquireTokenByUsernamePassword(request);
-        expect(usernamePasswordClientSpy).toHaveBeenCalledTimes(1);
     });
 
     test("acquireToken default authority", async () => {

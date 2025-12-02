@@ -5,7 +5,6 @@
 
 import {
     AuthenticationResult,
-    BaseClient,
     ClientConfiguration,
     Constants,
 } from "@azure/msal-common";
@@ -17,7 +16,8 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
-import { UsernamePasswordClient } from "../../src/index.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
+import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient.js";
 import {
     ClientTestUtils,
     checkMockedNetworkRequest,

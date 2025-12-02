@@ -2,7 +2,8 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "target": "es6",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "sourceMap": true,
     "outDir": "dist",
     "types": [
