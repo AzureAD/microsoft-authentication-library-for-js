@@ -108,7 +108,7 @@ export function parseAuthResponseFromUrl(): {
 
     const state = params.get("state");
     if (!state) {
-        throw new AuthError(
+        throw createBrowserAuthError(
             BrowserAuthErrorCodes.noStateInHash,
             "Missing state on redirect URL"
         );
