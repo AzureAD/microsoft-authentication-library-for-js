@@ -28,12 +28,6 @@ export const testConfig = {
         test: 120000      // 120 seconds
     },
     
-    testUsers: {
-        signInEmailUsername: "nativeauthuser1@1secmail.org",
-        signInEmailOtpUsername: "nativeauthuser5@chefalicious.com",
-        labSecretName: "MSIDLABCIAM6"
-    },
-    
     screenshots: {
         enabled: true,
         baseFolderName: "./screenshots"
@@ -71,8 +65,8 @@ export const NATIVE_AUTH_CONFIG_KEYS = {
     SIGN_IN_EMAIL_PASSWORD_USERNAME: 'native_auth.sign_in_email_password_username',
     SIGN_IN_EMAIL_CODE_USERNAME: 'native_auth.sign_in_email_code_username',
     RESET_PASSWORD_USERNAME: 'native_auth.reset_password_username',
-    RESET_PASSWORD_USERNAME_MACOS: 'native_auth.reset_password_username_macos',
     PASSWORD_SIGN_IN_EMAIL_CODE: 'native_auth.password_sign_in_email_code',
+    PASSWORD_PROVIDER: 'native_auth.password_provider',
     KEYVAULT_URL: 'native_auth.keyvault_url'
 } as const;
 
@@ -145,8 +139,8 @@ export const nativeAuthConfig = {
     signInEmailPasswordUsername: getNativeAuthConfigValue(NATIVE_AUTH_CONFIG_KEYS.SIGN_IN_EMAIL_PASSWORD_USERNAME),
     signInEmailCodeUsername: getNativeAuthConfigValue(NATIVE_AUTH_CONFIG_KEYS.SIGN_IN_EMAIL_CODE_USERNAME),
     resetPasswordUsername: getNativeAuthConfigValue(NATIVE_AUTH_CONFIG_KEYS.RESET_PASSWORD_USERNAME),
-    resetPasswordUsernameMacos: getNativeAuthConfigValue(NATIVE_AUTH_CONFIG_KEYS.RESET_PASSWORD_USERNAME_MACOS),
     passwordSignInEmailCode: getNativeAuthConfigValue(NATIVE_AUTH_CONFIG_KEYS.PASSWORD_SIGN_IN_EMAIL_CODE),
+    passwordProvider: getNativeAuthConfigValue(NATIVE_AUTH_CONFIG_KEYS.PASSWORD_PROVIDER),
     keyvaultUrl: getNativeAuthConfigValue(NATIVE_AUTH_CONFIG_KEYS.KEYVAULT_URL)
 };
 
@@ -173,7 +167,6 @@ export const getTestUsers = () => ({
     signInEmailPassword: nativeAuthConfig.signInEmailPasswordUsername,
     signInEmailCode: nativeAuthConfig.signInEmailCodeUsername,
     resetPassword: nativeAuthConfig.resetPasswordUsername,
-    resetPasswordMacos: nativeAuthConfig.resetPasswordUsernameMacos
 });
 
 /**

@@ -1,8 +1,8 @@
-# Variables
+# This is for local test use to get the necessary config file from keyvault
 # To be used with @azure/identity functionality, they must adhere to the same names as described in:
 # https://learn.microsoft.com/en-us/dotnet/api/azure.identity.environmentcredential?view=azure-dotnet
 
-# login - you should have permission already to ready the necessary keyvault
+# login - uncomment this when test locally, you should have permission already to ready the necessary keyvault
 az login --tenant "72f988bf-86f1-41af-91ab-2d7cd011db47" --output none
 
 # get the config file
