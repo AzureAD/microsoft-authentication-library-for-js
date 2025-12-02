@@ -121,7 +121,7 @@ export function parseAuthResponseFromUrl(): {
 
     const { id, meta } = libraryState;
     if (!id || !meta) {
-        throw new AuthError(
+        throw createBrowserAuthError(
             BrowserAuthErrorCodes.unableToParseState,
             "Missing state 'id' and/or 'meta' attributes"
         );
