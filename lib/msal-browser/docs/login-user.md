@@ -258,6 +258,7 @@ For popup flows, you can use the `overrideInteractionInProgress` flag to cancel 
 - Race conditions between multiple authentication flows
 - Unexpected cancellations of legitimate authentication attempts
 - Poor user experience with authentication flows starting and stopping unexpectedly
+- Many open popups that will not resolve to successful authentication responses
 
 ### Example: Proper error handling with user-triggered retry
 
