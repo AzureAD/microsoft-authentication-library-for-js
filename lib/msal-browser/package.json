@@ -37,6 +37,16 @@
                 "default": "./lib/custom-auth-path/msal-custom-auth.cjs"
             }
         },
+        "./redirect-bridge": {
+            "import": {
+                "types": "./dist/redirect-bridge/redirect_bridge/index.d.ts",
+                "default": "./dist/redirect-bridge/redirect_bridge/index.mjs"
+            },
+            "require": {
+                "types": "./lib/redirect-bridge/types/redirect_bridge/index.d.ts",
+                "default": "./lib/redirect-bridge/msal-redirect-bridge.js"
+            }
+        },
         ".": {
             "import": {
                 "types": "./dist/index.d.ts",

@@ -12,6 +12,9 @@ import { createMsalConfig, loginRequest } from './authConfig.js';
 // MSAL instance
 export let msalInstance;
 
+// Retry state tracking
+let retryRequested = false;
+
 // Initialize MSAL
 export async function initializeMsal() {
     try {
@@ -56,14 +59,36 @@ export async function handleProtectedRouteAuth(path) {
 
 // Sign in with popup
 export async function signInPopup() {
+    // Show warning message when popup is about to open
+    showPopupWarning();
+
     try {
-        const response = await msalInstance.loginPopup(loginRequest);
+        const response = await msalInstance.loginPopup({
+            ...loginRequest,
+            // Only override if user explicitly clicked retry
+            overrideInteractionInProgress: retryRequested
+        });
+
+        // Hide warning on success
+        hidePopupWarning();
+        retryRequested = false;
+
         msalInstance.setActiveAccount(response.account);
         updateUI(response.account);
         showSuccess('Successfully signed in!');
     } catch (error) {
-        console.error('Popup sign in failed:', error);
-        showError('Sign in failed: ' + error.message);
+        // Hide warning on error
+        hidePopupWarning();
+
+        if (error.errorCode === 'interaction_in_progress') {
+            // Show retry modal - let user decide whether to retry
+            showRetryModal();
+        } else {
+            // Reset retry flag for other errors
+            retryRequested = false;
+            console.error('Popup sign in failed:', error);
+            showError('Sign in failed: ' + error.message);
+        }
     }
 }
 
@@ -126,3 +151,57 @@ export async function getAccessToken() {
         throw error;
     });
 }
+
+/**
+ * Show warning message during popup authentication
+ */
+function showPopupWarning() {
+    const warningDiv = document.getElementById('popup-warning');
+    if (warningDiv) {
+        warningDiv.style.display = 'block';
+    }
+}
+
+/**
+ * Hide warning message
+ */
+function hidePopupWarning() {
+    const warningDiv = document.getElementById('popup-warning');
+    if (warningDiv) {
+        warningDiv.style.display = 'none';
+    }
+}
+
+/**
+ * Show retry modal for interaction_in_progress error
+ */
+function showRetryModal() {
+    const modal = document.getElementById('retry-modal');
+    if (modal) {
+        modal.style.display = 'block';
+    }
+}
+
+/**
+ * Handle user clicking retry button
+ */
+export function handleRetry() {
+    retryRequested = true; // User explicitly requested retry
+    const modal = document.getElementById('retry-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    signInPopup();
+}
+
+/**
+ * Handle user canceling retry
+ */
+export function handleCancelRetry() {
+    retryRequested = false;
+    const modal = document.getElementById('retry-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+

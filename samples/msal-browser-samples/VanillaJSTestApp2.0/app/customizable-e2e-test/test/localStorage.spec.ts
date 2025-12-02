@@ -157,34 +157,6 @@ describe("LocalStorage Tests", function () {
             });
         });
 
-        it("Closing popup before login resolves clears cache", async () => {
-            const testName = "popupCloseWindow";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
-            const [popupPage, popupWindowClosed] = await clickLoginPopup(
-                screenshot,
-                page
-            );
-            await popupPage.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
-            await popupPage.close();
-            // Wait until popup window closes
-            await popupWindowClosed;
-            // Wait for processing
-            await storagePoller(async () => {
-                // Temporary Cache always uses sessionStorage
-                const sessionBrowserStorage = new BrowserCacheUtils(
-                    page,
-                    "sessionStorage"
-                );
-                const sessionStorage =
-                    await sessionBrowserStorage.getWindowStorage();
-                const localStorage = await BrowserCache.getWindowStorage();
-                expect(Object.keys(localStorage).length).toEqual(2); // Telemetry
-                expect(Object.keys(sessionStorage).length).toEqual(0);
-            }, ONE_SECOND_IN_MS);
-        });
-
         it.skip("Logging in on one tab updates cache/UI in another tab", async () => {
             const testName = "multi-tab";
             const screenshot = new Screenshot(
@@ -233,7 +205,7 @@ describe("LocalStorage Tests", function () {
             await tab2.waitForFunction(checkSignInState, {}, true);
             await tab2.waitForSelector("#acquireTokenSilent");
             await screenshot.takeScreenshot(tab2, "tab2SignedIn");
-            
+
             await tab2.click("#acquireTokenSilent");
             await tab2.waitForSelector("#fromCache");
             await screenshot.takeScreenshot(tab2, "tab2AcquiredToken");
@@ -252,7 +224,7 @@ describe("LocalStorage Tests", function () {
                 } else if (fromCacheEl.includes("false")) {
                     return false;
                 }
-                
+
                 throw `fromCache element cannot be found or has unexpected value. Value: ${fromCacheEl}`;
             };
 

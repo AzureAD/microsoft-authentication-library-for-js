@@ -6,21 +6,21 @@ import {
 
 /**
  * Checks that tokens can be retrieved from the cache
- * @param page 
- * @param screenshot 
+ * @param page
+ * @param screenshot
  */
 export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Screenshot) {
     // Track network requests to verify cached tokens are used
     const networkRequests: puppeteer.HTTPRequest[] = [];
     page.on('request', (request) => {
         // Track all requests to authentication endpoints
-        if (request.url().includes('login.microsoftonline.com') || 
-            request.url().includes('/token') || 
+        if (request.url().includes('login.microsoftonline.com') ||
+            request.url().includes('/token') ||
             request.url().includes('/authorize')) {
             networkRequests.push(request);
         }
     });
-    
+
     if (!page.url().endsWith("profile")) {
         await page.locator("a#viewProfileButton").click();
         await screenshot.takeScreenshot(page, "Profile button clicked");
@@ -39,9 +39,9 @@ export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Scree
 
 /**
  * Helper to switch to a different version
- * @param version 
- * @param page 
- * @param screenshot 
+ * @param version
+ * @param page
+ * @param screenshot
  */
 export async function switchToVersion(version: string, page: puppeteer.Page, screenshot: Screenshot) {
     let versionSearchText = version;
@@ -83,7 +83,7 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
     const selectedVersion = await page.locator(`span#currentVersionText`)
         .filter((value) => {return !!value.textContent && !value.textContent.startsWith("Switching")})
         .map(value => value.textContent || "")
-        .setTimeout(2000)
+        .setTimeout(3000)
         .wait();
     expect(selectedVersion).toContain(versionSearchText);
     await screenshot.takeScreenshot(page, `${version} version selected`);
@@ -91,16 +91,16 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
 
 /**
  * Sign a user in
- * @param page 
- * @param screenshot 
- * @param username 
- * @param accountPwd 
+ * @param page
+ * @param screenshot
+ * @param username
+ * @param accountPwd
  * @param ssoExpected Whether SSO is expected (if true credentials won't be entered)
  */
 export async function signIn(
-    page: puppeteer.Page, 
-    screenshot: Screenshot, 
-    username: string, 
+    page: puppeteer.Page,
+    screenshot: Screenshot,
+    username: string,
     accountPwd: string,
     ssoExpected: boolean = false
 ) {

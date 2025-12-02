@@ -89,12 +89,8 @@ describe("/profileRawContext", () => {
         if (!popupPage) {
             throw new Error('Popup window was not opened');
           }
-        const popupWindowClosed = new Promise<void>((resolve) =>
-            popupPage.once("close", resolve)
-        );
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
-        await popupWindowClosed;
 
         // Wait for Graph data to display
         await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {

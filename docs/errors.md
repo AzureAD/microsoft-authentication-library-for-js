@@ -266,7 +266,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 -   Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
 ### `invalid_request_method_for_EAR`
-- The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`. 
+- The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
 
 ## Interaction required errors
 
@@ -340,7 +340,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
 
-To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
+To resolve this error we recommend using a dedicated redirectUri page that implements the MSAL redirect bridge. This page should not include any router logic that could interfere with hash handling. For detailed setup instructions, see the [redirectUri considerations](../lib/msal-browser/docs/login-user.md#redirecturi-considerations). Please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
 
 ### `no_state_in_hash`
 
@@ -355,6 +355,12 @@ Please see explanation for [hash_empty_error](#hash_empty_error) above. The root
 ### `unable_to_parse_state`
 
 -   Unable to parse state. Please verify that the request originated from MSAL.
+
+#### Sub-errors
+
+##### `missing_library_state`
+
+-   Missing state 'id' and/or 'meta' attributes.
 
 ### `state_interaction_type_mismatch`
 
@@ -561,6 +567,40 @@ If you are unable to figure out why this error is being thrown please [open an i
 -   Refresh the page. Does the error go away?
 -   Open your application in a new tab. Does the error go away?
 
+### `interaction_in_progress_cancelled`
+
+-   The current interaction was cancelled by a new interaction request with `overrideInteractionInProgress` set to `true`.
+
+This error is thrown when an existing popup interaction is cancelled because a new popup request was initiated with the `overrideInteractionInProgress` flag set to `true`. This is not necessarily an error condition - it indicates that the previous interaction was intentionally cancelled to allow a new one to proceed.
+
+**When This Occurs:**
+
+This error is thrown for the **previous/cancelled** interaction when:
+1. A popup interaction is in progress (e.g., `acquireTokenPopup`)
+2. A new popup request is made with `overrideInteractionInProgress: true`
+3. The library cancels the pending interaction and starts the new one
+
+**Example:**
+
+```javascript
+// First popup request starts
+const request1 = { scopes: ["User.Read"] };
+const promise1 = msalInstance.acquireTokenPopup(request1);
+
+// User closes the popup or something goes wrong
+// App decides to retry with override flag
+const request2 = {
+    scopes: ["User.Read"],
+    overrideInteractionInProgress: true  // Override the previous interaction
+};
+const promise2 = msalInstance.acquireTokenPopup(request2);
+
+// promise1 will reject with interaction_in_progress_cancelled
+// promise2 will proceed normally
+```
+
+**Note:** This error should only be seen when you explicitly use the `overrideInteractionInProgress` flag. Under normal circumstances, concurrent interaction attempts will throw `interaction_in_progress` instead.
+
 ### `popup_window_error`
 
 -   Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.
@@ -573,94 +613,10 @@ If you are unable to figure out why this error is being thrown please [open an i
 
 -   User cancelled the flow.
 
-### `monitor_popup_timeout`
 
--   Token acquisition in popup failed due to timeout.
+### `redirect_bridge_empty_response`
 
-### `monitor_window_timeout`
-
--   Token acquisition in iframe failed due to timeout.
-
-**Error Messages**:
-
--   Token acquisition in iframe failed due to timeout.
-
-This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` and there are several reasons this could happen. These are a few of the most common:
-
-1. The page you use as your `redirectUri` is removing or manipulating the hash
-1. The page you use as your `redirectUri` is automatically navigating to a different page
-1. You are being throttled by your identity provider. The identity provider may throttle clients that make too many similar requests in a short period of time. Never implement an endless retry mechanism or retry more than once. Attempts to retry non-network errors typically yield the same result. See [throttling guide](#Throttling) for more details.
-1. Your identity provider did not redirect back to your `redirectUri`.
-
-**Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
-
-#### Issues caused by the redirectUri page
-
-When you make a silent call, in some cases, an iframe will be opened and will navigate to your identity provider's authorization page. After the identity provider has authorized the user it will redirect the iframe back to the `redirectUri` with the authorization code or error information in the hash fragment. The MSAL instance running in the frame or window that originally made the request will extract this response hash and process it. If your `redirectUri` is removing or manipulating this hash or navigating to a different page before MSAL has extracted it you will receive this timeout error.
-
-✔️ To solve this problem you should ensure that the page you use as your `redirectUri` is not doing any of these things, at the very least, when loaded in a popup or iframe. We recommend using a blank page as your `redirectUri` for silent and popup flows to ensure none of these things can occur.
-
-You can do this on a per request basis, for example:
-
-```javascript
-msalInstance.acquireTokenSilent({
-    scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank.html",
-});
-```
-
-Remember that you will need to register this new `redirectUri` on your App Registration.
-
-**Notes regarding Angular and React:**
-
--   If you are using `@azure/msal-angular` your `redirectUri` page should not be protected by the `MsalGuard`.
--   If you are using `@azure/msal-react` your `redirectUri` page should not render the `MsalAuthenticationComponent` or use the `useMsalAuthentication` hook.
-
-#### Issues caused by the Identity Provider
-
-#### Throttling
-
-One of the most common reasons this error can be thrown is that your application has gotten stuck in a loop or made too many token requests in a short amount of time. When this happens the identity provider may throttle subsequent requests for a short time which will result in not being redirected back to your `redirectUri` and ultimately this error.
-
-✔️ To resolve throttling based issues you have 2 options:
-
-1. Stop making requests for a short time before trying again.
-1. Invoke an interactive API, such as `acquireTokenPopup` or `acquireTokenRedirect`.
-
-##### X-Frame-Options Deny
-
-You can also get this error if the Identity Provider fails to redirect back to your application. In silent scenarios this error is sometimes accompanied by an X-Frame-Options: Deny error indicating that your identity provider is attempting to either show you an error message or is expecting interaction.
-
-✔️ The X-Frame-Options error will usually have a url in it and opening this url in a new tab may help you discern what is happening. If interaction is required consider using an interactive API instead. If an error is being displayed, address the error.
-
-Some B2C flows are expected to throw this error due to their need for user interaction. These flows include:
-
--   Password reset
--   Profile edit
--   Sign up
--   Some custom policies depending on how they are configured
-
-##### Network Latency
-
-Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency.
-
-✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect you can increase this timeout in the MSAL config with either the `iframeHashTimeout`, `windowHashTimeout` or `loadFrameTimeout` configuration parameters.
-
-```javascript
-const msalConfig = {
-    auth: {
-        clientId: "your-client-id",
-    },
-    system: {
-        windowHashTimeout: 9000, // Applies just to popup calls - In milliseconds
-        iframeHashTimeout: 9000, // Applies just to silent calls - In milliseconds
-        loadFrameTimeout: 9000, // Applies to both silent and popup calls - In milliseconds
-    },
-};
-```
-
-> [!IMPORTANT]
-> Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
+-   The redirect bridge returned an empty response, indicating the redirect bridge script may have been modified or replaced.
 
 ### `redirect_in_iframe`
 
@@ -671,14 +627,14 @@ const msalConfig = {
 -   Request was blocked inside an iframe because MSAL detected an authentication response.
 
 This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
-Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
+Our recommended mitigation for this is to set your `redirectUri` to a dedicated page that implements the MSAL redirect bridge and does not invoke any MSAL APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page. For setup instructions, see [RedirectUri Considerations](../lib/msal-browser/docs/login-user.md#redirecturi-considerations).
 
 ✔️ You can do this on a per request basis, for example:
 
 ```javascript
 msalInstance.acquireTokenSilent({
     scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank.html",
+    redirectUri: "http://localhost:3000/redirect",
 });
 ```
 
@@ -863,6 +819,115 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 #### acquireTokenRedirect timed out
 
 If this error is thrown from `acquireTokenRedirect` it means your application failed to redirect to your identity provider's /authorize endpoint in time. Review the network trace to identify potential causes.
+
+#### redirect_bridge_timeout (suberror)
+
+**Error Code**: `timed_out`
+**SubError**: `redirect_bridge_timeout`
+
+Communication with the redirect page (popup or iframe) timed out while waiting for authentication response.
+
+**Error Messages**:
+
+- Token acquisition in popup failed due to timeout.
+- Token acquisition in iframe failed due to timeout.
+
+This suberror is thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquireTokenPopup` or `loginPopup` when the redirect bridge script fails to send the authentication response back to the main window within the configured timeout period.
+
+**What is the redirect bridge?**
+
+The redirect bridge is a mechanism that enables authentication flows in COOP (Cross-Origin-Opener-Policy) enabled applications. When COOP headers are present, popup and iframe windows cannot directly communicate with the main application window. The redirect bridge solves this by using the BroadcastChannel API to transmit authentication responses from the redirect page back to the main window. For more details on COOP support and the redirect bridge, see the [COOP Migration Guide](../lib/msal-browser/docs/v4-migration.md#cross-origin-opener-policy-coop-support).
+
+**Common Causes:**
+
+This timeout typically occurs for the following reasons:
+
+1. The page you use as your `redirectUri` is not loading the `msal-redirect-bridge.js` script
+1. The redirect page is removing or manipulating the URL hash before the bridge script can process it
+1. The redirect page is automatically navigating to a different page before the bridge can communicate the response
+1. Your identity provider is being slow to redirect back to your `redirectUri` (network latency)
+1. You are being throttled by your identity provider due to too many requests in a short period
+
+**Resolution Steps:**
+
+✔️ **Ensure the redirect bridge script is loaded:**
+
+Your `redirectUri` page must include the redirect bridge script to enable communication back to the main window:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirect</title>
+</head>
+<body>
+    <script src="path/to/msal-redirect-bridge.js"></script>
+    <script>
+        msalRedirectBridge.sendRedirectPayloadToMainFrame();
+    </script>
+</body>
+</html>
+```
+
+**Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
+
+**Issues caused by the redirectUri page:**
+
+When you make a silent call, in some cases, an iframe will be opened and will navigate to your identity provider's authorization page. After the identity provider has authorized the user it will redirect the iframe back to the `redirectUri` with the authorization code or error information in the hash fragment. The MSAL redirect bridge running in the iframe will broadcast response to MSAL instance running in the frame or window that originally made the request. If your `redirectUri` is removing or manipulating this hash or navigating to a different page before MSAL redirect bridge has extracted it you will receive this timeout error.
+
+✔️ To solve this problem you should ensure that the page you use as your `redirectUri` is not doing any of these things.
+
+Remember that you will need to register `redirectUri` on your App Registration. We recommend using the HTML code shown above as the content for your registered redirect page.
+
+**Notes regarding Angular and React:**
+
+-   If you are using `@azure/msal-angular` your `redirectUri` page should not be protected by the `MsalGuard`.
+-   If you are using `@azure/msal-react` your `redirectUri` page should not render the `MsalAuthenticationComponent` or use the `useMsalAuthentication` hook.
+
+**Issues caused by the Identity Provider:**
+
+**Throttling:**
+
+One of the most common reasons this error can be thrown is that your application has gotten stuck in a loop or made too many token requests in a short amount of time. When this happens the identity provider may throttle subsequent requests for a short time which will result in not being redirected back to your `redirectUri` and ultimately this error.
+
+✔️ To resolve throttling based issues you have 2 options:
+
+1. Stop making requests for a short time before trying again.
+1. Invoke an interactive API, such as `acquireTokenPopup` or `acquireTokenRedirect`.
+
+**X-Frame-Options Deny:**
+
+You can also get this error if the Identity Provider fails to redirect back to your application. In silent scenarios this error is sometimes accompanied by an X-Frame-Options: Deny error indicating that your identity provider is attempting to either show you an error message or is expecting interaction.
+
+✔️ The X-Frame-Options error will usually have a url in it and opening this url in a new tab may help you discern what is happening. If interaction is required consider using an interactive API instead. If an error is being displayed, address the error.
+
+Some B2C flows are expected to throw this error due to their need for user interaction. These flows include:
+
+-   Password reset
+-   Profile edit
+-   Sign up
+-   Some custom policies depending on how they are configured
+
+**Network Latency:**
+
+Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency.
+
+✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect, you can increase this timeout in the MSAL config with either the `iframeBridgeTimeout` (for aquireTokenSilent() or ssoSilent()) or `popupBridgeTimeout` (acquireTokenPopup()) configuration parameters.
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "your-client-id",
+    },
+    system: {
+        popupBridgeTimeout: 50000, // Applies just to popup calls - In milliseconds
+        iframeBridgeTimeout: 9000, // Applies just to silent calls - In milliseconds
+    },
+};
+```
+
+> [!IMPORTANT]
+> Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
 
 ## Browser configuration errors
 

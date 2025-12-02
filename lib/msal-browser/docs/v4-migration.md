@@ -217,6 +217,7 @@ The following parameters were deprecated in MSAL Browser v4 and have been remove
 
 1. The `protocolMode` parameter has been moved to `SystemOptions` from `BrowserAuthOptions` in Configuration. There are no changes to its options or functionality.
 1. The `navigateFrameWait` parameter has been removed. This was previously needed by older browsers which are no longer supported by MSAL.js.
+1. The `iframeHashTimeout` and `windowHashTimeout` parameters have been replaced with `iframeBridgeTimeout` and `popupBridgeTimeout` respectively. These timeouts now control how long to wait for a response from the redirect bridge via BroadcastChannel API.
 
 #### `asyncPopups`
 
@@ -289,7 +290,7 @@ const authRequest = {
     scopes: ["SAMPLE_SCOPE"],
     extraQueryParamters: {
         // Will be sent in query string to /authorize and /token
-        "dc": "DC_VALUE", 
+        "dc": "DC_VALUE",
         "slice": "SLICE_VALUE"
     },
     extraParameters: {
@@ -303,7 +304,7 @@ const authRequest = {
     httpMethod: "POST", // default is "GET" -> Determines method for "/authorize" call. Calls to "/token" are always POST
     extraQueryParamters: {
         // Will be sent in query string to /authorize and /token
-        "dc": "DC_VALUE", 
+        "dc": "DC_VALUE",
         "slice": "SLICE_VALUE"
     },
     extraParameters: {
@@ -313,6 +314,97 @@ const authRequest = {
 ```
 
 > Note: In cases where MSAL determines `extraParameters` must be encoded into the URL string, `extraParameters` will be merged with `extraQueryParams` in a way that will cause same-named parameters to be overwritten. In these cases, the value for the parameter in `extraParameters` will take precedence over the value in the `extraQueryParams`.
+
+### Cross-Origin-Opener-Policy (COOP) Support
+
+MSAL Browser v5 introduces built-in support for Cross-Origin-Opener-Policy (COOP), which enhances security by isolating browsing contexts. When the authentication service (Microsoft Entra ID or Azure AD B2C) returns COOP headers, traditional popup and silent iframe authentication flows are restricted. MSAL v5 provides a redirect bridge mechanism to handle authentication in COOP-enabled environments.
+
+**Note:** Microsoft Entra ID (formerly Azure AD) has COOP enabled by default. For Azure AD B2C, COOP availability depends on your backend configuration and the authentication endpoints being used.
+
+#### What Changed
+
+When COOP headers are present on the authentication service response (e.g., `Cross-Origin-Opener-Policy: same-origin`), traditional popup and silent iframe authentication flows will fail because the authentication window cannot communicate back to the main application window. MSAL v5 solves this by introducing a redirect bridge pattern.
+
+**All authentication flows** (`acquireTokenSilent()`, `ssoSilent()`, `loginPopup()`, and `loginRedirect()`) now use the redirect bridge. The redirect bridge handles the authentication response differently based on the flow:
+
+- **Popup and silent flows**: The redirect bridge broadcasts the authentication response to the main application window using the BroadcastChannel API
+- **Redirect flow**: The redirect bridge navigates back to your application's page that initiated the redirect with the authentication response in the URL
+
+#### How It Works
+
+1. **Main application**: Your application initiates authentication using `loginPopup()`, `ssoSilent()`, or `loginRedirect()`
+2. **Redirect**: MSAL opens a popup/iframe/window to an authority page
+3. **Authentication flow**: The authority page completes the OAuth flow and receives the auth response
+4. **Response handling**: The redirect page uses the new `broadcastResponseToMainFrame()` function which:
+    - For **popup/silent flows**: Broadcasts the response to the main window via BroadcastChannel API
+    - For **redirect flows**: Navigates to the page where the `acquireTokenRedirect` is initiated from with the auth response
+5. **Token acquisition**: The main application receives the response and completes token acquisition
+
+#### Migration Steps
+
+##### 1. Set up your redirect URI page
+
+Create a separate HTML page (e.g., `redirect.html`) that will serve as your redirect bridge. **This page must NOT include COOP headers.**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Redirect</title>
+</head>
+<body>
+    <script type="module">
+        import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
+
+        // Broadcast the auth response to the main application window
+        broadcastResponseToMainFrame()
+            .catch((error) => {
+                console.error("Error broadcasting response:", error);
+            });
+    </script>
+</body>
+</html>
+```
+
+##### 2. Configure your web server
+
+Ensure your redirect URI page is served **without** COOP headers, while your main application pages have COOP enabled:
+
+```javascript
+// Example using Express.js
+app.get("/redirect", (req, res) => {
+    // DO NOT set COOP headers for redirect page
+    res.sendFile(__dirname + "/redirect.html");
+});
+
+app.get("*", (req, res) => {
+    // Set COOP headers for all other pages
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+    res.sendFile(__dirname + "/index.html");
+});
+```
+
+##### 3. Update your MSAL configuration
+
+Set the `redirectUri` in your MSAL configuration to point to your redirect bridge page:
+
+```javascript
+const msalConfig = {
+    auth: {
+        clientId: "{your-client-id}",
+        authority: "https://login.microsoftonline.com/common",
+        redirectUri: "https://{your-app-home-page}/redirect", // Point to your redirect bridge page
+    },
+};
+
+const pca = new PublicClientApplication(msalConfig);
+```
+
+- For more details on redirect URI configuration, see [here](./login-user.md#redirecturi-considerations)
+- For more details on handling popup interaction_in_progress errors, see [here](./login-user.md#handling-popup-interaction_in_progress-errors)
+- For more details on COOP and security considerations, see the [Cross-Origin-Opener-Policy documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy).
+
 
 ## Behavioral Breaking Changes
 

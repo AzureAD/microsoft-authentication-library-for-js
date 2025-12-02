@@ -17,7 +17,6 @@ const ProfileContent = () => {
     const [graphData, setGraphData] = useState(null);
     const { result, error } = useMsalAuthentication(InteractionType.Popup, {
         ...loginRequest,
-        redirectUri: process.env.REACT_APP_POPUP_REDIRECT_URI, // e.g. /redirect
     });
 
     useEffect(() => {
@@ -35,7 +34,7 @@ const ProfileContent = () => {
             callMsGraph().then(response => setGraphData(response));
         }
     }, [error, result, graphData]);
-  
+
     if (error) {
         return <ErrorComponent error={error} />;
     }
