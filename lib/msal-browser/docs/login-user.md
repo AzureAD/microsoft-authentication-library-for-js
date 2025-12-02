@@ -179,7 +179,7 @@ This indicates that the server could not determine which account to sign into, a
 Your `redirectUri` must point to a dedicated page that loads the redirect bridge script. This page should:
 
 1. **Load the redirect bridge script** - This script handles communication with the main window
-2. **Not implement any MSAL logic** - The redirect page should only run the bridge script
+2. **Not include any JavaScript except for bridge script** - The redirect page should only run the bridge script
 3. **Not include routing logic** - Avoid router libraries that might interfere with hash handling
 4. **Be registered in your App Registration** - The URI must match exactly what's registered in Azure portal
 
