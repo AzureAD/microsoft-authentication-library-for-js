@@ -210,6 +210,10 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     allowPlatformBroker?: boolean;
     /**
+     * Flag to enable native broker support through DOM APIs in Edge
+     */
+    allowPlatformBrokerWithDOM?: boolean;
+    /**
      * Sets the timeout for waiting for the native broker handshake to resolve
      */
     nativeBrokerHandshakeTimeout?: number;
@@ -357,6 +361,7 @@ export function buildConfiguration(
         asyncPopups: false,
         allowRedirectInIframe: false,
         allowPlatformBroker: false,
+        allowPlatformBrokerWithDOM: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
