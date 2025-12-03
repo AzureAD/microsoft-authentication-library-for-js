@@ -77,6 +77,7 @@ extends:
                             - "onPageLoad"
                             - "pop"
                             - "customizable-e2e-test"
+                            - "nativeAuthSample"
                             - "ExpressSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
