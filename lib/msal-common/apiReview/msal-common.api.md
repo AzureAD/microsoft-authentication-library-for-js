@@ -1687,7 +1687,8 @@ declare namespace ClientConfigurationErrorCodes {
         cannotAllowPlatformBroker,
         authorityMismatch,
         invalidRequestMethodForEAR,
-        invalidAuthorizePostBodyParameters
+        invalidAuthorizePostBodyParameters,
+        invalidPlatformBrokerConfiguration
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1785,6 +1786,10 @@ export const ClientConfigurationErrorMessage: {
         desc: string;
     };
     invalidRequestMethodForEAR: {
+        code: string;
+        desc: string;
+    };
+    invalidPlatformBrokerConfiguration: {
         code: string;
         desc: string;
     };
@@ -2713,6 +2718,11 @@ const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
 //
 // @public (undocumented)
 const invalidCodeChallengeMethod = "invalid_code_challenge_method";
+
+// Warning: (ae-missing-release-tag) "invalidPlatformBrokerConfiguration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
 
 // Warning: (ae-missing-release-tag) "invalidRequestMethodForEAR" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
