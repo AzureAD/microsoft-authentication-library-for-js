@@ -24,7 +24,7 @@ import {
 } from "../error/InteractionRequiredAuthError.js";
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
 import { CacheManager } from "../cache/CacheManager.js";
-import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils.js";
+import * as ProtocolUtils from "../utils/ProtocolUtils.js";
 import * as Constants from "../utils/Constants.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
@@ -33,7 +33,11 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
+import {
+    checkMaxAge,
+    extractTokenClaims,
+    isKmsi,
+} from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -47,6 +51,7 @@ import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { RequestStateObject } from "../utils/StateTypes.js";
 
 /**
  * Class that handles response parsing.
@@ -234,7 +239,7 @@ export class ResponseHandler {
         let requestStateObj: RequestStateObject | undefined;
         if (!!authCodePayload && !!authCodePayload.state) {
             requestStateObj = ProtocolUtils.parseRequestState(
-                this.cryptoObj,
+                this.cryptoObj.base64Decode,
                 authCodePayload.state
             );
         }
@@ -305,6 +310,7 @@ export class ResponseHandler {
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
+                isKmsi(idTokenClaims || {}),
                 request.storeInCache
             );
         } finally {

@@ -13,7 +13,6 @@ import { CommonClientCredentialRequest } from "./CommonClientCredentialRequest.j
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - skipCache               - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
  * - clientAssertion         - An assertion string or a callback function that returns an assertion string (both are Base64Url-encoded signed JWTs) used in the Client Credential flow
- * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  * @public
  */
 export type ClientCredentialRequest = Partial<

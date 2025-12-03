@@ -20,6 +20,7 @@ import {
     ICrypto,
     Logger,
     IPerformanceClient,
+    Authority,
 } from "@azure/msal-common/browser";
 import {
     BaseInteractionClient,
@@ -39,9 +40,12 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import { initializeBaseRequest } from "../request/RequestHelpers.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import {
+    initializeBaseRequest,
+    validateRequestMethod,
+} from "../request/RequestHelpers.js";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -196,6 +200,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestAzureCloudOptions?: AzureCloudOptions;
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
+        authority?: Authority;
     }): Promise<AuthorizationCodeClient> {
         // Create auth module.
         const clientConfig = await invokeAsync(
@@ -228,6 +233,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestAzureCloudOptions?: AzureCloudOptions;
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
+        authority?: Authority;
     }): Promise<ClientConfiguration> {
         const {
             serverTelemetryManager,
@@ -237,23 +243,25 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             account,
         } = params;
 
-        const discoveredAuthority = await invokeAsync(
-            getDiscoveredAuthority,
-            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(
-            this.config,
-            this.correlationId,
-            this.performanceClient,
-            this.browserStorage,
-            this.logger,
-            requestAuthority,
-            requestAzureCloudOptions,
-            requestExtraQueryParameters,
-            account
-        );
+        const discoveredAuthority =
+            params.authority ||
+            (await invokeAsync(
+                getDiscoveredAuthority,
+                BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                this.config,
+                this.correlationId,
+                this.performanceClient,
+                this.browserStorage,
+                this.logger,
+                requestAuthority,
+                requestAzureCloudOptions,
+                requestExtraQueryParameters,
+                account
+            ));
         const logger = this.config.system.loggerOptions;
 
         return {
@@ -341,12 +349,20 @@ export async function initializeAuthorizationRequest(
         correlationId
     );
 
-    const validatedRequest: CommonAuthorizationUrlRequest = {
+    const interactionRequest: CommonAuthorizationUrlRequest = {
         ...baseRequest,
         redirectUri: redirectUri,
         state: state,
         nonce: request.nonce || createNewGuid(),
         responseMode: config.auth.OIDCOptions.responseMode,
+    };
+
+    const validatedRequest = {
+        ...interactionRequest,
+        httpMethod: validateRequestMethod(
+            interactionRequest,
+            config.system.protocolMode
+        ),
     };
 
     // Skip active account lookup if either login hint or session id is set

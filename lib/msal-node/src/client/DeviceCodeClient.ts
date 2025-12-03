@@ -6,7 +6,6 @@
 import {
     AuthErrorCodes,
     AuthenticationResult,
-    BaseClient,
     ClientConfiguration,
     DeviceCodeResponse,
     RequestParameterBuilder,
@@ -21,10 +20,10 @@ import {
     createAuthError,
     createClientAuthError,
     Constants,
-    StubPerformanceClient,
 } from "@azure/msal-common/node";
 import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
+import { BaseClient } from "./BaseClient.js";
 
 /**
  * OAuth2.0 Device code client
@@ -32,7 +31,7 @@ import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
  */
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
-        super(configuration, new StubPerformanceClient());
+        super(configuration);
     }
 
     /**
@@ -116,7 +115,7 @@ export class DeviceCodeClient extends BaseClient {
         const parameters = new Map<string, string>();
 
         if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 request.extraQueryParameters
             );
@@ -183,7 +182,7 @@ export class DeviceCodeClient extends BaseClient {
         );
 
         if (request.extraQueryParameters) {
-            RequestParameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraParameters(
                 parameters,
                 request.extraQueryParameters
             );

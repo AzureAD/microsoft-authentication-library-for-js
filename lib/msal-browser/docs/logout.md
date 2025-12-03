@@ -52,7 +52,7 @@ Using `logoutRedirect` will clear local cache of user tokens then redirect the w
 [Configuration options](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionrequest) can be provided to customize the behavior:
 
 ```javascript
-const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+const currentAccount = msalInstance.getAccount({ homeAccountId });
 await msalInstance.logoutRedirect({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut"
@@ -60,18 +60,25 @@ await msalInstance.logoutRedirect({
 ```
 
 ### Skipping the server sign-out
-
 **WARNING:** Skipping the server sign-out means the user's session will remain active on the server and can be signed back into your application without providing credentials again.
 
-If you want your application to only perform local logout you can provide a callback to the `onRedirectNavigate` parameter on the request and have the callback return false.
+If you want your application to only perform local logout you can provide a callback to the `onRedirectNavigate` parameter in the configuration and have the callback return false.
 
 ```javascript
-msalInstance.logoutRedirect({
-    onRedirectNavigate: (url) => {
-        // Return false if you would like to stop navigation after local logout
-        return false;
+const msalConfig = {
+    auth: {
+        clientId: 'your_client_id',
+        authority: 'https://login.microsoftonline.con/{your_tenant_id}',
+        redirectUri: 'https://contoso.com',
+        postLogoutRedirectUri: 'https://contoso.com/homepage',
+        onRedirectNavigate: (url) => {
+            // Return false if you would like to stop navigation after local logout
+            return false;
+        }
     }
-});
+};
+const msalInstance = new PublicClientApplication(msalConfig);
+msalInstance.logoutRedirect();
 ```
 
 ## logoutPopup
@@ -85,7 +92,7 @@ The `logoutPopup` API will open the server signout page in a popup, allowing you
 [Configuration options](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) can be provided to customize the behavior.
 
 ```javascript
-const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+const currentAccount = msalInstance.getAccount({ homeAccountId });
 await msalInstance.logoutPopup({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut",
@@ -112,7 +119,7 @@ If your client application has the [login_hint optional claim](https://docs.micr
 The first and simplest option is to provide the account object you want to end the session for to the logout API. MSAL will check to see if the `login_hint` claim is available in the account's ID token and automatically add it to the end session request as `logout_hint` to skip the account picker prompt.
 
 ```javascript
-const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+const currentAccount = msalInstance.getAccount({ homeAccountId });
 // The account's ID Token must contain the login_hint optional claim to avoid the account picker
 await msalInstance.logoutRedirect({ account: currentAccount});
 ```
@@ -122,7 +129,7 @@ await msalInstance.logoutRedirect({ account: currentAccount});
 Alternatively, if you prefer to manually set the `logoutHint`, you can extract the `login_hint` claim in your app and set it as the `logoutHint` in the logout request:
 
 ```javascript
-const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+const currentAccount = msalInstance.getAccount({ homeAccountId });
 
 // Extract login hint to use as logout hint
 const logoutHint = currentAccount.idTokenClaims.login_hint;
@@ -151,7 +158,10 @@ Example:
 ```typescript
 const msal = new PublicClientApplication({
     auth: {
-        clientId: "my-client-id"
+        clientId: "my-client-id",
+        onRedirectNavigate: (url) => {
+            return false;
+        }
     },
     system: {
         allowRedirectInIframe: true
@@ -159,22 +169,15 @@ const msal = new PublicClientApplication({
 })
 
 // Automatically on page load
-msal.logoutRedirect({
-    onRedirectNavigate: () => {
-        // Return false to stop navigation after local logout
-        return false;
-    }
-});
+msal.logoutRedirect();
 ```
 
-Now when a user logouts out of another application, your application's front-channel logout url will be loaded in a hidden iframe, and MSAL.js will clear its cache to complete single-sign out.
-
+Please note that front-channel logout is not always supported across browsers. Chromium enabled [Storage Partitioning](https://privacysandbox.google.com/cookies/storage-partitioning) and Firefox supports [similar standard](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/State_Partitioning) limiting applications to execute front-channel logout. For official Entra documentation on this topic,  see [here](https://learn.microsoft.com/en-us/entra/identity-platform/reference-third-party-cookies-spas#limitations-on-front-channel-logout-without-third-party-cookies).
 
 ### Front-channel logout samples
 
 The following samples demonstrate how to implement front-channel logout using MSAL.js:
 
-- MSAL Angular v2: [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
 - MSAL React: [React Router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
 
 ## Events

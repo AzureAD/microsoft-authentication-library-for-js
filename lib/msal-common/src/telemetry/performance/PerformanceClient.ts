@@ -4,7 +4,7 @@
  */
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration.js";
-import { Logger } from "../../logger/Logger.js";
+import { getAndFlushLogsFromCache, Logger } from "../../logger/Logger.js";
 import {
     InProgressPerformanceEvent,
     IPerformanceClient,
@@ -484,11 +484,20 @@ export abstract class PerformanceClient implements IPerformanceClient {
         });
         finalEvent.incompleteSubMeasurements = undefined;
 
+        const logs = getAndFlushLogsFromCache(event.correlationId);
+        // Format logs: [millis1,hash1;millis2,hash2;...]
+        const formattedLogs = logs
+            .map(
+                (logMessage) => `${logMessage.milliseconds},${logMessage.hash}`
+            )
+            .join(";");
+
         finalEvent = {
             ...finalEvent,
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
             context,
+            logs: formattedLogs,
         };
         if (account) {
             finalEvent.accountType = getAccountType(account);

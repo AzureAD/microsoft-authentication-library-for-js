@@ -73,7 +73,7 @@ const event: PerformanceEvent = {
     clientId: "b50703d7-d12b-4ddc-8758-91053fe0aba4",
     authority: "https://login.microsoftonline.com/common",
     libraryName: "@azure/msal-browser-1p",
-    libraryVersion: "2.22.2-beta.2",
+    libraryVersion: "5.0.0",
     appName: "my-application",
     appVersion: "1.0.0"
 }

@@ -23,6 +23,7 @@ import {
     validEarJWK,
     getTestAuthenticationResult,
     validEarJWE,
+    testNavUrl,
 } from "../utils/StringConstants.js";
 import {
     ServerError,
@@ -31,7 +32,6 @@ import {
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
-    ProtocolUtils,
     Logger,
     LogLevel,
     NetworkResponse,
@@ -45,10 +45,10 @@ import {
     InProgressPerformanceEvent,
     StubPerformanceClient,
     ProtocolMode,
-    AccessTokenEntity,
     AccountEntityUtils,
     Constants,
-} from "@azure/msal-common";
+    ProtocolUtils,
+} from "@azure/msal-common/browser";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
     TemporaryCacheKeys,
@@ -64,10 +64,10 @@ import {
     BrowserAuthError,
     getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
-import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
@@ -87,6 +87,14 @@ import {
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
+
+jest.mock("@azure/msal-common/browser", () => ({
+    ...jest.requireActual("@azure/msal-common/browser"),
+    ProtocolUtils: {
+        ...jest.requireActual("@azure/msal-common/browser").ProtocolUtils,
+        setRequestState: jest.fn(),
+    },
+}));
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -123,6 +131,9 @@ describe("RedirectClient", () => {
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;
     let rootMeasurement: InProgressPerformanceEvent;
+    let mockSetRequestState: jest.MockedFunction<
+        typeof ProtocolUtils.setRequestState
+    >;
 
     beforeEach(async () => {
         pca = new PublicClientApplication({
@@ -180,6 +191,14 @@ describe("RedirectClient", () => {
         rootMeasurement = new BrowserPerformanceClient(
             pca.getConfiguration()
         ).startMeasurement("test-measurement", "test-correlation-id");
+
+        mockSetRequestState =
+            ProtocolUtils.setRequestState as jest.MockedFunction<
+                typeof ProtocolUtils.setRequestState
+            >;
+        mockSetRequestState.mockReturnValue(
+            TEST_STATE_VALUES.TEST_STATE_REDIRECT
+        );
     });
 
     afterEach(() => {
@@ -532,7 +551,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -674,7 +693,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -739,7 +758,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -777,7 +796,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -919,7 +938,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -1076,7 +1095,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -1799,7 +1818,9 @@ describe("RedirectClient", () => {
                 authenticationScheme: Constants.AuthenticationScheme.SSH,
             };
 
-            expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(
+            await expect(
+                redirectClient.acquireToken(loginRequest)
+            ).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
                 )
@@ -1820,7 +1841,7 @@ describe("RedirectClient", () => {
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
-            expect(redirectClient.acquireToken(request)).rejects.toThrow(
+            await expect(redirectClient.acquireToken(request)).rejects.toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshKid
                 )
@@ -2008,7 +2029,7 @@ describe("RedirectClient", () => {
             redirectClient.acquireToken(loginRequest);
         });
 
-        it("passes onRedirectNavigate callback", (done) => {
+        it("passes onRedirectNavigate callback from config", (done) => {
             const onRedirectNavigate = (url: string) => {
                 verifyUrl(url, ["user.read"]);
                 done();
@@ -2071,11 +2092,91 @@ describe("RedirectClient", () => {
             });
         });
 
+        it("executes authorize request as GET when httpMethod is set to GET", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
+                nonce: "",
+                httpMethod: Constants.HttpMethod.GET,
+            };
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const getFlowSpy = jest
+                .spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                .mockImplementation(() => {
+                    return Promise.resolve(testNavUrl);
+                });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(getFlowSpy).toHaveBeenCalled();
+        });
+
+        it("executes authorize request as GET when httpMethod is not explicitly set", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
+                nonce: "",
+            };
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const getFlowSpy = jest
+                .spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                .mockImplementation(() => {
+                    return Promise.resolve(testNavUrl);
+                });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(getFlowSpy).toHaveBeenCalled();
+        });
+
+        it("executes authorize request as POST when httpMethod is set to POST", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
+                nonce: "",
+                httpMethod: Constants.HttpMethod.POST,
+            };
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+
+            const postFlowSpy = jest
+                .spyOn(RedirectClient.prototype, "executeCodeFlowWithPost")
+                .mockImplementation(() => {
+                    return Promise.resolve();
+                });
+
+            await redirectClient.acquireToken(loginRequest);
+            expect(postFlowSpy).toHaveBeenCalled();
+        });
+
         describe("storeInCache tests", () => {
             beforeEach(() => {
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                );
                 jest.spyOn(
                     FetchClient.prototype,
                     "sendPostRequestAsync"
@@ -2482,7 +2583,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({ account: testAccountInfo })
                 );
@@ -2544,241 +2645,12 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
                 .then(() =>
                     redirectClient.logout({
                         account: testAccountInfo,
                         logoutHint: logoutHint,
                     })
-                );
-        });
-
-        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
-                    done();
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            redirectClient
-                .logout({
-                    onRedirectNavigate: (url: string) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return false;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeFalsy();
-
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                });
-        });
-
-        it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
-            const testAccountInfo: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                loginHint: "loginHint",
-            };
-
-            const testAccount: AccountEntity = {
-                homeAccountId: testAccountInfo.homeAccountId,
-                localAccountId: testAccountInfo.localAccountId,
-                environment: testAccountInfo.environment,
-                realm: testAccountInfo.tenantId,
-                username: testAccountInfo.username,
-                name: testAccountInfo.name,
-                authorityType: "MSSTS",
-                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
-                lastUpdatedAt: Date.now().toString(),
-            };
-
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
-                    done();
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
-                .then(() =>
-                    redirectClient
-                        .logout({
-                            account: testAccountInfo,
-                            onRedirectNavigate: (url: string) => {
-                                expect(url).toEqual(testLogoutUrl);
-                                return false;
-                            },
-                        })
-                        .then(() => {
-                            expect(
-                                browserStorage.getInteractionInProgress()
-                            ).toBeFalsy();
-
-                            const validatedLogoutRequest: CommonEndSessionRequest =
-                                {
-                                    correlationId: RANDOM_TEST_GUID,
-                                    postLogoutRedirectUri:
-                                        TEST_URIS.TEST_REDIR_URI,
-                                };
-                            expect(logoutUriSpy).toHaveBeenCalledWith(
-                                expect.objectContaining(validatedLogoutRequest)
-                            );
-                            done();
-                        })
-                );
-        });
-
-        it("does navigate if onRedirectNavigate returns true", (done) => {
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeTruthy();
-                    expect(urlNavigate).toEqual(testLogoutUrl);
-
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            redirectClient
-                .logout({
-                    onRedirectNavigate: (url) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return true;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeTruthy();
-
-                    // Reset after testing it was properly set
-                    browserStorage.setInteractionInProgress(false);
-
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                });
-        });
-
-        it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
-            const testAccountInfo: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                loginHint: "loginHint",
-            };
-
-            const testAccount: AccountEntity = {
-                homeAccountId: testAccountInfo.homeAccountId,
-                localAccountId: testAccountInfo.localAccountId,
-                environment: testAccountInfo.environment,
-                realm: testAccountInfo.tenantId,
-                username: testAccountInfo.username,
-                name: testAccountInfo.name,
-                authorityType: "MSSTS",
-                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
-                lastUpdatedAt: Date.now().toString(),
-            };
-
-            const logoutUriSpy = jest
-                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
-                .mockReturnValue(testLogoutUrl);
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(urlNavigate).toEqual(testLogoutUrl);
-
-                    return Promise.resolve(true);
-                }
-            );
-            browserStorage.setInteractionInProgress(true);
-            browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
-                .then(() =>
-                    redirectClient
-                        .logout({
-                            account: testAccountInfo,
-                            onRedirectNavigate: (url) => {
-                                expect(url).toEqual(testLogoutUrl);
-                                return true;
-                            },
-                        })
-                        .then(() => {
-                            expect(
-                                browserStorage.getInteractionInProgress()
-                            ).toBeTruthy();
-
-                            // Reset after testing it was properly set
-                            browserStorage.setInteractionInProgress(false);
-
-                            const validatedLogoutRequest: CommonEndSessionRequest =
-                                {
-                                    correlationId: RANDOM_TEST_GUID,
-                                    postLogoutRedirectUri:
-                                        TEST_URIS.TEST_REDIR_URI,
-                                };
-                            expect(logoutUriSpy).toHaveBeenCalledWith(
-                                expect.objectContaining(validatedLogoutRequest)
-                            );
-                            done();
-                        })
                 );
         });
 
@@ -2863,11 +2735,13 @@ describe("RedirectClient", () => {
 
             await browserStorage.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await browserStorage.setIdTokenCredential(
                 testIdToken,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
 
             pca.setActiveAccount(testAccountInfo);
@@ -2876,6 +2750,327 @@ describe("RedirectClient", () => {
             await redirectClient.logout(validatedLogoutRequest).then(() => {
                 expect(pca.getActiveAccount()).toBe(null);
                 expect(pca.getAllAccounts().length).toBe(0);
+            });
+        });
+
+        describe("onRedirectNavigate tests", () => {
+            let pca2: PublicClientApplication,
+                pca3: PublicClientApplication,
+                redirectClient2: RedirectClient,
+                redirectClient3: RedirectClient,
+                browserStorage2: BrowserCacheManager,
+                browserStorage3: BrowserCacheManager;
+            beforeEach(async () => {
+                const onRedirectNavigateFalse = (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return false;
+                };
+                pca2 = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        onRedirectNavigate: onRedirectNavigateFalse,
+                    },
+                    telemetry: {
+                        application: {
+                            appName: TEST_CONFIG.applicationName,
+                            appVersion: TEST_CONFIG.applicationVersion,
+                        },
+                    },
+                });
+
+                await pca2.initialize();
+                pca2 = (pca2 as any).controller;
+                // @ts-ignore
+                redirectClient2 = new RedirectClient(
+                    //@ts-ignore
+                    pca2.config,
+                    //@ts-ignore
+                    pca2.browserStorage,
+                    //@ts-ignore
+                    pca2.browserCrypto,
+                    //@ts-ignore
+                    pca2.logger,
+                    //@ts-ignore
+                    pca2.eventHandler,
+                    //@ts-ignore
+                    pca2.navigationClient,
+                    //@ts-ignore
+                    pca2.performanceClient,
+                    //@ts-ignore
+                    pca2.nativeInternalStorage
+                );
+
+                // @ts-ignore
+                browserStorage2 = pca2.browserStorage;
+
+                const onRedirectNavigateTrue = (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return true;
+                };
+                pca3 = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        onRedirectNavigate: onRedirectNavigateTrue,
+                    },
+                    telemetry: {
+                        application: {
+                            appName: TEST_CONFIG.applicationName,
+                            appVersion: TEST_CONFIG.applicationVersion,
+                        },
+                    },
+                });
+
+                await pca3.initialize();
+                pca3 = (pca3 as any).controller;
+                // @ts-ignore
+                redirectClient3 = new RedirectClient(
+                    //@ts-ignore
+                    pca3.config,
+                    //@ts-ignore
+                    pca3.browserStorage,
+                    //@ts-ignore
+                    pca3.browserCrypto,
+                    //@ts-ignore
+                    pca3.logger,
+                    //@ts-ignore
+                    pca3.eventHandler,
+                    //@ts-ignore
+                    pca3.navigationClient,
+                    //@ts-ignore
+                    pca3.performanceClient,
+                    //@ts-ignore
+                    pca3.nativeInternalStorage
+                );
+
+                // @ts-ignore
+                browserStorage3 = pca3.browserStorage;
+            });
+
+            it("doesnt navigate if onRedirectNavigate returns false", (done) => {
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        done(
+                            "Navigation should not happen if onRedirectNavigate returns false"
+                        );
+                        return Promise.reject();
+                    }
+                );
+
+                browserStorage2.setInteractionInProgress(true);
+
+                redirectClient2
+                    .logout({ correlationId: RANDOM_TEST_GUID })
+                    .then(() => {
+                        expect(
+                            browserStorage2.getInteractionInProgress()
+                        ).toBeFalsy();
+
+                        const validatedLogoutRequest: CommonEndSessionRequest =
+                            {
+                                correlationId: RANDOM_TEST_GUID,
+                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                            };
+                        expect(logoutUriSpy).toHaveBeenCalledWith(
+                            expect.objectContaining(validatedLogoutRequest)
+                        );
+                        done();
+                    });
+            });
+
+            it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    loginHint: "loginHint",
+                };
+
+                const testAccount: AccountEntity = {
+                    homeAccountId: testAccountInfo.homeAccountId,
+                    localAccountId: testAccountInfo.localAccountId,
+                    environment: testAccountInfo.environment,
+                    realm: testAccountInfo.tenantId,
+                    username: testAccountInfo.username,
+                    name: testAccountInfo.name,
+                    authorityType: "MSSTS",
+                    clientInfo:
+                        TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                    lastUpdatedAt: Date.now().toString(),
+                };
+
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        done(
+                            "Navigation should not happen if onRedirectNavigate returns false"
+                        );
+                        return Promise.reject();
+                    }
+                );
+
+                browserStorage2.setInteractionInProgress(true);
+                browserStorage2
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                    .then(() =>
+                        redirectClient2
+                            .logout({
+                                account: testAccountInfo,
+                                correlationId: RANDOM_TEST_GUID,
+                            })
+                            .then(() => {
+                                expect(
+                                    browserStorage2.getInteractionInProgress()
+                                ).toBeFalsy();
+
+                                const validatedLogoutRequest: CommonEndSessionRequest =
+                                    {
+                                        correlationId: RANDOM_TEST_GUID,
+                                        postLogoutRedirectUri:
+                                            TEST_URIS.TEST_REDIR_URI,
+                                    };
+                                expect(logoutUriSpy).toHaveBeenCalledWith(
+                                    expect.objectContaining(
+                                        validatedLogoutRequest
+                                    )
+                                );
+                                done();
+                            })
+                    );
+            });
+
+            it("does navigate if onRedirectNavigate returns true", (done) => {
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        expect(
+                            browserStorage.getInteractionInProgress()
+                        ).toBeTruthy();
+                        expect(urlNavigate).toEqual(testLogoutUrl);
+                        return Promise.resolve(true);
+                    }
+                );
+
+                browserStorage3.setInteractionInProgress(true);
+
+                redirectClient
+                    .logout({ correlationId: RANDOM_TEST_GUID })
+                    .then(() => {
+                        expect(
+                            browserStorage3.getInteractionInProgress()
+                        ).toBeTruthy();
+                        browserStorage3.setInteractionInProgress(false);
+
+                        const validatedLogoutRequest: CommonEndSessionRequest =
+                            {
+                                correlationId: RANDOM_TEST_GUID,
+                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                            };
+                        expect(logoutUriSpy).toHaveBeenCalledWith(
+                            expect.objectContaining(validatedLogoutRequest)
+                        );
+                        done();
+                    });
+            });
+
+            it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    loginHint: "loginHint",
+                };
+
+                const testAccount: AccountEntity = {
+                    homeAccountId: testAccountInfo.homeAccountId,
+                    localAccountId: testAccountInfo.localAccountId,
+                    environment: testAccountInfo.environment,
+                    realm: testAccountInfo.tenantId,
+                    username: testAccountInfo.username,
+                    name: testAccountInfo.name,
+                    authorityType: "MSSTS",
+                    clientInfo:
+                        TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+                    lastUpdatedAt: Date.now().toString(),
+                };
+
+                const logoutUriSpy = jest
+                    .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                    .mockReturnValue(testLogoutUrl);
+
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockImplementation(
+                    (
+                        urlNavigate: string,
+                        options: NavigationOptions
+                    ): Promise<boolean> => {
+                        expect(urlNavigate).toEqual(testLogoutUrl);
+                        return Promise.resolve(true);
+                    }
+                );
+
+                browserStorage3.setInteractionInProgress(true);
+                browserStorage3
+                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                    .then(() =>
+                        redirectClient3
+                            .logout({
+                                account: testAccountInfo,
+                                correlationId: RANDOM_TEST_GUID,
+                            })
+                            .then(() => {
+                                expect(
+                                    browserStorage3.getInteractionInProgress()
+                                ).toBeTruthy();
+                                browserStorage3.setInteractionInProgress(false);
+
+                                const validatedLogoutRequest: CommonEndSessionRequest =
+                                    {
+                                        correlationId: RANDOM_TEST_GUID,
+                                        postLogoutRedirectUri:
+                                            TEST_URIS.TEST_REDIR_URI,
+                                    };
+                                expect(logoutUriSpy).toHaveBeenCalledWith(
+                                    expect.objectContaining(
+                                        validatedLogoutRequest
+                                    )
+                                );
+                                done();
+                            })
+                    );
             });
         });
     });
@@ -3057,14 +3252,42 @@ describe("RedirectClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 nonce: ID_TOKEN_CLAIMS.nonce,
             };
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
             jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
                 () => {
                     // Supress navigation
                     pca.handleRedirectPromise({
                         hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+                    }).then((result) => {
+                        expect(result).toEqual(getTestAuthenticationResult());
+                        done();
+                    });
+                }
+            );
+
+            pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
+        it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", (done) => {
+            const validRequest: RedirectRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["openid", "profile", "offline_access"],
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                redirectUri: window.location.href,
+                state: TEST_STATE_VALUES.USER_STATE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            jest.spyOn(
+                AuthorizeProtocol,
+                "handleResponseCode"
+            ).mockResolvedValue(getTestAuthenticationResult());
+            jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
+                () => {
+                    // Supress navigation
+                    pca.handleRedirectPromise({
+                        hash: `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
                     }).then((result) => {
                         expect(result).toEqual(getTestAuthenticationResult());
                         done();

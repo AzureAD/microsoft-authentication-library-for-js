@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "dx: Fix InjectionToken types to allow new Angular 14+ inject(TOKEN) syntax.",
-  "packageName": "@azure/msal-angular",
-  "email": "bradkovach@gmail.com",
-  "dependentChangeType": "patch"
-}

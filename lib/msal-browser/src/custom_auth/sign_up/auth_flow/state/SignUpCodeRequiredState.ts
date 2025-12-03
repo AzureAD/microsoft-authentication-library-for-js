@@ -17,11 +17,17 @@ import { SignUpPasswordRequiredState } from "./SignUpPasswordRequiredState.js";
 import { SignUpAttributesRequiredState } from "./SignUpAttributesRequiredState.js";
 import { SignUpCompletedState } from "./SignUpCompletedState.js";
 import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
+import { SIGN_UP_CODE_REQUIRED_STATE_TYPE } from "../../../core/auth_flow/AuthFlowStateTypes.js";
 
 /*
  * Sign-up code required state.
  */
 export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredStateParameters> {
+    /**
+     * The type of the state.
+     */
+    stateType = SIGN_UP_CODE_REQUIRED_STATE_TYPE;
+
     /**
      * Submit one-time passcode to continue sign-up flow.
      * @param {string} code - The code to submit.
@@ -68,6 +74,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         signUpClient: this.stateParameters.signUpClient,
                         cacheClient: this.stateParameters.cacheClient,
                         jitClient: this.stateParameters.jitClient,
+                        mfaClient: this.stateParameters.mfaClient,
                         username: this.stateParameters.username,
                     })
                 );
@@ -90,6 +97,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         signUpClient: this.stateParameters.signUpClient,
                         cacheClient: this.stateParameters.cacheClient,
                         jitClient: this.stateParameters.jitClient,
+                        mfaClient: this.stateParameters.mfaClient,
                         username: this.stateParameters.username,
                         requiredAttributes: result.requiredAttributes,
                     })
@@ -110,6 +118,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         signInClient: this.stateParameters.signInClient,
                         cacheClient: this.stateParameters.cacheClient,
                         jitClient: this.stateParameters.jitClient,
+                        mfaClient: this.stateParameters.mfaClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
                     })
@@ -167,6 +176,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                     signUpClient: this.stateParameters.signUpClient,
                     cacheClient: this.stateParameters.cacheClient,
                     jitClient: this.stateParameters.jitClient,
+                    mfaClient: this.stateParameters.mfaClient,
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
                     codeResendInterval: result.interval,

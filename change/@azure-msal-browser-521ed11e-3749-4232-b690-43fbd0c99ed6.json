@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix redirect loop when URLs contain encoded apostrophes in MSAL Angular standalone components (#7636)",
-  "packageName": "@azure/msal-browser",
-  "email": "copilot@github.com",
-  "dependentChangeType": "patch"
-}

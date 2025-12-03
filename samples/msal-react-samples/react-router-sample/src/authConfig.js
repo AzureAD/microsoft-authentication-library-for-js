@@ -1,4 +1,4 @@
-import { LogLevel } from "@azure/msal-browser";
+import { LogLevel, BrowserUtils } from "@azure/msal-browser";
 // Browser check variables
 // If you support IE, our recommendation is that you sign-in using Redirect APIs
 // If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
@@ -16,8 +16,9 @@ export const msalConfig = {
     auth: {
         clientId: process.env.REACT_APP_CLIENT_ID,
         authority: process.env.REACT_APP_AUTHORITY,
-        redirectUri: "/",
+        redirectUri: process.env.REACT_APP_REDIRECT_URI,
         postLogoutRedirectUri: "/",
+        onRedirectNavigate: () => !BrowserUtils.isInIframe()
     },
     cache: {
         cacheLocation: "localStorage",

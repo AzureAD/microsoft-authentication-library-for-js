@@ -261,7 +261,7 @@ export async function enterCredentials(
         await page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {});
         await fillUsername(page, screenshot, username);
         await clickSubmitButton(page, screenshot);
-    
+
         // agce: which type of account do you want to use
         try {
             await page.waitForSelector(HtmlSelectors.AAD_TITLE, { timeout: 1000 });
@@ -276,15 +276,15 @@ export async function enterCredentials(
         } catch (e) {
             //
         }
-    
+
         await fillPassword(page, screenshot, accountPwd);
         await clickSubmitButton(page, screenshot);
-    
+
         if (page.isClosed() || page.url().startsWith(SAMPLE_HOME_URL)) {
             return;
         }
         await screenshot.takeScreenshot(page, "passwordSubmitted");
-    
+
         // agce: check if the "help us protect your account" dialog appears
         try {
             const selector =
@@ -294,7 +294,7 @@ export async function enterCredentials(
         } catch (e) {
             // continue
         }
-    
+
         // keep me signed in page
         try {
             await screenshot.takeScreenshot(page, "keepMeSignedInPage");
@@ -302,7 +302,7 @@ export async function enterCredentials(
         } catch (e) {
             return;
         }
-    
+
         // agce: private tenant sign in page
         try {
             await screenshot.takeScreenshot(page, "privateTenantSignInPage");
@@ -493,11 +493,6 @@ export async function waitForReturnToApp(
     popupPage?: Page,
     popupWindowClosed?: Promise<void>
 ): Promise<void> {
-    if (popupPage && popupWindowClosed) {
-        // Wait until popup window closes and see that we are logged in
-        await popupWindowClosed;
-    }
-
     // Wait for token acquisition
     await page.waitForSelector("#scopes-acquired");
     await screenshot.takeScreenshot(page, "samplePageLoggedIn");

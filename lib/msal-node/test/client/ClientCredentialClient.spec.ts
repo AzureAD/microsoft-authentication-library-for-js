@@ -8,7 +8,6 @@ import {
     AppTokenProviderResult,
     AuthenticationResult,
     Authority,
-    BaseClient,
     CacheManager,
     ClientConfiguration,
     IAppTokenProvider,
@@ -19,10 +18,6 @@ import {
     CacheHelpers,
     Constants,
 } from "@azure/msal-common";
-import {
-    ClientCredentialClient,
-    UsernamePasswordClient,
-} from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     CAE_CONSTANTS,
@@ -44,6 +39,9 @@ import {
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest.js";
+import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
+import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient.js";
 
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
@@ -119,45 +117,6 @@ describe("ClientCredentialClient unit tests", () => {
             msLibraryCapability: true,
         };
         checkMockedNetworkRequest(returnVal, checks);
-    });
-
-    it("Adds tokenQueryParameters to the /token request", async () => {
-        const badExecutePostToTokenEndpointMock = jest.spyOn(
-            ClientCredentialClient.prototype,
-            <any>"executePostToTokenEndpoint"
-        );
-        // no implementation has been mocked, the acquireToken call will fail
-
-        const fakeConfig: ClientConfiguration =
-            await ClientTestUtils.createTestClientConfiguration();
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            fakeConfig
-        );
-
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            tokenQueryParameters: {
-                testParam1: "testValue1",
-                testParam2: "",
-                testParam3: "testValue3",
-            },
-        };
-
-        await expect(
-            client.acquireToken(clientCredentialRequest)
-        ).rejects.toThrow();
-
-        if (!badExecutePostToTokenEndpointMock.mock.lastCall) {
-            fail("executePostToTokenEndpointMock was not called");
-        }
-        const url: string = badExecutePostToTokenEndpointMock.mock
-            .lastCall[0] as string;
-        expect(
-            url.includes("/token?testParam1=testValue1&testParam3=testValue3")
-        ).toBeTruthy();
-        expect(!url.includes("/token?testParam2=")).toBeTruthy();
     });
 
     it("acquireToken's interactionRequiredAuthError error contains claims", async () => {

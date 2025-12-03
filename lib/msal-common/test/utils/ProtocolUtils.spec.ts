@@ -1,4 +1,4 @@
-import { ProtocolUtils } from "../../src/utils/ProtocolUtils.js";
+import * as ProtocolUtils from "../../src/utils/ProtocolUtils.js";
 import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
 import { RESOURCE_DELIM } from "../../src/utils/Constants.js";
@@ -45,7 +45,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
 
     it("parseRequestState() throws error if given state is null or empty", () => {
         expect(() =>
-            ProtocolUtils.parseRequestState(cryptoInterface, "")
+            ProtocolUtils.parseRequestState(cryptoInterface.base64Decode, "")
         ).toThrow(ClientAuthErrorCodes.invalidState);
 
         expect(() =>
@@ -56,7 +56,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
 
     it("parseRequestState() returns empty userRequestState if no resource delimiter found in state string", () => {
         const requestState = ProtocolUtils.parseRequestState(
-            cryptoInterface,
+            cryptoInterface.base64Decode,
             cryptoInterface.base64Encode(decodedLibState)
         );
         expect(requestState.userRequestState).toHaveLength(0);
@@ -64,7 +64,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
 
     it("parseRequestState() correctly splits the state by the resource delimiter", () => {
         const requestState = ProtocolUtils.parseRequestState(
-            cryptoInterface,
+            cryptoInterface.base64Decode,
             testState
         );
         expect(requestState.userRequestState).toBe(userState);
@@ -72,7 +72,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
 
     it("parseRequestState returns user state without decoding", () => {
         const requestState = ProtocolUtils.parseRequestState(
-            cryptoInterface,
+            cryptoInterface.base64Decode,
             `${encodedLibState}${RESOURCE_DELIM}${"test%25u00f1"}`
         );
         expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix v4 merge errors #7726",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

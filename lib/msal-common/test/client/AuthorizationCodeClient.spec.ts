@@ -14,7 +14,6 @@ import {
     CORS_RESPONSE_HEADERS,
 } from "../test_kit/StringConstants.js";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
-import { BaseClient } from "../../src/client/BaseClient.js";
 import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import { ClientTestUtils } from "./ClientTestUtils.js";
@@ -35,6 +34,8 @@ import {
     StubPerformanceClient,
 } from "../../src/index.js";
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
+import * as TokenProtocol from "../../src/protocol/Token.js";
+import * as AuthorityFactory from "../../src/authority/AuthorityFactory.js";
 
 describe("AuthorizationCodeClient unit tests", () => {
     let stubPerformanceClient: StubPerformanceClient;
@@ -60,7 +61,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             expect(client).not.toBeNull();
             expect(client instanceof AuthorizationCodeClient).toBe(true);
-            expect(client instanceof BaseClient).toBe(true);
         });
     });
 
@@ -142,12 +142,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const executePostToTokenEndpointSpy: jest.SpyInstance = jest
-                .spyOn(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
                 .mockImplementation(
-                    // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
@@ -266,12 +262,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 Constants.HeaderNames.CCS_HEADER.toLowerCase(),
             ];
             const executePostToTokenEndpointSpy: jest.SpyInstance = jest
-                .spyOn(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
                 .mockImplementation(
-                    // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
@@ -386,12 +378,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const executePostToTokenEndpointSpy: jest.SpyInstance = jest
-                .spyOn(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
                 .mockImplementation(
-                    // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
@@ -500,8 +488,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
@@ -600,8 +588,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
@@ -700,8 +688,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
@@ -886,8 +874,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
@@ -1074,8 +1062,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
@@ -1111,14 +1099,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds extraQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
@@ -1150,7 +1138,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
                     testParam3: "testValue3",
@@ -1162,14 +1150,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it("Adds tokenBodyParameters to the /token request", (done) => {
+        it("Adds extraParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).toContain("extra_body_parameter=true");
@@ -1198,8 +1186,134 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                tokenBodyParameters: {
+                extraParameters: {
                     extra_body_parameter: "true",
+                },
+            };
+
+            client.acquireToken(authCodeRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Adds both extraQueryParameters and extraParameters to the /token request", (done) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    // Verify extraQueryParameters are in the URL
+                    expect(
+                        url.includes(
+                            "/token?queryParam1=queryValue1&queryParam2=queryValue2"
+                        )
+                    ).toBeTruthy();
+                    // Verify extraParameters are in the body
+                    expect(body).toContain("bodyParam1=bodyValue1");
+                    expect(body).toContain("bodyParam2=bodyValue2");
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            if (!config.cryptoInterface || !config.systemOptions) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                );
+            }
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                extraQueryParameters: {
+                    queryParam1: "queryValue1",
+                    queryParam2: "queryValue2",
+                },
+                extraParameters: {
+                    bodyParam1: "bodyValue1",
+                    bodyParam2: "bodyValue2",
+                },
+            };
+
+            client.acquireToken(authCodeRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Does not overwrite extraQueryParameters with extraParameters in /token request when they have the same parameter name", (done) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                try {
+                    // Verify extraQueryParameters value is in the URL (not overwritten)
+                    expect(url.includes("sharedParam=queryValue")).toBeTruthy();
+                    expect(!url.includes("sharedParam=bodyValue")).toBeTruthy();
+                    // Verify extraParameters value is in the body
+                    expect(body).toContain("sharedParam=bodyValue");
+                    // Verify the body doesn't contain the query value
+                    expect(
+                        !body.includes("sharedParam=queryValue")
+                    ).toBeTruthy();
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            if (!config.cryptoInterface || !config.systemOptions) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface or systemOptions not initialized correctly."
+                );
+            }
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                extraQueryParameters: {
+                    sharedParam: "queryValue",
+                    uniqueQueryParam: "uniqueQueryValue",
+                },
+                extraParameters: {
+                    sharedParam: "bodyValue",
+                    uniqueBodyParam: "uniqueBodyValue",
                 },
             };
 
@@ -1214,8 +1328,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).toContain("return_spa_code=1");
@@ -1264,8 +1378,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                TestAuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
                 // @ts-expect-error
             ).mockImplementation((url: string, body: string) => {
                 expect(body).not.toContain("redirect_uri=");
@@ -1291,7 +1405,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                tokenBodyParameters: {
+                extraParameters: {
                     extra_body_parameter: "true",
                 },
             };
@@ -1307,8 +1421,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
@@ -1505,8 +1619,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
@@ -1696,8 +1810,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
@@ -1818,14 +1932,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue({
                 ...AUTHENTICATION_RESULT,
                 body: {
                     ...AUTHENTICATION_RESULT.body,
-                    expires_in: "3599",
-                    ext_expires_in: "3599",
+                    expires_in: 3599,
+                    ext_expires_in: 3599,
                 },
             });
             jest.spyOn(
@@ -1936,8 +2050,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(authResult);
             const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
@@ -2063,8 +2177,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
@@ -2131,8 +2245,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                <any>"executePostToTokenEndpoint"
+                TokenProtocol,
+                "executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
@@ -2320,6 +2434,79 @@ describe("AuthorizationCodeClient unit tests", () => {
                     requestId: "",
                 },
                 RANDOM_TEST_GUID
+            );
+        });
+
+        it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                // @ts-ignore
+                client.networkClient,
+                "sendPostRequestAsync"
+            ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
+
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError(
+                    "configuration cryptoInterface not initialized correctly."
+                );
+            }
+            // Set up stubs
+            const idTokenClaims = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
+
+            const authoritySpy = jest.spyOn(
+                AuthorityFactory,
+                "createDiscoveredInstance"
+            );
+
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+            };
+            await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                cloud_instance_host_name: "login.windows.net",
+            });
+            expect(authoritySpy).toHaveBeenCalledWith(
+                "https://login.windows.net/common/",
+                // @ts-ignore
+                client.networkClient,
+                // @ts-ignore
+                client.cacheManager,
+                client.authority.options,
+                client.logger,
+                RANDOM_TEST_GUID,
+                // @ts-ignore
+                client.performanceClient
             );
         });
     });
@@ -2650,7 +2837,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 await client.createTokenRequestBody({
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
-                    tokenBodyParameters: {
+                    extraParameters: {
                         client_id: "child_client_id",
                     },
                 });
@@ -2697,7 +2884,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     scopes: ["User.Read"],
                     redirectUri: "localhost",
                     embeddedClientId: "child_client_id_1",
-                    tokenBodyParameters: {
+                    extraParameters: {
                         client_id: "child_client_id_2",
                         brk_client_id: "broker_client_id_2",
                         brk_redirect_uri: "broker_redirect_uri_2",

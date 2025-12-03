@@ -161,12 +161,12 @@ export class PublicClientApplication
                 ...remainingProperties,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
                     ...remainingProperties.extraQueryParameters,
-                    ...remainingProperties.tokenQueryParameters,
+                    ...remainingProperties.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: remainingProperties.account?.nativeAccountId,
@@ -175,6 +175,15 @@ export class PublicClientApplication
                 brokerRequest,
                 windowHandle
             );
+        }
+
+        if (request.redirectUri) {
+            // If it's not a broker fallback scenario, we throw an error
+            if (!this.config.broker.nativeBrokerPlugin) {
+                throw NodeAuthError.createRedirectUriNotSupportedError();
+            }
+            // If a redirect URI is provided for a broker flow but MSAL runtime startup failed, we fall back to the browser flow and will ignore the redirect URI provided for the broker flow
+            request.redirectUri = "";
         }
 
         const { verifier, challenge } =
@@ -257,17 +266,26 @@ export class PublicClientApplication
                 ...request,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
-                    ...request.tokenQueryParameters,
+                    ...request.extraQueryParameters,
+                    ...request.extraParameters,
                     [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: request.account.nativeAccountId,
                 forceRefresh: request.forceRefresh || false,
             };
             return this.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
+        }
+
+        if (request.redirectUri) {
+            // If it's not a broker fallback scenario, we throw an error
+            if (!this.config.broker.nativeBrokerPlugin) {
+                throw NodeAuthError.createRedirectUriNotSupportedError();
+            }
+            request.redirectUri = "";
         }
 
         return super.acquireTokenSilent(request);

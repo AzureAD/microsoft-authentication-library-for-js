@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Rename fromNativeBroker to fromPlatformBroker #7940",
-  "packageName": "@azure/msal-common",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}

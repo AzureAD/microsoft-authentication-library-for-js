@@ -11,7 +11,11 @@ const msalInstance = new msal.PublicClientApplication({
         authority: "https://login.microsoftonline.com/common/",
         clientId: "your-client-id-here",
         redirectUri,
-        postLogoutRedirectUri: redirectUri
+        postLogoutRedirectUri: redirectUri,
+        onRedirectNavigate: (url) => {
+            resolve(url);
+            return false;
+        }
     },
     cache: {
         cacheLocation: "localStorage"
@@ -97,13 +101,7 @@ async function getLoginUrl(request, reject) {
  */
 async function getLogoutUrl(request) {
     return new Promise((resolve, reject) => {
-        msalInstance.logout({
-            ...request,
-            onRedirectNavigate: (url) => {
-                resolve(url);
-                return false;
-            }
-        }).catch(reject);
+        msalInstance.logout(request).catch(reject);
     });
 }
 
