@@ -93,22 +93,6 @@ import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandle
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
-function getAccountType(
-    account?: AccountInfo
-): "AAD" | "MSA" | "B2C" | undefined {
-    const idTokenClaims = account?.idTokenClaims;
-    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
-        return "B2C";
-    }
-
-    if (!idTokenClaims?.tid) {
-        return undefined;
-    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-        return "MSA";
-    }
-    return "AAD";
-}
-
 function preflightCheck(
     initialized: boolean,
     performanceEvent: InProgressPerformanceEvent,
@@ -812,7 +796,7 @@ export class StandardController implements IController {
                     atPopupMeasurement.end(
                         {
                             success: true,
-                            accountType: getAccountType(response.account),
+                            isNativeBroker: true,
                         },
                         undefined,
                         response.account
@@ -1023,9 +1007,9 @@ export class StandardController implements IController {
                 this.ssoSilentMeasurement?.end(
                     {
                         success: true,
+                        isNativeBroker: response.fromPlatformBroker,
                         accessTokenSize: response.accessToken.length,
                         idTokenSize: response.idToken.length,
-                        accountType: getAccountType(response.account),
                     },
                     undefined,
                     response.account
@@ -1111,9 +1095,9 @@ export class StandardController implements IController {
                             atbcMeasurement.end(
                                 {
                                     success: true,
+                                    isNativeBroker: result.fromPlatformBroker,
                                     accessTokenSize: result.accessToken.length,
                                     idTokenSize: result.idToken.length,
-                                    accountType: getAccountType(result.account),
                                 },
                                 undefined,
                                 result.account
