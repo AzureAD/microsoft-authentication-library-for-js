@@ -31,10 +31,10 @@ import { createNewGuid } from "../../crypto/BrowserCrypto.js";
  * @returns Promise<boolean> indicating if platform broker is available
  */
 export async function isPlatformBrokerAvailable(
-    domConfig: boolean,
     loggerOptions?: LoggerOptions,
     perfClient?: IPerformanceClient,
     correlationId?: string
+    domConfig?: boolean,
 ): Promise<boolean> {
     const logger = new Logger(loggerOptions || {}, name, version);
 
