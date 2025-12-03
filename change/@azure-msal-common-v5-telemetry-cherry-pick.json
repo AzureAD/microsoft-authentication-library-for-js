@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Cherry-pick: Add Platform Telemetry (PR #7991) <a href=\"https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7991\">#7991</a>",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
