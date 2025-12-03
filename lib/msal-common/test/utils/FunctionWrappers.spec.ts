@@ -28,6 +28,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     end = jest.spyOn(inProgressMeasurement, "end");
                     return inProgressMeasurement;
                 });
+            const loggerSpy = jest.spyOn(logger, "trace");
 
             const testCallback = (arg1: string, arg2: number): string => {
                 expect(arg1).toBe("arg1");
@@ -49,6 +50,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testCorrelationId"
             );
             expect(end).toHaveBeenCalledWith({ success: true });
+            expect(loggerSpy).toHaveBeenCalledTimes(2);
         });
 
         it("failure", () => {
@@ -91,7 +93,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testCorrelationId"
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
-            expect(loggerSpy).toHaveBeenCalledTimes(2);
+            expect(loggerSpy).toHaveBeenCalledTimes(3);
         });
     });
 
@@ -108,6 +110,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     end = jest.spyOn(inProgressMeasurement, "end");
                     return inProgressMeasurement;
                 });
+            const loggerSpy = jest.spyOn(logger, "trace");
 
             const testCallback = (
                 arg1: string,
@@ -132,6 +135,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testCorrelationId"
             );
             expect(end).toHaveBeenCalledWith({ success: true });
+            expect(loggerSpy).toHaveBeenCalledTimes(2);
         });
 
         it("failure", async () => {
@@ -176,7 +180,7 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testCorrelationId"
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
-            expect(loggerSpy).toHaveBeenCalledTimes(2);
+            expect(loggerSpy).toHaveBeenCalledTimes(3);
         });
     });
 });
