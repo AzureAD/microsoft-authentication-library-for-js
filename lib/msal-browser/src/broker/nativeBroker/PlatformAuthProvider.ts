@@ -115,7 +115,7 @@ export function isPlatformAuthAllowed(
 ): boolean {
     logger.trace("isPlatformAuthAllowed called");
 
-    // throw an error if allowPlaftformBroker is not enabled and allowPlatformBrokerWithDOM is enabled
+    // throw an error if allowPlatformBroker is not enabled and allowPlatformBrokerWithDOM is enabled
     if (
         !config.system.allowPlatformBroker &&
         config.system.allowPlatformBrokerWithDOM
