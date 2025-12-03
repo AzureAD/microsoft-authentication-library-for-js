@@ -31,7 +31,8 @@ import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 export async function isPlatformBrokerAvailable(
     loggerOptions?: LoggerOptions,
     perfClient?: IPerformanceClient,
-    correlationId?: string
+    correlationId?: string,
+    domConfig?: boolean
 ): Promise<boolean> {
     const logger = new Logger(loggerOptions || {}, name, version);
 
@@ -47,7 +48,9 @@ export async function isPlatformBrokerAvailable(
     return !!(await getPlatformAuthProvider(
         logger,
         performanceClient,
-        correlationId || createNewGuid()
+        correlationId || createNewGuid(),
+        undefined,
+        domConfig
     ));
 }
 
@@ -64,6 +67,7 @@ export async function getPlatformAuthProvider(
         "Has client allowed platform auth via DOM API: " +
             enablePlatformBrokerDOMSupport
     );
+
     let platformAuthProvider: IPlatformAuthHandler | undefined;
     try {
         if (enablePlatformBrokerDOMSupport) {
