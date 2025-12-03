@@ -202,7 +202,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     );
                     nativeATMeasurement.end({
                         success: false,
-                        brokerErrorCode: "cache_request_failed",
                     });
                     throw e;
                 }
