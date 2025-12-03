@@ -49,11 +49,11 @@ export async function isPlatformBrokerAvailable(
     }
 
     return !!(await getPlatformAuthProvider(
+        domConfig
         logger,
         performanceClient,
         correlationId || createNewGuid(),
         undefined,
-        domConfig
     ));
 }
 
