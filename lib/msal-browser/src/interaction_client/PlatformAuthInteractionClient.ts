@@ -249,6 +249,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             }
             nativeATMeasurement.end({
                 success: false,
+                ...(e instanceof NativeAuthError && {
+                    brokerErrorName: e.name,
+                    brokerErrorCode: e.errorCode,
+                }),
             });
             throw e;
         }
