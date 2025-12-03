@@ -350,17 +350,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     ): InProgressPerformanceEvent {
         // Generate a placeholder correlation if the request does not provide one
         const eventCorrelationId = correlationId || this.generateId();
-        if (!correlationId) {
-            this.logger.info(
-                `PerformanceClient: No correlation id provided for '${measureName}', generating`,
-                eventCorrelationId
-            );
-        }
-
-        this.logger.trace(
-            `PerformanceClient: Performance measurement started for '${measureName}'`,
-            eventCorrelationId
-        );
 
         const inProgressEvent: PerformanceEvent = {
             eventId: this.generateId(),
@@ -460,11 +449,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
         }
 
-        this.logger.trace(
-            `PerformanceClient: Performance measurement ended for '${event.name}': '${event.durationMs}' ms`,
-            event.correlationId
-        );
-
         if (error) {
             addError(error, this.logger, rootEvent);
         }
@@ -535,10 +519,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         fields: { [key: string]: {} | undefined },
         correlationId: string
     ): void {
-        this.logger.trace(
-            "PerformanceClient: Updating static fields",
-            correlationId
-        );
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             this.eventsByCorrelationId.set(correlationId, {
@@ -562,10 +542,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         fields: { [key: string]: number | undefined },
         correlationId: string
     ): void {
-        this.logger.trace(
-            "PerformanceClient: Updating counters",
-            correlationId
-        );
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             for (const counter in fields) {
@@ -596,10 +572,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected cacheEventByCorrelationId(event: PerformanceEvent): void {
         const rootEvent = this.eventsByCorrelationId.get(event.correlationId);
         if (rootEvent) {
-            this.logger.trace(
-                `PerformanceClient: Performance measurement for '${event.name}' added/updated`,
-                event.correlationId
-            );
             rootEvent.incompleteSubMeasurements =
                 rootEvent.incompleteSubMeasurements || new Map();
             rootEvent.incompleteSubMeasurements.set(event.eventId, {
@@ -607,10 +579,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 startTimeMs: event.startTimeMs,
             });
         } else {
-            this.logger.trace(
-                `PerformanceClient: Performance measurement for '${event.name}' started`,
-                event.correlationId
-            );
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
             this.eventStack.set(event.correlationId, []);
         }
@@ -622,16 +590,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} correlationId
      */
     discardMeasurements(correlationId: string): void {
-        this.logger.trace(
-            "PerformanceClient: Performance measurements discarded",
-            correlationId
-        );
         this.eventsByCorrelationId.delete(correlationId);
-
-        this.logger.trace(
-            "PerformanceClient: Event stack discarded",
-            correlationId
-        );
         this.eventStack.delete(correlationId);
     }
 
