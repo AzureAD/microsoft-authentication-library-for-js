@@ -2,6 +2,7 @@ import {
     Logger,
     IPerformanceClient,
     AuthenticationScheme,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/browser";
 import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -228,6 +229,25 @@ describe("PlatformAuthProvider tests", () => {
                 AuthenticationScheme.BEARER
             );
             expect(result).toBe(true);
+        });
+
+        it("throws error when allowPlatformBrokerWithDOM is enabled without allowPlatformBroker", () => {
+            config.system.allowPlatformBroker = false;
+            config.system.allowPlatformBrokerWithDOM = true;
+            expect(() => {
+                PlatformAuthProvider.isPlatformAuthAllowed(
+                    config,
+                    logger,
+                    new PlatformAuthDOMHandler(
+                        logger,
+                        performanceClient,
+                        "test-correlation-id"
+                    ),
+                    AuthenticationScheme.BEARER
+                );
+            }).toThrow(
+                ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration
+            );
         });
     });
 });
