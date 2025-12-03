@@ -93,6 +93,22 @@ import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandle
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
+function getAccountType(
+    account?: AccountInfo
+): "AAD" | "MSA" | "B2C" | undefined {
+    const idTokenClaims = account?.idTokenClaims;
+    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
+        return "B2C";
+    }
+
+    if (!idTokenClaims?.tid) {
+        return undefined;
+    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+        return "MSA";
+    }
+    return "AAD";
+}
+
 function preflightCheck(
     initialized: boolean,
     performanceEvent: InProgressPerformanceEvent,
@@ -650,6 +666,9 @@ export class StandardController implements IController {
                 this.platformAuthProvider &&
                 this.canUsePlatformBroker(request)
             ) {
+                atrMeasurement.add({
+                    isPlatformBrokerRequest: true,
+                });
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -664,14 +683,19 @@ export class StandardController implements IController {
                     this.nativeInternalStorage,
                     correlationId
                 );
+
                 result = nativeClient
                     .acquireTokenRedirect(request, atrMeasurement)
                     .catch((e: AuthError) => {
+                        atrMeasurement.add({
+                            brokerErrorName: e.name,
+                            brokerErrorCode: e.errorCode,
+                        });
                         if (
                             e instanceof NativeAuthError &&
                             isFatalNativeAuthError(e)
                         ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
                             const redirectClient =
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
@@ -771,6 +795,9 @@ export class StandardController implements IController {
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
         if (this.canUsePlatformBroker(request)) {
+            atPopupMeasurement.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 {
                     ...request,
@@ -782,7 +809,7 @@ export class StandardController implements IController {
                     atPopupMeasurement.end(
                         {
                             success: true,
-                            isNativeBroker: true,
+                            accountType: getAccountType(response.account),
                         },
                         undefined,
                         response.account
@@ -790,11 +817,15 @@ export class StandardController implements IController {
                     return response;
                 })
                 .catch((e: AuthError) => {
+                    atPopupMeasurement.add({
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
+                    });
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
                     ) {
-                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to continuing to attempt platform broker calls
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
