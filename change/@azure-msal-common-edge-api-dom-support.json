@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add DOM API configuration for platform brokering, <a href=\"https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8171\">#8171</a>",
+    "packageName": "@azure/msal-common",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}
