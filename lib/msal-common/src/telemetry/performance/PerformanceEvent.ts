@@ -166,9 +166,21 @@ export type PerformanceEvent = {
     /**
      * Platform-specific fields, when calling STS and/or broker for token requests
      */
+    /** 
+     * Set to true when making authorize requests to STS with native broker parameter
+     */
     isPlatformAuthorizeRequest?: boolean;
+    /** 
+     * Set to true when making requests directly to the platform broker
+     */
     isPlatformBrokerRequest?: boolean;
+    /** 
+     * Error name when broker requests fail
+     */
     brokerErrorName?: string;
+    /** 
+     * Error code when broker requests fail
+     */
     brokerErrorCode?: string;
 
     /**
