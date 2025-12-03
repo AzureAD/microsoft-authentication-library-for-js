@@ -109,8 +109,8 @@ npm run beachball:check
 **Change Message:**
 Change message should always include a description of the change followed by the PR number (as a link to the PR).
 
-Template: Brief description of change [#XXXX](PR_URL)
-Example: Fix documentation [#7880](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7880)
+Template: Brief description of change #XXXX
+Example: Fix documentation #7880
 
 ### Common Build Issues and Solutions
 
