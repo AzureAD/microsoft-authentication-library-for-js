@@ -116,6 +116,7 @@ import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAu
 import * as BrowserRootPerformanceEvents from "../../src/telemetry/BrowserRootPerformanceEvents.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 import { getAccountKeysCacheKey } from "../../src/cache/CacheKeys.js";
+import exp from "constants";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -1570,13 +1571,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
             });
         });
-        it("goes directly to the native broker if nativeAccountId is present", async () => {
+        it("goes directly to the platform broker if nativeAccountId is present and emits platform telemetry", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
                     allowPlatformBroker: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    }),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1588,6 +1600,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
 
             const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                fromNativeBroker: true,
+            };
 
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
@@ -1599,13 +1626,52 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "acquireTokenRedirect"
                 )
                 .mockResolvedValue();
+
+            const nativeHandleRedirectPromiseSpy = jest
+                .spyOn(StandardController.prototype, "handleRedirectPromise")
+                .mockImplementation(
+                    async (req: any, measurementName?: string) => {
+                        // Find existing performance event by correlationId and modify it
+                        const performanceClient =
+                            pca.getConfiguration().telemetry?.client;
+                        if (performanceClient && measurementName) {
+                            const events = (performanceClient as any)
+                                .eventsByCorrelationId;
+                            const existingEvent = events.get(req.correlationId);
+                            if (existingEvent) {
+                                existingEvent.isNativeBroker = true;
+                            }
+                        }
+                        return testTokenResponse;
+                    }
+                );
+
             const redirectSpy: jest.SpyInstance = jest
                 .spyOn(RedirectClient.prototype, "acquireToken")
                 .mockResolvedValue();
+
+            // Mock the acquireTokensFromCache method to simulate a cache miss (rejects first), then WAM success (resolves)
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype as any,
+                "acquireTokensFromCache"
+            )
+                // First call rejects (simulates cache miss), second call resolves (simulates WAM success)
+                .mockRejectedValueOnce(new Error("No cached tokens"))
+                .mockResolvedValue(testTokenResponse);
+
+            // Add performance callback
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].isNativeBroker).toBe(true);
+                expect(events[0].isPlatformBrokerRequest).toBe(true);
+                pca.removePerformanceCallback(callbackId);
+            });
+
             await pca.acquireTokenRedirect({
                 scopes: ["User.Read"],
                 account: testAccount,
             });
+
+            const response = pca.handleRedirectPromise();
 
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
             expect(redirectSpy).toHaveBeenCalledTimes(0);
