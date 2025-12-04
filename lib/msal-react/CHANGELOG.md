@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Thu, 04 Dec 2025 04:58:42 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 04 Dec 2025 05:22:27 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.0-alpha.2
+
+Thu, 04 Dec 2025 05:22:27 GMT
+
+### Changes
+
+- Address react and next CVE (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 5.0.0-alpha.1
 

@@ -2,6 +2,33 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Thu, 04 Dec 2025 05:22:27 GMT",
+      "version": "5.0.0-alpha.2",
+      "tag": "@azure/msal-react_v5.0.0-alpha.2",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "d877a51f401c71d80d231160a1c3dd66cac77081",
+            "comment": "Address react and next CVE"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 04 Dec 2025 04:58:42 GMT",
       "version": "5.0.0-alpha.1",
       "tag": "@azure/msal-react_v5.0.0-alpha.1",

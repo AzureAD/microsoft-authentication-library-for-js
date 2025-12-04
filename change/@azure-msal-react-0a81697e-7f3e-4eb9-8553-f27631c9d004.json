@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Address react and next CVE",
-  "packageName": "@azure/msal-react",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
