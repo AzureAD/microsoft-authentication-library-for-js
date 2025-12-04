@@ -57,7 +57,7 @@
   },
   "peerDependencies": {
     "@azure/msal-browser": "^4.26.2",
-    "react": "^16.8.0 || ^17 || ^18 || ^19"
+    "react": "^16.8.0 || ^17 || ^18 || ^19.1.2"
   },
   "devDependencies": {
     "@azure/msal-browser": "^4.26.2",
@@ -75,8 +75,8 @@
     "jest-junit": "^16.0.0",
     "msal-test-utils": "file:../../shared-test-utils",
     "prettier": "2.8.7",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^19.1.2",
+    "react-dom": "^19.1.2",
     "rollup": "^4.22.4",
     "ts-jest": "^29.1.0",
     "ts-jest-resolver": "^2.0.1",
