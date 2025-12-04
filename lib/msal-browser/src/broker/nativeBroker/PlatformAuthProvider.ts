@@ -33,7 +33,7 @@ import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 export async function isPlatformBrokerAvailable(
     loggerOptions?: LoggerOptions,
     perfClient?: IPerformanceClient,
-    correlationId?: string
+    correlationId?: string,
     domConfig?: boolean,
 ): Promise<boolean> {
     const logger = new Logger(loggerOptions || {}, name, version);
