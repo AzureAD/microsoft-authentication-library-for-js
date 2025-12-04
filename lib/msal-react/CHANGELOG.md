@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Thu, 02 Oct 2025 21:58:36 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 04 Dec 2025 04:58:42 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.0-alpha.1
+
+Thu, 04 Dec 2025 04:58:42 GMT
+
+### Patches
+
+- Address react and next CVEs (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Changes
+
+- Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122) (thomas.norling@microsoft.com)
+- Bump to pre-release alpha (hemoral@microsoft.com)
 
 ## 5.0.0-alpha.0
 
