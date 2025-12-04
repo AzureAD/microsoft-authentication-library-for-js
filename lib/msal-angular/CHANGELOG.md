@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Thu, 02 Oct 2025 21:58:46 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 04 Dec 2025 20:05:22 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.0-beta.0
+
+Thu, 04 Dec 2025 20:05:22 GMT
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
+- Bump to pre-release alpha (hemoral@microsoft.com)
+- Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122) (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v5.0.0-beta.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 5.0.0-alpha.0
 
