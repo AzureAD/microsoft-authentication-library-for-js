@@ -3,7 +3,6 @@
  * This file provides configuration values dynamically loaded from nativeAuthConfig.json
  */
 
-
 // Cache for loaded configuration
 let configCache = null;
 let configPromise = null;
@@ -23,7 +22,7 @@ async function loadConfig() {
     
     configPromise = (async () => {
         try {
-            const response = await fetch('../nativeAuthConfig.json');
+            const response = await fetch('/nativeAuthConfig.json');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
