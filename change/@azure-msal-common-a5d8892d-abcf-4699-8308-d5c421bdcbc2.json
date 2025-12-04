@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove redundant perf client logging #8079",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
