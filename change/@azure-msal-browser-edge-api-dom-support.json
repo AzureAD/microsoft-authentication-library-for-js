@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Add DOM API configuration for platform brokering, <a href=\"https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8171\">#8171</a>",
+    "comment": "Add DOM API configuration for platform brokering [#8171](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8171)",
     "packageName": "@azure/msal-browser",
     "email": "sameera.gajjarapu@microsoft.com",
     "dependentChangeType": "patch"
