@@ -898,7 +898,7 @@ function isInPopup(): boolean;
 // Warning: (ae-missing-release-tag) "isPlatformBrokerAvailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-// Note: In v6, this signature will be reverted to its original form as allowPlatformBrokerWithDOM will be folded into allowPlatformBroker
+// Note: In v6, the domConfig parameter will be made optional as allowPlatformBrokerWithDOM will be folded into allowPlatformBroker
 export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
 // Warning: (ae-missing-release-tag) "IWindowStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
