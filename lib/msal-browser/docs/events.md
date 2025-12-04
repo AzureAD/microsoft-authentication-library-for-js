@@ -1,6 +1,6 @@
 # Events
 
-Msal-Browser (`@azure/msal-browser`) starting at version 2.4 now provides event APIs that are available to users of our core library and wrapper libraries. These events are related to auth and what MSAL is doing, and can be used in applications to update UI, show error messages, and so on.
+Msal Browser (`@azure/msal-browser`) provides event APIs that are available to users of our core library and wrapper libraries. These events are related to auth and what MSAL is doing, and can be used in applications to update UI, show error messages, and so on.
 
 ## What events look like
 
@@ -16,11 +16,11 @@ export type EventMessage = {
 
 You can consult the [EventPayload](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.EventPayload.html) and [EventError](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.EventError.html) type docs to understand how they are defined in MSAL.
 
-## How events are emitted in msal-browser
+## How events are emitted in MSAL Browser
 
-Msal-browser has a protected function `emitEvent`, and emits events in major APIs. For the list of currently emitted events, see the table below.
+Msal Browser has a protected function `emitEvent`, and emits events in major APIs. For the list of currently emitted events, see the table below.
 
-Here is an example of how msal-browser emits an event with a payload, or with an error:
+Here is an example of how MSAL Browser emits an event with a payload, or with an error:
 
 ```javascript
 this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);

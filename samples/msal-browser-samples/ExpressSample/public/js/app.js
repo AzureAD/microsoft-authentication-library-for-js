@@ -4,12 +4,14 @@
  */
 
 // Main application entry point
-import { 
+import {
     initializeMsal,
     signInPopup,
     signInRedirect,
     signOutPopup,
     signOutRedirect,
+    handleRetry,
+    handleCancelRetry,
     msalInstance
 } from './auth.js';
 import { toggleDropdown, closeAllDropdowns, updateUI } from './ui.js';
@@ -25,18 +27,18 @@ function setupEventListeners() {
     const signInDropdown = document.getElementById('signInDropdown');
     const signInPopupBtn = document.getElementById('signInPopup');
     const signInRedirectBtn = document.getElementById('signInRedirect');
-    
+
     // Account dropdown (for authenticated users)
     const accountButton = document.getElementById('accountButton');
     const accountDropdown = document.getElementById('accountDropdown');
     const switchAccountBtn = document.getElementById('switchAccount');
     const signOutPopupBtn = document.getElementById('signOutPopup');
     const signOutRedirectBtn = document.getElementById('signOutRedirect');
-    
+
     // Account picker modal
     const accountPickerModal = document.getElementById('accountPickerModal');
     const modalClose = document.querySelector('.modal-close');
-    
+
     // Toggle sign-in dropdown
     if (signInButton && signInDropdown) {
         signInButton.addEventListener('click', function(e) {
@@ -47,7 +49,7 @@ function setupEventListeners() {
 
         signInButton.style.display = '';
     }
-    
+
     // Toggle account dropdown
     if (accountButton && accountDropdown) {
         accountButton.addEventListener('click', function(e) {
@@ -56,7 +58,7 @@ function setupEventListeners() {
             toggleDropdown(accountButton.parentElement);
         });
     }
-    
+
     // Close dropdowns when clicking outside
     document.addEventListener('click', function(e) {
         const dropdowns = document.querySelectorAll('.dropdown');
@@ -68,7 +70,7 @@ function setupEventListeners() {
             }
         });
     });
-    
+
     // Handle keyboard navigation for dropdowns
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -76,7 +78,7 @@ function setupEventListeners() {
             closeAccountPickerModal();
         }
     });
-    
+
     // Sign in event handlers
     if (signInPopupBtn) {
         signInPopupBtn.addEventListener('click', function(e) {
@@ -85,7 +87,7 @@ function setupEventListeners() {
             signInPopup();
         });
     }
-    
+
     if (signInRedirectBtn) {
         signInRedirectBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -93,25 +95,25 @@ function setupEventListeners() {
             signInRedirect();
         });
     }
-    
+
     // Profile page sign in buttons (may not exist on all pages)
     const profileSignInPopupBtn = document.getElementById('profileSignInPopup');
     const profileSignInRedirectBtn = document.getElementById('profileSignInRedirect');
-    
+
     if (profileSignInPopupBtn) {
         profileSignInPopupBtn.addEventListener('click', function(e) {
             e.preventDefault();
             signInPopup();
         });
     }
-    
+
     if (profileSignInRedirectBtn) {
         profileSignInRedirectBtn.addEventListener('click', function(e) {
             e.preventDefault();
             signInRedirect();
         });
     }
-    
+
     // Profile page refresh button (may not exist on all pages)
     const refreshProfileBtn = document.getElementById('refreshProfileBtn');
     if (refreshProfileBtn) {
@@ -124,7 +126,7 @@ function setupEventListeners() {
             }
         });
     }
-    
+
     // Account management event handlers
     if (switchAccountBtn) {
         switchAccountBtn.addEventListener('click', function(e) {
@@ -133,7 +135,7 @@ function setupEventListeners() {
             showAccountPickerModal();
         });
     }
-    
+
     if (signOutPopupBtn) {
         signOutPopupBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -141,7 +143,7 @@ function setupEventListeners() {
             signOutPopup();
         });
     }
-    
+
     if (signOutRedirectBtn) {
         signOutRedirectBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -149,12 +151,12 @@ function setupEventListeners() {
             signOutRedirect();
         });
     }
-    
+
     // Modal event handlers
     if (modalClose) {
         modalClose.addEventListener('click', closeAccountPickerModal);
     }
-    
+
     if (accountPickerModal) {
         accountPickerModal.addEventListener('click', function(e) {
             if (e.target === accountPickerModal) {
@@ -162,16 +164,48 @@ function setupEventListeners() {
             }
         });
     }
-    
+
+    // Retry modal event handlers
+    const retryBtn = document.getElementById('retryButton');
+    const cancelRetryBtn = document.getElementById('cancelRetryButton');
+    const retryModal = document.getElementById('retry-modal');
+    const retryModalClose = document.querySelector('#retry-modal .modal-close');
+
+    if (retryBtn) {
+        retryBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            handleRetry();
+        });
+    }
+
+    if (cancelRetryBtn) {
+        cancelRetryBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            handleCancelRetry();
+        });
+    }
+
+    if (retryModalClose) {
+        retryModalClose.addEventListener('click', handleCancelRetry);
+    }
+
+    if (retryModal) {
+        retryModal.addEventListener('click', function(e) {
+            if (e.target === retryModal) {
+                handleCancelRetry();
+            }
+        });
+    }
+
     // Setup SPA Navigation
     setupSPANavigation();
 }
 
 // DOM ready function
-document.addEventListener('DOMContentLoaded', async function() {    
+document.addEventListener('DOMContentLoaded', async function() {
     // Validate environment variables first and show warning if needed
     const envValid = validateEnvironmentVariables();
-    
+
     // Only proceed with MSAL initialization if environment is properly configured
     if (!envValid) {
         console.warn('MSAL initialization skipped due to missing environment variables');
@@ -179,16 +213,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         setupEventListeners();
         return;
     }
-    
+
     // Initialize MSAL
     await initializeMsal();
-    
+
     // Refresh authentication state (this will also call updateUI)
     updateUI(msalInstance.getActiveAccount());
-    
+
     // Setup all event listeners
     setupEventListeners();
-    
+
     // Handle initial route
     await handleRouting();
 });

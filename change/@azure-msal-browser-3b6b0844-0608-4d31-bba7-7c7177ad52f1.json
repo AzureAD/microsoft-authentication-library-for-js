@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Implement redirect bridge to support COOP [#8118](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8118)",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

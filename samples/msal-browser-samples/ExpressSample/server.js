@@ -41,16 +41,18 @@ app.use(express.json()); // Parse JSON bodies
 // Serve MSAL library from local build
 app.use('/lib/msal-browser', express.static(path.join(__dirname, '../../../lib/msal-browser/lib')));
 
+const localBuildName = 'Local Build';
+const localBuildDebugName = 'Local Build (Debug)';
 // Dynamic MSAL version management
 let currentMsalVersion = 'local'; // Default to local build
 let availableVersions = {
     'local': {
-        name: 'Local Build',
+        name: localBuildName,
         path: '/lib/msal-browser/msal-browser.min.js',
         description: 'Locally built version from repository'
     },
     'local-debug': {
-        name: 'Local Build (Debug)',
+        name: localBuildDebugName,
         path: '/lib/msal-browser/msal-browser.js',
         description: 'Locally built debug version from repository'
     },
@@ -183,11 +185,12 @@ function getCurrentVersionInfo() {
 }
 
 // Helper function to pass environment variables and version info to templates
-const getEnvConfig = () => {
+const getEnvConfig = (version) => {
+    const majorVersion = parseInt(version.info.name.match(/v(\d+)\.(?:x|\d+)/)?.[1] || "0", 10);
     const config = {
         CLIENT_ID: process.env.CLIENT_ID,
         AUTHORITY: process.env.AUTHORITY,
-        REDIRECT_URI: process.env.REDIRECT_URI,
+        REDIRECT_URI: version.info.name === localBuildName || version.info.name === localBuildDebugName || majorVersion >= 5 ? `${process.env.REDIRECT_URI}/redirect` : process.env.REDIRECT_URI,
         POST_LOGOUT_REDIRECT_URI: process.env.POST_LOGOUT_REDIRECT_URI
     };
 
@@ -214,7 +217,7 @@ const getEnvConfig = () => {
 
 // Enhanced environment config with version info
 const getEnvConfigWithVersion = () => ({
-    ...getEnvConfig(),
+    ...getEnvConfig(getCurrentVersionInfo()),
     version: getCurrentVersionInfo()
 });
 
@@ -332,6 +335,10 @@ app.get('/', (req, res) => {
         title: 'MSAL Express Sample - Home',
         envConfig: getEnvConfigWithVersion()
     });
+});
+
+app.get('/redirect', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'redirect.html'));
 });
 
 app.get('/profile', (req, res) => {

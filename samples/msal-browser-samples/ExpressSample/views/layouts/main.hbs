@@ -123,8 +123,12 @@
                 <div class="custom-version-form">
                     <div class="form-group">
                         <label for="customVersionInput">Version Number:</label>
-                        <input type="text" id="customVersionInput" class="form-input"
-                            placeholder="e.g., 4.0.0, 3.5.1-beta, 2.38.0">
+                        <input
+                            type="text"
+                            id="customVersionInput"
+                            class="form-input"
+                            placeholder="e.g., 4.0.0, 3.5.1-beta, 2.38.0"
+                        >
                         <div class="input-help">
                             Enter a semantic version number (major.minor.patch).
                             Pre-release versions can include suffixes like -beta, -alpha.
@@ -137,6 +141,42 @@
                         <button id="customVersionSubmit" class="btn btn-primary">Switch to Version</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup Warning Alert -->
+    <div id="popup-warning" class="popup-warning" style="display: none;">
+        <div class="popup-warning-content">
+            <div class="popup-warning-icon">ℹ️</div>
+            <div class="popup-warning-text">
+                <strong>Authentication in Progress</strong>
+                <p>Please complete authentication in the popup window. Do not close the popup until authentication is complete.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Retry Modal -->
+    <div id="retry-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Authentication Already in Progress</h2>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>An authentication request is already in progress. This may happen if:</p>
+                <ul>
+                    <li>You closed the popup window before completing authentication</li>
+                    <li>The previous authentication attempt is still pending</li>
+                </ul>
+                <p class="retry-question">Would you like to cancel the pending authentication and try again?</p>
+                <div class="warning-box">
+                    <strong>⚠️ Warning:</strong> Retrying will cancel the pending authentication request.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelRetryButton" class="btn btn-secondary">Cancel</button>
+                <button id="retryButton" class="btn btn-primary">Retry Authentication</button>
             </div>
         </div>
     </div>

@@ -184,11 +184,13 @@ The popup APIs use ES6 Promises that resolve when the authentication flow in the
 
 #### RedirectUri Considerations
 
-When using popup APIs we recommend setting the `redirectUri` to a blank page or a page that does not implement MSAL. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis:
+When using popup APIs, the `redirectUri` must point to a dedicated page that implements the MSAL redirect bridge. This page handles the authentication response and communicates it back to the main application.
+
+For detailed guidance on setting up the redirect page, see [RedirectUri considerations](./login-user.md#redirecturi-considerations).
 
 ```javascript
 msalInstance.loginPopup({
-    redirectUri: "http://localhost:3000/blank.html",
+    redirectUri: "http://localhost:3000/redirect",
 });
 ```
 
@@ -213,8 +215,6 @@ msalInstance
         // handle error, either in the library or coming back from the server
     });
 ```
-
-This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
 
 It is not recommended to use both interaction types in a single application.
 

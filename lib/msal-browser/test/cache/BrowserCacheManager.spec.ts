@@ -4120,6 +4120,145 @@ describe("BrowserCacheManager tests", () => {
                         )
                     ).toBeNull();
                 });
+
+                it("throws error when interaction is already in progress without override flag", () => {
+                    const perfClient = new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    });
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    cacheManager.setInteractionInProgress(true);
+
+                    expect(() => {
+                        cacheManager.setInteractionInProgress(true);
+                    }).toThrow();
+                });
+
+                it("allows override when allowOverride flag is true", () => {
+                    const perfClient = new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    });
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    // Set initial interaction
+                    cacheManager.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNIN
+                    );
+                    expect(
+                        cacheManager.getInteractionInProgress()?.type
+                    ).toEqual(INTERACTION_TYPE.SIGNIN);
+
+                    // Override with new interaction type
+                    cacheManager.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNIN,
+                        true
+                    );
+                    expect(
+                        cacheManager.getInteractionInProgress()?.type
+                    ).toEqual(INTERACTION_TYPE.SIGNIN);
+                    expect(
+                        cacheManager.getInteractionInProgress()?.clientId
+                    ).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+                });
+
+                it("calls cancelPendingBridgeResponse when overriding interaction", () => {
+                    const perfClient = new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    });
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    // Mock BrowserUtils
+                    const BrowserUtils = require("../../src/utils/BrowserUtils.js");
+                    const cancelSpy = jest.spyOn(
+                        BrowserUtils,
+                        "cancelPendingBridgeResponse"
+                    );
+
+                    // Set initial interaction
+                    cacheManager.setInteractionInProgress(true);
+
+                    // Override interaction
+                    cacheManager.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNIN,
+                        true
+                    );
+
+                    // Verify cancelPendingBridgeResponse was called
+                    expect(cancelSpy).toHaveBeenCalledWith(logger, "");
+
+                    cancelSpy.mockRestore();
+                });
+
+                it("logs warning when overriding interaction", () => {
+                    const perfClient = new BrowserPerformanceClient({
+                        auth: {
+                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        },
+                    });
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    const warningSpy = jest.spyOn(logger, "warning");
+
+                    // Set initial interaction
+                    cacheManager.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNIN
+                    );
+
+                    // Override interaction
+                    cacheManager.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNIN,
+                        true
+                    );
+
+                    // Verify warning was logged
+                    expect(warningSpy).toHaveBeenCalledWith(
+                        expect.stringContaining(
+                            "Overriding existing interaction_in_progress"
+                        ),
+                        ""
+                    );
+
+                    warningSpy.mockRestore();
+                });
             });
         });
     });

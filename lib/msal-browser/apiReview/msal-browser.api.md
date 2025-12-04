@@ -23,6 +23,7 @@ import { CommonEndSessionRequest } from '@azure/msal-common/browser';
 import { CommonSilentFlowRequest } from '@azure/msal-common/browser';
 import { Constants } from '@azure/msal-common/browser';
 import { ExternalTokenResponse } from '@azure/msal-common/browser';
+import { ICrypto } from '@azure/msal-common/browser';
 import { IdTokenClaims } from '@azure/msal-common/browser';
 import { ILoggerCallback } from '@azure/msal-common/browser';
 import { INetworkModule } from '@azure/msal-common/browser';
@@ -225,11 +226,11 @@ declare namespace BrowserAuthErrorCodes {
         unableToParseState,
         stateInteractionTypeMismatch,
         interactionInProgress,
+        interactionInProgressCancelled,
         popupWindowError,
         emptyWindowError,
         userCancelled,
-        monitorPopupTimeout,
-        monitorWindowTimeout,
+        redirectBridgeEmptyResponse,
         redirectInIframe,
         blockIframeReload,
         blockNestedPopups,
@@ -264,7 +265,8 @@ declare namespace BrowserAuthErrorCodes {
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
-        timedOut
+        timedOut,
+        emptyResponse
     }
 }
 export { BrowserAuthErrorCodes }
@@ -384,15 +386,13 @@ export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     navigationClient?: INavigationClient;
-    windowHashTimeout?: number;
-    iframeHashTimeout?: number;
-    loadFrameTimeout?: number;
+    popupBridgeTimeout?: number;
+    iframeBridgeTimeout?: number;
     redirectNavigationTimeout?: number;
     navigatePopups?: boolean;
     allowRedirectInIframe?: boolean;
     allowPlatformBroker?: boolean;
     nativeBrokerHandshakeTimeout?: number;
-    pollIntervalMilliseconds?: number;
     protocolMode?: ProtocolMode;
 };
 
@@ -406,10 +406,13 @@ export type BrowserTelemetryOptions = {
 
 declare namespace BrowserUtils {
     export {
+        parseAuthResponseFromUrl,
         clearHash,
         replaceHash,
         isInIframe,
         isInPopup,
+        cancelPendingBridgeResponse,
+        waitForBridgeResponse,
         getCurrentUri,
         getHomepage,
         blockReloadInHiddenIframes,
@@ -451,6 +454,11 @@ export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     cacheRetentionDays?: number;
 };
+
+// Warning: (ae-missing-release-tag) "cancelPendingBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function cancelPendingBridgeResponse(logger: Logger, correlationId: string): void;
 
 // Warning: (ae-missing-release-tag) "ClearCacheRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -543,6 +551,11 @@ const earJwkEmpty = "ear_jwk_empty";
 //
 // @public (undocumented)
 const emptyNavigateUri = "empty_navigate_uri";
+
+// Warning: (ae-missing-release-tag) "emptyResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const emptyResponse = "empty_response";
 
 // Warning: (ae-missing-release-tag) "emptyWindowError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -754,6 +767,11 @@ export { InProgressPerformanceEvent }
 //
 // @public (undocumented)
 const interactionInProgress = "interaction_in_progress";
+
+// Warning: (ae-missing-release-tag) "interactionInProgressCancelled" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const interactionInProgressCancelled = "interaction_in_progress_cancelled";
 
 export { InteractionRequiredAuthError }
 
@@ -996,16 +1014,6 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     setUserData(key: string, value: T): Promise<void>;
 }
 
-// Warning: (ae-missing-release-tag) "monitorPopupTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const monitorPopupTimeout = "monitor_popup_timeout";
-
-// Warning: (ae-missing-release-tag) "monitorWindowTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const monitorWindowTimeout = "monitor_window_timeout";
-
 // Warning: (ae-missing-release-tag) "nativeConnectionNotEstablished" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1081,6 +1089,40 @@ const noTokenRequestCacheError = "no_token_request_cache_error";
 // @public (undocumented)
 export const OIDC_DEFAULT_SCOPES: string[];
 
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// Warning: (ae-missing-release-tag) "parseAuthResponseFromUrl" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function parseAuthResponseFromUrl(): {
+    params: URLSearchParams;
+    payload: string;
+    urlHash: string;
+    urlQuery: string;
+    hasResponseInHash: boolean;
+    hasResponseInQuery: boolean;
+    libraryState: {
+        id: string;
+        meta: Record<string, string>;
+    };
+};
+
 export { PerformanceCallbackFunction }
 
 export { PerformanceEvent }
@@ -1112,6 +1154,7 @@ export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "response
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
+    overrideInteractionInProgress?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "PopupSize" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1246,6 +1289,11 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }
+
+// Warning: (ae-missing-release-tag) "redirectBridgeEmptyResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const redirectBridgeEmptyResponse = "redirect_bridge_empty_response";
 
 // Warning: (ae-missing-release-tag) "redirectInIframe" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1440,6 +1488,11 @@ const userCancelled = "user_cancelled";
 // @public (undocumented)
 export const version = "5.0.0-alpha.0";
 
+// Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+function waitForBridgeResponse(timeoutMs: number, logger: Logger, browserCrypto: ICrypto, request: CommonAuthorizationUrlRequest | CommonEndSessionRequest): Promise<string>;
+
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1457,7 +1510,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:366:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:429:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:460:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:211:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:199:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:114:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:141:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

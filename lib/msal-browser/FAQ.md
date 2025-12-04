@@ -177,7 +177,7 @@ As this function returns a promise you can call `.then` and `.catch`, similar to
 
 Please ensure `handleRedirectPromise` has resolved before invoking any other MSAL method. If your app was not loaded as a result of a redirect operation `handleRedirectPromise` will immediately return `null`.
 
-Please review one of our samples ([for instance](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default)) to see the redirect flow in action.
+Please review one of [our samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) to see the redirect flow in action.
 
 ## How can I support authentication with personal Microsoft accounts only?
 
@@ -282,7 +282,9 @@ When you attempt to authenticate MSAL will navigate to your IDP's sign in page e
 
 ### RedirectUri for popup and silent flows
 
-When using popup and silent APIs we recommend setting the `redirectUri` to a blank page, a page that does not implement MSAL, or a page that does not itself require a user be authenticated. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis.
+When using popup and silent APIs, the `redirectUri` must point to a dedicated page that implements the MSAL redirect bridge. This page handles the authentication response and communicates it back to the main application using the BroadcastChannel API. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis.
+
+For detailed setup instructions, see [redirectUri considerations](./docs/login-user.md#redirecturi-considerations).
 
 ### RedirectUri for redirect flows
 

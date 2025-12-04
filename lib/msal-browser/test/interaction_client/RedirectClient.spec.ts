@@ -32,7 +32,6 @@ import {
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
-    ProtocolUtils,
     Logger,
     LogLevel,
     NetworkResponse,
@@ -48,6 +47,7 @@ import {
     ProtocolMode,
     AccountEntityUtils,
     Constants,
+    ProtocolUtils,
 } from "@azure/msal-common/browser";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -88,6 +88,14 @@ import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformance
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 
+jest.mock("@azure/msal-common/browser", () => ({
+    ...jest.requireActual("@azure/msal-common/browser"),
+    ProtocolUtils: {
+        ...jest.requireActual("@azure/msal-common/browser").ProtocolUtils,
+        setRequestState: jest.fn(),
+    },
+}));
+
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
     cacheRetentionDays: 5,
@@ -123,6 +131,9 @@ describe("RedirectClient", () => {
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;
     let rootMeasurement: InProgressPerformanceEvent;
+    let mockSetRequestState: jest.MockedFunction<
+        typeof ProtocolUtils.setRequestState
+    >;
 
     beforeEach(async () => {
         pca = new PublicClientApplication({
@@ -180,6 +191,14 @@ describe("RedirectClient", () => {
         rootMeasurement = new BrowserPerformanceClient(
             pca.getConfiguration()
         ).startMeasurement("test-measurement", "test-correlation-id");
+
+        mockSetRequestState =
+            ProtocolUtils.setRequestState as jest.MockedFunction<
+                typeof ProtocolUtils.setRequestState
+            >;
+        mockSetRequestState.mockReturnValue(
+            TEST_STATE_VALUES.TEST_STATE_REDIRECT
+        );
     });
 
     afterEach(() => {
@@ -532,7 +551,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -674,7 +693,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -739,7 +758,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -777,7 +796,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -919,7 +938,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -1076,7 +1095,7 @@ describe("RedirectClient", () => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
-                browserCrypto,
+                browserCrypto.base64Decode,
                 stateString
             ).libraryState.id;
 
@@ -2158,9 +2177,6 @@ describe("RedirectClient", () => {
 
         describe("storeInCache tests", () => {
             beforeEach(() => {
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                    TEST_STATE_VALUES.TEST_STATE_REDIRECT
-                );
                 jest.spyOn(
                     FetchClient.prototype,
                     "sendPostRequestAsync"
@@ -3236,14 +3252,42 @@ describe("RedirectClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 nonce: ID_TOKEN_CLAIMS.nonce,
             };
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
             jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
                 () => {
                     // Supress navigation
                     pca.handleRedirectPromise({
                         hash: `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+                    }).then((result) => {
+                        expect(result).toEqual(getTestAuthenticationResult());
+                        done();
+                    });
+                }
+            );
+
+            pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
+        it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", (done) => {
+            const validRequest: RedirectRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["openid", "profile", "offline_access"],
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                redirectUri: window.location.href,
+                state: TEST_STATE_VALUES.USER_STATE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            jest.spyOn(
+                AuthorizeProtocol,
+                "handleResponseCode"
+            ).mockResolvedValue(getTestAuthenticationResult());
+            jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(
+                () => {
+                    // Supress navigation
+                    pca.handleRedirectPromise({
+                        hash: `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
                     }).then((result) => {
                         expect(result).toEqual(getTestAuthenticationResult());
                         done();
