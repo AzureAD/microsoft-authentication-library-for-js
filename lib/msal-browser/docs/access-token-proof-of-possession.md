@@ -164,7 +164,3 @@ Please also note to make sure the remaining [pop parameters](#at-pop-request-par
 Most MSAL credentials and cache items, like `ID Tokens` for example, can be stored and removed synchronously. This is because these cache items are stored in either `localStorage` or `sessionStorage` (which can be manipulated synchronously), and they have no dependencies on other stored items that have asynchronous access restrictions.
 
 Unlike other cache items, `Access Tokens` are saved to the cache asynchronously. The reason for this is that in the case of an access token being bound to a cryptographic keypair, which is stored in `IndexedDB`, replacing the access token also involves replacing the cryptographic keypair. Given that removing and writing keys to `IndexedDB` are asynchronous operations, the process for saving an access token inevitably becomes asyncrhonous by extension.
-
-## Code samples
-
-* [JavaScript SPA acquiring PoP tokens](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/pop)
