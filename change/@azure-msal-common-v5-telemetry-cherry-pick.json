@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "[v5]Add Platform Telemetry [#8175](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8175)
+  "comment": "[v5]Add Platform Telemetry [#8175](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8175)"
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
