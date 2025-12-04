@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Address react and next CVEs #8179",
+  "packageName": "@azure/msal-react",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
