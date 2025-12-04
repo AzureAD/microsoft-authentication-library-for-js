@@ -33,7 +33,7 @@
       "version": "5.0.0-alpha.1",
       "tag": "@azure/msal-react_v5.0.0-alpha.1",
       "comments": {
-        "patch": [
+        "prerelease": [
           {
             "author": "hemoral@microsoft.com",
             "package": "@azure/msal-react",
@@ -51,9 +51,7 @@
             "package": "@azure/msal-react",
             "comment": "Bump msal-test-utils to v0.0.1",
             "commit": "not available"
-          }
-        ],
-        "prerelease": [
+          },
           {
             "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-react",
