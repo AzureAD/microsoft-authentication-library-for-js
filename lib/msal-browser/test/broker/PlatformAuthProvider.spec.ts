@@ -264,5 +264,22 @@ describe("PlatformAuthProvider tests", () => {
                 ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration
             );
         });
+
+        it("returns true when both allowPlatformBroker and allowPlatformBrokerWithDOM are enabled", () => {
+            config.system.allowPlatformBroker = true;
+            config.system.allowPlatformBrokerWithDOM = true;
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
+                config,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                new PlatformAuthDOMHandler(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                ),
+                Constants.AuthenticationScheme.BEARER
+            );
+            expect(result).toBe(true);
+        });
     });
 });
