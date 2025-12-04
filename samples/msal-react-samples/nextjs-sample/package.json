@@ -19,8 +19,8 @@
     "@mui/icons-material": "^5.10.14",
     "@mui/material": "^5.10.14",
     "next": "^15.5.7",
-    "react": "^19.1.2",
-    "react-dom": "^19.1.2"
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",
