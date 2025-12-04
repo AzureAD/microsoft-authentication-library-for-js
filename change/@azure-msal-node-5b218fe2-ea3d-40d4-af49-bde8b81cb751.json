@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Instrument data boundary claim #8074",
-  "packageName": "@azure/msal-node",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

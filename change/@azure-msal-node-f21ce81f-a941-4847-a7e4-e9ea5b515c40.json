@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "broker redirect uri changes",
-  "packageName": "@azure/msal-node",
-  "email": "akaliugonna@microsoft.com",
-  "dependentChangeType": "patch"
-}
