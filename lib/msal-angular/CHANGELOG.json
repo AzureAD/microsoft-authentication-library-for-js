@@ -2,6 +2,27 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Thu, 04 Dec 2025 05:46:37 GMT",
+      "version": "4.0.23",
+      "tag": "@azure/msal-angular_v4.0.23",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.27.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 19 Nov 2025 23:13:11 GMT",
       "version": "4.0.22",
       "tag": "@azure/msal-angular_v4.0.22",
