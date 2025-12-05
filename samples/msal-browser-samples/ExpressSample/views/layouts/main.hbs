@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
 </head>
+
 <body>
     <header>
         <div class="container">
@@ -16,10 +19,13 @@
                 <nav>
                     <ul>
                         <li><a href="/" class="nav-link spa-link">Home</a></li>
-                        <li><a href="/profile" class="nav-link spa-link" data-auth-required style="display: none;">Profile</a></li>
+                        <li><a href="/profile" class="nav-link spa-link" data-auth-required
+                                style="display: none;">Profile</a></li>
+                        <li><a href="/playground" class="nav-link spa-link">Playground</a></li>
                         <li>
                             <div class="dropdown version-switcher">
-                                <button id="versionButton" class="btn btn-version dropdown-toggle" title="Switch MSAL Version" style="display: none;">
+                                <button id="versionButton" class="btn btn-version dropdown-toggle"
+                                    title="Switch MSAL Version" style="display: none;">
                                     <span class="version-icon">📦</span>
                                     <span id="currentVersionText">{{envConfig.version.info.name}}</span>
                                     <span class="dropdown-arrow">▼</span>
@@ -191,4 +197,5 @@
     <script type="module" src="/js/authConfig.js"></script>
     <script type="module" src="/js/app.js"></script>
 </body>
+
 </html>
