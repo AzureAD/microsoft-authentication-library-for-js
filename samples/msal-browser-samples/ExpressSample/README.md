@@ -68,6 +68,7 @@ npm run build:package
 - Once authenticated, navigate to different pages to see how authentication state is preserved.
 - **Use the account switcher** by clicking the user account dropdown and selecting "Switch Account" to see the account picker modal.
 - The Profile page will automatically fetch and display your user information from MS Graph.
+- Navigating to the `http://localhost:3000/playground` route will take you to the MSAL.js playground where you can experiment with different configurations and requests
 
 ## Learn more
 
