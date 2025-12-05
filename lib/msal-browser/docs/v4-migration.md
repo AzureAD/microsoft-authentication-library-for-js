@@ -440,10 +440,10 @@ To reduce bundle size, console log messages are now hashed. Instead of seeing fu
 
 ```javascript
 // BEFORE (v4)
-[2025-01-15 10:30:45] : abc-123 : @azure/msal-browser@4.27.0 : Info - Returning token from cache
+[Wed, 15 Jan 2025 10:30:45 GMT] : abc-123 : @azure/msal-browser@4.27.0 : Info - Returning token from cache
 
 // AFTER (v5)
-[2025-01-15 10:30:45] : abc-123 : @azure/msal-browser@5.0.0 : Info - 7f3a9b2c
+[Wed, 15 Jan 2025 10:30:45 GMT] : abc-123 : @azure/msal-browser@5.0.0 : Info - 7f3a9b2c
 ```
 
 Debugging in the browser console will require an additional step to decode logs.
