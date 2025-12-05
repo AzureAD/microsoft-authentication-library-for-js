@@ -1613,7 +1613,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
                 tokenType: Constants.AuthenticationScheme.BEARER,
-                fromNativeBroker: true,
+                fromPlatformBroker: true,
             };
 
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
