@@ -51,7 +51,6 @@ export class ResetPasswordService {
             return await this.handleResetPasswordResult(result);
         } catch (error) {
             Utilities.logMessage(`Password reset failed: ${error}`, "error");
-            Utilities.logMessage(`Password reset error: ${error}`, "error");
             return { success: false, error: error.message };
         }
     }

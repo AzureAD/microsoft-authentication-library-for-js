@@ -23,8 +23,6 @@ if (argv.p) {
     port = argv.p;
 }
 
-console.log(`Starting server on port: ${__dirname}`);
-
 app.use(express.static(path.join(__dirname, 'app')));
 app.use(express.json()); // Parse JSON bodies
 
@@ -33,7 +31,7 @@ app.use('/lib', express.static(path.join(__dirname, '../../../lib/msal-browser/l
 
 // Serve nativeAuthConfig.json from its original location
 app.get('/nativeAuthConfig.json', function (req, res) {
-    res.sendFile(path.join(__dirname, '../nativeAuthSample/nativeAuthConfig.json'));
+    res.sendFile(path.join(__dirname, 'nativeAuthConfig.json'));
 });
 
 // Set up a route for index.html.

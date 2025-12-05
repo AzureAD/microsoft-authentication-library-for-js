@@ -154,10 +154,10 @@ export class SignUpUIManager {
         if (codeVerificationCard) codeVerificationCard.style.display = 'none';
         if (passwordInputCard) passwordInputCard.style.display = 'none';
 
-        this.clearSignInForm();
+        this.clearSignUpForm();
     }
 
-    clearSignInForm() {
+    clearSignUpForm() {
         const signUpForm = document.getElementById('signUpForm');
         if (signUpForm) {
             signUpForm.reset();
@@ -429,9 +429,6 @@ export class SignUpUIManager {
         if (signUpForm) {
             signUpForm.reset();
         }
-        
-        // Clear any error messages
-        this.clearErrorMessages();
     }
 
     showPasswordInputForm(username) {
@@ -627,14 +624,6 @@ export class SignUpUIManager {
         // Placeholder for additional attributes form if needed
         Utilities.logMessage("Additional attributes required for sign-up", "info");
         uiManager.showErrorBanner("Additional information is required to complete registration.", 'signup');
-    }
-
-    // UI Helper Methods
-    setButtonLoading(button, text) {
-        if (button) {
-            button.disabled = true;
-            button.innerHTML = `<span class="loading"></span>${text}`;
-        }
     }
 
     resetButton(button, originalText) {

@@ -181,9 +181,9 @@ export class SignInUIManager {
     }
 
     clearSignInForm() {
-        const signUpForm = document.getElementById('signInForm');
-        if (signUpForm) {
-            signUpForm.reset();
+        const signInForm = document.getElementById('signInForm');
+        if (signInForm) {
+            signInForm.reset();
         }
     }
 
