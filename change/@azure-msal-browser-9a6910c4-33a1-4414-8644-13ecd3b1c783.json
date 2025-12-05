@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Stop exporting PublicClientNext, UrlString, StringUtils, AccountEntity and AccountEntityUtils [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
