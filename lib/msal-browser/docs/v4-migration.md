@@ -417,3 +417,35 @@ We have consolidated event types and InteractionStatus to reflect what happened 
 1. `LOGIN_START` and `LOGIN_FAILURE` have been replaced with `ACQUIRE_TOKEN_START` and `ACQUIRE_TOKEN_FAILURE`, respectively.
 1. The payload for `LOGIN_SUCCESS` is now an `AccountInfo` object.
 1. Any successful login now emits both a `LOGIN_SUCCESS` and `ACQUIRE_TOKEN_SUCCESS` event.
+
+### Error message format changes
+
+To reduce bundle size, error messages have been moved out of the bundle. When an error is thrown, the `message` property now returns a generic link to the error documentation instead of a descriptive error message:
+
+```javascript
+// BEFORE (v4)
+error.message = "Token request cannot be made without authorization code or refresh token.";
+
+// AFTER (v5)
+error.message = "See https://aka.ms/msal.js.errors#request_cannot_be_made for details";
+```
+
+The `errorCode` property remains unchanged and can still be used to identify the specific error. For detailed error descriptions, refer to the [errors documentation](https://aka.ms/msal.js.errors).
+
+**Impact**: If your application relies on parsing or displaying the `error.message` property, you may need to update your error handling code to use the `errorCode` instead or direct users to the documentation link.
+
+### Console logging changes
+
+To reduce bundle size, console log messages are now hashed. Instead of seeing full log messages in the browser console, you will see a hash value:
+
+```javascript
+// BEFORE (v4)
+[Wed, 15 Jan 2025 10:30:45 GMT] : abc-123 : @azure/msal-browser@4.27.0 : Info - Returning token from cache
+
+// AFTER (v5)
+[Wed, 15 Jan 2025 10:30:45 GMT] : abc-123 : @azure/msal-browser@5.0.0 : Info - 7f3a9b2c
+```
+
+Debugging in the browser console will require an additional step to decode logs.
+To decode hashed logs back to readable messages, use the [decode script](../scripts/decode-logs.cjs).
+For more information on using the decode script, see the [script documentation](../scripts/README.md).
