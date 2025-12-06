@@ -392,7 +392,6 @@ export type BrowserSystemOptions = SystemOptions & {
     navigatePopups?: boolean;
     allowRedirectInIframe?: boolean;
     allowPlatformBroker?: boolean;
-    allowPlatformBrokerWithDOM?: boolean;
     nativeBrokerHandshakeTimeout?: number;
     protocolMode?: ProtocolMode;
 };
@@ -898,8 +897,7 @@ function isInPopup(): boolean;
 // Warning: (ae-missing-release-tag) "isPlatformBrokerAvailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-// Note: In v6, the domConfig parameter will be made optional as allowPlatformBrokerWithDOM will be folded into allowPlatformBroker
-export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
+export function isPlatformBrokerAvailable(loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
 // Warning: (ae-missing-release-tag) "IWindowStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
