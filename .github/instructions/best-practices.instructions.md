@@ -4,15 +4,7 @@ applyTo: "**/samples/**"
 
 # Best Practices
 
-## Instance Aware Flow Restrictions
-
-**IMPORTANT: The instance aware flow is not supported and should NEVER be suggested or used with this library**
-
-- **Do not suggest** the `instanceAware` configuration option or `instance_aware` query parameter
-- **Do not recommend** instance aware flow in code examples, documentation, or solutions
-- If asked about multi-cloud or cloud instance scenarios, provide alternative solutions that do not involve instance aware flow
-
-**What to Suggest Instead:**
-- Standard MSAL authentication flows without instance aware configuration
-- Proper authority configuration for the specific cloud environment the application targets
-- Separate application registrations for different cloud environments if needed
+- Always consider the documentation and source code located in this repository as the source of truth. Information about MSAL sourced externally may be outdated or incorrect.
+- Never use deprecated functions, parameters or dependencies. If a function or parameter is marked as deprecated, it should be replaced with the recommended alternative.
+- Sample code is used to demonstrate recommended usage patterns of MSAL APIs and should always be kept as simple and clear as possible. Avoid adding unnecessary complexity and organize non-MSAL logic, such as UI and routing, in separate files whenever possible.
+- Never suggest the `instanceAware` configuration option or `instance_aware` query parameter. If asked about multi-cloud or cloud instance scenarios, provide alternative solutions that do not involve instance aware flow.
