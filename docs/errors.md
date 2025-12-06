@@ -268,6 +268,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `invalid_request_method_for_EAR`
 - The EAR protocol cannot be used with HTTP method `GET`. The `httpMethod` parameter in all requests using `protocolMode: ProtocolMode.EAR` must be either unset or `"POST"`/`HttpMethod.POST`.
 
+### `invalid_platform_broker_configuration`
+
+- The `allowPlatformBrokerwithDOM` configuration parameter can be set to `true` only if `allowPlatformBroker` is also set to `true`.
+
 ## Interaction required errors
 
 ### `no_tokens_found`
