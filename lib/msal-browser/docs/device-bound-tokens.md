@@ -57,10 +57,10 @@ There are a few things that may behave a little differently when acquiring token
 
 ## Acquiring Device Bound Tokens using DOM API
 
-MSAL.js also supports acquiring tokens from the platform broker using DOM APIs in Edge. Instead of using a browser extension to communicate with the platform broker, MSAL.js can directly call a DOM API in the Edge browser, which in turn manages to invoke the platform broker to acquire tokens.
+MSAL.js also supports acquiring tokens from the platform broker using DOM APIs in Edge. Instead of using a browser extension to communicate with the platform broker, MSAL.js can directly call a DOM API in the Edge browser, which in turn invokes the platform broker to acquire tokens.
 
 -   This feature is currently only supported in the Edge browser and all other OS requirements mentioned above still apply. (more details to come).
--   This feature is currently only in private-preview and requires special enablement. Please reach out to your Microsoft representative for more details.
+-   This feature is currently only in private-preview and requires special enablement.
 
 To enable this feature, set the `allowPlatformBrokerWithDOM` flag to true in your configuration object like so:
 
