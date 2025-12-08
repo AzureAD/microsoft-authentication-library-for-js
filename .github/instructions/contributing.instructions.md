@@ -15,6 +15,7 @@ applyTo: "**/lib/**, **/extensions/msal-node-extensions/**"
 - Follow semantic versioning principles
 - Write unit tests for new functionality and bug fixes
 - Document all public API changes
+- Include JSDoc/TSDoc comments for all types, interfaces, functions, and classes
 - Remove unused code and dependencies unless it would violate semver
 
 ## Supported Environments
