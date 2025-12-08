@@ -15,27 +15,17 @@ applyTo: "**/lib/**, **/extensions/msal-node-extensions/**"
 - Follow semantic versioning principles
 - Write unit tests for new functionality and bug fixes
 - Document all public API changes
+- Remove unused code and dependencies unless it would violate semver
 
-## Build and Validation
+## Supported Environments
 
-Before committing any changes ensure all of the following steps have been completed without errors:
+- msal-browser supports all modern mainstream browsers (Chrome, Firefox, Safari, Edge)
+- msal-node and msal-node-extensions support a minimum Node.js version specified in their respective `engines` field of their package.json file
+- msal-common supports the superset of environments of msal-browser, msal-node and msal-node-extensions
+- msal-react supports the React versions specified in the `peerDependencies` field of its package.json file
+- msal-angular supports the Angular versions specified in its `README` file
 
-1. Run `npm run build:all` to ensure the code builds without errors
-1. Run `npm run lint` to ensure the code adheres to the coding standards
-1. Run `npm test` to ensure all tests pass
-1. Run `npm run format:check` to ensure the code is formatted correctly
-    - If there are formatting errors, run `npm run format:fix` to automatically fix them
-1. Run `npm run apiExtractor` to ensure the API documentation is up to date
-    - If there are changes to the API documentation, run `npm run apiExtractor -- --local` to update the API documentation
-
-All of these commands should be run in each package directory where changes were made.
-
-### Changefiles
-
-Changefiles are required for all changes to files within the `src` directory and/or files that may impact the build output. Changefiles should adhere to the guidelines outlined in `.github/instructions/changefiles.instructions.md`.
-
-- To check if changefiles are required, run `npm run beachball:check` from the root of the repo.
-- To generate changefiles, run `npm run beachball:change` and complete the prompts.
+Never use or suggest APIs or features that are not supported by the target environments for a given library.
 
 ## Instance Aware Flow Restrictions
 

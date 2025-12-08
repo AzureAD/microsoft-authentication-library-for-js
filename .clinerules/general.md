@@ -29,9 +29,9 @@ Some samples located in the `samples/` directory contain a `test/` folder. End t
 
 - **msal-common**: Core package - no dependencies on other MSAL packages
 - **msal-browser**: Depends on msal-common
-- **msal-node**: Depends on msal-common  
-- **msal-react**: Depends on msal-browser and msal-common
-- **msal-angular**: Depends on msal-browser and msal-common
+- **msal-node**: Depends on msal-common
+- **msal-react**: Depends on msal-browser
+- **msal-angular**: Depends on msal-browser
 - **msal-node-extensions**: Depends on msal-common
 
 **CRITICAL: Always build dependencies in correct order. msal-common must be built before msal-browser/msal-node. msal-browser must be built before msal-react/msal-angular.**
