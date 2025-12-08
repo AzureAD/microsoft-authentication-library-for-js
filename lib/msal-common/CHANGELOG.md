@@ -1,8 +1,36 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Thu, 02 Oct 2025 21:58:40 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 05 Dec 2025 22:01:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.0.0-beta.0
+
+Fri, 05 Dec 2025 22:01:00 GMT
+
+### Minor changes
+
+- Remove redundant perf client logging #8079 (kshabelko@microsoft.com)
+- Implement redirect bridge to support COOP [#8118](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8118) (kshabelko@microsoft.com)
+- Minify logging strings with rollup plugin #8000 (kshabelko@microsoft.com)
+- Refactor BaseClient into Token Protocol #8119 (thomas.norling@microsoft.com)
+- Add support for authorize call using method POST#7997 (hemoral@microsoft.com)
+- Instrument data boundary claim #8074 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- error surfacing changes (akaliugonna@microsoft.com)
+- Add new cloud instances to authority metadata #8121 (hemoral@microsoft.com)
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
+- Bump to pre-release alpha (hemoral@microsoft.com)
+- Remove unused AccountEntity Util function [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122) (thomas.norling@microsoft.com)
+- KMSI Support #8123 (thomas.norling@microsoft.com)
 
 ## 16.0.0-alpha.0
 
