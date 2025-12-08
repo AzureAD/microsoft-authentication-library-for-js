@@ -1,8 +1,50 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 02 Oct 2025 21:58:42 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 05 Dec 2025 22:01:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.0-beta.0
+
+Fri, 05 Dec 2025 22:01:00 GMT
+
+### Major changes
+
+- Remove onRedirectNavigate from endSessionRequest #8066 (shylasummers@microsoft.com)
+- Remove getAccountBy APIs at controller level #7807 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v16.0.0-beta.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Minor changes
+
+- Remove redundant perf client logging #8079 (kshabelko@microsoft.com)
+- Minify logging strings with rollup plugin #8000 (kshabelko@microsoft.com)
+- Implement redirect bridge to support COOP [#8118](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8118) (kshabelko@microsoft.com)
+- Add support for authorize call using method POST #7997 (hemoral@microsoft.com)
+- Add changes in network and interaction client layers to support MFA (shen.jian@live.com)
+- Instrument data boundary claim #8074 (kshabelko@microsoft.com)
+- [Native Auth] Add MFA related state and results (shen.jian@live.com)
+- [Native Auth] Enable the MFA and JIT (SMS) in the public interfaces #8069 (shen.jian@live.com)
+- Add PCAFactory and correlation id optional params to createNestablePublicClientApplication #8093 (kshabelko@microsoft.com)
+
+### Patches
+
+- Update the logic for detecting phone blocked error #8087 (shen.jian@live.com)
+- EAR flow falls back to auth code when /authorize returns code [#8156](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8156) (thomas.norling@microsoft.com)
+- [Native Auth] Fix the correlation id issue #8078 (shen.jian@live.com)
+- Refactor BaseClient usage #8119 (thomas.norling@microsoft.com)
+- Introduce the stateType property in state classes for the type detection #8090 (shen.jian@live.com)
+- Add pageException to native fatal errors (#8065) (sameera.gajjarapu@microsoft.com)
+- Add allow="local-network-access *" attribute to iframe for Chrome 142 compatibility [#8132](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8132) (198982749+Copilot@users.noreply.github.com)
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
+- Stop exporting PublicClientNext, UrlString, StringUtils, AccountEntity and AccountEntityUtils [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122) (thomas.norling@microsoft.com)
+- KMSI Support #8123 (thomas.norling@microsoft.com)
+- Bump to pre-release alpha (hemoral@microsoft.com)
 
 ## 5.0.0-alpha.0
 
