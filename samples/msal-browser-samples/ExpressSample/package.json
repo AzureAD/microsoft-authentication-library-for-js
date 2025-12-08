@@ -21,7 +21,7 @@
         "env-cmd": "^10.1.0",
         "jest": "^30.0.5",
         "jest-junit": "^16.0.0",
-        "nodemon": "^2.0.22",
+        "nodemon": "^3.1.11",
         "ts-jest": "^29.4.1"
     },
     "jest-junit": {
