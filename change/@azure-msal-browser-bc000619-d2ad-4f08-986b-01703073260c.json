@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "KMSI Support #8123",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

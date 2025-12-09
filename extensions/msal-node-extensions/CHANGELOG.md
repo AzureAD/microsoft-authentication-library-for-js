@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Thu, 02 Oct 2025 21:58:37 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 05 Dec 2025 22:01:00 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.0-beta.0
+
+Fri, 05 Dec 2025 22:01:00 GMT
+
+### Patches
+
+- error surfacing changes (akaliugonna@microsoft.com)
+- Surface Errors from MsalRuntime with Interaction Required #7961 (akaliugonna@microsoft.com)
+- Bump msal-node-runtime to v0.19.0 (akaliugonna@microsoft.com)
+- Enable passing of redirect uri to broker plugin #8153 (akaliugonna@microsoft.com)
+- Bump msal-node-runtime to v0.20.0 (akaliugonna@microsoft.com)
+- Bump @azure/msal-common to v16.0.0-beta.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Changes
+
+- Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
+- Bump to pre-release alpha (hemoral@microsoft.com)
 
 ## 5.0.0-alpha.0
 
