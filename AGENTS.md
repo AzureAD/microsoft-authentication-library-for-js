@@ -1,4 +1,4 @@
-# Cline Instructions for MSAL.js Repository
+# AI Agent Instructions for MSAL.js Repository
 
 ## Repository Overview
 
@@ -40,4 +40,3 @@ Some samples located in the `samples/` directory contain a `test/` folder. End t
 
 1. **Always run `npm install` at repository root** to bootstrap the monorepo
 1. Repository uses npm workspaces - dependencies are shared and managed at root level
-
