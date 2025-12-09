@@ -1,9 +1,14 @@
 import { TestBed } from "@angular/core/testing";
 import { Location } from "@angular/common";
-import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import {
-  HttpClientTestingModule,
+  HTTP_INTERCEPTORS,
+  HttpClient,
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
+import {
   HttpTestingController,
+  provideHttpClientTesting,
 } from "@angular/common/http/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import {
@@ -123,6 +128,8 @@ function initializeMsal() {
         multi: true,
       },
       Location,
+      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClientTesting(),
     ],
     teardown: { destroyAfterEach: false },
   });

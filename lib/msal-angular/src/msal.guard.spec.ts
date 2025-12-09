@@ -1,4 +1,4 @@
-import { HttpClientTestingModule } from "@angular/common/http/testing";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { UrlTree } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
@@ -64,10 +64,16 @@ function initializeMsal(providers: any[] = []) {
         interactionType: InteractionType.Popup,
         protectedResourceMap: new Map(),
       }),
-      HttpClientTestingModule,
       RouterTestingModule.withRoutes([]),
     ],
-    providers: [MsalGuard, MsalService, MsalBroadcastService, ...providers],
+    providers: [
+      MsalGuard,
+      MsalService,
+      MsalBroadcastService,
+      ...providers,
+      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClientTesting(),
+    ],
     teardown: { destroyAfterEach: false },
   });
 
