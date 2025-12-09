@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix CVEs, #8189",
+  "comment": "Address dependency CVEs [#8189](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8189)",
   "packageName": "@azure/msal-angular",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
