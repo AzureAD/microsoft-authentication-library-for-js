@@ -2,6 +2,45 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Fri, 05 Dec 2025 22:01:00 GMT",
+      "version": "5.0.0-beta.0",
+      "tag": "@azure/msal-angular_v5.0.0-beta.0",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "db66fe31b1e210f12923c5bab475c4bb0877450d",
+            "comment": "Mark package for prerelease (beta)"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
+            "comment": "Bump to pre-release alpha"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
+            "comment": "Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.0.0-beta.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 02 Oct 2025 21:58:46 GMT",
       "version": "5.0.0-alpha.0",
       "tag": "@azure/msal-angular_v5.0.0-alpha.0",

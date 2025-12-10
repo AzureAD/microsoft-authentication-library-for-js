@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add PCAFactory and correlation id optional params to createNestablePublicClientApplication #8093",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Refactor BaseClient into Token Protocol #8119",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

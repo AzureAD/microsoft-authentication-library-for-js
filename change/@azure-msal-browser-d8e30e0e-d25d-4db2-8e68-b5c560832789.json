@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Bump to pre-release alpha",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
