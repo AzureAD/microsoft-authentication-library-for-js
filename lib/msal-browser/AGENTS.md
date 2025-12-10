@@ -34,6 +34,6 @@ Add performance measurements for:
 ### Telemetry Best Practices
 
 - **Always include correlationId** for request tracing
-- **Add relevant fields** like operation counts, cache hit/miss, errors not captured by invoke/invokeAsync
+- **Add relevant fields** like operation counts, cache hit/miss, and custom error details or additional error context not automatically captured by invoke/invokeAsync
 - **Use existing PerformanceEvents** when possible rather than creating new ones
 - **Add telemetry for new operations** following the guidelines above
