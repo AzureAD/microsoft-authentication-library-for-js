@@ -24,5 +24,10 @@
     "jose": "^2.0.7",
     "ts-jest": "^29.1.0",
     "typescript": "^4.9.5"
-  }
+  },
+  "jest-junit": {
+    "suiteNameTemplate": "Native Auth Sample Tests",
+    "outputDirectory": ".",
+    "outputName": "test-results.xml"
+  },
 }
