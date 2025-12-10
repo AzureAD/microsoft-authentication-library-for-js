@@ -73,5 +73,3 @@ export function stopCorsProxy(corsProcess: ChildProcess | null): void {
         }
     }
 }
-
-

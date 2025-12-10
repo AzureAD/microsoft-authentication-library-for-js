@@ -1,5 +1,11 @@
+/**
+ * Email provider utility functions for mail.tm
+ */
 const BASE = "https://api.mail.tm";
 
+/**
+ * MailTmClient class to interact with mail.tm API
+ */
 export class MailTmClient {
   address: string | null = null;
   password: string | null = null;

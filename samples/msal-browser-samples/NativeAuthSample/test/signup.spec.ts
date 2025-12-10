@@ -79,13 +79,11 @@ describe("Native Auth Sample - Sign Up Tests", () => {
     afterEach(async () => {
         // Clear storage after each test
         await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
+            window.sessionStorage.clear();
+            window.localStorage.clear();
         });
         await page.close();
-    });
+    })
 
     describe("Sign Up Flow - Email + Password - Positive", () => {
         beforeEach(async () => {

@@ -21,8 +21,6 @@ import {
     testConfig,
     getTenantInfo,
     getProxyPort,
-    getTestUsers,
-    getTestData,
     nativeAuthConfig,
     testData,
 } from "./configUtils";
@@ -93,13 +91,11 @@ describe("Native Auth Sample - Reset Password Tests", () => {
     afterEach(async () => {
         // Clear storage after each test
         await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
+            window.sessionStorage.clear();
+            window.localStorage.clear();
         });
         await page.close();
-    });
+    })
 
     describe("Reset Password Flow - Email + Password - Positive", () => {
         beforeEach(async () => {

@@ -10,8 +10,6 @@ import {
     getBrowser,
     pcaInitializedPoller,
     BrowserCacheUtils,
-    ONE_SECOND_IN_MS,
-    LabClient,
     getHomeUrl,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
@@ -22,8 +20,6 @@ import {
     testConfig, 
     getTenantInfo, 
     getProxyPort, 
-    getTestUsers, 
-    getTestData, 
     nativeAuthConfig 
 } from "./configUtils";
 
@@ -81,13 +77,11 @@ describe("Native Auth Sample - Sign Out Tests", () => {
     afterEach(async () => {
         // Clear storage after each test
         await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
+            window.sessionStorage.clear();
+            window.localStorage.clear();
         });
         await page.close();
-    });
+    })
 
     describe("Sign Out Flow - Email + Password", () => {
         beforeEach(async () => {

@@ -10,7 +10,6 @@ import {
     getBrowser,
     pcaInitializedPoller,
     BrowserCacheUtils,
-    ONE_SECOND_IN_MS,
     getHomeUrl,
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
@@ -21,16 +20,13 @@ import {
     testConfig, 
     getTenantInfo, 
     getProxyPort, 
-    getTestUsers, 
     getTestData, 
     nativeAuthConfig 
 } from "./configUtils";
 
 // Use configuration instead of hardcoded values
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, testConfig.screenshots.baseFolderName, "/signin");
-const STANDARD_TIMEOUT = testConfig.timeouts.standard;
 const AUTH_TIMEOUT = testConfig.timeouts.auth;
-const TEST_TIMEOUT = testConfig.timeouts.test;
 let sampleHomeUrl = "";
 
 describe("Native Auth Sample - Sign In Tests", () => {
@@ -87,15 +83,13 @@ describe("Native Auth Sample - Sign In Tests", () => {
     });
 
     afterEach(async () => {
-        // // Clear storage after each test
+        // Clear storage after each test
         await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
+            window.sessionStorage.clear();
+            window.localStorage.clear();
         });
         await page.close();
-    });
+    })
 
     describe("Sign In Flow - Email + Password - Positive", () => {
         beforeEach(async () => {
