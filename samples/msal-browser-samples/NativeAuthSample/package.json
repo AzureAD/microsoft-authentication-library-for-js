@@ -29,5 +29,5 @@
     "suiteNameTemplate": "Native Auth Sample Tests",
     "outputDirectory": ".",
     "outputName": "test-results.xml"
-  },
+  }
 }
