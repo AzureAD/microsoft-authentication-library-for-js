@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSAL Native Auth Sample</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <p id="authStatusBanner" class="auth-status-banner"></p>
+        <div id="errorBanner" class="error-banner" style="display: none;">
+            <span id="errorMessage"></span>
+            <button id="dismissErrorBtn" class="dismiss-btn">&times;</button>
+        </div>
+        <header>
+            <h1>MSAL Native Auth Sample</h1>
+            <nav class="auth-nav">
+                <button id="showSignInBtn" class="nav-btn active">Sign In</button>
+                <button id="showSignUpBtn" class="nav-btn">Sign Up</button>
+                <button id="showResetPasswordBtn" class="nav-btn">Reset Password</button>
+                <button id="navSignOutBtn" class="nav-btn btn-danger">Sign Out</button>
+            </nav>
+        </header>
+
+        <main>
+            <div class="auth-section">
+                <div class="card" id="signInCard">
+                    <h2>Sign In</h2>
+                    <form id="signInForm">
+                        <div class="form-group">
+                            <label for="username">Username/Email:</label>
+                            <input type="text" id="username" name="username" required 
+                                placeholder="Enter your username or email">
+                        </div>
+                        <button type="submit" id="signInBtn" class="btn btn-primary">
+                            Sign In
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card" id="signUpCard" style="display: none;">
+                    <h2>Sign Up</h2>
+                    <form id="signUpForm">
+                        <div class="form-group">
+                            <label for="signUpFirstName">First Name:</label>
+                            <input type="text" id="signUpFirstName" name="firstName" 
+                                placeholder="Enter your first name">
+                        </div>
+                        <div class="form-group">
+                            <label for="signUpLastName">Last Name:</label>
+                            <input type="text" id="signUpLastName" name="lastName"
+                                placeholder="Enter your last name">
+                        </div>
+                        <div class="form-group">
+                            <label for="signUpCity">City:</label>
+                            <input type="text" id="signUpCity" name="city"
+                                placeholder="Enter your city">
+                        </div>
+                        <div class="form-group">
+                            <label for="signUpCountry">Country:</label>
+                            <input type="text" id="signUpCountry" name="country"
+                                placeholder="Enter your country">
+                        </div>
+                        <div class="form-group">
+                            <label for="signUpUsername">Username/Email:</label>
+                            <input type="email" id="signUpUsername" name="username" required 
+                                placeholder="Enter your email address">
+                        </div>
+                        <button type="submit" id="signUpBtn" class="btn btn-primary">
+                            Sign Up
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card" id="resetPasswordCard" style="display: none;">
+                    <h2>Reset Password</h2>
+                    <form id="resetPasswordForm">
+                        <div class="form-group">
+                            <label for="resetPasswordEmail">Email:</label>
+                            <input type="email" id="resetPasswordEmail" name="email" required 
+                                placeholder="Enter your email address">
+                        </div>
+                        <button type="submit" id="resetPasswordBtn" class="btn btn-primary">
+                            Reset Password
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card" id="signUpPasswordCard" style="display: none;">
+                    <h2>Create Password</h2>
+                    <p id="signUpPasswordInstructions">Please create a password for your account:</p>
+                    <form id="signUpPasswordForm">
+                        <div class="form-group">
+                            <label for="signUpPassword">Password:</label>
+                            <input type="password" id="signUpPassword" name="password" required 
+                                placeholder="Create a password" minlength="8">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="submitSignUpPasswordBtn" class="btn btn-primary">
+                                Create Account
+                            </button>
+                            <button type="button" id="cancelSignUpPasswordBtn" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card" id="resetPasswordCodeCard" style="display: none;">
+                    <h2>Email Verification</h2>
+                    <p id="resetPasswordCodeInstructions">Please check your email and enter the 8-digit verification code below:</p>
+                    <form id="resetPasswordCodeForm">
+                        <div class="form-group">
+                            <label for="resetPasswordCode">Verification Code:</label>
+                            <input type="text" id="resetPasswordCode" name="code" required 
+                                placeholder="Enter 8-digit verification code" maxlength="8" pattern="[0-9]*">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="submitResetPasswordCodeBtn" class="btn btn-primary">
+                                Verify Code
+                            </button>
+                            <button type="button" id="resendResetPasswordCodeBtn" class="btn btn-secondary">
+                                Resend Code
+                            </button>
+                            <button type="button" id="cancelResetPasswordCodeBtn" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card" id="resetPasswordNewPasswordCard" style="display: none;">
+                    <h2>Set New Password</h2>
+                    <p id="resetPasswordNewPasswordInstructions">Please enter your new password:</p>
+                    <form id="resetPasswordNewPasswordForm">
+                        <div class="form-group">
+                            <label for="resetPasswordNewPassword">New Password:</label>
+                            <input type="password" id="resetPasswordNewPassword" name="password" required 
+                                placeholder="Enter your new password" minlength="8">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="submitResetPasswordNewPasswordBtn" class="btn btn-primary">
+                                Reset Password
+                            </button>
+                            <button type="button" id="cancelResetPasswordNewPasswordBtn" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card" id="codeVerificationCard" style="display: none;">
+                    <h2>Email Verification</h2>
+                    <p id="codeInstructions">Please check your email and enter the verification code below:</p>
+                    <form id="codeVerificationForm">
+                        <div class="form-group">
+                            <label for="verificationCode">Verification Code:</label>
+                            <input type="text" id="verificationCode" name="code" required 
+                                placeholder="Enter 8-digit verification code" maxlength="8" pattern="[0-9]*">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="submitCodeBtn" class="btn btn-primary">
+                                Verify Code
+                            </button>
+                            <button type="button" id="resendCodeBtn" class="btn btn-secondary">
+                                Resend Code
+                            </button>
+                            <button type="button" id="cancelCodeBtn" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card" id="passwordInputCard" style="display: none;">
+                    <h2>Password Required</h2>
+                    <p id="passwordInstructions">Please enter your password to complete sign-in:</p>
+                    <form id="passwordInputForm">
+                        <div class="form-group">
+                            <label for="signInPassword">Password:</label>
+                            <input type="password" id="signInPassword" name="password" required 
+                                placeholder="Enter your password" minlength="1">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="submitPasswordBtn" class="btn btn-primary">
+                                Submit Password
+                            </button>
+                            <button type="button" id="cancelPasswordBtn" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div hidden id="pca-initialized" >
+    false
+    </div>
+
+    
+    <!-- MSAL Custom Auth UMD bundle -->
+    <script src="/lib/custom-auth-path/msal-custom-auth.js"></script>
+
+    <!-- Application modules -->
+    <script type="module" src="./utilities.js"></script>
+    
+    <!-- Sign-in modules (must load before ui.js and app.js) -->
+    <script type="module" src="./signin/SignInService.js"></script>
+    <script type="module" src="./signin/SignInUIManager.js"></script>
+    <script type="module" src="./signin/index.js"></script>
+    
+    <!-- Sign-up modules (must load before ui.js and app.js) -->
+    <script type="module" src="./signup/SignUpService.js"></script>
+    <script type="module" src="./signup/SignUpUIManager.js"></script>
+    <script type="module" src="./signup/index.js"></script>
+    
+    <!-- Reset Password modules (must load before ui.js and app.js) -->
+    <script type="module" src="./resetPassword/ResetPasswordService.js"></script>
+    <script type="module" src="./resetPassword/ResetPasswordUIManager.js"></script>
+    <script type="module" src="./resetPassword/index.js"></script>
+    
+    <script type="module" src="./ui.js"></script>
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
