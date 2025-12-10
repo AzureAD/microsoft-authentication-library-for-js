@@ -89,7 +89,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
             window.localStorage.clear();
         });
         await page.close();
-    })
+    });
 
     describe("Sign In Flow - Email + Password - Positive", () => {
         beforeEach(async () => {

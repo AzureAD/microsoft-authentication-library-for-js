@@ -81,7 +81,7 @@ describe("Native Auth Sample - Sign Out Tests", () => {
             window.localStorage.clear();
         });
         await page.close();
-    })
+    });
 
     describe("Sign Out Flow - Email + Password", () => {
         beforeEach(async () => {

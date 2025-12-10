@@ -95,7 +95,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
             window.localStorage.clear();
         });
         await page.close();
-    })
+    });
 
     describe("Reset Password Flow - Email + Password - Positive", () => {
         beforeEach(async () => {
@@ -259,22 +259,13 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                         const authStatusBanner =
                             document.getElementById("authStatusBanner");
                         const isCompleted =
-                            authStatusBanner &&
-                            (authStatusBanner.textContent?.includes(
-                                "Password reset completed"
-                            ) ||
+                            authStatusBanner && (
                                 authStatusBanner.textContent?.includes(
                                     "Signed in"
                                 ));
                         return isCompleted;
                     },
                     { timeout: 35000 }
-                );
-
-                // Verify completion
-                const authStatusBanner = await page.$eval(
-                    "#authStatusBanner",
-                    (el) => el.textContent
                 );
 
                 const tokenStore = await BrowserCache.getTokens();
@@ -380,7 +371,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     "#errorMessage",
                     (el) => el.textContent
                 );
-                expect(errorMessage).toContain("");
+                expect(errorMessage).toContain("user_not_found");
             },
             AUTH_TIMEOUT
         );
@@ -437,7 +428,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     "#errorMessage",
                     (el) => el.textContent
                 );
-                expect(errorMessage).toContain("");
+                expect(errorMessage).toContain("does not support native credential recovery");
             },
             AUTH_TIMEOUT
         );
