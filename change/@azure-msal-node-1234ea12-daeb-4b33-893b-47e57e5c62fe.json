@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Address JWS CVE",
+  "comment": "Address JWS CVE, #[8201](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/820)",
   "packageName": "@azure/msal-node",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
