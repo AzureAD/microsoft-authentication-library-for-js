@@ -42,10 +42,6 @@ const msalConfig = {
   },
 };
 
-const loginRequest = {
-  scopes: ["User.Read"]
-};
-
 let pca = undefined;
 
 msal.createNestablePublicClientApplication(msalConfig).then((result) => {
@@ -98,16 +94,18 @@ export async function ssoGetToken(){
         // Make the Graph API call with the popup token
         const requestString = "https://graph.microsoft.com/v1.0/me";
         const headersInit = {'Authorization': popupResult.accessToken};
-        const requestInit = { 'headers': headersInit}
+        const requestInit = { 'headers': headersInit};
         
-        const response = await fetch(requestString, requestInit);
-        if(response.ok){
-          const data = await response.text();
-          console.log(data);
-          document.getElementById("userInfo").innerText = data;
-        } else {
-          console.log("Graph API call failed:", response);
-        }
+        if(requestString) {
+          const response = await fetch(requestString, requestInit);
+          if(response.ok){
+            const data = await response.text();
+            console.log(data);
+            document.getElementById("userInfo").innerText = data;
+          } else {
+            console.log("Graph API call failed:", response);
+          }
+        } 
       } catch (popupError) {
         console.error("Popup token acquisition failed:", popupError);
         document.getElementById("userInfo").innerText = "Authentication failed: " + popupError.message;
