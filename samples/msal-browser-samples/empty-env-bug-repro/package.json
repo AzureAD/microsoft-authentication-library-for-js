@@ -1,0 +1,33 @@
+{
+  "name": "msal-empty-environment-bug-repro",
+  "version": "1.0.0",
+  "description": "Minimal reproduction case for MSAL Browser empty environment bug",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite",
+    "build:package": "cd ../../../lib/msal-browser && npm run build:all",
+    "start:build": "npm run build:package && npm start"
+  },
+  "keywords": [
+    "msal",
+    "azure-ad",
+    "authentication",
+    "bug-reproduction"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/msal-empty-env-bug-repro"
+  },
+  "bugs": {
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/issues"
+  },
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@azure/msal-browser": "^4.0.0",
+    "vite": "^7.2.7"
+  }
+}

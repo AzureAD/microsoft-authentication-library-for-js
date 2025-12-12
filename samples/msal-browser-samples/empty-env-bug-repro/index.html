@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MSAL Empty Environment Bug Reproduction</title>
+    <script src="/lib/msal-browser.js" type="text/javascript"></script>
+    <script src="/main.js"></script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #2c3e50;
+        margin-top: 0;
+      }
+      .log {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        border-radius: 4px;
+        padding: 15px;
+        margin: 15px 0;
+        max-height: 500px;
+        overflow-y: auto;
+        font-family: "Consolas", "Monaco", monospace;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .log div {
+        margin: 4px 0;
+      }
+      .error {
+        color: #f48771;
+        font-weight: bold;
+      }
+      .warning {
+        color: #dcdcaa;
+        font-weight: bold;
+      }
+      .success {
+        color: #4ec9b0;
+        font-weight: bold;
+      }
+      .info {
+        color: #569cd6;
+      }
+      button {
+        background: #0078d4;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        margin: 8px 8px 8px 0;
+        font-size: 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      button:hover {
+        background: #106ebe;
+      }
+      button:active {
+        background: #005a9e;
+      }
+      .danger {
+        background: #c42b1c;
+      }
+      .danger:hover {
+        background: #a80000;
+      }
+      .alert {
+        background: #fff4ce;
+        border-left: 4px solid #ffaa44;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 4px;
+      }
+      .alert h3 {
+        margin-top: 0;
+        color: #8b6914;
+      }
+      .alert p {
+        margin: 8px 0;
+        color: #3b3a39;
+      }
+      .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 4px;
+      }
+      .info-box h3 {
+        margin-top: 0;
+        color: #1976d2;
+      }
+      .test-section {
+        margin: 20px 0;
+      }
+      .test-section h3 {
+        color: #2c3e50;
+        border-bottom: 2px solid #ecf0f1;
+        padding-bottom: 8px;
+      }
+      code {
+        background: #f4f4f4;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: "Consolas", "Monaco", monospace;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🐛 MSAL Browser - Empty Environment Bug Reproduction</h1>
+
+      <div class="alert">
+        <h3>⚠️ Setup Required</h3>
+        <p><strong>Before testing:</strong></p>
+        <ol>
+          <li>
+            Create a <code>.env</code> file (copy from <code>.env.example</code>) and add your Azure AD
+            application client ID
+          </li>
+          <li>
+            Ensure your redirect URI includes <code>http://localhost:8080</code>
+          </li>
+          <li>
+            You must be signed in to see the bug (run Test 1 first if needed)
+          </li>
+        </ol>
+      </div>
+
+      <div class="info-box">
+        <h3>🎯 What This Reproduces</h3>
+        <p>
+          <strong>Bug:</strong> MSAL Browser occasionally creates accounts with
+          <code>environment: ""</code> (empty string)
+        </p>
+        <p>
+          <strong>Impact:</strong> Causes <code>authority_mismatch</code> errors
+          on subsequent token requests
+        </p>
+        <p>
+          <strong>Root Cause:</strong> Race condition during authority metadata
+          resolution allows <code>getPreferredCache()</code> to return empty
+          string
+        </p>
+      </div>
+
+      <div class="test-section">
+        <h3>🧪 Test Scenarios</h3>
+        <button onclick="testNormalFlow()">1️⃣ Normal Flow</button>
+        <button onclick="testRaceCondition()">
+          2️⃣ Race Condition (Likely Bug)
+        </button>
+        <button onclick="testSsoSilentEarly()">3️⃣ SSO Silent Early</button>
+        <button onclick="testMultipleAuthorities()">
+          4️⃣ Multiple Authorities
+        </button>
+        <button onclick="testQuickInitAndUse()">5️⃣ Quick Init & Use</button>
+      </div>
+
+      <div class="test-section">
+        <h3>🔍 Inspection & Cleanup</h3>
+        <button onclick="inspectCache()">Inspect Cache</button>
+        <button onclick="inspectMsalState()">Inspect MSAL State</button>
+        <button class="danger" onclick="clearCache()">Clear All Cache</button>
+      </div>
+
+      <h3>📋 Test Logs:</h3>
+      <div id="log" class="log"></div>
+    </div>
+  </body>
+</html>
