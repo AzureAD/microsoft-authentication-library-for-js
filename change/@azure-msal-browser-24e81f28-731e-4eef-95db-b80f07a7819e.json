@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add bundle size tracking CI step #7746",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}

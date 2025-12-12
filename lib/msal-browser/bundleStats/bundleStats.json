@@ -1,0 +1,19 @@
+{
+  "msal-browser": {
+    "base": {
+      "size": 931.07,
+      "unit": "KB",
+      "fileName": "msal-browser.js"
+    },
+    "minified": {
+      "size": 304.28,
+      "unit": "KB",
+      "fileName": "msal-browser.min.js"
+    },
+    "minifiedGzipped": {
+      "size": 73.49,
+      "unit": "KB",
+      "fileName": "msal-browser.min.js.gz"
+    }
+  }
+}

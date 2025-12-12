@@ -80,7 +80,9 @@
     "prepack": "npm run build:all",
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
-    "apiExtractor": "api-extractor run"
+    "apiExtractor": "api-extractor run",
+    "bundleSize:analyze": "node ../../../release-scripts/analyzeBundleSize.js --3p",
+    "bundleSize:generate": " node ../../../release-scripts/analyzeBundleSize.js --3p --local"
   },
   "devDependencies": {
     "@azure/storage-blob": "^12.2.1",
