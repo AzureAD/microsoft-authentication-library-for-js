@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions for MSAL.js Repository
+# AI Agent Instructions for MSAL.js Repository
 
 ## Repository Overview
 
@@ -21,7 +21,7 @@ Each package within `lib/` and `extensions/` is organized as follows:
 - `docs/`: documentation
 - `apiReview/`: API extractor files
 
-Some samples located in the `samples/` directory contain a `test/` folder. End to End tests for the core libraries are located here. 
+Some samples located in the `samples/` directory contain a `test/` folder. End to End tests for the packages are located here. 
 
 ## Project Architecture and Layout
 
@@ -29,16 +29,14 @@ Some samples located in the `samples/` directory contain a `test/` folder. End t
 
 - **msal-common**: Core package - no dependencies on other MSAL packages
 - **msal-browser**: Depends on msal-common
-- **msal-node**: Depends on msal-common  
+- **msal-node**: Depends on msal-common
 - **msal-react**: Depends on msal-browser
 - **msal-angular**: Depends on msal-browser
 - **msal-node-extensions**: Depends on msal-common
 
-## Pull Request Review Guidelines
+**CRITICAL: Always build dependencies in correct order. msal-common must be built before msal-browser/msal-node. msal-browser must be built before msal-react/msal-angular.**
 
-When reviewing pull requests, GitHub Copilot should provide comprehensive feedback focusing on four key areas:
+### Prerequisites and Environment Setup
 
-1. Suggest documentation updates for new public methods, properties and APIs, changes to existing APIs, new error scenarios or codes, performance considerations, breaking changes, and usage examples
-1. Suggest adding test coverage (if not included) for new functions, properties, error and edge cases. Complex features should include E2E tests. 
-1. Suggest adding telemetry for any changes that may impact performance or reliability and for any areas that may be useful for debugging or monitoring.
-1. Changefiles should be included for all changes to the source code for core libraries (lib/) or extensions (extensions/) and should adhere to the guidelines specified in `.github/instructions/changefiles.instructions.md`
+1. **Always run `npm install` at repository root** to bootstrap the monorepo
+1. Repository uses npm workspaces - dependencies are shared and managed at root level
