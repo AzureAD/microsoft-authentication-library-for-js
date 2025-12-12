@@ -22,7 +22,7 @@ It shows how to use two new APIs, `enableSpaAuthorizationCode` in MSAL Node and 
 1. Under the **API permissions** tabs, add the `User.Read` scope from Microsoft Graph.
 1. In the root of this sample folder, run `npm install`.
 1. Run `npm start` or `npm run dev` to start the sample, which will be available at http://localhost:3000.
-1. Run ` npm run start -- --https` to start the sample at https://localhost:3000. To run the sample in https, make sure to run the `npm run  generate:certs` command first.
+1. Run `npm run start -- --https` to start the sample at https://localhost:3000. To run the sample in https, make sure to run the `npm run generate:certs` command first.
 
 ### Example .env file
 
