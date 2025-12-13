@@ -33,17 +33,13 @@ export async function run() {
 // Config object to be passed to Msal on creation
 const msalConfig = {
   auth: {
-      clientId: "58f921c3-84a4-4da8-8544-65acb867aaf4",
-      authority: "https://login.microsoftonline.com/common",
+      clientId: "f272e790-f2d2-43f8-bbe4-0cce5c84f0dd",
+      authority: "https://login.microsoftonline.com/245ae546-aed6-4c7d-a37c-194e816ae79b",
       supportsNestedAppAuth: true
   },
   cache: {
     cacheLocation: 'localStorage'
   },
-};
-
-const loginRequest = {
-  scopes: ["User.Read"]
 };
 
 let pca = undefined;
@@ -61,7 +57,8 @@ export async function ssoGetToken(){
 
   const tokenRequest = {
     scopes: ["User.Read"],
-    account: activeAccount
+    account: activeAccount,
+    authority: "https://login.microsoftonline.com/245ae546-aed6-4c7d-a37c-194e816ae79b"
   };
 
   pca.acquireTokenSilent(tokenRequest).then(async (result) => {
@@ -84,8 +81,38 @@ export async function ssoGetToken(){
         //throw this should never happen
         throw new Error("unexpected: no requestString");
     }
-  }).catch((error) => {
+  }).catch(async (error) => {
     console.log(error);
+    
+    // Check if the error is InteractionRequired and fallback to popup authentication
+    if (error instanceof InteractionRequiredAuthError) {
+      console.log("Silent token acquisition failed, falling back to popup authentication");
+      try {
+        const popupResult = await pca.acquireTokenPopup(tokenRequest);
+        console.log("Popup token acquisition successful:", popupResult);
+        
+        // Make the Graph API call with the popup token
+        const requestString = "https://graph.microsoft.com/v1.0/me";
+        const headersInit = {'Authorization': popupResult.accessToken};
+        const requestInit = { 'headers': headersInit};
+        
+        if(requestString) {
+          const response = await fetch(requestString, requestInit);
+          if(response.ok){
+            const data = await response.text();
+            console.log(data);
+            document.getElementById("userInfo").innerText = data;
+          } else {
+            console.log("Graph API call failed:", response);
+          }
+        } 
+      } catch (popupError) {
+        console.error("Popup token acquisition failed:", popupError);
+        document.getElementById("userInfo").innerText = "Authentication failed: " + popupError.message;
+      }
+    } else {
+      document.getElementById("userInfo").innerText = "Authentication error: " + error.message;
+    }
   });
 }
 

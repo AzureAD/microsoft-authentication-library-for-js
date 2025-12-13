@@ -6,7 +6,8 @@ const cca = new msal.ConfidentialClientApplication({
     auth: {
         clientId: process.env.MSAL_CLIENT_ID,
         authority: process.env.MSAL_AUTHORITY,
-        clientSecret: process.env.MSAL_CLIENT_SECRET
+        clientSecret: process.env.MSAL_CLIENT_SECRET,
+        redirectUri: "https://localhost:3000/auth/server-redirect"
     },
     system: {
         loggerOptions: {
