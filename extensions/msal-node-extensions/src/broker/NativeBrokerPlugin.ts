@@ -8,6 +8,7 @@ import {
     AccountInfo,
     AuthenticationResult,
     AuthenticationScheme,
+    AuthError,
     ClientAuthErrorCodes,
     ClientConfigurationErrorCodes,
     Constants,
@@ -663,7 +664,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 errorTag
             );
 
-            let wrappedError;
+            let wrappedError: AuthError;
 
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
