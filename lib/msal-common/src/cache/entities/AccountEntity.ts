@@ -147,7 +147,7 @@ export class AccountEntity {
             accountDetails.environment ||
             (authority && authority.getPreferredCache());
 
-        if (!env) {
+        if (!env || env === "") {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidCacheEnvironment
             );
