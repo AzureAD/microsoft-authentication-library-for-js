@@ -269,6 +269,154 @@ describe("BaseInteractionClient", () => {
                 });
         });
 
+        it("Adds telemetry fields when authority mismatch occurs with valid values", async () => {
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows-ppe.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
+            };
+
+            // @ts-ignore
+            const addFieldsSpy = jest.spyOn(testClient.performanceClient, "addFields");
+
+            await testClient
+                // @ts-ignore
+                .getDiscoveredAuthority({
+                    requestAuthority:
+                        "https://login.microsoftonline.com/common",
+                    account: testAccount,
+                })
+                .catch((error) => {
+                    expect(error).toStrictEqual(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.authorityMismatch
+                        )
+                    );
+                });
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    discoveredAuthority: "https://login.microsoftonline.com/common/",
+                    accountEnvironment: "login.windows-ppe.net",
+                }),
+                expect.any(String)
+            );
+        });
+
+        it("Adds telemetry with normalized values when account environment is undefined", async () => {
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: undefined as any,
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
+            };
+
+            // @ts-ignore
+            const addFieldsSpy = jest.spyOn(testClient.performanceClient, "addFields");
+
+            await testClient
+                // @ts-ignore
+                .getDiscoveredAuthority({
+                    requestAuthority:
+                        "https://login.microsoftonline.com/common",
+                    account: testAccount,
+                })
+                .catch((error) => {
+                    expect(error).toStrictEqual(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.authorityMismatch
+                        )
+                    );
+                });
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    discoveredAuthority: "https://login.microsoftonline.com/common/",
+                    accountEnvironment: "(undefined)",
+                }),
+                expect.any(String)
+            );
+        });
+
+        it("Adds telemetry with normalized values when account environment is empty string", async () => {
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
+            };
+
+            // @ts-ignore
+            const addFieldsSpy = jest.spyOn(testClient.performanceClient, "addFields");
+
+            await testClient
+                // @ts-ignore
+                .getDiscoveredAuthority({
+                    requestAuthority:
+                        "https://login.microsoftonline.com/common",
+                    account: testAccount,
+                })
+                .catch((error) => {
+                    expect(error).toStrictEqual(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.authorityMismatch
+                        )
+                    );
+                });
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    discoveredAuthority: "https://login.microsoftonline.com/common/",
+                    accountEnvironment: "(empty string)",
+                }),
+                expect.any(String)
+            );
+        });
+
+        it("Adds telemetry with normalized values when account environment is whitespace-only", async () => {
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "   ",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                loginHint: "loginHint",
+            };
+
+            // @ts-ignore
+            const addFieldsSpy = jest.spyOn(testClient.performanceClient, "addFields");
+
+            await testClient
+                // @ts-ignore
+                .getDiscoveredAuthority({
+                    requestAuthority:
+                        "https://login.microsoftonline.com/common",
+                    account: testAccount,
+                })
+                .catch((error) => {
+                    expect(error).toStrictEqual(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.authorityMismatch
+                        )
+                    );
+                });
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    discoveredAuthority: "https://login.microsoftonline.com/common/",
+                    accountEnvironment: "(empty string)",
+                }),
+                expect.any(String)
+            );
+        });
+
         it("Does not throw error when authority in request or MSAL config matches with environment set for account", (done) => {
             const testAccount = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
