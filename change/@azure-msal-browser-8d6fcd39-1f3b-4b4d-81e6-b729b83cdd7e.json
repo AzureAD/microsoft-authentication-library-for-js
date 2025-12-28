@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Authority mismatch instrumentation #8212",
+  "comment": "Authority mismatch instrumentation [#8212](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8212)",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
