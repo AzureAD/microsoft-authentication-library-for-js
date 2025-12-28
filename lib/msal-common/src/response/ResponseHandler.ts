@@ -354,7 +354,7 @@ export class ResponseHandler {
         authCodePayload?: AuthorizationCodePayload
     ): CacheRecord {
         const env = authority.getPreferredCache();
-        if (!env || env === "") {
+        if (!env || env.trim() === "") {
             throw createClientAuthError(
                 ClientAuthErrorCodes.invalidCacheEnvironment
             );
