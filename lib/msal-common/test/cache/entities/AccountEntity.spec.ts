@@ -824,6 +824,10 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             "myadfs.com"
         );
     });
+    
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     it("creates a generic ADFS account", () => {
         const authorityOptions: AuthorityOptions = {

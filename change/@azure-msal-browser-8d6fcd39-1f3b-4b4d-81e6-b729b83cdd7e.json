@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Authority mismatch instrumentation",
+  "comment": "Authority mismatch instrumentation #8212",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
