@@ -236,8 +236,12 @@ export abstract class BaseInteractionClient {
 
         if (account && !discoveredAuthority.isAlias(account.environment)) {
             const normalizeValue = (value: string | undefined): string => {
-                if (!value || value.trim() === "") {
-                    return value === undefined ? "(undefined)" : "(empty string)";
+                if (value === undefined) {
+                    return "(undefined)";
+                }
+
+                if (value.trim() === "") {
+                    return "(empty string)";
                 }
                 return value;
             };
