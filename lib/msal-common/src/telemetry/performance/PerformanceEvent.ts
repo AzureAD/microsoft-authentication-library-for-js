@@ -883,6 +883,10 @@ export type PerformanceEvent = {
 
     accountType?: "AAD" | "MSA" | "B2C";
 
+    // Discovered authority and passed in account's authority/environment values
+    discoveredAuthority?: string;
+    accountEnvironment?: string;
+
     /**
      * Server error that triggers a request retry
      *

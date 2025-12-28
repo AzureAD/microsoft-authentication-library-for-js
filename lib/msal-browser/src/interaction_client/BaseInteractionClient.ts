@@ -235,6 +235,20 @@ export abstract class BaseInteractionClient {
         );
 
         if (account && !discoveredAuthority.isAlias(account.environment)) {
+            const normalizeValue = (value: string | undefined): string => {
+                if (!value || value.trim() === "") {
+                    return value === undefined ? "(undefined)" : "(empty string)";
+                }
+                return value;
+            };
+
+            this.performanceClient.addFields(
+                {
+                    discoveredAuthority: normalizeValue(discoveredAuthority.canonicalAuthority),
+                    accountEnvironment: normalizeValue(account.environment),
+                },
+                this.correlationId
+            );
             throw createClientConfigurationError(
                 ClientConfigurationErrorCodes.authorityMismatch
             );
