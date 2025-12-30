@@ -280,7 +280,10 @@ describe("BaseInteractionClient", () => {
             };
 
             // @ts-ignore
-            const addFieldsSpy = jest.spyOn(testClient.performanceClient, "addFields");
+            const addFieldsSpy = jest.spyOn(
+                testClient.performanceClient,
+                "addFields"
+            );
 
             await testClient
                 // @ts-ignore
@@ -299,7 +302,8 @@ describe("BaseInteractionClient", () => {
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    discoveredAuthority: "https://login.microsoftonline.com/common/",
+                    discoveredAuthority:
+                        "https://login.microsoftonline.com/common/",
                     accountEnvironment: "login.windows-ppe.net",
                 }),
                 expect.any(String)
@@ -317,7 +321,10 @@ describe("BaseInteractionClient", () => {
             };
 
             // @ts-ignore
-            const addFieldsSpy = jest.spyOn(testClient.performanceClient, "addFields");
+            const addFieldsSpy = jest.spyOn(
+                testClient.performanceClient,
+                "addFields"
+            );
 
             await testClient
                 // @ts-ignore
@@ -336,7 +343,8 @@ describe("BaseInteractionClient", () => {
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    discoveredAuthority: "https://login.microsoftonline.com/common/",
+                    discoveredAuthority:
+                        "https://login.microsoftonline.com/common/",
                     accountEnvironment: "(undefined)",
                 }),
                 expect.any(String)
@@ -354,7 +362,10 @@ describe("BaseInteractionClient", () => {
             };
 
             // @ts-ignore
-            const addFieldsSpy = jest.spyOn(testClient.performanceClient, "addFields");
+            const addFieldsSpy = jest.spyOn(
+                testClient.performanceClient,
+                "addFields"
+            );
 
             await testClient
                 // @ts-ignore
@@ -373,7 +384,8 @@ describe("BaseInteractionClient", () => {
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    discoveredAuthority: "https://login.microsoftonline.com/common/",
+                    discoveredAuthority:
+                        "https://login.microsoftonline.com/common/",
                     accountEnvironment: "(empty string)",
                 }),
                 expect.any(String)
@@ -391,7 +403,10 @@ describe("BaseInteractionClient", () => {
             };
 
             // @ts-ignore
-            const addFieldsSpy = jest.spyOn(testClient.performanceClient, "addFields");
+            const addFieldsSpy = jest.spyOn(
+                testClient.performanceClient,
+                "addFields"
+            );
 
             await testClient
                 // @ts-ignore
@@ -410,7 +425,8 @@ describe("BaseInteractionClient", () => {
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    discoveredAuthority: "https://login.microsoftonline.com/common/",
+                    discoveredAuthority:
+                        "https://login.microsoftonline.com/common/",
                     accountEnvironment: "(empty string)",
                 }),
                 expect.any(String)

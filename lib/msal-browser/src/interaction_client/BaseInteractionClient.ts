@@ -248,7 +248,9 @@ export abstract class BaseInteractionClient {
 
             this.performanceClient.addFields(
                 {
-                    discoveredAuthority: normalizeValue(discoveredAuthority.canonicalAuthority),
+                    discoveredAuthority: normalizeValue(
+                        discoveredAuthority.canonicalAuthority
+                    ),
                     accountEnvironment: normalizeValue(account.environment),
                 },
                 this.correlationId
