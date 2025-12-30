@@ -824,7 +824,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             "myadfs.com"
         );
     });
-    
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
@@ -964,8 +964,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         };
 
         it("throws invalidCacheEnvironment when authority.getPreferredCache() returns empty string and no environment provided", () => {
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue("");
-            
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("");
+
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
@@ -986,8 +989,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         });
 
         it("throws invalidCacheEnvironment when authority.getPreferredCache() returns undefined and no environment provided", () => {
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(undefined as any);
-            
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue(undefined as any);
+
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
@@ -1008,8 +1014,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         });
 
         it("throws invalidCacheEnvironment when accountDetails.environment is empty string and authority.getPreferredCache() also returns empty string", () => {
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue("");
-            
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("");
+
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
@@ -1031,8 +1040,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         });
 
         it("uses accountDetails.environment when provided, even if authority.getPreferredCache() would fail", () => {
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue("");
-            
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("");
+
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
@@ -1055,8 +1067,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         });
 
         it("throws invalidCacheEnvironment when authority.getPreferredCache() returns null and no environment in accountDetails", () => {
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(null as any);
-            
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue(null as any);
+
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,

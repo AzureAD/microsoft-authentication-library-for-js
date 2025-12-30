@@ -281,7 +281,7 @@ describe("BaseInteractionClient", () => {
 
             // @ts-ignore
             const addFieldsSpy = jest.spyOn(
-                testClient.performanceClient,
+                (testClient as any).performanceClient,
                 "addFields"
             );
 
@@ -322,7 +322,7 @@ describe("BaseInteractionClient", () => {
 
             // @ts-ignore
             const addFieldsSpy = jest.spyOn(
-                testClient.performanceClient,
+                (testClient as any).performanceClient,
                 "addFields"
             );
 
@@ -363,7 +363,7 @@ describe("BaseInteractionClient", () => {
 
             // @ts-ignore
             const addFieldsSpy = jest.spyOn(
-                testClient.performanceClient,
+                (testClient as any).performanceClient,
                 "addFields"
             );
 
@@ -404,7 +404,7 @@ describe("BaseInteractionClient", () => {
 
             // @ts-ignore
             const addFieldsSpy = jest.spyOn(
-                testClient.performanceClient,
+                (testClient as any).performanceClient,
                 "addFields"
             );
 
