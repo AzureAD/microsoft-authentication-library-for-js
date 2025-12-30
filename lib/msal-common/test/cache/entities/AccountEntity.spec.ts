@@ -1032,7 +1032,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
                     {
                         homeAccountId,
                         idTokenClaims: idTokenClaims,
-                        environment: "", // Explicitly passing empty string, but it's falsy so falls through to authority
+                        environment: "", // Explicitly passing empty string; authority.getPreferredCache() also returns "", so validation treats env as invalid and throws
                     },
                     authority
                 );
