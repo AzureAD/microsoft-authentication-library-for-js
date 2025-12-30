@@ -818,6 +818,171 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 });
 
+// Generic tests for environment validation in createAccount
+describe("createAccount environment error scenarios", () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    const idTokenClaims = {
+        ver: "2.0",
+        iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+        sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+        exp: 1536361411,
+        name: "Abe Lincoln",
+        preferred_username: "AbeLi@microsoft.com",
+        oid: "00000000-0000-0000-66f3-3332eca7ea81",
+        tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+        nonce: "123523",
+    };
+
+    it("throws invalidCacheEnvironment when authority.getPreferredCache() returns empty string and no environment provided", () => {
+        jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+            ""
+        );
+
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idTokenClaims
+        );
+
+        expect(() => {
+            AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                },
+                authority
+            );
+        }).toThrow("invalid_cache_environment");
+    });
+
+    it("throws invalidCacheEnvironment when authority.getPreferredCache() returns whitespace-only string and no environment provided", () => {
+        jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+            " "
+        );
+
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idTokenClaims
+        );
+
+        expect(() => {
+            AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                },
+                authority
+            );
+        }).toThrow("invalid_cache_environment");
+    });
+
+    it("throws invalidCacheEnvironment when authority.getPreferredCache() returns undefined and no environment provided", () => {
+        jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+            undefined as any
+        );
+
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idTokenClaims
+        );
+
+        expect(() => {
+            AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                },
+                authority
+            );
+        }).toThrow("invalid_cache_environment");
+    });
+
+    it("throws invalidCacheEnvironment when accountDetails.environment is empty string and authority.getPreferredCache() also returns empty string", () => {
+        jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+            ""
+        );
+
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idTokenClaims
+        );
+
+        expect(() => {
+            AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    environment: "",
+                },
+                authority
+            );
+        }).toThrow("invalid_cache_environment");
+    });
+
+    it("uses accountDetails.environment when provided, even if authority.getPreferredCache() would fail", () => {
+        jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+            ""
+        );
+
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idTokenClaims
+        );
+
+        const acc = AccountEntity.createAccount(
+            {
+                homeAccountId,
+                idTokenClaims: idTokenClaims,
+                environment: "custom.environment.com",
+            },
+            authority
+        );
+
+        expect(acc.environment).toBe("custom.environment.com");
+    });
+
+    it("throws invalidCacheEnvironment when authority.getPreferredCache() returns null and no environment in accountDetails", () => {
+        jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+            null as any
+        );
+
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            AuthorityType.Default,
+            logger,
+            cryptoInterface,
+            idTokenClaims
+        );
+
+        expect(() => {
+            AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                },
+                authority
+            );
+        }).toThrow("invalid_cache_environment");
+    });
+});
+
 describe("AccountEntity.ts Unit Tests for ADFS", () => {
     beforeEach(() => {
         jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
@@ -948,147 +1113,5 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(acc.localAccountId).toBe(idTokenClaims.sub);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-    });
-
-    describe("createAccount error scenarios", () => {
-        const idTokenClaims = {
-            ver: "2.0",
-            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            exp: 1536361411,
-            name: "Abe Lincoln",
-            preferred_username: "AbeLi@microsoft.com",
-            oid: "00000000-0000-0000-66f3-3332eca7ea81",
-            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-            nonce: "123523",
-        };
-
-        it("throws invalidCacheEnvironment when authority.getPreferredCache() returns empty string and no environment provided", () => {
-            jest.spyOn(
-                Authority.prototype,
-                "getPreferredCache"
-            ).mockReturnValue("");
-
-            const homeAccountId = AccountEntity.generateHomeAccountId(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-                AuthorityType.Default,
-                logger,
-                cryptoInterface,
-                idTokenClaims
-            );
-
-            expect(() => {
-                AccountEntity.createAccount(
-                    {
-                        homeAccountId,
-                        idTokenClaims: idTokenClaims,
-                    },
-                    authority
-                );
-            }).toThrow("invalid_cache_environment");
-        });
-
-        it("throws invalidCacheEnvironment when authority.getPreferredCache() returns undefined and no environment provided", () => {
-            jest.spyOn(
-                Authority.prototype,
-                "getPreferredCache"
-            ).mockReturnValue(undefined as any);
-
-            const homeAccountId = AccountEntity.generateHomeAccountId(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-                AuthorityType.Default,
-                logger,
-                cryptoInterface,
-                idTokenClaims
-            );
-
-            expect(() => {
-                AccountEntity.createAccount(
-                    {
-                        homeAccountId,
-                        idTokenClaims: idTokenClaims,
-                    },
-                    authority
-                );
-            }).toThrow("invalid_cache_environment");
-        });
-
-        it("throws invalidCacheEnvironment when accountDetails.environment is empty string and authority.getPreferredCache() also returns empty string", () => {
-            jest.spyOn(
-                Authority.prototype,
-                "getPreferredCache"
-            ).mockReturnValue("");
-
-            const homeAccountId = AccountEntity.generateHomeAccountId(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-                AuthorityType.Default,
-                logger,
-                cryptoInterface,
-                idTokenClaims
-            );
-
-            expect(() => {
-                AccountEntity.createAccount(
-                    {
-                        homeAccountId,
-                        idTokenClaims: idTokenClaims,
-                        environment: "", // Explicitly passing empty string; authority.getPreferredCache() also returns "", so validation treats env as invalid and throws
-                    },
-                    authority
-                );
-            }).toThrow("invalid_cache_environment");
-        });
-
-        it("uses accountDetails.environment when provided, even if authority.getPreferredCache() would fail", () => {
-            jest.spyOn(
-                Authority.prototype,
-                "getPreferredCache"
-            ).mockReturnValue("");
-
-            const homeAccountId = AccountEntity.generateHomeAccountId(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-                AuthorityType.Default,
-                logger,
-                cryptoInterface,
-                idTokenClaims
-            );
-
-            // Should NOT throw because accountDetails.environment is provided
-            const acc = AccountEntity.createAccount(
-                {
-                    homeAccountId,
-                    idTokenClaims: idTokenClaims,
-                    environment: "custom.environment.com",
-                },
-                authority
-            );
-
-            expect(acc.environment).toBe("custom.environment.com");
-        });
-
-        it("throws invalidCacheEnvironment when authority.getPreferredCache() returns null and no environment in accountDetails", () => {
-            jest.spyOn(
-                Authority.prototype,
-                "getPreferredCache"
-            ).mockReturnValue(null as any);
-
-            const homeAccountId = AccountEntity.generateHomeAccountId(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-                AuthorityType.Default,
-                logger,
-                cryptoInterface,
-                idTokenClaims
-            );
-
-            expect(() => {
-                AccountEntity.createAccount(
-                    {
-                        homeAccountId,
-                        idTokenClaims: idTokenClaims,
-                    },
-                    authority
-                );
-            }).toThrow("invalid_cache_environment");
-        });
     });
 });
