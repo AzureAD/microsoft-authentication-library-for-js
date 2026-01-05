@@ -53,6 +53,7 @@ import {
     AccountInfo,
     buildTenantProfile,
     updateAccountTenantProfileData,
+    AccountSource,
 } from "../account/AccountInfo.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
@@ -628,7 +629,8 @@ export function buildAccountToCache(
     claimsTenantId?: string | null,
     authCodePayload?: AuthorizationCodePayload,
     nativeAccountId?: string,
-    logger?: Logger
+    logger?: Logger,
+    accountSource?: AccountSource
 ): AccountEntity {
     logger?.verbose("setCachedAccount called");
 
@@ -654,6 +656,7 @@ export function buildAccountToCache(
                 cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
                 msGraphHost: authCodePayload?.msgraph_host,
                 nativeAccountId: nativeAccountId,
+                accountSource: accountSource ?? "msal",
             },
             authority,
             base64Decode

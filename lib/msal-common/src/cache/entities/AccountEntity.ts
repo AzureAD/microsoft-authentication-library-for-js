@@ -12,6 +12,7 @@ import {
     TenantProfile,
     buildTenantProfile,
     DataBoundary,
+    AccountSource,
 } from "../../account/AccountInfo.js";
 import {
     createClientAuthError,
@@ -66,6 +67,7 @@ export class AccountEntity {
     tenantProfiles?: Array<TenantProfile>;
     lastUpdatedAt: string;
     dataBoundary?: DataBoundary;
+    accountSource?: AccountSource;
 
     /**
      * Returns the AccountInfo interface for this account.
@@ -88,6 +90,7 @@ export class AccountEntity {
                 })
             ),
             dataBoundary: accountEntity.dataBoundary,
+            accountSource: accountEntity.accountSource,
         };
     }
 
@@ -112,6 +115,7 @@ export class AccountEntity {
             environment?: string;
             nativeAccountId?: string;
             tenantProfiles?: Array<TenantProfile>;
+            accountSource?: AccountSource;
         },
         authority: Authority,
         base64Decode?: (input: string) => string
@@ -198,6 +202,8 @@ export class AccountEntity {
             account.tenantProfiles = [tenantProfile];
         }
 
+        account.accountSource = accountDetails.accountSource;
+
         return account;
     }
 
@@ -235,6 +241,7 @@ export class AccountEntity {
             accountInfo.tenantProfiles?.values() || []
         );
         account.dataBoundary = accountInfo.dataBoundary;
+        account.accountSource = accountInfo.accountSource;
 
         return account;
     }

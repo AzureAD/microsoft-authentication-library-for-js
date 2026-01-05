@@ -8,6 +8,21 @@ import { TokenClaims } from "./TokenClaims.js";
 export type DataBoundary = "EU" | "None";
 
 /**
+ * Indicates the source of how an account was created and cached.
+ * - "msal" - Account was created directly by MSAL from a network token response
+ * - "external" - Account was loaded from an external source via loadExternalTokens
+ * - "pwb" - Account was cached from a pairwise broker response (e.g., PairwiseBrokerApplication)
+ * - "naa" - Account was cached from a nested app auth host response (e.g., EmbeddedClientApplication)
+ * - "platform_broker" - Account was cached from a native/platform broker response (e.g., WAM)
+ */
+export type AccountSource =
+    | "msal"
+    | "external"
+    | "pwb"
+    | "naa"
+    | "platform_broker";
+
+/**
  * Account object with the following signature:
  * - homeAccountId          - Home account identifier for this account object
  * - environment            - Entity which issued the token represented by the domain of the issuer (e.g. login.microsoftonline.com)
@@ -20,6 +35,7 @@ export type DataBoundary = "EU" | "None";
  * - nativeAccountId        - The user's native account ID
  * - tenantProfiles         - Map of tenant profile objects for each tenant that the account has authenticated with in the browser
  * - dataBoundary           - Data boundary extracted from clientInfo
+ * - accountSource          - Source of how the account was created (msal, external, broker, pwb, naa, or platform_broker)
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -43,6 +59,7 @@ export type AccountInfo = {
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
     dataBoundary?: DataBoundary;
+    accountSource?: AccountSource;
 };
 
 /**

@@ -1620,7 +1620,10 @@ export class StandardController implements IController {
 
         // Account gets saved to browser storage regardless of native or not
         const accountEntity = AccountEntity.createFromAccountInfo(
-            result.account,
+            {
+                ...result.account,
+                accountSource: "pwb",
+            },
             result.cloudGraphHostName,
             result.msGraphHost
         );

@@ -185,9 +185,10 @@ export class TokenCache implements ITokenCache {
         this.logger.verbose("TokenCache - loading account");
 
         if (request.account) {
-            const accountEntity = AccountEntity.createFromAccountInfo(
-                request.account
-            );
+            const accountEntity = AccountEntity.createFromAccountInfo({
+                ...request.account,
+                accountSource: "external",
+            });
             await this.storage.setAccount(
                 accountEntity,
                 correlationId,
@@ -225,7 +226,8 @@ export class TokenCache implements ITokenCache {
             claimsTenantId,
             undefined, // authCodePayload
             undefined, // nativeAccountId
-            this.logger
+            this.logger,
+            "external" // accountSource
         );
 
         await this.storage.setAccount(

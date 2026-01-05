@@ -932,7 +932,10 @@ export class NestedAppAuthController implements IController {
         this.logger.verbose("hydrateCache called");
 
         const accountEntity = AccountEntity.createFromAccountInfo(
-            result.account,
+            {
+                ...result.account,
+                accountSource: "naa",
+            },
             result.cloudGraphHostName,
             result.msGraphHost
         );

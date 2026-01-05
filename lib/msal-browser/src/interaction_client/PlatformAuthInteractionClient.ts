@@ -517,7 +517,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             idTokenClaims.tid,
             undefined, // auth code payload
             response.account.id,
-            this.logger
+            this.logger,
+            "platform_broker" // accountSource - response from native/platform broker (WAM)
         );
 
         // Ensure expires_in is in number format
