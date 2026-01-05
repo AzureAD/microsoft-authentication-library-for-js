@@ -258,6 +258,7 @@ export const mockAccountInfo: AccountInfo = {
         ],
     ]),
     dataBoundary: undefined,
+    accountSource: undefined,
 };
 
 export const mockNativeAccountInfo: AccountInfo = {
