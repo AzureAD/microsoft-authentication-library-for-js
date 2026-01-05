@@ -1,5 +1,8 @@
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
-import { ResponseHandler } from "../../src/response/ResponseHandler.js";
+import {
+    ResponseHandler,
+    buildAccountToCache,
+} from "../../src/response/ResponseHandler.js";
 import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,
@@ -975,6 +978,112 @@ describe("ResponseHandler.ts", () => {
                     CacheErrorMessages[CacheErrorCodes.cacheErrorUnknown]
                 );
             }
+        });
+    });
+
+    describe("buildAccountToCache", () => {
+        it("defaults accountSource to 'msal' when not provided", () => {
+            jest.restoreAllMocks();
+            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+                "login.microsoftonline.com"
+            );
+
+            const account = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                cryptoInterface.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                ID_TOKEN_CLAIMS as TokenClaims,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                undefined, // environment
+                undefined, // claimsTenantId
+                undefined, // authCodePayload
+                undefined, // nativeAccountId
+                logger,
+                undefined // accountSource - not provided
+            );
+
+            expect(account.accountSource).toBe("msal");
+        });
+
+        it("sets accountSource to provided value", () => {
+            jest.restoreAllMocks();
+            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+                "login.microsoftonline.com"
+            );
+
+            const account = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                cryptoInterface.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                ID_TOKEN_CLAIMS as TokenClaims,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                undefined, // environment
+                undefined, // claimsTenantId
+                undefined, // authCodePayload
+                undefined, // nativeAccountId
+                logger,
+                "platform_broker"
+            );
+
+            expect(account.accountSource).toBe("platform_broker");
+        });
+
+        it("sets accountSource to 'external' for external tokens", () => {
+            jest.restoreAllMocks();
+            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+                "login.microsoftonline.com"
+            );
+
+            const account = buildAccountToCache(
+                testCacheManager,
+                testAuthority,
+                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                cryptoInterface.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                ID_TOKEN_CLAIMS as TokenClaims,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                undefined, // environment
+                undefined, // claimsTenantId
+                undefined, // authCodePayload
+                undefined, // nativeAccountId
+                logger,
+                "external"
+            );
+
+            expect(account.accountSource).toBe("external");
+        });
+
+        it("sets accountSource for all valid broker types", () => {
+            jest.restoreAllMocks();
+            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+                "login.microsoftonline.com"
+            );
+
+            const brokerSources = ["pwb", "naa", "platform_broker"] as const;
+
+            brokerSources.forEach((source) => {
+                const account = buildAccountToCache(
+                    testCacheManager,
+                    testAuthority,
+                    TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                    cryptoInterface.base64Decode,
+                    TEST_CONFIG.CORRELATION_ID,
+                    ID_TOKEN_CLAIMS as TokenClaims,
+                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    undefined, // environment
+                    undefined, // claimsTenantId
+                    undefined, // authCodePayload
+                    undefined, // nativeAccountId
+                    logger,
+                    source
+                );
+
+                expect(account.accountSource).toBe(source);
+            });
         });
     });
 });

@@ -945,4 +945,129 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.sub);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
     });
+
+    describe("accountSource", () => {
+        const idTokenClaims = {
+            ver: "2.0",
+            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            exp: 1536361411,
+            name: "Abe Lincoln",
+            preferred_username: "AbeLi@microsoft.com",
+            oid: "00000000-0000-0000-66f3-3332eca7ea81",
+            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            nonce: "123523",
+        };
+
+        it("createAccount does not set accountSource when not provided", () => {
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                },
+                authority
+            );
+
+            expect(acc.accountSource).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).accountSource
+            ).toBeUndefined();
+        });
+
+        it("createAccount sets accountSource when provided", () => {
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idTokenClaims
+            );
+
+            const acc = AccountEntity.createAccount(
+                {
+                    homeAccountId,
+                    idTokenClaims: idTokenClaims,
+                    accountSource: "platform_broker",
+                },
+                authority
+            );
+
+            expect(acc.accountSource).toBe("platform_broker");
+            expect(AccountEntity.getAccountInfo(acc).accountSource).toBe(
+                "platform_broker"
+            );
+        });
+
+        it("createFromAccountInfo preserves accountSource from AccountInfo", () => {
+            const testAccountInfo: AccountInfo = {
+                homeAccountId:
+                    TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                environment: PREFERRED_CACHE_ALIAS,
+                tenantId: idTokenClaims.tid,
+                username: "AbeLi@microsoft.com",
+                localAccountId: idTokenClaims.oid,
+                accountSource: "external",
+            };
+
+            const acc = AccountEntity.createFromAccountInfo(testAccountInfo);
+
+            expect(acc.accountSource).toBe("external");
+            expect(AccountEntity.getAccountInfo(acc).accountSource).toBe(
+                "external"
+            );
+        });
+
+        it("createFromAccountInfo does not set accountSource when not provided", () => {
+            const testAccountInfo: AccountInfo = {
+                homeAccountId:
+                    TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                environment: PREFERRED_CACHE_ALIAS,
+                tenantId: idTokenClaims.tid,
+                username: "AbeLi@microsoft.com",
+                localAccountId: idTokenClaims.oid,
+            };
+
+            const acc = AccountEntity.createFromAccountInfo(testAccountInfo);
+
+            expect(acc.accountSource).toBeUndefined();
+            expect(
+                AccountEntity.getAccountInfo(acc).accountSource
+            ).toBeUndefined();
+        });
+
+        it("getAccountInfo returns accountSource for all valid values", () => {
+            const accountSources = [
+                "msal",
+                "external",
+                "pwb",
+                "naa",
+                "platform_broker",
+            ] as const;
+
+            accountSources.forEach((source) => {
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId:
+                        TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                    environment: PREFERRED_CACHE_ALIAS,
+                    tenantId: idTokenClaims.tid,
+                    username: "AbeLi@microsoft.com",
+                    localAccountId: idTokenClaims.oid,
+                    accountSource: source,
+                };
+
+                const acc = AccountEntity.createFromAccountInfo(testAccountInfo);
+                const accountInfo = AccountEntity.getAccountInfo(acc);
+
+                expect(accountInfo.accountSource).toBe(source);
+            });
+        });
+    });
 });
