@@ -1433,10 +1433,10 @@ export class StandardController implements IController {
             AccountEntityUtils.createAccountEntityFromAccountInfo(
                 {
                     ...result.account,
-                    accountSource: "pwb"
+                    accountSource: "pwb",
                 },
                 result.cloudGraphHostName,
-                result.msGraphHost,
+                result.msGraphHost
             );
         await this.browserStorage.setAccount(
             accountEntity,

@@ -186,12 +186,10 @@ async function loadAccount(
 
     if (request.account) {
         const accountEntity =
-            AccountEntityUtils.createAccountEntityFromAccountInfo(
-                { 
-                    ...request.account,
-                    accountSource: "external"
-                },
-            );
+            AccountEntityUtils.createAccountEntityFromAccountInfo({
+                ...request.account,
+                accountSource: "external",
+            });
         await storage.setAccount(
             accountEntity,
             correlationId,

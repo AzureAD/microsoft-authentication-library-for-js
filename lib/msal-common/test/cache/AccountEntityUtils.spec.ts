@@ -27,7 +27,7 @@ import {
     generateAccountKey,
     mockCrypto,
 } from "../client/ClientTestUtils.js";
-import { TenantProfile } from "../../src/account/AccountInfo.js";
+import { AccountInfo, TenantProfile } from "../../src/account/AccountInfo.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import { LogLevel, Logger } from "../../src/logger/Logger.js";
@@ -745,15 +745,16 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         };
 
         it("createAccount does not set accountSource when not provided", () => {
-            const homeAccountId = AccountEntity.generateHomeAccountId(
+            const homeAccountId = AccountEntityUtils.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
+                TEST_CONFIG.CORRELATION_ID,
                 idTokenClaims
             );
 
-            const acc = AccountEntity.createAccount(
+            const acc = AccountEntityUtils.createAccountEntity(
                 {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
@@ -763,20 +764,21 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
 
             expect(acc.accountSource).toBeUndefined();
             expect(
-                AccountEntity.getAccountInfo(acc).accountSource
+                AccountEntityUtils.getAccountInfo(acc).accountSource
             ).toBeUndefined();
         });
 
         it("createAccount sets accountSource when provided", () => {
-            const homeAccountId = AccountEntity.generateHomeAccountId(
+            const homeAccountId = AccountEntityUtils.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
+                TEST_CONFIG.CORRELATION_ID,
                 idTokenClaims
             );
 
-            const acc = AccountEntity.createAccount(
+            const acc = AccountEntityUtils.createAccountEntity(
                 {
                     homeAccountId,
                     idTokenClaims: idTokenClaims,
@@ -786,7 +788,7 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
             );
 
             expect(acc.accountSource).toBe("platform_broker");
-            expect(AccountEntity.getAccountInfo(acc).accountSource).toBe(
+            expect(AccountEntityUtils.getAccountInfo(acc).accountSource).toBe(
                 "platform_broker"
             );
         });
@@ -802,10 +804,13 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                 accountSource: "external",
             };
 
-            const acc = AccountEntity.createFromAccountInfo(testAccountInfo);
+            const acc =
+                AccountEntityUtils.createAccountEntityFromAccountInfo(
+                    testAccountInfo
+                );
 
             expect(acc.accountSource).toBe("external");
-            expect(AccountEntity.getAccountInfo(acc).accountSource).toBe(
+            expect(AccountEntityUtils.getAccountInfo(acc).accountSource).toBe(
                 "external"
             );
         });
@@ -820,11 +825,14 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                 localAccountId: idTokenClaims.oid,
             };
 
-            const acc = AccountEntity.createFromAccountInfo(testAccountInfo);
+            const acc =
+                AccountEntityUtils.createAccountEntityFromAccountInfo(
+                    testAccountInfo
+                );
 
             expect(acc.accountSource).toBeUndefined();
             expect(
-                AccountEntity.getAccountInfo(acc).accountSource
+                AccountEntityUtils.getAccountInfo(acc).accountSource
             ).toBeUndefined();
         });
 
@@ -849,8 +857,10 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
                 };
 
                 const acc =
-                    AccountEntity.createFromAccountInfo(testAccountInfo);
-                const accountInfo = AccountEntity.getAccountInfo(acc);
+                    AccountEntityUtils.createAccountEntityFromAccountInfo(
+                        testAccountInfo
+                    );
+                const accountInfo = AccountEntityUtils.getAccountInfo(acc);
 
                 expect(accountInfo.accountSource).toBe(source);
             });

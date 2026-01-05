@@ -89,6 +89,7 @@ const TEST_ACCOUNT_INFO: AccountInfo = {
     ...AccountEntityUtils.getAccountInfo(testAccountEntity),
     idTokenClaims: ID_TOKEN_CLAIMS,
     idToken: TEST_TOKENS.IDTOKEN_V2,
+    accountSource: "platform_broker",
 };
 
 const TEST_ID_TOKEN: IdTokenEntity = buildIdToken(

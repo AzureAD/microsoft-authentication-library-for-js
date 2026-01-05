@@ -553,6 +553,7 @@ export const TEST_ACCOUNT_INFO: AccountInfo = {
     name: ID_TOKEN_CLAIMS.name,
     nativeAccountId: undefined,
     tenantProfiles: testTenantProfilesMap,
+    accountSource: "msal",
 };
 
 export function getTestAuthenticationResult(): AuthenticationResult {

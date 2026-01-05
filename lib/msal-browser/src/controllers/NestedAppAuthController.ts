@@ -829,12 +829,12 @@ export class NestedAppAuthController implements IController {
 
         const accountEntity =
             AccountEntityUtils.createAccountEntityFromAccountInfo(
-                { 
+                {
                     ...result.account,
-                    accountSource: "naa"
+                    accountSource: "naa",
                 },
                 result.cloudGraphHostName,
-                result.msGraphHost,
+                result.msGraphHost
             );
         await this.browserStorage.setAccount(
             accountEntity,

@@ -223,6 +223,7 @@ describe("TokenCache tests", () => {
             const testAccountInfo = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, undefined, {
                     environment: testEnvironment,
+                    accountSource: "external",
                 })
             );
             const testAccountKey =
@@ -562,7 +563,8 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const result = await tokenCache.loadExternalTokens(
+            const result = await loadExternalTokens(
+                configuration,
                 request,
                 response,
                 options
