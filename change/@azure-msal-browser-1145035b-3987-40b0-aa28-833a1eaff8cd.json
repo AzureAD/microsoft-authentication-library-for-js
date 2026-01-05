@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": " Add accountSource when caching an account #8213",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
