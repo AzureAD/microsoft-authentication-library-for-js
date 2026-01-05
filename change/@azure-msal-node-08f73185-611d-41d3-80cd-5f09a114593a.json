@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Add accountSource when caching an account 8213",
+  "comment": "Add accountSource when caching an account [#8213](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8213)",
   "packageName": "@azure/msal-node",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "none"
