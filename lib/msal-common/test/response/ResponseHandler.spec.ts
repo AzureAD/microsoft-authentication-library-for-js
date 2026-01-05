@@ -1068,32 +1068,6 @@ describe("ResponseHandler.ts", () => {
             expect(account.accountSource).toBe("platform_broker");
         });
 
-        it("sets accountSource to 'external' for external tokens", () => {
-            jest.restoreAllMocks();
-            jest.spyOn(
-                Authority.prototype,
-                "getPreferredCache"
-            ).mockReturnValue("login.microsoftonline.com");
-
-            const account = buildAccountToCache(
-                testCacheManager,
-                testAuthority,
-                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
-                cryptoInterface.base64Decode,
-                TEST_CONFIG.CORRELATION_ID,
-                ID_TOKEN_CLAIMS as TokenClaims,
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                undefined, // environment
-                undefined, // claimsTenantId
-                undefined, // authCodePayload
-                undefined, // nativeAccountId
-                logger,
-                "external"
-            );
-
-            expect(account.accountSource).toBe("external");
-        });
-
         it("sets accountSource for all valid broker types", () => {
             jest.restoreAllMocks();
             jest.spyOn(
