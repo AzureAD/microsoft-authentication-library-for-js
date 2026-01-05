@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DataBoundary } from "../../account/AccountInfo.js";
+import { AccountSource, DataBoundary } from "../../account/AccountInfo.js";
 
 /**
  * Enumeration of operations that are instrumented by have their performance measured by the PerformanceClient.
@@ -916,6 +916,11 @@ export type PerformanceEvent = {
     navigateCallbackResult?: boolean;
 
     dataBoundary?: DataBoundary;
+
+    /**
+     * Source of how the account was created (msal, external, pwb, naa, platform_broker)
+     */
+    accountSource?: AccountSource;
 };
 
 export type PerformanceEventContext = {
