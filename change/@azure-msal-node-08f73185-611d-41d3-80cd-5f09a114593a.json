@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add accountSource to testconstants in Node tests",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
