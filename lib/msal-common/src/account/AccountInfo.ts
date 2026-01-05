@@ -35,7 +35,7 @@ export type AccountSource =
  * - nativeAccountId        - The user's native account ID
  * - tenantProfiles         - Map of tenant profile objects for each tenant that the account has authenticated with in the browser
  * - dataBoundary           - Data boundary extracted from clientInfo
- * - accountSource          - Source of how the account was created (msal, external, broker, pwb, naa, or platform_broker)
+ * - accountSource          - Source of how the account was created (msal, external, pwb, naa, or platform_broker)
  */
 export type AccountInfo = {
     homeAccountId: string;
