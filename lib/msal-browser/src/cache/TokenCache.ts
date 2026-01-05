@@ -22,6 +22,7 @@ import {
     TimeUtils,
     AccountEntityUtils,
     buildStaticAuthorityOptions,
+    AccountSource,
 } from "@azure/msal-common/browser";
 import { buildConfiguration, Configuration } from "../config/Configuration.js";
 import type { SilentRequest } from "../request/SilentRequest.js";
@@ -110,7 +111,8 @@ export async function loadExternalTokens(
         logger,
         cryptoOps,
         idTokenClaims,
-        authority
+        authority,
+        "external"
     );
 
     const idToken = await loadIdToken(
@@ -180,7 +182,8 @@ async function loadAccount(
     logger: Logger,
     cryptoObj: ICrypto,
     idTokenClaims?: TokenClaims,
-    authority?: Authority
+    authority?: Authority,
+    accountSource?: AccountSource
 ): Promise<AccountEntity> {
     logger.verbose("TokenCache - loading account", correlationId);
 
@@ -228,7 +231,7 @@ async function loadAccount(
         undefined, // authCodePayload
         undefined, // nativeAccountId
         logger,
-        "external" // accountSource
+        accountSource // accountSource
     );
 
     await storage.setAccount(
