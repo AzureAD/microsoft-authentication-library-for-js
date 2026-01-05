@@ -1063,7 +1063,8 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
                     accountSource: source,
                 };
 
-                const acc = AccountEntity.createFromAccountInfo(testAccountInfo);
+                const acc =
+                    AccountEntity.createFromAccountInfo(testAccountInfo);
                 const accountInfo = AccountEntity.getAccountInfo(acc);
 
                 expect(accountInfo.accountSource).toBe(source);
