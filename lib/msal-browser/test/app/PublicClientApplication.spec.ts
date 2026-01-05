@@ -7699,7 +7699,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("hydrateCache tests", () => {
         const testAccount: AccountInfo = {
             ...AccountEntity.getAccountInfo(
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, undefined, {
+                    accountSource: "pwb",
+                })
             ),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,

@@ -217,7 +217,10 @@ describe("TokenCache tests", () => {
             const accountEntity = buildAccountFromIdTokenClaims(
                 ID_TOKEN_CLAIMS,
                 undefined,
-                { environment: testEnvironment }
+                {
+                    environment: testEnvironment,
+                    accountSource: "external",
+                }
             );
             const testAccountInfo = AccountEntity.getAccountInfo(accountEntity);
             const testAccountKey =

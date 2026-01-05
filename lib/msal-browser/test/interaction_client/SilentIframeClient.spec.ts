@@ -714,6 +714,7 @@ describe("SilentIframeClient", () => {
                 ]),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                accountSource: "msal",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
