@@ -545,5 +545,35 @@ describe("TokenCache tests", () => {
                 false
             );
         });
+
+        it("sets accountSource to 'external' when loading external tokens", async () => {
+            const setAccountSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setAccount"
+            );
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+            };
+            const options: LoadTokenOptions = {
+                clientInfo: testClientInfo,
+            };
+
+            const result = await tokenCache.loadExternalTokens(
+                request,
+                response,
+                options
+            );
+
+            expect(result.account?.accountSource).toBe("external");
+            expect(setAccountSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ accountSource: "external" }),
+                expect.anything(),
+                expect.anything()
+            );
+        });
     });
 });
