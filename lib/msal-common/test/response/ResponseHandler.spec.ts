@@ -1018,9 +1018,10 @@ describe("ResponseHandler.ts", () => {
     describe("buildAccountToCache", () => {
         it("defaults accountSource to 'msal' when not provided", () => {
             jest.restoreAllMocks();
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
-                "login.microsoftonline.com"
-            );
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.microsoftonline.com");
 
             const account = buildAccountToCache(
                 testCacheManager,
@@ -1043,9 +1044,10 @@ describe("ResponseHandler.ts", () => {
 
         it("sets accountSource to provided value", () => {
             jest.restoreAllMocks();
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
-                "login.microsoftonline.com"
-            );
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.microsoftonline.com");
 
             const account = buildAccountToCache(
                 testCacheManager,
@@ -1068,9 +1070,10 @@ describe("ResponseHandler.ts", () => {
 
         it("sets accountSource to 'external' for external tokens", () => {
             jest.restoreAllMocks();
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
-                "login.microsoftonline.com"
-            );
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.microsoftonline.com");
 
             const account = buildAccountToCache(
                 testCacheManager,
@@ -1093,9 +1096,10 @@ describe("ResponseHandler.ts", () => {
 
         it("sets accountSource for all valid broker types", () => {
             jest.restoreAllMocks();
-            jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
-                "login.microsoftonline.com"
-            );
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.microsoftonline.com");
 
             const brokerSources = ["pwb", "naa", "platform_broker"] as const;
 

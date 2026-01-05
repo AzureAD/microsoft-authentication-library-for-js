@@ -176,7 +176,7 @@ export function createAccountEntity(
         nativeAccountId: accountDetails.nativeAccountId,
         tenantProfiles: tenantProfiles,
         dataBoundary,
-        accountSource
+        accountSource,
     } as AccountEntity;
 }
 

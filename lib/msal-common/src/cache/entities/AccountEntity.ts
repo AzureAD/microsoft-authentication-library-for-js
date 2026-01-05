@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { TenantProfile, DataBoundary, AccountSource } from "../../account/AccountInfo.js";
+import {
+    TenantProfile,
+    DataBoundary,
+    AccountSource,
+} from "../../account/AccountInfo.js";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).

@@ -338,7 +338,7 @@ export type PerformanceEvent = {
 
     // Hashed logs in the format [millis1,hash1;millis2,hash2;...]
     logs?: string;
-    
+
     /**
      * Source of how the account was created (msal, external, pwb, naa, platform_broker)
      */

@@ -148,6 +148,7 @@ export type AccountEntity = {
     tenantProfiles?: Array<TenantProfile>;
     lastUpdatedAt: string;
     dataBoundary?: DataBoundary;
+    accountSource?: AccountSource;
 };
 
 declare namespace AccountEntityUtils {
@@ -196,7 +197,13 @@ export type AccountInfo = {
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
     dataBoundary?: DataBoundary;
+    accountSource?: AccountSource;
 };
+
+// Warning: (ae-missing-release-tag) "AccountSource" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export type AccountSource = "msal" | "external" | "pwb" | "naa" | "platform_broker";
 
 // Warning: (ae-missing-release-tag) "ActiveAccountFilters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -993,7 +1000,7 @@ const BROKER_REDIRECT_URI = "brk_redirect_uri";
 // Warning: (ae-missing-release-tag) "buildAccountToCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export function buildAccountToCache(cacheStorage: CacheManager, authority: Authority, homeAccountId: string, base64Decode: (input: string) => string, correlationId: string, idTokenClaims?: TokenClaims, clientInfo?: string, environment?: string, claimsTenantId?: string | null, authCodePayload?: AuthorizationCodePayload, nativeAccountId?: string, logger?: Logger): AccountEntity;
+export function buildAccountToCache(cacheStorage: CacheManager, authority: Authority, homeAccountId: string, base64Decode: (input: string) => string, correlationId: string, idTokenClaims?: TokenClaims, clientInfo?: string, environment?: string, claimsTenantId?: string | null, authCodePayload?: AuthorizationCodePayload, nativeAccountId?: string, logger?: Logger, accountSource?: AccountSource): AccountEntity;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-incompatible-release-tags) The symbol "buildClientConfiguration" is marked as @public, but its signature references "ClientConfiguration" which is marked as @internal
@@ -1842,6 +1849,7 @@ function createAccountEntity(accountDetails: {
     environment?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
+    accountSource?: AccountSource;
 }, authority: Authority, base64Decode?: (input: string) => string): AccountEntity;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1984,6 +1992,11 @@ const CredentialType: {
 
 // @public (undocumented)
 type CredentialType = (typeof CredentialType)[keyof typeof CredentialType];
+
+// Warning: (ae-missing-release-tag) "DataBoundary" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export type DataBoundary = "EU" | "None";
 
 // Warning: (ae-missing-release-tag) "DEFAULT_AUTHORITY" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3492,6 +3505,7 @@ export type PerformanceEvent = {
     navigateCallbackResult?: boolean;
     dataBoundary?: DataBoundary;
     logs?: string;
+    accountSource?: AccountSource;
 };
 
 declare namespace PerformanceEvents {
@@ -4776,7 +4790,6 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/cache/CacheManager.ts:1840:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/CacheManager.ts:1841:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/CacheManager.ts:1849:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/entities/AccountEntity.ts:49:5 - (ae-forgotten-export) The symbol "DataBoundary" needs to be exported by the entry point index.d.ts
 // src/cache/utils/CacheTypes.ts:93:53 - (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
 // src/cache/utils/CacheTypes.ts:93:43 - (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
 // src/client/AuthorizationCodeClient.ts:221:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4796,9 +4809,9 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 // src/request/AuthenticationHeaderParser.ts:74:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:346:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/response/ResponseHandler.ts:347:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/response/ResponseHandler.ts:348:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:349:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/telemetry/performance/PerformanceClient.ts:673:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/telemetry/performance/PerformanceClient.ts:673:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
 // src/telemetry/performance/PerformanceClient.ts:685:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
