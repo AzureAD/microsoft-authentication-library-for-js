@@ -5350,6 +5350,60 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.acquireTokenSilent(silentRequest);
         });
 
+        it("emits accountSource in performance event when account has accountSource", (done) => {
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+                login_hint: "testLoginHint",
+            };
+
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
+                idTokenClaims: { ...testIdTokenClaims },
+                accountSource: "external",
+            };
+
+            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                TEST_STATE_VALUES.TEST_STATE_SILENT
+            );
+            const silentRequest: SilentRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
+            };
+
+            jest.spyOn(
+                StandardController.prototype,
+                <any>"acquireTokenSilentAsync"
+            ).mockResolvedValue({
+                fromCache: true,
+                accessToken: "abc",
+                idToken: "defg",
+                account: testAccount,
+            });
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].accountSource).toBe("external");
+
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.acquireTokenSilent(silentRequest);
+        });
+
         it("emits expect performance event when successful in case of network request", (done) => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
