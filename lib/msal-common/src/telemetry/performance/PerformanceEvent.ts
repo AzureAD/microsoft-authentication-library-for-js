@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DataBoundary } from "../../account/AccountInfo.js";
+import { AccountSource, DataBoundary } from "../../account/AccountInfo.js";
 
 /**
  * State of the performance event.
@@ -338,6 +338,11 @@ export type PerformanceEvent = {
 
     // Hashed logs in the format [millis1,hash1;millis2,hash2;...]
     logs?: string;
+    
+    /**
+     * Source of how the account was created (msal, external, pwb, naa, platform_broker)
+     */
+    accountSource?: AccountSource;
 };
 
 export type PerformanceEventContext = {

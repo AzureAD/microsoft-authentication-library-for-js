@@ -1884,6 +1884,7 @@ export class StandardController implements IController {
                         isNativeBroker: result.fromPlatformBroker,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
+                        accountSource: account.accountSource,
                     },
                     undefined,
                     result.account
@@ -1903,6 +1904,7 @@ export class StandardController implements IController {
                 atsMeasurement.end(
                     {
                         success: false,
+                        accountSource: account.accountSource,
                     },
                     error,
                     account
