@@ -38,6 +38,8 @@ export {
     updateAccountTenantProfileData,
     tenantIdMatchesHomeTenant,
     buildTenantProfile,
+    AccountSource,
+    DataBoundary,
 } from "./account/AccountInfo.js";
 export {
     TokenClaims,

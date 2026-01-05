@@ -187,7 +187,10 @@ async function loadAccount(
     if (request.account) {
         const accountEntity =
             AccountEntityUtils.createAccountEntityFromAccountInfo(
-                request.account
+                { 
+                    ...request.account,
+                    accountSource: "external"
+                },
             );
         await storage.setAccount(
             accountEntity,
@@ -226,7 +229,8 @@ async function loadAccount(
         claimsTenantId,
         undefined, // authCodePayload
         undefined, // nativeAccountId
-        logger
+        logger,
+        "external" // accountSource
     );
 
     await storage.setAccount(
