@@ -2,6 +2,47 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 06 Jan 2026 18:10:09 GMT",
+      "version": "16.0.0",
+      "tag": "@azure/msal-common_v16.0.0",
+      "comments": {
+        "none": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "d1581d98f099d9cd0077a04f82d6834457a08530",
+            "comment": "Add security guidance for state parameter usage [#8161](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8161)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4d980d2d94bd5deeaa7a571e16e96d37fe8010c7",
+            "comment": "Use cross-env for environment variable management in build scripts #8191"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 05 Dec 2025 22:01:00 GMT",
       "version": "16.0.0-beta.0",
       "tag": "@azure/msal-common_v16.0.0-beta.0",

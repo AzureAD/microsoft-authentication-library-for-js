@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Fri, 05 Dec 2025 22:01:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 06 Jan 2026 18:10:09 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.0.0
+
+Tue, 06 Jan 2026 18:10:09 GMT
+
+### Patches
+
+- Use cross-env for environment variable management in build scripts #8191 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 16.0.0-beta.0
 
