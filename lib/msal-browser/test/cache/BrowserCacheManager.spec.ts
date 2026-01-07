@@ -4,7 +4,7 @@
  */
 
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError.js";
-import { ApiId } from "../../src/utils/BrowserConstants.js";
+import { ApiId, apiIdToName } from "../../src/utils/BrowserConstants.js";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
@@ -2832,6 +2832,46 @@ describe("BrowserCacheManager tests", () => {
                     expect(
                         browserLocalStorage.getAccount(key, RANDOM_TEST_GUID)
                     ).toBeNull();
+                });
+
+                it("getAccount adds accountCachedBy telemetry field", async () => {
+                    const perfClient = new StubPerformanceClient();
+                    const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+                    const tempCache = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+                    await tempCache.initialize(TEST_CONFIG.CORRELATION_ID);
+
+                    const account = new AccountEntity();
+                    Object.assign(account, TEST_ACCOUNT_ENTITY, {
+                        cachedByApiId: ApiId.hydrateCache,
+                    });
+                    const key = tempCache.generateAccountKey(
+                        AccountEntity.getAccountInfo(account)
+                    );
+                    await tempCache.setUserData(
+                        key,
+                        JSON.stringify(account),
+                        TEST_CONFIG.CORRELATION_ID,
+                        account.lastUpdatedAt || Date.now().toString(),
+                        false
+                    );
+
+                    const result = tempCache.getAccount(
+                        key,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    expect(result?.cachedByApiId).toBe(ApiId.hydrateCache);
+                    expect(addFieldsSpy).toHaveBeenCalledWith(
+                        { accountCachedBy: apiIdToName(ApiId.hydrateCache) },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
                 });
 
                 it("getAccount returns AccountEntity", async () => {

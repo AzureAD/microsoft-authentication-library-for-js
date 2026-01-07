@@ -20,6 +20,9 @@ import {
     TEST_URIS,
     testLogoutUrl,
     verifyUrl,
+    TEST_ACCOUNT_ENTITY,
+    TEST_ID_TOKEN_ENTITY,
+    TEST_ACCESS_TOKEN_ENTITY,
 } from "../utils/StringConstants.js";
 import {
     AccountEntity,
@@ -64,6 +67,7 @@ import {
     TemporaryCacheKeys,
     WrapperSKU,
 } from "../../src/utils/BrowserConstants.js";
+import { apiIdToName } from "../../src/utils/BrowserConstants.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
@@ -2558,6 +2562,69 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     throw new Error("success path should not be reached");
                 })
                 .catch((e) => {});
+        });
+
+        it("emits accountCachedBy telemetry for acquireTokenSilent cache hit", async () => {
+            window.sessionStorage.clear();
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+            const localPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    client: perfClient,
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+
+            await localPca.initialize();
+
+            const accountEntity = new AccountEntity();
+            Object.assign(accountEntity, TEST_ACCOUNT_ENTITY, {
+                cachedByApiId: ApiId.acquireTokenSilent_silentFlow,
+                environment: "login.microsoftonline.com",
+            });
+            // @ts-ignore access test-only browserStorage
+            const browserStorage = localPca.controller.browserStorage as BrowserCacheManager;
+            await browserStorage.setAccount(
+                accountEntity,
+                RANDOM_TEST_GUID,
+                false,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            const idTokenEntity = { ...TEST_ID_TOKEN_ENTITY, environment: "login.microsoftonline.com" };
+            await browserStorage.setIdTokenCredential(
+                idTokenEntity,
+                RANDOM_TEST_GUID,
+                false
+            );
+            const accessTokenEntity = { ...TEST_ACCESS_TOKEN_ENTITY, environment: "login.microsoftonline.com" };
+            await browserStorage.setAccessTokenCredential(
+                accessTokenEntity,
+                RANDOM_TEST_GUID,
+                false
+            );
+
+            const accountInfo = localPca.getAllAccounts()[0];
+            expect(accountInfo).toBeDefined();
+
+            try {
+                const result = await localPca.acquireTokenSilent({
+                    scopes: ["user.read", "mail.read"],
+                    account: accountInfo!,
+                });
+                expect(result.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+            } catch (e) {
+                // ignore errors from iframe fallbacks; we only care that getAccount telemetry was emitted
+            }
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { accountCachedBy: apiIdToName(ApiId.acquireTokenSilent_silentFlow) },
+                expect.any(String)
+            );
         });
     });
 
