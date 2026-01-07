@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Track APIId when setting/getting accounts",
+  "comment": "Track ApiId when setting/getting accounts",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
