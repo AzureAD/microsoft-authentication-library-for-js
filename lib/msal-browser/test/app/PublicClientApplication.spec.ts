@@ -2589,20 +2589,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.microsoftonline.com",
             });
             // @ts-ignore access test-only browserStorage
-            const browserStorage = localPca.controller.browserStorage as BrowserCacheManager;
+            const browserStorage = localPca.controller
+                .browserStorage as BrowserCacheManager;
             await browserStorage.setAccount(
                 accountEntity,
                 RANDOM_TEST_GUID,
                 false,
                 ApiId.acquireTokenSilent_silentFlow
             );
-            const idTokenEntity = { ...TEST_ID_TOKEN_ENTITY, environment: "login.microsoftonline.com" };
+            const idTokenEntity = {
+                ...TEST_ID_TOKEN_ENTITY,
+                environment: "login.microsoftonline.com",
+            };
             await browserStorage.setIdTokenCredential(
                 idTokenEntity,
                 RANDOM_TEST_GUID,
                 false
             );
-            const accessTokenEntity = { ...TEST_ACCESS_TOKEN_ENTITY, environment: "login.microsoftonline.com" };
+            const accessTokenEntity = {
+                ...TEST_ACCESS_TOKEN_ENTITY,
+                environment: "login.microsoftonline.com",
+            };
             await browserStorage.setAccessTokenCredential(
                 accessTokenEntity,
                 RANDOM_TEST_GUID,
@@ -2622,7 +2629,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 // ignore errors from iframe fallbacks; we only care that getAccount telemetry was emitted
             }
             expect(addFieldsSpy).toHaveBeenCalledWith(
-                { accountCachedBy: apiIdToName(ApiId.acquireTokenSilent_silentFlow) },
+                {
+                    accountCachedBy: apiIdToName(
+                        ApiId.acquireTokenSilent_silentFlow
+                    ),
+                },
                 expect.any(String)
             );
         });
