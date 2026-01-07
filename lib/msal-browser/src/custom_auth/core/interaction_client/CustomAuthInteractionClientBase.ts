@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import * as PublicApiId from "../../core/telemetry/PublicApiId.js";
 import { ICustomAuthApiClient } from "../network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { MethodNotImplementedError } from "../error/MethodNotImplementedError.js";
 import { CustomAuthAuthority } from "../CustomAuthAuthority.js";
