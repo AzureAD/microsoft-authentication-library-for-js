@@ -2590,6 +2590,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             // @ts-ignore access test-only browserStorage
             const browserStorage = localPca.controller
+            // @ts-ignore access test-only browserStorage
                 .browserStorage as BrowserCacheManager;
             await browserStorage.setAccount(
                 accountEntity,
