@@ -71,6 +71,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the
      * authorization_code_grant
      * @param request
+     * @param apiId - API identifier for telemetry tracking
      */
     async acquireToken(
         request: CommonAuthorizationCodeRequest,

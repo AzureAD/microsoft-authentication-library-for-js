@@ -28,6 +28,7 @@ export interface ICacheManager {
      * @param account
      * @param correlationId
      * @param kmsi
+     * @param apiId - API identifier for telemetry tracking
      */
     setAccount(
         account: AccountEntity,
