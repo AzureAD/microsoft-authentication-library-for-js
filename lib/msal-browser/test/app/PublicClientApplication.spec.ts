@@ -748,14 +748,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 }
             );
-            const response = await pca.handleRedirectPromise();
+            const response = await (pca as any).handleRedirectPromise();
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
             expect(redirectClientSpy).toHaveBeenCalledTimes(1);
             expect(loginSuccessFired).toBe(true);
         });
 
-        it("Calls RedirectClient.handleRedirectPromise and emits telemetry event", (done) => {
+        it("Calls RedirectClient.handleRedirectPromise and emits telemetry event", async () => {
             const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -787,23 +787,36 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events.length).toEqual(1);
-                const event = events[0];
-                expect(event.name).toBe(PerformanceEvents.AcquireTokenRedirect);
-                expect(event.correlationId).toBeDefined();
-                expect(event.success).toBeTruthy();
-                expect(
-                    event["handleRedirectPromiseDurationMs"]
-                ).toBeGreaterThanOrEqual(0);
-                expect(event["handleRedirectPromiseCallCount"]).toEqual(1);
-                expect(event.success).toBeTruthy();
-                expect(event.accountType).toEqual(undefined);
-                pca.removePerformanceCallback(callbackId);
-                done();
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = pca.addPerformanceCallback((events) => {
+                    try {
+                        expect(events.length).toEqual(1);
+                        const event = events[0];
+                        expect(event.name).toBe(
+                            PerformanceEvents.AcquireTokenRedirect
+                        );
+                        expect(event.correlationId).toBeDefined();
+                        expect(event.success).toBeTruthy();
+                        expect(
+                            event["handleRedirectPromiseDurationMs"]
+                        ).toBeGreaterThanOrEqual(0);
+                        expect(event["handleRedirectPromiseCallCount"]).toEqual(
+                            1
+                        );
+                        expect(event.success).toBeTruthy();
+                        expect(event.accountType).toEqual(undefined);
+                        resolve();
+                    } catch (e) {
+                        reject(e);
+                    } finally {
+                        pca.removePerformanceCallback(callbackId);
+                    }
+                });
             });
 
-            pca.handleRedirectPromise();
+            await (pca as any).handleRedirectPromise();
+            await callbackPromise;
         });
 
         it("cleans temporary cache and rethrows if error is thrown", (done) => {
@@ -889,7 +902,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 windowTitleSubstring: "test window",
             };
             // @ts-ignore
-            pca.browserStorage.setTemporaryCache(
+            (pca as any).browserStorage.setTemporaryCache(
                 TemporaryCacheKeys.NATIVE_REQUEST,
                 JSON.stringify(nativeRequest),
                 true
@@ -1010,7 +1023,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     windowTitleSubstring: "test window",
                 };
                 // @ts-ignore
-                pca.browserStorage.setTemporaryCache(
+                (pca as any).browserStorage.setTemporaryCache(
                     TemporaryCacheKeys.NATIVE_REQUEST,
                     JSON.stringify(nativeRequest),
                     true
@@ -2019,7 +2032,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {
                     expect(
                         // @ts-ignore
-                        pca.browserStorage.getInteractionInProgress()
+                        (pca as any).browserStorage.getInteractionInProgress()
                     ).toBeFalsy();
                     expect(e.message).toEqual("testError");
                 });
@@ -3034,7 +3047,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {
                     expect(
                         // @ts-ignore
-                        pca.browserStorage.getInteractionInProgress()
+                        (pca as any).browserStorage.getInteractionInProgress()
                     ).toBeFalsy();
                 });
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
@@ -5064,7 +5077,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 silentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
@@ -5187,7 +5203,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 silentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
@@ -5353,17 +5372,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const expectedSshCertificateRequest1: CommonSilentFlowRequest = {
-                ...sshCertRequest1,
                 scopes: ["User.Read"],
+                account: testAccount,
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
 
             const expectedSshCertificateRequest2: CommonSilentFlowRequest = {
-                ...sshCertRequest2,
                 scopes: ["Mail.Read"],
+                account: testAccount,
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -5392,15 +5413,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sshCertSilentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest2);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest2);
             expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest1
+                expectedTokenRequest1,
+                ApiId.acquireTokenSilent_silentFlow
             );
             expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest2
+                expectedTokenRequest2,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedPopTokenRequest1,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedPopTokenRequest2,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedSshCertificateRequest1,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedSshCertificateRequest2,
+                ApiId.acquireTokenSilent_silentFlow
             );
             expect(silentATStub).toHaveBeenCalledTimes(6);
         });
@@ -5569,28 +5604,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const expectedSshCertificateRequest1: CommonSilentFlowRequest = {
-                ...sshCertRequest1,
                 scopes: ["User.Read"],
+                account: testAccount,
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
 
             const expectedSshCertificateRequest2: CommonSilentFlowRequest = {
-                ...sshCertRequest2,
                 scopes: ["Mail.Read"],
+                account: testAccount,
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
-
-            // Requests with claims
             const claimsRequest1: CommonSilentFlowRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 claims: JSON.stringify({ claim1: "claim1" }),
+                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             };
@@ -5611,8 +5647,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
-                claims: JSON.stringify({ claim1: "claim1" }),
-                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
                 forceRefresh: false,
             };
 
@@ -5621,8 +5655,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
-                claims: JSON.stringify({ claim2: "claim2" }),
-                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
                 forceRefresh: false,
             };
 
@@ -5656,18 +5688,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 claimsSilentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest2);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest2);
             expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest1
+                expectedTokenRequest1,
+                ApiId.acquireTokenSilent_silentFlow
             );
             expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest2
+                expectedTokenRequest2,
+                ApiId.acquireTokenSilent_silentFlow
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedClaimsRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedClaimsRequest2);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedPopTokenRequest1,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedPopTokenRequest2,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedSshCertificateRequest1,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedSshCertificateRequest2,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedClaimsRequest1,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedClaimsRequest2,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(silentATStub).toHaveBeenCalledTimes(8);
         });
 
@@ -5753,8 +5805,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
             await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
 
-            expect(silentATStub).toHaveBeenCalledWith(tokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(tokenRequest2);
+            expect(silentATStub).toHaveBeenCalledWith(
+                tokenRequest1,
+                ApiId.acquireTokenSilent_silentFlow
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                tokenRequest2,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(silentATStub).toHaveBeenCalledTimes(2);
         });
 
@@ -6927,9 +6985,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            await pca.browserStorage.setAccount(testAccount);
+            await (pca as any).browserStorage.setAccount(testAccount);
             // @ts-ignore
-            await pca.browserStorage.setIdTokenCredential(testIdToken);
+            await (pca as any).browserStorage.setIdTokenCredential(testIdToken);
         });
 
         afterEach(() => {
@@ -7000,15 +7058,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            await pca.browserStorage.setAccount(testAccount1);
+            await (pca as any).browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            await pca.browserStorage.setAccount(testAccount2);
+            await (pca as any).browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            await pca.browserStorage.setIdTokenCredential(idToken1);
+            await (pca as any).browserStorage.setIdTokenCredential(idToken1);
 
             // @ts-ignore
-            await pca.browserStorage.setIdTokenCredential(idToken2);
+            await (pca as any).browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -7368,14 +7426,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             await pca.initialize();
             // @ts-ignore
-            await pca.browserStorage.setAccount(testAccount1);
+            await (pca as any).browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            await pca.browserStorage.setAccount(testAccount2);
+            await (pca as any).browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            await pca.browserStorage.setIdTokenCredential(idToken1);
+            await (pca as any).browserStorage.setIdTokenCredential(idToken1);
             // @ts-ignore
-            await pca.browserStorage.setIdTokenCredential(idToken2);
+            await (pca as any).browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -7635,7 +7693,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
 
             // @ts-ignore
-            expect(pca.browserStorage.getWrapperMetadata()).toEqual([
+            expect((pca as any).browserStorage.getWrapperMetadata()).toEqual([
                 WrapperSKU.React,
                 "1.0.0",
             ]);
@@ -7682,6 +7740,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // This is expected to throw because cache is empty, swallow error
                 });
             await pca.hydrateCache(testAuthenticationResult, request);
+
+            const browserStorageInstance =
+                (pca as any).controller?.browserStorage ?? browserStorage;
+            const accountKey =
+                browserStorageInstance.generateAccountKey(testAccount);
+            const accountEntity = await browserStorageInstance.getAccount(
+                accountKey,
+                RANDOM_TEST_GUID
+            );
+            expect(accountEntity?.cachedByApiId).toBe(ApiId.hydrateCache);
 
             const result = await pca.acquireTokenSilent(request); // Get tokens from the cache
             expect(result.accessToken).toEqual(
@@ -8067,7 +8135,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             secondBrowserStorageInstance.setAccount(
                 accountEntity,
                 TEST_CONFIG.CORRELATION_ID,
-                true
+                true,
+                ApiId.acquireTokenSilent_authCode
             );
         });
 
@@ -8093,7 +8162,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.enableAccountStorageEvents();
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(
+                    accountEntity,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    ApiId.acquireTokenSilent_authCode
+                )
                 .then(() => {
                     // Ensure account is present in the cache before removing it
                     secondBrowserStorageInstance.removeAccount(
@@ -8121,7 +8195,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.enableAccountStorageEvents();
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(
+                    accountEntity,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    ApiId.acquireTokenSilent_authCode
+                )
                 .then(() => {
                     // Ensure account is present in the cache before setting it as active
                     secondBrowserStorageInstance.setActiveAccount(

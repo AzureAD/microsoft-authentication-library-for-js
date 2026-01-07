@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import * as PublicApiId from "../../core/telemetry/PublicApiId.js";
 import { ICustomAuthApiClient } from "../network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { MethodNotImplementedError } from "../error/MethodNotImplementedError.js";
 import { CustomAuthAuthority } from "../CustomAuthAuthority.js";
@@ -97,7 +98,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
     protected async handleTokenResponse(
         tokenResponse: SignInTokenResponse,
         requestScopes: string[],
-        correlationId: string
+        correlationId: string,
+        apiId: number
     ): Promise<AuthenticationResult> {
         this.logger.verbose("Processing token response.", correlationId);
 
@@ -114,7 +116,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
                     correlationId:
                         tokenResponse.correlation_id ?? correlationId,
                     scopes: requestScopes,
-                }
+                },
+                apiId
             );
 
         return result as AuthenticationResult;

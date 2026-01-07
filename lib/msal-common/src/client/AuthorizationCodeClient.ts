@@ -74,6 +74,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async acquireToken(
         request: CommonAuthorizationCodeRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
         this.performanceClient?.addQueueMeasurement(
@@ -123,6 +124,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
+            apiId,
             authCodePayload,
             undefined,
             undefined,

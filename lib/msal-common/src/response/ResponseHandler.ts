@@ -187,6 +187,7 @@ export class ResponseHandler {
         authority: Authority,
         reqTimestamp: number,
         request: BaseAuthRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload,
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
@@ -310,6 +311,7 @@ export class ResponseHandler {
                 cacheRecord,
                 request.correlationId,
                 isKmsi(idTokenClaims || {}),
+                apiId,
                 request.storeInCache
             );
         } finally {

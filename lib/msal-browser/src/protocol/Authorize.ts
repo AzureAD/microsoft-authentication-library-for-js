@@ -438,7 +438,7 @@ export async function handleResponseCode(
         logger,
         performanceClient,
         request.correlationId
-    )(response, request);
+    )(response, request, apiId);
 
     return result;
 }
@@ -556,6 +556,7 @@ export async function handleResponseEAR(
         authority,
         TimeUtils.nowSeconds(),
         request,
+        apiId,
         additionalData,
         undefined,
         undefined,
