@@ -10,6 +10,7 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/browser";
  * server (first leg of authorization code grant flow) with a full page redirect.
  *
  * - scopes                     - Array of scopes the application is requesting access to.
+ * - account                    - AccountInfo obtained from a getAccount API. Will be used in certain scenarios to generate login_hint if both loginHint and sid params are not provided.
  * - authority                  - Url of the authority which the application acquires tokens from.
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.

@@ -18,9 +18,11 @@ import { CcsCredential } from "../account/CcsCredential.js";
  * - codeVerifier            - The same code_verifier that was used to obtain the authorization_code. Required if PKCE was used in the authorization code grant request.For more information, see the PKCE RFC: https://tools.ietf.org/html/rfc7636
  * - resourceRequestMethod   - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri      - URI that token will be used for. Used for proof-of-possession flows.
- * - enableSpaAuthCode       - Enables the acqusition of a spa authorization code (confidential clients only)
- * - extraQueryParameters    - String to string map of custom query parameters added to outgoing token service requests
- * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests
+ * - enableSpaAuthorizationCode - Enables the acquisition of a SPA authorization code (confidential clients only).
+ * - clientInfo              - Encoded client_info returned with the authorization code, used to bind the token response to a specific account.
+ * - ccsCredential           - Credential used to populate the CCS (Cache Credential Service) header.
+ * - extraQueryParameters    - String to string map of custom query parameters added to outgoing token service requests.
+ * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests.
  */
 export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     code: string;

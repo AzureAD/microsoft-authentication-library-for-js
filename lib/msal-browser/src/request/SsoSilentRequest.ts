@@ -12,6 +12,7 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/browser";
  * - claims                     - A stringified claims request which will be added to all /authorize and /token calls
  * - authority                  - Url of the authority which the application acquires tokens from.
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
+ * - account                    - AccountInfo obtained from a getAccount API. Will be used in certain scenarios to generate login_hint if both loginHint and sid params are not provided.
  * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  * - extraScopesToConsent       - Scopes for a different resource when the user needs consent upfront.
  * - state                      - A value included in the request that is also returned in the token response. A randomly generated unique value is typically used for preventing cross site request forgery attacks. The state is also used to encode information about the user's state in the app before the authentication request occurred. For security and privacy reasons, we do not recommend putting URLs or other sensitive data directly in the state parameter. Instead, use a key or identifier that corresponds to data stored in browser storage (e.g., localStorage, sessionStorage), allowing your app to securely reference the necessary data after authentication.

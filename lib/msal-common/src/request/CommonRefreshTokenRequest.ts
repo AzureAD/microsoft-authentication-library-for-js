@@ -16,6 +16,8 @@ import { CcsCredential } from "../account/CcsCredential.js";
  * - resourceRequestMethod   - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri      - URI that token will be used for. Used for proof-of-possession flows.
  * - forceCache              - Force MSAL to cache a refresh token flow response when there is no account in the cache. Used for migration scenarios.
+ * - ccsCredential           - Credential used to populate the CCS (Cache Credential Service) header.
+ * - redirectUri             - Redirect URI to send with the refresh token request.
  * - extraQueryParameters    - String to string map of custom query parameters added to outgoing token service requests
  * - extraParameters         - String to string map of custom query parameters added to outgoing token service requests
  */

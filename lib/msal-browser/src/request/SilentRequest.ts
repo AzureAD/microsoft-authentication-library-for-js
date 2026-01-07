@@ -27,6 +27,7 @@ import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
  * - prompt                 - Indicates the type of user interaction that is required.
  *          none:  will ensure that the user isn't presented with any interactive prompt. if request can't be completed via single-sign on, the endpoint will return an interaction_required error
  *          no_session: will not read existing session token when authenticating the user. Upon user being successfully authenticated, EVO won’t create a new session for the user. FOR INTERNAL USE ONLY.
+ * - state                  - A value included in the request that is also returned in the token response when a hidden iframe is used.
  */
 export type SilentRequest = Omit<
     CommonSilentFlowRequest,

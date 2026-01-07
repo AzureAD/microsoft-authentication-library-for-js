@@ -15,6 +15,8 @@ import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common/node";
  * - extraParameters        - String to string map of custom query parameters added to outgoing token service requests
  * - account                - Account entity to lookup the credentials.
  * - forceRefresh           - Forces silent requests to make network calls if true.
+ * - redirectUri            - Redirect URI registered on the app registration.
+ * - refreshTokenExpirationOffsetSeconds - Number of seconds before the refresh token expires.
  * @public
  */
 export type SilentFlowRequest = Partial<

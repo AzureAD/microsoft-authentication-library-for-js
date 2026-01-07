@@ -18,6 +18,7 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
  * - codeChallenge              - Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE). For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636
  * - codeChallengeMethod        - The method used to encode the code verifier for the code challenge parameter. Can be "plain" or "S256". If excluded, code challenge is assumed to be plaintext. For more information, see the PKCE RCF: https://tools.ietf.org/html/rfc7636
  * - state                      - A value included in the request that is also returned in the token response. A randomly generated unique value is typically used for preventing cross site request forgery attacks. The state is also used to encode information about the user's state in the app before the authentication request occurred.
+ * - earJwk                     - JSON Web Key used when constructing External Authorization Request (EAR) parameters for this authorization request.
  * - prompt                     - Indicates the type of user interaction that is required.
  *          login: will force the user to enter their credentials on that request, negating single-sign on
  *          none:  will ensure that the user isn't presented with any interactive prompt. if request can't be completed via single-sign on, the endpoint will return an interaction_required error
@@ -31,6 +32,7 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
  * - extraQueryParameters       - String to string map of custom query parameters added to outgoing token service requests
  * - extraParameters            - String to string map of custom query parameters added to outgoing token service requests
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
+ * - platformBroker             - Indicates whether this authorization request is being initiated by a platform authentication broker instead of a standard web flow.
  * @public
  */
 export type AuthorizationUrlRequest = Partial<
