@@ -92,6 +92,8 @@ export abstract class CacheManager implements ICacheManager {
      * set account entity in the platform cache
      * @param account
      * @param correlationId
+     * @param kmsi - Keep Me Signed In
+     * @param apiId - API identifier for telemetry tracking
      */
     abstract setAccount(
         account: AccountEntity,
@@ -544,6 +546,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param cacheRecord {CacheRecord}
      * @param correlationId {?string} correlation id
      * @param kmsi - Keep Me Signed In
+     * @param apiId - API identifier for telemetry tracking
      * @param storeInCache {?StoreInCache}
      */
     async saveCacheRecord(
