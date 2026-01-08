@@ -11,18 +11,21 @@ import {
 
 /**
  * CommonClientCredentialRequest
- * - scopes                             - Array of scopes the application is requesting access to.
- * - authority                          - URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
- * - correlationId                      - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
- * - skipCache                          - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
- * - clientAssertion                    - An assertion string or a callback function that returns an assertion string (both are Base64Url-encoded signed JWTs) used in the Client Credential flow.
- * - azureRegion                        - Azure region to be used for regional authentication.
  */
 export type CommonClientCredentialRequest = Omit<
     BaseAuthRequest,
     "extraQueryParameters" | "extraParameters"
 > & {
+    /**
+     * Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
+     */
     skipCache?: boolean;
+    /**
+     * Azure region to be used for regional authentication.
+     */
     azureRegion?: AzureRegion;
+    /**
+     * An assertion string or a callback function that returns an assertion string (both are Base64Url-encoded signed JWTs) used in the Client Credential flow.
+     */
     clientAssertion?: ClientAssertion;
 };
