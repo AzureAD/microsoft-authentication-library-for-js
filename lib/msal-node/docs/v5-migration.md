@@ -1,8 +1,10 @@
-# Migrating from MSAL Node v3 to v5 (v4 is being skipped)
+# Migrating from MSAL Node v3 to v5
+
+Note: There is no MSAL Node v4 release. The package version was incremented from v3 directly to v5 to align `msal-node` versioning with the other MSAL.js libraries. No separate v4 feature set exists.
 
 ## Dropped support for Node 16 and 18
 
-MSAL Node v4 no longer supports Node.js 16 or 18; you must use Node.js 20 or greater.
+MSAL Node v5 no longer supports Node.js 16 or 18; you must use Node.js 20 or greater.
 
 ## Dropped support for `proxyUrl` and `customAgentOptions`
 
