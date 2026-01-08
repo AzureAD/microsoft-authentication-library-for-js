@@ -22,6 +22,9 @@ import {
     TimeUtils,
     AccountEntityUtils,
     buildStaticAuthorityOptions,
+    invokeAsync,
+    IPerformanceClient,
+    StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { buildConfiguration, Configuration } from "../config/Configuration.js";
 import type { SilentRequest } from "../request/SilentRequest.js";
@@ -36,6 +39,8 @@ import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import { EventHandler } from "../event/EventHandler.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -45,16 +50,19 @@ export type LoadTokenOptions = {
 
 /**
  * API to load tokens to msal-browser cache.
- * @param request
- * @param response
- * @param options
+ * @param config {Configuration} - object to configure MSAL app
+ * @param request {SilentRequest}
+ * @param response {ExternalTokenResponse}
+ * @param options {LoadTokenOptions}
+ * @param performanceClient {?performanceClient}
  * @returns `AuthenticationResult` for the response that was loaded.
  */
 export async function loadExternalTokens(
     config: Configuration,
     request: SilentRequest,
     response: ExternalTokenResponse,
-    options: LoadTokenOptions
+    options: LoadTokenOptions,
+    performanceClient: IPerformanceClient = new StubPerformanceClient()
 ): Promise<AuthenticationResult> {
     BrowserUtils.blockNonBrowserEnvironment();
 
@@ -63,104 +71,144 @@ export async function loadExternalTokens(
     const correlationId =
         request.correlationId || BrowserCrypto.createNewGuid();
 
-    const idTokenClaims = response.id_token
-        ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
-        : undefined;
-    const kmsi = AuthToken.isKmsi(idTokenClaims || {});
-
-    const authorityOptions: AuthorityOptions = {
-        protocolMode: browserConfig.system.protocolMode,
-        knownAuthorities: browserConfig.auth.knownAuthorities,
-        cloudDiscoveryMetadata: browserConfig.auth.cloudDiscoveryMetadata,
-        authorityMetadata: browserConfig.auth.authorityMetadata,
-    };
-
-    const logger = new Logger(browserConfig.system.loggerOptions || {});
-    const cryptoOps = new CryptoOps(logger, browserConfig.telemetry.client);
-    const storage = new BrowserCacheManager(
-        browserConfig.auth.clientId,
-        browserConfig.cache,
-        cryptoOps,
-        logger,
-        browserConfig.telemetry.client,
-        new EventHandler(logger),
-        buildStaticAuthorityOptions(browserConfig.auth)
+    const rootMeasurement = performanceClient.startMeasurement(
+        BrowserRootPerformanceEvents.LoadExternalTokens,
+        correlationId
     );
 
-    const authority = request.authority
-        ? new Authority(
-              Authority.generateAuthority(
-                  request.authority,
-                  request.azureCloudOptions
-              ),
-              browserConfig.system.networkClient,
-              storage,
-              authorityOptions,
-              logger,
-              request.correlationId || BrowserCrypto.createNewGuid(),
-              browserConfig.telemetry.client
-          )
-        : undefined;
+    try {
+        const idTokenClaims = response.id_token
+            ? AuthToken.extractTokenClaims(response.id_token, base64Decode)
+            : undefined;
+        const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
-    const cacheRecordAccount: AccountEntity = await loadAccount(
-        request,
-        options.clientInfo || response.client_info || "",
-        correlationId,
-        storage,
-        logger,
-        cryptoOps,
-        idTokenClaims,
-        authority
-    );
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: browserConfig.system.protocolMode,
+            knownAuthorities: browserConfig.auth.knownAuthorities,
+            cloudDiscoveryMetadata: browserConfig.auth.cloudDiscoveryMetadata,
+            authorityMetadata: browserConfig.auth.authorityMetadata,
+        };
 
-    const idToken = await loadIdToken(
-        response,
-        cacheRecordAccount.homeAccountId,
-        cacheRecordAccount.environment,
-        cacheRecordAccount.realm,
-        kmsi,
-        correlationId,
-        storage,
-        logger,
-        config.auth.clientId
-    );
+        const logger = new Logger(browserConfig.system.loggerOptions || {});
+        const cryptoOps = new CryptoOps(logger, browserConfig.telemetry.client);
+        const storage = new BrowserCacheManager(
+            browserConfig.auth.clientId,
+            browserConfig.cache,
+            cryptoOps,
+            logger,
+            browserConfig.telemetry.client,
+            new EventHandler(logger),
+            buildStaticAuthorityOptions(browserConfig.auth)
+        );
 
-    const accessToken = await loadAccessToken(
-        request,
-        response,
-        cacheRecordAccount.homeAccountId,
-        cacheRecordAccount.environment,
-        cacheRecordAccount.realm,
-        kmsi,
-        options,
-        correlationId,
-        storage,
-        logger,
-        config.auth.clientId
-    );
+        const authority = request.authority
+            ? new Authority(
+                  Authority.generateAuthority(
+                      request.authority,
+                      request.azureCloudOptions
+                  ),
+                  browserConfig.system.networkClient,
+                  storage,
+                  authorityOptions,
+                  logger,
+                  request.correlationId || BrowserCrypto.createNewGuid(),
+                  browserConfig.telemetry.client
+              )
+            : undefined;
 
-    const refreshToken = await loadRefreshToken(
-        response,
-        cacheRecordAccount.homeAccountId,
-        cacheRecordAccount.environment,
-        kmsi,
-        correlationId,
-        storage,
-        logger,
-        config.auth.clientId
-    );
+        const cacheRecordAccount: AccountEntity = await invokeAsync(
+            loadAccount,
+            BrowserPerformanceEvents.LoadAccount,
+            logger,
+            performanceClient,
+            correlationId
+        )(
+            request,
+            options.clientInfo || response.client_info || "",
+            correlationId,
+            storage,
+            logger,
+            cryptoOps,
+            idTokenClaims,
+            authority
+        );
 
-    return generateAuthenticationResult(
-        request,
-        {
-            account: cacheRecordAccount,
-            idToken,
-            accessToken,
-            refreshToken,
-        },
-        idTokenClaims,
-        authority
-    );
+        const idToken = await invokeAsync(
+            loadIdToken,
+            BrowserPerformanceEvents.LoadIdToken,
+            logger,
+            performanceClient,
+            correlationId
+        )(
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment,
+            cacheRecordAccount.realm,
+            kmsi,
+            correlationId,
+            storage,
+            logger,
+            config.auth.clientId
+        );
+
+        const accessToken = await invokeAsync(
+            loadAccessToken,
+            BrowserPerformanceEvents.LoadAccessToken,
+            logger,
+            performanceClient,
+            correlationId
+        )(
+            request,
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment,
+            cacheRecordAccount.realm,
+            kmsi,
+            options,
+            correlationId,
+            storage,
+            logger,
+            config.auth.clientId
+        );
+
+        const refreshToken = await invokeAsync(
+            loadRefreshToken,
+            BrowserPerformanceEvents.LoadRefreshToken,
+            logger,
+            performanceClient,
+            correlationId
+        )(
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment,
+            kmsi,
+            correlationId,
+            storage,
+            logger,
+            config.auth.clientId
+        );
+
+        rootMeasurement.end(
+            { success: true },
+            undefined,
+            AccountEntityUtils.getAccountInfo(cacheRecordAccount)
+        );
+
+        return generateAuthenticationResult(
+            request,
+            {
+                account: cacheRecordAccount,
+                idToken,
+                accessToken,
+                refreshToken,
+            },
+            idTokenClaims,
+            authority
+        );
+    } catch (error) {
+        rootMeasurement.end({ success: false }, error);
+        throw error;
+    }
 }
 
 /**

@@ -39,3 +39,4 @@ export const SsoSilent = "ssoSilent";
 export const InitializeClientApplication = "initializeClientApplication";
 // Update cache storage
 export const LocalStorageUpdated = "localStorageUpdated";
+export const LoadExternalTokens = "loadExternalTokens";
