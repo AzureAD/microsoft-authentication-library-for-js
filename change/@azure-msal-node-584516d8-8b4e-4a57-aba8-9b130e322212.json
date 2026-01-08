@@ -1,6 +1,6 @@
 {
   "type": "major",
-  "comment": "Bump to v5 #8222",
+  "comment": "Revert @azure/msal-node from v5 beta to stable v4 #8222",
   "packageName": "@azure/msal-node",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"

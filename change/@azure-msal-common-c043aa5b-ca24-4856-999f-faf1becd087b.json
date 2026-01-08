@@ -1,6 +1,6 @@
 {
   "type": "major",
-  "comment": "Bump to v5 #8222",
+  "comment": "Revert msal-common to v15.13.3 and remove beta versions [#8222](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8222)",
   "packageName": "@azure/msal-common",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
