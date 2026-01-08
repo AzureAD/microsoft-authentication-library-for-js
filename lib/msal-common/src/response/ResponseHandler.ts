@@ -456,6 +456,12 @@ export class ResponseHandler {
                           )
                         : serverTokenResponse.refresh_token_expires_in;
                 rtExpiresOn = reqTimestamp + rtExpiresIn;
+                this.performanceClient?.addFields(
+                    {
+                        ntwkRtExpiresOnSeconds: rtExpiresOn,
+                    },
+                    request.correlationId
+                );
             }
             cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,

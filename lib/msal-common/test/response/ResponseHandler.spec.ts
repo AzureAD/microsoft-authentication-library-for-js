@@ -329,6 +329,48 @@ describe("ResponseHandler.ts", () => {
             );
         });
 
+        it("adds rt expiry to performance fields when refresh_token_expires_in provided", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const refreshTokenExpiresIn = 600;
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                refresh_token_expires_in: refreshTokenExpiresIn,
+            };
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null,
+                perfClient
+            );
+
+            const reqTimestamp = 1000;
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                reqTimestamp,
+                testRequest
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    ntwkRtExpiresOnSeconds:
+                        reqTimestamp + refreshTokenExpiresIn,
+                },
+                testRequest.correlationId
+            );
+        });
+
         it("create CacheRecord with all token entities", (done) => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,

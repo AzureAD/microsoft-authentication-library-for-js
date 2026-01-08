@@ -1383,7 +1383,9 @@ describe("RefreshTokenClient unit tests", () => {
             );
             rootMeasurement.end({ success: false });
             // @ts-ignore
-            expect(resEvents[0].rtExpiresOnMs).toEqual(rtExpiresOn);
+            expect(resEvents[0].cacheRtExpiresOnSeconds).toEqual(rtExpiresOn);
+            // @ts-ignore
+            expect(resEvents[0].rtOffsetSeconds).toEqual(300);
         });
 
         it("Throws error if cached RT expiration is within provided offset", async () => {
@@ -1502,7 +1504,9 @@ describe("RefreshTokenClient unit tests", () => {
 
             rootMeasurement.end({ success: false });
             // @ts-ignore
-            expect(resEvents[0].rtExpiresOnMs).toEqual(rtExpiresOn);
+            expect(resEvents[0].cacheRtExpiresOnSeconds).toEqual(rtExpiresOn);
+            // @ts-ignore
+            expect(resEvents[0].rtOffsetSeconds).toEqual(300);
         });
     });
     describe("Telemetry protocol mode tests", () => {
