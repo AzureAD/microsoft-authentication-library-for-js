@@ -1,4 +1,4 @@
-# Angular Standalone MSAL Angular v4 Sample
+# Angular Standalone MSAL Angular Sample
 
 This developer sample is used to demonstrate how to use `@azure/msal-angular` with Angular standalone components, and **does not** use the `MsalModule` or `NgModule`. Please see [Angular's docs on standalone](https://angular.io/guide/standalone-components) for more information.
 
