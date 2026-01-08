@@ -2588,10 +2588,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cachedByApiId: ApiId.acquireTokenSilent_silentFlow,
                 environment: "login.microsoftonline.com",
             });
-            // @ts-ignore access test-only browserStorage
-            const browserStorage = localPca.controller
-            // @ts-ignore access test-only browserStorage
-                .browserStorage as BrowserCacheManager;
+            const browserStorage =
+                // @ts-ignore access test-only browserStorage
+                localPca.controller.browserStorage as BrowserCacheManager;
             await browserStorage.setAccount(
                 accountEntity,
                 RANDOM_TEST_GUID,
