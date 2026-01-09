@@ -362,7 +362,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 reqTimestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
