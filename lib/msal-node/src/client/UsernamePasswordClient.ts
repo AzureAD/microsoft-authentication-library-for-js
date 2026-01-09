@@ -24,6 +24,7 @@ import {
     UrlUtils,
     getClientAssertion,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 
 /**
  * Oauth2.0 Password grant client
@@ -67,7 +68,8 @@ export class UsernamePasswordClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByUsernamePassword
         );
 
         return tokenResponse;

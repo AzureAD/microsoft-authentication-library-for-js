@@ -200,6 +200,7 @@ export abstract class ClientApplication {
             );
             return await authorizationCodeClient.acquireToken(
                 validRequest,
+                ApiId.acquireTokenByCode,
                 authCodePayLoad
             );
         } catch (e) {
@@ -256,7 +257,10 @@ export abstract class ClientApplication {
                 "Refresh token client created",
                 validRequest.correlationId
             );
-            return await refreshTokenClient.acquireToken(validRequest);
+            return await refreshTokenClient.acquireToken(
+                validRequest,
+                ApiId.acquireTokenByRefreshToken
+            );
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
@@ -326,7 +330,8 @@ export abstract class ClientApplication {
                         clientConfiguration
                     );
                     return refreshTokenClient.acquireTokenByRefreshToken(
-                        validRequest
+                        validRequest,
+                        ApiId.acquireTokenSilent
                     );
                 }
                 throw error;
@@ -364,7 +369,8 @@ export abstract class ClientApplication {
 
             try {
                 await refreshTokenClient.acquireTokenByRefreshToken(
-                    validRequest
+                    validRequest,
+                    ApiId.acquireTokenSilent
                 );
             } catch {
                 // do nothing, this is running in the background and no action is to be taken upon success or failure

@@ -66,6 +66,7 @@ export class AccountEntity {
     tenantProfiles?: Array<TenantProfile>;
     lastUpdatedAt: string;
     dataBoundary?: DataBoundary;
+    cachedByApiId?: number;
 
     /**
      * Returns the AccountInfo interface for this account.

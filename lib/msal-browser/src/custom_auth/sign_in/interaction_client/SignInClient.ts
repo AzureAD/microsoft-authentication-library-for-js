@@ -176,7 +176,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager
+            telemetryManager,
+            apiId
         );
     }
 
@@ -220,7 +221,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager
+            telemetryManager,
+            apiId
         );
     }
 
@@ -263,7 +265,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 ),
             scopes,
             parameters.correlationId,
-            telemetryManager
+            telemetryManager,
+            apiId
         );
     }
 
@@ -279,7 +282,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         tokenEndpointCaller: () => Promise<SignInTokenResponse>,
         scopes: string[],
         correlationId: string,
-        telemetryManager: ServerTelemetryManager
+        telemetryManager: ServerTelemetryManager,
+        apiId: number
     ): Promise<
         | SignInCompletedResult
         | SignInJitRequiredResult
@@ -301,7 +305,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             const authResult = await this.handleTokenResponse(
                 tokenResponse,
                 scopes,
-                correlationId
+                correlationId,
+                apiId
             );
 
             return createSignInCompleteResult({
