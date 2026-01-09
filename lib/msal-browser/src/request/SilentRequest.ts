@@ -49,7 +49,11 @@ export type SilentRequest = Omit<
     cacheLookupPolicy?: CacheLookupPolicy;
     /**
      * Indicates the type of user interaction that is required.
+     *          login: will force the user to enter their credentials on that request, negating single-sign on
      *          none:  will ensure that the user isn't presented with any interactive prompt. if request can't be completed via single-sign on, the endpoint will return an interaction_required error
+     *          consent: will the trigger the OAuth consent dialog after the user signs in, asking the user to grant permissions to the app
+     *          select_account: will interrupt single sign-=on providing account selection experience listing all the accounts in session or any remembered accounts or an option to choose to use a different account
+     *          create: will direct the user to the account creation experience instead of the log in experience
      *          no_session: will not read existing session token when authenticating the user. Upon user being successfully authenticated, EVO won’t create a new session for the user. FOR INTERNAL USE ONLY.
      */
     prompt?: string;
