@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1767705841171,
+  "lastUpdate": 1767987398292,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -18983,6 +18983,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.76%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d86bde82302920239f4c80d99efe4740cb46fdab",
+          "message": "Track ApiId when getting and setting accounts in cache (#8219)\n\nThis pull request adds tracking of the `ApiId` when setting and\nretrieving accounts across the MSAL browser, node, and common packages.\nThis change improves telemetry and debugging by associating account\ncache operations with the specific API calls that triggered them. The\nupdate includes passing the `ApiId` through several layers of account\nand token handling logic, and updating the public changelogs for\nrelevant packages.\n\n**Telemetry and API Tracking Improvements:**\n\n* Added `ApiId` as a parameter to account and token cache operations,\nensuring that every set/get account action is tracked with the\noriginating API for better telemetry and diagnostics.\n(`BrowserCacheManager.ts`, `TokenCache.ts`, `InteractionHandler.ts`,\n`PlatformAuthInteractionClient.ts`, `SilentAuthCodeClient.ts`,\n`SilentRefreshClient.ts`, `CustomAuthInteractionClientBase.ts`,\n`SignInClient.ts`, `JitClient.ts`, `MfaClient.ts`,\n`CustomAuthSilentCacheClient.ts`, `Authorize.ts`)\n[[1]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2L1061-R1079)\n[[2]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2L2282-R2294)\n[[3]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2R2308-R2316)\n[[4]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL194-R196)\n[[5]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL234-R237)\n[[6]](diffhunk://#diff-7b9a3c980bbe784b514c142a68327c6e99af1de61b545e2e9e7bde79bdf4a8c8L942-R943)\n[[7]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fL1630-R1631)\n[[8]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7L744-R745)\n[[9]](diffhunk://#diff-244dfa122d07581eab88090f1afcda16eadd373c130463c14fa5d42598c4c2e7R821)\n[[10]](diffhunk://#diff-4463cecbdd32231efe5a8bc67925fb7bd906c5dc07c997596b1cd68d937d8c43R139)\n[[11]](diffhunk://#diff-2ae98a2162c2240ac97776505160467964916113e1f2813699ef3e1c9dfa5ee4L77-R83)\n[[12]](diffhunk://#diff-653018603cd6ea57661b967057d0def0a06bebd57fa1d98ca854a4bdedf4ddfeL100-R102)\n[[13]](diffhunk://#diff-653018603cd6ea57661b967057d0def0a06bebd57fa1d98ca854a4bdedf4ddfeL117-R120)\n[[14]](diffhunk://#diff-e2408a72cb1e61c210c62556f7ac2ba51339e6f18058eec56cc62e89441f2a15L157-R158)\n[[15]](diffhunk://#diff-9336756cabd0ff586b82f0661635ee833b68067712ea6ab300a101b15c15ba93L140-R141)\n[[16]](diffhunk://#diff-604a05d2c04229f01ff73d74a4576db80f37fb8fbf36c11be9835efcdc7712b4L92-R93)\n[[17]](diffhunk://#diff-d55836b67b933c0308b5d45a8e2a612cd224ea2d2a25027c1c3b0558b4a1503cL179-R180)\n[[18]](diffhunk://#diff-d55836b67b933c0308b5d45a8e2a612cd224ea2d2a25027c1c3b0558b4a1503cL223-R225)\n[[19]](diffhunk://#diff-d55836b67b933c0308b5d45a8e2a612cd224ea2d2a25027c1c3b0558b4a1503cL266-R269)\n[[20]](diffhunk://#diff-d55836b67b933c0308b5d45a8e2a612cd224ea2d2a25027c1c3b0558b4a1503cL282-R286)\n[[21]](diffhunk://#diff-d55836b67b933c0308b5d45a8e2a612cd224ea2d2a25027c1c3b0558b4a1503cL304-R309)\n[[22]](diffhunk://#diff-c59334568c321055c0e09ccc0cce7e60f4d12ad94d7a8130ef047a7188a984afL59-R61)\n[[23]](diffhunk://#diff-c59334568c321055c0e09ccc0cce7e60f4d12ad94d7a8130ef047a7188a984afL92-R94)\n[[24]](diffhunk://#diff-c59334568c321055c0e09ccc0cce7e60f4d12ad94d7a8130ef047a7188a984afR108)\n[[25]](diffhunk://#diff-c59334568c321055c0e09ccc0cce7e60f4d12ad94d7a8130ef047a7188a984afL155-R162)\n[[26]](diffhunk://#diff-a4a9623518687b3ceac75fec2a3748ba77e40fd2166581e3ff0c4149258c6165L441-R441)\n\n* Updated the `BrowserCacheManager` to store the `cachedByApiId`\nproperty on account entities, and to log this information with each\ncache access for enhanced performance tracking.\n[[1]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2R1050-R1056)\n[[2]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2L1061-R1079)\n\n**Changelog Updates:**\n\n* Added patch changelog entries for `@azure/msal-browser`,\n`@azure/msal-common`, and `@azure/msal-node` to document the new API\ntracking feature.\n[[1]](diffhunk://#diff-9f2afeb40815eaa78c13b75d40d8b91a8b5fed7bec8674ac92b8b17d8cb1621dR1-R7)\n[[2]](diffhunk://#diff-727cdb89dd5cd630b13cd8e99161a17bd78db099f939ceffe6f1ed6ec0fe7ed9R1-R7)\n[[3]](diffhunk://#diff-07eee42033d047072a5cbde6ffb42b003a33752aee28035853d2e709956d04edR1-R7)\n\n**Internal Refactoring:**\n\n* Propagated the `ApiId` parameter through various authentication and\ncache management flows, including silent and interactive authentication,\nto ensure consistent tracking throughout the codebase.\n[[1]](diffhunk://#diff-653018603cd6ea57661b967057d0def0a06bebd57fa1d98ca854a4bdedf4ddfeL100-R102)\n[[2]](diffhunk://#diff-653018603cd6ea57661b967057d0def0a06bebd57fa1d98ca854a4bdedf4ddfeL117-R120)\n[[3]](diffhunk://#diff-d55836b67b933c0308b5d45a8e2a612cd224ea2d2a25027c1c3b0558b4a1503cL282-R286)\n[[4]](diffhunk://#diff-c59334568c321055c0e09ccc0cce7e60f4d12ad94d7a8130ef047a7188a984afL59-R61)\n[[5]](diffhunk://#diff-c59334568c321055c0e09ccc0cce7e60f4d12ad94d7a8130ef047a7188a984afR108)\n\nThese changes collectively enhance observability and traceability of\naccount operations, making it easier to diagnose issues and analyze API\nusage patterns.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <223894421+github-code-quality[bot]@users.noreply.github.com>\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>\nCo-authored-by: Copilot <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>",
+          "timestamp": "2026-01-09T11:30:12-08:00",
+          "tree_id": "3f03475b62857ec52877d1f4765acf5991d889b5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d86bde82302920239f4c80d99efe4740cb46fdab"
+        },
+        "date": 1767987395165,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 238101,
+            "range": "±0.98%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241046,
+            "range": "±0.94%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
