@@ -896,7 +896,9 @@ export type PerformanceEvent = {
 
     isAsyncPopup?: boolean;
 
-    rtExpiresOnMs?: number;
+    cacheRtExpiresOnSeconds?: number;
+    ntwkRtExpiresOnSeconds?: number;
+    rtOffsetSeconds?: number;
 
     sidFromClaims?: boolean;
     sidFromRequest?: boolean;
