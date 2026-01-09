@@ -24,7 +24,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      */
     account?: AccountInfo;
     /**
-     * JSON Web Key used when constructing External Authorization Request (EAR) parameters.
+     * JSON Web Key used when constructing Encrypted Authorize Response (EAR) parameters.
      */
     earJwk?: string;
     /**
@@ -44,7 +44,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      */
     extraScopesToConsent?: Array<string>;
     /**
-     * Can be used to pre-fill the username/email address field of the sign-in page for the user, if you know the username/email address ahead of time. Often apps use this parameter during re-authentication, having already extracted the username from a previous sign-in using the preferred_username claim.
+     * Can be used to pre-fill the username/email address field of the sign-in page for the user, if you know the username/email address ahead of time. Can also be the string value extracted from the login_hint claim on an idToken obtained previously to provide SSO.
      */
     loginHint?: string;
     /**
@@ -62,7 +62,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      */
     prompt?: string;
     /**
-     * Session ID, unique identifier for the session. Available as an optional claim on ID tokens.
+     * Session ID, unique identifier for the session. Available as an optional claim on ID tokens. Use login_hint optional claim provided on loginHint paramter instead, when available.
      */
     sid?: string;
     /**

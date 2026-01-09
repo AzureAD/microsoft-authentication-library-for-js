@@ -90,7 +90,7 @@ export type BaseAuthRequest = {
      */
     httpMethod?: HttpMethod;
     /**
-     * String to string map of custom query parameters added to outgoing token service requests
+     * String to string map of custom query parameters added to outgoing token service requests. Unless the parameter is only supported on query strings use extraParameters instead
      */
     extraQueryParameters?: StringDict;
     /**

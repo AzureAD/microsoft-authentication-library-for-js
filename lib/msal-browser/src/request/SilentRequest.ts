@@ -24,7 +24,7 @@ export type SilentRequest = Omit<
      */
     redirectUri?: string;
     /**
-     * String to string map of custom query parameters added to outgoing token service requests. Only used when renewing access tokens
+     * String to string map of custom query parameters added to outgoing token service requests. Unless the parameter is ONLY supported on query string use extraParameters instead.
      */
     extraQueryParameters?: StringDict;
     /**
