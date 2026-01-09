@@ -25,6 +25,7 @@ import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRe
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest.js";
 import {
+    ApiId,
     HttpMethod,
     ManagedIdentityIdType,
     ManagedIdentityQueryParameters,
@@ -312,7 +313,8 @@ export abstract class BaseManagedIdentitySource {
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
-            managedIdentityRequest
+            managedIdentityRequest,
+            ApiId.acquireTokenWithManagedIdentity
         );
     }
 

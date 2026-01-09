@@ -76,7 +76,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             emptyConfig.storageInterface.setAccount(
                 MockCache.acc,
                 TEST_CONFIG.CORRELATION_ID,
-                true
+                true,
+                0
             )
         ).rejects.toEqual(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
@@ -176,7 +177,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
             },
         });
-        await cacheStorageMock.setAccount(MockCache.acc);
+        await cacheStorageMock.setAccount(
+            MockCache.acc,
+            TEST_CONFIG.CORRELATION_ID,
+            true,
+            0
+        );
         expect(newConfig.cryptoInterface).not.toBeNull();
         expect(newConfig.storageInterface).not.toBeNull();
         expect(newConfig.networkInterface).not.toBeNull();

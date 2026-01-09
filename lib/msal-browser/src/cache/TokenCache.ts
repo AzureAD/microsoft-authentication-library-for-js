@@ -32,6 +32,7 @@ import {
 import type { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
+import { ApiId } from "../utils/BrowserConstants.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -191,7 +192,8 @@ export class TokenCache implements ITokenCache {
             await this.storage.setAccount(
                 accountEntity,
                 correlationId,
-                AuthToken.isKmsi(idTokenClaims || {})
+                AuthToken.isKmsi(idTokenClaims || {}),
+                ApiId.loadExternalTokens
             );
             return accountEntity;
         } else if (!authority || (!clientInfo && !idTokenClaims)) {
@@ -231,7 +233,8 @@ export class TokenCache implements ITokenCache {
         await this.storage.setAccount(
             cachedAccount,
             correlationId,
-            AuthToken.isKmsi(idTokenClaims || {})
+            AuthToken.isKmsi(idTokenClaims || {}),
+            ApiId.loadExternalTokens
         );
         return cachedAccount;
     }
