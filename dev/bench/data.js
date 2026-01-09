@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1767987398292,
+  "lastUpdate": 1767998658018,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19021,6 +19021,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.94%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ff590c21f924e39b2126dce4dc104f1a7c7e0719",
+          "message": "RT Expiry Telemetry (#8224)\n\nThis pull request adds telemetry for refresh token (RT) expiration to\nthe `@azure/msal-common` package, improving observability around token\nlifetimes. It introduces new telemetry fields to track both cached and\nnetwork-received RT expiration times, as well as the offset used for\nexpiration checks. The changes also update related unit tests to verify\nthe new telemetry fields.\n\n**Telemetry enhancements:**\n\n* Added new telemetry fields to `PerformanceEvent`:\n`cacheRtExpiresOnSeconds`, `ntwkRtExpiresOnSeconds`, and\n`rtOffsetSeconds`, replacing the previous `rtExpiresOnMs` field. These\nfields provide more granular tracking of refresh token expiration from\nboth cache and network sources.\n[[1]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L3512-R3514)\n[[2]](diffhunk://#diff-2f63a38227d7a354d8c67987de2d283da038557a987db95576a08fe16cc60354L898-R900)\n* Updated `RefreshTokenClient` to log `cacheRtExpiresOnSeconds` and\n`rtOffsetSeconds` when checking cached RT expiration, and removed\nredundant telemetry on error.\n[[1]](diffhunk://#diff-3f3f7ffe90e832ac7ef7639d08bc689e87a3b455489a357fb72594c9427e54a6L225-R242)\n[[2]](diffhunk://#diff-3f3f7ffe90e832ac7ef7639d08bc689e87a3b455489a357fb72594c9427e54a6L264-L268)\n* Updated `ResponseHandler` to log `ntwkRtExpiresOnSeconds` when a new\nRT expiration is received from the network.\n\n**Testing improvements:**\n\n* Updated and added unit tests in `RefreshTokenClient.spec.ts` and\n`ResponseHandler.spec.ts` to check for the new telemetry fields and\nensure correct values are logged.\n[[1]](diffhunk://#diff-990aa777e0bbf234e09a8c471a3eaf1bb0ae0f6f5e409918b49ca30c0741cb8fL1386-R1388)\n[[2]](diffhunk://#diff-990aa777e0bbf234e09a8c471a3eaf1bb0ae0f6f5e409918b49ca30c0741cb8fL1505-R1509)\n[[3]](diffhunk://#diff-1f39f8f05f2db37ea3010dff4cbbbe19d594ebfd82f61814f26c044df720d047R332-R373)\n\n**Changelog:**\n\n* Added a changelog entry describing the new telemetry for RT\nexpiration.\n\n**API review and documentation:**\n\n* Updated API review files and doc comment line numbers to reflect the\nnew telemetry fields and code changes.\n\n---------\n\nCo-authored-by: Copilot <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>",
+          "timestamp": "2026-01-09T14:37:56-08:00",
+          "tree_id": "d1ef8e1599e3327feef15759631fb08d76987ae6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ff590c21f924e39b2126dce4dc104f1a7c7e0719"
+        },
+        "date": 1767998654376,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252170,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 250517,
+            "range": "±0.82%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
