@@ -10,8 +10,8 @@
         "start": "next start"
     },
     "dependencies": {
-        "@azure/msal-browser": "^5.0.0-alpha.0",
-        "@azure/msal-react": "^5.0.0-alpha.0",
+        "@azure/msal-browser": "^4.27.1",
+        "@azure/msal-react": "^4.0.0",
         "@emotion/cache": "^11.10.5",
         "@emotion/react": "^11.10.5",
         "@emotion/server": "^11.10.0",
