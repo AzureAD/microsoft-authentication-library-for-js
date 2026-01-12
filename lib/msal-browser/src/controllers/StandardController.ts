@@ -269,7 +269,8 @@ export class StandardController implements IController {
             this.config,
             this.browserStorage,
             this.logger,
-            this.browserCrypto
+            this.browserCrypto,
+            this.performanceClient
         );
 
         this.activeSilentTokenRequests = new Map();
