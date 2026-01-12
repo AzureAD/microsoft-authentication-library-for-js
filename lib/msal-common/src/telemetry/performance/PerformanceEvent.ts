@@ -322,6 +322,12 @@ export const PerformanceEvents = {
     Decrypt: "decrypt",
     GenerateEarKey: "generateEarKey",
     DecryptEarResponse: "decryptEarResponse",
+
+    LoadExternalTokens: "LoadExternalTokens",
+    LoadAccount: "loadAccount",
+    LoadIdToken: "loadIdToken",
+    LoadAccessToken: "loadAccessToken",
+    LoadRefreshToken: "loadRefreshToken",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
