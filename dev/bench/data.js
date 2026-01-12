@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1767998658018,
+  "lastUpdate": 1768261872208,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19059,6 +19059,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.82%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "da207d2d7b2d4673bab44b558c3c7a0c34553fe3",
+          "message": "Add telemetry support for loading external tokens and related events (#8231)\n\nThis pull request introduces telemetry support for loading external\ntokens and related events in the MSAL browser and common packages. The\nmain focus is on instrumenting the `TokenCache` flow to provide detailed\nperformance measurements for the loading of external tokens and its\ninternal operations. Comprehensive tests have been added to ensure\ncorrect telemetry instrumentation and error handling.\n\n### Telemetry instrumentation for external token loading\n\n* Added new performance event types for external token loading and its\nsub-operations (`LoadExternalTokens`, `LoadAccount`, `LoadIdToken`,\n`LoadAccessToken`, `LoadRefreshToken`) in `PerformanceEvent.ts`.\n* Refactored `TokenCache` to accept a `performanceClient` and instrument\nthe `loadExternalTokens` method and its internal functions using\nperformance measurements, including error handling.\n[[1]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fR60-R75)\n[[2]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fR101-R106)\n[[3]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL121-R154)\n[[4]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL138-R169)\n[[5]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL149-R199)\n[[6]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fR211-R214)\n[[7]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fL272-R273)\n\n### Test coverage for telemetry\n\n* Expanded `TokenCache.spec.ts` tests to verify top-level and\nsub-operation telemetry events, including success and error scenarios\nfor `loadExternalTokens`.\n[[1]](diffhunk://#diff-44274fc7d579dfe62b39dd8d6cfdefd0ba9d6e0418a5a117465ea49893244c1eL112-R116)\n[[2]](diffhunk://#diff-44274fc7d579dfe62b39dd8d6cfdefd0ba9d6e0418a5a117465ea49893244c1eR580-R772)\n\n### Package change logs\n\n* Updated change logs for both `@azure/msal-browser` and\n`@azure/msal-common` to reflect the addition of telemetry support for\nloading external tokens and related events.\n[[1]](diffhunk://#diff-e06bb1e44a5391ad839e3de8fb2297a45ba9b14b03d234c701f319e2e28d281fR1-R7)\n[[2]](diffhunk://#diff-5c80eadd0d161656035fef529c49f79cdc059c6423c7b83c7c9d51cafaee7d57R1-R7)",
+          "timestamp": "2026-01-12T15:44:49-08:00",
+          "tree_id": "e8ea27c654e20cb456241a2ccd0614a3614de286",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/da207d2d7b2d4673bab44b558c3c7a0c34553fe3"
+        },
+        "date": 1768261869242,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252450,
+            "range": "±0.69%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 247528,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
