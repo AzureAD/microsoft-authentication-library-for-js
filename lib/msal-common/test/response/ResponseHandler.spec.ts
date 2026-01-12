@@ -436,7 +436,10 @@ describe("ResponseHandler.ts", () => {
             );
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
-                { ntwkRtExpiresOnSeconds: reqTimestamp + refreshTokenExpiresIn },
+                {
+                    ntwkRtExpiresOnSeconds:
+                        reqTimestamp + refreshTokenExpiresIn,
+                },
                 testRequest.correlationId
             );
         });
