@@ -3478,7 +3478,9 @@ export type PerformanceEvent = {
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
     isAsyncPopup?: boolean;
-    rtExpiresOnMs?: number;
+    cacheRtExpiresOnSeconds?: number;
+    ntwkRtExpiresOnSeconds?: number;
+    rtOffsetSeconds?: number;
     sidFromClaims?: boolean;
     sidFromRequest?: boolean;
     loginHintFromRequest?: boolean;

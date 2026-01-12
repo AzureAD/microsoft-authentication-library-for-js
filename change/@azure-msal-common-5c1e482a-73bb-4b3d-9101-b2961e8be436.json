@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add telemetry for refresh token expiration (cache/network) and offset",
+    "packageName": "@azure/msal-common",
+    "email": "thomas.norling@microsoft.com",
+    "dependentChangeType": "patch"
+}
