@@ -2554,7 +2554,12 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(
+                    testAccount,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    ApiId.acquireTokenRedirect
+                )
                 .then(() =>
                     redirectClient.logout({ account: testAccountInfo })
                 );
@@ -2615,7 +2620,12 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(
+                    testAccount,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    ApiId.acquireTokenRedirect
+                )
                 .then(() =>
                     redirectClient.logout({
                         account: testAccountInfo,
@@ -2704,7 +2714,12 @@ describe("RedirectClient", () => {
             );
             browserStorage.setInteractionInProgress(true);
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(
+                    testAccount,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    ApiId.acquireTokenRedirect
+                )
                 .then(() =>
                     redirectClient
                         .logout({
@@ -2819,7 +2834,12 @@ describe("RedirectClient", () => {
             );
             browserStorage.setInteractionInProgress(true);
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(
+                    testAccount,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    ApiId.acquireTokenRedirect
+                )
                 .then(() =>
                     redirectClient
                         .logout({
@@ -2933,7 +2953,8 @@ describe("RedirectClient", () => {
             await browserStorage.setAccount(
                 testAccountEntity,
                 TEST_CONFIG.CORRELATION_ID,
-                true
+                true,
+                ApiId.acquireTokenRedirect
             );
             await browserStorage.setIdTokenCredential(
                 testIdToken,

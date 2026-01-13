@@ -322,6 +322,12 @@ export const PerformanceEvents = {
     Decrypt: "decrypt",
     GenerateEarKey: "generateEarKey",
     DecryptEarResponse: "decryptEarResponse",
+
+    LoadExternalTokens: "LoadExternalTokens",
+    LoadAccount: "loadAccount",
+    LoadIdToken: "loadIdToken",
+    LoadAccessToken: "loadAccessToken",
+    LoadRefreshToken: "loadRefreshToken",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -872,6 +878,7 @@ export type PerformanceEvent = {
     // Cache Data
     cacheLocation?: string;
     cacheRetentionDays?: number;
+    accountCachedBy?: string;
 
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
@@ -895,7 +902,9 @@ export type PerformanceEvent = {
 
     isAsyncPopup?: boolean;
 
-    rtExpiresOnMs?: number;
+    cacheRtExpiresOnSeconds?: number;
+    ntwkRtExpiresOnSeconds?: number;
+    rtOffsetSeconds?: number;
 
     sidFromClaims?: boolean;
     sidFromRequest?: boolean;

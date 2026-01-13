@@ -187,6 +187,7 @@ export class ResponseHandler {
         authority: Authority,
         reqTimestamp: number,
         request: BaseAuthRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload,
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
@@ -310,6 +311,7 @@ export class ResponseHandler {
                 cacheRecord,
                 request.correlationId,
                 isKmsi(idTokenClaims || {}),
+                apiId,
                 request.storeInCache
             );
         } finally {
@@ -456,6 +458,12 @@ export class ResponseHandler {
                           )
                         : serverTokenResponse.refresh_token_expires_in;
                 rtExpiresOn = reqTimestamp + rtExpiresIn;
+                this.performanceClient?.addFields(
+                    {
+                        ntwkRtExpiresOnSeconds: rtExpiresOn,
+                    },
+                    request.correlationId
+                );
             }
             cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,

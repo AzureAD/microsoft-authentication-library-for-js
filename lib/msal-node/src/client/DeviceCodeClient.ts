@@ -25,6 +25,7 @@ import {
     createAuthError,
     createClientAuthError,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 
 /**
  * OAuth2.0 Device code client
@@ -66,7 +67,8 @@ export class DeviceCodeClient extends BaseClient {
             response,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByDeviceCode
         );
     }
 

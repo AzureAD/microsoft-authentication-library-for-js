@@ -179,7 +179,8 @@ describe("ResponseHandler.ts", () => {
                         testResponse,
                         testAuthority,
                         timestamp,
-                        testRequest
+                        testRequest,
+                        0
                     );
                 expect(tokenResp).toBeUndefined();
             } catch (e) {
@@ -257,7 +258,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
 
@@ -325,7 +327,51 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
+            );
+        });
+
+        it("adds rt expiry to performance fields when refresh_token_expires_in provided", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const refreshTokenExpiresIn = 600;
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                refresh_token_expires_in: refreshTokenExpiresIn,
+            };
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null,
+                perfClient
+            );
+
+            const reqTimestamp = 1000;
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                reqTimestamp,
+                testRequest,
+                0
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    ntwkRtExpiresOnSeconds:
+                        reqTimestamp + refreshTokenExpiresIn,
+                },
+                testRequest.correlationId
             );
         });
 
@@ -391,8 +437,44 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
+        });
+
+        it("sets cachedByApiId on cached account", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            const apiId = 1234;
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                apiId
+            );
+
+            const accountKeys = testCacheManager.getAccountKeys();
+            expect(accountKeys.length).toBeGreaterThan(0);
+            const account = testCacheManager.getAccount(accountKeys[0]);
+            expect(account?.cachedByApiId).toBe(apiId);
         });
 
         it("includes spa_code in response as code", async () => {
@@ -422,7 +504,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
             expect(response.code).toEqual(testSpaCode);
         });
@@ -503,7 +586,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
     });
@@ -533,7 +617,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.familyId).toBe("");
@@ -580,7 +665,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -627,7 +713,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -658,7 +745,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.requestId).toBe("");
@@ -827,7 +915,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -873,7 +962,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -919,7 +1009,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -962,7 +1053,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {

@@ -97,7 +97,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
     protected async handleTokenResponse(
         tokenResponse: SignInTokenResponse,
         requestScopes: string[],
-        correlationId: string
+        correlationId: string,
+        apiId: number
     ): Promise<AuthenticationResult> {
         this.logger.verbose("Processing token response.", correlationId);
 
@@ -114,7 +115,8 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
                     correlationId:
                         tokenResponse.correlation_id ?? correlationId,
                     scopes: requestScopes,
-                }
+                },
+                apiId
             );
 
         return result as AuthenticationResult;

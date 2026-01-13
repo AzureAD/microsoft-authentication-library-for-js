@@ -71,9 +71,11 @@ export class AuthorizationCodeClient extends BaseClient {
      * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the
      * authorization_code_grant
      * @param request
+     * @param apiId - API identifier for telemetry tracking
      */
     async acquireToken(
         request: CommonAuthorizationCodeRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
         this.performanceClient?.addQueueMeasurement(
@@ -123,6 +125,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
+            apiId,
             authCodePayload,
             undefined,
             undefined,

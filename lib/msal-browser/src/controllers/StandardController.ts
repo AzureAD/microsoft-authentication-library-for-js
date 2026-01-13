@@ -269,7 +269,8 @@ export class StandardController implements IController {
             this.config,
             this.browserStorage,
             this.logger,
-            this.browserCrypto
+            this.browserCrypto,
+            this.performanceClient
         );
 
         this.activeSilentTokenRequests = new Map();
@@ -1627,7 +1628,8 @@ export class StandardController implements IController {
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId,
-            AuthToken.isKmsi(result.idTokenClaims)
+            AuthToken.isKmsi(result.idTokenClaims),
+            ApiId.hydrateCache
         );
 
         if (result.fromNativeBroker) {
