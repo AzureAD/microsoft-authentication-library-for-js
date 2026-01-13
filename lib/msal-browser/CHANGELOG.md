@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 05 Dec 2025 22:01:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 13 Jan 2026 22:50:58 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.1.0
+
+Tue, 13 Jan 2026 22:50:58 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.0.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add telemetry support for loading external tokens and related events [#8221](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8221) (kshabelko@microsoft.com)
+- Remove beta tag (joarroyo@microsoft.com)
+- Use cross-env for environment variable management in build scripts #8191 (kshabelko@microsoft.com)
 
 ## 5.0.0-beta.0
 
