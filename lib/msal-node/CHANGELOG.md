@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Fri, 05 Dec 2025 22:01:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 14 Jan 2026 20:27:50 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.1
+
+Wed, 14 Jan 2026 20:27:50 GMT
+
+### Patches
+
+- Remove beta tag (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.0.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 5.0.0-beta.0
 
