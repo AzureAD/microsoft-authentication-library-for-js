@@ -186,7 +186,7 @@ export function compactStack(stack: string, stackMaxSize: number): string[] {
 
     const stackArr = stack.split("\n") || [];
 
-    const res = [];
+    const res: string[] = [];
 
     // Check for a handful of known, common runtime errors and log them (with redaction where applicable).
     const firstLine = stackArr[0];
@@ -276,35 +276,23 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected logger: Logger;
     protected callbacks: Map<string, PerformanceCallbackFunction>;
 
-    /**
-     * Multiple events with the same correlation id.
-     * @protected
-     * @type {Map<string, PerformanceEvent>}
-     */
     protected eventsByCorrelationId: Map<string, PerformanceEvent>;
-
+    protected eventStack: Map<string, PerformanceEventStackedContext[]>;
     protected intFields: Set<string>;
 
     /**
-     * Map of stacked events by correlation id.
-     *
-     * @protected
+     * Accumulate dynamically-created numeric attributes per correlationId
+     * e.g. AcquireTokenSilentDurationMs, AcquireTokenRedirectCallCount, etc.
      */
-    protected eventStack: Map<string, PerformanceEventStackedContext[]>;
+    protected dynamicAttributesByCorrelationId: Map<string, Record<string, number>>;
 
     /**
-     * Creates an instance of PerformanceClient,
-     * an abstract class containing core performance telemetry logic.
-     *
-     * @constructor
-     * @param {string} clientId Client ID of the application
-     * @param {string} authority Authority used by the application
-     * @param {Logger} logger Logger used by the application
-     * @param {string} libraryName Name of the library
-     * @param {string} libraryVersion Version of the library
-     * @param {ApplicationTelemetry} applicationTelemetry application name and version
-     * @param {Set<String>} intFields integer fields to be truncated
+     * Tracks the set of "known" keys for the given correlationId. This is derived
+     * from the baseline event created in startMeasurement (Object.keys of that event),
+     * plus the keys the library itself sets later (e.g., durationMs, context, logs, etc.).
      */
+    protected knownEventKeysByCorrelationId: Map<string, Set<string>>;
+
     constructor(
         clientId: string,
         authority: string,
@@ -321,28 +309,24 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.clientId = clientId;
         this.logger = logger;
         this.callbacks = new Map();
+
         this.eventsByCorrelationId = new Map();
         this.eventStack = new Map();
+        this.dynamicAttributesByCorrelationId = new Map();
+        this.knownEventKeysByCorrelationId = new Map();
+
         this.intFields = intFields || new Set();
         for (const item of IntFields) {
             this.intFields.add(item);
         }
     }
 
-    /**
-     * Generates and returns a unique id, typically a guid.
-     *
-     * @abstract
-     * @returns {string}
-     */
+    /** Generates and returns a unique id, typically a guid. */
     abstract generateId(): string;
 
     /**
-     * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
-     *
-     * @param {PerformanceEvents} measureName
-     * @param {?string} [correlationId]
-     * @returns {InProgressPerformanceEvent}
+     * Starts measuring performance for a given operation.
+     * Returns a function that should be used to end the measurement.
      */
     startMeasurement(
         measureName: string,
@@ -367,6 +351,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
+
+        // Derive the per-correlation baseline known keys
+        this.seedKnownKeysFromBaseline(eventCorrelationId, inProgressEvent);
+
         startContext(inProgressEvent, this.eventStack.get(eventCorrelationId));
 
         // Return the event and functions the caller can use to properly end/flush the measurement
@@ -408,6 +396,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * as consumers should instead use the function returned by startMeasurement.
      * Adds a new field named as "[event name]DurationMs" for sub-measurements, completes and emits an event
      * otherwise.
+     * Adds sub-measure durations as dynamicAttributes; completes and emits the root event.
      *
      * @param {PerformanceEvent} event
      * @param {unknown} error
@@ -443,20 +432,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
             )
         );
 
-        if (isRoot) {
-            this.discardMeasurements(rootEvent.correlationId);
-        } else {
-            rootEvent.incompleteSubMeasurements?.delete(event.eventId);
-        }
-
         if (error) {
             addError(error, this.logger, rootEvent);
         }
 
-        // Add sub-measurement attribute to root event.
+        // Sub-measurements: mirror their duration to dynamicAttributes only (do NOT keep at root)
         if (!isRoot) {
-            rootEvent[event.name + "DurationMs"] = Math.floor(event.durationMs);
-            return { ...rootEvent };
+            rootEvent.incompleteSubMeasurements?.delete(event.eventId);
+            const dynKey = event.name + "DurationMs";
+            const dynVal = Math.floor(event.durationMs!);
+            this.setDynamicAttributes(rootEvent.correlationId, dynKey, dynVal);
+            return { ...rootEvent }; // continuity; root remains clean
         }
 
         if (
@@ -504,70 +490,114 @@ export abstract class PerformanceClient implements IPerformanceClient {
             finalEvent.dataBoundary = account.dataBoundary;
         }
 
-        this.truncateIntegralFields(finalEvent);
-        this.emitEvents([finalEvent], event.correlationId);
+        // Mark library-managed adds as "known" for this correlation (so they won't be hoisted)
+        this.ensureKnownKeys(finalEvent.correlationId, [
+            "durationMs",
+            "success",
+            "context",
+            "logs",
+            "errorCode",
+            "subErrorCode",
+            "serverErrorNo",
+            "accountType",
+            "dataBoundary",
+            "incompleteSubsCount",
+        ]);
 
+        // Truncate known integral fields
+        this.truncateIntegralFields(finalEvent);
+
+        // Hoist any unknown numeric keys into dynamicAttributes
+        this.hoistUnknownNumericToDynamic(finalEvent);
+
+        // Serialize dynamicAttributes if non-empty
+        const dynamicAttrs = this.dynamicAttributesByCorrelationId.get(finalEvent.correlationId);
+        if (dynamicAttrs && Object.keys(dynamicAttrs).length) {
+            finalEvent.dynamicAttributes = JSON.stringify(dynamicAttrs);
+        }
+
+        this.emitEvents([finalEvent], event.correlationId);
+        this.discardMeasurements(rootEvent.correlationId);
         return finalEvent;
     }
 
     /**
-     * Saves extra information to be emitted when the measurements are flushed
-     * @param fields
-     * @param correlationId
+     * Saves extra information to be emitted when the measurements are flushed.
+     * Unknown numeric keys are mirrored into dynamicAttributes and NOT kept at root.
      */
     addFields(
         fields: { [key: string]: {} | undefined },
         correlationId: string
     ): void {
         const event = this.eventsByCorrelationId.get(correlationId);
-        if (event) {
-            this.eventsByCorrelationId.set(correlationId, {
-                ...event,
-                ...fields,
-            });
-        } else {
-            this.logger.trace(
-                "PerformanceClient: Event not found for",
-                correlationId
-            );
+        if (!event) {
+            this.logger.trace("PerformanceClient: Event not found for", correlationId);
+            return;
         }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const updated: any = { ...event };
+        const known = this.knownEventKeysByCorrelationId.get(correlationId) || new Set<string>();
+
+        for (const [key, value] of Object.entries(fields)) {
+            if (known.has(key)) {
+                updated[key] = value;
+                continue;
+            }
+
+            if (typeof value === "number" && !isNaN(Number(value))) {
+                this.setDynamicAttributes(correlationId, key, Math.floor(Number(value)));
+                // Do not keep unknown numeric on root
+                continue;
+            }
+
+            // Unknown non-numeric: keep root entry if you want (or drop to keep schema tight).
+            // Here we keep it to avoid silently losing data; if you want stricter behavior, delete instead.
+            updated[key] = value;
+        }
+
+        this.eventsByCorrelationId.set(correlationId, updated);
     }
 
     /**
-     * Increment counters to be emitted when the measurements are flushed
-     * @param fields {string[]}
-     * @param correlationId {string} correlation identifier
+     * Increments counters. Mirrors to dynamicAttributes; does not retain counters at root in final emit.
      */
     incrementFields(
         fields: { [key: string]: number | undefined },
         correlationId: string
     ): void {
         const event = this.eventsByCorrelationId.get(correlationId);
-        if (event) {
-            for (const counter in fields) {
-                if (!event.hasOwnProperty(counter)) {
-                    event[counter] = 0;
-                } else if (isNaN(Number(event[counter]))) {
-                    return;
-                }
-                event[counter] += fields[counter];
+        if (!event) {
+            this.logger.trace("PerformanceClient: Event not found for", correlationId);
+            return;
+        }
+
+        for (const counter in fields) {
+            if (!Object.prototype.hasOwnProperty.call(event, counter)) {
+                // Keep a transient counter at root for continuity only while measuring
+                // (It will be hoisted/removed by hoistUnknownNumericToDynamic at emit time)
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (event as any)[counter] = 0;
+            } else if (isNaN(Number((event as any)[counter]))) {
+                // non-numeric roots cannot be incremented
+                return;
             }
-        } else {
-            this.logger.trace(
-                "PerformanceClient: Event not found for",
-                correlationId
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (event as any)[counter] += fields[counter] ?? 0;
+
+            this.setDynamicAttributes(
+                correlationId,
+                counter,
+                Math.floor(Number((event as any)[counter]))
             );
         }
+
+        this.eventsByCorrelationId.set(correlationId, { ...event });
     }
 
     /**
-     * Upserts event into event cache.
-     * First key is the correlation id, second key is the event id.
-     * Allows for events to be grouped by correlation id,
-     * and to easily allow for properties on them to be updated.
-     *
-     * @private
-     * @param {PerformanceEvent} event
+     * Upserts event into event cache; seeds per-correlation structures.
      */
     protected cacheEventByCorrelationId(event: PerformanceEvent): void {
         const rootEvent = this.eventsByCorrelationId.get(event.correlationId);
@@ -581,24 +611,23 @@ export abstract class PerformanceClient implements IPerformanceClient {
         } else {
             this.eventsByCorrelationId.set(event.correlationId, { ...event });
             this.eventStack.set(event.correlationId, []);
+            this.dynamicAttributesByCorrelationId.set(event.correlationId, {});
+            this.knownEventKeysByCorrelationId.set(event.correlationId, new Set<string>());
         }
     }
 
     /**
      * Removes measurements and aux data for a given correlation id.
-     *
-     * @param {string} correlationId
      */
     discardMeasurements(correlationId: string): void {
         this.eventsByCorrelationId.delete(correlationId);
         this.eventStack.delete(correlationId);
+        this.dynamicAttributesByCorrelationId.delete(correlationId);
+        this.knownEventKeysByCorrelationId.delete(correlationId);
     }
 
     /**
-     * Registers a callback function to receive performance events.
-     *
-     * @param {PerformanceCallbackFunction} callback
-     * @returns {string}
+     * Registers/unregisters performance callbacks.
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         for (const [id, cb] of this.callbacks) {
@@ -617,77 +646,118 @@ export abstract class PerformanceClient implements IPerformanceClient {
             `PerformanceClient: Performance callback registered with id: '${callbackId}'`,
             ""
         );
-
         return callbackId;
     }
 
-    /**
-     * Removes a callback registered with addPerformanceCallback.
-     *
-     * @param {string} callbackId
-     * @returns {boolean}
-     */
     removePerformanceCallback(callbackId: string): boolean {
         const result = this.callbacks.delete(callbackId);
-
-        if (result) {
-            this.logger.verbose(
-                `PerformanceClient: Performance callback '${callbackId}' removed.`,
-                ""
-            );
-        } else {
-            this.logger.verbose(
-                `PerformanceClient: Performance callback '${callbackId}' not removed.`,
-                ""
-            );
-        }
-
+        this.logger.verbose(
+            `PerformanceClient: Performance callback '${callbackId}' ${result ? "removed" : "not removed"}.`,
+            ""
+        );
         return result;
     }
 
-    /**
-     * Emits events to all registered callbacks.
-     *
-     * @param {PerformanceEvent[]} events
-     * @param {?string} [correlationId]
-     */
     emitEvents(events: PerformanceEvent[], correlationId: string): void {
-        this.logger.verbose(
-            "PerformanceClient: Emitting performance events",
-            correlationId
-        );
-
-        this.callbacks.forEach(
-            (callback: PerformanceCallbackFunction, callbackId: string) => {
-                this.logger.trace(
-                    `PerformanceClient: Emitting event to callback '${callbackId}'`,
-                    correlationId
-                );
-                callback.apply(null, [events]);
-            }
-        );
+        this.logger.verbose("PerformanceClient: Emitting performance events", correlationId);
+        this.callbacks.forEach((cb, id) => {
+            this.logger.trace(
+                `PerformanceClient: Emitting event to callback '${id}'`,
+                correlationId
+            );
+            cb.apply(null, [events]);
+        });
     }
 
     /**
-     * Enforce truncation of integral fields in performance event.
-     * @param {PerformanceEvent} event performance event to update.
+     * Truncate known integral fields in performance event.
      */
     private truncateIntegralFields(event: PerformanceEvent): void {
         this.intFields.forEach((key) => {
-            if (key in event && typeof event[key] === "number") {
-                event[key] = Math.floor(event[key]);
+            if (key in event && typeof (event as any)[key] === "number") {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (event as any)[key] = Math.floor((event as any)[key]);
             }
         });
     }
 
     /**
-     * Returns event duration in milliseconds
-     * @param startTimeMs {number}
-     * @returns {number}
+     * Move unknown numeric properties into dynamicAttributes and remove them from root.
+     */
+    private hoistUnknownNumericToDynamic(finalEvent: PerformanceEvent): void {
+        const cid = finalEvent.correlationId;
+        const known = this.knownEventKeysByCorrelationId.get(cid) || new Set<string>();
+        const bucket = this.dynamicAttributesByCorrelationId.get(cid);
+        if (!bucket) return;
+
+        for (const [key, value] of Object.entries(finalEvent)) {
+            if (known.has(key)) continue;
+
+            if (typeof value === "number" && !isNaN(Number(value))) {
+                this.setDynamicAttributes(cid, key, Math.floor(Number(value)));
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                delete (finalEvent as any)[key];
+            }
+        }
+    }
+
+    /**
+     * Ensure certain keys are marked as "known" for a given correlation id.
+     */
+    private ensureKnownKeys(correlationId: string, keys: string[]): void {
+        const known = this.knownEventKeysByCorrelationId.get(correlationId);
+        if (!known) return;
+        for (const k of keys) known.add(k);
+    }
+
+    /**
+     * Seed the "known keys" set for a correlation from the baseline event created in startMeasurement,
+     * and include the keys that the library will add later.
+     */
+    private seedKnownKeysFromBaseline(correlationId: string, baseline: PerformanceEvent): void {
+        const known = this.knownEventKeysByCorrelationId.get(correlationId);
+        if (!known) return;
+
+        // Baseline known keys from the event we just constructed
+        Object.keys(baseline).forEach((k) => known.add(k));
+
+        // Add library-managed keys that we know will be set later
+        [
+            "durationMs",
+            "success",
+            "context",
+            "logs",
+            "errorCode",
+            "subErrorCode",
+            "serverErrorNo",
+            "accountType",
+            "dataBoundary",
+            "incompleteSubMeasurements",
+            "incompleteSubsCount",
+            "dynamicAttributes",
+        ].forEach((k) => known.add(k));
+    }
+
+    /**
+     * Set a dynamicAttributes attribute (numeric only).
+     */
+    private setDynamicAttributes(
+        correlationId: string,
+        key: string,
+        value: number | undefined
+    ): void {
+        if (value === undefined || value === null || isNaN(Number(value))) return;
+        const bucket = this.dynamicAttributesByCorrelationId.get(correlationId);
+        if (!bucket) return;
+        bucket[key] = Math.floor(Number(value));
+    }
+
+    /**
+     * Returns event duration in milliseconds (non-negative).
      */
     private getDurationMs(startTimeMs: number): number {
         const durationMs = Date.now() - startTimeMs;
-        // Handle clock skew
-        return durationMs < 0 ? durationMs : 0;
+        // Handle clock skew (never return negative)
+        return durationMs < 0 ? 0 : durationMs;
     }
 }

@@ -338,6 +338,9 @@ export type PerformanceEvent = {
 
     // Hashed logs in the format [millis1,hash1;millis2,hash2;...]
     logs?: string;
+
+    // Holds all the dynamically-created attributes in JSON string format
+    dynamicAttributes?: string;
 };
 
 export type PerformanceEventContext = {
