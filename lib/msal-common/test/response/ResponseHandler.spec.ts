@@ -183,8 +183,9 @@ describe("ResponseHandler.ts", () => {
                         testResponse,
                         testAuthority,
                         timestamp,
-                        testRequest
-                    , 0);
+                        testRequest,
+                        0
+                    );
                 expect(tokenResp).toBeUndefined();
             } catch (e) {
                 if (e instanceof AuthError) {
@@ -262,8 +263,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
         });
 
         it("does not create RefreshTokenEntity if refresh_token not in response", (done) => {
@@ -331,8 +333,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
         });
 
         it("create CacheRecord with all token entities", (done) => {
@@ -398,8 +401,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
         });
 
         it("adds rt expiry to performance fields when refresh_token_expires_in provided", async () => {
@@ -472,8 +476,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
             expect(response.code).toEqual(testSpaCode);
         });
 
@@ -555,8 +560,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
         });
     });
 
@@ -586,8 +592,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
 
             expect(result.familyId).toBe("");
         });
@@ -634,8 +641,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
             expect(result.accessToken).toBe(TEST_TOKENS.POP_TOKEN);
@@ -682,8 +690,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
             expect(result.accessToken).toBe(testResponse.access_token);
@@ -714,8 +723,9 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
-            , 0);
+                testRequest,
+                0
+            );
 
             expect(result.requestId).toBe("");
         });
@@ -900,8 +910,9 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
-                , 0);
+                    testRequest,
+                    0
+                );
                 throw Error("should throw cache error");
             } catch (e) {
                 expect(e).toBeInstanceOf(CacheError);
@@ -947,8 +958,9 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
-                , 0);
+                    testRequest,
+                    0
+                );
                 throw Error("should throw cache error");
             } catch (e) {
                 expect(e).toBeInstanceOf(CacheError);
@@ -994,8 +1006,9 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
-                , 0);
+                    testRequest,
+                    0
+                );
                 throw Error("should throw cache error");
             } catch (e) {
                 expect(e).toBeInstanceOf(CacheError);
@@ -1038,8 +1051,9 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
-                , 0);
+                    testRequest,
+                    0
+                );
                 throw Error("should throw cache error");
             } catch (e) {
                 expect(e).toBeInstanceOf(CacheError);

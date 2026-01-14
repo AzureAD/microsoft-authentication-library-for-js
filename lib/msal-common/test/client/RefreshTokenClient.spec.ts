@@ -540,7 +540,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest, 0
+                refreshTokenRequest,
+                0
             );
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
@@ -940,7 +941,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest, 0
+                refreshTokenRequest,
+                0
             );
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
@@ -1062,7 +1064,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest, 0
+                refreshTokenRequest,
+                0
             );
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
@@ -1180,7 +1183,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest, 0
+                refreshTokenRequest,
+                0
             );
 
             expect(authResult.requestId).toBeTruthy;
@@ -1209,7 +1213,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest, 0
+                refreshTokenRequest,
+                0
             );
 
             expect(authResult.requestId).toBeFalsy;
@@ -1358,7 +1363,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest, 0
+                refreshTokenRequest,
+                0
             );
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
@@ -1465,14 +1471,17 @@ describe("RefreshTokenClient unit tests", () => {
                 stubPerformanceClient
             );
             await expect(
-                client.acquireTokenByRefreshToken({
-                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    // @ts-ignore
-                    account: null,
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    forceRefresh: false,
-                }, 0)
+                client.acquireTokenByRefreshToken(
+                    {
+                        scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                        // @ts-ignore
+                        account: null,
+                        authority: TEST_CONFIG.validAuthority,
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        forceRefresh: false,
+                    },
+                    0
+                )
             ).rejects.toMatchObject(
                 createClientAuthError(
                     ClientAuthErrorCodes.noAccountInSilentRequest
