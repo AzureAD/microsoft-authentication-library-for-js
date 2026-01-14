@@ -21,6 +21,7 @@ import {
     UrlUtils,
     getClientAssertion,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
 import { BaseClient } from "./BaseClient.js";
 
@@ -73,7 +74,8 @@ export class UsernamePasswordClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByUsernamePassword
         );
 
         return tokenResponse;

@@ -20,6 +20,7 @@ import {
     Constants,
     StubPerformanceClient,
 } from "@azure/msal-common/node";
+import { ApiId } from "../../utils/Constants.js";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
@@ -317,7 +318,8 @@ export abstract class BaseManagedIdentitySource {
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
-            managedIdentityRequest
+            managedIdentityRequest,
+            ApiId.acquireTokenWithManagedIdentity
         );
     }
 

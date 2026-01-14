@@ -128,6 +128,7 @@ export class AuthorizationCodeClient {
      */
     async acquireToken(
         request: CommonAuthorizationCodeRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
         if (!request.code) {
@@ -187,6 +188,7 @@ export class AuthorizationCodeClient {
             this.authority,
             reqTimestamp,
             request,
+            apiId,
             authCodePayload,
             undefined,
             undefined,

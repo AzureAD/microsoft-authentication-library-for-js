@@ -29,6 +29,7 @@ import {
     getClientAssertion,
     UrlUtils,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
@@ -335,7 +336,8 @@ export class ClientCredentialClient extends BaseClient {
             serverTokenResponse,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByClientCredential
         );
 
         return tokenResponse;

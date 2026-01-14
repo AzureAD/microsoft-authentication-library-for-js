@@ -49,6 +49,8 @@ import {
     InMemoryCacheKeys,
     INTERACTION_TYPE,
     TemporaryCacheKeys,
+    ApiId,
+    apiIdToName,
 } from "../utils/BrowserConstants.js";
 import * as CacheKeys from "./CacheKeys.js";
 import { LocalStorage } from "./LocalStorage.js";
@@ -1050,10 +1052,19 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
 
-        return CacheManager.toObject<AccountEntity>(
+        const account = CacheManager.toObject<AccountEntity>(
             {} as AccountEntity,
             parsedAccount
         );
+
+        this.performanceClient.addFields(
+            {
+                accountCachedBy: apiIdToName(account.cachedByApiId),
+            },
+            correlationId
+        );
+
+        return account;
     }
 
     /**
@@ -1063,7 +1074,8 @@ export class BrowserCacheManager extends CacheManager {
     async setAccount(
         account: AccountEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        apiId: number
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setAccount called",
@@ -1074,6 +1086,7 @@ export class BrowserCacheManager extends CacheManager {
         );
         const timestamp = Date.now().toString();
         account.lastUpdatedAt = timestamp;
+        account.cachedByApiId = apiId;
         await this.setUserData(
             key,
             JSON.stringify(account),
@@ -2318,7 +2331,8 @@ export class BrowserCacheManager extends CacheManager {
             result.correlationId,
             AuthToken.isKmsi(
                 AuthToken.extractTokenClaims(result.idToken, base64Decode)
-            )
+            ),
+            ApiId.hydrateCache
         );
     }
 
@@ -2332,6 +2346,7 @@ export class BrowserCacheManager extends CacheManager {
         cacheRecord: CacheRecord,
         correlationId: string,
         kmsi: boolean,
+        apiId: number,
         storeInCache?: StoreInCache
     ): Promise<void> {
         try {
@@ -2339,6 +2354,7 @@ export class BrowserCacheManager extends CacheManager {
                 cacheRecord,
                 correlationId,
                 kmsi,
+                apiId,
                 storeInCache
             );
         } catch (e) {

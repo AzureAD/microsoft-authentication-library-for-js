@@ -76,7 +76,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             emptyConfig.storageInterface.setAccount(
                 MockCache.acc,
                 TEST_CONFIG.CORRELATION_ID,
-                true
+                true,
+                0
             )
         ).rejects.toEqual(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)

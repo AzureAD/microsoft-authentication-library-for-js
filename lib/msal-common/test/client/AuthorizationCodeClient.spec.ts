@@ -242,7 +242,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             };
 
-            await client.acquireToken(authCodeRequest, {
+            await client.acquireToken(authCodeRequest, 0, {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce,
                 state: testState,
@@ -362,7 +362,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             };
 
-            await client.acquireToken(authCodeRequest, {
+            await client.acquireToken(authCodeRequest, 0, {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce,
                 state: testState,
@@ -473,7 +473,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
-            await client.acquireToken(authCodeRequest, {
+            await client.acquireToken(authCodeRequest, 0, {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce,
                 state: testState,
@@ -572,7 +572,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
 
             await expect(
-                client.acquireToken(authCodeRequest, {
+                client.acquireToken(authCodeRequest, 0, {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
@@ -672,7 +672,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
 
             await expect(
-                client.acquireToken(authCodeRequest, {
+                client.acquireToken(authCodeRequest, 0, {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
@@ -774,6 +774,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authenticationResult = await client.acquireToken(
                 authCodeRequest,
+                0,
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
@@ -962,6 +963,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authenticationResult = await client.acquireToken(
                 authCodeRequest,
+                0,
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
@@ -1094,7 +1096,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
-            client.acquireToken(authorizationCodeRequest).catch((error) => {
+            client.acquireToken(authorizationCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -1145,7 +1147,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(authorizationCodeRequest).catch((error) => {
+            client.acquireToken(authorizationCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -1191,7 +1193,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(authCodeRequest).catch((error) => {
+            client.acquireToken(authCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -1254,7 +1256,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(authCodeRequest).catch((error) => {
+            client.acquireToken(authCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -1317,7 +1319,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(authCodeRequest).catch((error) => {
+            client.acquireToken(authCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -1361,7 +1363,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 enableSpaAuthorizationCode: true,
             };
 
-            client.acquireToken(authCodeRequest).catch((error) => {
+            client.acquireToken(authCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -1410,7 +1412,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(authCodeRequest).catch((error) => {
+            client.acquireToken(authCodeRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -1538,6 +1540,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authenticationResult = await client.acquireToken(
                 authCodeRequest,
+                0,
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
@@ -1730,6 +1733,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authenticationResult = await client.acquireToken(
                 authCodeRequest,
+                0,
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
@@ -1914,7 +1918,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
 
             expect(
-                client.acquireToken(authCodeRequest, {
+                client.acquireToken(authCodeRequest, 0, {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                     state: testState,
@@ -2025,6 +2029,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authenticationResult = await client.acquireToken(
                 authCodeRequest,
+                0,
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
@@ -2135,6 +2140,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authenticationResult = await client.acquireToken(
                 authCodeRequest,
+                0,
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
@@ -2222,6 +2228,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authenticationResult = await client.acquireToken(
                 authCodeRequest,
+                0,
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
@@ -2289,6 +2296,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const authenticationResult = await client.acquireToken(
                 authCodeRequest,
+                0,
                 {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
@@ -2354,7 +2362,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
-            await client.acquireToken(authCodeRequest, {
+            await client.acquireToken(authCodeRequest, 0, {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce,
             });
@@ -2421,7 +2429,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
-            await client.acquireToken(authCodeRequest, {
+            await client.acquireToken(authCodeRequest, 0, {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce,
             });
@@ -2491,7 +2499,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
-            await client.acquireToken(authCodeRequest, {
+            await client.acquireToken(authCodeRequest, 0, {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce,
                 cloud_instance_host_name: "login.windows.net",
@@ -2587,7 +2595,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             try {
-                await client.acquireToken(authCodeRequest, {
+                await client.acquireToken(authCodeRequest, 0, {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                 });
@@ -2681,7 +2689,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             try {
-                await client.acquireToken(authCodeRequest, {
+                await client.acquireToken(authCodeRequest, 0, {
                     code: authCodeRequest.code,
                     nonce: idTokenClaims.nonce,
                 });

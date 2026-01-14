@@ -147,7 +147,7 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest, 61);
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
@@ -203,7 +203,7 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest, 61);
             expect(tokenResp).toEqual(testTokenResponse);
         });
 

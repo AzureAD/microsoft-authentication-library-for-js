@@ -28,6 +28,7 @@ import {
     getClientAssertion,
     UrlUtils,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
 import { BaseClient } from "./BaseClient.js";
@@ -309,6 +310,7 @@ export class OnBehalfOfClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
+            ApiId.acquireTokenByOBO,
             undefined,
             userAssertionHash
         );
