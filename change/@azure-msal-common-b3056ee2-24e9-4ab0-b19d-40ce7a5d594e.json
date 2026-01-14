@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add telemetry support for loading external tokens and related events #8231",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
