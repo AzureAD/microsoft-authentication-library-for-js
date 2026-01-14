@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { AccessTokenCache } from '@azure/msal-common/node';
 import { AccessTokenEntity } from '@azure/msal-common/node';
 import { AccountCache } from '@azure/msal-common/node';
