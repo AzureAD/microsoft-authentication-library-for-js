@@ -259,21 +259,23 @@ export class RefreshTokenClient {
             );
         }
 
-        if (
-            refreshToken.expiresOn &&
-            TimeUtils.isTokenExpired(
-                refreshToken.expiresOn,
+        if (refreshToken.expiresOn) {
+            const offset =
                 request.refreshTokenExpirationOffsetSeconds ||
-                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
-            )
-        ) {
+                DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS;
             this.performanceClient?.addFields(
-                { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                {
+                    cacheRtExpiresOnSeconds: Number(refreshToken.expiresOn),
+                    rtOffsetSeconds: offset,
+                },
                 request.correlationId
             );
-            throw createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.refreshTokenExpired
-            );
+
+            if (TimeUtils.isTokenExpired(refreshToken.expiresOn, offset)) {
+                throw createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                );
+            }
         }
         // attach cached RT size to the current measurement
 
@@ -299,11 +301,6 @@ export class RefreshTokenClient {
             )(refreshTokenRequest);
         } catch (e) {
             if (e instanceof InteractionRequiredAuthError) {
-                this.performanceClient?.addFields(
-                    { rtExpiresOnMs: Number(refreshToken.expiresOn) },
-                    request.correlationId
-                );
-
                 if (e.subError === InteractionRequiredAuthErrorCodes.badToken) {
                     // Remove bad refresh token from cache
                     this.logger.verbose(

@@ -142,7 +142,7 @@ export { AuthErrorCodes }
 
 // Warning: (ae-missing-release-tag) "AuthorizationCodeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public (undocumented)
+// @public
 export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "code" | "enableSpaAuthorizationCode">> & {
     code?: string;
     nativeAccountId?: string;
@@ -375,7 +375,8 @@ declare namespace BrowserRootPerformanceEvents {
         AcquireTokenRedirect,
         SsoSilent,
         InitializeClientApplication,
-        LocalStorageUpdated
+        LocalStorageUpdated,
+        LoadExternalTokens
     }
 }
 
@@ -935,13 +936,15 @@ export const JsonWebTokenTypes: {
 // @public (undocumented)
 export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "LoadExternalTokens" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const LoadExternalTokens = "loadExternalTokens";
+
 // Warning: (ae-missing-release-tag) "loadExternalTokens" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function loadExternalTokens(config: Configuration, request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): Promise<AuthenticationResult>;
+export function loadExternalTokens(config: Configuration, request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions, performanceClient?: IPerformanceClient): Promise<AuthenticationResult>;
 
 // Warning: (ae-missing-release-tag) "LoadTokenOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1486,7 +1489,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "5.0.0-beta.0";
+export const version = "5.0.0";
 
 // Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
