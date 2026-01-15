@@ -1,8 +1,12 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 13 Jan 2026 14:23:32 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 15 Jan 2026 14:40:01 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.8.5
+
+Thu, 15 Jan 2026 14:40:01 GMT
 
 ## 3.8.5
 

@@ -1,8 +1,12 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 13 Jan 2026 14:23:32 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 15 Jan 2026 14:40:01 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.14.0
+
+Thu, 15 Jan 2026 14:40:01 GMT
 
 ## 15.14.0
 
