@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1768429300633,
+  "lastUpdate": 1768606443231,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19135,6 +19135,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.92%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eeeab879ff58a19681c875a1018c68330f46b739",
+          "message": "Fix v4 E2E Tests Post v5 Release (#8246)\n\nThis pull request updates how the Express sample server determines and\nserves the latest version of the `@azure/msal-browser` library,\nspecifically improving accuracy for the 4.x release line and updating\nfallback versions.\n\nDependency version selection improvements:\n\n* Changed the CDN path for the 'latest' (4.x) version in\n`availableVersions` to use the explicit `@4` tag instead of `@latest`,\nensuring only stable 4.x versions are served.\n* Updated the logic in `fetchLatestVersion` to programmatically filter\nand select the most recent stable 4.x version from all available\nversions, rather than simply using the npm `latest` tag. This avoids\nserving pre-release or non-4.x versions.\n\nFallback version updates:\n\n* Adjusted fallback versions returned in case of errors: for 'latest'\n(4.x), now defaults to `4.28.0` (previously `4.15.0`); for 3.x, now\ndefaults to `3.30.0` (previously `3.28.1`).",
+          "timestamp": "2026-01-16T15:27:25-08:00",
+          "tree_id": "4fae5b184d3585717d3819d72bcabe39c9c636ba",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/eeeab879ff58a19681c875a1018c68330f46b739"
+        },
+        "date": 1768606438330,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 249702,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245916,
+            "range": "±0.66%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
