@@ -297,7 +297,7 @@ export class ResponseHandler {
                     );
                     this.performanceClient?.addFields({
                         acntLoggedOut: true
-                    }, request.correlationId)
+                    }, request.correlationId);
                     return await ResponseHandler.generateAuthenticationResult(
                         this.cryptoObj,
                         authority,
