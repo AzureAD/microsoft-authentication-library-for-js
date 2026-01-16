@@ -6,17 +6,14 @@
 import {
     Logger,
     LogLevel,
-    IdTokenEntity,
-    AccessTokenEntity,
-    ScopeSet,
     ExternalTokenResponse,
     AccountEntity,
     AuthToken,
     AuthorityType,
-    RefreshTokenEntity,
     TokenClaims,
-    CacheHelpers,
     StubPerformanceClient,
+    PerformanceEvents,
+    PerformanceEvent,
 } from "@azure/msal-common/browser";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
@@ -26,7 +23,10 @@ import {
     buildConfiguration,
     CacheOptions,
 } from "../../src/config/Configuration.js";
-import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
+import {
+    ApiId,
+    BrowserCacheLocation,
+} from "../../src/utils/BrowserConstants.js";
 import {
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
@@ -37,11 +37,10 @@ import {
     TEST_URIS,
 } from "../utils/StringConstants.js";
 import {
-    BrowserAuthError,
     BrowserAuthErrorCodes,
-    BrowserAuthErrorMessage,
     PublicClientApplication,
     SilentRequest,
+    BrowserPerformanceClient,
 } from "../../src/index.js";
 import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
@@ -71,6 +70,7 @@ describe("TokenCache tests", () => {
             secureCookies: false,
             cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
+            cacheRetentionDays: 5,
         };
         logger = new Logger({
             loggerCallback: (
@@ -104,22 +104,16 @@ describe("TokenCache tests", () => {
         let testIdToken: string;
         let testIdTokenClaims: TokenClaims;
         let testHomeAccountId: string;
-        let idTokenEntity: IdTokenEntity;
-        let idTokenKey: string;
         let testAccessToken: string;
-        let accessTokenEntity: AccessTokenEntity;
-        let accessTokenKey: string;
-        let scopeString: string;
         let testRefreshToken: string;
-        let refreshTokenEntity: RefreshTokenEntity;
-        let refreshTokenKey: string;
 
         beforeEach(() => {
             tokenCache = new TokenCache(
                 configuration,
                 browserStorage,
                 logger,
-                cryptoObj
+                cryptoObj,
+                new StubPerformanceClient()
             );
             testEnvironment = "login.microsoftonline.com";
 
@@ -137,42 +131,8 @@ describe("TokenCache tests", () => {
                 testIdTokenClaims
             );
 
-            idTokenEntity = CacheHelpers.createIdTokenEntity(
-                testHomeAccountId,
-                testEnvironment,
-                TEST_TOKENS.IDTOKEN_V2,
-                configuration.auth.clientId,
-                ID_TOKEN_CLAIMS.tid
-            );
-            idTokenKey = CacheHelpers.generateCredentialKey(idTokenEntity);
-
-            scopeString = new ScopeSet(
-                TEST_CONFIG.DEFAULT_SCOPES
-            ).printScopes();
-            (testAccessToken = TEST_TOKENS.ACCESS_TOKEN),
-                (accessTokenEntity = CacheHelpers.createAccessTokenEntity(
-                    testHomeAccountId,
-                    testEnvironment,
-                    testAccessToken,
-                    configuration.auth.clientId,
-                    TEST_CONFIG.TENANT,
-                    scopeString,
-                    TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                    TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                    cryptoObj.base64Decode
-                ));
-            accessTokenKey =
-                CacheHelpers.generateCredentialKey(accessTokenEntity);
-
+            testAccessToken = TEST_TOKENS.ACCESS_TOKEN;
             testRefreshToken = TEST_TOKENS.REFRESH_TOKEN;
-            refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
-                testHomeAccountId,
-                testEnvironment,
-                testRefreshToken,
-                configuration.auth.clientId
-            );
-            refreshTokenKey =
-                CacheHelpers.generateCredentialKey(refreshTokenEntity);
         });
 
         afterEach(() => {
@@ -180,6 +140,10 @@ describe("TokenCache tests", () => {
         });
 
         it("loads id token with a request account", async () => {
+            const setSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setIdTokenCredential"
+            );
             const requestHomeAccountId =
                 TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
             const request: SilentRequest = {
@@ -190,6 +154,7 @@ describe("TokenCache tests", () => {
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
                     localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                    loginHint: "login_hint",
                 },
             };
             const response: ExternalTokenResponse = {
@@ -202,23 +167,53 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            const testIdTokenEntity = CacheHelpers.createIdTokenEntity(
-                requestHomeAccountId,
-                testEnvironment,
-                TEST_TOKENS.IDTOKEN_V2,
-                configuration.auth.clientId,
-                TEST_CONFIG.TENANT
-            );
-            const testIdTokenKey =
-                CacheHelpers.generateCredentialKey(testIdTokenEntity);
-
-            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getIdTokenCredential(testIdTokenKey)).toEqual(
-                testIdTokenEntity
+            expect(result.idToken).toEqual(testIdToken);
+            expect(setSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testIdToken }),
+                expect.anything(),
+                false
             );
         });
 
+        it("sets cachedByApiId when loading external tokens", async () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: testEnvironment,
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: "username",
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                    loginHint: "login_hint",
+                },
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+                access_token: testAccessToken,
+                refresh_token: testRefreshToken,
+            };
+            const options: LoadTokenOptions = {};
+            const result = await tokenCache.loadExternalTokens(
+                request,
+                response,
+                options
+            );
+
+            const accountKey = browserStorage.generateAccountKey(
+                result.account!
+            );
+            const accountEntity = await browserStorage.getAccount(
+                accountKey,
+                RANDOM_TEST_GUID
+            );
+            expect(accountEntity?.cachedByApiId).toBe(ApiId.loadExternalTokens);
+        });
+
         it("loads id token with request authority and client info provided in options", async () => {
+            const setSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setIdTokenCredential"
+            );
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -236,13 +231,19 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
+            expect(result.idToken).toEqual(testIdToken);
+            expect(setSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testIdToken }),
+                expect.anything(),
+                false
             );
         });
 
         it("sets account when id token is loaded", async () => {
+            const setSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setIdTokenCredential"
+            );
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -254,30 +255,38 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const testAccountInfo = buildAccountFromIdTokenClaims(
+            const accountEntity = buildAccountFromIdTokenClaims(
                 ID_TOKEN_CLAIMS,
                 undefined,
                 { environment: testEnvironment }
-            ).getAccountInfo();
+            );
+            const testAccountInfo = AccountEntity.getAccountInfo(accountEntity);
             const testAccountKey =
-                AccountEntity.generateAccountCacheKey(testAccountInfo);
+                browserStorage.generateAccountKey(testAccountInfo);
             const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
             );
 
-            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(result.idToken).toEqual(testIdToken);
             expect(result.account).toEqual(testAccountInfo);
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
+            expect(setSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testIdToken }),
+                expect.anything(),
+                false
             );
             expect(
-                browserStorage.getAccount(testAccountKey)?.homeAccountId
+                browserStorage.getAccount(testAccountKey, RANDOM_TEST_GUID)
+                    ?.homeAccountId
             ).toEqual(testAccountInfo.homeAccountId);
         });
 
         it("loads id token with request authority and client info provided in response", async () => {
+            const setSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setIdTokenCredential"
+            );
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -293,9 +302,11 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
+            expect(result.idToken).toEqual(testIdToken);
+            expect(setSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testIdToken }),
+                expect.anything(),
+                false
             );
         });
 
@@ -343,14 +354,23 @@ describe("TokenCache tests", () => {
         });
 
         it("skips storing access token if server response provided does not have expires_in", async () => {
+            const idSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setIdTokenCredential"
+            );
+            const accessSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setAccessTokenCredential"
+            );
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: testEnvironment,
                     tenantId: ID_TOKEN_CLAIMS.tid,
-                    username: "username",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
                     localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -366,24 +386,29 @@ describe("TokenCache tests", () => {
             );
 
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
-                idTokenEntity
+            expect(idSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testIdToken }),
+                expect.anything(),
+                false
             );
             expect(result.accessToken).toEqual("");
-            expect(
-                browserStorage.getAccessTokenCredential(accessTokenKey)
-            ).toEqual(null);
+            expect(accessSpy).not.toHaveBeenCalled();
         });
 
         it("loads access tokens from server response and token options", async () => {
+            const accessSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setAccessTokenCredential"
+            );
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {
                     homeAccountId: testHomeAccountId,
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
-                    username: "username",
-                    localAccountId: "localAccountId",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -401,13 +426,12 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            expect(parseInt(accessTokenEntity.expiresOn)).toBeGreaterThan(
-                TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+            expect(result.accessToken).toEqual(testAccessToken);
+            expect(accessSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testAccessToken }),
+                expect.anything(),
+                false
             );
-            expect(result.accessToken).toEqual(accessTokenEntity.secret);
-            expect(
-                browserStorage.getAccessTokenCredential(accessTokenKey)
-            ).toEqual(accessTokenEntity);
         });
 
         it("throws error if in non-browser environment", (done) => {
@@ -418,8 +442,9 @@ describe("TokenCache tests", () => {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
-                    username: "username",
-                    localAccountId: "localAccountId",
+                    username: ID_TOKEN_CLAIMS.preferred_username,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -442,6 +467,10 @@ describe("TokenCache tests", () => {
         });
 
         it("loads refresh token with request authority and client info provided in response", async () => {
+            const refreshSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setRefreshTokenCredential"
+            );
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -454,12 +483,18 @@ describe("TokenCache tests", () => {
 
             await tokenCache.loadExternalTokens(request, response, options);
 
-            expect(
-                browserStorage.getRefreshTokenCredential(refreshTokenKey)
-            ).toEqual(refreshTokenEntity);
+            expect(refreshSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testRefreshToken }),
+                expect.anything(),
+                false
+            );
         });
 
         it("loads refresh token with request authority and client info provided in options", async () => {
+            const refreshSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setRefreshTokenCredential"
+            );
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -490,12 +525,22 @@ describe("TokenCache tests", () => {
             ).toEqual(result.account);
 
             // Validate tokens can be retrieved
-            expect(
-                browserStorage.getRefreshTokenCredential(refreshTokenKey)
-            ).toEqual(refreshTokenEntity);
+            expect(refreshSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testRefreshToken }),
+                expect.anything(),
+                false
+            );
         });
 
         it("loads refresh token with request authority and information from id_token", async () => {
+            const idSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setIdTokenCredential"
+            );
+            const refreshSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setRefreshTokenCredential"
+            );
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -520,32 +565,210 @@ describe("TokenCache tests", () => {
                 testIdTokenClaims
             );
 
-            idTokenEntity = CacheHelpers.createIdTokenEntity(
-                testHomeAccountId,
-                testEnvironment,
-                TEST_TOKENS.IDTOKEN_V2,
-                configuration.auth.clientId,
-                ID_TOKEN_CLAIMS.tid
-            );
-
-            refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
-                testHomeAccountId,
-                testEnvironment,
-                testRefreshToken,
-                configuration.auth.clientId
-            );
-
             expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
-            expect(
-                browserStorage.getIdTokenCredential(
-                    CacheHelpers.generateCredentialKey(idTokenEntity)
-                )
-            ).toEqual(idTokenEntity);
-            expect(
-                browserStorage.getRefreshTokenCredential(
-                    CacheHelpers.generateCredentialKey(refreshTokenEntity)
-                )
-            ).toEqual(refreshTokenEntity);
+            expect(idSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testIdToken }),
+                expect.anything(),
+                false
+            );
+            expect(refreshSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ secret: testRefreshToken }),
+                expect.anything(),
+                false
+            );
+        });
+
+        it("instruments loadExternalTokens as a top-level telemetry event", async () => {
+            const testAppConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            };
+            const perfClient = new BrowserPerformanceClient(testAppConfig);
+
+            const eventPromise = new Promise<PerformanceEvent>((resolve) => {
+                // @ts-ignore
+                const callbackId = perfClient.addPerformanceCallback(
+                    (events: PerformanceEvent[]) => {
+                        const loadExternalTokensEvent = events.find(
+                            (e) =>
+                                e.name === PerformanceEvents.LoadExternalTokens
+                        );
+                        if (loadExternalTokensEvent) {
+                            // @ts-ignore
+                            perfClient.removePerformanceCallback(callbackId);
+                            resolve(loadExternalTokensEvent);
+                        }
+                    }
+                );
+            });
+
+            const tokenCacheWithPerfClient = new TokenCache(
+                configuration,
+                browserStorage,
+                logger,
+                cryptoObj,
+                perfClient
+            );
+
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: {
+                    homeAccountId: testHomeAccountId,
+                    environment: testEnvironment,
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: ID_TOKEN_CLAIMS.preferred_username,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
+                },
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+                access_token: testAccessToken,
+                refresh_token: testRefreshToken,
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+            };
+            const options: LoadTokenOptions = {};
+
+            await tokenCacheWithPerfClient.loadExternalTokens(
+                request,
+                response,
+                options
+            );
+
+            const event = await eventPromise;
+            expect(event.success).toBe(true);
+            expect(event.correlationId).toBeDefined();
+            expect(event.durationMs).toBeGreaterThanOrEqual(0);
+        });
+
+        it("instruments internal functions with telemetry (loadAccount, loadIdToken, loadAccessToken, loadRefreshToken)", async () => {
+            const testAppConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            };
+            const perfClient = new BrowserPerformanceClient(testAppConfig);
+
+            // Spy on startMeasurement to verify sub-measurements are being tracked
+            const startMeasurementSpy = jest.spyOn(
+                perfClient,
+                "startMeasurement"
+            );
+
+            const tokenCacheWithPerfClient = new TokenCache(
+                configuration,
+                browserStorage,
+                logger,
+                cryptoObj,
+                perfClient
+            );
+
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: {
+                    homeAccountId: testHomeAccountId,
+                    environment: testEnvironment,
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: ID_TOKEN_CLAIMS.preferred_username,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    loginHint: ID_TOKEN_CLAIMS.login_hint,
+                },
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+                access_token: testAccessToken,
+                refresh_token: testRefreshToken,
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+            };
+            const options: LoadTokenOptions = {};
+
+            await tokenCacheWithPerfClient.loadExternalTokens(
+                request,
+                response,
+                options
+            );
+
+            // Verify that startMeasurement was called for each sub-measurement
+            const measurementCalls = startMeasurementSpy.mock.calls.map(
+                (call) => call[0]
+            );
+
+            expect(measurementCalls).toContain(
+                PerformanceEvents.LoadExternalTokens
+            );
+            expect(measurementCalls).toContain(PerformanceEvents.LoadAccount);
+            expect(measurementCalls).toContain(PerformanceEvents.LoadIdToken);
+            expect(measurementCalls).toContain(
+                PerformanceEvents.LoadAccessToken
+            );
+            expect(measurementCalls).toContain(
+                PerformanceEvents.LoadRefreshToken
+            );
+        });
+
+        it("instruments errors in loadExternalTokens with telemetry", async () => {
+            const testAppConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            };
+            const perfClient = new BrowserPerformanceClient(testAppConfig);
+
+            const eventPromise = new Promise<PerformanceEvent>((resolve) => {
+                // @ts-ignore
+                const callbackId = perfClient.addPerformanceCallback(
+                    (events: PerformanceEvent[]) => {
+                        const loadExternalTokensEvent = events.find(
+                            (e) =>
+                                e.name === PerformanceEvents.LoadExternalTokens
+                        );
+                        if (loadExternalTokensEvent) {
+                            // @ts-ignore
+                            perfClient.removePerformanceCallback(callbackId);
+                            resolve(loadExternalTokensEvent);
+                        }
+                    }
+                );
+            });
+
+            const tokenCacheWithPerfClient = new TokenCache(
+                configuration,
+                browserStorage,
+                logger,
+                cryptoObj,
+                perfClient
+            );
+
+            // Create a request that will cause an error (missing account and authority)
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+            };
+            const options: LoadTokenOptions = {};
+
+            try {
+                await tokenCacheWithPerfClient.loadExternalTokens(
+                    request,
+                    response,
+                    options
+                );
+                fail("Expected loadExternalTokens to throw an error");
+            } catch (e) {
+                // Expected error
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.unableToLoadToken
+                    )
+                );
+            }
+
+            const event = await eventPromise;
+            expect(event.success).toBe(false);
+            expect(event.correlationId).toBeDefined();
+            expect(event.durationMs).toBeGreaterThanOrEqual(0);
         });
     });
 });

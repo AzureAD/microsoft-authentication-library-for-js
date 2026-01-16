@@ -246,23 +246,21 @@ describe("AccountInfo Unit Tests", () => {
     describe("updateAccountTenantProfileData()", () => {
         const baseAccount: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const baseAccountInfo = baseAccount.getAccountInfo();
+        const baseAccountInfo = AccountEntity.getAccountInfo(baseAccount);
         // Get non-overridable properties to make sure they're unchanged
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {
             tenantId,
             localAccountId,
             name,
+            username,
+            loginHint,
             ...CONSTANT_ACCOUNT_PROPERTIES
         } = baseAccountInfo;
 
         it("returns unmodified baseAccountInfo when tenantProfile and idTokenClaims are undefined", () => {
             const updatedAccountInfo =
-                AccountInfo.updateAccountTenantProfileData(
-                    baseAccountInfo,
-                    undefined,
-                    undefined
-                );
+                AccountInfo.updateAccountTenantProfileData(baseAccountInfo);
             expect(updatedAccountInfo).toEqual(baseAccountInfo);
         });
 
@@ -271,6 +269,8 @@ describe("AccountInfo Unit Tests", () => {
                 tenantId: "guest-tenant-id",
                 localAccountId: "guest-local-account-id",
                 name: "guest-name",
+                username: "guest-username",
+                loginHint: "guest-login-hint",
                 isHomeTenant: false,
             };
 
@@ -287,6 +287,12 @@ describe("AccountInfo Unit Tests", () => {
                 guestTenantProfile.localAccountId
             );
             expect(updatedAccountInfo.name).toEqual(guestTenantProfile.name);
+            expect(updatedAccountInfo.username).toEqual(
+                guestTenantProfile.username
+            );
+            expect(updatedAccountInfo.loginHint).toEqual(
+                guestTenantProfile.loginHint
+            );
             expect(updatedAccountInfo.idTokenClaims).toBeUndefined();
             expect(updatedAccountInfo).toMatchObject(
                 CONSTANT_ACCOUNT_PROPERTIES
@@ -310,6 +316,9 @@ describe("AccountInfo Unit Tests", () => {
             expect(updatedAccountInfo.idTokenClaims).toEqual(
                 ID_TOKEN_ALT_CLAIMS
             );
+            expect(updatedAccountInfo.username).toEqual(
+                ID_TOKEN_ALT_CLAIMS.preferred_username
+            );
             expect(updatedAccountInfo).toMatchObject(
                 CONSTANT_ACCOUNT_PROPERTIES
             );
@@ -320,6 +329,8 @@ describe("AccountInfo Unit Tests", () => {
                 tenantId: "guest-tenant-id",
                 localAccountId: "guest-local-account-id",
                 name: "guest-name",
+                username: "guest-username",
+                loginHint: "guest-login-hint",
                 isHomeTenant: false,
             };
 
@@ -337,6 +348,9 @@ describe("AccountInfo Unit Tests", () => {
                 ID_TOKEN_ALT_CLAIMS.oid
             );
             expect(updatedAccountInfo.name).toEqual(ID_TOKEN_ALT_CLAIMS.name);
+            expect(updatedAccountInfo.username).toEqual(
+                ID_TOKEN_ALT_CLAIMS.preferred_username
+            );
             expect(updatedAccountInfo.idTokenClaims).toEqual(
                 ID_TOKEN_ALT_CLAIMS
             );

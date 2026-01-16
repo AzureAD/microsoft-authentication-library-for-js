@@ -163,7 +163,7 @@ export class PublicClientApplication
                 ...remainingProperties,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
@@ -177,6 +177,15 @@ export class PublicClientApplication
                 brokerRequest,
                 windowHandle
             );
+        }
+
+        if (request.redirectUri) {
+            // If its not a broker fallback scenario, we throw a error
+            if (!this.config.broker.nativeBrokerPlugin) {
+                throw NodeAuthError.createRedirectUriNotSupportedError();
+            }
+            // If a redirect URI is provided for a broker flow but MSAL runtime startup failed, we fall back to the browser flow and will ignore the redirect URI provided for the broker flow
+            request.redirectUri = "";
         }
 
         const { verifier, challenge } =
@@ -258,7 +267,7 @@ export class PublicClientApplication
                 ...request,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || OIDC_DEFAULT_SCOPES,
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                redirectUri: request.redirectUri || "",
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
                 extraParameters: {
@@ -269,6 +278,14 @@ export class PublicClientApplication
                 forceRefresh: request.forceRefresh || false,
             };
             return this.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
+        }
+
+        if (request.redirectUri) {
+            // If its not a broker fallback scenario, we throw a error
+            if (!this.config.broker.nativeBrokerPlugin) {
+                throw NodeAuthError.createRedirectUriNotSupportedError();
+            }
+            request.redirectUri = "";
         }
 
         return super.acquireTokenSilent(request);

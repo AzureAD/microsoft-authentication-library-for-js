@@ -24,6 +24,7 @@ import {
     AccountInfo,
 } from "@azure/msal-common";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 
 const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     ID_TOKEN_CLAIMS,
@@ -31,7 +32,7 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     { environment: "login.microsoftonline.com" }
 );
 const testAccount: AccountInfo = {
-    ...testAccountEntity.getAccountInfo(),
+    ...AccountEntity.getAccountInfo(testAccountEntity),
     idTokenClaims: ID_TOKEN_CLAIMS,
     idToken: TEST_TOKENS.IDTOKEN_V2,
 };
@@ -56,6 +57,7 @@ const testAccessTokenEntity: AccessTokenEntity = {
     expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
     cachedAt: `${TimeUtils.nowSeconds()}`,
     tokenType: AuthenticationScheme.BEARER,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 const testRefreshTokenEntity: RefreshTokenEntity = {
@@ -65,6 +67,7 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: TEST_TOKENS.REFRESH_TOKEN,
     credentialType: CredentialType.REFRESH_TOKEN,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 describe("SilentCacheClient", () => {
@@ -123,8 +126,8 @@ describe("SilentCacheClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                CacheManager.prototype,
-                "readAccountFromCache"
+                BrowserCacheManager.prototype,
+                "getAccount"
             ).mockReturnValue(testAccountEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 testIdToken

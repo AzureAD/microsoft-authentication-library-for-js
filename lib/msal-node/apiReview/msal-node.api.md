@@ -47,6 +47,7 @@ import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
 import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
+import { CredentialEntity } from '@azure/msal-common/node';
 import { DeviceCodeResponse } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
@@ -324,7 +325,7 @@ export { InteractionRequiredAuthErrorCodes }
 export { InteractionRequiredAuthErrorMessage }
 
 // @public
-export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "requestedClaimsHash" | "storeInCache">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
@@ -600,7 +601,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
-    getAllAccounts(): Promise<AccountInfo[]>;
+    getAllAccounts(correlationId?: string): Promise<AccountInfo[]>;
     getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
@@ -631,7 +632,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.6.0";
+export const version = "3.8.5";
 
 // Warnings were encountered during analysis:
 //

@@ -40,10 +40,17 @@
           <br>
           <br>
           <button class="btn btn-primary" id="acquireTokenRedirect"
-            onclick="getTokenRedirect()">acquireTokenRedirect</button>
+            onclick="getTokenRedirect()">acquireTokenRedirect (GET)</button>
           <br>
           <br>
-          <button class="btn btn-primary" id="acquireTokenPopup" onclick="getTokenPopup()">acquireTokenPopup</button>
+          <button class="btn btn-primary" id="acquireTokenRedirectPost"
+            onclick="getTokenRedirect('POST')">acquireTokenRedirect (POST)</button>
+          <br>
+          <br>
+          <button class="btn btn-primary" id="acquireTokenPopup" onclick="getTokenPopup()">acquireTokenPopup (GET)</button>
+          <br>
+          <br>
+          <button class="btn btn-primary" id="acquireTokenPopupPost" onclick="getTokenPopup('POST')">acquireTokenPopup (POST)</button>
           <br>
           <br>
           <button class="btn btn-primary" id="acquireTokenSilent"

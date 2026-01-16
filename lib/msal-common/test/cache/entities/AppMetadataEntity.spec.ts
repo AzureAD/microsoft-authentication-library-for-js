@@ -2,6 +2,7 @@ import { mockAppMetaDataEntity, mockIdTokenEntity } from "./cacheConstants";
 import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 import { CacheHelpers } from "../../../src";
 import { TEST_CONFIG } from "../../test_kit/StringConstants";
+import { generateCredentialKey } from "../../client/ClientTestUtils.js";
 
 describe("AppMetadataEntity.ts Unit Tests", () => {
     it("Create an AppMetadataEntity", () => {
@@ -29,9 +30,7 @@ describe("AppMetadataEntity.ts Unit Tests", () => {
     });
 
     it("verify if an object is not an appMetadata entity", () => {
-        const key = CacheHelpers.generateCredentialKey(
-            mockIdTokenEntity as IdTokenEntity
-        );
+        const key = generateCredentialKey(mockIdTokenEntity as IdTokenEntity);
         expect(
             CacheHelpers.isAppMetadataEntity(key, mockIdTokenEntity)
         ).toEqual(false);

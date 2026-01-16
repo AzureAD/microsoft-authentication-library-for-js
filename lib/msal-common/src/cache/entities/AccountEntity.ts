@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CacheAccountType, Separators } from "../../utils/Constants.js";
+import { CacheAccountType } from "../../utils/Constants.js";
 import type { Authority } from "../../authority/Authority.js";
 import { ICrypto } from "../../crypto/ICrypto.js";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
@@ -11,6 +11,7 @@ import {
     AccountInfo,
     TenantProfile,
     buildTenantProfile,
+    DataBoundary,
 } from "../../account/AccountInfo.js";
 import {
     createClientAuthError,
@@ -54,6 +55,7 @@ export class AccountEntity {
     localAccountId: string;
     username: string;
     authorityType: string;
+    loginHint?: string;
     clientInfo?: string;
     name?: string;
     lastModificationTime?: string;
@@ -62,47 +64,31 @@ export class AccountEntity {
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
-
-    /**
-     * Generate Account Id key component as per the schema: <home_account_id>-<environment>
-     */
-    generateAccountId(): string {
-        const accountId: Array<string> = [this.homeAccountId, this.environment];
-        return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
-    }
-
-    /**
-     * Generate Account Cache Key as per the schema: <home_account_id>-<environment>-<realm*>
-     */
-    generateAccountKey(): string {
-        return AccountEntity.generateAccountCacheKey({
-            homeAccountId: this.homeAccountId,
-            environment: this.environment,
-            tenantId: this.realm,
-            username: this.username,
-            localAccountId: this.localAccountId,
-        });
-    }
+    lastUpdatedAt: string;
+    dataBoundary?: DataBoundary;
+    cachedByApiId?: number;
 
     /**
      * Returns the AccountInfo interface for this account.
      */
-    getAccountInfo(): AccountInfo {
+    static getAccountInfo(accountEntity: AccountEntity): AccountInfo {
         return {
-            homeAccountId: this.homeAccountId,
-            environment: this.environment,
-            tenantId: this.realm,
-            username: this.username,
-            localAccountId: this.localAccountId,
-            name: this.name,
-            nativeAccountId: this.nativeAccountId,
-            authorityType: this.authorityType,
+            homeAccountId: accountEntity.homeAccountId,
+            environment: accountEntity.environment,
+            tenantId: accountEntity.realm,
+            username: accountEntity.username,
+            localAccountId: accountEntity.localAccountId,
+            loginHint: accountEntity.loginHint,
+            name: accountEntity.name,
+            nativeAccountId: accountEntity.nativeAccountId,
+            authorityType: accountEntity.authorityType,
             // Deserialize tenant profiles array into a Map
             tenantProfiles: new Map(
-                (this.tenantProfiles || []).map((tenantProfile) => {
+                (accountEntity.tenantProfiles || []).map((tenantProfile) => {
                     return [tenantProfile.tenantId, tenantProfile];
                 })
             ),
+            dataBoundary: accountEntity.dataBoundary,
         };
     }
 
@@ -111,21 +97,6 @@ export class AccountEntity {
      */
     isSingleTenant(): boolean {
         return !this.tenantProfiles;
-    }
-
-    /**
-     * Generates account key from interface
-     * @param accountInterface
-     */
-    static generateAccountCacheKey(accountInterface: AccountInfo): string {
-        const homeTenantId = accountInterface.homeAccountId.split(".")[1];
-        const accountKey = [
-            accountInterface.homeAccountId,
-            accountInterface.environment || "",
-            homeTenantId || accountInterface.tenantId || "",
-        ];
-
-        return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
 
     /**
@@ -163,6 +134,10 @@ export class AccountEntity {
                 accountDetails.clientInfo,
                 base64Decode
             );
+            if (clientInfo.xms_tdbr) {
+                account.dataBoundary =
+                    clientInfo.xms_tdbr === "EU" ? "EU" : "None";
+            }
         }
 
         account.clientInfo = accountDetails.clientInfo;
@@ -206,6 +181,7 @@ export class AccountEntity {
             : null;
 
         account.username = preferredUsername || email || "";
+        account.loginHint = accountDetails.idTokenClaims?.login_hint;
         account.name = accountDetails.idTokenClaims?.name || "";
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
@@ -251,6 +227,7 @@ export class AccountEntity {
 
         account.username = accountInfo.username;
         account.name = accountInfo.name;
+        account.loginHint = accountInfo.loginHint;
 
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;
@@ -258,6 +235,7 @@ export class AccountEntity {
         account.tenantProfiles = Array.from(
             accountInfo.tenantProfiles?.values() || []
         );
+        account.dataBoundary = accountInfo.dataBoundary;
 
         return account;
     }
@@ -304,7 +282,7 @@ export class AccountEntity {
      * Validates an entity: checks for all expected params
      * @param entity
      */
-    static isAccountEntity(entity: object): boolean {
+    static isAccountEntity(entity: object): entity is AccountEntity {
         if (!entity) {
             return false;
         }
@@ -352,6 +330,7 @@ export class AccountEntity {
             accountA.localAccountId === accountB.localAccountId &&
             accountA.username === accountB.username &&
             accountA.tenantId === accountB.tenantId &&
+            accountA.loginHint === accountB.loginHint &&
             accountA.environment === accountB.environment &&
             accountA.nativeAccountId === accountB.nativeAccountId &&
             claimsMatch

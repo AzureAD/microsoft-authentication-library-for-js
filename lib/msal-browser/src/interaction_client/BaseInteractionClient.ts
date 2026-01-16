@@ -8,7 +8,6 @@ import {
     INetworkModule,
     Logger,
     AccountInfo,
-    AccountEntity,
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,
@@ -87,25 +86,13 @@ export abstract class BaseInteractionClient {
     ): Promise<void>;
 
     protected async clearCacheOnLogout(
+        correlationId: string,
         account?: AccountInfo | null
     ): Promise<void> {
         if (account) {
-            if (
-                AccountEntity.accountInfoIsEqual(
-                    account,
-                    this.browserStorage.getActiveAccount(),
-                    false
-                )
-            ) {
-                this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
-            }
             // Clear given account.
             try {
-                this.browserStorage.removeAccount(
-                    AccountEntity.generateAccountCacheKey(account),
-                    this.correlationId
-                );
+                this.browserStorage.removeAccount(account, correlationId);
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
                 );
@@ -121,7 +108,7 @@ export abstract class BaseInteractionClient {
                     this.correlationId
                 );
                 // Clear all accounts and tokens
-                this.browserStorage.clear(this.correlationId);
+                this.browserStorage.clear(correlationId);
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
             } catch (e) {

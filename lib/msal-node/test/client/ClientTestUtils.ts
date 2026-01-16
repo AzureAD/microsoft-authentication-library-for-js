@@ -33,6 +33,8 @@ import {
     PasswordGrantConstants,
     OAuthResponseType,
     StubPerformanceClient,
+    AccountInfo,
+    CredentialEntity,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -47,12 +49,24 @@ import {
 } from "../test_kit/StringConstants.js";
 import { Configuration } from "../../src/config/Configuration.js";
 import { TEST_CONSTANTS } from "../utils/TestConstants.js";
+import {
+    generateAccountKey,
+    generateCredentialKey,
+} from "../../src/cache/CacheHelpers.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class MockStorageClass extends CacheManager {
     store = {};
+
+    generateCredentialKey(credential: CredentialEntity): string {
+        return generateCredentialKey(credential);
+    }
+
+    generateAccountKey(account: AccountInfo): string {
+        return generateAccountKey(account);
+    }
 
     // Accounts
     getAccount(key: string): AccountEntity | null {
@@ -68,7 +82,9 @@ export class MockStorageClass extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = value.generateAccountKey();
+        const key = this.generateAccountKey(
+            AccountEntity.getAccountInfo(value)
+        );
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
@@ -78,10 +94,12 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    removeAccount(key: string): void {
-        super.removeAccount(key, RANDOM_TEST_GUID);
+    removeAccount(account: AccountInfo, correlationId: string): void {
+        super.removeAccount(account, correlationId);
         const currentAccounts = this.getAccountKeys();
-        const removalIndex = currentAccounts.indexOf(key);
+        const removalIndex = currentAccounts.indexOf(
+            this.generateAccountKey(account)
+        );
         if (removalIndex > -1) {
             currentAccounts.splice(removalIndex, 1);
             this.store[ACCOUNT_KEYS] = currentAccounts;
@@ -107,7 +125,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as IdTokenEntity) || null;
     }
     async setIdTokenCredential(value: IdTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -122,7 +140,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as AccessTokenEntity) || null;
     }
     async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();
@@ -137,7 +155,7 @@ export class MockStorageClass extends CacheManager {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     async setRefreshTokenCredential(value: RefreshTokenEntity): Promise<void> {
-        const key = CacheHelpers.generateCredentialKey(value);
+        const key = this.generateCredentialKey(value);
         this.store[key] = value;
 
         const tokenKeys = this.getTokenKeys();

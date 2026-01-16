@@ -47,7 +47,6 @@ import {
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
-import { generateCredentialKey } from "../cache/utils/CacheHelpers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
@@ -66,7 +65,8 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration, performanceClient);
     }
     public async acquireToken(
-        request: CommonRefreshTokenRequest
+        request: CommonRefreshTokenRequest,
+        apiId: number
     ): Promise<AuthenticationResult> {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RefreshTokenClientAcquireToken,
@@ -105,6 +105,7 @@ export class RefreshTokenClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
+            apiId,
             undefined,
             undefined,
             true,
@@ -118,7 +119,8 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     public async acquireTokenByRefreshToken(
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
+        apiId: number
     ): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
@@ -153,7 +155,7 @@ export class RefreshTokenClient extends BaseClient {
                     this.logger,
                     this.performanceClient,
                     request.correlationId
-                )(request, true);
+                )(request, true, apiId);
             } catch (e) {
                 const noFamilyRTInCache =
                     e instanceof InteractionRequiredAuthError &&
@@ -172,7 +174,7 @@ export class RefreshTokenClient extends BaseClient {
                         this.logger,
                         this.performanceClient,
                         request.correlationId
-                    )(request, false);
+                    )(request, false, apiId);
                     // throw in all other cases
                 } else {
                     throw e;
@@ -186,7 +188,7 @@ export class RefreshTokenClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request, false);
+        )(request, false, apiId);
     }
 
     /**
@@ -195,7 +197,8 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async acquireTokenWithCachedRefreshToken(
         request: CommonSilentFlowRequest,
-        foci: boolean
+        foci: boolean,
+        apiId: number
     ) {
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
@@ -212,9 +215,9 @@ export class RefreshTokenClient extends BaseClient {
         )(
             request.account,
             foci,
+            request.correlationId,
             undefined,
-            this.performanceClient,
-            request.correlationId
+            this.performanceClient
         );
 
         if (!refreshToken) {
@@ -223,23 +226,24 @@ export class RefreshTokenClient extends BaseClient {
             );
         }
 
-        if (
-            refreshToken.expiresOn &&
-            TimeUtils.isTokenExpired(
-                refreshToken.expiresOn,
+        if (refreshToken.expiresOn) {
+            const offset =
                 request.refreshTokenExpirationOffsetSeconds ||
-                    DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
-            )
-        ) {
+                DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS;
             this.performanceClient?.addFields(
-                { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                {
+                    cacheRtExpiresOnSeconds: Number(refreshToken.expiresOn),
+                    rtOffsetSeconds: offset,
+                },
                 request.correlationId
             );
-            throw createInteractionRequiredAuthError(
-                InteractionRequiredAuthErrorCodes.refreshTokenExpired
-            );
+
+            if (TimeUtils.isTokenExpired(refreshToken.expiresOn, offset)) {
+                throw createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                );
+            }
         }
-        // attach cached RT size to the current measurement
 
         const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
@@ -259,22 +263,20 @@ export class RefreshTokenClient extends BaseClient {
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(refreshTokenRequest);
+            )(refreshTokenRequest, apiId);
         } catch (e) {
             if (e instanceof InteractionRequiredAuthError) {
-                this.performanceClient?.addFields(
-                    { rtExpiresOnMs: Number(refreshToken.expiresOn) },
-                    request.correlationId
-                );
-
                 if (e.subError === InteractionRequiredAuthErrorCodes.badToken) {
                     // Remove bad refresh token from cache
                     this.logger.verbose(
                         "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
                     );
                     const badRefreshTokenKey =
-                        generateCredentialKey(refreshToken);
-                    this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+                        this.cacheManager.generateCredentialKey(refreshToken);
+                    this.cacheManager.removeRefreshToken(
+                        badRefreshTokenKey,
+                        request.correlationId
+                    );
                 }
             }
 

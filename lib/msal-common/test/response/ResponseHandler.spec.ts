@@ -42,7 +42,7 @@ import {
     CacheErrorMessages,
 } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
-import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
+import { cacheQuotaExceeded } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
@@ -54,7 +54,6 @@ const networkInterface: INetworkModule = {
         return {} as T;
     },
 };
-
 const cryptoInterface: ICrypto = mockCrypto;
 
 const testServerTokenResponse = {
@@ -80,6 +79,7 @@ const testIdTokenClaims: TokenClaims = {
     oid: "00000000-0000-0000-66f3-3332eca7ea81",
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
+    login_hint: "testLoginHint",
 };
 const testAccount: AccountInfo = {
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
@@ -87,6 +87,7 @@ const testAccount: AccountInfo = {
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
     username: testIdTokenClaims.preferred_username || "",
+    loginHint: testIdTokenClaims.login_hint,
 };
 
 const authorityOptions: AuthorityOptions = {
@@ -138,12 +139,13 @@ describe("ResponseHandler.ts", () => {
             .mockImplementation((encodedIdToken, crypto) => {
                 return ID_TOKEN_CLAIMS as TokenClaims;
             });
-        jest.spyOn(AccountEntity.prototype, "getAccountInfo").mockReturnValue({
+        jest.spyOn(AccountEntity, "getAccountInfo").mockReturnValue({
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
             environment: "login.windows.net",
             tenantId: "testTenantId",
             username: "test@contoso.com",
+            loginHint: "testLoginHint",
         });
     });
 
@@ -177,7 +179,8 @@ describe("ResponseHandler.ts", () => {
                         testResponse,
                         testAuthority,
                         timestamp,
-                        testRequest
+                        testRequest,
+                        0
                     );
                 expect(tokenResp).toBeUndefined();
             } catch (e) {
@@ -255,7 +258,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
 
@@ -323,7 +327,51 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
+            );
+        });
+
+        it("adds rt expiry to performance fields when refresh_token_expires_in provided", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const refreshTokenExpiresIn = 600;
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                refresh_token_expires_in: refreshTokenExpiresIn,
+            };
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null,
+                perfClient
+            );
+
+            const reqTimestamp = 1000;
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                reqTimestamp,
+                testRequest,
+                0
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    ntwkRtExpiresOnSeconds:
+                        reqTimestamp + refreshTokenExpiresIn,
+                },
+                testRequest.correlationId
             );
         });
 
@@ -389,8 +437,44 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
+        });
+
+        it("sets cachedByApiId on cached account", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            const apiId = 1234;
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                apiId
+            );
+
+            const accountKeys = testCacheManager.getAccountKeys();
+            expect(accountKeys.length).toBeGreaterThan(0);
+            const account = testCacheManager.getAccount(accountKeys[0]);
+            expect(account?.cachedByApiId).toBe(apiId);
         });
 
         it("includes spa_code in response as code", async () => {
@@ -420,7 +504,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
             expect(response.code).toEqual(testSpaCode);
         });
@@ -501,7 +586,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
     });
@@ -531,7 +617,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.familyId).toBe("");
@@ -578,7 +665,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -625,7 +713,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -656,7 +745,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.requestId).toBe("");
@@ -825,7 +915,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -833,7 +924,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[cacheQuotaExceededErrorCode]
+                    CacheErrorMessages[cacheQuotaExceeded]
                 );
             }
         });
@@ -871,7 +962,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -879,7 +971,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[cacheQuotaExceededErrorCode]
+                    CacheErrorMessages[cacheQuotaExceeded]
                 );
             }
         });
@@ -917,7 +1009,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -960,17 +1053,18 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
                 expect(e).toBeInstanceOf(CacheError);
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual(
-                    CacheErrorCodes.cacheUnknownErrorCode
+                    CacheErrorCodes.cacheErrorUnknown
                 );
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[CacheErrorCodes.cacheUnknownErrorCode]
+                    CacheErrorMessages[CacheErrorCodes.cacheErrorUnknown]
                 );
             }
         });

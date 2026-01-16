@@ -136,6 +136,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                     cloud_instance_host_name: request.cloudInstanceHostName,
                 },
                 silentRequest,
+                this.apiId,
                 false
             );
         } catch (e) {

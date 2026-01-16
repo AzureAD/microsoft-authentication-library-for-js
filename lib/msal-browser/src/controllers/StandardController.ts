@@ -30,6 +30,7 @@ import {
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
     PkceCodes,
+    AuthToken,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -94,30 +95,15 @@ import {
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 
-function getAccountType(
-    account?: AccountInfo
-): "AAD" | "MSA" | "B2C" | undefined {
-    const idTokenClaims = account?.idTokenClaims;
-    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
-        return "B2C";
-    }
-
-    if (!idTokenClaims?.tid) {
-        return undefined;
-    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
-        return "MSA";
-    }
-    return "AAD";
-}
-
 function preflightCheck(
     initialized: boolean,
-    performanceEvent: InProgressPerformanceEvent
+    performanceEvent: InProgressPerformanceEvent,
+    account?: AccountInfo
 ) {
     try {
         BrowserUtils.preflightCheck(initialized);
     } catch (e) {
-        performanceEvent.end({ success: false }, e);
+        performanceEvent.end({ success: false }, e, account);
         throw e;
     }
 }
@@ -262,6 +248,7 @@ export class StandardController implements IController {
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
+            cacheRetentionDays: 5,
             temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
             secureCookies: false,
@@ -282,7 +269,8 @@ export class StandardController implements IController {
             this.config,
             this.browserStorage,
             this.logger,
-            this.browserCrypto
+            this.browserCrypto,
+            this.performanceClient
         );
 
         this.activeSilentTokenRequests = new Map();
@@ -369,7 +357,8 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     initCorrelationId,
-                    this.config.system.nativeBrokerHandshakeTimeout
+                    this.config.system.nativeBrokerHandshakeTimeout,
+                    this.config.system.allowPlatformBrokerWithDOM
                 );
             } catch (e) {
                 this.logger.verbose(e as string);
@@ -494,6 +483,9 @@ export class StandardController implements IController {
                 this.logger.trace(
                     "handleRedirectPromise - acquiring token from native platform"
                 );
+                rootMeasurement.add({
+                    isPlatformBrokerRequest: true,
+                });
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -568,17 +560,20 @@ export class StandardController implements IController {
                             "handleRedirectResponse returned result, acquire token success"
                         );
                     }
-                    rootMeasurement.end({
-                        success: true,
-                        accountType: getAccountType(result.account),
-                    });
+                    rootMeasurement.end(
+                        {
+                            success: true,
+                        },
+                        undefined,
+                        result.account
+                    );
                 } else {
                     /*
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
                      * is empty and the error code is missing.
                      */
                     if (rootMeasurement.event.errorCode) {
-                        rootMeasurement.end({ success: false });
+                        rootMeasurement.end({ success: false }, undefined);
                     } else {
                         rootMeasurement.discard();
                     }
@@ -645,7 +640,6 @@ export class StandardController implements IController {
             correlationId
         );
         atrMeasurement.add({
-            accountType: getAccountType(request.account),
             scenarioId: request.scenarioId,
         });
 
@@ -657,11 +651,15 @@ export class StandardController implements IController {
                     typeof onRedirectNavigateCb === "function"
                         ? onRedirectNavigateCb(url)
                         : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
+                atrMeasurement.add({
+                    navigateCallbackResult: navigate !== false,
+                });
+                atrMeasurement.event =
+                    atrMeasurement.end(
+                        { success: true },
+                        undefined,
+                        request.account
+                    ) || atrMeasurement.event;
                 return navigate;
             };
         } else {
@@ -672,11 +670,15 @@ export class StandardController implements IController {
                     typeof configOnRedirectNavigateCb === "function"
                         ? configOnRedirectNavigateCb(url)
                         : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
+                atrMeasurement.add({
+                    navigateCallbackResult: navigate !== false,
+                });
+                atrMeasurement.event =
+                    atrMeasurement.end(
+                        { success: true },
+                        undefined,
+                        request.account
+                    ) || atrMeasurement.event;
                 return navigate;
             };
         }
@@ -724,14 +726,19 @@ export class StandardController implements IController {
                     this.nativeInternalStorage,
                     correlationId
                 );
+
                 result = nativeClient
                     .acquireTokenRedirect(request, atrMeasurement)
                     .catch((e: AuthError) => {
+                        atrMeasurement.add({
+                            brokerErrorName: e.name,
+                            brokerErrorCode: e.errorCode,
+                        });
                         if (
                             e instanceof NativeAuthError &&
                             isFatalNativeAuthError(e)
                         ) {
-                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt platform broker calls
                             const redirectClient =
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
@@ -753,7 +760,21 @@ export class StandardController implements IController {
             return await result;
         } catch (e) {
             this.browserStorage.resetRequestCache();
-            atrMeasurement.end({ success: false }, e);
+            /*
+             * Pre-redirect event completes before navigation occurs.
+             * Timed out navigation needs to be instrumented separately as a post-redirect event.
+             */
+            if (atrMeasurement.event.status === 2) {
+                this.performanceClient
+                    .startMeasurement(
+                        PerformanceEvents.AcquireTokenRedirect,
+                        correlationId
+                    )
+                    .end({ success: false }, e, request.account);
+            } else {
+                atrMeasurement.end({ success: false }, e, request.account);
+            }
+
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
@@ -793,12 +814,15 @@ export class StandardController implements IController {
 
         atPopupMeasurement.add({
             scenarioId: request.scenarioId,
-            accountType: getAccountType(request.account),
         });
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
-            preflightCheck(this.initialized, atPopupMeasurement);
+            preflightCheck(
+                this.initialized,
+                atPopupMeasurement,
+                request.account
+            );
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN
@@ -828,6 +852,9 @@ export class StandardController implements IController {
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
         if (this.canUsePlatformBroker(request)) {
+            atPopupMeasurement.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 {
                     ...request,
@@ -836,19 +863,25 @@ export class StandardController implements IController {
                 ApiId.acquireTokenPopup
             )
                 .then((response) => {
-                    atPopupMeasurement.end({
-                        success: true,
-                        isNativeBroker: true,
-                        accountType: getAccountType(response.account),
-                    });
+                    atPopupMeasurement.end(
+                        {
+                            success: true,
+                        },
+                        undefined,
+                        response.account
+                    );
                     return response;
                 })
                 .catch((e: AuthError) => {
+                    atPopupMeasurement.add({
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
+                    });
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
                     ) {
-                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to continuing to attempt platform broker calls
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
@@ -888,12 +921,15 @@ export class StandardController implements IController {
                     );
                 }
 
-                atPopupMeasurement.end({
-                    success: true,
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                    accountType: getAccountType(result.account),
-                });
+                atPopupMeasurement.end(
+                    {
+                        success: true,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
+                    },
+                    undefined,
+                    result.account
+                );
                 return result;
             })
             .catch((e: Error) => {
@@ -917,7 +953,8 @@ export class StandardController implements IController {
                     {
                         success: false,
                     },
-                    e
+                    e,
+                    request.account
                 );
 
                 // Since this function is syncronous we need to reject
@@ -980,9 +1017,12 @@ export class StandardController implements IController {
         );
         this.ssoSilentMeasurement?.add({
             scenarioId: request.scenarioId,
-            accountType: getAccountType(request.account),
         });
-        preflightCheck(this.initialized, this.ssoSilentMeasurement);
+        preflightCheck(
+            this.initialized,
+            this.ssoSilentMeasurement,
+            request.account
+        );
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
         });
@@ -1001,10 +1041,17 @@ export class StandardController implements IController {
         let result: Promise<AuthenticationResult>;
 
         if (this.canUsePlatformBroker(validRequest)) {
+            this.ssoSilentMeasurement?.add({
+                isPlatformBrokerRequest: true,
+            });
             result = this.acquireTokenNative(
                 validRequest,
                 ApiId.ssoSilent
             ).catch((e: AuthError) => {
+                this.ssoSilentMeasurement?.add({
+                    brokerErrorName: e.name,
+                    brokerErrorCode: e.errorCode,
+                });
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
@@ -1029,13 +1076,15 @@ export class StandardController implements IController {
                     InteractionType.Silent,
                     response
                 );
-                this.ssoSilentMeasurement?.end({
-                    success: true,
-                    isNativeBroker: response.fromNativeBroker,
-                    accessTokenSize: response.accessToken.length,
-                    idTokenSize: response.idToken.length,
-                    accountType: getAccountType(response.account),
-                });
+                this.ssoSilentMeasurement?.end(
+                    {
+                        success: true,
+                        accessTokenSize: response.accessToken.length,
+                        idTokenSize: response.idToken.length,
+                    },
+                    undefined,
+                    response.account
+                );
                 return response;
             })
             .catch((e: Error) => {
@@ -1049,7 +1098,8 @@ export class StandardController implements IController {
                     {
                         success: false,
                     },
-                    e
+                    e,
+                    request.account
                 );
                 throw e;
             })
@@ -1113,13 +1163,15 @@ export class StandardController implements IController {
                                 result
                             );
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
-                            atbcMeasurement.end({
-                                success: true,
-                                isNativeBroker: result.fromNativeBroker,
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
-                                accountType: getAccountType(result.account),
-                            });
+                            atbcMeasurement.end(
+                                {
+                                    success: true,
+                                    accessTokenSize: result.accessToken.length,
+                                    idTokenSize: result.idToken.length,
+                                },
+                                undefined,
+                                result.account
+                            );
                             return result;
                         })
                         .catch((error: Error) => {
@@ -1151,6 +1203,9 @@ export class StandardController implements IController {
                 if (
                     this.canUsePlatformBroker(request, request.nativeAccountId)
                 ) {
+                    atbcMeasurement.add({
+                        isPlatformBrokerRequest: true,
+                    });
                     const result = await this.acquireTokenNative(
                         {
                             ...request,
@@ -1166,12 +1221,19 @@ export class StandardController implements IController {
                         ) {
                             this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
+                        atbcMeasurement.add({
+                            brokerErrorName: e.name,
+                            brokerErrorCode: e.errorCode,
+                        });
                         throw e;
                     });
-                    atbcMeasurement.end({
-                        accountType: getAccountType(result.account),
-                        success: true,
-                    });
+                    atbcMeasurement.end(
+                        {
+                            success: true,
+                        },
+                        undefined,
+                        result.account
+                    );
                     return result;
                 } else {
                     throw createBrowserAuthError(
@@ -1233,7 +1295,6 @@ export class StandardController implements IController {
                 this.acquireTokenByCodeAsyncMeasurement?.end({
                     success: true,
                     fromCache: response.fromCache,
-                    isNativeBroker: response.fromNativeBroker,
                 });
                 return response;
             })
@@ -1439,10 +1500,12 @@ export class StandardController implements IController {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
+        const correlationId = this.getRequestCorrelationId();
         return AccountManager.getAllAccounts(
             this.logger,
             this.browserStorage,
             this.isBrowserEnvironment,
+            correlationId,
             accountFilter
         );
     }
@@ -1453,10 +1516,12 @@ export class StandardController implements IController {
      * @returns The first account found in the cache matching the provided filter or null if no account could be found.
      */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
+        const correlationId = this.getRequestCorrelationId();
         return AccountManager.getAccount(
             accountFilter,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            correlationId
         );
     }
 
@@ -1469,10 +1534,12 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByUsername(username: string): AccountInfo | null {
+        const correlationId = this.getRequestCorrelationId();
         return AccountManager.getAccountByUsername(
             username,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            correlationId
         );
     }
 
@@ -1484,10 +1551,12 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
+        const correlationId = this.getRequestCorrelationId();
         return AccountManager.getAccountByHomeId(
             homeAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            correlationId
         );
     }
 
@@ -1499,10 +1568,12 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
+        const correlationId = this.getRequestCorrelationId();
         return AccountManager.getAccountByLocalId(
             localAccountId,
             this.logger,
-            this.browserStorage
+            this.browserStorage,
+            correlationId
         );
     }
 
@@ -1511,14 +1582,23 @@ export class StandardController implements IController {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        AccountManager.setActiveAccount(account, this.browserStorage);
+        const correlationId = this.getRequestCorrelationId();
+        AccountManager.setActiveAccount(
+            account,
+            this.browserStorage,
+            correlationId
+        );
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return AccountManager.getActiveAccount(this.browserStorage);
+        const correlationId = this.getRequestCorrelationId();
+        return AccountManager.getActiveAccount(
+            this.browserStorage,
+            correlationId
+        );
     }
 
     // #endregion
@@ -1547,7 +1627,9 @@ export class StandardController implements IController {
         );
         await this.browserStorage.setAccount(
             accountEntity,
-            result.correlationId
+            result.correlationId,
+            AuthToken.isKmsi(result.idTokenClaims),
+            ApiId.hydrateCache
         );
 
         if (result.fromNativeBroker) {
@@ -1579,7 +1661,6 @@ export class StandardController implements IController {
                 BrowserAuthErrorCodes.nativeConnectionNotEstablished
             );
         }
-
         const nativeClient = new PlatformAuthInteractionClient(
             this.config,
             this.browserStorage,
@@ -1633,6 +1714,7 @@ export class StandardController implements IController {
                 case PromptValue.NONE:
                 case PromptValue.CONSENT:
                 case PromptValue.LOGIN:
+                case PromptValue.SELECT_ACCOUNT:
                     this.logger.trace(
                         "canUsePlatformBroker: prompt is compatible with platform broker flow"
                     );
@@ -2009,24 +2091,26 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        preflightCheck(this.initialized, atsMeasurement);
+        preflightCheck(this.initialized, atsMeasurement, request.account);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
-        atsMeasurement.add({ accountType: getAccountType(account) });
 
         return this.acquireTokenSilentDeduped(request, account, correlationId)
             .then((result) => {
-                atsMeasurement.end({
-                    success: true,
-                    fromCache: result.fromCache,
-                    isNativeBroker: result.fromNativeBroker,
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                });
+                atsMeasurement.end(
+                    {
+                        success: true,
+                        fromCache: result.fromCache,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
+                    },
+                    undefined,
+                    result.account
+                );
                 return {
                     ...result,
                     state: request.state,
@@ -2043,7 +2127,8 @@ export class StandardController implements IController {
                     {
                         success: false,
                     },
-                    error
+                    error,
+                    account
                 );
                 throw error;
             });
@@ -2258,15 +2343,12 @@ export class StandardController implements IController {
                     InteractionType.Silent,
                     response
                 );
-                if (request.correlationId) {
-                    this.performanceClient.addFields(
-                        {
-                            fromCache: response.fromCache,
-                            isNativeBroker: response.fromNativeBroker,
-                        },
-                        request.correlationId
-                    );
-                }
+                this.performanceClient.addFields(
+                    {
+                        fromCache: response.fromCache,
+                    },
+                    request.correlationId
+                );
 
                 return response;
             })
@@ -2310,12 +2392,23 @@ export class StandardController implements IController {
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from native platform"
             );
+            this.performanceClient.addFields(
+                { isPlatformBrokerRequest: true },
+                silentRequest.correlationId
+            );
             return this.acquireTokenNative(
                 silentRequest,
                 ApiId.acquireTokenSilent_silentFlow,
                 silentRequest.account.nativeAccountId,
                 cacheLookupPolicy
             ).catch(async (e: AuthError) => {
+                this.performanceClient.addFields(
+                    {
+                        brokerErrorName: e.name,
+                        brokerErrorCode: e.errorCode,
+                    },
+                    silentRequest.correlationId
+                );
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
                     this.logger.verbose(

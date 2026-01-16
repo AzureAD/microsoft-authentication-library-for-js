@@ -40,6 +40,7 @@ import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
+import { ApiId } from "../utils/Constants.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -137,7 +138,8 @@ export class ClientCredentialClient extends BaseClient {
             managedIdentityConfiguration.managedIdentityId?.id ||
                 clientConfiguration.authOptions.clientId,
             new ScopeSet(request.scopes || []),
-            cacheManager
+            cacheManager,
+            request.correlationId
         );
 
         if (
@@ -208,7 +210,8 @@ export class ClientCredentialClient extends BaseClient {
         authority: Authority,
         id: string,
         scopeSet: ScopeSet,
-        cacheManager: CacheManager
+        cacheManager: CacheManager,
+        correlationId: string
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: Constants.EMPTY_STRING,
@@ -220,8 +223,10 @@ export class ClientCredentialClient extends BaseClient {
             target: ScopeSet.createSearchScopes(scopeSet.asArray()),
         };
 
-        const accessTokens =
-            cacheManager.getAccessTokensByFilter(accessTokenFilter);
+        const accessTokens = cacheManager.getAccessTokensByFilter(
+            accessTokenFilter,
+            correlationId
+        );
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
@@ -324,7 +329,8 @@ export class ClientCredentialClient extends BaseClient {
             serverTokenResponse,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByClientCredential
         );
 
         return tokenResponse;

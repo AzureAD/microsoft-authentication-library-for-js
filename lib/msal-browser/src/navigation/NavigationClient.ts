@@ -3,6 +3,10 @@
  * Licensed under the MIT License.
  */
 
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 import { INavigationClient } from "./INavigationClient.js";
 import { NavigationOptions } from "./NavigationOptions.js";
 
@@ -46,9 +50,14 @@ export class NavigationClient implements INavigationClient {
             window.location.assign(url); // CodeQL [SM03712] Application owner controls the URL. User can't change it.
         }
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             setTimeout(() => {
-                resolve(true);
+                reject(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.timedOut,
+                        "failed_to_redirect"
+                    )
+                );
             }, options.timeout);
         });
     }

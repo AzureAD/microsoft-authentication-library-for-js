@@ -77,6 +77,8 @@ extends:
                             - "onPageLoad"
                             - "pop"
                             - "customizable-e2e-test"
+                            - "ExpressSample"
+                            - "NativeAuthSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                 - ${{ if eq(parameters.runNodeTests, true) }}:
@@ -89,7 +91,7 @@ extends:
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-node-samples"
-                        nodeVersions: [16, 18, 20, 22]
+                        nodeVersions: [16, 18, 20, 22, 24]
                         samples:
                             - "auth-code"
                             - "auth-code-cli-app"

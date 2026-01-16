@@ -13,6 +13,9 @@ import {
     ServerResponseType,
     AccountEntity,
     AccountInfo,
+    ClientConfigurationError,
+    ClientConfigurationErrorCodes,
+    HttpMethod,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
@@ -23,16 +26,16 @@ import {
     TEST_URIS,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    TEST_REQ_CNF_DATA,
     ID_TOKEN_CLAIMS,
-    TEST_TOKENS,
+    RANDOM_TEST_GUID,
+    TEST_AUTHORIZE_BODY_PARAMS,
 } from "../utils/StringConstants.js";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
-import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { CommonAuthorizationUrlRequest } from "../../../msal-common/lib/types/exports-common.js";
 
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
@@ -54,7 +57,7 @@ class testStandardInteractionClient extends StandardInteractionClient {
     }
 
     logout(request: EndSessionRequest): Promise<void> {
-        return this.clearCacheOnLogout(request.account);
+        return this.clearCacheOnLogout(RANDOM_TEST_GUID, request.account);
     }
 }
 
@@ -66,7 +69,8 @@ describe("StandardInteractionClient", () => {
         undefined,
         { environment: "login.microsoftonline.com" }
     );
-    const testAccount: AccountInfo = testAccountEntity.getAccountInfo();
+    const testAccount: AccountInfo =
+        AccountEntity.getAccountInfo(testAccountEntity);
 
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -295,6 +299,77 @@ describe("StandardInteractionClient", () => {
         expect(authCodeRequest.account).toEqual(request.account);
         expect(authCodeRequest.sid).toEqual(request.sid);
     });
+
+    it("initializeAuthorizationRequest throws if request method is GET and includes authorizePostBodyParameters", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+            httpMethod: HttpMethod.GET,
+            authorizePostBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
+        };
+
+        try {
+            await testClient.initializeAuthorizationRequest(
+                request,
+                InteractionType.Redirect
+            );
+            throw "Unexpected! Should throw";
+        } catch (e) {
+            expect(e).toBeInstanceOf(ClientConfigurationError);
+            expect((e as ClientConfigurationError).errorCode).toEqual(
+                ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
+            );
+        }
+    });
+
+    it("initializeAuthorizationRequest sets httpMethod to GET by default", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+        expect(authCodeRequest.httpMethod).toEqual(HttpMethod.GET);
+    });
+
+    it("initializeAuthorizationRequest throws if no httpMethod is set in the request and authorizePostBodyParameters are set", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+            authorizePostBodyParameters: TEST_AUTHORIZE_BODY_PARAMS,
+        };
+
+        try {
+            await testClient.initializeAuthorizationRequest(
+                request,
+                InteractionType.Redirect
+            );
+            throw "Unexpected! Should throw";
+        } catch (e) {
+            expect(e).toBeInstanceOf(ClientConfigurationError);
+            expect((e as ClientConfigurationError).errorCode).toEqual(
+                ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
+            );
+        }
+    });
 });
 
 describe("StandardInteractionClient OIDCOptions Tests", () => {
@@ -372,5 +447,88 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             InteractionType.Redirect
         );
         expect(authCodeRequest.responseMode).toBe(ResponseMode.QUERY);
+    });
+});
+
+describe("StandardInteractionClient EAR Tests", () => {
+    let pca: PublicClientApplication;
+    let testClient: testStandardInteractionClient;
+
+    beforeEach(() => {
+        pca = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                protocolMode: ProtocolMode.EAR,
+            },
+        });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
+        // @ts-ignore
+        testClient = new testStandardInteractionClient(
+            //@ts-ignore
+            pca.config,
+            //@ts-ignore
+            pca.browserStorage,
+            //@ts-ignore
+            pca.browserCrypto,
+            //@ts-ignore
+            pca.logger,
+            //@ts-ignore
+            pca.eventHandler,
+            //@ts-ignore
+            null,
+            //@ts-ignore
+            pca.performanceClient
+        );
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it("initializeAuthorizationRequest throws error when protocolMode is EAR and httpMethod is GET", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+            httpMethod: HttpMethod.GET,
+        };
+
+        try {
+            await testClient.initializeAuthorizationRequest(
+                request,
+                InteractionType.Redirect
+            );
+            throw "Unexpected! Should throw";
+        } catch (e) {
+            expect(e).toBeInstanceOf(ClientConfigurationError);
+            expect((e as ClientConfigurationError).errorCode).toEqual(
+                ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+            );
+        }
+    });
+
+    it("initializeAuthorizationRequest sets httpMethod to POST when protocolMode is EAR and httpMethod is not set", async () => {
+        const request: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: ResponseMode.QUERY,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Redirect
+        );
+        expect(authCodeRequest.httpMethod).toEqual(HttpMethod.POST);
     });
 });

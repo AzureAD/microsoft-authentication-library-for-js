@@ -19,6 +19,7 @@ import {
     CORS_RESPONSE_HEADERS,
     TEST_SSH_VALUES,
     BAD_TOKEN_ERROR_RESPONSE,
+    RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
 import {
@@ -29,7 +30,11 @@ import {
     ThrottlingConstants,
 } from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
-import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils.js";
+import {
+    ClientTestUtils,
+    generateCredentialKey,
+    MockStorageClass,
+} from "./ClientTestUtils.js";
 import { Authority } from "../../src/authority/Authority.js";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient.js";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest.js";
@@ -60,7 +65,6 @@ import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerfo
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
-import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
@@ -84,6 +88,7 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.refresh_token,
     credentialType: CredentialType.REFRESH_TOKEN,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
@@ -94,6 +99,7 @@ const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
     secret: AUTHENTICATION_RESULT.body.refresh_token,
     credentialType: CredentialType.REFRESH_TOKEN,
     familyId: TEST_CONFIG.THE_FAMILY_ID,
+    lastUpdatedAt: Date.now().toString(),
 };
 
 describe("RefreshTokenClient unit tests", () => {
@@ -178,7 +184,7 @@ describe("RefreshTokenClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(refreshTokenRequest).catch((e) => {
+            client.acquireToken(refreshTokenRequest, 0).catch((e) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -210,7 +216,7 @@ describe("RefreshTokenClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(refreshTokenRequest).catch((e) => {
+            client.acquireToken(refreshTokenRequest, 0).catch((e) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -240,7 +246,7 @@ describe("RefreshTokenClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(refreshTokenRequest).catch((error) => {
+            client.acquireToken(refreshTokenRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -257,7 +263,7 @@ describe("RefreshTokenClient unit tests", () => {
                 <any>"executePostToTokenEndpoint"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
 
-            await client.acquireToken(refreshTokenRequest);
+            await client.acquireToken(refreshTokenRequest, 0);
             expect(spy).toHaveBeenCalled();
         });
 
@@ -275,7 +281,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
             let refreshTokenSize;
-            await client.acquireToken(refreshTokenRequest).then(() => {
+            await client.acquireToken(refreshTokenRequest, 0).then(() => {
                 expect(spy).toHaveBeenCalled();
                 for (let i = 0; i < spy.mock.calls.length; i++) {
                     const arg = spy.mock.calls[i][0];
@@ -306,7 +312,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
 
             let refreshTokenSize;
-            await client.acquireToken(refreshTokenRequest).then(() => {
+            await client.acquireToken(refreshTokenRequest, 0).then(() => {
                 expect(spy).toHaveBeenCalled();
                 for (let i = 0; i < spy.mock.calls.length; i++) {
                     const arg = spy.mock.calls[i][0];
@@ -325,8 +331,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -349,17 +356,24 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true,
+                0
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -403,7 +417,7 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            client.acquireToken(refreshTokenRequest);
+            client.acquireToken(refreshTokenRequest, 0);
         });
 
         it("acquires a token", async () => {
@@ -430,7 +444,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
+                refreshTokenRequest,
+                0
             );
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
@@ -566,7 +581,7 @@ describe("RefreshTokenClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(refreshTokenRequest).catch((error) => {
+            client.acquireToken(refreshTokenRequest, 0).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -599,9 +614,10 @@ describe("RefreshTokenClient unit tests", () => {
                 "acquireToken"
             );
 
-            await client.acquireTokenByRefreshToken(silentFlowRequest);
+            await client.acquireTokenByRefreshToken(silentFlowRequest, 0);
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
-                expectedRefreshRequest
+                expectedRefreshRequest,
+                0
             );
         });
 
@@ -632,10 +648,11 @@ describe("RefreshTokenClient unit tests", () => {
                 "acquireToken"
             );
 
-            await client.acquireTokenByRefreshToken(silentFlowRequest);
+            await client.acquireTokenByRefreshToken(silentFlowRequest, 0);
             expect(refreshTokenClientSpy).toHaveBeenCalled();
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
-                expectedRefreshRequest
+                expectedRefreshRequest,
+                0
             );
         });
 
@@ -667,9 +684,10 @@ describe("RefreshTokenClient unit tests", () => {
                 "acquireToken"
             );
 
-            await client.acquireTokenByRefreshToken(silentFlowRequest);
+            await client.acquireTokenByRefreshToken(silentFlowRequest, 0);
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
-                expectedRefreshRequest
+                expectedRefreshRequest,
+                0
             );
         });
 
@@ -696,7 +714,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
+                refreshTokenRequest,
+                0
             );
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
@@ -818,7 +837,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
+                refreshTokenRequest,
+                0
             );
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
@@ -936,7 +956,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
+                refreshTokenRequest,
+                0
             );
 
             expect(authResult.requestId).toBeTruthy;
@@ -965,7 +986,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
+                refreshTokenRequest,
+                0
             );
 
             expect(authResult.requestId).toBeFalsy;
@@ -1003,7 +1025,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
-            await client.acquireToken(refreshTokenRequest);
+            await client.acquireToken(refreshTokenRequest, 0);
 
             expect(performanceClient.addFields).toHaveBeenCalledWith(
                 {
@@ -1048,7 +1070,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
-            await client.acquireToken(refreshTokenRequest);
+            await client.acquireToken(refreshTokenRequest, 0);
 
             expect(performanceClient.addFields).toHaveBeenCalledWith(
                 {
@@ -1066,8 +1088,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -1094,17 +1117,24 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true,
+                0
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
@@ -1128,7 +1158,8 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
-                refreshTokenRequest
+                refreshTokenRequest,
+                0
             );
             const expectedScopes = [
                 Constants.OPENID_SCOPE,
@@ -1214,9 +1245,10 @@ describe("RefreshTokenClient unit tests", () => {
                 "acquireToken"
             );
 
-            await client.acquireTokenByRefreshToken(silentFlowRequest);
+            await client.acquireTokenByRefreshToken(silentFlowRequest, 0);
             expect(refreshTokenClientSpy).toHaveBeenCalledWith(
-                expectedRefreshRequest
+                expectedRefreshRequest,
+                0
             );
         });
     });
@@ -1234,14 +1266,17 @@ describe("RefreshTokenClient unit tests", () => {
                 stubPerformanceClient
             );
             await expect(
-                client.acquireTokenByRefreshToken({
-                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    // @ts-ignore
-                    account: null,
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    forceRefresh: false,
-                })
+                client.acquireTokenByRefreshToken(
+                    {
+                        scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                        // @ts-ignore
+                        account: null,
+                        authority: TEST_CONFIG.validAuthority,
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        forceRefresh: false,
+                    },
+                    0
+                )
             ).rejects.toMatchObject(
                 createClientAuthError(
                     ClientAuthErrorCodes.noAccountInSilentRequest
@@ -1263,7 +1298,7 @@ describe("RefreshTokenClient unit tests", () => {
 
             await expect(
                 //@ts-ignore
-                client.acquireTokenByRefreshToken(null)
+                client.acquireTokenByRefreshToken(null, 0)
             ).rejects.toMatchObject(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.tokenRequestEmpty
@@ -1272,7 +1307,7 @@ describe("RefreshTokenClient unit tests", () => {
 
             await expect(
                 //@ts-ignore
-                client.acquireTokenByRefreshToken(undefined)
+                client.acquireTokenByRefreshToken(undefined, 0)
             ).rejects.toMatchObject(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.tokenRequestEmpty
@@ -1288,6 +1323,7 @@ describe("RefreshTokenClient unit tests", () => {
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "testname@contoso.com",
+                loginHint: "testLoginHint",
             };
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = new AccountEntity();
@@ -1327,7 +1363,7 @@ describe("RefreshTokenClient unit tests", () => {
             const testScope2 = "scope2";
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
-                account: testAccountEntity.getAccountInfo(),
+                account: AccountEntity.getAccountInfo(testAccountEntity),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -1340,7 +1376,8 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: rtExpiresOn.toString(), // Set expiration to yesterday
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const mockPerfClient = new MockPerformanceClient();
             const client = new RefreshTokenClient(config, mockPerfClient);
@@ -1353,7 +1390,7 @@ describe("RefreshTokenClient unit tests", () => {
                 resEvents = events;
             });
             await expect(
-                client.acquireTokenByRefreshToken(tokenRequest)
+                client.acquireTokenByRefreshToken(tokenRequest, 0)
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
                     InteractionRequiredAuthErrorCodes.refreshTokenExpired
@@ -1361,14 +1398,16 @@ describe("RefreshTokenClient unit tests", () => {
             );
             rootMeasurement.end({ success: false });
             // @ts-ignore
-            expect(resEvents[0].rtExpiresOnMs).toEqual(rtExpiresOn);
+            expect(resEvents[0].cacheRtExpiresOnSeconds).toEqual(rtExpiresOn);
+            // @ts-ignore
+            expect(resEvents[0].rtOffsetSeconds).toEqual(300);
         });
 
         it("Throws error if cached RT expiration is within provided offset", async () => {
             const testScope2 = "scope2";
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
-                account: testAccountEntity.getAccountInfo(),
+                account: AccountEntity.getAccountInfo(testAccountEntity),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -1381,14 +1420,15 @@ describe("RefreshTokenClient unit tests", () => {
                     ...testRefreshTokenEntity,
                     expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
                 },
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
             );
             await expect(
-                client.acquireTokenByRefreshToken(tokenRequest)
+                client.acquireTokenByRefreshToken(tokenRequest, 0)
             ).rejects.toMatchObject(
                 createInteractionRequiredAuthError(
                     InteractionRequiredAuthErrorCodes.refreshTokenExpired
@@ -1401,7 +1441,9 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             await config.storageInterface!.setAccount(
                 testAccountEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true,
+                0
             );
             const rtExpiresOn = TimeUtils.nowSeconds() + 60 * 60;
             const rtEntity = {
@@ -1410,9 +1452,13 @@ describe("RefreshTokenClient unit tests", () => {
             };
             await config.storageInterface!.setRefreshTokenCredential(
                 rtEntity,
-                TEST_CONFIG.CORRELATION_ID
+                TEST_CONFIG.CORRELATION_ID,
+                true
             );
-            config.storageInterface!.setAppMetadata(testAppMetadata);
+            config.storageInterface!.setAppMetadata(
+                testAppMetadata,
+                RANDOM_TEST_GUID
+            );
             const mockPerfClient = new MockPerformanceClient();
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "test-measurement",
@@ -1423,8 +1469,9 @@ describe("RefreshTokenClient unit tests", () => {
                 resEvents = events;
             });
             const client = new RefreshTokenClient(config, mockPerfClient);
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntity.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
             jest.spyOn(
                 RefreshTokenClient.prototype,
@@ -1455,23 +1502,27 @@ describe("RefreshTokenClient unit tests", () => {
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(rtEntity);
 
             await expect(
-                client.acquireTokenByRefreshToken(silentFlowRequest)
+                client.acquireTokenByRefreshToken(silentFlowRequest, 0)
             ).rejects.toMatchObject(invalidGrantAuthError);
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
-                    badRefreshTokenKey
+                    badRefreshTokenKey,
+                    RANDOM_TEST_GUID
                 )
             ).toBe(null);
 
             rootMeasurement.end({ success: false });
             // @ts-ignore
-            expect(resEvents[0].rtExpiresOnMs).toEqual(rtExpiresOn);
+            expect(resEvents[0].cacheRtExpiresOnSeconds).toEqual(rtExpiresOn);
+            // @ts-ignore
+            expect(resEvents[0].rtOffsetSeconds).toEqual(300);
         });
     });
     describe("Telemetry protocol mode tests", () => {
@@ -1497,7 +1548,7 @@ describe("RefreshTokenClient unit tests", () => {
                 stubPerformanceClient
             );
             try {
-                await client.acquireToken(refreshTokenRequest);
+                await client.acquireToken(refreshTokenRequest, 0);
             } catch {}
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
                 refreshTokenRequest
@@ -1526,7 +1577,7 @@ describe("RefreshTokenClient unit tests", () => {
                 stubPerformanceClient
             );
             try {
-                await client.acquireToken(refreshTokenRequest);
+                await client.acquireToken(refreshTokenRequest, 0);
             } catch {}
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
                 refreshTokenRequest

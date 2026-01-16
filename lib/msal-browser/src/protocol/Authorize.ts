@@ -84,6 +84,14 @@ async function getStandardParameters(
         // signal ests that this is a WAM call
         RequestParameterBuilder.addNativeBroker(parameters);
 
+        // instrument JS-platform bridge specific fields
+        performanceClient.addFields(
+            {
+                isPlatformAuthorizeRequest: true,
+            },
+            request.correlationId
+        );
+
         // pass the req_cnf for POP
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const cryptoOps = new CryptoOps(logger, performanceClient);
@@ -195,11 +203,66 @@ export async function getEARForm(
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
+    // Also add codeChallenge as backup in case EAR is not supported
+    RequestParameterBuilder.addCodeChallengeParams(
+        parameters,
+        request.codeChallenge,
+        Constants.S256_CODE_CHALLENGE_METHOD
+    );
+
     const queryParams = new Map<string, string>();
     RequestParameterBuilder.addExtraQueryParameters(
         queryParams,
         request.extraQueryParameters || {}
     );
+    const url = AuthorizeProtocol.getAuthorizeUrl(
+        authority,
+        queryParams,
+        config.auth.encodeExtraQueryParams,
+        request.extraQueryParameters
+    );
+
+    return createForm(frame, url, parameters);
+}
+
+/**
+ * Gets the form that will be posted to /authorize with request parameters when using POST method
+ */
+export async function getCodeForm(
+    frame: Document,
+    config: BrowserConfiguration,
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<HTMLFormElement> {
+    const parameters = await getStandardParameters(
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
+
+    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
+
+    RequestParameterBuilder.addCodeChallengeParams(
+        parameters,
+        request.codeChallenge,
+        request.codeChallengeMethod || Constants.S256_CODE_CHALLENGE_METHOD
+    );
+
+    RequestParameterBuilder.addPostBodyParameters(
+        parameters,
+        request.authorizePostBodyParameters || {}
+    );
+
+    const queryParams = new Map<string, string>();
+    RequestParameterBuilder.addExtraQueryParameters(
+        queryParams,
+        request.extraQueryParameters || {}
+    );
+
     const url = AuthorizeProtocol.getAuthorizeUrl(
         authority,
         queryParams,
@@ -375,7 +438,7 @@ export async function handleResponseCode(
         logger,
         performanceClient,
         request.correlationId
-    )(response, request);
+    )(response, request, apiId);
 
     return result;
 }
@@ -493,6 +556,7 @@ export async function handleResponseEAR(
         authority,
         TimeUtils.nowSeconds(),
         request,
+        apiId,
         additionalData,
         undefined,
         undefined,

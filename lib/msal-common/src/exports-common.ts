@@ -140,9 +140,14 @@ export {
     AuthErrorCodes,
     createAuthError,
 } from "./error/AuthError.js";
+export { PlatformBrokerError } from "./error/PlatformBrokerError.js";
 export { ServerError } from "./error/ServerError.js";
 export { NetworkError, createNetworkError } from "./error/NetworkError.js";
-export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
+export {
+    CacheError,
+    CacheErrorCodes,
+    createCacheError,
+} from "./error/CacheError.js";
 export {
     ClientAuthError,
     ClientAuthErrorMessage,
@@ -179,6 +184,7 @@ export {
     GrantType,
     AADAuthorityConstants,
     HttpStatus,
+    HttpMethod,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     JsonWebTokenTypes,
     EncodingTypes,

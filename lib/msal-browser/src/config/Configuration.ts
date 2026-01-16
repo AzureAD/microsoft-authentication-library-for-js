@@ -133,6 +133,10 @@ export type CacheOptions = {
      */
     cacheLocation?: BrowserCacheLocation | string;
     /**
+     * Used to specify the number of days cache entries written by previous versions of MSAL.js should be retained in the browser. Defaults to 5 days.
+     */
+    cacheRetentionDays?: number;
+    /**
      * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      * @deprecated This option is deprecated and will be removed in the next major version.
      */
@@ -205,6 +209,10 @@ export type BrowserSystemOptions = SystemOptions & {
      * Flag to enable native broker support (e.g. acquiring tokens from WAM on Windows, MacBroker on Mac)
      */
     allowPlatformBroker?: boolean;
+    /**
+     * Flag to enable native broker support through DOM APIs in Edge
+     */
+    allowPlatformBrokerWithDOM?: boolean;
     /**
      * Sets the timeout for waiting for the native broker handshake to resolve
      */
@@ -311,6 +319,7 @@ export function buildConfiguration(
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
+        cacheRetentionDays: 5,
         temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
         secureCookies: false,
@@ -352,6 +361,7 @@ export function buildConfiguration(
         asyncPopups: false,
         allowRedirectInIframe: false,
         allowPlatformBroker: false,
+        allowPlatformBrokerWithDOM: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,

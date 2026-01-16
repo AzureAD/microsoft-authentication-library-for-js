@@ -3,8 +3,11 @@
  * Licensed under the MIT License.
  */
 
+import { create } from "domain";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { TEST_URIS } from "../utils/StringConstants.js";
+import { BrowserAuthError, BrowserAuthErrorCodes } from "../../src/index.js";
+import { createBrowserAuthError } from "../../src/error/BrowserAuthError.js";
 
 describe("NavigationClient.ts Unit Tests", () => {
     const navigationClient = new NavigationClient();
@@ -22,6 +25,7 @@ describe("NavigationClient.ts Unit Tests", () => {
     afterEach(() => {
         window = oldWindow;
         jest.restoreAllMocks();
+        jest.useRealTimers();
     });
 
     describe("navigateInternal tests", () => {
@@ -118,22 +122,32 @@ describe("NavigationClient.ts Unit Tests", () => {
             expect(windowReplaceSpy).toHaveBeenCalledTimes(1);
         });
 
-        it("navigateExternal() logs if navigation does not take place within 30 seconds", (done) => {
+        it("navigateExternal() throws if navigation does not take place within specified timeout", (done) => {
+            jest.useRealTimers();
             window.location = {
                 ...oldWindowLocation,
                 replace: function (url: string) {
-                    expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
-                    done();
+                    // Do nothing
                 },
             };
 
             const windowReplaceSpy = jest.spyOn(window.location, "replace");
-            navigationClient.navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
-                timeout: 30000,
-                noHistory: true,
-                //@ts-ignore
-                apiId: 0,
-            });
+            navigationClient
+                .navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
+                    timeout: 100,
+                    noHistory: true,
+                    //@ts-ignore
+                    apiId: 0,
+                })
+                .catch((error) => {
+                    expect(error).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.timedOut,
+                            "failed_to_redirect"
+                        )
+                    );
+                    done();
+                });
             expect(windowReplaceSpy).toHaveBeenCalledTimes(1);
         });
     });

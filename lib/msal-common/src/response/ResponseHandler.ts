@@ -40,7 +40,11 @@ import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
+import {
+    checkMaxAge,
+    extractTokenClaims,
+    isKmsi,
+} from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -183,6 +187,7 @@ export class ResponseHandler {
         authority: Authority,
         reqTimestamp: number,
         request: BaseAuthRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload,
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
@@ -278,8 +283,13 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = cacheRecord.account.generateAccountKey();
-                const account = this.cacheStorage.getAccount(key);
+                const key = this.cacheStorage.generateAccountKey(
+                    AccountEntity.getAccountInfo(cacheRecord.account)
+                );
+                const account = this.cacheStorage.getAccount(
+                    key,
+                    request.correlationId
+                );
                 if (!account) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
@@ -300,6 +310,8 @@ export class ResponseHandler {
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
                 request.correlationId,
+                isKmsi(idTokenClaims || {}),
+                apiId,
                 request.storeInCache
             );
         } finally {
@@ -369,6 +381,7 @@ export class ResponseHandler {
                 authority,
                 this.homeAccountIdentifier,
                 this.cryptoObj.base64Decode,
+                request.correlationId,
                 idTokenClaims,
                 serverTokenResponse.client_info,
                 env,
@@ -445,6 +458,12 @@ export class ResponseHandler {
                           )
                         : serverTokenResponse.refresh_token_expires_in;
                 rtExpiresOn = reqTimestamp + rtExpiresIn;
+                this.performanceClient?.addFields(
+                    {
+                        ntwkRtExpiresOnSeconds: rtExpiresOn,
+                    },
+                    request.correlationId
+                );
             }
             cachedRefreshToken = CacheHelpers.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
@@ -566,7 +585,7 @@ export class ResponseHandler {
 
         const accountInfo: AccountInfo | null = cacheRecord.account
             ? updateAccountTenantProfileData(
-                  cacheRecord.account.getAccountInfo(),
+                  AccountEntity.getAccountInfo(cacheRecord.account),
                   undefined, // tenantProfile optional
                   idTokenClaims,
                   cacheRecord.idToken?.secret
@@ -610,6 +629,7 @@ export function buildAccountToCache(
     authority: Authority,
     homeAccountId: string,
     base64Decode: (input: string) => string,
+    correlationId: string,
     idTokenClaims?: TokenClaims,
     clientInfo?: string,
     environment?: string,
@@ -628,7 +648,7 @@ export function buildAccountToCache(
 
     let cachedAccount: AccountEntity | null = null;
     if (baseAccountKey) {
-        cachedAccount = cacheStorage.getAccount(baseAccountKey);
+        cachedAccount = cacheStorage.getAccount(baseAccountKey, correlationId);
     }
 
     const baseAccount =

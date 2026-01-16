@@ -1,8 +1,160 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Fri, 30 May 2025 17:59:15 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 13 Jan 2026 14:23:32 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.14.0
+
+Tue, 13 Jan 2026 14:23:32 GMT
+
+### Minor changes
+
+- Add telemetry support for loading external tokens and related events #8231 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add telemetry for RT expiration [#8224](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8224) (thomas.norling@microsoft.com)
+- Track ApiId when setting/getting accounts (thomas.norling@microsoft.com)
+
+## 15.13.3
+
+Thu, 04 Dec 2025 05:46:36 GMT
+
+### Patches
+
+- Add DOM API configuration, #8171 (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.13.2
+
+Wed, 19 Nov 2025 23:13:10 GMT
+
+### Patches
+
+- error surfacing changes (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.13.1
+
+Wed, 29 Oct 2025 00:04:33 GMT
+
+### Patches
+
+- Respect KMSI (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.13.0
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Minor changes
+
+- Instrument data boundary claim #8054 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.12.0
+
+Tue, 19 Aug 2025 21:26:21 GMT
+
+### Minor changes
+
+- Add Platform Telemetry (PR #7991) (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix cache not used for getting token if scopes are empty (PR #7121) (198982749+Copilot@users.noreply.github.com)
+- Add normalizeUrlForComparison utility function to handle URL encoding consistently (#7636) (copilot@github.com)
+
+## 15.11.0
+
+Tue, 12 Aug 2025 22:53:32 GMT
+
+### Minor changes
+
+- Instrument timed out or cancelled pre-redirect requests #7984 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- fixed bug in getAccountFilteredBy API to return null if account filter passed in does not have truthy values #7960 (lalimasharda@microsoft.com)
+
+## 15.10.0
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Minor changes
+
+- Update AccountInfo construction to include tenant-specific claims #7949 (hemoral@microsoft.com)
+- Cache upgrade & rollback support (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.9.0
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Minor changes
+
+- Add support for authorize call using method POST #7920 (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.8.1
+
+Tue, 08 Jul 2025 14:21:12 GMT
+
+### Patches
+
+- Remove RequestValidator class (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.8.0
+
+Tue, 01 Jul 2025 14:23:25 GMT
+
+### Minor changes
+
+- Add correlationIds to cache APIs #7819 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add lastUpdatedAt to cache entities (thomas.norling@microsoft.com)
+
+## 15.7.1
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- added UX_NOT_ALLOWED suberror to InteractionRequired error type #7834 (lalimasharda@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.7.0
 

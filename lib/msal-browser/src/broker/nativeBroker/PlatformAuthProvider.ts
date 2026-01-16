@@ -9,6 +9,8 @@ import {
     Logger,
     AuthenticationScheme,
     StubPerformanceClient,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/browser";
 import { name, version } from "../../packageMetadata.js";
 import {
@@ -19,10 +21,6 @@ import { PlatformAuthExtensionHandler } from "./PlatformAuthExtensionHandler.js"
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import { PlatformAuthDOMHandler } from "./PlatformAuthDOMHandler.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
-import {
-    BrowserCacheLocation,
-    PLATFORM_AUTH_DOM_SUPPORT,
-} from "../../utils/BrowserConstants.js";
 
 /**
  * Checks if the platform broker is available in the current environment.
@@ -33,7 +31,8 @@ import {
 export async function isPlatformBrokerAvailable(
     loggerOptions?: LoggerOptions,
     perfClient?: IPerformanceClient,
-    correlationId?: string
+    correlationId?: string,
+    domConfig?: boolean
 ): Promise<boolean> {
     const logger = new Logger(loggerOptions || {}, name, version);
 
@@ -49,7 +48,9 @@ export async function isPlatformBrokerAvailable(
     return !!(await getPlatformAuthProvider(
         logger,
         performanceClient,
-        correlationId || createNewGuid()
+        correlationId || createNewGuid(),
+        undefined,
+        domConfig
     ));
 }
 
@@ -57,16 +58,16 @@ export async function getPlatformAuthProvider(
     logger: Logger,
     performanceClient: IPerformanceClient,
     correlationId: string,
-    nativeBrokerHandshakeTimeout?: number
+    nativeBrokerHandshakeTimeout?: number,
+    enablePlatformBrokerDOMSupport?: boolean
 ): Promise<IPlatformAuthHandler | undefined> {
     logger.trace("getPlatformAuthProvider called", correlationId);
-
-    const enablePlatformBrokerDOMSupport = isDomEnabledForPlatformAuth();
 
     logger.trace(
         "Has client allowed platform auth via DOM API: " +
             enablePlatformBrokerDOMSupport
     );
+
     let platformAuthProvider: IPlatformAuthHandler | undefined;
     try {
         if (enablePlatformBrokerDOMSupport) {
@@ -100,22 +101,6 @@ export async function getPlatformAuthProvider(
 }
 
 /**
- * Returns true if the DOM API support for platform auth is enabled in session storage
- * @returns boolean
- * @deprecated
- */
-export function isDomEnabledForPlatformAuth(): boolean {
-    let sessionStorage: Storage | undefined;
-    try {
-        sessionStorage = window[BrowserCacheLocation.SessionStorage];
-        // Mute errors if it's a non-browser environment or cookies are blocked.
-        return sessionStorage?.getItem(PLATFORM_AUTH_DOM_SUPPORT) === "true";
-    } catch (e) {
-        return false;
-    }
-}
-
-/**
  * Returns boolean indicating whether or not the request should attempt to use native broker
  * @param logger
  * @param config
@@ -128,10 +113,21 @@ export function isPlatformAuthAllowed(
     platformAuthProvider?: IPlatformAuthHandler,
     authenticationScheme?: AuthenticationScheme
 ): boolean {
-    logger.trace("isBrokerAvailable called");
+    logger.trace("isPlatformAuthAllowed called");
+
+    // throw an error if allowPlatformBroker is not enabled and allowPlatformBrokerWithDOM is enabled
+    if (
+        !config.system.allowPlatformBroker &&
+        config.system.allowPlatformBrokerWithDOM
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration
+        );
+    }
+
     if (!config.system.allowPlatformBroker) {
         logger.trace(
-            "isBrokerAvailable: allowPlatformBroker is not enabled, returning false"
+            "isPlatformAuthAllowed: allowPlatformBroker is not enabled, returning false"
         );
         // Developer disabled WAM
         return false;
@@ -139,7 +135,7 @@ export function isPlatformAuthAllowed(
 
     if (!platformAuthProvider) {
         logger.trace(
-            "isBrokerAvailable: Platform auth provider is not initialized, returning false"
+            "isPlatformAuthAllowed: Platform auth provider is not initialized, returning false"
         );
         // Platform broker auth providers are not available
         return false;
@@ -150,12 +146,12 @@ export function isPlatformAuthAllowed(
             case AuthenticationScheme.BEARER:
             case AuthenticationScheme.POP:
                 logger.trace(
-                    "isBrokerAvailable: authenticationScheme is supported, returning true"
+                    "isPlatformAuthAllowed: authenticationScheme is supported, returning true"
                 );
                 return true;
             default:
                 logger.trace(
-                    "isBrokerAvailable: authenticationScheme is not supported, returning false"
+                    "isPlatformAuthAllowed: authenticationScheme is not supported, returning false"
                 );
                 return false;
         }

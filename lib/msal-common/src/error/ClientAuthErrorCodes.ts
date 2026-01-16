@@ -50,3 +50,4 @@ export const userCanceled = "user_canceled";
 export const missingTenantIdError = "missing_tenant_id_error";
 export const methodNotImplemented = "method_not_implemented";
 export const nestedAppAuthBridgeDisabled = "nested_app_auth_bridge_disabled";
+export const platformBrokerError = "platform_broker_error";

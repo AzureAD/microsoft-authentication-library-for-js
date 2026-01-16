@@ -41,6 +41,7 @@ export type ManagedIdentityQueryParameters =
  */
 export const ManagedIdentityEnvironmentVariableNames = {
     AZURE_POD_IDENTITY_AUTHORITY_HOST: "AZURE_POD_IDENTITY_AUTHORITY_HOST",
+    DEFAULT_IDENTITY_CLIENT_ID: "DEFAULT_IDENTITY_CLIENT_ID",
     IDENTITY_ENDPOINT: "IDENTITY_ENDPOINT",
     IDENTITY_HEADER: "IDENTITY_HEADER",
     IDENTITY_SERVER_THUMBPRINT: "IDENTITY_SERVER_THUMBPRINT",
@@ -132,6 +133,7 @@ export const CharSet = {
 export const CACHE = {
     FILE_CACHE: "fileCache",
     EXTENSION_LIB: "extenstion_library",
+    KEY_SEPARATOR: "-",
 };
 
 /**
@@ -158,6 +160,8 @@ export const ApiId = {
     acquireTokenByUsernamePassword: 371,
     acquireTokenByDeviceCode: 671,
     acquireTokenByClientCredential: 771,
+    acquireTokenByOBO: 772,
+    acquireTokenWithManagedIdentity: 773,
     acquireTokenByCode: 871,
     acquireTokenByRefreshToken: 872,
 };

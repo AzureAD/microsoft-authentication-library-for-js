@@ -42,7 +42,6 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
-import { RequestValidator } from "../request/RequestValidator.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
@@ -72,9 +71,11 @@ export class AuthorizationCodeClient extends BaseClient {
      * API to acquire a token in exchange of 'authorization_code` acquired by the user in the first leg of the
      * authorization_code_grant
      * @param request
+     * @param apiId - API identifier for telemetry tracking
      */
     async acquireToken(
         request: CommonAuthorizationCodeRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
         this.performanceClient?.addQueueMeasurement(
@@ -124,6 +125,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.authority,
             reqTimestamp,
             request,
+            apiId,
             authCodePayload,
             undefined,
             undefined,
@@ -250,7 +252,11 @@ export class AuthorizationCodeClient extends BaseClient {
          */
         if (!this.includeRedirectUri) {
             // Just validate
-            RequestValidator.validateRedirectUri(request.redirectUri);
+            if (!request.redirectUri) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.redirectUriEmpty
+                );
+            }
         } else {
             // Validate and include redirect uri
             RequestParameterBuilder.addRedirectUri(

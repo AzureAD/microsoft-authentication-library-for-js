@@ -30,6 +30,9 @@ import {
     TenantProfile,
     Authority,
     ProtocolMode,
+    HttpMethod,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -133,6 +136,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -286,6 +290,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -355,6 +360,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -466,6 +472,7 @@ describe("SilentIframeClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 nativeAccountId: "test-nativeAccountId",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -568,6 +575,7 @@ describe("SilentIframeClient", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
                 nativeAccountId: "test-nativeAccountId",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -687,6 +695,7 @@ describe("SilentIframeClient", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                loginHint: ID_TOKEN_CLAIMS.login_hint,
                 name: ID_TOKEN_CLAIMS.name,
                 nativeAccountId: undefined,
                 authorityType: "MSSTS",
@@ -696,6 +705,8 @@ describe("SilentIframeClient", () => {
                         {
                             isHomeTenant: false,
                             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                            username: ID_TOKEN_CLAIMS.preferred_username,
+                            loginHint: ID_TOKEN_CLAIMS.login_hint,
                             name: ID_TOKEN_CLAIMS.name,
                             tenantId: ID_TOKEN_CLAIMS.tid,
                         },
@@ -873,6 +884,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -976,6 +988,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1086,6 +1099,7 @@ describe("SilentIframeClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1143,6 +1157,166 @@ describe("SilentIframeClient", () => {
             expect(generateAuthoritySpy.mock.calls[0][0]).toEqual(
                 "https://login.microsoftonline.com/common/"
             );
+        });
+
+        describe("httpMethod tests", () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                loginHint: testIdTokenClaims.login_hint,
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            const generateAuthoritySpy = jest.spyOn(
+                Authority,
+                "generateAuthority"
+            );
+
+            beforeEach(() => {
+                jest.spyOn(
+                    SilentHandler,
+                    "monitorIframeForHash"
+                ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+                jest.spyOn(
+                    InteractionHandler.prototype,
+                    "handleCodeResponse"
+                ).mockResolvedValue(testTokenResponse);
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            afterEach(() => {
+                jest.clearAllMocks();
+            });
+
+            it("uses POST code flow if httpMethod is set to POST", async () => {
+                const postCodeFlowSpy = jest
+                    .spyOn(SilentHandler, "initiateCodeFlowWithPost")
+                    .mockResolvedValue(document.createElement("iframe"));
+                const tokenResp = await silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    prompt: PromptValue.SELECT_ACCOUNT,
+                    account: testAccount,
+                    httpMethod: HttpMethod.POST,
+                });
+
+                expect(postCodeFlowSpy).toHaveBeenCalled();
+                expect(tokenResp).toEqual(testTokenResponse);
+            });
+
+            it("does not throw if httpMethod is set to POST and authorizePostBodyParameters are set", async () => {
+                jest.spyOn(
+                    SilentHandler,
+                    "initiateCodeFlowWithPost"
+                ).mockResolvedValue(document.createElement("iframe"));
+                const tokenResp = await silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    prompt: PromptValue.SELECT_ACCOUNT,
+                    account: testAccount,
+                    httpMethod: HttpMethod.POST,
+                    authorizePostBodyParameters: {
+                        testParam: "testValue",
+                    },
+                });
+
+                expect(tokenResp).toEqual(testTokenResponse);
+            });
+
+            it("uses GET code flow if httpMethod is set to GET", async () => {
+                const getAuthCodeRequestUrlSpy = jest
+                    .spyOn(AuthorizeProtocol, "getAuthCodeRequestUrl")
+                    .mockResolvedValue(testNavUrl);
+                const initiateCodeRequestSpy = jest
+                    .spyOn(SilentHandler, "initiateCodeRequest")
+                    .mockResolvedValue(document.createElement("iframe"));
+
+                const tokenResp = await silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    prompt: PromptValue.SELECT_ACCOUNT,
+                    account: testAccount,
+                    httpMethod: HttpMethod.GET,
+                });
+
+                expect(getAuthCodeRequestUrlSpy).toHaveBeenCalled();
+                expect(initiateCodeRequestSpy).toHaveBeenCalled();
+                expect(tokenResp).toEqual(testTokenResponse);
+            });
+
+            it("throws if httpMethod is set to GET and authorizePostBodyParameters are set", async () => {
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockResolvedValue(testNavUrl);
+                jest.spyOn(
+                    SilentHandler,
+                    "initiateCodeRequest"
+                ).mockResolvedValue(document.createElement("iframe"));
+
+                await expect(
+                    silentIframeClient.acquireToken({
+                        redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        loginHint: "testLoginHint",
+                        prompt: PromptValue.SELECT_ACCOUNT,
+                        account: testAccount,
+                        httpMethod: HttpMethod.GET,
+                        authorizePostBodyParameters: {
+                            testParam: "testValue",
+                        },
+                    })
+                ).rejects.toThrow(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidAuthorizePostBodyParameters
+                    )
+                );
+            });
         });
 
         describe("storeInCache tests", () => {
@@ -1244,6 +1418,15 @@ describe("SilentIframeClient", () => {
         });
 
         describe("EAR Flow Tests", () => {
+            const validRequest: SsoSilentRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["openid", "profile", "offline_access"],
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                redirectUri: window.location.href,
+                state: TEST_STATE_VALUES.USER_STATE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+
             beforeAll(() => {
                 jest.useFakeTimers();
             });
@@ -1264,33 +1447,65 @@ describe("SilentIframeClient", () => {
                 jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
                     validEarJWK
                 );
-            });
 
-            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
-                const validRequest: SsoSilentRequest = {
-                    authority: TEST_CONFIG.validAuthority,
-                    scopes: ["openid", "profile", "offline_access"],
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    redirectUri: window.location.href,
-                    state: TEST_STATE_VALUES.USER_STATE,
-                    nonce: ID_TOKEN_CLAIMS.nonce,
-                };
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                     TEST_STATE_VALUES.TEST_STATE_SILENT
                 );
-                const earFormSpy = jest
-                    .spyOn(SilentHandler, "initiateEarRequest")
-                    .mockResolvedValue(document.createElement("iframe"));
+
                 jest.spyOn(
                     SilentHandler,
                     "monitorIframeForHash"
                 ).mockResolvedValue(
                     `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
                 );
+            });
+
+            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+                const earFormSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockResolvedValue(document.createElement("iframe"));
 
                 const result = await pca.ssoSilent(validRequest);
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+            });
+
+            it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
+                jest.restoreAllMocks();
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+
+                jest.spyOn(
+                    SilentHandler,
+                    "monitorIframeForHash"
+                ).mockResolvedValue(
+                    `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                );
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "handleResponseCode"
+                ).mockResolvedValue(getTestAuthenticationResult());
+                const earFormSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockResolvedValue(document.createElement("iframe"));
+
+                const result = await pca.ssoSilent(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
+            });
+
+            it("throws if protocolMode is set to EAR and httpMethod is set to GET", async () => {
+                await expect(
+                    pca.ssoSilent({
+                        ...validRequest,
+                        httpMethod: HttpMethod.GET,
+                    })
+                ).rejects.toThrow(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                    )
+                );
             });
         });
     });

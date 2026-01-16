@@ -100,14 +100,6 @@ export const TemporaryCacheKeys = {
 export type TemporaryCacheKeys =
     (typeof TemporaryCacheKeys)[keyof typeof TemporaryCacheKeys];
 
-export const StaticCacheKeys = {
-    ACCOUNT_KEYS: "msal.account.keys",
-    TOKEN_KEYS: "msal.token.keys",
-    VERSION: "msal.version",
-} as const;
-export type StaticCacheKeys =
-    (typeof StaticCacheKeys)[keyof typeof StaticCacheKeys];
-
 /**
  * Cache keys stored in-memory
  */
@@ -120,9 +112,9 @@ export type InMemoryCacheKeys =
 
 /**
  * API Codes for Telemetry purposes.
- * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
  * 0-99 Silent Flow
  * 800-899 Auth Code Flow
+ * 900-999 Miscellaneous
  */
 export const ApiId = {
     acquireTokenRedirect: 861,
@@ -134,8 +126,34 @@ export const ApiId = {
     acquireTokenSilent_silentFlow: 61,
     logout: 961,
     logoutPopup: 962,
+    hydrateCache: 963,
+    loadExternalTokens: 964,
 } as const;
 export type ApiId = (typeof ApiId)[keyof typeof ApiId];
+
+/**
+ * API Names for Telemetry purposes.
+ */
+export const ApiName = {
+    861: "acquireTokenRedirect",
+    862: "acquireTokenPopup",
+    863: "ssoSilent",
+    864: "acquireTokenSilent_authCode",
+    865: "handleRedirectPromise",
+    866: "acquireTokenByCode",
+    61: "acquireTokenSilent_silentFlow",
+    961: "logout",
+    962: "logoutPopup",
+    963: "hydrateCache",
+    964: "loadExternalTokens",
+} as const satisfies Record<ApiId, string>;
+
+export const apiIdToName = (id: number | undefined): string => {
+    if (typeof id === "number" && id in ApiName) {
+        return ApiName[id as ApiId];
+    }
+    return "unknown";
+};
 
 /*
  * Interaction type of the API - used for state and telemetry
@@ -249,10 +267,3 @@ export const iFrameRenewalPolicies: CacheLookupPolicy[] = [
     CacheLookupPolicy.Skip,
     CacheLookupPolicy.RefreshTokenAndNetwork,
 ];
-
-export const LOG_LEVEL_CACHE_KEY = "msal.browser.log.level";
-export const LOG_PII_CACHE_KEY = "msal.browser.log.pii";
-
-export const BROWSER_PERF_ENABLED_KEY = "msal.browser.performance.enabled";
-
-export const PLATFORM_AUTH_DOM_SUPPORT = "msal.browser.platform.auth.dom";

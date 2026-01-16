@@ -23,6 +23,7 @@ import {
     AccountEntity,
     CredentialType,
 } from "@azure/msal-common";
+import { ApiId } from "../../src/utils/BrowserConstants.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
     createBrowserAuthError,
@@ -49,6 +50,7 @@ const testAccount: AccountInfo = {
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
     username: testIdTokenClaims.preferred_username || "",
+    loginHint: testIdTokenClaims.login_hint,
 };
 
 describe("SilentRefreshClient", () => {
@@ -148,7 +150,10 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
@@ -204,7 +209,10 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
@@ -217,6 +225,7 @@ describe("SilentRefreshClient", () => {
                     environment: "login.windows.net",
                     realm: testIdTokenClaims.tid || "",
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    lastUpdatedAt: Date.now().toString(),
                 };
                 const accountEntity = new AccountEntity();
                 jest.spyOn(

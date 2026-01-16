@@ -3,21 +3,22 @@ import {
     NativeAuthErrorCodes,
     createNativeAuthError,
     isFatalNativeAuthError,
-} from "../../src/error/NativeAuthError";
+} from "../../src/error/NativeAuthError.js";
 import {
     InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
     InteractionRequiredAuthErrorMessage,
 } from "@azure/msal-common";
 import {
     BrowserAuthError,
     BrowserAuthErrorMessage,
-} from "../../src/error/BrowserAuthError";
-import * as NativeStatusCode from "../../src/broker/nativeBroker/NativeStatusCodes";
+} from "../../src/error/BrowserAuthError.js";
+import * as NativeStatusCode from "../../src/broker/nativeBroker/NativeStatusCodes.js";
 
 describe("NativeAuthError Unit Tests", () => {
     describe("NativeAuthError", () => {
         describe("isFatal tests", () => {
-            it("should return true for isFatal when WAM status is PERSISTENT_ERROR", () => {
+            it("should return false for isFatal when WAM status is PERSISTENT_ERROR", () => {
                 const error = new NativeAuthError(
                     "testError",
                     "testErrorDescription",
@@ -28,7 +29,7 @@ describe("NativeAuthError Unit Tests", () => {
                         status: NativeStatusCode.PERSISTENT_ERROR,
                     }
                 );
-                expect(isFatalNativeAuthError(error)).toBe(true);
+                expect(isFatalNativeAuthError(error)).toBe(false);
             });
 
             it("should return true for isFatal when WAM status is DISABLED", () => {
@@ -57,6 +58,14 @@ describe("NativeAuthError Unit Tests", () => {
             it("should return true for isFatal when extension throws an error", () => {
                 const error = new NativeAuthError(
                     NativeAuthErrorCodes.contentError,
+                    "extension threw error"
+                );
+                expect(isFatalNativeAuthError(error)).toBe(true);
+            });
+
+            it("should return true for isFatal when extension throws an error", () => {
+                const error = new NativeAuthError(
+                    NativeAuthErrorCodes.pageException,
                     "extension threw error"
                 );
                 expect(isFatalNativeAuthError(error)).toBe(true);
@@ -116,6 +125,23 @@ describe("NativeAuthError Unit Tests", () => {
                 expect(error.errorCode).toBe(
                     InteractionRequiredAuthErrorMessage
                         .native_account_unavailable.code
+                );
+            });
+
+            it("translates UX_NOT_ALLOWED status into corresponding InteractionRequiredError", () => {
+                const error = createNativeAuthError(
+                    "interaction_required",
+                    "interaction is required",
+                    {
+                        error: 1,
+                        protocol_error: "testProtocolError",
+                        properties: {},
+                        status: NativeStatusCode.UX_NOT_ALLOWED,
+                    }
+                );
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(error.errorCode).toBe(
+                    InteractionRequiredAuthErrorCodes.uxNotAllowed
                 );
             });
 

@@ -1,3 +1,30 @@
+jest.mock("@azure/msal-node-runtime", () => {
+    const actual = jest.requireActual("@azure/msal-node-runtime");
+    return {
+        ...actual,
+        msalNodeRuntime: {
+            ...actual.msalNodeRuntime,
+            SignInSilentlyAsync: jest.fn(),
+            SignInAsync: jest.fn(),
+            AcquireTokenSilentlyAsync: jest.fn(),
+            AcquireTokenInteractivelyAsync: jest.fn(),
+            SignInInteractivelyAsync: jest.fn(),
+            ReadAccountByIdAsync: jest.fn(),
+            DiscoverAccountsAsync: jest.fn(),
+            SignOutSilentlyAsync: jest.fn(),
+            RegisterLogger: jest.fn(),
+            StartupError: undefined,
+            AuthParameters: jest.fn().mockImplementation(() => ({
+                CreateAuthParameters: jest.fn(),
+                SetRedirectUri: jest.fn(),
+                SetRequestedScopes: jest.fn(),
+                SetDecodedClaims: jest.fn(),
+                SetPopParams: jest.fn(),
+                SetAdditionalParameter: jest.fn(),
+            })),
+        },
+    };
+});
 import { NativeBrokerPlugin } from "../../src/broker/NativeBrokerPlugin";
 import {
     Account,
@@ -25,9 +52,10 @@ import {
     ServerError,
     AuthenticationScheme,
     TimeUtils,
+    PlatformBrokerError,
+    ClientAuthError,
 } from "@azure/msal-common";
 import { randomUUID } from "crypto";
-import { NativeAuthError } from "../../src/error/NativeAuthError";
 import {
     testMsalRuntimeAccount,
     testAccountInfo,
@@ -37,14 +65,40 @@ import {
     TEST_REDIRECTURI,
 } from "../util/TestConstants";
 
+function createMockAuthResult(
+    testAuthenticationResult: AuthenticationResult,
+    correlationId: string
+): AuthResult {
+    return {
+        idToken: JSON.stringify(testAuthenticationResult.idTokenClaims),
+        accessToken: testAuthenticationResult.accessToken,
+        authorizationHeader: "",
+        rawIdToken: testAuthenticationResult.idToken,
+        grantedScopes: testAuthenticationResult.scopes.join(" "),
+        expiresOn: TimeUtils.toSecondsFromDate(
+            testAuthenticationResult.expiresOn!
+        ),
+        isPopAuthorization: false,
+        account: testMsalRuntimeAccount,
+        CheckError: () => {},
+        telemetryData: correlationId,
+    };
+}
+
 if (process.platform === "win32") {
     describe("NativeBrokerPlugin", () => {
-        const testNativeAuthError = new NativeAuthError(
+        const testPlatformBrokerError = new PlatformBrokerError(
             ErrorStatus[msalRuntimeExampleError.errorStatus],
             msalRuntimeExampleError.errorContext,
             msalRuntimeExampleError.errorCode,
             msalRuntimeExampleError.errorTag
         );
+
+        // Expected wrapped error for the default case (Unexpected status)
+        const testWrappedBrokerError = createClientAuthError(
+            ClientAuthErrorCodes.platformBrokerError
+        );
+        testWrappedBrokerError.platformBrokerError = testPlatformBrokerError;
 
         const generateCorrelationId = () => {
             return randomUUID();
@@ -132,8 +186,13 @@ if (process.platform === "win32") {
                         testCorrelationId
                     )
                     .catch((error) => {
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -174,8 +233,13 @@ if (process.platform === "win32") {
                         testCorrelationId
                     )
                     .catch((error) => {
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -230,8 +294,13 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .getAllAccounts(TEST_CLIENT_ID, testCorrelationId)
                     .catch((error) => {
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -267,8 +336,13 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .getAllAccounts(TEST_CLIENT_ID, testCorrelationId)
                     .catch((error) => {
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -511,8 +585,13 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
                     .catch((error) => {
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -539,8 +618,13 @@ if (process.platform === "win32") {
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
                     .catch((error) => {
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                        expect(error).toBeInstanceOf(ClientAuthError);
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
                         );
                         done();
                     });
@@ -589,12 +673,57 @@ if (process.platform === "win32") {
                 };
                 nativeBrokerPlugin
                     .acquireTokenSilent(request)
-                    .catch((error) => {
-                        expect(error).toStrictEqual<NativeAuthError>(
-                            testNativeAuthError
+                    .catch((error: ClientAuthError) => {
+                        expect(error.errorCode).toBe(
+                            ClientAuthErrorCodes.platformBrokerError
+                        );
+                        expect(error.platformBrokerError).toStrictEqual(
+                            testPlatformBrokerError
                         );
                         done();
                     });
+            });
+            it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
+                const testCorrelationId = generateCorrelationId();
+                const testAuthenticationResult =
+                    getTestAuthenticationResult(testCorrelationId);
+                const result = createMockAuthResult(
+                    testAuthenticationResult,
+                    testCorrelationId
+                );
+
+                jest.spyOn(
+                    msalNodeRuntime,
+                    "SignInSilentlyAsync"
+                ).mockImplementation(
+                    (_authParams, _correlationId, callback) => {
+                        expect(_correlationId).toEqual(testCorrelationId);
+                        callback(result);
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: testAuthenticationResult.scopes,
+                    correlationId: testCorrelationId,
+                    authority: testAuthenticationResult.authority,
+                    redirectUri: "",
+                };
+
+                const chooseRedirectUriMock = jest.spyOn(
+                    NativeBrokerPlugin.prototype,
+                    // @ts-ignore
+                    "chooseRedirectUriByPlatform"
+                );
+
+                await nativeBrokerPlugin.acquireTokenSilent(request);
+
+                expect(chooseRedirectUriMock).toHaveBeenCalled();
+                expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                    `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+                );
             });
         });
 
@@ -1132,7 +1261,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testNativeAuthError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if AcquireTokenInteractivelyAsync returns error", async () => {
@@ -1202,7 +1331,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testNativeAuthError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if SignInAsync returns error", async () => {
@@ -1247,7 +1376,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testNativeAuthError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if AcquireTokenSilentlyAsync returns error", async () => {
@@ -1316,7 +1445,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testNativeAuthError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if SignInSilentlyAsync returns error", async () => {
@@ -1363,7 +1492,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testNativeAuthError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if MsalRuntime API throws", async () => {
@@ -1385,7 +1514,52 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.acquireTokenInteractive(request)
-                ).rejects.toThrowError(testNativeAuthError);
+                ).rejects.toThrow(testWrappedBrokerError);
+            });
+
+            it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
+                const testCorrelationId = generateCorrelationId();
+                const testAuthenticationResult =
+                    getTestAuthenticationResult(testCorrelationId);
+                const result = createMockAuthResult(
+                    testAuthenticationResult,
+                    testCorrelationId
+                );
+
+                jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
+                    (
+                        _windowHandle,
+                        _authParams,
+                        _correlationId,
+                        _accountHint,
+                        callback
+                    ) => {
+                        expect(_correlationId).toEqual(testCorrelationId);
+                        callback(result);
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: testAuthenticationResult.scopes,
+                    correlationId: testCorrelationId,
+                    authority: testAuthenticationResult.authority,
+                    redirectUri: "",
+                };
+
+                const chooseRedirectUriMock = jest.spyOn(
+                    NativeBrokerPlugin.prototype,
+                    // @ts-ignore
+                    "chooseRedirectUriByPlatform"
+                );
+
+                await nativeBrokerPlugin.acquireTokenInteractive(request);
+                expect(chooseRedirectUriMock).toHaveBeenCalled();
+                expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                    `ms-appx-web://Microsoft.AAD.BrokerPlugin/${request.clientId}`
+                );
             });
         });
 
@@ -1535,7 +1709,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.signOut(request)
-                ).rejects.toThrowError(testNativeAuthError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
 
             it("Throws error if SignOutSilentlyAsync API throws", async () => {
@@ -1576,7 +1750,7 @@ if (process.platform === "win32") {
                 };
                 await expect(
                     nativeBrokerPlugin.signOut(request)
-                ).rejects.toThrowError(testNativeAuthError);
+                ).rejects.toThrow(testWrappedBrokerError);
             });
         });
 
@@ -2111,13 +2285,265 @@ if (process.platform === "win32") {
                         done();
                     });
             });
+
+            it("Attaches platformBrokerError with runtime details to wrapped MSAL.js errors", (done) => {
+                const testCorrelationId = generateCorrelationId();
+
+                jest.spyOn(
+                    msalNodeRuntime,
+                    "SignInSilentlyAsync"
+                ).mockImplementation(
+                    (
+                        authParams: AuthParameters,
+                        correlationId: string,
+                        callback: (result: AuthResult) => void
+                    ) => {
+                        const result: AuthResult = {
+                            idToken: "",
+                            accessToken: "",
+                            authorizationHeader: "",
+                            rawIdToken: "",
+                            grantedScopes: "",
+                            expiresOn: 0,
+                            isPopAuthorization: false,
+                            account: testMsalRuntimeAccount,
+                            CheckError: () => {
+                                const testError: MsalRuntimeError = {
+                                    errorCode: 0,
+                                    errorStatus:
+                                        ErrorStatus.InteractionRequired,
+                                    errorContext: "",
+                                    errorTag: 0,
+                                };
+                                throw testError;
+                            },
+                            telemetryData: "",
+                        };
+                        expect(correlationId).toEqual(testCorrelationId);
+                        callback(result);
+
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: [],
+                    correlationId: testCorrelationId,
+                    authority: "",
+                    redirectUri: TEST_REDIRECTURI,
+                };
+
+                nativeBrokerPlugin
+                    .acquireTokenSilent(request)
+                    .catch((error) => {
+                        expect(error).toBeInstanceOf(
+                            InteractionRequiredAuthError
+                        );
+                        expect(error.platformBrokerError).toBeDefined();
+                        expect(error.platformBrokerError).toBeInstanceOf(
+                            PlatformBrokerError
+                        );
+                        done();
+                    });
+            });
+        });
+    });
+} else if (process.platform === "darwin") {
+    const generateCorrelationId = () => {
+        return randomUUID();
+    };
+
+    const asyncHandle: AsyncHandle = {
+        CancelAsyncOperation: () => {},
+    };
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+    describe("NativeBrokerPlugin", () => {
+        it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
+            const testCorrelationId = generateCorrelationId();
+            const testAuthenticationResult =
+                getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(
+                testAuthenticationResult,
+                testCorrelationId
+            );
+
+            jest.spyOn(
+                msalNodeRuntime,
+                "SignInSilentlyAsync"
+            ).mockImplementation((_authParams, _correlationId, callback) => {
+                expect(_correlationId).toEqual(testCorrelationId);
+                callback(result);
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: testAuthenticationResult.scopes,
+                correlationId: testCorrelationId,
+                authority: testAuthenticationResult.authority,
+                redirectUri: "",
+            };
+
+            const chooseRedirectUriMock = jest.spyOn(
+                NativeBrokerPlugin.prototype,
+                // @ts-ignore
+                "chooseRedirectUriByPlatform"
+            );
+
+            await nativeBrokerPlugin.acquireTokenSilent(request);
+
+            expect(chooseRedirectUriMock).toHaveBeenCalled();
+            expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                "msauth.com.msauth.unsignedapp://auth"
+            );
+        });
+        it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
+            const testCorrelationId = generateCorrelationId();
+            const testAuthenticationResult =
+                getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(
+                testAuthenticationResult,
+                testCorrelationId
+            );
+
+            jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
+                (
+                    _windowHandle,
+                    _authParams,
+                    _correlationId,
+                    _accountHint,
+                    callback
+                ) => {
+                    expect(_correlationId).toEqual(testCorrelationId);
+                    callback(result);
+                    return asyncHandle;
+                }
+            );
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: testAuthenticationResult.scopes,
+                correlationId: testCorrelationId,
+                authority: testAuthenticationResult.authority,
+                redirectUri: "",
+            };
+
+            const chooseRedirectUriMock = jest.spyOn(
+                NativeBrokerPlugin.prototype,
+                // @ts-ignore
+                "chooseRedirectUriByPlatform"
+            );
+
+            await nativeBrokerPlugin.acquireTokenInteractive(request);
+            expect(chooseRedirectUriMock).toHaveBeenCalled();
+            expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                "msauth.com.msauth.unsignedapp://auth"
+            );
         });
     });
 } else {
+    const generateCorrelationId = () => {
+        return randomUUID();
+    };
+
+    const asyncHandle: AsyncHandle = {
+        CancelAsyncOperation: () => {},
+    };
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
     describe("NativeBrokerPlugin", () => {
-        it("Sets isBrokerAvailable to false if the broker is not available", () => {
+        it("sets the correct redirectUri when calling acquireTokenSilent", async () => {
+            const testCorrelationId = generateCorrelationId();
+            const testAuthenticationResult =
+                getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(
+                testAuthenticationResult,
+                testCorrelationId
+            );
+
+            jest.spyOn(
+                msalNodeRuntime,
+                "SignInSilentlyAsync"
+            ).mockImplementation((_authParams, _correlationId, callback) => {
+                expect(_correlationId).toEqual(testCorrelationId);
+                callback(result);
+                return asyncHandle;
+            });
+
             const nativeBrokerPlugin = new NativeBrokerPlugin();
-            expect(nativeBrokerPlugin.isBrokerAvailable).toBe(false);
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: testAuthenticationResult.scopes,
+                correlationId: testCorrelationId,
+                authority: testAuthenticationResult.authority,
+                redirectUri: "",
+            };
+
+            const chooseRedirectUriMock = jest.spyOn(
+                NativeBrokerPlugin.prototype,
+                // @ts-ignore
+                "chooseRedirectUriByPlatform"
+            );
+
+            await nativeBrokerPlugin.acquireTokenSilent(request);
+
+            expect(chooseRedirectUriMock).toHaveBeenCalled();
+            expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                "https://login.microsoftonline.com/common/oauth2/nativeclient"
+            );
+        });
+        it("sets the correct redirectUri when calling acquireTokenInteractive", async () => {
+            const testCorrelationId = generateCorrelationId();
+            const testAuthenticationResult =
+                getTestAuthenticationResult(testCorrelationId);
+            const result = createMockAuthResult(
+                testAuthenticationResult,
+                testCorrelationId
+            );
+
+            jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
+                (
+                    _windowHandle,
+                    _authParams,
+                    _correlationId,
+                    _accountHint,
+                    callback
+                ) => {
+                    expect(_correlationId).toEqual(testCorrelationId);
+                    callback(result);
+                    return asyncHandle;
+                }
+            );
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: testAuthenticationResult.scopes,
+                correlationId: testCorrelationId,
+                authority: testAuthenticationResult.authority,
+                redirectUri: "",
+            };
+
+            const chooseRedirectUriMock = jest.spyOn(
+                NativeBrokerPlugin.prototype,
+                // @ts-ignore
+                "chooseRedirectUriByPlatform"
+            );
+
+            await nativeBrokerPlugin.acquireTokenInteractive(request);
+            expect(chooseRedirectUriMock).toHaveBeenCalled();
+            expect(chooseRedirectUriMock.mock.results[0].value).toBe(
+                "https://login.microsoftonline.com/common/oauth2/nativeclient"
+            );
         });
     });
 }

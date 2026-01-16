@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license.
+ * See LICENSE in the source repository root for complete license information.
+ */
+
+import { showError, showSuccess } from './utils.js';
+import { updateUI } from './ui.js';
+import { createMsalConfig, loginRequest } from './authConfig.js';
+
+// Authentication module - handles all MSAL authentication logic
+
+// MSAL instance
+export let msalInstance;
+
+// Initialize MSAL
+export async function initializeMsal() {
+    try {
+        // Create configuration at runtime
+        const msalConfig = createMsalConfig();
+        msalInstance = new msal.PublicClientApplication(msalConfig);
+        await msalInstance.initialize();
+        await msalInstance.handleRedirectPromise().then((response) => {
+            if (response) {
+                msalInstance.setActiveAccount(response.account);
+            }
+            updateUI(msalInstance.getActiveAccount());
+        });
+    } catch (error) {
+        console.error('MSAL initialization failed:', error);
+        showError('Initialization failed: ' + error.message);
+    }
+}
+
+// Handle authentication for protected routes
+export async function handleProtectedRouteAuth(path) {
+    console.log(`Attempting authentication for protected route: ${path}`);
+
+    // First attempt SSO silent
+    return msalInstance.ssoSilent({
+        scopes: loginRequest.scopes
+    }).then((response) => {
+        msalInstance.setActiveAccount(response.account);
+        updateUI(response.account);
+    }).catch(async (error) => {
+        console.error('SSO silent failed:', error);
+        if (error instanceof msal.InteractionRequiredAuthError) {
+            console.log('SSO silent failed - interaction required');
+            await msalInstance.acquireTokenRedirect(loginRequest);
+        } else {
+            console.warn('SSO silent failed with unexpected error:', error);
+        }
+        showError('Authentication failed: ' + error.message);
+        return false;
+    });
+}
+
+// Sign in with popup
+export async function signInPopup() {
+    try {
+        const response = await msalInstance.loginPopup(loginRequest);
+        msalInstance.setActiveAccount(response.account);
+        updateUI(response.account);
+        showSuccess('Successfully signed in!');
+    } catch (error) {
+        console.error('Popup sign in failed:', error);
+        showError('Sign in failed: ' + error.message);
+    }
+}
+
+// Sign in with redirect
+export async function signInRedirect() {
+    try {
+        await msalInstance.loginRedirect(loginRequest);
+    } catch (error) {
+        console.error('Redirect sign in failed:', error);
+        showError('Sign in failed: ' + error.message);
+    }
+}
+
+// Sign out with popup
+export async function signOutPopup() {
+    try {
+        const logoutRequest = {
+            account: msalInstance.getActiveAccount()
+        };
+
+        await msalInstance.logoutPopup(logoutRequest);
+        updateUI(null);
+        showSuccess('Successfully signed out!');
+    } catch (error) {
+        console.error('Popup sign out failed:', error);
+        showError('Sign out failed: ' + error.message);
+    }
+}
+
+// Sign out with redirect
+export async function signOutRedirect() {
+    try {
+        const logoutRequest = {
+            account: msalInstance.getActiveAccount()
+        };
+
+        await msalInstance.logoutRedirect(logoutRequest);
+    } catch (error) {
+        console.error('Redirect sign out failed:', error);
+        showError('Sign out failed: ' + error.message);
+    }
+}
+
+// Get access token silently
+export async function getAccessToken() {
+    return msalInstance.acquireTokenSilent({
+        ...loginRequest
+    }).then((response) => {
+        return response;
+    }).catch(async (error) => {
+        console.error('Silent token acquisition failed:', error);
+
+        if (error instanceof msal.InteractionRequiredAuthError) {
+            // Fallback to redirect
+            await msalInstance.acquireTokenRedirect({
+                ...loginRequest,
+                account: msalInstance.getActiveAccount()
+            });
+        }
+        throw error;
+    });
+}

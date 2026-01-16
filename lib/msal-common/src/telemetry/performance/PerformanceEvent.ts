@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { DataBoundary } from "../../account/AccountInfo.js";
+
 /**
  * Enumeration of operations that are instrumented by have their performance measured by the PerformanceClient.
  *
@@ -320,6 +322,12 @@ export const PerformanceEvents = {
     Decrypt: "decrypt",
     GenerateEarKey: "generateEarKey",
     DecryptEarResponse: "decryptEarResponse",
+
+    LoadExternalTokens: "LoadExternalTokens",
+    LoadAccount: "loadAccount",
+    LoadIdToken: "loadIdToken",
+    LoadAccessToken: "loadAccessToken",
+    LoadRefreshToken: "loadRefreshToken",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -716,6 +724,14 @@ export type PerformanceEvent = {
     isNativeBroker?: boolean;
 
     /**
+     * Platform-specific fields, when calling STS and/or broker for token requests
+     */
+    isPlatformAuthorizeRequest?: boolean;
+    isPlatformBrokerRequest?: boolean;
+    brokerErrorName?: string;
+    brokerErrorCode?: string;
+
+    /**
      * Request ID returned from the response
      *
      * @type {?string}
@@ -859,6 +875,11 @@ export type PerformanceEvent = {
     // Event context as JSON string
     context?: string;
 
+    // Cache Data
+    cacheLocation?: string;
+    cacheRetentionDays?: number;
+    accountCachedBy?: string;
+
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
     cacheIdCount?: number;
@@ -881,7 +902,9 @@ export type PerformanceEvent = {
 
     isAsyncPopup?: boolean;
 
-    rtExpiresOnMs?: number;
+    cacheRtExpiresOnSeconds?: number;
+    ntwkRtExpiresOnSeconds?: number;
+    rtOffsetSeconds?: number;
 
     sidFromClaims?: boolean;
     sidFromRequest?: boolean;
@@ -898,6 +921,10 @@ export type PerformanceEvent = {
     msalInstanceCount?: number;
     // Number of MSAL JS instances using the same client id in the frame
     sameClientIdInstanceCount?: number;
+
+    navigateCallbackResult?: boolean;
+
+    dataBoundary?: DataBoundary;
 };
 
 export type PerformanceEventContext = {
@@ -927,4 +954,14 @@ export const IntFields: ReadonlySet<string> = new Set([
     "multiMatchedRT",
     "unencryptedCacheCount",
     "encryptedCacheExpiredCount",
+    "oldAccountCount",
+    "oldAccessCount",
+    "oldIdCount",
+    "oldRefreshCount",
+    "currAccountCount",
+    "currAccessCount",
+    "currIdCount",
+    "currRefreshCount",
+    "expiredCacheRemovedCount",
+    "upgradedCacheCount",
 ]);
