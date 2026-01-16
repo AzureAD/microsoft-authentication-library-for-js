@@ -25,10 +25,10 @@ export const TestAccountDetails = {
     tenantId: TestTenantId,
     username: TestUsername,
     loginHint: TestLoginHint,
-    localAccountId: "5122efb1-f3a3-4a5d-b5ae-c5474ea1c7bd", // Must match CLIENT_INFO.uid
+    localAccountId: "d8dcce8-b8bc-452c-8bcc-a6eb953db459",
     idTokenClaims: {
         tid: TestTenantId,
-        oid: "5122efb1-f3a3-4a5d-b5ae-c5474ea1c7bd", // Must match CLIENT_INFO.uid
+        oid: "dcb04862-f956-4301-b3fc-0fd38fa5be7f",
         preferred_username: TestUsername,
         loginHint: TestLoginHint,
     },
