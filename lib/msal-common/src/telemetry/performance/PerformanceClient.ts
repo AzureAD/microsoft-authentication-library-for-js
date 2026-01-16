@@ -281,10 +281,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected intFields: Set<string>;
 
     /**
-     * Accumulate dynamically-created numeric attributes per correlationId
+     * Accumulate dynamically-created attributes per correlationId
      * e.g. AcquireTokenSilentDurationMs, AcquireTokenRedirectCallCount, etc.
      */
-    protected dynamicAttributesByCorrelationId: Map<string, Record<string, number>>;
+    protected dynamicAttributesByCorrelationId: Map<string, Record<string, unknown>>;
 
     /**
      * Tracks the set of "known" keys for the given correlationId. This is derived
@@ -507,8 +507,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         // Truncate known integral fields
         this.truncateIntegralFields(finalEvent);
 
-        // Hoist any unknown numeric keys into dynamicAttributes
-        this.hoistUnknownNumericToDynamic(finalEvent);
+        // Hoist any unknown keys into dynamicAttributes
+        this.hoistUnknownToDynamic(finalEvent);
 
         // Serialize dynamicAttributes if non-empty
         const dynamicAttrs = this.dynamicAttributesByCorrelationId.get(finalEvent.correlationId);
@@ -523,7 +523,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Saves extra information to be emitted when the measurements are flushed.
-     * Unknown numeric keys are mirrored into dynamicAttributes and NOT kept at root.
+     * Unknown keys are mirrored into dynamicAttributes and NOT kept at root.
      */
     addFields(
         fields: { [key: string]: {} | undefined },
@@ -544,16 +544,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 updated[key] = value;
                 continue;
             }
-
-            if (typeof value === "number" && !isNaN(Number(value))) {
-                this.setDynamicAttributes(correlationId, key, Math.floor(Number(value)));
-                // Do not keep unknown numeric on root
-                continue;
-            }
-
-            // Unknown non-numeric: keep root entry if you want (or drop to keep schema tight).
-            // Here we keep it to avoid silently losing data; if you want stricter behavior, delete instead.
-            updated[key] = value;
+            this.setDynamicAttributes(correlationId, key, value);
         }
 
         this.eventsByCorrelationId.set(correlationId, updated);
@@ -575,7 +566,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         for (const counter in fields) {
             if (!Object.prototype.hasOwnProperty.call(event, counter)) {
                 // Keep a transient counter at root for continuity only while measuring
-                // (It will be hoisted/removed by hoistUnknownNumericToDynamic at emit time)
+                // (It will be hoisted/removed by hoistUnknownToDynamic at emit time)
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (event as any)[counter] = 0;
             } else if (isNaN(Number((event as any)[counter]))) {
@@ -598,6 +589,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Upserts event into event cache; seeds per-correlation structures.
+     * First key is the correlation id, second key is the event id.
+     * Allows for events to be grouped by correlation id,
+     * and to easily allow for properties on them to be updated.
+     *
+     * @private
+     * @param {PerformanceEvent} event
      */
     protected cacheEventByCorrelationId(event: PerformanceEvent): void {
         const rootEvent = this.eventsByCorrelationId.get(event.correlationId);
@@ -618,6 +615,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Removes measurements and aux data for a given correlation id.
+     *
+     * @param {string} correlationId
      */
     discardMeasurements(correlationId: string): void {
         this.eventsByCorrelationId.delete(correlationId);
@@ -628,6 +627,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Registers/unregisters performance callbacks.
+     * 
+     * @param {PerformanceCallbackFunction} callback
+     * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         for (const [id, cb] of this.callbacks) {
@@ -646,31 +648,60 @@ export abstract class PerformanceClient implements IPerformanceClient {
             `PerformanceClient: Performance callback registered with id: '${callbackId}'`,
             ""
         );
+
         return callbackId;
     }
 
+    /**
+     * Removes a callback registered with addPerformanceCallback.
+     *
+     * @param {string} callbackId
+     * @returns {boolean}
+     */
     removePerformanceCallback(callbackId: string): boolean {
         const result = this.callbacks.delete(callbackId);
-        this.logger.verbose(
-            `PerformanceClient: Performance callback '${callbackId}' ${result ? "removed" : "not removed"}.`,
-            ""
-        );
+
+        if (result) {
+            this.logger.verbose(
+                `PerformanceClient: Performance callback '${callbackId}' removed.`,
+                ""
+            );
+        } else {
+            this.logger.verbose(
+                `PerformanceClient: Performance callback '${callbackId}' not removed.`,
+                ""
+            );
+        }
+
         return result;
     }
 
+    /**
+     * Emits events to all registered callbacks.
+     *
+     * @param {PerformanceEvent[]} events
+     * @param {?string} [correlationId]
+     */
     emitEvents(events: PerformanceEvent[], correlationId: string): void {
-        this.logger.verbose("PerformanceClient: Emitting performance events", correlationId);
-        this.callbacks.forEach((cb, id) => {
-            this.logger.trace(
-                `PerformanceClient: Emitting event to callback '${id}'`,
-                correlationId
-            );
-            cb.apply(null, [events]);
-        });
+        this.logger.verbose(
+            "PerformanceClient: Emitting performance events",
+            correlationId
+        );
+
+        this.callbacks.forEach(
+            (callback: PerformanceCallbackFunction, callbackId: string) => {
+                this.logger.trace(
+                    `PerformanceClient: Emitting event to callback '${callbackId}'`,
+                    correlationId
+                );
+                callback.apply(null, [events]);
+            }
+        );
     }
 
     /**
-     * Truncate known integral fields in performance event.
+     * Enforce truncation of integral fields in performance event.
+     * @param {PerformanceEvent} event performance event to update.
      */
     private truncateIntegralFields(event: PerformanceEvent): void {
         this.intFields.forEach((key) => {
@@ -682,27 +713,24 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
 
     /**
-     * Move unknown numeric properties into dynamicAttributes and remove them from root.
+     * Move unknown properties into dynamicAttributes and remove them from root.
+     * @param {PerformanceEvent} finalEvent
      */
-    private hoistUnknownNumericToDynamic(finalEvent: PerformanceEvent): void {
+    private hoistUnknownToDynamic(finalEvent: PerformanceEvent): void {
         const cid = finalEvent.correlationId;
         const known = this.knownEventKeysByCorrelationId.get(cid) || new Set<string>();
-        const bucket = this.dynamicAttributesByCorrelationId.get(cid);
-        if (!bucket) return;
-
         for (const [key, value] of Object.entries(finalEvent)) {
             if (known.has(key)) continue;
-
-            if (typeof value === "number" && !isNaN(Number(value))) {
-                this.setDynamicAttributes(cid, key, Math.floor(Number(value)));
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                delete (finalEvent as any)[key];
-            }
+            this.setDynamicAttributes(cid, key, value);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            delete (finalEvent as any)[key];               // keep the root clean
         }
     }
 
     /**
      * Ensure certain keys are marked as "known" for a given correlation id.
+     * @param {string} correlationId
+     * @param {string[]} keys
      */
     private ensureKnownKeys(correlationId: string, keys: string[]): void {
         const known = this.knownEventKeysByCorrelationId.get(correlationId);
@@ -713,15 +741,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
     /**
      * Seed the "known keys" set for a correlation from the baseline event created in startMeasurement,
      * and include the keys that the library will add later.
+     * @param {string} correlationId
+     * @param {PerformanceEvent} baseline
      */
     private seedKnownKeysFromBaseline(correlationId: string, baseline: PerformanceEvent): void {
         const known = this.knownEventKeysByCorrelationId.get(correlationId);
         if (!known) return;
 
-        // Baseline known keys from the event we just constructed
+        // Known keys from baseline
         Object.keys(baseline).forEach((k) => known.add(k));
 
-        // Add library-managed keys that we know will be set later
+        // Add library-managed keys
         [
             "durationMs",
             "success",
@@ -739,21 +769,46 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
 
     /**
-     * Set a dynamicAttributes attribute (numeric only).
+     * Set a dynamicAttributes attribute.
+     * @param {string} correlationId
+     * @param {string} key
+     * @param {number | undefined} value
      */
     private setDynamicAttributes(
         correlationId: string,
         key: string,
-        value: number | undefined
+        value: unknown
     ): void {
-        if (value === undefined || value === null || isNaN(Number(value))) return;
+        if (value === undefined || value === null) return;
+
         const bucket = this.dynamicAttributesByCorrelationId.get(correlationId);
         if (!bucket) return;
-        bucket[key] = Math.floor(Number(value));
+
+        if (typeof value === "number") {
+            bucket[key] = Math.floor(value);
+        } else if (typeof value === "bigint") {
+            bucket[key] = Number(value);
+        } else if (value instanceof Error) {
+            bucket[key] = { name: value.name, message: value.message };
+        } else if (typeof value === "object") {
+            // Stringify if value is serializable; fall back to string if not.
+            try {
+                JSON.stringify(value);
+                bucket[key] = value;
+            } catch {
+                bucket[key] = String(value);
+            }
+        } else {
+            // string | boolean | symbol
+            bucket[key] = value;
+        }
     }
 
+
     /**
-     * Returns event duration in milliseconds (non-negative).
+     * Returns event duration in milliseconds
+     * @param startTimeMs {number}
+     * @returns {number}
      */
     private getDurationMs(startTimeMs: number): number {
         const durationMs = Date.now() - startTimeMs;
