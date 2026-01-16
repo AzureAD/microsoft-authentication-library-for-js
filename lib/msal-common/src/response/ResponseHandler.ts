@@ -283,14 +283,17 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = this.cacheStorage.generateAccountKey(
-                    AccountEntity.getAccountInfo(cacheRecord.account)
-                );
-                const account = this.cacheStorage.getAccount(
-                    key,
+                const cachedAccounts = this.cacheStorage.getAllAccounts(
+                    {
+                        homeAccountId: cacheRecord.account.homeAccountId,
+                        localAccountId: cacheRecord.account.localAccountId,
+                        realm: cacheRecord.account.realm,
+                        environment: cacheRecord.account.environment,
+                    },
                     request.correlationId
                 );
-                if (!account) {
+
+                if (cachedAccounts.length < 1) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
                     );

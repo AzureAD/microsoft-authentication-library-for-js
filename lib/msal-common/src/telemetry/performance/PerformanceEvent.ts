@@ -904,6 +904,7 @@ export type PerformanceEvent = {
 
     cacheRtExpiresOnSeconds?: number;
     ntwkRtExpiresOnSeconds?: number;
+    extRtExpiresOnSeconds?: number;
     rtOffsetSeconds?: number;
 
     sidFromClaims?: boolean;
