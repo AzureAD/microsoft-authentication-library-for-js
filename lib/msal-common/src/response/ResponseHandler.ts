@@ -295,9 +295,12 @@ export class ResponseHandler {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
                     );
-                    this.performanceClient?.addFields({
-                        acntLoggedOut: true
-                    }, request.correlationId);
+                    this.performanceClient?.addFields(
+                        {
+                            acntLoggedOut: true,
+                        },
+                        request.correlationId
+                    );
                     return await ResponseHandler.generateAuthenticationResult(
                         this.cryptoObj,
                         authority,
