@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add security guidance for state parameter usage [#8161](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8161)",
-  "packageName": "@azure/msal-browser",
-  "email": "198982749+Copilot@users.noreply.github.com",
-  "dependentChangeType": "none"
-}
