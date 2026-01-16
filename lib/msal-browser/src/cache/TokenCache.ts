@@ -129,7 +129,7 @@ export class TokenCache implements ITokenCache {
                 this.storage,
                 authorityOptions,
                 this.logger,
-                request.correlationId || BrowserCrypto.createNewGuid(),
+                correlationId,
                 this.performanceClient
             );
 
