@@ -879,6 +879,7 @@ export type PerformanceEvent = {
     cacheLocation?: string;
     cacheRetentionDays?: number;
     accountCachedBy?: string;
+    acntLoggedOut?: boolean;
 
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
