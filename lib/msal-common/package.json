@@ -67,6 +67,7 @@
   },
   "files": [
     "dist",
+    "dist-browser",
     "lib",
     "src",
     "node",
