@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 13 Jan 2026 14:23:32 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 17 Jan 2026 01:12:52 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.14.1
+
+Sat, 17 Jan 2026 01:12:52 GMT
+
+### Patches
+
+- loadExternalTokens fixes [#8242](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8242) (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.14.0
 
