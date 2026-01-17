@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1768606443231,
+  "lastUpdate": 1768608053975,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19173,6 +19173,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.66%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "efc1ae6546402de6cff2daf8629e0cb070a2c493",
+          "message": "loadExternalTokens bug fixes (#8242)\n\nThis pull request introduces several important improvements and bug\nfixes to token caching and authority handling in the browser library.\nThe main changes include more robust handling of authority discovery and\npreferred cache environments, correct calculation and caching of refresh\ntoken expiration, and enhanced test coverage for these scenarios.\nAdditionally, the AccountEntity conversion now ensures tenant profiles\nare always present, and telemetry fields have been updated to capture\nnew metrics.\n\n**Authority and Token Caching Improvements:**\n* The `TokenCache` now uses `AuthorityFactory.createDiscoveredInstance`\nto resolve the authority and its preferred cache environment, ensuring\ntokens are always cached under the correct environment. This fixes\nissues with mismatched environments when using authorities like\n`login.microsoftonline.com`, which should use `login.windows.net` for\ncaching. (`lib/msal-browser/src/cache/TokenCache.ts`,\n[[1]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL120-R134)\n[[2]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL273-R275)\n* Updated the logic so that when caching tokens, the environment is\nalways taken from the authority's preferred cache, not directly from the\nrequest or account.\n(`lib/msal-browser/src/cache/BrowserCacheManager.ts`,\n[[1]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2L2241-R2242)\n[[2]](diffhunk://#diff-9fe0cda3d1225c92740f98cfd73639c5db18bf24234c273756a855e5b48adae2L2262-R2262)\n\n**Refresh Token Expiration Handling:**\n* Added logic to calculate and cache the refresh token expiration\n(`expiresOn`) based on `refresh_token_expires_in` from the token\nresponse. This value is now passed to the credential and recorded in\ntelemetry. (`lib/msal-browser/src/cache/TokenCache.ts`,\n[[1]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fR423-R432)\n[[2]](diffhunk://#diff-5f7831e13b2c981db1cd1b03fed5d4c547c6e15d722bedf343e48d5c98d22f8fL429-R441);\n`lib/msal-common/apiReview/msal-common.api.md`,\n[[3]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117R3517)\n\n**Account Entity Conversion Robustness:**\n* The `AccountEntity.getAccountInfo` method now ensures that at least\nthe home tenant profile is present when converting to `AccountInfo`,\npreventing missing tenant profile issues.\n(`lib/msal-common/src/cache/entities/AccountEntity.ts`,\n[[1]](diffhunk://#diff-da4164a905f1d02bf5f1bb1a4b7d8ff766b88eeb796a42b27b88f67e30cb3f17R75-R89)\n[[2]](diffhunk://#diff-da4164a905f1d02bf5f1bb1a4b7d8ff766b88eeb796a42b27b88f67e30cb3f17L87-R102)\n\n**Test Coverage and Reliability Enhancements:**\n* Added and updated tests to verify correct refresh token expiration\nhandling, preferred cache environment usage, and tenant profile\npopulation. Also removed obsolete tests that no longer match the new\nauthority handling logic.\n(`lib/msal-browser/test/cache/TokenCache.spec.ts`,\n[[1]](diffhunk://#diff-44274fc7d579dfe62b39dd8d6cfdefd0ba9d6e0418a5a117465ea49893244c1eL313-L333)\n[[2]](diffhunk://#diff-44274fc7d579dfe62b39dd8d6cfdefd0ba9d6e0418a5a117465ea49893244c1eR561-R688)\n[[3]](diffhunk://#diff-44274fc7d579dfe62b39dd8d6cfdefd0ba9d6e0418a5a117465ea49893244c1eL748-R856);\n`lib/msal-browser/test/custom_auth/test_resources/TestConstants.ts`,\n[[4]](diffhunk://#diff-0c77763e0baec12da6261d4bfe540d797c969d795e5ff8381aafc828a62674cdL28-R31)\n* Improved test setup for account retrieval and coverage of multiple\naccount scenarios.\n(`lib/msal-browser/test/interaction_client/SilentRefreshClient.spec.ts`,\n[lib/msal-browser/test/interaction_client/SilentRefreshClient.spec.tsR235-R238](diffhunk://#diff-9161e793821ca62d4b491b83acccbc6a4fcfc0324e49cd4cc449455e6e0662e5R235-R238))\n\n**Telemetry and Miscellaneous:**\n* Added new telemetry field `extRtExpiresOnSeconds` to record external\nrefresh token expiration in performance events.\n(`lib/msal-common/apiReview/msal-common.api.md`,\n[lib/msal-common/apiReview/msal-common.api.mdR3517](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117R3517))\n* Updated TSDoc references and error messages for clarity and accuracy.\n(`lib/msal-common/apiReview/msal-common.api.md`,\n[lib/msal-common/apiReview/msal-common.api.mdL4740-R4743](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L4740-R4743))\n\nThese changes collectively improve the reliability, correctness, and\nobservability of token caching and authority resolution in the browser\nlibrary.\n\n---------\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>\nCo-authored-by: Copilot <198982749+Copilot@users.noreply.github.com>\nCo-authored-by: tnorling <5307810+tnorling@users.noreply.github.com>\nCo-authored-by: Copilot Autofix powered by AI <223894421+github-code-quality[bot]@users.noreply.github.com>",
+          "timestamp": "2026-01-16T15:54:22-08:00",
+          "tree_id": "9306a6198e15381b2b956386c91e385a56743c63",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/efc1ae6546402de6cff2daf8629e0cb070a2c493"
+        },
+        "date": 1768608051127,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 242881,
+            "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 240715,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
