@@ -125,11 +125,11 @@ describe("Native Auth Sample - MFA Tests", () => {
             page,
             "sessionStorage" // Based on Native Auth Sample configuration
         );
-        page.on("console", (msg) => {
-            const type = msg.type();
-            const text = msg.text();
-            console.log(`[Browser ${type}]:`, text);
-        });
+        // page.on("console", (msg) => {
+        //     const type = msg.type();
+        //     const text = msg.text();
+        //     console.log(`[Browser ${type}]:`, text);
+        // });
     });
 
     afterEach(async () => {
