@@ -116,6 +116,7 @@ export type BrowserAuthOptions = {
     /**
      * If set to true, MSAL will make a background ssoSilent call after successful interactive authentication
      * (acquireTokenPopup, handleRedirectPromise) to refresh tokens silently.
+     * This is a boolean flag and defaults to false if not specified.
      */
     enableBackgroundSSO?: boolean;
 };
