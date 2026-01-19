@@ -823,6 +823,337 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await callbackPromise;
         });
 
+        it("fires background ssoSilent after successful handleRedirectPromise and emits BackgroundSsoSilent telemetry event on success", async () => {
+            // Create a new PCA with enableBackgroundSSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    enableBackgroundSSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(controller, "getAllAccounts").mockReturnValue([
+                testAccount,
+            ]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            const ssoSilentSpy = jest
+                .spyOn(StandardController.prototype, "ssoSilent")
+                .mockResolvedValue(testTokenResponse);
+
+            let backgroundSsoSilentEventReceived = false;
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = testPca.addPerformanceCallback((events) => {
+                    const bgSsoSilentEvent = events.find(
+                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    );
+                    if (bgSsoSilentEvent) {
+                        try {
+                            expect(bgSsoSilentEvent.success).toBe(true);
+                            expect(bgSsoSilentEvent["parentApiId"]).toBe(
+                                "handleRedirectPromise"
+                            );
+                            backgroundSsoSilentEventReceived = true;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            testPca.removePerformanceCallback(callbackId);
+                        }
+                    }
+                });
+            });
+
+            await controller.handleRedirectPromise();
+
+            // Wait for the background ssoSilent to complete (setTimeout with 0ms)
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await callbackPromise;
+
+            // Check that ssoSilent was called at least once with the expected account
+            expect(ssoSilentSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    account: testAccount,
+                })
+            );
+            expect(backgroundSsoSilentEventReceived).toBe(true);
+        });
+
+        it("fires background ssoSilent after successful handleRedirectPromise and emits BackgroundSsoSilent telemetry event on failure", async () => {
+            // Create a new PCA with enableBackgroundSSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    enableBackgroundSSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(controller, "getAllAccounts").mockReturnValue([
+                testAccount,
+            ]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            const ssoSilentError = new Error("ssoSilent failed");
+            const ssoSilentSpy = jest
+                .spyOn(StandardController.prototype, "ssoSilent")
+                .mockRejectedValue(ssoSilentError);
+
+            let backgroundSsoSilentEventReceived = false;
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = testPca.addPerformanceCallback((events) => {
+                    const bgSsoSilentEvent = events.find(
+                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    );
+                    if (bgSsoSilentEvent) {
+                        try {
+                            expect(bgSsoSilentEvent.success).toBe(false);
+                            expect(bgSsoSilentEvent["parentApiId"]).toBe(
+                                "handleRedirectPromise"
+                            );
+                            backgroundSsoSilentEventReceived = true;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            testPca.removePerformanceCallback(callbackId);
+                        }
+                    }
+                });
+            });
+
+            await controller.handleRedirectPromise();
+
+            // Wait for the background ssoSilent to complete (setTimeout with 0ms)
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await callbackPromise;
+
+            expect(ssoSilentSpy).toHaveBeenCalledTimes(1);
+            expect(backgroundSsoSilentEventReceived).toBe(true);
+        });
+
+        it("does not fire background ssoSilent when handleRedirectPromise returns null", async () => {
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(false);
+
+            const ssoSilentSpy = jest.spyOn(
+                StandardController.prototype,
+                "ssoSilent"
+            );
+
+            const response = await pca.handleRedirectPromise();
+
+            // Wait to ensure ssoSilent would have been called if it was going to be
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            expect(response).toBeNull();
+            expect(ssoSilentSpy).not.toHaveBeenCalled();
+        });
+
+        it("does not fire background ssoSilent when enableBackgroundSSO is false", async () => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(pca, "getAllAccounts").mockReturnValue([testAccount]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            const ssoSilentSpy = jest.spyOn(
+                StandardController.prototype,
+                "ssoSilent"
+            );
+
+            await pca.handleRedirectPromise();
+
+            // Wait to ensure ssoSilent would have been called if it was going to be
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            // ssoSilent should not be called because enableBackgroundSSO is false by default
+            expect(ssoSilentSpy).not.toHaveBeenCalled();
+        });
+
+        it("returns to caller before background ssoSilent executes", async () => {
+            // Create a new PCA with enableBackgroundSSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    enableBackgroundSSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(controller, "getAllAccounts").mockReturnValue([
+                testAccount,
+            ]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            // Track when ssoSilent starts executing relative to method return
+            let ssoSilentStartedBeforeReturn = false;
+            let methodHasReturned = false;
+
+            jest.spyOn(
+                StandardController.prototype,
+                "ssoSilent"
+            ).mockImplementation(() => {
+                // Check if method has returned yet when ssoSilent starts
+                if (!methodHasReturned) {
+                    ssoSilentStartedBeforeReturn = true;
+                }
+                return Promise.resolve(testTokenResponse);
+            });
+
+            const response = await controller.handleRedirectPromise();
+            methodHasReturned = true;
+
+            // Verify handleRedirectPromise returned before ssoSilent started
+            // ssoSilent runs in setTimeout(..., 0), so it should not have started yet
+            expect(ssoSilentStartedBeforeReturn).toBe(false);
+            expect(response).toEqual(testTokenResponse);
+
+            // Wait for the macrotask (setTimeout) to execute
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
         it("cleans temporary cache and rethrows if error is thrown", (done) => {
             browserStorage.setInteractionInProgress(true);
             browserStorage.cacheAuthorizeRequest(
@@ -2763,6 +3094,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("acquireTokenPopup", () => {
         beforeEach(async () => {
+            // Restore all mocks at the start of each test to avoid spy pollution
+            jest.restoreAllMocks();
+
             const popupWindow = {
                 ...window,
                 location: {
@@ -2780,6 +3114,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
+            jest.resetAllMocks();
+            jest.restoreAllMocks();
         });
 
         it("throws an error if initialize was not called prior", async () => {
@@ -3552,6 +3888,367 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
             expect(preGenPkce2).toBeUndefined();
+        });
+
+        it("fires background ssoSilent after successful acquireTokenPopup and emits BackgroundSsoSilent telemetry event on success", async () => {
+            // Create a new PCA with enableBackgroundSSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    enableBackgroundSSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            const ssoSilentSpy = jest
+                .spyOn(StandardController.prototype, "ssoSilent")
+                .mockResolvedValue(testTokenResponse);
+
+            let backgroundSsoSilentEventReceived = false;
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = testPca.addPerformanceCallback((events) => {
+                    const bgSsoSilentEvent = events.find(
+                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    );
+                    if (bgSsoSilentEvent) {
+                        try {
+                            expect(bgSsoSilentEvent.success).toBe(true);
+                            expect(bgSsoSilentEvent["parentApiId"]).toBe(
+                                "acquireTokenPopup"
+                            );
+                            backgroundSsoSilentEventReceived = true;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            testPca.removePerformanceCallback(callbackId);
+                        }
+                    }
+                });
+            });
+
+            await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+
+            // Wait for the background ssoSilent to complete (setTimeout with 0ms)
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await callbackPromise;
+
+            expect(ssoSilentSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    account: testAccount,
+                })
+            );
+            expect(backgroundSsoSilentEventReceived).toBe(true);
+        });
+
+        it("fires background ssoSilent after successful acquireTokenPopup and emits BackgroundSsoSilent telemetry event on failure", async () => {
+            // Create a new PCA with enableBackgroundSSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    enableBackgroundSSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            const ssoSilentError = new Error("ssoSilent failed");
+            const ssoSilentSpy = jest
+                .spyOn(StandardController.prototype, "ssoSilent")
+                .mockRejectedValue(ssoSilentError);
+
+            let backgroundSsoSilentEventReceived = false;
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = testPca.addPerformanceCallback((events) => {
+                    const bgSsoSilentEvent = events.find(
+                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    );
+                    if (bgSsoSilentEvent) {
+                        try {
+                            expect(bgSsoSilentEvent.success).toBe(false);
+                            expect(bgSsoSilentEvent["parentApiId"]).toBe(
+                                "acquireTokenPopup"
+                            );
+                            backgroundSsoSilentEventReceived = true;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            testPca.removePerformanceCallback(callbackId);
+                        }
+                    }
+                });
+            });
+
+            await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+
+            // Wait for the background ssoSilent to complete (setTimeout with 0ms)
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await callbackPromise;
+
+            expect(ssoSilentSpy).toHaveBeenCalledTimes(1);
+            expect(backgroundSsoSilentEventReceived).toBe(true);
+        });
+
+        it("does not block acquireTokenPopup when background ssoSilent is slow", async () => {
+            // Create a new PCA with enableBackgroundSSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    enableBackgroundSSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            // Mock ssoSilent to be slow (simulate network delay)
+            let ssoSilentResolved = false;
+            jest.spyOn(
+                StandardController.prototype,
+                "ssoSilent"
+            ).mockImplementation(
+                () =>
+                    new Promise((resolve) => {
+                        setTimeout(() => {
+                            ssoSilentResolved = true;
+                            resolve(testTokenResponse);
+                        }, 1000); // 1 second delay
+                    })
+            );
+
+            const startTime = Date.now();
+            const response = await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+            const endTime = Date.now();
+
+            // acquireTokenPopup should return immediately without waiting for ssoSilent
+            expect(response).toEqual(testTokenResponse);
+            expect(endTime - startTime).toBeLessThan(500); // Should complete in less than 500ms
+            expect(ssoSilentResolved).toBe(false); // ssoSilent should not have resolved yet
+        });
+
+        it("returns to caller before background ssoSilent executes", async () => {
+            // Create a new PCA with enableBackgroundSSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    enableBackgroundSSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            // Track when ssoSilent starts executing relative to method return
+            let ssoSilentStartedBeforeReturn = false;
+            let methodHasReturned = false;
+
+            jest.spyOn(
+                StandardController.prototype,
+                "ssoSilent"
+            ).mockImplementation(() => {
+                // Check if method has returned yet when ssoSilent starts
+                if (!methodHasReturned) {
+                    ssoSilentStartedBeforeReturn = true;
+                }
+                return Promise.resolve(testTokenResponse);
+            });
+
+            const response = await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+            methodHasReturned = true;
+
+            // Verify acquireTokenPopup returned before ssoSilent started
+            // ssoSilent runs in setTimeout(..., 0), so it should not have started yet
+            expect(ssoSilentStartedBeforeReturn).toBe(false);
+            expect(response).toEqual(testTokenResponse);
+
+            // Wait for the macrotask (setTimeout) to execute
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
+        it("does not fire background ssoSilent for acquireTokenPopup when enableBackgroundSSO is false", async () => {
+            // Create a new PCA explicitly WITHOUT enableBackgroundSSO to verify the feature flag
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    enableBackgroundSSO: false,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            // Track if any BackgroundSsoSilent telemetry event is emitted
+            let backgroundSsoSilentEventEmitted = false;
+            const callbackId = testPca.addPerformanceCallback((events) => {
+                if (
+                    events.some(
+                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    )
+                ) {
+                    backgroundSsoSilentEventEmitted = true;
+                }
+            });
+
+            await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+
+            // Wait to ensure any background ssoSilent would have had time to emit telemetry
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            testPca.removePerformanceCallback(callbackId);
+
+            // No BackgroundSsoSilent telemetry event should be emitted because enableBackgroundSSO is false
+            expect(backgroundSsoSilentEventEmitted).toBe(false);
         });
     });
 

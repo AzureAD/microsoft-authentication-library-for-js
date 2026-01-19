@@ -113,6 +113,11 @@ export type BrowserAuthOptions = {
      * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
      */
     encodeExtraQueryParams?: boolean;
+    /**
+     * If set to true, MSAL will make a background ssoSilent call after successful interactive authentication
+     * (acquireTokenPopup, handleRedirectPromise) to refresh tokens silently.
+     */
+    enableBackgroundSSO?: boolean;
 };
 
 /** @internal */
@@ -314,6 +319,7 @@ export function buildConfiguration(
         supportsNestedAppAuth: false,
         instanceAware: false,
         encodeExtraQueryParams: false,
+        enableBackgroundSSO: false,
     };
 
     // Default cache options for browser

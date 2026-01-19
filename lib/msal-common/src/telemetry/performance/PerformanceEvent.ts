@@ -328,6 +328,12 @@ export const PerformanceEvents = {
     LoadIdToken: "loadIdToken",
     LoadAccessToken: "loadAccessToken",
     LoadRefreshToken: "loadRefreshToken",
+
+    /**
+     * Background ssoSilent call (msal-browser).
+     * Fire-and-forget ssoSilent call made after interactive authentication completes.
+     */
+    BackgroundSsoSilent: "backgroundSsoSilent",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -563,6 +569,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.Decrypt, "decrypt"],
         [PerformanceEvents.GenerateEarKey, "genEarKey"],
         [PerformanceEvents.DecryptEarResponse, "decryptEarResp"],
+        [PerformanceEvents.BackgroundSsoSilent, "BgSsoSlt"],
     ]);
 
 /**

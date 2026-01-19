@@ -567,6 +567,12 @@ export class StandardController implements IController {
                         undefined,
                         result.account
                     );
+
+                    // Fire-and-forget ssoSilent to refresh tokens in background
+                    this.bkgdSsoSilent(
+                        result,
+                        "handleRedirectPromise"
+                    );
                 } else {
                     /*
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
@@ -930,6 +936,10 @@ export class StandardController implements IController {
                     undefined,
                     result.account
                 );
+
+                // Fire-and-forget ssoSilent to refresh tokens in background
+                this.bkgdSsoSilent(result, "acquireTokenPopup");
+
                 return result;
             })
             .catch((e: Error) => {
@@ -983,6 +993,78 @@ export class StandardController implements IController {
         measurement.increment({
             visibilityChangeCount: 1,
         });
+    }
+
+    /**
+     * Fire-and-forget ssoSilent call to refresh tokens in the background.
+     * This method does not block the caller and tracks telemetry for success/failure.
+     * This method only executes if enableBackgroundTokenRefresh is set to true in the cache configuration.
+     * @param result - The authentication result from the parent operation
+     * @param parentApiId - The API ID of the parent operation for logging purposes
+     */
+    private bkgdSsoSilent(
+        result: AuthenticationResult,
+        parentApiId: string
+    ): void {
+        // Check if background SSO is enabled
+        if (!this.config.auth.enableBackgroundSSO) {
+            return;
+        }
+
+        const correlationId = createNewGuid();
+        const bgSsoSilentMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.BackgroundSsoSilent,
+            correlationId
+        );
+        bgSsoSilentMeasurement.add({
+            parentApiId: parentApiId,
+        });
+
+        this.logger.verbose(
+            `Background ssoSilent initiated after ${parentApiId}`,
+            correlationId
+        );
+
+        /*
+         * Use setTimeout to ensure this runs in a separate macrotask after the current call stack completes
+         * This ensures the result is returned to the caller before ssoSilent starts and doesn't affect performance
+         */
+        setTimeout(() => {
+            const ssoSilentRequest: SsoSilentRequest = {
+                account: result.account,
+                correlationId: correlationId,
+            };
+
+            this.ssoSilent(ssoSilentRequest)
+                .then((ssoResult) => {
+                    this.logger.verbose(
+                        `Background ssoSilent completed successfully after ${parentApiId}`,
+                        correlationId
+                    );
+                    bgSsoSilentMeasurement.end(
+                        {
+                            success: true,
+                            accessTokenSize: ssoResult.accessToken.length,
+                            idTokenSize: ssoResult.idToken.length,
+                        },
+                        undefined,
+                        ssoResult.account
+                    );
+                })
+                .catch((error: Error) => {
+                    this.logger.warning(
+                        `Background ssoSilent failed after ${parentApiId}: ${error.message}`,
+                        correlationId
+                    );
+                    bgSsoSilentMeasurement.end(
+                        {
+                            success: false,
+                        },
+                        error,
+                        result.account
+                    );
+                });
+        }, 0);
     }
     // #endregion
 
