@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add a bakground ssoSilent call after interactive calls, with telemetry",
+  "comment": "Add a background ssoSilent call after interactive calls, with telemetry",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
