@@ -995,7 +995,7 @@ export class StandardController implements IController {
     /**
      * Fire-and-forget ssoSilent call to refresh tokens in the background.
      * This method does not block the caller and tracks telemetry for success/failure.
-     * This method only executes if enableBackgroundTokenRefresh is set to true in the cache configuration.
+     * This method only executes if enableBackgroundSSO is set to true in the cache configuration.
      * @param result - The authentication result from the parent operation
      * @param parentApiId - The API ID of the parent operation for logging purposes
      */
