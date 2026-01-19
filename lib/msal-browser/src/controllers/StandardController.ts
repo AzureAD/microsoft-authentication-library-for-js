@@ -569,10 +569,7 @@ export class StandardController implements IController {
                     );
 
                     // Fire-and-forget ssoSilent to refresh tokens in background
-                    this.bkgdSsoSilent(
-                        result,
-                        "handleRedirectPromise"
-                    );
+                    this.bkgdSsoSilent(result, "handleRedirectPromise");
                 } else {
                     /*
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
