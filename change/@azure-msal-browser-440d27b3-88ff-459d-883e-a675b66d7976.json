@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add a bakground ssoSilent call after interactive calls, with telemetry",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
