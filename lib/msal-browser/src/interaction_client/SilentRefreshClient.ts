@@ -74,11 +74,13 @@ export class SilentRefreshClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(silentRequest).catch((e: AuthError) => {
-            (e as AuthError).setCorrelationId(this.correlationId);
-            serverTelemetryManager.cacheFailedRequest(e);
-            throw e;
-        }) as Promise<AuthenticationResult>;
+        )(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch(
+            (e: AuthError) => {
+                (e as AuthError).setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
+                throw e;
+            }
+        ) as Promise<AuthenticationResult>;
     }
 
     /**

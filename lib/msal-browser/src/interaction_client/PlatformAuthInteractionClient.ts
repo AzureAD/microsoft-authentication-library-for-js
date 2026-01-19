@@ -741,7 +741,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         await this.browserStorage.setAccount(
             accountEntity,
             this.correlationId,
-            kmsi
+            kmsi,
+            this.apiId
         );
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(
@@ -817,6 +818,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             nativeCacheRecord,
             this.correlationId,
             AuthToken.isKmsi(idTokenClaims),
+            this.apiId,
             request.storeInCache
         );
     }

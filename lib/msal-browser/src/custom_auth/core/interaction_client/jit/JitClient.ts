@@ -154,7 +154,8 @@ export class JitClient extends CustomAuthInteractionClientBase {
         const authResult = await this.handleTokenResponse(
             tokenResponse,
             scopes,
-            tokenResponse.correlation_id || continueResponse.correlation_id
+            tokenResponse.correlation_id || continueResponse.correlation_id,
+            apiId
         );
 
         return createJitCompletedResult({

@@ -28,3 +28,5 @@ export const authorityMismatch = "authority_mismatch";
 export const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
 export const invalidAuthorizePostBodyParameters =
     "invalid_authorize_post_body_parameters";
+export const invalidPlatformBrokerConfiguration =
+    "invalid_platform_broker_configuration";

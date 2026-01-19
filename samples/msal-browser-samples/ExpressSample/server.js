@@ -51,7 +51,7 @@ let availableVersions = {
     },
     'latest': {
         name: 'Latest (v4.x)',
-        path: 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@latest/lib/msal-browser.min.js',
+        path: 'https://cdn.jsdelivr.net/npm/@azure/msal-browser@4/lib/msal-browser.min.js',
         description: 'Latest stable release from NPM'
     },
     'latest-v3': {
@@ -82,8 +82,23 @@ async function fetchLatestVersion(versionRange = 'latest') {
         let version;
 
         if (versionRange === 'latest') {
-            const { stdout } = await execAsync('npm view @azure/msal-browser version --silent');
-            version = stdout.trim();
+            // For 4.x, get all versions and filter for the latest 4.x
+            const { stdout } = await execAsync('npm view @azure/msal-browser versions --json --silent');
+            const versions = JSON.parse(stdout);
+
+            // Filter for 4.x versions (excluding pre-release versions)
+            const v4Versions = versions
+                .filter(v => v.startsWith('4.') && !v.includes('-'))
+                .sort((a, b) => {
+                    const [aMajor, aMinor, aPatch] = a.split('.').map(Number);
+                    const [bMajor, bMinor, bPatch] = b.split('.').map(Number);
+
+                    if (aMajor !== bMajor) return aMajor - bMajor;
+                    if (aMinor !== bMinor) return aMinor - bMinor;
+                    return aPatch - bPatch;
+                });
+
+            version = v4Versions[v4Versions.length - 1] || '4.28.0'; // fallback
         } else {
             // For 3.x, get all versions and filter for the latest 3.x
             const { stdout } = await execAsync('npm view @azure/msal-browser versions --json --silent');
@@ -114,7 +129,7 @@ async function fetchLatestVersion(versionRange = 'latest') {
     } catch (error) {
         console.warn(`Failed to fetch ${versionRange} version:`, error.message);
         // Return fallback versions
-        return versionRange === 'latest' ? '4.15.0' : '3.28.1';
+        return versionRange === 'latest' ? '4.28.0' : '3.30.0';
     }
 }
 

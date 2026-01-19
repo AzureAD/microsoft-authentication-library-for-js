@@ -79,6 +79,7 @@ extends:
                             - "customizable-e2e-test"
                             - "nativeAuthSample"
                             - "ExpressSample"
+                            - "NativeAuthSample"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                 - ${{ if eq(parameters.runNodeTests, true) }}:

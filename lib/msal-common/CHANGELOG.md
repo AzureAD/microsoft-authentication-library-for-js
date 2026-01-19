@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 19 Nov 2025 23:13:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 13 Jan 2026 14:23:32 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.14.0
+
+Tue, 13 Jan 2026 14:23:32 GMT
+
+### Minor changes
+
+- Add telemetry support for loading external tokens and related events #8231 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add telemetry for RT expiration [#8224](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8224) (thomas.norling@microsoft.com)
+- Track ApiId when setting/getting accounts (thomas.norling@microsoft.com)
+
+## 15.13.3
+
+Thu, 04 Dec 2025 05:46:36 GMT
+
+### Patches
+
+- Add DOM API configuration, #8171 (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.13.2
 

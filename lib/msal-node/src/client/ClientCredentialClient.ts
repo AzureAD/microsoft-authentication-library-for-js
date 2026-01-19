@@ -40,6 +40,7 @@ import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
+import { ApiId } from "../utils/Constants.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -328,7 +329,8 @@ export class ClientCredentialClient extends BaseClient {
             serverTokenResponse,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByClientCredential
         );
 
         return tokenResponse;

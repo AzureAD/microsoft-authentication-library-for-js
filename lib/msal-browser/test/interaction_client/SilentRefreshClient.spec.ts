@@ -23,6 +23,7 @@ import {
     AccountEntity,
     CredentialType,
 } from "@azure/msal-common";
+import { ApiId } from "../../src/utils/BrowserConstants.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
     createBrowserAuthError,
@@ -149,7 +150,10 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
@@ -205,7 +209,10 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
@@ -225,6 +232,10 @@ describe("SilentRefreshClient", () => {
                     BrowserCacheManager.prototype,
                     "getAccount"
                 ).mockReturnValue(accountEntity);
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "getAllAccounts"
+                ).mockReturnValue([testAccount]);
                 jest.spyOn(
                     BrowserCacheManager.prototype,
                     "getRefreshToken"

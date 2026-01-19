@@ -2,6 +2,98 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 13 Jan 2026 14:23:32 GMT",
+      "version": "4.28.0",
+      "tag": "@azure/msal-browser_v4.28.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "yongdiwang@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "da207d2d7b2d4673bab44b558c3c7a0c34553fe3",
+            "comment": "Add native auth e2e sample app"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "da207d2d7b2d4673bab44b558c3c7a0c34553fe3",
+            "comment": "Add telemetry support for loading external tokens and related events #8231"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.14.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "da207d2d7b2d4673bab44b558c3c7a0c34553fe3",
+            "comment": "Track ApiId when setting/getting accounts"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 04 Dec 2025 05:46:36 GMT",
+      "version": "4.27.0",
+      "tag": "@azure/msal-browser_v4.27.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0a9c566ff0e1c17960f3e7983fd6a010c81d2397",
+            "comment": "Add DOM API configuration, #8171"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.13.3",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 19 Nov 2025 23:13:10 GMT",
       "version": "4.26.2",
       "tag": "@azure/msal-browser_v4.26.2",

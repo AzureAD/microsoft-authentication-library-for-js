@@ -15,6 +15,7 @@ import {
     RefreshTokenEntity,
     TimeUtils,
 } from "@azure/msal-common/browser";
+import { ApiId } from "../../../../src/utils/BrowserConstants.js";
 import {
     TestTokenResponse,
     TestAccountDetails,
@@ -406,7 +407,12 @@ async function saveTokensIntoCache(
     refreshTokenEntity?: RefreshTokenEntity
 ): Promise<void> {
     accountEntity
-        ? await cacheManager.setAccount(accountEntity, correlationId, true)
+        ? await cacheManager.setAccount(
+              accountEntity,
+              correlationId,
+              true,
+              ApiId.acquireTokenSilent_authCode
+          )
         : null;
     accessTokenEntity
         ? await cacheManager.setAccessTokenCredential(

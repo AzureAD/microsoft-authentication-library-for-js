@@ -66,11 +66,27 @@ export class AccountEntity {
     tenantProfiles?: Array<TenantProfile>;
     lastUpdatedAt: string;
     dataBoundary?: DataBoundary;
+    cachedByApiId?: number;
 
     /**
      * Returns the AccountInfo interface for this account.
      */
     static getAccountInfo(accountEntity: AccountEntity): AccountInfo {
+        const tenantProfiles = accountEntity.tenantProfiles || [];
+        // Ensure at least the home tenant profile exists
+        if (
+            tenantProfiles.length === 0 &&
+            accountEntity.realm &&
+            accountEntity.localAccountId
+        ) {
+            tenantProfiles.push(
+                buildTenantProfile(
+                    accountEntity.homeAccountId,
+                    accountEntity.localAccountId,
+                    accountEntity.realm
+                )
+            );
+        }
         return {
             homeAccountId: accountEntity.homeAccountId,
             environment: accountEntity.environment,
@@ -83,7 +99,7 @@ export class AccountEntity {
             authorityType: accountEntity.authorityType,
             // Deserialize tenant profiles array into a Map
             tenantProfiles: new Map(
-                (accountEntity.tenantProfiles || []).map((tenantProfile) => {
+                tenantProfiles.map((tenantProfile) => {
                     return [tenantProfile.tenantId, tenantProfile];
                 })
             ),
@@ -231,9 +247,25 @@ export class AccountEntity {
         account.cloudGraphHostName = cloudGraphHostName;
         account.msGraphHost = msGraphHost;
         // Serialize tenant profiles map into an array
-        account.tenantProfiles = Array.from(
+        const tenantProfiles = Array.from(
             accountInfo.tenantProfiles?.values() || []
         );
+        // Ensure at least the home tenant profile exists
+        if (
+            tenantProfiles.length === 0 &&
+            accountInfo.tenantId &&
+            accountInfo.localAccountId
+        ) {
+            tenantProfiles.push(
+                buildTenantProfile(
+                    accountInfo.homeAccountId,
+                    accountInfo.localAccountId,
+                    accountInfo.tenantId,
+                    accountInfo.idTokenClaims
+                )
+            );
+        }
+        account.tenantProfiles = tenantProfiles;
         account.dataBoundary = accountInfo.dataBoundary;
 
         return account;

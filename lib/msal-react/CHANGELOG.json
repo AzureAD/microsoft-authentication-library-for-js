@@ -2,6 +2,66 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 13 Jan 2026 14:23:33 GMT",
+      "version": "3.0.24",
+      "tag": "@azure/msal-react_v3.0.24",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.28.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 04 Dec 2025 05:46:37 GMT",
+      "version": "3.0.23",
+      "tag": "@azure/msal-react_v3.0.23",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "0a9c566ff0e1c17960f3e7983fd6a010c81d2397",
+            "comment": "Address react and next CVEs #8179"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.27.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 19 Nov 2025 23:13:11 GMT",
       "version": "3.0.22",
       "tag": "@azure/msal-react_v3.0.22",

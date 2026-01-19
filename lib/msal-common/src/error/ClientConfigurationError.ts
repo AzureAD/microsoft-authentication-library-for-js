@@ -53,6 +53,8 @@ export const ClientConfigurationErrorMessages = {
         "Invalid authorize post body parameters provided. If you are using authorizePostBodyParameters, the request method must be POST. Please check the request method and parameters.",
     [ClientConfigurationErrorCodes.invalidRequestMethodForEAR]:
         "Invalid request method for EAR protocol mode. The request method cannot be GET when using EAR protocol mode. Please change the request method to POST.",
+    [ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration]:
+        "Invalid platform broker configuration. `allowPlatformBrokerWithDOM` can only be enabled when `allowPlatformBroker` is enabled.",
 };
 
 /**
@@ -196,6 +198,12 @@ export const ClientConfigurationErrorMessage = {
         code: ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
         desc: ClientConfigurationErrorMessages[
             ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+        ],
+    },
+    invalidPlatformBrokerConfiguration: {
+        code: ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration,
+        desc: ClientConfigurationErrorMessages[
+            ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration
         ],
     },
 };

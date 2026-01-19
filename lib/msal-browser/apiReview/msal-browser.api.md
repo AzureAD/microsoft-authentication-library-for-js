@@ -87,6 +87,8 @@ export const ApiId: {
     readonly acquireTokenSilent_silentFlow: 61;
     readonly logout: 961;
     readonly logoutPopup: 962;
+    readonly hydrateCache: 963;
+    readonly loadExternalTokens: 964;
 };
 
 // @public (undocumented)
@@ -586,6 +588,7 @@ export type BrowserSystemOptions = SystemOptions & {
     asyncPopups?: boolean;
     allowRedirectInIframe?: boolean;
     allowPlatformBroker?: boolean;
+    allowPlatformBrokerWithDOM?: boolean;
     nativeBrokerHandshakeTimeout?: number;
     pollIntervalMilliseconds?: number;
 };
@@ -1165,7 +1168,7 @@ function isInPopup(): boolean;
 // Warning: (ae-missing-release-tag) "isPlatformBrokerAvailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function isPlatformBrokerAvailable(loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
+export function isPlatformBrokerAvailable(loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string, domConfig?: boolean): Promise<boolean>;
 
 // Warning: (ae-missing-release-tag) "ITokenCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1797,7 +1800,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "4.26.2";
+export const version = "4.28.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1827,7 +1830,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:363:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:426:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:457:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:260:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:264:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

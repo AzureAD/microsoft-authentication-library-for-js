@@ -137,7 +137,8 @@ export class MfaClient extends CustomAuthInteractionClientBase {
         const result = await this.handleTokenResponse(
             tokenResponse,
             scopes,
-            tokenResponse.correlation_id ?? parameters.correlationId
+            tokenResponse.correlation_id ?? parameters.correlationId,
+            apiId
         );
 
         return createMfaCompletedResult({

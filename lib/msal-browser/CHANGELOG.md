@@ -1,8 +1,37 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 19 Nov 2025 23:13:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 13 Jan 2026 14:23:32 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.28.0
+
+Tue, 13 Jan 2026 14:23:32 GMT
+
+### Minor changes
+
+- Add native auth e2e sample app (yongdiwang@microsoft.com)
+- Add telemetry support for loading external tokens and related events #8231 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.14.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Track ApiId when setting/getting accounts (thomas.norling@microsoft.com)
+
+## 4.27.0
+
+Thu, 04 Dec 2025 05:46:36 GMT
+
+### Minor changes
+
+- Add DOM API configuration, #8171 (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v15.13.3
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.26.2
 

@@ -28,11 +28,13 @@ export interface ICacheManager {
      * @param account
      * @param correlationId
      * @param kmsi
+     * @param apiId - API identifier for telemetry tracking
      */
     setAccount(
         account: AccountEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        apiId: number
     ): Promise<void>;
 
     /**
@@ -195,6 +197,7 @@ export interface ICacheManager {
         cacheRecord: CacheRecord,
         correlationId: string,
         kmsi: boolean,
+        apiId: number,
         storeInCache?: StoreInCache
     ): Promise<void>;
 

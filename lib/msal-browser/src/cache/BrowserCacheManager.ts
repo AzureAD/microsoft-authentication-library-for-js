@@ -48,6 +48,8 @@ import {
     createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
 import {
+    ApiId,
+    apiIdToName,
     BrowserCacheLocation,
     InMemoryCacheKeys,
     INTERACTION_TYPE,
@@ -1045,6 +1047,13 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
 
+        this.performanceClient.addFields(
+            {
+                accountCachedBy: apiIdToName(parsedAccount.cachedByApiId),
+            },
+            correlationId
+        );
+
         return CacheManager.toObject<AccountEntity>(
             new AccountEntity(),
             parsedAccount
@@ -1058,7 +1067,8 @@ export class BrowserCacheManager extends CacheManager {
     async setAccount(
         account: AccountEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        apiId: number
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
         const key = this.generateAccountKey(
@@ -1066,6 +1076,7 @@ export class BrowserCacheManager extends CacheManager {
         );
         const timestamp = Date.now().toString();
         account.lastUpdatedAt = timestamp;
+        account.cachedByApiId = apiId;
         await this.setUserData(
             key,
             JSON.stringify(account),
@@ -2227,8 +2238,8 @@ export class BrowserCacheManager extends CacheManager {
             | PopupRequest
     ): Promise<void> {
         const idTokenEntity = CacheHelpers.createIdTokenEntity(
-            result.account?.homeAccountId,
-            result.account?.environment,
+            result.account.homeAccountId,
+            result.account.environment,
             result.idToken,
             this.clientId,
             result.tenantId
@@ -2248,7 +2259,7 @@ export class BrowserCacheManager extends CacheManager {
          */
 
         const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
-            result.account?.homeAccountId,
+            result.account.homeAccountId,
             result.account.environment,
             result.accessToken,
             this.clientId,
@@ -2279,7 +2290,8 @@ export class BrowserCacheManager extends CacheManager {
             result.correlationId,
             AuthToken.isKmsi(
                 AuthToken.extractTokenClaims(result.idToken, base64Decode)
-            )
+            ),
+            ApiId.hydrateCache
         );
     }
 
@@ -2293,6 +2305,7 @@ export class BrowserCacheManager extends CacheManager {
         cacheRecord: CacheRecord,
         correlationId: string,
         kmsi: boolean,
+        apiId: ApiId,
         storeInCache?: StoreInCache
     ): Promise<void> {
         try {
@@ -2300,6 +2313,7 @@ export class BrowserCacheManager extends CacheManager {
                 cacheRecord,
                 correlationId,
                 kmsi,
+                apiId,
                 storeInCache
             );
         } catch (e) {

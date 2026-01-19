@@ -92,11 +92,14 @@ export abstract class CacheManager implements ICacheManager {
      * set account entity in the platform cache
      * @param account
      * @param correlationId
+     * @param kmsi - Keep Me Signed In
+     * @param apiId - API identifier for telemetry tracking
      */
     abstract setAccount(
         account: AccountEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        apiId: number
     ): Promise<void>;
 
     /**
@@ -543,12 +546,14 @@ export abstract class CacheManager implements ICacheManager {
      * @param cacheRecord {CacheRecord}
      * @param correlationId {?string} correlation id
      * @param kmsi - Keep Me Signed In
+     * @param apiId - API identifier for telemetry tracking
      * @param storeInCache {?StoreInCache}
      */
     async saveCacheRecord(
         cacheRecord: CacheRecord,
         correlationId: string,
         kmsi: boolean,
+        apiId: number,
         storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
@@ -559,7 +564,12 @@ export abstract class CacheManager implements ICacheManager {
 
         try {
             if (!!cacheRecord.account) {
-                await this.setAccount(cacheRecord.account, correlationId, kmsi);
+                await this.setAccount(
+                    cacheRecord.account,
+                    correlationId,
+                    kmsi,
+                    apiId
+                );
             }
 
             if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {

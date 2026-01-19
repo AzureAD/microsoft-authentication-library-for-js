@@ -179,7 +179,8 @@ describe("ResponseHandler.ts", () => {
                         testResponse,
                         testAuthority,
                         timestamp,
-                        testRequest
+                        testRequest,
+                        0
                     );
                 expect(tokenResp).toBeUndefined();
             } catch (e) {
@@ -257,7 +258,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
 
@@ -325,7 +327,51 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
+            );
+        });
+
+        it("adds rt expiry to performance fields when refresh_token_expires_in provided", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const refreshTokenExpiresIn = 600;
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                refresh_token_expires_in: refreshTokenExpiresIn,
+            };
+
+            const perfClient = new StubPerformanceClient();
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null,
+                perfClient
+            );
+
+            const reqTimestamp = 1000;
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                reqTimestamp,
+                testRequest,
+                0
+            );
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    ntwkRtExpiresOnSeconds:
+                        reqTimestamp + refreshTokenExpiresIn,
+                },
+                testRequest.correlationId
             );
         });
 
@@ -391,8 +437,44 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
+        });
+
+        it("sets cachedByApiId on cached account", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            const apiId = 1234;
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                apiId
+            );
+
+            const accountKeys = testCacheManager.getAccountKeys();
+            expect(accountKeys.length).toBeGreaterThan(0);
+            const account = testCacheManager.getAccount(accountKeys[0]);
+            expect(account?.cachedByApiId).toBe(apiId);
         });
 
         it("includes spa_code in response as code", async () => {
@@ -422,7 +504,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
             expect(response.code).toEqual(testSpaCode);
         });
@@ -503,8 +586,173 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
+        });
+
+        it("saves tokens to cache when handling refresh token response and account exists in cache under authority alias", async () => {
+            // Restore the getAccountInfo mock for this test to use real implementation
+            jest.restoreAllMocks();
+
+            // Re-apply only the mocks we need
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.microsoftonline.com");
+            jest.spyOn(AuthToken, "extractTokenClaims").mockImplementation(
+                (encodedIdToken, crypto) => {
+                    return ID_TOKEN_CLAIMS as TokenClaims;
+                }
+            );
+
+            // Mock authority metadata to recognize aliases
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAuthorityMetadataByAlias"
+            ).mockImplementation((host: string) => {
+                // login.microsoftonline.com and login.windows.net are aliases of each other
+                const aliases = [
+                    "login.microsoftonline.com",
+                    "login.windows.net",
+                    "login.microsoft.com",
+                ];
+                if (aliases.includes(host)) {
+                    return {
+                        aliases: aliases,
+                        preferred_cache: "login.windows.net",
+                        preferred_network: "login.microsoftonline.com",
+                        aliasesFromNetwork: false,
+                        canonical_authority: host,
+                        authorization_endpoint: "",
+                        token_endpoint: "",
+                        end_session_endpoint: "",
+                        issuer: "",
+                        jwks_uri: "",
+                        endpointsFromNetwork: false,
+                        expiresAt: 0,
+                    };
+                }
+                return null;
+            });
+
+            // Setup account in cache with login.windows.net (an alias of login.microsoftonline.com)
+            // The homeAccountId must match what handleServerTokenResponse generates (oid.tid from ID token claims)
+            const expectedHomeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
+            const accountEntity = new AccountEntity();
+            accountEntity.homeAccountId = expectedHomeAccountId;
+            accountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
+            accountEntity.environment = "login.windows.net"; // Different alias than getPreferredCache returns
+            accountEntity.realm = ID_TOKEN_CLAIMS.tid;
+            accountEntity.username = "test@contoso.com";
+            accountEntity.authorityType = "MSSTS";
+            accountEntity.clientInfo =
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            // Add home tenant profile to enable localAccountId matching
+            accountEntity.tenantProfiles = [
+                {
+                    tenantId: ID_TOKEN_CLAIMS.tid,
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
+                    isHomeTenant: true,
+                    username: "test@contoso.com",
+                },
+            ];
+            await testCacheManager.setAccount(accountEntity);
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            const saveCacheRecordSpy = jest.spyOn(
+                CacheManager.prototype,
+                "saveCacheRecord"
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            // handlingRefreshTokenResponse = true, forceCacheRefreshTokenResponse = false
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                0,
+                undefined, // authCodePayload
+                undefined, // userAssertionHash
+                true, // handlingRefreshTokenResponse
+                false // forceCacheRefreshTokenResponse
+            );
+
+            // Verify saveCacheRecord was called, meaning tokens were saved even though
+            // the account was cached under a different authority alias
+            expect(saveCacheRecordSpy).toHaveBeenCalled();
+        });
+
+        it("does not save tokens to cache when handling refresh token response and account does not exist in cache", async () => {
+            // Ensure no accounts in cache
+            const allAccountKeys = testCacheManager.getAccountKeys();
+            for (const key of allAccountKeys) {
+                const account = testCacheManager.getAccount(key);
+                if (account) {
+                    testCacheManager.removeAccount(
+                        AccountEntity.getAccountInfo(account),
+                        "test-correlation-id"
+                    );
+                }
+            }
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            const saveCacheRecordSpy = jest.spyOn(
+                CacheManager.prototype,
+                "saveCacheRecord"
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+            // handlingRefreshTokenResponse = true, forceCacheRefreshTokenResponse = false
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest,
+                0,
+                undefined, // authCodePayload
+                undefined, // userAssertionHash
+                true, // handlingRefreshTokenResponse
+                false // forceCacheRefreshTokenResponse
+            );
+
+            // Verify saveCacheRecord was NOT called, meaning tokens were not saved
+            expect(saveCacheRecordSpy).not.toHaveBeenCalled();
         });
     });
 
@@ -533,7 +781,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.familyId).toBe("");
@@ -580,7 +829,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -627,7 +877,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -658,7 +909,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.requestId).toBe("");
@@ -827,7 +1079,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -873,7 +1126,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -919,7 +1173,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -962,7 +1217,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {

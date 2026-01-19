@@ -34,7 +34,7 @@ jobs:
                         - 'lib/**/**.!(md)'
                         - 'extensions/msal-node-extensions/**/**.!(md)'
 
-            - uses: actions/checkout@v5
+            - uses: actions/checkout@v6
               if: ${{ steps.filter.outputs.lib == 'true' }}
               with:
                   fetch-depth: 0

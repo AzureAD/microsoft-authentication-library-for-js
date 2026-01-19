@@ -25,6 +25,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ApiId } from "../utils/BrowserConstants.js";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.
@@ -56,7 +57,8 @@ export class InteractionHandler {
      */
     async handleCodeResponse(
         response: AuthorizeResponse,
-        request: CommonAuthorizationUrlRequest
+        request: CommonAuthorizationUrlRequest,
+        apiId: ApiId
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.HandleCodeResponse,
@@ -89,7 +91,7 @@ export class InteractionHandler {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(authCodeResponse, request);
+        )(authCodeResponse, request, apiId);
     }
 
     /**
@@ -103,6 +105,7 @@ export class InteractionHandler {
     async handleCodeResponseFromServer(
         authCodeResponse: AuthorizationCodePayload,
         request: CommonAuthorizationUrlRequest,
+        apiId: ApiId,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
@@ -152,7 +155,11 @@ export class InteractionHandler {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(this.authCodeRequest, authCodeResponse)) as AuthenticationResult;
+        )(
+            this.authCodeRequest,
+            apiId,
+            authCodeResponse
+        )) as AuthenticationResult;
         return tokenResponse;
     }
 

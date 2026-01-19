@@ -4,6 +4,7 @@
  */
 
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
+import { ApiId } from "../../src/utils/BrowserConstants.js";
 import {
     PkceCodes,
     NetworkRequestOptions,
@@ -327,12 +328,14 @@ describe("InteractionHandler.ts Unit Tests", () => {
                         responseMode: "fragment",
                         nonce: TEST_CONFIG.CORRELATION_ID,
                         state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                    }
+                    },
+                    ApiId.acquireTokenRedirect
                 );
 
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(acquireTokenSpy).toHaveBeenCalledWith(
                 testAuthCodeRequest,
+                ApiId.acquireTokenRedirect,
                 testCodeResponse
             );
             expect(acquireTokenSpy).not.toThrow();
@@ -407,7 +410,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     responseMode: "fragment",
                     nonce: TEST_CONFIG.CORRELATION_ID,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                }
+                },
+                ApiId.acquireTokenPopup
             );
             expect(updateAuthoritySpy).toHaveBeenCalledWith(
                 testCodeResponse.cloud_instance_host_name,
@@ -416,6 +420,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(acquireTokenSpy).toHaveBeenCalledWith(
                 testAuthCodeRequest,
+                ApiId.acquireTokenPopup,
                 testCodeResponse
             );
             expect(acquireTokenSpy).not.toThrow();
@@ -487,11 +492,13 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     responseMode: "fragment",
                     nonce: TEST_CONFIG.CORRELATION_ID,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                }
+                },
+                ApiId.acquireTokenPopup
             );
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(acquireTokenSpy).toHaveBeenCalledWith(
                 testAuthCodeRequest,
+                ApiId.acquireTokenPopup,
                 testCodeResponse
             );
             expect(acquireTokenSpy).not.toThrow();
