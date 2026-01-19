@@ -619,9 +619,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 await screenshot.takeScreenshot(page, "otpInputDisplayed");
 
                 // Get OTP code from email
-                console.log("Retrieving OTP code from email...");
                 const otpCode = await emailOtpClient.readOtpCode();
-                console.log("OTP code retrieved:", otpCode);
 
                 // Enter OTP and submit - ensure OTP field is fully visible first
                 await page.waitForSelector("#verificationCode", {
@@ -770,11 +768,7 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 await new Promise((resolve) => setTimeout(resolve, 2000));
 
                 // Phase 5: Get new OTP code from email
-                console.log(
-                    "Retrieving new OTP code from email after resend..."
-                );
                 const otpCode = await emailOtpClient.readOtpCode();
-                console.log("New OTP code retrieved:", otpCode);
 
                 // Phase 6: Enter correct OTP and submit
                 await page.waitForSelector("#verificationCode", {
@@ -836,10 +830,6 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 expect(finalAuthStatus).toContain("Signed in");
 
                 await screenshot.takeScreenshot(page, "11_signInFlowCompleted");
-
-                console.log(
-                    "Email OTP sign-in with retry completed successfully"
-                );
             },
             AUTH_TIMEOUT
         );

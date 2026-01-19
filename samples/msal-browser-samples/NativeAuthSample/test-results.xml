@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="27" failures="0" errors="0" time="280.907">
+  <testsuite name="Native Auth Sample Tests" errors="0" failures="0" skipped="0" timestamp="2026-01-19T17:52:07" time="97.384" tests="2">
+    <testcase classname="Native Auth Sample - JIT Tests JIT Flow - Sign Up + JIT Registration Sign up with email/password and complete JIT registration using different email (requires OTP verification)" name="Native Auth Sample - JIT Tests JIT Flow - Sign Up + JIT Registration Sign up with email/password and complete JIT registration using different email (requires OTP verification)" time="41.945">
+    </testcase>
+    <testcase classname="Native Auth Sample - JIT Tests JIT Flow - Sign In + JIT Verification Sign in with existing account and complete JIT registration using OTP" name="Native Auth Sample - JIT Tests JIT Flow - Sign In + JIT Verification Sign in with existing account and complete JIT registration using OTP" time="31.4">
+    </testcase>
+  </testsuite>
+  <testsuite name="Native Auth Sample Tests" errors="0" failures="0" skipped="0" timestamp="2026-01-19T17:53:44" time="99.307" tests="10">
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Positive User inputs new email and user attributes, verifies code, creates password meeting requirements, completes sign up flow, then automatically sign-in" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Positive User inputs new email and user attributes, verifies code, creates password meeting requirements, completes sign up flow, then automatically sign-in" time="16.76">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Positive User inputs new email, enters incorrect OTP, resends code, verifies correct code, creates password, completes signup with auto sign-in" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Positive User inputs new email, enters incorrect OTP, resends code, verifies correct code, creates password, completes signup with auto sign-in" time="9.991">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User inputs invalid format email address, receives email validation error" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User inputs invalid format email address, receives email validation error" time="1.447">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User inputs existing email (registered with email + Password), receives user existed error." name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User inputs existing email (registered with email + Password), receives user existed error." time="2.694">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User enters username, attributes to start sign-up flow, and enter the incorrect otp" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User enters username, attributes to start sign-up flow, and enter the incorrect otp" time="2.963">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User inputs new email, verifies code, creates invalid password (does not meet requirements), receives sign up error" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User inputs new email, verifies code, creates invalid password (does not meet requirements), receives sign up error" time="20.967">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User signs in with existing email, then tries to sign up with same email, receives error to sign out first" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + Password - Negative User signs in with existing email, then tries to sign up with same email, receives error to sign out first" time="4.18">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + OTP - Positive User enters new email and user attributes, verifies code successfully, completes sign up flow, then automatically sign-in" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + OTP - Positive User enters new email and user attributes, verifies code successfully, completes sign up flow, then automatically sign-in" time="15.402">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + OTP - Positive User enters new email and user attributes, uses invalid OTP, requests new code, completes sign up flow, then automatically sign-in" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Email + OTP - Positive User enters new email and user attributes, uses invalid OTP, requests new code, completes sign up flow, then automatically sign-in" time="17.943">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign Up Tests Sign Up Flow - Redirect User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)" name="Native Auth Sample - Sign Up Tests Sign Up Flow - Redirect User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)" time="2.893">
+    </testcase>
+  </testsuite>
+  <testsuite name="Native Auth Sample Tests" errors="0" failures="0" skipped="0" timestamp="2026-01-19T17:55:24" time="30.315" tests="7">
+    <testcase classname="Native Auth Sample - Sign In Tests Sign In Flow - Email + Password - Positive User inputs registered email and password, signs in successfully" name="Native Auth Sample - Sign In Tests Sign In Flow - Email + Password - Positive User inputs registered email and password, signs in successfully" time="2.26">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign In Tests Sign In Flow - Email + Password - Negative User inputs non-registered email, receives account not found error" name="Native Auth Sample - Sign In Tests Sign In Flow - Email + Password - Negative User inputs non-registered email, receives account not found error" time="1.397">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign In Tests Sign In Flow - Email + Password - Negative User inputs registered email, provides incorrect password, receives error" name="Native Auth Sample - Sign In Tests Sign In Flow - Email + Password - Negative User inputs registered email, provides incorrect password, receives error" time="2.045">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign In Tests Sign In Flow - Email + Password - Negative User signs in with account A when account A has already signed in" name="Native Auth Sample - Sign In Tests Sign In Flow - Email + Password - Negative User signs in with account A when account A has already signed in" time="2.357">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign In Tests Sign In Flow - Email + OTP - Positive User inputs registered email, then receives OTP, verifies successfully" name="Native Auth Sample - Sign In Tests Sign In Flow - Email + OTP - Positive User inputs registered email, then receives OTP, verifies successfully" time="3.308">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign In Tests Sign In Flow - Email + OTP - Positive User inputs registered email, enters incorrect OTP code, requests new OTP, enters valid code, signs in successfully" name="Native Auth Sample - Sign In Tests Sign In Flow - Email + OTP - Positive User inputs registered email, enters incorrect OTP code, requests new OTP, enters valid code, signs in successfully" time="12.447">
+    </testcase>
+    <testcase classname="Native Auth Sample - Sign In Tests Sign In Flow - Email + OTP Redirect User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)" name="Native Auth Sample - Sign In Tests Sign In Flow - Email + OTP Redirect User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)" time="2.581">
+    </testcase>
+  </testsuite>
+  <testsuite name="Native Auth Sample Tests" errors="0" failures="0" skipped="0" timestamp="2026-01-19T17:55:54" time="27.59" tests="6">
+    <testcase classname="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Positive User requests reset inputs emails, receives code, sets new valid password, completes reset, auto-signs in" name="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Positive User requests reset inputs emails, receives code, sets new valid password, completes reset, auto-signs in" time="13.198">
+    </testcase>
+    <testcase classname="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Negative User submits non-existing email, receives account not found error" name="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Negative User submits non-existing email, receives account not found error" time="1.292">
+    </testcase>
+    <testcase classname="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Negative User submits existing email, but email does not linked to any password (registered as email + OTP)" name="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Negative User submits existing email, but email does not linked to any password (registered as email + OTP)" time="1.428">
+    </testcase>
+    <testcase classname="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Negative User submits existing email, and submit incorrect code" name="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Negative User submits existing email, and submit incorrect code" time="2.829">
+    </testcase>
+    <testcase classname="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Negative User submits existing email, receives code, creates invalid password (doesn&apos;t meet password complexity requirements), receives requirements error" name="Native Auth Sample - Reset Password Tests Reset Password Flow - Email + Password - Negative User submits existing email, receives code, creates invalid password (doesn&apos;t meet password complexity requirements), receives requirements error" time="3.654">
+    </testcase>
+    <testcase classname="Native Auth Sample - Reset Password Tests Reset Password Flow - Redirect User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)" name="Native Auth Sample - Reset Password Tests Reset Password Flow - Redirect User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)" time="1.198">
+    </testcase>
+  </testsuite>
+  <testsuite name="Native Auth Sample Tests" errors="0" failures="0" skipped="0" timestamp="2026-01-19T17:56:22" time="13.469" tests="1">
+    <testcase classname="Native Auth Sample - MFA Tests MFA Flow - Sign In + MFA Verification Sign in with email/password and complete MFA verification using OTP" name="Native Auth Sample - MFA Tests MFA Flow - Sign In + MFA Verification Sign in with email/password and complete MFA verification using OTP" time="9.322">
+    </testcase>
+  </testsuite>
+  <testsuite name="Native Auth Sample Tests" errors="0" failures="0" skipped="0" timestamp="2026-01-19T17:56:35" time="6.798" tests="1">
+    <testcase classname="Native Auth Sample - Sign Out Tests Sign Out Flow - Email + Password User sign-in with username and correct password, then sign out" name="Native Auth Sample - Sign Out Tests Sign Out Flow - Email + Password User sign-in with username and correct password, then sign out" time="2.949">
+    </testcase>
+  </testsuite>
+</testsuites>

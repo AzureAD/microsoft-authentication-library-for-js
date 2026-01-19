@@ -54,9 +54,9 @@ http.createServer((req, res) => {
             reqUrl.pathname?.replace(apiPath, "") +
             (reqUrl.search || "");
 
-        console.log(
-            "Incoming request -> " + req.url + " ===> " + reqUrl.pathname
-        );
+        // console.log(
+        //     "Incoming request -> " + req.url + " ===> " + reqUrl.pathname
+        // );
 
         const newHeaders = {};
         for (let [key, value] of Object.entries(req.headers)) {

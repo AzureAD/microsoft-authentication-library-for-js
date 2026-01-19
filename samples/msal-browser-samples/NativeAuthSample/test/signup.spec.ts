@@ -135,7 +135,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 const emailClient = new MailTmClient(emailProviderPwd);
                 const { address: signUpEmail } =
                     await emailClient.createInbox();
-                console.log(`Created email for signup: ${signUpEmail}`);
 
                 // Enter user details in the sign-up form
                 await page.waitForSelector("#signUpFirstName", {
@@ -175,11 +174,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 );
 
                 // Login to the email account and then get OTP code
-                console.log("Logging into email account...");
                 await emailClient.login(signUpEmail, emailProviderPwd);
-                console.log("Retrieving OTP code from email...");
                 const otpCode = await emailClient.readOtpCode();
-                console.log("OTP code retrieved:", otpCode);
 
                 // Enter and submit OTP code
                 await page.waitForSelector("#verificationCode", {
@@ -285,9 +281,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 const emailClient = new MailTmClient(emailProviderPwd);
                 const { address: signUpEmail } =
                     await emailClient.createInbox();
-                console.log(
-                    `Created email for positive signup: ${signUpEmail}`
-                );
 
                 // Phase 1: Enter user details and initiate signup
                 await page.waitForSelector("#signUpFirstName", {
@@ -386,11 +379,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 await new Promise((resolve) => setTimeout(resolve, 2000));
 
                 // Phase 4: Login to email and get the new OTP code
-                console.log("Logging into email account after resend...");
                 await emailClient.login(signUpEmail, emailProviderPwd);
-                console.log("Retrieving OTP code from email after resend...");
                 const otpCode = await emailClient.readOtpCode();
-                console.log("OTP code retrieved after resend:", otpCode);
 
                 // Phase 5: Enter correct OTP and submit
                 await page.waitForSelector("#verificationCode", {
@@ -491,10 +481,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 expect(finalAuthStatus).toContain("Signed in");
 
                 await screenshot.takeScreenshot(page, "14_signUpFlowCompleted");
-
-                console.log(
-                    "Positive signup flow completed successfully with automatic sign-in"
-                );
             },
             AUTH_TIMEOUT
         );
@@ -545,8 +531,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
                 // Use invalid email format - missing TLD as specified
                 const invalidEmail = "test-1733090331456-k8x9mq@example";
-                console.log(`Using invalid format email: ${invalidEmail}`);
-
                 // Enter user details in the sign-up form
                 await page.waitForSelector("#signUpFirstName", {
                     visible: true,
@@ -699,9 +683,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
                 // Use mock email - no real email service needed for negative test
                 const signUpEmail = generateMockEmail();
-                console.log(
-                    `Using mock email for negative signup test: ${signUpEmail}`
-                );
 
                 // Enter user details in the sign-up form
                 await page.waitForSelector("#signUpFirstName", {
@@ -805,9 +786,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 const emailClient = new MailTmClient(emailProviderPwd);
                 const { address: signUpEmail } =
                     await emailClient.createInbox();
-                console.log(
-                    `Created email for invalid password test: ${signUpEmail}`
-                );
 
                 // Phase 1: Enter user details and initiate signup
                 await page.waitForSelector("#signUpFirstName", {
@@ -854,11 +832,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 }
 
                 // Phase 3: Login to email and get OTP code
-                console.log("Logging into email account...");
                 await emailClient.login(signUpEmail, emailProviderPwd);
-                console.log("Retrieving OTP code from email...");
                 const otpCode = await emailClient.readOtpCode();
-                console.log("OTP code retrieved:", otpCode);
 
                 // Phase 4: Enter correct OTP and submit
                 await page.waitForSelector("#verificationCode", {
@@ -905,10 +880,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 }
 
                 // Phase 6: Enter invalid password (from test data)
-                console.log(
-                    `Using invalid password: ${testData.invalidPassword}`
-                );
-
                 await page.waitForSelector("#signUpPassword", {
                     visible: true,
                 });
@@ -1134,7 +1105,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 const emailClient = new MailTmClient(emailProviderPwd);
                 const { address: signUpEmail } =
                     await emailClient.createInbox();
-                console.log(`Created email for OTP signup: ${signUpEmail}`);
 
                 // Phase 1: Enter user details and initiate signup
                 await page.waitForSelector("#signUpFirstName", {
@@ -1174,11 +1144,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 );
 
                 // Phase 3: Login to email and get OTP code
-                console.log("Logging into email account...");
                 await emailClient.login(signUpEmail, emailProviderPwd);
-                console.log("Retrieving OTP code from email...");
                 const otpCode = await emailClient.readOtpCode();
-                console.log("OTP code retrieved:", otpCode);
 
                 // Phase 4: Enter correct OTP and submit
                 await page.waitForSelector("#verificationCode", {
@@ -1243,10 +1210,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 expect(finalAuthStatus).toContain("Signed in");
 
                 await screenshot.takeScreenshot(page, "6_signUpOtpCompleted");
-
-                console.log(
-                    "OTP signup flow completed successfully with automatic sign-in"
-                );
             },
             AUTH_TIMEOUT
         );
@@ -1261,11 +1224,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
                 // Create a new email inbox using password_provider with retry logic
                 const emailClient = new MailTmClient(emailProviderPwd);
-                const { address: signUpEmail } =
-                    await emailClient.createInbox();
-                console.log(
-                    `Created email for OTP signup with resend: ${signUpEmail}`
-                );
+                const { address: signUpEmail } = await emailClient.createInbox();
 
                 // Phase 1: Enter user details and initiate signup
                 await page.waitForSelector("#signUpFirstName", {
@@ -1364,11 +1323,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 await new Promise((resolve) => setTimeout(resolve, 2000));
 
                 // Phase 5: Login to email and get the new OTP code
-                console.log("Logging into email account after resend...");
                 await emailClient.login(signUpEmail, emailProviderPwd);
-                console.log("Retrieving OTP code from email after resend...");
                 const otpCode = await emailClient.readOtpCode();
-                console.log("OTP code retrieved after resend:", otpCode);
 
                 // Phase 6: Enter correct OTP and submit
                 await page.waitForSelector("#verificationCode", {
@@ -1436,10 +1392,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     page,
                     "11_signUpOtpFlowCompleted"
                 );
-
-                console.log(
-                    "OTP signup flow with resend completed successfully with automatic sign-in"
-                );
             },
             AUTH_TIMEOUT
         );
@@ -1502,8 +1454,6 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
                 // Use mock email - only testing redirect error behavior, no real email needed
                 const testEmail = generateMockEmail();
-                console.log(`Using mock email for redirect test: ${testEmail}`);
-
                 // Enter email in the sign-up form and click sign-up button
                 await page.waitForSelector("#signUpUsername", {
                     visible: true,

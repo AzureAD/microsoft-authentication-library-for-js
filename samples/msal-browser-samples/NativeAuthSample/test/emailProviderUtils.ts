@@ -74,8 +74,6 @@ export class MailTmClient {
                 this.address = useAddress;
                 this.password = usePassword;
 
-                console.log(`Creating account (attempt ${attempt}/${maxRetries})! Email: ${this.address}`);
-
                 const res = await fetch(`${BASE}/accounts`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -93,15 +91,11 @@ export class MailTmClient {
                     throw new Error(`Failed to create account: ${res.status} - ${errorText}`);
                 }
             } catch (error) {
-                console.error(`Error during account creation on attempt ${attempt}`);
-
                 // If this is the last attempt, throw the error
                 if (attempt === maxRetries) {
                     throw new Error(`Failed to create mail.tm inbox after ${maxRetries} attempts: ${error}`);
                 }
 
-                // Wait before retrying
-                console.log(`Waiting ${delaySeconds} seconds before retry...`);
                 await new Promise((resolve) => setTimeout(resolve, delaySeconds * 1000));
             }
         }
@@ -202,7 +196,7 @@ export class MailTmClient {
     /**
      * Read messages and extract OTP code
      */
-    async readOtpCode(maxRetries = 3, delaySeconds = 10): Promise<string> {
+    async readOtpCode(maxRetries = 5, delaySeconds = 10): Promise<string> {
         if (!this.token) {
             throw new Error("Call login() before reading messages");
         }
@@ -211,8 +205,6 @@ export class MailTmClient {
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                console.log(`Attempt ${attempt}/${maxRetries} to fetch messages...`);
-
                 const res = await fetch(`${BASE}/messages?page=1`, {
                     headers: {
                         "Authorization": `Bearer ${this.token}`,
@@ -234,26 +226,14 @@ export class MailTmClient {
                                 this.lastCheckedTime &&
                                 messageTime <= this.lastCheckedTime
                             ) {
-                                console.log(
-                                    `Skipping old message from ${
-                                        email.updatedAt
-                                    } (before checkpoint ${this.lastCheckedTime.toISOString()})`
-                                );
                                 continue;
                             }
-
-                            // Log email details
-                            console.log(`Email Subject: ${email.subject}`);
-                            console.log(`Email Intro: ${email.intro}`);
-                            console.log(`Message ID: ${email.id}`);
-                            console.log(`Updated At: ${email.updatedAt}`);
 
                             // Get OTP code from message source
                             const otpCode = await this.getMessageSource(
                                 email.id
                             );
                             if (otpCode) {
-                                console.log(`OTP Code Found: ${otpCode}`);
                                 // Clear checkpoint after successful OTP retrieval
                                 this.lastCheckedTime = null;
                                 return otpCode;
@@ -263,9 +243,6 @@ export class MailTmClient {
                                 );
                             }
                         }
-                        console.log(
-                            `No valid messages found on attempt ${attempt}`
-                        );
                     } else {
                         console.log(`No messages found on attempt ${attempt}`);
                     }
@@ -275,15 +252,11 @@ export class MailTmClient {
 
                 // If not the last attempt, wait before retrying
                 if (attempt < maxRetries) {
-                    console.log(`Waiting ${delaySeconds} seconds before next attempt...`);
                     await new Promise((resolve) => setTimeout(resolve, delaySeconds * 1000));
                 }
             } catch (error) {
-                console.error(`Error on attempt ${attempt}:`, error);
-
                 // If not the last attempt, wait before retrying
                 if (attempt < maxRetries) {
-                    console.log(`Waiting ${delaySeconds} seconds before next attempt...`);
                     await new Promise((resolve) => setTimeout(resolve, delaySeconds * 1000));
                 }
             }

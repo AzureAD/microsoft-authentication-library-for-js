@@ -63,8 +63,6 @@ async function selectJitMethod(
     }, methodType);
 
     expect(methodValue).toBeDefined();
-    console.log(`Found ${methodType} JIT method with value: ${methodValue}`);
-
     return methodValue!;
 }
 
@@ -200,7 +198,6 @@ describe("Native Auth Sample - JIT Tests", () => {
                 // Get OTP code from email
                 const otpCode = await emailClient.readOtpCode();
                 expect(otpCode).toBeDefined();
-                console.log(`OTP code received: ${otpCode}`);
 
                 // Enter OTP code
                 await page.waitForSelector("#verificationCode", {
@@ -273,9 +270,6 @@ describe("Native Auth Sample - JIT Tests", () => {
                 const jitEmailClient = new MailTmClient(emailProviderPwd);
                 const { address: jitEmail } =
                     await jitEmailClient.createInbox();
-                console.log(
-                    `Created email account for JIT verification: ${jitEmail}`
-                );
                 await jitEmailClient.login(jitEmail, emailProviderPwd);
 
                 // Select email OTP as JIT method
@@ -313,7 +307,6 @@ describe("Native Auth Sample - JIT Tests", () => {
                 // Get OTP code for JIT verification from email
                 const jitOtpCode = await jitEmailClient.readOtpCode();
                 expect(jitOtpCode).toBeDefined();
-                console.log(`JIT OTP code received: ${jitOtpCode}`);
 
                 // Enter JIT OTP code
                 await page.type("#jitChallengeCode", jitOtpCode!);
@@ -418,7 +411,6 @@ describe("Native Auth Sample - JIT Tests", () => {
                 // Get OTP code from email
                 const signUpOtpCode = await emailClient.readOtpCode();
                 expect(signUpOtpCode).toBeDefined();
-                console.log(`Sign up OTP code received: ${signUpOtpCode}`);
 
                 // Enter OTP code
                 await page.waitForSelector("#verificationCode", {
@@ -571,8 +563,6 @@ describe("Native Auth Sample - JIT Tests", () => {
                 const jitEmail = getNativeAuthConfigValue(
                     NATIVE_AUTH_CONFIG_KEYS.SIGN_IN_EMAIL_PASSWORD_USERNAME_MFA
                 );
-                console.log(`Using configured email for JIT: ${jitEmail}`);
-
                 // Create email client for configured JIT email
                 const jitEmailClient = new MailTmClient(emailProviderPwd);
                 await jitEmailClient.login(jitEmail, emailProviderPwd);
@@ -610,8 +600,6 @@ describe("Native Auth Sample - JIT Tests", () => {
                 // Get OTP code for JIT verification from configured email
                 const jitOtpCode = await jitEmailClient.readOtpCode();
                 expect(jitOtpCode).toBeDefined();
-                console.log(`JIT OTP code received: ${jitOtpCode}`);
-
                 // Enter JIT OTP code
                 await page.type("#jitChallengeCode", jitOtpCode!);
                 await screenshot.takeScreenshot(page, "JIT OTP code entered");

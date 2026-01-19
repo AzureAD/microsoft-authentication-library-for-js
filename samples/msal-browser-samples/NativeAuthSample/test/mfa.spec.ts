@@ -63,8 +63,6 @@ async function selectMfaMethod(
     }, methodType);
 
     expect(methodValue).toBeDefined();
-    console.log(`Found ${methodType} MFA method with value: ${methodValue}`);
-
     return methodValue!;
 }
 
@@ -255,7 +253,6 @@ describe("Native Auth Sample - MFA Tests", () => {
                 // Get OTP code for MFA verification from email
                 const mfaOtpCode = await emailClient.readOtpCode();
                 expect(mfaOtpCode).toBeDefined();
-                console.log(`MFA OTP code received: ${mfaOtpCode}`);
 
                 // Enter MFA OTP code
                 await page.type("#mfaChallengeCode", mfaOtpCode!);

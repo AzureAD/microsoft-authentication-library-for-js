@@ -180,12 +180,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 await screenshot.takeScreenshot(page, "otpInputDisplayed");
 
                 // Get OTP code from email
-                console.log(
-                    "Retrieving OTP code from email for reset password..."
-                );
                 const otpCode = await resetPasswordClient.readOtpCode();
-                console.log("Reset password OTP code retrieved:", otpCode);
-
                 // Enter OTP and submit - ensure OTP field is fully visible first
                 await page.waitForSelector("#verificationCode", {
                     visible: true,
@@ -565,12 +560,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 await screenshot.takeScreenshot(page, "otpInputDisplayed");
 
                 // Get OTP code from email
-                console.log(
-                    "Retrieving OTP code from email for reset password..."
-                );
                 const otpCode = await resetPasswordClient.readOtpCode();
-                console.log("Reset password OTP code retrieved:", otpCode);
-
                 // Enter OTP and submit - ensure OTP field is fully visible first
                 await page.waitForSelector("#verificationCode", {
                     visible: true,
