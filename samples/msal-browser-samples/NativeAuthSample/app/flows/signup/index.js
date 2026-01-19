@@ -2,13 +2,11 @@
  * Sign-Up Module for MSAL Native Auth Sample
  */
 
-import { SignUpService } from './SignUpService.js';
-import { SignUpUIManager } from './SignUpUIManager.js';
-import { Utilities } from '../utilities.js';
+import { SignUpUIManager } from "./SignUpUIManager.js";
 
 export class SignUpModule {
     constructor() {
-        this.signUpService = null;
+        this.msalInstance = null;
         this.signUpUIManager = null;
         this.isInitialized = false;
     }
@@ -17,58 +15,32 @@ export class SignUpModule {
     async initialize(msalInstance) {
         try {
             if (this.isInitialized) {
-                Utilities.logMessage('SignUpModule already initialized', 'warning');
+                console.warn("SignUpModule already initialized");
                 return;
             }
 
             if (!msalInstance) {
-                throw new Error('MSAL instance is required for sign-up module initialization');
+                throw new Error(
+                    "MSAL instance is required for sign-up module initialization"
+                );
             }
 
-            Utilities.logMessage('Initializing SignUpModule...', 'info');
+            console.log("Initializing SignUpModule...");
 
-            // Initialize the sign-up service
-            this.signUpService = new SignUpService(msalInstance);
-            Utilities.logMessage('SignUpService initialized', 'info');
+            // Store MSAL instance
+            this.msalInstance = msalInstance;
+            console.log("MSAL instance stored");
 
-            // Initialize the UI manager
-            this.signUpUIManager = new SignUpUIManager(this.signUpService);
-            Utilities.logMessage('SignUpUIManager initialized', 'info');
+            // Initialize the UI manager with msalInstance
+            this.signUpUIManager = new SignUpUIManager(msalInstance);
+            console.log("SignUpUIManager initialized");
 
             this.isInitialized = true;
-            Utilities.logMessage('SignUpModule initialization completed successfully', 'success');
-
+            console.log("SignUpModule initialization completed successfully");
         } catch (error) {
-            Utilities.logMessage(`Failed to initialize SignUpModule: ${error}`, 'error');
+            console.error(`Failed to initialize SignUpModule: ${error}`);
             throw error;
         }
-    }
-
-    /**
-     * Update the MSAL instance (useful for configuration changes)
-     * @param {Object} msalInstance - The new MSAL instance
-     */
-    updateMsalInstance(msalInstance) {
-        if (this.signUpService) {
-            this.signUpService.setMsalInstance(msalInstance);
-            Utilities.logMessage('MSAL instance updated in SignUpService', 'info');
-        }
-    }
-
-    /**
-     * Get the sign-up service instance
-     * @returns {SignUpService|null} The sign-up service instance
-     */
-    getSignUpService() {
-        return this.signUpService;
-    }
-
-    /**
-     * Get the sign-up service instance (alias for compatibility)
-     * @returns {SignUpService|null} The sign-up service instance
-     */
-    getService() {
-        return this.signUpService;
     }
 
     /**
@@ -99,8 +71,8 @@ export class SignUpModule {
      * Clear any pending sign-up operations
      */
     clearPendingOperations() {
-        if (this.signUpService) {
-            this.signUpService.clearPendingOperation();
+        if (this.signUpUIManager && this.signUpUIManager.eventCoordinator) {
+            this.signUpUIManager.eventCoordinator.clearPendingOperation();
         }
     }
 
@@ -116,10 +88,10 @@ export class SignUpModule {
      * @returns {boolean} True if there's a pending operation
      */
     hasPendingOperation() {
-        if (!this.signUpService) {
+        if (!this.signUpUIManager || !this.signUpUIManager.eventCoordinator) {
             return false;
         }
-        return this.signUpService.hasPendingOperation();
+        return this.signUpUIManager.eventCoordinator.hasPendingOperation();
     }
 
     /**
@@ -127,14 +99,16 @@ export class SignUpModule {
      * @returns {Object} Current state information
      */
     getCurrentState() {
-        if (!this.signUpService) {
+        if (!this.signUpUIManager || !this.signUpUIManager.eventCoordinator) {
             return { initialized: false };
         }
 
         return {
             initialized: this.isInitialized,
-            pendingOperation: this.signUpService.hasPendingOperation(),
-            currentUsername: this.signUpService.getCurrentUsername()
+            pendingOperation:
+                this.signUpUIManager.eventCoordinator.hasPendingOperation(),
+            currentUsername:
+                this.signUpUIManager.eventCoordinator.getCurrentUsername(),
         };
     }
 
@@ -145,7 +119,7 @@ export class SignUpModule {
         if (this.signUpUIManager) {
             this.signUpUIManager.showSignUpForm();
         } else {
-            Utilities.logMessage('SignUpUIManager not initialized', 'warning');
+            console.warn("SignUpUIManager not initialized");
         }
     }
 
@@ -156,7 +130,7 @@ export class SignUpModule {
         if (this.signUpUIManager) {
             this.signUpUIManager.showSignInForm();
         } else {
-            Utilities.logMessage('SignUpUIManager not initialized', 'warning');
+            console.warn("SignUpUIManager not initialized");
         }
     }
 
@@ -164,8 +138,8 @@ export class SignUpModule {
      * Clean up resources and event listeners
      */
     cleanup() {
-        if (this.signUpService) {
-            this.signUpService.clearPendingOperation();
+        if (this.signUpUIManager && this.signUpUIManager.eventCoordinator) {
+            this.signUpUIManager.eventCoordinator.clearPendingOperation();
         }
 
         if (this.signUpUIManager && this.signUpUIManager.cleanup) {
@@ -173,7 +147,7 @@ export class SignUpModule {
         }
 
         this.isInitialized = false;
-        Utilities.logMessage('SignUpModule cleaned up', 'info');
+        console.log("SignUpModule cleaned up");
     }
 
     /**
@@ -183,9 +157,8 @@ export class SignUpModule {
     getStatus() {
         return {
             initialized: this.isInitialized,
-            hasSignUpService: !!this.signUpService,
             hasSignUpUIManager: !!this.signUpUIManager,
-            currentState: this.getCurrentState()
+            currentState: this.getCurrentState(),
         };
     }
 }

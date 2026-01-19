@@ -37,10 +37,10 @@ Each authentication flow requires specific query parameters to configure the cor
 
 3. **Build project**:
 
-   Build msal-browser package
+   Build msal-browser package to generate msal-browser\lib\custom-auth-path\msal-custom-auth.js
 
    ```bash
-   npm run build:package
+   npm run build:all
    ```
 
    Build msal-node package
@@ -215,17 +215,22 @@ Each authentication flow requires specific query parameters to configure the cor
 
 * User inputs new email and user attributes, verifies code, creates password meeting requirements, completes sign up flow, then automatically sign-in.
 * User inputs new email and user attributes, enters incorrect verification code, resend code, verifies code, creates password meeting requirements, completes sign up flow, then automatically sign-in.
+
+[Didn't implement]
 * User inputs new email, verifies code, creates password meeting requirements, give user attributes, completes sign up flow, then automatically sign-in.
 * User inputs new email and password, verifies code, give user attributes, completes sign up flow, then automatically sign-in.
 * User inputs new email, password and user attributes, verifies code, completes sign up flow, then automatically sign-in.
 
 ##### Negative Cases
 
-* User makes a request with invalid format email address, receives invalid email error.
-* User inputs new email, verifies code, creates invalid password (does not meet requirements), receives sign up error.
+* User inputs invalid format email address, receives invalid email error.
 * User inputs existing email (registered with email + Password), receives user existed error.
-* User inputs new email and invalid attributes, receives validation error.
+* User enters username, attributes to start sign-up flow, and enter the incorrect otp
+* User inputs new email, verifies code, creates invalid password (does not meet requirements), receives sign up error.
 * User signs in an existing email, then try to sign up, receives error to sign out first.
+
+[Didn't implement]
+* User inputs new email and invalid attributes, receives validation error.
 
 ##### Email + OTP Authentication
 
@@ -233,10 +238,13 @@ Each authentication flow requires specific query parameters to configure the cor
 
 * User enters new email and user attributes, verifies code successfully, completes sign up flow, then automatically sign-in.
 * User enters new email and user attributes, uses invalid OTP, requests new code, completes sign up flow, then automatically sign-in.
+
+[Didn't implement]
 * User enters new email, verifies code successfully, gives and user attributes, completes sign up flow, then automatically sign-in.
 
 ##### Negative Cases
 
+[Didn't implement]
 * User makes a request with invalid format email address, receives invalid email error.
 * User inputs new email and invalid attributes, receives validation error.
 
@@ -250,9 +258,11 @@ Each authentication flow requires specific query parameters to configure the cor
 
 ##### Positive Cases
 
+* User inputs registered email and password, signs in successfully
+
+[Didn't implement]
 * User inputs registered email, then provides correct password, signs in successfully, check cache tokens use getCurrentAccount.
 * User inputs registered email, then provides correct password, signs in successfully, use getCurrentAccount with forceRefresh=true to force refresh tokens, ensure the access token is updated.
-* User inputs registered email and password, signs in successfully
 * Ability to provide scope to control auth strength of the token
 
 ##### Negative Cases
@@ -260,6 +270,8 @@ Each authentication flow requires specific query parameters to configure the cor
 * User inputs non-registered email, receives account not found error
 * User inputs registered email, provides incorrect password, receives error
 * User signs in with account A, while data for account A already exists
+
+[Didn't implement]
 * User email is registered with email OTP auth method, which is supported by the developer
 
 #### Email + OTP Authentication
@@ -267,16 +279,17 @@ Each authentication flow requires specific query parameters to configure the cor
 ##### Positive Cases
 
 * User inputs registered email, then receives OTP, verifies successfully
-* User inputs registered email and OTP, signs in successfully
 * User inputs registered email, enters incorrect OTP code, requests new OTP, enters valid code, signs in successfully
 
 ##### Negative Cases
-
+[Didn't implement]
 * User inputs non-registered email, receives account not found error
 
 #### Redirct
 
-* User email is registered with email OTP auth method, which is not supported by the developer (aka redirect flow), sign in with pop up login.
+* User email is registered with email OTP auth method, which is not supported by the developer (aka redirect flow).
+
+[Didn't implement]
 * User email is registered with password method, which is not supported by client (aka redirect flow), sign in with pop up login.
 
 ### 3. Password Reset Tests
@@ -286,12 +299,15 @@ Each authentication flow requires specific query parameters to configure the cor
 ##### Positive Cases
 
 * User requests reset inputs emails, receives code, sets new valid password, completes reset, auto-signs in
+
+[Didn't implement]
 * User requests reset inputs emails, provides incorrect verification code, resend code, validates code, sets new valid password, completes reset, auto-signs in
 
 ##### Negative Cases
 
 * User submits non-existing email, receives account not found error
 * User submits existing email, but email does not linked to any password (registered as email + OTP)
+* User submits existing email, and submit incorrect code
 * User submits existing email, receives code, creates invalid password (doesn’t meet password complexity requirements), receives requirements error
 
 #### Redirect

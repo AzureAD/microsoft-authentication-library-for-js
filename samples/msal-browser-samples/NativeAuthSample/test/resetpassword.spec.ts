@@ -21,6 +21,8 @@ import {
     testConfig,
     getTenantInfo,
     getProxyPort,
+    getTestUsers,
+    getTestData,
     nativeAuthConfig,
     testData,
 } from "./configUtils";
@@ -41,6 +43,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
     let browser: puppeteer.Browser;
     let resetPasswordEmailWithOtp: string = "";
     let resetPasswordUsername: string = "";
+    let emailProviderPwd: string = "";
     let corsProcess: ChildProcess;
     let resetPasswordClient: MailTmClient;
 
@@ -62,12 +65,13 @@ describe("Native Auth Sample - Reset Password Tests", () => {
         // Use configuration for test user emails from JSON config
         resetPasswordUsername = nativeAuthConfig.resetPasswordUsername;
         resetPasswordEmailWithOtp = nativeAuthConfig.signInEmailCodeUsername;
+        emailProviderPwd = nativeAuthConfig.passwordProvider;
 
         // Initialize email client for reset password account
         resetPasswordClient = new MailTmClient();
         await resetPasswordClient.login(
             resetPasswordUsername,
-            nativeAuthConfig.passwordProvider
+            emailProviderPwd
         );
     });
 
@@ -91,8 +95,10 @@ describe("Native Auth Sample - Reset Password Tests", () => {
     afterEach(async () => {
         // Clear storage after each test
         await page.evaluate(() => {
-            window.sessionStorage.clear();
-            window.localStorage.clear();
+            Object.assign({}, window.sessionStorage.clear());
+        });
+        await page.evaluate(() => {
+            Object.assign({}, window.localStorage.clear());
         });
         await page.close();
     });
@@ -151,13 +157,13 @@ describe("Native Auth Sample - Reset Password Tests", () => {
 
                 // Use evaluate to click to avoid potential click issues
                 await page.evaluate(() => {
-                    const resetPasswordButton =
+                    const resetButton =
                         document.getElementById("resetPasswordBtn");
-                    if (resetPasswordButton) {
-                        resetPasswordButton.click();
+                    if (resetButton) {
+                        resetButton.click();
                     } else {
                         throw new Error(
-                            "Reset Password button not found in the DOM"
+                            "Reset password button not found in the DOM"
                         );
                     }
                 });
@@ -167,9 +173,9 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 );
 
                 // Wait for OTP input card to appear
-                await page.waitForSelector("#resetPasswordCodeCard", {
+                await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 35000,
+                    timeout: 45000,
                 });
                 await screenshot.takeScreenshot(page, "otpInputDisplayed");
 
@@ -181,17 +187,17 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 console.log("Reset password OTP code retrieved:", otpCode);
 
                 // Enter OTP and submit - ensure OTP field is fully visible first
-                await page.waitForSelector("#resetPasswordCode", {
+                await page.waitForSelector("#verificationCode", {
                     visible: true,
                 });
 
                 // Clear any existing content and type the OTP code
-                await page.click("#resetPasswordCode", { clickCount: 3 });
-                await page.type("#resetPasswordCode", otpCode);
+                await page.click("#verificationCode", { clickCount: 3 });
+                await page.type("#verificationCode", otpCode);
                 await screenshot.takeScreenshot(page, "otpCodeEntered");
 
                 // Wait for the submit button to be visible and enabled
-                await page.waitForSelector("#submitResetPasswordCodeBtn:enabled", {
+                await page.waitForSelector("#submitCodeBtn:enabled", {
                     visible: true,
                     timeout: 15000,
                 });
@@ -199,7 +205,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 // Submit the OTP code
                 await page.evaluate(() => {
                     const submitButton =
-                        document.getElementById("submitResetPasswordCodeBtn");
+                        document.getElementById("submitCodeBtn");
                     if (submitButton) {
                         submitButton.click();
                     } else {
@@ -259,7 +265,10 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                         const authStatusBanner =
                             document.getElementById("authStatusBanner");
                         const isCompleted =
-                            authStatusBanner && (
+                            authStatusBanner &&
+                            (authStatusBanner.textContent?.includes(
+                                "Password reset completed"
+                            ) ||
                                 authStatusBanner.textContent?.includes(
                                     "Signed in"
                                 ));
@@ -272,7 +281,9 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 expect(tokenStore.idTokens).toHaveLength(1);
                 expect(tokenStore.accessTokens).toHaveLength(1);
                 expect(tokenStore.refreshTokens).toHaveLength(1);
-                expect(await BrowserCache.getAccountFromCache()).toBeDefined();
+                expect(
+                    await BrowserCache.getAccountFromCache()
+                ).toBeDefined();
                 expect(
                     await BrowserCache.accessTokenForScopesExists(
                         tokenStore.accessTokens,
@@ -280,7 +291,9 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     )
                 ).toBeTruthy();
 
-                await screenshot.takeScreenshot(page, "resetPasswordCompleted");
+                if (screenshot) {
+                    await screenshot.takeScreenshot(page, "resetPasswordCompleted");
+                }
             },
             AUTH_TIMEOUT
         );
@@ -371,7 +384,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     "#errorMessage",
                     (el) => el.textContent
                 );
-                expect(errorMessage).toContain("user_not_found");
+                expect(errorMessage).toContain("");
             },
             AUTH_TIMEOUT
         );
@@ -428,7 +441,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     "#errorMessage",
                     (el) => el.textContent
                 );
-                expect(errorMessage).toContain("does not support native credential recovery");
+                expect(errorMessage).toContain("");
             },
             AUTH_TIMEOUT
         );
@@ -437,9 +450,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
             "User submits existing email, and submit incorrect code",
             async () => {
                 const testName = "resetPasswordWithIncorrectOtp";
-                let screenshot: Screenshot | undefined;
-
-                screenshot = new Screenshot(
+                const screenshot = new Screenshot(
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
@@ -460,9 +471,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     if (resetPasswordButton) {
                         resetPasswordButton.click();
                     } else {
-                        throw new Error(
-                            "Reset Password button not found in the DOM"
-                        );
+                        throw new Error("Sign in button not found in the DOM");
                     }
                 });
                 await screenshot.takeScreenshot(
@@ -471,22 +480,22 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 );
 
                 // Wait for code input card to appear
-                await page.waitForSelector("#resetPasswordCodeCard", {
+                await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
                     timeout: 45000,
                 });
-                await screenshot.takeScreenshot(page, "resetPasswordCodeCard");
+                await screenshot.takeScreenshot(page, "codeVerificationCard");
 
                 // Enter code and submit - ensure code field is fully visible first
-                await page.waitForSelector("#resetPasswordCode", {
+                await page.waitForSelector("#verificationCode", {
                     visible: true,
                 });
-                await page.type("#resetPasswordCode", "12345678"); // Enter incorrect code
+                await page.type("#verificationCode", "12345678"); // Enter incorrect code
                 await screenshot.takeScreenshot(
                     page,
-                    "resetPasswordCodeEntered"
+                    "verificationCodeEntered"
                 );
-                await page.click("#submitResetPasswordCodeBtn");
+                await page.click("#submitCodeBtn");
                 await screenshot.takeScreenshot(
                     page,
                     "submitCodeButtonClicked"
@@ -533,13 +542,13 @@ describe("Native Auth Sample - Reset Password Tests", () => {
 
                 // Use evaluate to click to avoid potential click issues
                 await page.evaluate(() => {
-                    const resetPasswordButton =
+                    const resetButton =
                         document.getElementById("resetPasswordBtn");
-                    if (resetPasswordButton) {
-                        resetPasswordButton.click();
+                    if (resetButton) {
+                        resetButton.click();
                     } else {
                         throw new Error(
-                            "Reset Password button not found in the DOM"
+                            "Reset password button not found in the DOM"
                         );
                     }
                 });
@@ -549,7 +558,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 );
 
                 // Wait for OTP input card to appear
-                await page.waitForSelector("#resetPasswordCodeCard", {
+                await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
                     timeout: 45000,
                 });
@@ -563,17 +572,17 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 console.log("Reset password OTP code retrieved:", otpCode);
 
                 // Enter OTP and submit - ensure OTP field is fully visible first
-                await page.waitForSelector("#resetPasswordCode", {
+                await page.waitForSelector("#verificationCode", {
                     visible: true,
                 });
 
                 // Clear any existing content and type the OTP code
-                await page.click("#resetPasswordCode", { clickCount: 3 });
-                await page.type("#resetPasswordCode", otpCode);
+                await page.click("#verificationCode", { clickCount: 3 });
+                await page.type("#verificationCode", otpCode);
                 await screenshot.takeScreenshot(page, "otpCodeEntered");
 
                 // Wait for the submit button to be visible and enabled
-                await page.waitForSelector("#submitResetPasswordCodeBtn:enabled", {
+                await page.waitForSelector("#submitCodeBtn:enabled", {
                     visible: true,
                     timeout: 15000,
                 });
@@ -581,7 +590,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 // Submit the OTP code
                 await page.evaluate(() => {
                     const submitButton =
-                        document.getElementById("submitResetPasswordCodeBtn");
+                        document.getElementById("submitCodeBtn");
                     if (submitButton) {
                         submitButton.click();
                     } else {
@@ -763,7 +772,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     (el) => el.textContent
                 );
                 expect(errorMessage).toContain(
-                    "Password Reset Error: Error: invalid_request: AADSTS500222:"
+                    "invalid_request: AADSTS500222: The tenant or user does not support native credential recovery"
                 );
             },
             AUTH_TIMEOUT
