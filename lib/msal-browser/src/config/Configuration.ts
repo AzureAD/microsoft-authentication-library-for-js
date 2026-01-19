@@ -118,7 +118,7 @@ export type BrowserAuthOptions = {
      * (acquireTokenPopup, handleRedirectPromise) to refresh tokens silently.
      * This is a boolean flag and defaults to false if not specified.
      */
-    enableBackgroundSSO?: boolean;
+    enableSessionRefresh?: boolean;
 };
 
 /** @internal */
@@ -320,7 +320,7 @@ export function buildConfiguration(
         supportsNestedAppAuth: false,
         instanceAware: false,
         encodeExtraQueryParams: false,
-        enableBackgroundSSO: false,
+        enableSessionRefresh: false,
     };
 
     // Default cache options for browser

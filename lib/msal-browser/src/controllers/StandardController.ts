@@ -568,8 +568,12 @@ export class StandardController implements IController {
                         result.account
                     );
 
-                    // Fire-and-forget ssoSilent to refresh tokens in background
-                    this.bkgdSsoSilent(result, "handleRedirectPromise");
+                    // Fire-and-forget session refresh in background
+                    this.bkgdSessionRefresh(
+                        result.account,
+                        result.correlationId,
+                        "handleRedirectPromise"
+                    );
                 } else {
                     /*
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
@@ -934,8 +938,12 @@ export class StandardController implements IController {
                     result.account
                 );
 
-                // Fire-and-forget ssoSilent to refresh tokens in background
-                this.bkgdSsoSilent(result, "acquireTokenPopup");
+                // Fire-and-forget session refresh in background
+                this.bkgdSessionRefresh(
+                    result.account,
+                    result.correlationId,
+                    "acquireTokenPopup"
+                );
 
                 return result;
             })
@@ -993,22 +1001,24 @@ export class StandardController implements IController {
     }
 
     /**
-     * Fire-and-forget ssoSilent call to refresh tokens in the background.
+     * Fire-and-forget session refresh in the background.
+     * This method makes an iframe request to /authorize to refresh session cookies without calling /token.
      * This method does not block the caller and tracks telemetry for success/failure.
-     * This method only executes if enableBackgroundSSO is set to true in the cache configuration.
-     * @param result - The authentication result from the parent operation
+     * This method only executes if enableSessionRefresh is set to true in the auth configuration.
+     * @param account - The account to use for the session refresh
+     * @param correlationId - The correlation ID for telemetry
      * @param parentApiId - The API ID of the parent operation for logging purposes
      */
-    private bkgdSsoSilent(
-        result: AuthenticationResult,
+    private bkgdSessionRefresh(
+        account: AccountInfo,
+        correlationId: string,
         parentApiId: string
     ): void {
         // Check if background SSO is enabled
-        if (!this.config.auth.enableBackgroundSSO) {
+        if (!this.config.auth.enableSessionRefresh) {
             return;
         }
 
-        const correlationId = createNewGuid();
         const bgSsoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.BackgroundSsoSilent,
             correlationId
@@ -1018,39 +1028,40 @@ export class StandardController implements IController {
         });
 
         this.logger.verbose(
-            `Background ssoSilent initiated after ${parentApiId}`,
+            `Background session refresh initiated after ${parentApiId}`,
             correlationId
         );
 
         /*
          * Use setTimeout to ensure this runs in a separate macrotask after the current call stack completes
-         * This ensures the result is returned to the caller before ssoSilent starts and doesn't affect performance
+         * This ensures the result is returned to the caller before the session refresh starts and doesn't affect performance
          */
         setTimeout(() => {
             const ssoSilentRequest: SsoSilentRequest = {
-                account: result.account,
+                account: account,
                 correlationId: correlationId,
             };
 
-            this.ssoSilent(ssoSilentRequest)
-                .then((ssoResult) => {
+            const silentIframeClient =
+                this.createSilentIframeClient(correlationId);
+            silentIframeClient
+                .refreshSession(ssoSilentRequest)
+                .then((success: boolean) => {
                     this.logger.verbose(
-                        `Background ssoSilent completed successfully after ${parentApiId}`,
+                        `Background session refresh completed after ${parentApiId}, success: ${success}`,
                         correlationId
                     );
                     bgSsoSilentMeasurement.end(
                         {
-                            success: true,
-                            accessTokenSize: ssoResult.accessToken.length,
-                            idTokenSize: ssoResult.idToken.length,
+                            success: success,
                         },
                         undefined,
-                        ssoResult.account
+                        account
                     );
                 })
                 .catch((error: Error) => {
                     this.logger.warning(
-                        `Background ssoSilent failed after ${parentApiId}: ${error.message}`,
+                        `Background session refresh failed after ${parentApiId}: ${error.message}`,
                         correlationId
                     );
                     bgSsoSilentMeasurement.end(
@@ -1058,7 +1069,7 @@ export class StandardController implements IController {
                             success: false,
                         },
                         error,
-                        result.account
+                        account
                     );
                 });
         }, 0);

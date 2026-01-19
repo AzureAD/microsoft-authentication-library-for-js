@@ -823,12 +823,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await callbackPromise;
         });
 
-        it("fires background ssoSilent after successful handleRedirectPromise and emits BackgroundSsoSilent telemetry event on success", async () => {
-            // Create a new PCA with enableBackgroundSSO enabled
+        it("fires background session refresh after successful handleRedirectPromise and emits BackgroundSsoSilent telemetry event on success", async () => {
+            // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableBackgroundSSO: true,
+                    enableSessionRefresh: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -875,9 +875,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            const ssoSilentSpy = jest
-                .spyOn(StandardController.prototype, "ssoSilent")
-                .mockResolvedValue(testTokenResponse);
+            const refreshSessionSpy = jest
+                .spyOn(SilentIframeClient.prototype, "refreshSession")
+                .mockResolvedValue(true);
 
             let backgroundSsoSilentEventReceived = false;
             let callbackId: string;
@@ -905,12 +905,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             await controller.handleRedirectPromise();
 
-            // Wait for the background ssoSilent to complete (setTimeout with 0ms)
+            // Wait for the background session refresh to complete (setTimeout with 0ms)
             await new Promise((resolve) => setTimeout(resolve, 50));
             await callbackPromise;
 
-            // Check that ssoSilent was called at least once with the expected account
-            expect(ssoSilentSpy).toHaveBeenCalledWith(
+            // Check that refreshSession was called at least once with the expected account
+            expect(refreshSessionSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     account: testAccount,
                 })
@@ -918,12 +918,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(backgroundSsoSilentEventReceived).toBe(true);
         });
 
-        it("fires background ssoSilent after successful handleRedirectPromise and emits BackgroundSsoSilent telemetry event on failure", async () => {
-            // Create a new PCA with enableBackgroundSSO enabled
+        it("fires background session refresh after successful handleRedirectPromise and emits BackgroundSsoSilent telemetry event on failure", async () => {
+            // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableBackgroundSSO: true,
+                    enableSessionRefresh: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -970,10 +970,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            const ssoSilentError = new Error("ssoSilent failed");
-            const ssoSilentSpy = jest
-                .spyOn(StandardController.prototype, "ssoSilent")
-                .mockRejectedValue(ssoSilentError);
+            const refreshSessionError = new Error("refreshSession failed");
+            const refreshSessionSpy = jest
+                .spyOn(SilentIframeClient.prototype, "refreshSession")
+                .mockRejectedValue(refreshSessionError);
 
             let backgroundSsoSilentEventReceived = false;
             let callbackId: string;
@@ -1001,35 +1001,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             await controller.handleRedirectPromise();
 
-            // Wait for the background ssoSilent to complete (setTimeout with 0ms)
+            // Wait for the background session refresh to complete (setTimeout with 0ms)
             await new Promise((resolve) => setTimeout(resolve, 50));
             await callbackPromise;
 
-            expect(ssoSilentSpy).toHaveBeenCalledTimes(1);
+            expect(refreshSessionSpy).toHaveBeenCalledTimes(1);
             expect(backgroundSsoSilentEventReceived).toBe(true);
         });
 
-        it("does not fire background ssoSilent when handleRedirectPromise returns null", async () => {
+        it("does not fire background session refresh when handleRedirectPromise returns null", async () => {
             jest.spyOn(
                 BrowserCacheManager.prototype,
                 "isInteractionInProgress"
             ).mockReturnValue(false);
 
-            const ssoSilentSpy = jest.spyOn(
-                StandardController.prototype,
-                "ssoSilent"
+            const refreshSessionSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                "refreshSession"
             );
 
             const response = await pca.handleRedirectPromise();
 
-            // Wait to ensure ssoSilent would have been called if it was going to be
+            // Wait to ensure refreshSession would have been called if it was going to be
             await new Promise((resolve) => setTimeout(resolve, 50));
 
             expect(response).toBeNull();
-            expect(ssoSilentSpy).not.toHaveBeenCalled();
+            expect(refreshSessionSpy).not.toHaveBeenCalled();
         });
 
-        it("does not fire background ssoSilent when enableBackgroundSSO is false", async () => {
+        it("does not fire background session refresh when enableSessionRefresh is false", async () => {
             const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1061,26 +1061,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            const ssoSilentSpy = jest.spyOn(
-                StandardController.prototype,
-                "ssoSilent"
+            const refreshSessionSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                "refreshSession"
             );
 
             await pca.handleRedirectPromise();
 
-            // Wait to ensure ssoSilent would have been called if it was going to be
+            // Wait to ensure refreshSession would have been called if it was going to be
             await new Promise((resolve) => setTimeout(resolve, 50));
 
-            // ssoSilent should not be called because enableBackgroundSSO is false by default
-            expect(ssoSilentSpy).not.toHaveBeenCalled();
+            // refreshSession should not be called because enableSessionRefresh is false by default
+            expect(refreshSessionSpy).not.toHaveBeenCalled();
         });
 
-        it("returns to caller before background ssoSilent executes", async () => {
-            // Create a new PCA with enableBackgroundSSO enabled
+        it("returns to caller before background session refresh executes", async () => {
+            // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableBackgroundSSO: true,
+                    enableSessionRefresh: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -1127,27 +1127,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            // Track when ssoSilent starts executing relative to method return
-            let ssoSilentStartedBeforeReturn = false;
+            // Track when refreshSession starts executing relative to method return
+            let refreshSessionStartedBeforeReturn = false;
             let methodHasReturned = false;
 
             jest.spyOn(
-                StandardController.prototype,
-                "ssoSilent"
+                SilentIframeClient.prototype,
+                "refreshSession"
             ).mockImplementation(() => {
-                // Check if method has returned yet when ssoSilent starts
+                // Check if method has returned yet when refreshSession starts
                 if (!methodHasReturned) {
-                    ssoSilentStartedBeforeReturn = true;
+                    refreshSessionStartedBeforeReturn = true;
                 }
-                return Promise.resolve(testTokenResponse);
+                return Promise.resolve(true);
             });
 
             const response = await controller.handleRedirectPromise();
             methodHasReturned = true;
 
-            // Verify handleRedirectPromise returned before ssoSilent started
-            // ssoSilent runs in setTimeout(..., 0), so it should not have started yet
-            expect(ssoSilentStartedBeforeReturn).toBe(false);
+            // Verify handleRedirectPromise returned before refreshSession started
+            // refreshSession runs in setTimeout(..., 0), so it should not have started yet
+            expect(refreshSessionStartedBeforeReturn).toBe(false);
             expect(response).toEqual(testTokenResponse);
 
             // Wait for the macrotask (setTimeout) to execute
@@ -3890,12 +3890,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(preGenPkce2).toBeUndefined();
         });
 
-        it("fires background ssoSilent after successful acquireTokenPopup and emits BackgroundSsoSilent telemetry event on success", async () => {
-            // Create a new PCA with enableBackgroundSSO enabled
+        it("fires background session refresh after successful acquireTokenPopup and emits BackgroundSsoSilent telemetry event on success", async () => {
+            // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableBackgroundSSO: true,
+                    enableSessionRefresh: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -3929,9 +3929,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            const ssoSilentSpy = jest
-                .spyOn(StandardController.prototype, "ssoSilent")
-                .mockResolvedValue(testTokenResponse);
+            const refreshSessionSpy = jest
+                .spyOn(SilentIframeClient.prototype, "refreshSession")
+                .mockResolvedValue(true);
 
             let backgroundSsoSilentEventReceived = false;
             let callbackId: string;
@@ -3961,11 +3961,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
             });
 
-            // Wait for the background ssoSilent to complete (setTimeout with 0ms)
+            // Wait for the background session refresh to complete (setTimeout with 0ms)
             await new Promise((resolve) => setTimeout(resolve, 50));
             await callbackPromise;
 
-            expect(ssoSilentSpy).toHaveBeenCalledWith(
+            expect(refreshSessionSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     account: testAccount,
                 })
@@ -3973,12 +3973,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(backgroundSsoSilentEventReceived).toBe(true);
         });
 
-        it("fires background ssoSilent after successful acquireTokenPopup and emits BackgroundSsoSilent telemetry event on failure", async () => {
-            // Create a new PCA with enableBackgroundSSO enabled
+        it("fires background session refresh after successful acquireTokenPopup and emits BackgroundSsoSilent telemetry event on failure", async () => {
+            // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableBackgroundSSO: true,
+                    enableSessionRefresh: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -4012,10 +4012,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            const ssoSilentError = new Error("ssoSilent failed");
-            const ssoSilentSpy = jest
-                .spyOn(StandardController.prototype, "ssoSilent")
-                .mockRejectedValue(ssoSilentError);
+            const refreshSessionError = new Error("refreshSession failed");
+            const refreshSessionSpy = jest
+                .spyOn(SilentIframeClient.prototype, "refreshSession")
+                .mockRejectedValue(refreshSessionError);
 
             let backgroundSsoSilentEventReceived = false;
             let callbackId: string;
@@ -4045,20 +4045,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
             });
 
-            // Wait for the background ssoSilent to complete (setTimeout with 0ms)
+            // Wait for the background session refresh to complete (setTimeout with 0ms)
             await new Promise((resolve) => setTimeout(resolve, 50));
             await callbackPromise;
 
-            expect(ssoSilentSpy).toHaveBeenCalledTimes(1);
+            expect(refreshSessionSpy).toHaveBeenCalledTimes(1);
             expect(backgroundSsoSilentEventReceived).toBe(true);
         });
 
-        it("does not block acquireTokenPopup when background ssoSilent is slow", async () => {
-            // Create a new PCA with enableBackgroundSSO enabled
+        it("does not block acquireTokenPopup when background session refresh is slow", async () => {
+            // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableBackgroundSSO: true,
+                    enableSessionRefresh: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -4092,17 +4092,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            // Mock ssoSilent to be slow (simulate network delay)
-            let ssoSilentResolved = false;
+            // Mock refreshSession to be slow (simulate network delay)
+            let refreshSessionResolved = false;
             jest.spyOn(
-                StandardController.prototype,
-                "ssoSilent"
+                SilentIframeClient.prototype,
+                "refreshSession"
             ).mockImplementation(
                 () =>
                     new Promise((resolve) => {
                         setTimeout(() => {
-                            ssoSilentResolved = true;
-                            resolve(testTokenResponse);
+                            refreshSessionResolved = true;
+                            resolve(true);
                         }, 1000); // 1 second delay
                     })
             );
@@ -4113,18 +4113,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             const endTime = Date.now();
 
-            // acquireTokenPopup should return immediately without waiting for ssoSilent
+            // acquireTokenPopup should return immediately without waiting for refreshSession
             expect(response).toEqual(testTokenResponse);
             expect(endTime - startTime).toBeLessThan(500); // Should complete in less than 500ms
-            expect(ssoSilentResolved).toBe(false); // ssoSilent should not have resolved yet
+            expect(refreshSessionResolved).toBe(false); // refreshSession should not have resolved yet
         });
 
-        it("returns to caller before background ssoSilent executes", async () => {
-            // Create a new PCA with enableBackgroundSSO enabled
+        it("returns to caller before background session refresh executes", async () => {
+            // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableBackgroundSSO: true,
+                    enableSessionRefresh: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -4158,19 +4158,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            // Track when ssoSilent starts executing relative to method return
-            let ssoSilentStartedBeforeReturn = false;
+            // Track when refreshSession starts executing relative to method return
+            let refreshSessionStartedBeforeReturn = false;
             let methodHasReturned = false;
 
             jest.spyOn(
-                StandardController.prototype,
-                "ssoSilent"
+                SilentIframeClient.prototype,
+                "refreshSession"
             ).mockImplementation(() => {
-                // Check if method has returned yet when ssoSilent starts
+                // Check if method has returned yet when refreshSession starts
                 if (!methodHasReturned) {
-                    ssoSilentStartedBeforeReturn = true;
+                    refreshSessionStartedBeforeReturn = true;
                 }
-                return Promise.resolve(testTokenResponse);
+                return Promise.resolve(true);
             });
 
             const response = await controller.acquireTokenPopup({
@@ -4178,21 +4178,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             methodHasReturned = true;
 
-            // Verify acquireTokenPopup returned before ssoSilent started
-            // ssoSilent runs in setTimeout(..., 0), so it should not have started yet
-            expect(ssoSilentStartedBeforeReturn).toBe(false);
+            // Verify acquireTokenPopup returned before refreshSession started
+            // refreshSession runs in setTimeout(..., 0), so it should not have started yet
+            expect(refreshSessionStartedBeforeReturn).toBe(false);
             expect(response).toEqual(testTokenResponse);
 
             // Wait for the macrotask (setTimeout) to execute
             await new Promise((resolve) => setTimeout(resolve, 50));
         });
 
-        it("does not fire background ssoSilent for acquireTokenPopup when enableBackgroundSSO is false", async () => {
-            // Create a new PCA explicitly WITHOUT enableBackgroundSSO to verify the feature flag
+        it("does not fire background session refresh for acquireTokenPopup when enableSessionRefresh is false", async () => {
+            // Create a new PCA explicitly WITHOUT enableSessionRefresh to verify the feature flag
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableBackgroundSSO: false,
+                    enableSessionRefresh: false,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -4242,12 +4242,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
             });
 
-            // Wait to ensure any background ssoSilent would have had time to emit telemetry
+            // Wait to ensure any background session refresh would have had time to emit telemetry
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             testPca.removePerformanceCallback(callbackId);
 
-            // No BackgroundSsoSilent telemetry event should be emitted because enableBackgroundSSO is false
+            // No BackgroundSsoSilent telemetry event should be emitted because enableSessionRefresh is false
             expect(backgroundSsoSilentEventEmitted).toBe(false);
         });
     });
