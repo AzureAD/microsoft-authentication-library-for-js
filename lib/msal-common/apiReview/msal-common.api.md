@@ -3644,7 +3644,7 @@ export const PerformanceEvents: {
     readonly LoadIdToken: "loadIdToken";
     readonly LoadAccessToken: "loadAccessToken";
     readonly LoadRefreshToken: "loadRefreshToken";
-    readonly BackgroundSsoSilent: "backgroundSsoSilent";
+    readonly BackgroundSessionRefresh: "backgroundSessionRefresh";
 };
 
 // @public (undocumented)
