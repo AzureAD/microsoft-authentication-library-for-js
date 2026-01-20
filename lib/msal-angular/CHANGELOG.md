@@ -15,8 +15,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Remove deprecated functions and parameters (shylasummers@microsoft.com)
 - Upgrade MSAL Angular to Angular 19 (shylasummers@microsoft.com)
 - Update handleRedirectPromise signature to consolidate hash into options type (hemoral@microsoft.com)
-- Bump @azure/msal-browser to v5.0.0-alpha.0
-- Bump eslint-config-msal to v0.0.0
 
 ### Minor changes
 
@@ -28,8 +26,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Bump @azure/msal-browser to v5.0.2
 - Bump eslint-config-msal to v0.0.0
 - Remove beta tag (joarroyo@microsoft.com)
-- Bump @azure/msal-browser to v5.0.1
-- Bump @azure/msal-browser to v5.0.0-beta.0
 - Remove legacy APIs (shylasummers@microsoft.com)
 
 ### Changes
@@ -37,8 +33,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
 - Bump to pre-release alpha (hemoral@microsoft.com)
 - Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122) (thomas.norling@microsoft.com)
-- Bump @azure/msal-browser to v5.0.0-beta.0
-- Bump eslint-config-msal to v0.0.0
 
 ## 4.0.25
 

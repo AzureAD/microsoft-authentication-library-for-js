@@ -12,10 +12,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 
 - Remove onRedirectNavigate from endSessionRequest #8066 (shylasummers@microsoft.com)
 - Remove getAccountBy APIs at controller level #7807 (hemoral@microsoft.com)
-- Bump @azure/msal-common to v16.0.0-beta.0
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-- Bump rollup-msal to v0.0.0
 - Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
 - Changes `asyncPopups` to `navigatePopups` in Configuration #7812 (joarroyo@microsoft.com)
 - Move navigateToLoginRequestUrl to request config (hemoral@microsoft.com)
@@ -25,10 +21,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Configuration changes to CacheOptions #7697 (joarroyo@microsoft.com)
 - Configuration changes to BrowserAuthOptions #7695 (joarroyo@microsoft.com)
 - Remove deprecated functions and parameters (shylasummers@microsoft.com)
-- Bump @azure/msal-common to v16.0.0-alpha.0
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-- Bump rollup-msal to v0.0.0
 
 ### Minor changes
 
@@ -65,7 +57,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Add telemetry support for loading external tokens and related events [#8221](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8221) (kshabelko@microsoft.com)
 - Use cross-env for environment variable management in build scripts #8191 (kshabelko@microsoft.com)
 - Remove beta tag (joarroyo@microsoft.com)
-- Bump @azure/msal-common to v16.0.1
 - Bump eslint-config-msal to v0.0.0
 - Bump msal-test-utils to v0.0.1
 - Bump rollup-msal to v0.0.0

@@ -18,9 +18,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Remove all requested claims references (hemoral@microsoft.com)
 - Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
 - Rename fromNativeBroker to fromPlatformBroker #7940 (shylasummers@microsoft.com)
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-- Bump rollup-msal to v0.0.0
 
 ### Minor changes
 
@@ -30,9 +27,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Refactor BaseClient into Token Protocol #8119 (thomas.norling@microsoft.com)
 - Add support for authorize call using method POST#7997 (hemoral@microsoft.com)
 - Instrument data boundary claim #8074 (kshabelko@microsoft.com)
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-- Bump rollup-msal to v0.0.0
 - Cache upgrade & rollback support (thomas.norling@microsoft.com)
 - Decompose nested telemetry events #7818 (kshabelko@microsoft.com)
 - Decompose nested constants #7782 (kshabelko@microsoft.com)

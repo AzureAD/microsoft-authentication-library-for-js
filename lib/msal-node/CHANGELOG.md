@@ -14,7 +14,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Remove internal classes from public exports #8119 (thomas.norling@microsoft.com)
 - Remove extraQueryParameters and extraParameters fields from Request types [#8136](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8136) (avdunn@microsoft.com)
 - Update tests to account for changes in extra param configuration (hemoral@microsoft.com)
-- Bump @azure/msal-common to v16.0.0-beta.0
 - Move requests from MSAL Common to MSAL Node #7790 (joarroyo@microsoft.com)
 - Drop support for Node 18 and below, add support for Node 24 (thomas.norling@microsoft.com)
 - Remove all requested claims references (hemoral@microsoft.com)
@@ -23,9 +22,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Configuration changes to NodeAuthOptions #7695 (joarroyo@microsoft.com)
 - Remove deprecated functions and parameters (shylasummers@microsoft.com)
 - Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
-- Bump @azure/msal-common to v16.0.0-alpha.0
-- Bump eslint-config-msal to v0.0.0
-- Bump rollup-msal to v0.0.0
 
 ### Minor changes
 
@@ -44,7 +40,6 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Bump eslint-config-msal to v0.0.0
 - Bump rollup-msal to v0.0.0
 - Remove beta tag (joarroyo@microsoft.com)
-- Bump @azure/msal-common to v16.0.1
 - Enable passing of redirect uri to broker plugin #8153 (akaliugonna@microsoft.com)
 - Fixed Minor Type Error in BaseManagedIdentitySource.ts (#8114) (rginsburg@microsoft.com)
 - broker redirect uri changes (akaliugonna@microsoft.com)
