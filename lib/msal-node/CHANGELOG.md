@@ -8,27 +8,6 @@
 
 Sat, 17 Jan 2026 03:11:36 GMT
 
-### Patches
-
-- Bump @azure/msal-common to v16.0.2
-- Bump eslint-config-msal to v0.0.0
-- Bump rollup-msal to v0.0.0
-
-## 5.0.1
-
-Fri, 16 Jan 2026 20:34:40 GMT
-
-### Patches
-
-- Remove beta tag (joarroyo@microsoft.com)
-- Bump @azure/msal-common to v16.0.1
-- Bump eslint-config-msal to v0.0.0
-- Bump rollup-msal to v0.0.0
-
-## 5.0.0-beta.0
-
-Fri, 05 Dec 2025 22:01:00 GMT
-
 ### Major changes
 
 - Re-wrote HttpClient to use NodeJS's native fetch API (#8137) (rginsburg@microsoft.com)
@@ -36,59 +15,219 @@ Fri, 05 Dec 2025 22:01:00 GMT
 - Remove extraQueryParameters and extraParameters fields from Request types [#8136](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8136) (avdunn@microsoft.com)
 - Update tests to account for changes in extra param configuration (hemoral@microsoft.com)
 - Bump @azure/msal-common to v16.0.0-beta.0
+- Move requests from MSAL Common to MSAL Node #7790 (joarroyo@microsoft.com)
+- Drop support for Node 18 and below, add support for Node 24 (thomas.norling@microsoft.com)
+- Remove all requested claims references (hemoral@microsoft.com)
+- Remove encodeExtraQueryParams from config #7701 (shylasummers@microsoft.com)
+- Remove support for old versions of Node and React #8014 (shylasummers@microsoft.com)
+- Configuration changes to NodeAuthOptions #7695 (joarroyo@microsoft.com)
+- Remove deprecated functions and parameters (shylasummers@microsoft.com)
+- Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v16.0.0-alpha.0
 - Bump eslint-config-msal to v0.0.0
 - Bump rollup-msal to v0.0.0
 
 ### Minor changes
 
 - Instrument data boundary claim #8074 (kshabelko@microsoft.com)
+- Add correlationIds to cache APIs #7865 (thomas.norling@microsoft.com)
+- Decompose nested constants #7782 (kshabelko@microsoft.com)
+- Update AccountInfo construction to include tenant-specific claims #7978 (hemoral@microsoft.com)
+- Move auth error messages out of the bundle #7744 (kshabelko@microsoft.com)
+- Create eslint rule to check all error codes are documented #7860 (kshabelko@microsoft.com)
+- Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
+- Update internal cache key generation (thomas.norling@microsoft.com)
 
 ### Patches
 
+- Bump @azure/msal-common to v16.0.2
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+- Remove beta tag (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.0.1
 - Enable passing of redirect uri to broker plugin #8153 (akaliugonna@microsoft.com)
 - Fixed Minor Type Error in BaseManagedIdentitySource.ts (#8114) (rginsburg@microsoft.com)
 - broker redirect uri changes (akaliugonna@microsoft.com)
 - Improved Managed Identity JSDocs (#8115) (rginsburg@microsoft.com)
+- Refactor AccountEntity into type #7674 (shylasummers@microsoft.com)
+- Added support for DEFAULT_IDENTITY_CLIENT_ID environment variable in Machine Learning Managed Identity #7616 (rginsburg@microsoft.com)
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- Rename fromNativeBroker to fromPlatformBroker #7940 (shylasummers@microsoft.com)
 
 ### Changes
 
 - Mark package for prerelease (beta) (msaljsbuilds@microsoft.com)
 - Bump to pre-release alpha (hemoral@microsoft.com)
 
-## 5.0.0-alpha.0
+## 3.8.6
 
-Thu, 02 Oct 2025 21:58:37 GMT
-
-### Major changes
-
--   Move requests from MSAL Common to MSAL Node #7790 (joarroyo@microsoft.com)
--   Drop support for Node 18 and below, add support for Node 24 (thomas.norling@microsoft.com)
--   Remove all requested claims references (hemoral@microsoft.com)
--   Remove encodeExtraQueryParams from config #7701 (shylasummers@microsoft.com)
--   Remove support for old versions of Node and React #8014 (shylasummers@microsoft.com)
--   Configuration changes to NodeAuthOptions #7695 (joarroyo@microsoft.com)
--   Remove deprecated functions and parameters (shylasummers@microsoft.com)
--   Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
--   Bump @azure/msal-common to v16.0.0-alpha.0
--   Bump eslint-config-msal to v0.0.0
--   Bump rollup-msal to v0.0.0
-
-### Minor changes
-
--   Add correlationIds to cache APIs #7865 (thomas.norling@microsoft.com)
--   Decompose nested constants #7782 (kshabelko@microsoft.com)
--   Update AccountInfo construction to include tenant-specific claims #7978 (hemoral@microsoft.com)
--   Move auth error messages out of the bundle #7744 (kshabelko@microsoft.com)
--   Create eslint rule to check all error codes are documented #7860 (kshabelko@microsoft.com)
--   Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
--   Update internal cache key generation (thomas.norling@microsoft.com)
+Sat, 17 Jan 2026 01:12:52 GMT
 
 ### Patches
 
--   Refactor AccountEntity into type #7674 (shylasummers@microsoft.com)
--   Added support for DEFAULT_IDENTITY_CLIENT_ID environment variable in Machine Learning Managed Identity #7616 (rginsburg@microsoft.com)
--   remove access tokens synchronously (thomas.norling@microsoft.com)
--   Rename fromNativeBroker to fromPlatformBroker #7940 (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v15.14.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.8.5
+
+Tue, 13 Jan 2026 14:23:32 GMT
+
+### Patches
+
+- Track ApiId when setting/getting accounts (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.14.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.8.4
+
+Thu, 04 Dec 2025 05:46:37 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.13.3
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.8.3
+
+Wed, 19 Nov 2025 23:13:11 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.13.2
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.8.2
+
+Tue, 11 Nov 2025 23:19:44 GMT
+
+### Patches
+
+- Added logging to HttpClient (#8101) (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.8.1
+
+Wed, 29 Oct 2025 00:04:33 GMT
+
+### Patches
+
+- Update AccountEntity.getAccountInfo (thomas.norling@microsoft.com)
+-  Fixed Minor Type Error in BaseManagedIdentitySource.ts (#8107) (rginsburg@microsoft.com)
+-  Improved Managed Identity JSDocs (#8106) (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.13.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.8.0
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Minor changes
+
+- Instrument data boundary claim #8054 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.4
+
+Wed, 17 Sep 2025 09:50:42 GMT
+
+### Patches
+
+- broker redirect uri changes (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.3
+
+Wed, 27 Aug 2025 00:59:59 GMT
+
+### Patches
+
+- enable passing of redirect uri (akaliugonna@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.2
+
+Tue, 19 Aug 2025 21:26:21 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.12.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.1
+
+Tue, 12 Aug 2025 22:53:33 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.11.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.7.0
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Minor changes
+
+- Update internal cache key generation (thomas.norling@microsoft.com)
+- Update AccountInfo construction to include tenant-specific claims #7949 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.10.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.4
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.3
+
+Tue, 08 Jul 2025 14:21:12 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.8.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.2
+
+Tue, 01 Jul 2025 14:23:25 GMT
+
+### Patches
+
+- Add correlationIds to cache APIs #7819 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.8.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.6.1
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- Added support for DEFAULT_IDENTITY_CLIENT_ID environment variable in Machine Learning Managed Identity #7616 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.6.0
 
