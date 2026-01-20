@@ -94,7 +94,9 @@
     "apiExtractor": "api-extractor run"
   },
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "devDependencies": {
     "@babel/core": "^7.7.2",
