@@ -1019,11 +1019,12 @@ export class StandardController implements IController {
             return;
         }
 
-        const bgSsoSilentMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.BackgroundSsoSilent,
-            correlationId
-        );
-        bgSsoSilentMeasurement.add({
+        const bgSessionRefreshMeasurement =
+            this.performanceClient.startMeasurement(
+                PerformanceEvents.BackgroundSessionRefresh,
+                correlationId
+            );
+        bgSessionRefreshMeasurement.add({
             parentApiId: parentApiId,
         });
 
@@ -1037,7 +1038,7 @@ export class StandardController implements IController {
          * This ensures the result is returned to the caller before the session refresh starts and doesn't affect performance
          */
         setTimeout(() => {
-            const ssoSilentRequest: SsoSilentRequest = {
+            const bgSilentRefreshRequest: SsoSilentRequest = {
                 account: account,
                 correlationId: correlationId,
             };
@@ -1045,13 +1046,13 @@ export class StandardController implements IController {
             const silentIframeClient =
                 this.createSilentIframeClient(correlationId);
             silentIframeClient
-                .refreshSession(ssoSilentRequest)
+                .refreshSession(bgSilentRefreshRequest)
                 .then((success: boolean) => {
                     this.logger.verbose(
                         `Background session refresh completed after ${parentApiId}, success: ${success}`,
                         correlationId
                     );
-                    bgSsoSilentMeasurement.end(
+                    bgSessionRefreshMeasurement.end(
                         {
                             success: success,
                         },
@@ -1064,7 +1065,7 @@ export class StandardController implements IController {
                         `Background session refresh failed after ${parentApiId}: ${error.message}`,
                         correlationId
                     );
-                    bgSsoSilentMeasurement.end(
+                    bgSessionRefreshMeasurement.end(
                         {
                             success: false,
                         },

@@ -823,7 +823,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await callbackPromise;
         });
 
-        it("fires background session refresh after successful handleRedirectPromise and emits BackgroundSsoSilent telemetry event on success", async () => {
+        it("fires background session refresh after successful handleRedirectPromise and emits BackgroundSessionRefresh telemetry event on success", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -879,20 +879,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(SilentIframeClient.prototype, "refreshSession")
                 .mockResolvedValue(true);
 
-            let backgroundSsoSilentEventReceived = false;
+            let backgroundSessionRefreshEventReceived = false;
             let callbackId: string;
             const callbackPromise = new Promise<void>((resolve, reject) => {
                 callbackId = testPca.addPerformanceCallback((events) => {
-                    const bgSsoSilentEvent = events.find(
-                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    const bgSsoSessionRefreshEvent = events.find(
+                        (e) =>
+                            e.name ===
+                            PerformanceEvents.BackgroundSessionRefresh
                     );
-                    if (bgSsoSilentEvent) {
+                    if (bgSsoSessionRefreshEvent) {
                         try {
-                            expect(bgSsoSilentEvent.success).toBe(true);
-                            expect(bgSsoSilentEvent["parentApiId"]).toBe(
-                                "handleRedirectPromise"
-                            );
-                            backgroundSsoSilentEventReceived = true;
+                            expect(bgSsoSessionRefreshEvent.success).toBe(true);
+                            expect(
+                                bgSsoSessionRefreshEvent["parentApiId"]
+                            ).toBe("handleRedirectPromise");
+                            backgroundSessionRefreshEventReceived = true;
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -915,10 +917,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                 })
             );
-            expect(backgroundSsoSilentEventReceived).toBe(true);
+            expect(backgroundSessionRefreshEventReceived).toBe(true);
         });
 
-        it("fires background session refresh after successful handleRedirectPromise and emits BackgroundSsoSilent telemetry event on failure", async () => {
+        it("fires background session refresh after successful handleRedirectPromise and emits BackgroundSessionRefresh telemetry event on failure", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -975,20 +977,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(SilentIframeClient.prototype, "refreshSession")
                 .mockRejectedValue(refreshSessionError);
 
-            let backgroundSsoSilentEventReceived = false;
+            let backgroundSessionRefreshEventReceived = false;
             let callbackId: string;
             const callbackPromise = new Promise<void>((resolve, reject) => {
                 callbackId = testPca.addPerformanceCallback((events) => {
-                    const bgSsoSilentEvent = events.find(
-                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    const bgSsoSessionRefreshEvent = events.find(
+                        (e) =>
+                            e.name ===
+                            PerformanceEvents.BackgroundSessionRefresh
                     );
-                    if (bgSsoSilentEvent) {
+                    if (bgSsoSessionRefreshEvent) {
                         try {
-                            expect(bgSsoSilentEvent.success).toBe(false);
-                            expect(bgSsoSilentEvent["parentApiId"]).toBe(
-                                "handleRedirectPromise"
+                            expect(bgSsoSessionRefreshEvent.success).toBe(
+                                false
                             );
-                            backgroundSsoSilentEventReceived = true;
+                            expect(
+                                bgSsoSessionRefreshEvent["parentApiId"]
+                            ).toBe("handleRedirectPromise");
+                            backgroundSessionRefreshEventReceived = true;
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -1006,7 +1012,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await callbackPromise;
 
             expect(refreshSessionSpy).toHaveBeenCalledTimes(1);
-            expect(backgroundSsoSilentEventReceived).toBe(true);
+            expect(backgroundSessionRefreshEventReceived).toBe(true);
         });
 
         it("does not fire background session refresh when handleRedirectPromise returns null", async () => {
@@ -3890,7 +3896,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(preGenPkce2).toBeUndefined();
         });
 
-        it("fires background session refresh after successful acquireTokenPopup and emits BackgroundSsoSilent telemetry event on success", async () => {
+        it("fires background session refresh after successful acquireTokenPopup and emits BackgroundSessionRefresh telemetry event on success", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -3933,20 +3939,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(SilentIframeClient.prototype, "refreshSession")
                 .mockResolvedValue(true);
 
-            let backgroundSsoSilentEventReceived = false;
+            let backgroundSessionRefreshEventReceived = false;
             let callbackId: string;
             const callbackPromise = new Promise<void>((resolve, reject) => {
                 callbackId = testPca.addPerformanceCallback((events) => {
-                    const bgSsoSilentEvent = events.find(
-                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    const bgSsoSessionRefreshEvent = events.find(
+                        (e) =>
+                            e.name ===
+                            PerformanceEvents.BackgroundSessionRefresh
                     );
-                    if (bgSsoSilentEvent) {
+                    if (bgSsoSessionRefreshEvent) {
                         try {
-                            expect(bgSsoSilentEvent.success).toBe(true);
-                            expect(bgSsoSilentEvent["parentApiId"]).toBe(
-                                "acquireTokenPopup"
-                            );
-                            backgroundSsoSilentEventReceived = true;
+                            expect(bgSsoSessionRefreshEvent.success).toBe(true);
+                            expect(
+                                bgSsoSessionRefreshEvent["parentApiId"]
+                            ).toBe("acquireTokenPopup");
+                            backgroundSessionRefreshEventReceived = true;
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -3970,10 +3978,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                 })
             );
-            expect(backgroundSsoSilentEventReceived).toBe(true);
+            expect(backgroundSessionRefreshEventReceived).toBe(true);
         });
 
-        it("fires background session refresh after successful acquireTokenPopup and emits BackgroundSsoSilent telemetry event on failure", async () => {
+        it("fires background session refresh after successful acquireTokenPopup and emits BackgroundSessionRefresh telemetry event on failure", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -4017,20 +4025,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .spyOn(SilentIframeClient.prototype, "refreshSession")
                 .mockRejectedValue(refreshSessionError);
 
-            let backgroundSsoSilentEventReceived = false;
+            let backgroundSessionRefreshEventReceived = false;
             let callbackId: string;
             const callbackPromise = new Promise<void>((resolve, reject) => {
                 callbackId = testPca.addPerformanceCallback((events) => {
-                    const bgSsoSilentEvent = events.find(
-                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                    const bgSsoSessionRefreshEvent = events.find(
+                        (e) =>
+                            e.name ===
+                            PerformanceEvents.BackgroundSessionRefresh
                     );
-                    if (bgSsoSilentEvent) {
+                    if (bgSsoSessionRefreshEvent) {
                         try {
-                            expect(bgSsoSilentEvent.success).toBe(false);
-                            expect(bgSsoSilentEvent["parentApiId"]).toBe(
-                                "acquireTokenPopup"
+                            expect(bgSsoSessionRefreshEvent.success).toBe(
+                                false
                             );
-                            backgroundSsoSilentEventReceived = true;
+                            expect(
+                                bgSsoSessionRefreshEvent["parentApiId"]
+                            ).toBe("acquireTokenPopup");
+                            backgroundSessionRefreshEventReceived = true;
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -4050,7 +4062,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await callbackPromise;
 
             expect(refreshSessionSpy).toHaveBeenCalledTimes(1);
-            expect(backgroundSsoSilentEventReceived).toBe(true);
+            expect(backgroundSessionRefreshEventReceived).toBe(true);
         });
 
         it("does not block acquireTokenPopup when background session refresh is slow", async () => {
@@ -4226,12 +4238,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            // Track if any BackgroundSsoSilent telemetry event is emitted
+            // Track if any BackgroundSessionRefresh telemetry event is emitted
             let backgroundSsoSilentEventEmitted = false;
             const callbackId = testPca.addPerformanceCallback((events) => {
                 if (
                     events.some(
-                        (e) => e.name === PerformanceEvents.BackgroundSsoSilent
+                        (e) =>
+                            e.name ===
+                            PerformanceEvents.BackgroundSessionRefresh
                     )
                 ) {
                     backgroundSsoSilentEventEmitted = true;
@@ -4247,7 +4261,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             testPca.removePerformanceCallback(callbackId);
 
-            // No BackgroundSsoSilent telemetry event should be emitted because enableSessionRefresh is false
+            // No BackgroundSessionRefresh telemetry event should be emitted because enableSessionRefresh is false
             expect(backgroundSsoSilentEventEmitted).toBe(false);
         });
     });
