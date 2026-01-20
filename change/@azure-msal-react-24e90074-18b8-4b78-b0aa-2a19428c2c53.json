@@ -1,7 +1,7 @@
 {
-  "type": "patch",
+  "type": "none",
   "comment": "Disallow major changes #15525",
   "packageName": "@azure/msal-react",
   "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "none"
 }
