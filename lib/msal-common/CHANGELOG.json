@@ -2,6 +2,65 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 16 Jan 2026 20:34:39 GMT",
+      "version": "16.0.1",
+      "tag": "@azure/msal-common_v16.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "63b58a46024f25de8dd3d0274d1dfb747ed0e404",
+            "comment": "Remove beta tag"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4497a579a66fb59081e97834207885c9169f25fd",
+            "comment": "Add telemetry for refresh token expiration (cache/network) and offset [#8230](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8230)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4d980d2d94bd5deeaa7a571e16e96d37fe8010c7",
+            "comment": "Use cross-env for environment variable management in build scripts #8191"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "198982749+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "d1581d98f099d9cd0077a04f82d6834457a08530",
+            "comment": "Add security guidance for state parameter usage [#8161](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8161)"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "6a1c1de298c67c91be926a9a628e6df5d6983187",
+            "comment": "Update typedoc comments for requests #8218"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 05 Dec 2025 22:01:00 GMT",
       "version": "16.0.0-beta.0",
       "tag": "@azure/msal-common_v16.0.0-beta.0",

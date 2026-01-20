@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Fri, 05 Dec 2025 22:01:00 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 16 Jan 2026 20:34:39 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.0.1
+
+Fri, 16 Jan 2026 20:34:39 GMT
+
+### Patches
+
+- Remove beta tag (joarroyo@microsoft.com)
+- Add telemetry for refresh token expiration (cache/network) and offset [#8230](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8230) (thomas.norling@microsoft.com)
+- Use cross-env for environment variable management in build scripts #8191 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 16.0.0-beta.0
 
