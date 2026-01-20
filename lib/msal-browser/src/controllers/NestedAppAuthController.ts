@@ -35,6 +35,7 @@ import {
     InteractionType,
     DEFAULT_REQUEST,
     CacheLookupPolicy,
+    ApiId,
 } from "../utils/BrowserConstants.js";
 import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
@@ -837,7 +838,7 @@ export class NestedAppAuthController implements IController {
             accountEntity,
             result.correlationId,
             AuthToken.isKmsi(result.idTokenClaims),
-            0
+            ApiId.hydrateCache
         );
         return this.browserStorage.hydrateCache(result, request);
     }

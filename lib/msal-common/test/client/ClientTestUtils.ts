@@ -107,9 +107,7 @@ export class MockStorageClass extends CacheManager {
         _kmsi?: boolean,
         apiId?: number
     ): Promise<void> {
-        if (typeof apiId !== "undefined") {
-            value.cachedByApiId = apiId;
-        }
+        value.cachedByApiId = apiId;
         const key = generateAccountKey(
             AccountEntityUtils.getAccountInfo(value)
         );

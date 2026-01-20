@@ -326,7 +326,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(acquireTokenSpy).toHaveBeenCalledWith(
                 testAuthCodeRequest,
-                862,
+                ApiId.acquireTokenPopup,
                 testCodeResponse
             );
             expect(acquireTokenSpy).not.toThrow();

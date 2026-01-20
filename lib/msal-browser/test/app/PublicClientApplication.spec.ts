@@ -4526,7 +4526,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 silentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest, 61);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
