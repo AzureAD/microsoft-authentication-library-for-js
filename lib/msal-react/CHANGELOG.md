@@ -12,7 +12,7 @@ Sat, 17 Jan 2026 03:11:36 GMT
 
 - Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
 - Remove support for old versions of Node and React #8014 (shylasummers@microsoft.com)
-- Bump @azure/msal-browser to v5.0.0-alpha.0
+- Bump @azure/msal-browser to v5.0.2
 - Bump eslint-config-msal to v0.0.0
 - Bump msal-test-utils to v0.0.1
 

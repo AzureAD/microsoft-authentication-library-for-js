@@ -15,7 +15,7 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Remove deprecated functions and parameters (shylasummers@microsoft.com)
 - Upgrade MSAL Angular to Angular 19 (shylasummers@microsoft.com)
 - Update handleRedirectPromise signature to consolidate hash into options type (hemoral@microsoft.com)
-- Bump @azure/msal-browser to v5.0.0-alpha.0
+- Bump @azure/msal-browser to v5.0.2
 - Bump eslint-config-msal to v0.0.0
 
 ### Minor changes

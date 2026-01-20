@@ -23,7 +23,7 @@ Sat, 17 Jan 2026 03:11:36 GMT
 - Configuration changes to NodeAuthOptions #7695 (joarroyo@microsoft.com)
 - Remove deprecated functions and parameters (shylasummers@microsoft.com)
 - Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
-- Bump @azure/msal-common to v16.0.0-alpha.0
+- Bump @azure/msal-common to v16.0.2
 - Bump eslint-config-msal to v0.0.0
 - Bump rollup-msal to v0.0.0
 
