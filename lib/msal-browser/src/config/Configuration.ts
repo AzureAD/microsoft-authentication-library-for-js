@@ -114,7 +114,7 @@ export type BrowserAuthOptions = {
      */
     encodeExtraQueryParams?: boolean;
     /**
-     * If set to true, MSAL will make a background ssoSilent call after successful interactive authentication
+     * If set to true, MSAL will make a background session refresh call after successful interactive authentication
      * (acquireTokenPopup, handleRedirectPromise) to refresh tokens silently.
      * This is a boolean flag and defaults to false if not specified.
      */
