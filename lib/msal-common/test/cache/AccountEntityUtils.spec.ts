@@ -363,16 +363,23 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
         expect(accountInfo.tenantProfiles).toMatchObject(tenantProfiles);
     });
 
-    it("getAccountInfo creates a new tenantProfiles map if AccountEntity does not have a tenantProfiles array", () => {
+    it("getAccountInfo creates home tenant profile if AccountEntity does not have a tenantProfiles array", () => {
         const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         accountEntity.tenantProfiles = undefined;
 
         const accountInfo = AccountEntityUtils.getAccountInfo(accountEntity);
         expect(accountInfo.tenantProfiles).toBeDefined();
-        expect(accountInfo.tenantProfiles?.size).toBe(0);
-        expect(accountInfo.tenantProfiles).toMatchObject(
-            new Map<string, TenantProfile>()
+        // Should create the home tenant profile from realm and localAccountId
+        expect(accountInfo.tenantProfiles?.size).toBe(1);
+        expect(accountInfo.tenantProfiles?.has(accountEntity.realm)).toBe(true);
+        const homeTenantProfile = accountInfo.tenantProfiles?.get(
+            accountEntity.realm
         );
+        expect(homeTenantProfile?.tenantId).toBe(accountEntity.realm);
+        expect(homeTenantProfile?.localAccountId).toBe(
+            accountEntity.localAccountId
+        );
+        expect(homeTenantProfile?.isHomeTenant).toBe(true);
     });
 
     it("isSingleTenant returns true if AccountEntity does not have a tenantProfiles array", () => {

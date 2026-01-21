@@ -225,6 +225,10 @@ describe("SilentRefreshClient", () => {
                 ).mockReturnValue(accountEntity);
                 jest.spyOn(
                     BrowserCacheManager.prototype,
+                    "getAllAccounts"
+                ).mockReturnValue([testAccount]);
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
                     "getRefreshToken"
                 ).mockReturnValue(rtEntity);
                 jest.spyOn(
