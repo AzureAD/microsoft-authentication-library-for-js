@@ -809,6 +809,7 @@ describe("ResponseHandler.ts", () => {
                 testAuthority,
                 timestamp,
                 testRequest,
+                0, // apiId
                 undefined, // authCodePayload
                 undefined, // userAssertionHash
                 true, // handlingRefreshTokenResponse
@@ -864,6 +865,7 @@ describe("ResponseHandler.ts", () => {
                 testAuthority,
                 timestamp,
                 testRequest,
+                0, // apiId
                 undefined, // authCodePayload
                 undefined, // userAssertionHash
                 true, // handlingRefreshTokenResponse

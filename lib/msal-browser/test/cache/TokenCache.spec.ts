@@ -673,7 +673,8 @@ describe("TokenCache tests", () => {
                     environment: "login.windows.net", // preferred_cache for login.microsoftonline.com
                 }),
                 expect.anything(),
-                expect.anything()
+                expect.anything(),
+                ApiId.loadExternalTokens
             );
 
             // Verify id token is cached with preferred_cache environment
