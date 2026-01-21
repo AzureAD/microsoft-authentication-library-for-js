@@ -30,6 +30,7 @@ import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshC
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { ApiId } from "../../src/utils/BrowserConstants.js";
 
 const testIdTokenClaims: TokenClaims = {
     ver: "2.0",
@@ -147,7 +148,10 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(tokenResp).toEqual(testTokenResponse);
         });
 
@@ -203,7 +207,7 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await silentRefreshClient.acquireToken(
                 tokenRequest
             );
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest, 61);
             expect(tokenResp).toEqual(testTokenResponse);
         });
 

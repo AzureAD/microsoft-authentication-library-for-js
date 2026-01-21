@@ -99,6 +99,8 @@ export const ApiId: {
     readonly acquireTokenSilent_silentFlow: 61;
     readonly logout: 961;
     readonly logoutPopup: 962;
+    readonly hydrateCache: 963;
+    readonly loadExternalTokens: 964;
 };
 
 // @public (undocumented)
@@ -1489,7 +1491,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "5.0.1";
+export const version = "5.0.2";
 
 // Warning: (ae-missing-release-tag) "waitForBridgeResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

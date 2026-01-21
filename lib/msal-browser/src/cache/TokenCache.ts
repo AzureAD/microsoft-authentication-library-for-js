@@ -41,6 +41,7 @@ import { EventHandler } from "../event/EventHandler.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import { ApiId } from "../utils/BrowserConstants.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -240,7 +241,8 @@ async function loadAccount(
         await storage.setAccount(
             accountEntity,
             correlationId,
-            AuthToken.isKmsi(idTokenClaims || {})
+            AuthToken.isKmsi(idTokenClaims || {}),
+            ApiId.loadExternalTokens
         );
         return accountEntity;
     } else if (!authority || (!clientInfo && !idTokenClaims)) {
@@ -280,7 +282,8 @@ async function loadAccount(
     await storage.setAccount(
         cachedAccount,
         correlationId,
-        AuthToken.isKmsi(idTokenClaims || {})
+        AuthToken.isKmsi(idTokenClaims || {}),
+        ApiId.loadExternalTokens
     );
     return cachedAccount;
 }
