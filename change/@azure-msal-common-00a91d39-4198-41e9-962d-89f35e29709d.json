@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add dist-browser to msal-common files",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

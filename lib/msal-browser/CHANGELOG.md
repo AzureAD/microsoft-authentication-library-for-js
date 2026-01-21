@@ -1,35 +1,26 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 16 Jan 2026 20:34:39 GMT and should not be manually modified. -->
+<!-- This log was last generated on Sat, 17 Jan 2026 03:11:36 GMT and should not be manually modified. -->
 
 <!-- Start content -->
 
-## 5.0.1
+## 5.0.2
 
-Fri, 16 Jan 2026 20:34:39 GMT
-
-### Patches
-
-- Add telemetry support for loading external tokens and related events [#8221](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8221) (kshabelko@microsoft.com)
-- Use cross-env for environment variable management in build scripts #8191 (kshabelko@microsoft.com)
-- Remove beta tag (joarroyo@microsoft.com)
-- Bump @azure/msal-common to v16.0.1
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-- Bump rollup-msal to v0.0.0
-
-## 5.0.0-beta.0
-
-Fri, 05 Dec 2025 22:01:00 GMT
+Sat, 17 Jan 2026 03:11:36 GMT
 
 ### Major changes
 
 - Remove onRedirectNavigate from endSessionRequest #8066 (shylasummers@microsoft.com)
 - Remove getAccountBy APIs at controller level #7807 (hemoral@microsoft.com)
-- Bump @azure/msal-common to v16.0.0-beta.0
-- Bump eslint-config-msal to v0.0.0
-- Bump msal-test-utils to v0.0.1
-- Bump rollup-msal to v0.0.0
+- Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
+- Changes `asyncPopups` to `navigatePopups` in Configuration #7812 (joarroyo@microsoft.com)
+- Move navigateToLoginRequestUrl to request config (hemoral@microsoft.com)
+- Remove encodeExtraQueryParams from config #7701 (shylasummers@microsoft.com)
+- Remove claims-based caching cleanup code (hemoral@microsoft.com)
+- Move loadExternalTokens out of PCA. #7828 (shylasummers@microsoft.com)
+- Configuration changes to CacheOptions #7697 (joarroyo@microsoft.com)
+- Configuration changes to BrowserAuthOptions #7695 (joarroyo@microsoft.com)
+- Remove deprecated functions and parameters (shylasummers@microsoft.com)
 
 ### Minor changes
 
@@ -42,9 +33,33 @@ Fri, 05 Dec 2025 22:01:00 GMT
 - [Native Auth] Add MFA related state and results (shen.jian@live.com)
 - [Native Auth] Enable the MFA and JIT (SMS) in the public interfaces #8069 (shen.jian@live.com)
 - Add PCAFactory and correlation id optional params to createNestablePublicClientApplication #8093 (kshabelko@microsoft.com)
+- Move auth error messages out of the bundle #7744 (kshabelko@microsoft.com)
+- Pass "forceRefresh" param to NAA bridge #8052 (kshabelko@microsoft.com)
+- Instrument timed out and cancelled redirects #7989 (kshabelko@microsoft.com)
+- Cache upgrade & rollback support (thomas.norling@microsoft.com)
+- Remove queue time instrumentation #7747 (kshabelko@microsoft.com)
+- Update AccountInfo construction to include tenant-specific claims #7978 (hemoral@microsoft.com)
+- Format logging strings for future minification #7999 (kshabelko@microsoft.com)
+- Add support for custom claims and password change required error, #7955 (yongdiwang@microsoft.com)
+- Decompose nested telemetry events #7818 (kshabelko@microsoft.com)
+- Remove access tokens when cache quota is exceeded #7865 (thomas.norling@microsoft.com)
+- Support authentication method registration during Sign-In, #8007 (shen.jian@live.com)
+- Decompose nested constants #7782 (kshabelko@microsoft.com)
+- Refactor AccountEntity into type #7674 (shylasummers@microsoft.com)
+- Add native authentication feaetures for the external ID (shen.jian@live.com)
+- Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
+- Add extraQueryParams for api calls #7974 (yongdiwang@microsoft.com)
 
 ### Patches
 
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.0.2
+- Add telemetry support for loading external tokens and related events [#8221](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8221) (kshabelko@microsoft.com)
+- Use cross-env for environment variable management in build scripts #8191 (kshabelko@microsoft.com)
+- Remove beta tag (joarroyo@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 - Update the logic for detecting phone blocked error #8087 (shen.jian@live.com)
 - EAR flow falls back to auth code when /authorize returns code [#8156](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8156) (thomas.norling@microsoft.com)
 - [Native Auth] Fix the correlation id issue #8078 (shen.jian@live.com)
@@ -52,6 +67,22 @@ Fri, 05 Dec 2025 22:01:00 GMT
 - Introduce the stateType property in state classes for the type detection #8090 (shen.jian@live.com)
 - Add pageException to native fatal errors (#8065) (sameera.gajjarapu@microsoft.com)
 - Add allow="local-network-access *" attribute to iframe for Chrome 142 compatibility [#8132](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8132) (198982749+Copilot@users.noreply.github.com)
+- Export client capabilities helper (thomas.norling@microsoft.com)
+- Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- Adding new UX_NOT_ALLOWED suberror under InteractionRequired error type #7844 (lalimasharda@microsoft.com)
+- Clean up BroadcastChannel resources to fix hanging tests #8045 (kshabelko@microsoft.com)
+- Add BrokerConnectionEvent to exports (thomas.norling@microsoft.com)
+- Throw timeout error in acquireTokenRedirect if the redirect doesn't happen #7867 (thomas.norling@microsoft.com)
+- add brokered_request_success event type (shylasummers@microsoft.com)
+- Fix exception when using claims with Nested App Auth in JS Runtime environment (#8053) (dasau@microsoft.com)
+- Fix redirect loop when URLs contain encoded apostrophes in MSAL Angular standalone components (#7636) (copilot@github.com)
+- Rename fromNativeBroker to fromPlatformBroker #7940 (shylasummers@microsoft.com)
+- Logger statements updated #7825 (lalimasharda@microsoft.com)
+- Backward compatibility support #7962 (yongdiwang@microsoft.com)
+- Standalone functions in PCA #7810 (hemoral@microsoft.com)
+- Fix v4 merge errors #7726 (joarroyo@microsoft.com)
+- Address standalone function refactoring feedback #7992 (hemoral@microsoft.com)
 
 ### Changes
 
@@ -60,63 +91,302 @@ Fri, 05 Dec 2025 22:01:00 GMT
 - KMSI Support #8123 (thomas.norling@microsoft.com)
 - Bump to pre-release alpha (hemoral@microsoft.com)
 
-## 5.0.0-alpha.0
+## 4.28.1
 
-Thu, 02 Oct 2025 21:58:42 GMT
-
-### Major changes
-
--   Refactor event types and InteractionStatus to be more concise #8009 (shylasummers@microsoft.com)
--   Changes `asyncPopups` to `navigatePopups` in Configuration #7812 (joarroyo@microsoft.com)
--   Move navigateToLoginRequestUrl to request config (hemoral@microsoft.com)
--   Remove encodeExtraQueryParams from config #7701 (shylasummers@microsoft.com)
--   Remove claims-based caching cleanup code (hemoral@microsoft.com)
--   Move loadExternalTokens out of PCA. #7828 (shylasummers@microsoft.com)
--   Configuration changes to CacheOptions #7697 (joarroyo@microsoft.com)
--   Configuration changes to BrowserAuthOptions #7695 (joarroyo@microsoft.com)
--   Remove deprecated functions and parameters (shylasummers@microsoft.com)
--   Bump @azure/msal-common to v16.0.0-alpha.0
--   Bump eslint-config-msal to v0.0.0
--   Bump msal-test-utils to v0.0.1
--   Bump rollup-msal to v0.0.0
-
-### Minor changes
-
--   Add extraQueryParams for api calls #7974 (yongdiwang@microsoft.com)
--   Move auth error messages out of the bundle #7744 (kshabelko@microsoft.com)
--   Pass "forceRefresh" param to NAA bridge #8052 (kshabelko@microsoft.com)
--   Instrument timed out and cancelled redirects #7989 (kshabelko@microsoft.com)
--   Cache upgrade & rollback support (thomas.norling@microsoft.com)
--   Remove queue time instrumentation #7747 (kshabelko@microsoft.com)
--   Update AccountInfo construction to include tenant-specific claims #7978 (hemoral@microsoft.com)
--   Format logging strings for future minification #7999 (kshabelko@microsoft.com)
--   Add support for custom claims and password change required error, #7955 (yongdiwang@microsoft.com)
--   Decompose nested telemetry events #7818 (kshabelko@microsoft.com)
--   Remove access tokens when cache quota is exceeded #7865 (thomas.norling@microsoft.com)
--   Support authentication method registration during Sign-In, #8007 (shen.jian@live.com)
--   Decompose nested constants #7782 (kshabelko@microsoft.com)
--   Refactor AccountEntity into type #7674 (shylasummers@microsoft.com)
--   Add native authentication feaetures for the external ID (shen.jian@live.com)
--   Make correlation id mandatory for Logger calls #8071 (kshabelko@microsoft.com)
+Sat, 17 Jan 2026 01:12:51 GMT
 
 ### Patches
 
--   Export client capabilities helper (thomas.norling@microsoft.com)
--   Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
--   remove access tokens synchronously (thomas.norling@microsoft.com)
--   Adding new UX_NOT_ALLOWED suberror under InteractionRequired error type #7844 (lalimasharda@microsoft.com)
--   Clean up BroadcastChannel resources to fix hanging tests #8045 (kshabelko@microsoft.com)
--   Add BrokerConnectionEvent to exports (thomas.norling@microsoft.com)
--   Throw timeout error in acquireTokenRedirect if the redirect doesn't happen #7867 (thomas.norling@microsoft.com)
--   add brokered_request_success event type (shylasummers@microsoft.com)
--   Fix exception when using claims with Nested App Auth in JS Runtime environment (#8053) (dasau@microsoft.com)
--   Fix redirect loop when URLs contain encoded apostrophes in MSAL Angular standalone components (#7636) (copilot@github.com)
--   Rename fromNativeBroker to fromPlatformBroker #7940 (shylasummers@microsoft.com)
--   Logger statements updated #7825 (lalimasharda@microsoft.com)
--   Backward compatibility support #7962 (yongdiwang@microsoft.com)
--   Standalone functions in PCA #7810 (hemoral@microsoft.com)
--   Fix v4 merge errors #7726 (joarroyo@microsoft.com)
--   Address standalone function refactoring feedback #7992 (hemoral@microsoft.com)
+- loadExternalTokens fixes [#8242](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8242) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.14.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.28.0
+
+Tue, 13 Jan 2026 14:23:32 GMT
+
+### Minor changes
+
+- Add native auth e2e sample app (yongdiwang@microsoft.com)
+- Add telemetry support for loading external tokens and related events #8231 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.14.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Track ApiId when setting/getting accounts (thomas.norling@microsoft.com)
+
+## 4.27.0
+
+Thu, 04 Dec 2025 05:46:36 GMT
+
+### Minor changes
+
+- Add DOM API configuration, #8171 (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v15.13.3
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.26.2
+
+Wed, 19 Nov 2025 23:13:10 GMT
+
+### Patches
+
+- EAR flow falls back to auth code when /authorize returns code #8111 (thomas.norling@microsoft.com)
+- [Native Auth] Remove preview warning and typo fix (shen.jian@live.com)
+- Bump @azure/msal-common to v15.13.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.26.1
+
+Thu, 06 Nov 2025 00:32:05 GMT
+
+### Patches
+
+- Add allow="local-network-access *" attribute to iframe for Chrome 142 compatibility (198982749+Copilot@users.noreply.github.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.26.0
+
+Wed, 29 Oct 2025 00:04:33 GMT
+
+### Minor changes
+
+- Don't encrypt localStorage when KMSI returned in idToken (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.13.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.25.1
+
+Fri, 17 Oct 2025 17:09:06 GMT
+
+### Patches
+
+- Introduce the stateType property in state classes for the type detection #8090 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.25.0
+
+Thu, 09 Oct 2025 00:57:39 GMT
+
+### Minor changes
+
+- [Native Auth] Enable the MFA and JIT (SMS) in the public interfaces #8069 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Update the logic for detecting phone blocked error #8087 (shen.jian@live.com)
+
+## 4.24.1
+
+Tue, 30 Sep 2025 22:02:06 GMT
+
+### Patches
+
+- Add prompt=select_account for native flows (#8062) (sameera.gajjarapu@microsoft.com)
+- Add support for "pageException" error to fallback to web (#8064) (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.24.0
+
+Wed, 24 Sep 2025 21:54:45 GMT
+
+### Minor changes
+
+- [Native Auth] Add MFA related state and results (shen.jian@live.com)
+- Add changes in network and interaction client layers to support MFA (shen.jian@live.com)
+- Instrument data boundary claim #8054 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.23.0
+
+Wed, 17 Sep 2025 09:50:42 GMT
+
+### Minor changes
+
+- Support authentication method registration during Sign-In, #8007 (shen.jian@live.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Pass forceRefresh param to NAA bridge #8042 (kshabelko@microsoft.com)
+- Clean up BroadcastChannel resources to fix hanging tests #8044 (kshabelko@microsoft.com)
+
+## 4.22.1
+
+Tue, 09 Sep 2025 20:27:59 GMT
+
+### Patches
+
+- Export client capabilities helper (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.22.0
+
+Wed, 03 Sep 2025 21:47:34 GMT
+
+### Minor changes
+
+- Add extraQueryParams for api calls #7974 (yongdiwang@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.21.1
+
+Wed, 27 Aug 2025 00:59:59 GMT
+
+### Patches
+
+- Backward compatibility support #7962 (yongdiwang@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.21.0
+
+Tue, 19 Aug 2025 21:26:21 GMT
+
+### Minor changes
+
+- Add Platform Telemetry (PR #7991) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v15.12.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix redirect loop when URLs contain encoded apostrophes in MSAL Angular standalone components (#7636) (copilot@github.com)
+
+## 4.20.0
+
+Tue, 12 Aug 2025 22:53:32 GMT
+
+### Minor changes
+
+- Instrument timed out or cancelled pre-redirect requests #7984 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.11.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- fixed getNativeAccountId API bug to correctly return current active account if loginhint or sid is not provided #7960 (lalimasharda@microsoft.com)
+
+## 4.19.0
+
+Tue, 05 Aug 2025 20:00:24 GMT
+
+### Minor changes
+
+- Cache upgrade & rollback support (thomas.norling@microsoft.com)
+- Update AccountInfo construction to include tenant-specific claims #7949 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.10.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.18.0
+
+Wed, 30 Jul 2025 18:23:45 GMT
+
+### Minor changes
+
+- Add support for custom claims and password change required error, #7948 (ydi.w127@gmail.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Bump @azure/msal-browser to v4.17.1 (shylasummers@microsoft.com)
+
+## 4.16.0
+
+Wed, 23 Jul 2025 14:54:36 GMT
+
+### Minor changes
+
+- Add support for authorize call using method POST #7920 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.9.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix exception when using claims with Nested App Auth in JS Runtime environment (#7926) (dasau@microsoft.com)
+
+## 4.15.0
+
+Tue, 08 Jul 2025 14:21:12 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v15.8.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.14.0
+
+Tue, 01 Jul 2025 14:23:25 GMT
+
+### Minor changes
+
+- Add native authentication feaetures for the external ID (shen.jian@live.com)
+- Remove access tokens when cache quota is exceeded #7819 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.8.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Track cache lastUpdatedAt timestamp and stop removing cache entries in get calls (thomas.norling@microsoft.com)
+- Throw timeout error in acquireTokenRedirect if the redirect doesn't happen (thomas.norling@microsoft.com)
+
+## 4.13.2
+
+Wed, 18 Jun 2025 15:21:55 GMT
+
+### Patches
+
+- added UX_NOT_ALLOWED suberror to InteractionRequired error type #7834 (lalimasharda@microsoft.com)
+- remove access tokens synchronously (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.7.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.13.1
 
