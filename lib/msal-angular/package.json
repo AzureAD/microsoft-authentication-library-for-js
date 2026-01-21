@@ -33,7 +33,9 @@
   },
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": []
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.2.3",
