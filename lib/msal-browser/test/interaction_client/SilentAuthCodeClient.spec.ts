@@ -167,7 +167,8 @@ describe("SilentAuthCodeClient", () => {
                     cloud_instance_host_name: request.cloudInstanceHostName,
                 },
                 expect.anything(),
-                expect.anything()
+                ApiId.acquireTokenSilent_authCode,
+                false
             );
             expect(tokenResp).toEqual(testTokenResponse);
         });

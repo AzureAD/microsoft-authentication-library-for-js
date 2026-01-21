@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Store apiId in cache to track which API cached account information [#8236](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8236)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

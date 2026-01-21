@@ -99,6 +99,8 @@ export const ApiId: {
     readonly acquireTokenSilent_silentFlow: 61;
     readonly logout: 961;
     readonly logoutPopup: 962;
+    readonly hydrateCache: 963;
+    readonly loadExternalTokens: 964;
 };
 
 // @public (undocumented)

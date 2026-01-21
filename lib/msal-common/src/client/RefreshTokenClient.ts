@@ -118,7 +118,8 @@ export class RefreshTokenClient {
         this.performanceClient = performanceClient;
     }
     public async acquireToken(
-        request: CommonRefreshTokenRequest
+        request: CommonRefreshTokenRequest,
+        apiId: number
     ): Promise<AuthenticationResult> {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await invokeAsync(
@@ -157,6 +158,7 @@ export class RefreshTokenClient {
             this.authority,
             reqTimestamp,
             request,
+            apiId,
             undefined,
             undefined,
             true,
@@ -170,7 +172,8 @@ export class RefreshTokenClient {
      * @param request
      */
     public async acquireTokenByRefreshToken(
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
+        apiId: number
     ): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
@@ -200,7 +203,7 @@ export class RefreshTokenClient {
                     this.logger,
                     this.performanceClient,
                     request.correlationId
-                )(request, true);
+                )(request, true, apiId);
             } catch (e) {
                 const noFamilyRTInCache =
                     e instanceof InteractionRequiredAuthError &&
@@ -219,7 +222,7 @@ export class RefreshTokenClient {
                         this.logger,
                         this.performanceClient,
                         request.correlationId
-                    )(request, false);
+                    )(request, false, apiId);
                     // throw in all other cases
                 } else {
                     throw e;
@@ -233,7 +236,7 @@ export class RefreshTokenClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request, false);
+        )(request, false, apiId);
     }
 
     /**
@@ -242,7 +245,8 @@ export class RefreshTokenClient {
      */
     private async acquireTokenWithCachedRefreshToken(
         request: CommonSilentFlowRequest,
-        foci: boolean
+        foci: boolean,
+        apiId: number
     ) {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = invoke(
@@ -298,7 +302,7 @@ export class RefreshTokenClient {
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(refreshTokenRequest);
+            )(refreshTokenRequest, apiId);
         } catch (e) {
             if (e instanceof InteractionRequiredAuthError) {
                 if (e.subError === InteractionRequiredAuthErrorCodes.badToken) {
