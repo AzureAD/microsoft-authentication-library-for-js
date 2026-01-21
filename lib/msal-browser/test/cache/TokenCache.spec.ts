@@ -27,7 +27,10 @@ import {
     buildConfiguration,
     CacheOptions,
 } from "../../src/config/Configuration.js";
-import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
+import {
+    ApiId,
+    BrowserCacheLocation,
+} from "../../src/utils/BrowserConstants.js";
 import {
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
@@ -176,6 +179,41 @@ describe("TokenCache tests", () => {
                 expect.anything(),
                 false
             );
+        });
+
+        it("sets cachedByApiId when loading external tokens", async () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: testEnvironment,
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: "username",
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                    loginHint: "login_hint",
+                },
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+                access_token: testAccessToken,
+                refresh_token: testRefreshToken,
+            };
+            const options: LoadTokenOptions = {};
+            const result = await loadExternalTokens(
+                configuration,
+                request,
+                response,
+                options
+            );
+
+            const accountKey = browserStorage.generateAccountKey(
+                result.account!
+            );
+            const accountEntity = await browserStorage.getAccount(
+                accountKey,
+                RANDOM_TEST_GUID
+            );
+            expect(accountEntity?.cachedByApiId).toBe(ApiId.loadExternalTokens);
         });
 
         it("loads id token with request authority and client info provided in options", async () => {

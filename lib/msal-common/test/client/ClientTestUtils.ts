@@ -101,7 +101,13 @@ export class MockStorageClass extends CacheManager {
         return null;
     }
 
-    async setAccount(value: AccountEntity): Promise<void> {
+    async setAccount(
+        value: AccountEntity,
+        _correlationId?: string,
+        _kmsi?: boolean,
+        apiId?: number
+    ): Promise<void> {
+        value.cachedByApiId = apiId;
         const key = generateAccountKey(
             AccountEntityUtils.getAccountInfo(value)
         );

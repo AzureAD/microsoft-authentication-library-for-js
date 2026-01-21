@@ -4526,7 +4526,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 silentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedTokenRequest,
+                ApiId.acquireTokenSilent_silentFlow
+            );
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
@@ -4731,15 +4734,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sshCertSilentRequest3,
             ]);
 
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest2);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest2);
             expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest1
+                expectedTokenRequest1,
+                61
             );
             expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest2
+                expectedTokenRequest2,
+                61
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedPopTokenRequest1,
+                61
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedPopTokenRequest2,
+                61
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedSshCertificateRequest1,
+                61
+            );
+            expect(silentATStub).toHaveBeenCalledWith(
+                expectedSshCertificateRequest2,
+                61
             );
             expect(silentATStub).toHaveBeenCalledTimes(6);
         });
@@ -4826,8 +4843,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
             await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
 
-            expect(silentATStub).toHaveBeenCalledWith(tokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(tokenRequest2);
+            expect(silentATStub).toHaveBeenCalledWith(tokenRequest1, 61);
+            expect(silentATStub).toHaveBeenCalledWith(tokenRequest2, 61);
             expect(silentATStub).toHaveBeenCalledTimes(2);
         });
 
@@ -6993,7 +7010,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ]);
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true, 0)
                 .then(async () => {
                     // Create a second PCA instance to simulate another tab
                     const pca2 = new PublicClientApplication({
@@ -7031,7 +7048,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ]);
 
             secondBrowserStorageInstance
-                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID, true, 0)
                 .then(() => {
                     // Ensure account is present in the cache before setting it as active
                     secondBrowserStorageInstance.setActiveAccount(

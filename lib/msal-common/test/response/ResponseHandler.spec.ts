@@ -183,7 +183,8 @@ describe("ResponseHandler.ts", () => {
                         testResponse,
                         testAuthority,
                         timestamp,
-                        testRequest
+                        testRequest,
+                        0
                     );
                 expect(tokenResp).toBeUndefined();
             } catch (e) {
@@ -262,7 +263,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
 
@@ -331,7 +333,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
 
@@ -398,7 +401,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
 
@@ -432,7 +436,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 reqTimestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
@@ -472,7 +477,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
             expect(response.code).toEqual(testSpaCode);
         });
@@ -555,7 +561,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
         });
     });
@@ -586,7 +593,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.familyId).toBe("");
@@ -634,7 +642,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -682,7 +691,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
@@ -714,7 +724,8 @@ describe("ResponseHandler.ts", () => {
                 testResponse,
                 testAuthority,
                 timestamp,
-                testRequest
+                testRequest,
+                0
             );
 
             expect(result.requestId).toBe("");
@@ -1043,7 +1054,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -1090,7 +1102,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -1137,7 +1150,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {
@@ -1181,7 +1195,8 @@ describe("ResponseHandler.ts", () => {
                     testResponse,
                     testAuthority,
                     timestamp,
-                    testRequest
+                    testRequest,
+                    0
                 );
                 throw Error("should throw cache error");
             } catch (e) {

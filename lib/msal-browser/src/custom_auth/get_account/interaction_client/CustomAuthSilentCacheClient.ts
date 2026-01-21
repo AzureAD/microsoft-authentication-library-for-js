@@ -98,7 +98,8 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
 
                 const refreshTokenResult =
                     await refreshTokenClient.acquireTokenByRefreshToken(
-                        silentRequest
+                        silentRequest,
+                        PublicApiId.ACCOUNT_GET_ACCESS_TOKEN
                     );
 
                 this.logger.verbose(
