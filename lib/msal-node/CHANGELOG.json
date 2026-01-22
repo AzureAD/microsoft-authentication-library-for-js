@@ -32,12 +32,6 @@
             "comment": "Update tests to account for changes in extra param configuration"
           },
           {
-            "author": "beachball",
-            "package": "@azure/msal-node",
-            "comment": "Bump @azure/msal-common to v16.0.0-beta.0",
-            "commit": "not available"
-          },
-          {
             "author": "joarroyo@microsoft.com",
             "package": "@azure/msal-node",
             "commit": "f3bd4859c5760d4741b6284ee2b1a57d4335b478",
@@ -84,24 +78,6 @@
             "package": "@azure/msal-node",
             "commit": "1c40cc18b0e6daeb789f3d41ab51644944d1887c",
             "comment": "Refactor event types and InteractionStatus to be more concise #8009 "
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-node",
-            "comment": "Bump @azure/msal-common to v0",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-node",
-            "comment": "Bump eslint-config-msal to v0.0.0",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-node",
-            "comment": "Bump rollup-msal to v0.0.0",
-            "commit": "not available"
           }
         ],
         "minor": [
@@ -166,12 +142,6 @@
             "package": "@azure/msal-node",
             "commit": "63b58a46024f25de8dd3d0274d1dfb747ed0e404",
             "comment": "Remove beta tag"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-node",
-            "comment": "Bump @azure/msal-common to v16.0.1",
-            "commit": "not available"
           },
           {
             "author": "beachball",
