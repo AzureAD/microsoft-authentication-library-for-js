@@ -5,7 +5,6 @@
  * Event handling is delegated to ResetPasswordEventCoordinator.
  */
 
-import uiManager from "../../ui/ui.js";
 import { ResetPasswordEventCoordinator } from "./ResetPasswordEventCoordinator.js";
 import { AuthMethodSelectionForm } from "../../shared/jit/AuthMethodSelectionForm.js";
 import { AuthMethodChallengeForm } from "../../shared/jit/AuthMethodChallengeForm.js";
