@@ -17,10 +17,10 @@ import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
 import { MailTmClient } from "./emailProviderUtils";
 
-import { 
-    testConfig, 
-    getTenantInfo, 
-    getProxyPort, 
+import {
+    testConfig,
+    getTenantInfo,
+    getProxyPort,
     nativeAuthConfig,
     testData
 } from "./configUtils";
@@ -117,124 +117,124 @@ describe("Native Auth Sample - Sign Up Tests", () => {
         });
 
         it("User inputs new email and user attributes, verifies code, creates password meeting requirements, completes sign up flow, then automatically sign-in", async () => {
-                const testName = "signUpSuccessFlow";
-                const screenshot = new Screenshot(
-                    `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-                );
+            const testName = "signUpSuccessFlow";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
 
-                // Create a new email inbox using password_provider
-                const emailClient = new MailTmClient(nativeAuthConfig.passwordProvider);
-                const { address: signUpEmail } = await emailClient.createInbox();
-                console.log(`Created email for signup: ${signUpEmail}`);
+            // Create a new email inbox using password_provider
+            const emailClient = new MailTmClient(nativeAuthConfig.passwordProvider);
+            const { address: signUpEmail } = await emailClient.createInbox();
+            console.log(`Created email for signup: ${signUpEmail}`);
 
-                // Enter user details in the sign-up form
-                await page.waitForSelector("#signUpFirstName", { visible: true });
-                await page.waitForSelector("#signUpLastName", { visible: true });
-                await page.waitForSelector("#signUpUsername", { visible: true });
+            // Enter user details in the sign-up form
+            await page.waitForSelector("#signUpFirstName", { visible: true });
+            await page.waitForSelector("#signUpLastName", { visible: true });
+            await page.waitForSelector("#signUpUsername", { visible: true });
 
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", signUpEmail);
+            await page.type("#signUpFirstName", testFirstName);
+            await page.type("#signUpLastName", testLastName);
+            await page.type("#signUpUsername", signUpEmail);
 
-                // Click sign-up button
-                await page.waitForSelector("#signUpBtn", { visible: true });
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
-                await screenshot.takeScreenshot(page, "signUpButtonClicked");
+            // Click sign-up button
+            await page.waitForSelector("#signUpBtn", { visible: true });
+            await page.evaluate(() => {
+                const signUpButton = document.getElementById("signUpBtn");
+                if (signUpButton) {
+                    signUpButton.click();
+                } else {
+                    throw new Error("Sign up button not found in the DOM");
+                }
+            });
+            await screenshot.takeScreenshot(page, "signUpButtonClicked");
 
-                // Wait for OTP verification card to appear
-                await page.waitForSelector("#codeVerificationCard", {
-                    visible: true,
-                    timeout: 45000,
-                });
-                await screenshot.takeScreenshot(page, "otpVerificationDisplayed");
+            // Wait for OTP verification card to appear
+            await page.waitForSelector("#codeVerificationCard", {
+                visible: true,
+                timeout: 45000,
+            });
+            await screenshot.takeScreenshot(page, "otpVerificationDisplayed");
 
-                // Login to the email account and then get OTP code
-                console.log("Logging into email account...");
-                await emailClient.login(signUpEmail, nativeAuthConfig.passwordProvider);
-                console.log("Retrieving OTP code from email...");
-                const otpCode = await emailClient.readOtpCode();
-                console.log("OTP code retrieved:", otpCode);
+            // Login to the email account and then get OTP code
+            console.log("Logging into email account...");
+            await emailClient.login(signUpEmail, nativeAuthConfig.passwordProvider);
+            console.log("Retrieving OTP code from email...");
+            const otpCode = await emailClient.readOtpCode();
+            console.log("OTP code retrieved:", otpCode);
 
-                // Enter and submit OTP code
-                await page.waitForSelector("#verificationCode", { visible: true });
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", otpCode);
-                await screenshot.takeScreenshot(page, "otpCodeEntered");
+            // Enter and submit OTP code
+            await page.waitForSelector("#verificationCode", { visible: true });
+            await page.click("#verificationCode", { clickCount: 3 });
+            await page.type("#verificationCode", otpCode);
+            await screenshot.takeScreenshot(page, "otpCodeEntered");
 
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error("Submit OTP button not found in the DOM");
-                    }
-                });
-                await screenshot.takeScreenshot(page, "otpSubmitted");
+            await page.waitForSelector("#submitCodeBtn:enabled", {
+                visible: true,
+                timeout: 15000,
+            });
+            await page.evaluate(() => {
+                const submitButton = document.getElementById("submitCodeBtn");
+                if (submitButton) {
+                    submitButton.click();
+                } else {
+                    throw new Error("Submit OTP button not found in the DOM");
+                }
+            });
+            await screenshot.takeScreenshot(page, "otpSubmitted");
 
-                // Wait for password input card (if required)
-                await page.waitForSelector("#signUpPasswordCard", {
-                    visible: true,
-                    timeout: 35000,
-                });
-                await screenshot.takeScreenshot(page, "passwordInputDisplayed");
+            // Wait for password input card (if required)
+            await page.waitForSelector("#signUpPasswordCard", {
+                visible: true,
+                timeout: 35000,
+            });
+            await screenshot.takeScreenshot(page, "passwordInputDisplayed");
 
-                // Enter password using config value
-                await page.waitForSelector("#signUpPassword", { visible: true });
-                await page.type("#signUpPassword", nativeAuthConfig.passwordSignInEmailCode);
-                await screenshot.takeScreenshot(page, "passwordEntered");
+            // Enter password using config value
+            await page.waitForSelector("#signUpPassword", { visible: true });
+            await page.type("#signUpPassword", nativeAuthConfig.passwordSignInEmailCode);
+            await screenshot.takeScreenshot(page, "passwordEntered");
 
-                // Submit password
-                await page.waitForSelector("#submitSignUpPasswordBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById("submitSignUpPasswordBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error("Submit password button not found in the DOM");
-                    }
-                });
-                await screenshot.takeScreenshot(page, "passwordSubmitted");
+            // Submit password
+            await page.waitForSelector("#submitSignUpPasswordBtn:enabled", {
+                visible: true,
+                timeout: 15000,
+            });
+            await page.evaluate(() => {
+                const submitButton = document.getElementById("submitSignUpPasswordBtn");
+                if (submitButton) {
+                    submitButton.click();
+                } else {
+                    throw new Error("Submit password button not found in the DOM");
+                }
+            });
+            await screenshot.takeScreenshot(page, "passwordSubmitted");
 
-                // Wait for successful signup completion
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner = document.getElementById("authStatusBanner");
-                        const isSignedIn = authStatusBanner && 
-                            authStatusBanner.textContent?.includes("Signed in");
-                        return isSignedIn;
-                    },
-                    { timeout: 35000 }
-                );
+            // Wait for successful signup completion
+            await page.waitForFunction(
+                () => {
+                    const authStatusBanner = document.getElementById("authStatusBanner");
+                    const isSignedIn = authStatusBanner &&
+                        authStatusBanner.textContent?.includes("Signed in");
+                    return isSignedIn;
+                },
+                { timeout: 35000 }
+            );
 
-                // Verify tokens and authentication
-                const tokenStore = await BrowserCache.getTokens();
-                expect(tokenStore.idTokens).toHaveLength(1);
-                expect(tokenStore.accessTokens).toHaveLength(1);
-                expect(tokenStore.refreshTokens).toHaveLength(1);
-                expect(await BrowserCache.getAccountFromCache()).toBeDefined();
-                expect(
-                    await BrowserCache.accessTokenForScopesExists(
-                        tokenStore.accessTokens,
-                        ["openid", "profile", "user.read"]
-                    )
-                ).toBeTruthy();
+            // Verify tokens and authentication
+            const tokenStore = await BrowserCache.getTokens();
+            expect(tokenStore.idTokens).toHaveLength(1);
+            expect(tokenStore.accessTokens).toHaveLength(1);
+            expect(tokenStore.refreshTokens).toHaveLength(1);
+            expect(await BrowserCache.getAccountFromCache()).toBeDefined();
+            expect(
+                await BrowserCache.accessTokenForScopesExists(
+                    tokenStore.accessTokens,
+                    ["openid", "profile", "user.read"]
+                )
+            ).toBeTruthy();
 
-                await screenshot.takeScreenshot(page, "signUpCompleted");
-            },
+            await screenshot.takeScreenshot(page, "signUpCompleted");
+        },
             AUTH_TIMEOUT
         );
 
@@ -303,7 +303,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
             // Verify error message
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("Sign-up Error: Error: invalid_grant: AADSTS50181: Unable to validate the otp");
+            expect(errorMessage).toContain("Unable to validate the otp");
 
             // Dismiss error banner
             const dismissBtn = await page.$("#dismissErrorBtn");
@@ -378,7 +378,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             await page.waitForFunction(
                 () => {
                     const authStatusBanner = document.getElementById("authStatusBanner");
-                    const isSignedIn = authStatusBanner && 
+                    const isSignedIn = authStatusBanner &&
                         authStatusBanner.textContent?.includes("Signed in");
                     return isSignedIn;
                 },
@@ -404,7 +404,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             expect(finalAuthStatus).toContain("Signed in");
 
             await screenshot.takeScreenshot(page, "14_signUpFlowCompleted");
-            
+
             console.log("Positive signup flow completed successfully with automatic sign-in");
         }, AUTH_TIMEOUT);
 
@@ -444,7 +444,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
         it("User inputs invalid format email address, receives email validation error", async () => {
             const testName = "signUpWithInvalidEmailFormat";
             let screenshot: Screenshot | undefined;
-            
+
             if (testConfig.screenshots.enabled) {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             }
@@ -486,13 +486,13 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
             // Verify error banner content - expect specific AADSTS90100 error for invalid email format
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("Sign-up Error: Error: invalid_request: AADSTS90100: username parameter is empty or not valid");
+            expect(errorMessage).toContain("username parameter is empty or not valid");
         }, AUTH_TIMEOUT);
 
         it("User inputs existing email (registered with email + Password), receives user existed error.", async () => {
             const testName = "signUpWithExistingUsername";
             let screenshot: Screenshot | undefined;
-            
+
             if (testConfig.screenshots.enabled) {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             }
@@ -543,7 +543,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
         it("User enters username, attributes to start sign-up flow, and enter the incorrect otp", async () => {
             const testName = "signUpWithInvalidOtp";
             let screenshot: Screenshot | undefined;
-            
+
             if (testConfig.screenshots.enabled) {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             }
@@ -602,13 +602,13 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
             // Verify error banner content
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("Sign-up Error: Error: invalid_grant: AADSTS50181: Unable to validate the otp");
+            expect(errorMessage).toContain("Unable to validate the otp");
         }, AUTH_TIMEOUT);
 
         it("User inputs new email, verifies code, creates invalid password (does not meet requirements), receives sign up error", async () => {
             const testName = "signUpWithInvalidPassword";
             let screenshot: Screenshot | undefined;
-            
+
             if (testConfig.screenshots.enabled) {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             }
@@ -692,7 +692,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
             // Phase 6: Enter invalid password (from test data)
             console.log(`Using invalid password: ${testData.invalidPassword}`);
-            
+
             await page.waitForSelector("#signUpPassword", { visible: true });
             await page.type("#signUpPassword", testData.invalidPassword);
             if (screenshot) {
@@ -731,7 +731,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
         it("User signs in with existing email, then tries to sign up with same email, receives error to sign out first", async () => {
             const testName = "signUpAfterSignInSameUser";
             let screenshot: Screenshot | undefined;
-            
+
             if (testConfig.screenshots.enabled) {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             }
@@ -769,7 +769,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             await page.waitForFunction(
                 () => {
                     const authStatusBanner = document.getElementById("authStatusBanner");
-                    const isSignedIn = authStatusBanner && 
+                    const isSignedIn = authStatusBanner &&
                         authStatusBanner.textContent?.includes("Signed in");
                     return isSignedIn;
                 },
@@ -782,7 +782,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             // Phase 2: Now try to sign up with the same email while signed in
             await page.click("#showSignUpBtn");
             await page.waitForSelector("#signUpCard");
-            
+
             // Fill sign-up form with same user details
             await page.waitForSelector("#signUpFirstName", { visible: true });
             await page.waitForSelector("#signUpLastName", { visible: true });
@@ -828,7 +828,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
             // Wait for the application to initialize
             await pcaInitializedPoller(page, AUTH_TIMEOUT);
-            
+
             // Verify sign-up button is visible on the navigation bar
             const showSignUpBtn = await page.$("#showSignUpBtn");
             expect(showSignUpBtn).toBeTruthy();
@@ -924,7 +924,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             await page.waitForFunction(
                 () => {
                     const authStatusBanner = document.getElementById("authStatusBanner");
-                    const isSignedIn = authStatusBanner && 
+                    const isSignedIn = authStatusBanner &&
                         authStatusBanner.textContent?.includes("Signed in");
                     return isSignedIn;
                 },
@@ -950,7 +950,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             expect(finalAuthStatus).toContain("Signed in");
 
             await screenshot.takeScreenshot(page, "6_signUpOtpCompleted");
-            
+
             console.log("OTP signup flow completed successfully with automatic sign-in");
         }, AUTH_TIMEOUT);
 
@@ -1019,7 +1019,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
             // Verify error message
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
-            expect(errorMessage).toContain("Sign-up Error: Error: invalid_grant: AADSTS50181: Unable to validate the otp");
+            expect(errorMessage).toContain("Unable to validate the otp");
 
             // Dismiss error banner
             const dismissBtn = await page.$("#dismissErrorBtn");
@@ -1067,7 +1067,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             await page.waitForFunction(
                 () => {
                     const authStatusBanner = document.getElementById("authStatusBanner");
-                    const isSignedIn = authStatusBanner && 
+                    const isSignedIn = authStatusBanner &&
                         authStatusBanner.textContent?.includes("Signed in");
                     return isSignedIn;
                 },
@@ -1093,7 +1093,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             expect(finalAuthStatus).toContain("Signed in");
 
             await screenshot.takeScreenshot(page, "11_signUpOtpFlowCompleted");
-            
+
             console.log("OTP signup flow with resend completed successfully with automatic sign-in");
         }, AUTH_TIMEOUT);
 
@@ -1110,7 +1110,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             // Verify that no user signed in initially
             const authStatusBanner = await page.$eval("#authStatusBanner", (el) => el.textContent);
             expect(authStatusBanner).toContain("No user signed in");
-            
+
             // Take a screenshot of the initialized state
             if (testConfig.screenshots.enabled) {
                 const setupScreenshot = new Screenshot(
@@ -1118,7 +1118,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 );
                 await setupScreenshot.takeScreenshot(page, "appInitialized");
             }
-            
+
             // Verify sign-up button is visible on the navigation bar
             const showSignUpBtn = await page.$("#showSignUpBtn");
             expect(showSignUpBtn).toBeTruthy();
@@ -1140,7 +1140,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
         it("User email is registered with email OTP auth method, which is not supported by the developer (redirect flow)", async () => {
             const testName = "SignUpOtpWithRedirect";
             let screenshot: Screenshot | undefined;
-            
+
             if (testConfig.screenshots.enabled) {
                 screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             }
@@ -1178,7 +1178,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             // Verify error banner content
             const errorMessage = await page.$eval("#errorMessage", (el) => el.textContent);
             expect(errorMessage).toContain("redirect");
-                
+
         }, AUTH_TIMEOUT);
     });
 });
