@@ -15,8 +15,8 @@ import path from "path";
  * @returns {Promise<ChildProcess>} A Promise that resolves with the proxy server process
  */
 export function startCorsProxy(
-    domain: string = "MSIDLABCIAM6", 
-    tenantId: string = "fe362aec-5d43-45d1-b730-9755e60dc3b9", 
+    domain: string = "MSIDLABCIAM6",
+    tenantId: string = "fe362aec-5d43-45d1-b730-9755e60dc3b9",
     port: number = 30001
 ): Promise<ChildProcess> {
     return new Promise((resolve, reject) => {
@@ -25,7 +25,7 @@ export function startCorsProxy(
             const corsProcess = spawn(
                 "node",
                 [
-                    path.join(__dirname, "../cors.js"),
+                    path.join(__dirname, "../../cors.js"),
                     "-d",
                     domain,
                     "-t",
@@ -35,16 +35,16 @@ export function startCorsProxy(
                 ],
                 {
                     stdio: "inherit",
-                    cwd: path.join(__dirname, ".."),
+                    cwd: path.join(__dirname, "../.."),
                 }
             );
-            
+
             // Set up error handling
             corsProcess.on('error', (err) => {
                 console.error('Failed to start CORS proxy:', err);
                 reject(err);
             });
-            
+
             // Wait a bit to ensure the proxy is up before resolving the promise
             setTimeout(() => {
                 console.log(`CORS proxy started on port ${port} for domain ${domain}`);
@@ -73,5 +73,3 @@ export function stopCorsProxy(corsProcess: ChildProcess | null): void {
         }
     }
 }
-
-

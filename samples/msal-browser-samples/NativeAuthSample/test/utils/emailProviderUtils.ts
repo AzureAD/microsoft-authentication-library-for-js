@@ -105,15 +105,22 @@ export class MailTmClient {
 
     /**
      * Login to Mail.tm and get authentication token
+     * @param address Email address to login with
+     * @param password Password (optional if provided in constructor)
      */
-    async login(address: string, password: string): Promise<string> {
+    async login(address: string, password?: string): Promise<string> {
+        const usePassword = password || this.password;
+        if (!usePassword) {
+            throw new Error("No password provided in constructor or login call");
+        }
+
         try {
             const res = await fetch(`${BASE}/token`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     address: address,
-                    password: password
+                    password: usePassword
                 })
             });
 
@@ -122,7 +129,7 @@ export class MailTmClient {
                 const token = json.token;
                 this.token = token;
                 this.address = address;
-                this.password = password;
+                this.password = usePassword;
                 console.log("Authentication token received.");
                 return token;
             } else {
@@ -194,14 +201,15 @@ export class MailTmClient {
     }
 
     /**
-     * Read messages and extract OTP code
+     * Read messages and extract OTP code with progressive delay strategy
      */
-    async readOtpCode(maxRetries = 5, delaySeconds = 10): Promise<string> {
+    async readOtpCode(maxRetries = 5): Promise<string> {
         if (!this.token) {
             throw new Error("Call login() before reading messages");
         }
 
-        console.log("Checking email for messages (this may take a moment)...");
+        // Progressive delay strategy: 10s, 20s, 30s, 40s, 50s
+        const progressiveDelays = [10, 20, 30, 40, 50];
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -237,31 +245,54 @@ export class MailTmClient {
                                 // Clear checkpoint after successful OTP retrieval
                                 this.lastCheckedTime = null;
                                 return otpCode;
-                            } else {
-                                console.log(
-                                    `No OTP code found in message ${email.id} on attempt ${attempt}`
-                                );
                             }
                         }
-                    } else {
-                        console.log(`No messages found on attempt ${attempt}`);
                     }
-                } else {
-                    console.error(`Failed to fetch emails on attempt ${attempt}. Status: ${res.status}`);
                 }
 
-                // If not the last attempt, wait before retrying
+                // If not the last attempt, wait before retrying with progressive delay
                 if (attempt < maxRetries) {
-                    await new Promise((resolve) => setTimeout(resolve, delaySeconds * 1000));
+                    const delayTime = progressiveDelays[Math.min(attempt - 1, progressiveDelays.length - 1)];
+                    await new Promise((resolve) => setTimeout(resolve, delayTime * 1000));
                 }
             } catch (error) {
-                // If not the last attempt, wait before retrying
+                console.error(`Error on attempt ${attempt}:`, error);
+
+                // If not the last attempt, wait before retrying with progressive delay
                 if (attempt < maxRetries) {
-                    await new Promise((resolve) => setTimeout(resolve, delaySeconds * 1000));
+                    const delayTime = progressiveDelays[Math.min(attempt - 1, progressiveDelays.length - 1)];
+                    await new Promise((resolve) => setTimeout(resolve, delayTime * 1000));
                 }
             }
         }
 
         throw new Error(`Failed to find OTP code after ${maxRetries} attempts`);
+    }
+
+    /**
+     * Factory method to create and authenticate a new email account
+     * @param password Password for the email account
+     * @returns Object with authenticated client and email address
+     */
+    static async createAuthenticatedAccount(password: string): Promise<{
+        client: MailTmClient;
+        address: string;
+    }> {
+        const client = new MailTmClient(password);
+        const { address } = await client.createInbox();
+        await client.login(address); // Uses stored password
+        return { client, address };
+    }
+
+    /**
+     * Factory method for existing email accounts  
+     * @param address Existing email address
+     * @param password Password for the account
+     * @returns Authenticated client
+     */
+    static async connectToExistingAccount(address: string, password: string): Promise<MailTmClient> {
+        const client = new MailTmClient(password);
+        await client.login(address); // Uses stored password
+        return client;
     }
 }

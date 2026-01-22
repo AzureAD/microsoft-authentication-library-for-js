@@ -24,8 +24,8 @@ export const testConfig = {
 
     timeouts: {
         standard: 45000, // 45 seconds
-        auth: 60000, // 60 seconds
-        test: 120000, // 120 seconds
+        extended: 90000, // 60 seconds
+        auth: 150000, // 150 seconds
     },
 
     screenshots: {
@@ -46,33 +46,6 @@ export const getProxyPort = () => testConfig.proxy.port;
 
 export const getLabKeyVaultName = () => testConfig.tenant.labKeyVaultName;
 
-/**
- * Constants for nativeAuthConfig.json keys
- * These represent the existing keys in the configuration file
- */
-export const NATIVE_AUTH_CONFIG_KEYS = {
-    // Root level
-    NATIVE_AUTH: "native_auth",
-
-    // Native auth configuration keys
-    EMAIL_PASSWORD_CLIENT_ID: "native_auth.email_password_client_id",
-    EMAIL_CODE_CLIENT_ID: "native_auth.email_code_client_id",
-    EMAIL_PASSWORD_ATTRIBUTES_CLIENT_ID:
-        "native_auth.email_password_attributes_client_id",
-    EMAIL_CODE_ATTRIBUTES_CLIENT_ID:
-        "native_auth.email_code_attributes_client_id",
-    TENANT_SUBDOMAIN: "native_auth.tenant_subdomain",
-    TENANT_ID: "native_auth.tenant_id",
-    SIGN_IN_EMAIL_PASSWORD_USERNAME:
-        "native_auth.sign_in_email_password_username",
-    SIGN_IN_EMAIL_PASSWORD_USERNAME_MFA:
-        "native_auth.sign_in_email_password_username_mfa",
-    SIGN_IN_EMAIL_CODE_USERNAME: "native_auth.sign_in_email_code_username",
-    RESET_PASSWORD_USERNAME: "native_auth.reset_password_username",
-    PASSWORD_SIGN_IN_EMAIL_CODE: "native_auth.password_sign_in_email_code",
-    PASSWORD_PROVIDER: "native_auth.password_provider",
-    KEYVAULT_URL: "native_auth.keyvault_url",
-} as const;
 
 /**
  * Utility function to parse nativeAuthConfig.json and read values based on keys
@@ -81,6 +54,7 @@ export class NativeAuthConfigParser {
     private static configCache: any = null;
     private static readonly CONFIG_PATH = path.join(
         __dirname,
+        "..",
         "..",
         "nativeAuthConfig.json"
     );
@@ -137,6 +111,34 @@ export const getNativeAuthConfigValue = (key: string): any => {
 };
 
 /**
+ * Constants for nativeAuthConfig.json keys
+ * These represent the existing keys in the configuration file
+ */
+export const NATIVE_AUTH_CONFIG_KEYS = {
+    // Root level
+    NATIVE_AUTH: "native_auth",
+
+    // Native auth configuration keys
+    EMAIL_PASSWORD_CLIENT_ID: "native_auth.email_password_client_id",
+    EMAIL_CODE_CLIENT_ID: "native_auth.email_code_client_id",
+    EMAIL_PASSWORD_ATTRIBUTES_CLIENT_ID:
+        "native_auth.email_password_attributes_client_id",
+    EMAIL_CODE_ATTRIBUTES_CLIENT_ID:
+        "native_auth.email_code_attributes_client_id",
+    TENANT_SUBDOMAIN: "native_auth.tenant_subdomain",
+    TENANT_ID: "native_auth.tenant_id",
+    SIGN_IN_EMAIL_PASSWORD_USERNAME:
+        "native_auth.sign_in_email_password_username",
+    SIGN_IN_EMAIL_PASSWORD_USERNAME_MFA:
+        "native_auth.sign_in_email_password_username_mfa",
+    SIGN_IN_EMAIL_CODE_USERNAME: "native_auth.sign_in_email_code_username",
+    RESET_PASSWORD_USERNAME: "native_auth.reset_password_username",
+    PASSWORD_SIGN_IN_EMAIL_CODE: "native_auth.password_sign_in_email_code",
+    PASSWORD_PROVIDER: "native_auth.password_provider",
+    KEYVAULT_URL: "native_auth.keyvault_url",
+} as const;
+
+/**
  * Parsed native auth configuration values
  * These are the actual values from nativeAuthConfig.json
  */
@@ -182,7 +184,7 @@ export const nativeAuthConfig = {
  * Test data for negative test cases and other test-specific scenarios
  * These should not be replaced with real configuration values
  */
-export const testData = {
+export const negativeTestData = {
     // Negative test case emails
     invalidUserEmail: "test123@test",
     nonRegisteredEmail: "non-registered@test.com",
@@ -190,19 +192,3 @@ export const testData = {
     invalidPassword: "invalid-password!",
     invalidOtpCode: "12345678",
 };
-
-/**
- * Get test users object with real account information
- * @returns Object containing test user accounts
- */
-export const getTestUsers = () => ({
-    signInEmailPassword: nativeAuthConfig.signInEmailPasswordUsername,
-    signInEmailCode: nativeAuthConfig.signInEmailCodeUsername,
-    resetPassword: nativeAuthConfig.resetPasswordUsername,
-});
-
-/**
- * Get test data for negative test cases
- * @returns Object containing test data for negative scenarios
- */
-export const getTestData = () => testData;

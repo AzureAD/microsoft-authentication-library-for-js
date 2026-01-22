@@ -9,32 +9,29 @@ import {
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
-import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
-import { MailTmClient } from "./emailProviderUtils";
+import { startCorsProxy, stopCorsProxy } from "./utils/proxyUtils";
+import { MailTmClient } from "./utils/emailProviderUtils";
 import {
     testConfig,
     getTenantInfo,
     getProxyPort,
     getNativeAuthConfigValue,
     NATIVE_AUTH_CONFIG_KEYS,
-} from "./configUtils";
+} from "./utils/configUtils";
+import {
+    TokenVerificationUtils,
+    BrowserStateUtils,
+    UIInteractionUtils,
+} from "./utils/testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(
     __dirname,
     testConfig.screenshots.baseFolderName,
     "/mfa"
 );
+const STANDARD_TIMEOUT = testConfig.timeouts.standard;
 const AUTH_TIMEOUT = testConfig.timeouts.auth;
 let sampleHomeUrl = "";
-
-async function verifyTokensInCache(
-    BrowserCache: BrowserCacheUtils
-): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(1);
-}
 
 /**
  * Select MFA authentication method by finding option with matching text
@@ -104,8 +101,7 @@ describe("Native Auth Sample - MFA Tests", () => {
         );
 
         // Initialize email client for MFA account
-        emailClient = new MailTmClient();
-        await emailClient.login(username, emailProviderPwd);
+        emailClient = await MailTmClient.connectToExistingAccount(username, emailProviderPwd);
     });
 
     afterAll(async () => {
@@ -123,21 +119,11 @@ describe("Native Auth Sample - MFA Tests", () => {
             page,
             "sessionStorage" // Based on Native Auth Sample configuration
         );
-        // page.on("console", (msg) => {
-        //     const type = msg.type();
-        //     const text = msg.text();
-        //     console.log(`[Browser ${type}]:`, text);
-        // });
     });
 
     afterEach(async () => {
-        // Clear storage after each test
-        await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
-        });
+        // Clear storage after each test using shared utility
+        await BrowserStateUtils.cleanupBrowserState(page);
         await page.close();
     });
 
@@ -158,7 +144,7 @@ describe("Native Auth Sample - MFA Tests", () => {
                 await screenshot.takeScreenshot(page, "Page loaded");
 
                 // Click navigation Sign In button to show sign in card
-                await page.click("#showSignInBtn");
+                await UIInteractionUtils.clickElementSafely(page, "#showSignInBtn", "Show sign in button");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign in nav button clicked"
@@ -175,12 +161,7 @@ describe("Native Auth Sample - MFA Tests", () => {
                 );
 
                 // Click sign in button
-                await page.evaluate(() => {
-                    const signInButton = document.getElementById("signInBtn");
-                    if (signInButton) {
-                        signInButton.click();
-                    }
-                });
+                await UIInteractionUtils.clickElementSafely(page, "#signInBtn", "Sign in button");
                 await screenshot.takeScreenshot(page, "Sign in button clicked");
 
                 // Wait for password input card to appear
@@ -200,22 +181,13 @@ describe("Native Auth Sample - MFA Tests", () => {
                 await screenshot.takeScreenshot(page, "Password entered");
 
                 // Submit password
-                await page.waitForSelector("#submitPasswordBtn:enabled", {
-                    visible: true,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitPasswordBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    }
-                });
+                await UIInteractionUtils.waitAndClick(page, "#submitPasswordBtn", "Submit password button");
                 await screenshot.takeScreenshot(page, "Password submitted");
 
                 // Wait for MFA method selection card to appear
                 await page.waitForSelector("#mfaMethodSelectionCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
@@ -231,19 +203,13 @@ describe("Native Auth Sample - MFA Tests", () => {
                 );
 
                 // Submit MFA method selection
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitMfaMethodBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    }
-                });
+                await UIInteractionUtils.clickElementSafely(page, "#submitMfaMethodBtn", "Submit MFA method button");
                 await screenshot.takeScreenshot(page, "MFA method submitted");
 
                 // Wait for MFA challenge card to appear
                 await page.waitForSelector("#mfaChallengeCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
@@ -259,26 +225,17 @@ describe("Native Auth Sample - MFA Tests", () => {
                 await screenshot.takeScreenshot(page, "MFA OTP code entered");
 
                 // Submit MFA challenge
-                await page.click("#submitMfaChallengeBtn");
+                await UIInteractionUtils.clickElementSafely(page, "#submitMfaChallengeBtn", "Submit MFA challenge button");
 
                 // Wait for authentication to complete
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        return authStatusBanner?.textContent?.includes(
-                            "Signed in"
-                        );
-                    },
-                    { timeout: 45000 }
-                );
+                await BrowserStateUtils.waitForAuthenticationComplete(page, STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "MFA verified - authentication successful"
                 );
 
                 // Verify tokens are in cache
-                await verifyTokensInCache(BrowserCache);
+                await TokenVerificationUtils.verifySuccessfulAuthentication(BrowserCache);
             },
             AUTH_TIMEOUT
         );

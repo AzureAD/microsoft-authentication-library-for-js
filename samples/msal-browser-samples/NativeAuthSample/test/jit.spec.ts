@@ -9,32 +9,28 @@ import {
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
-import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
-import { MailTmClient } from "./emailProviderUtils";
+import { startCorsProxy, stopCorsProxy } from "./utils/proxyUtils";
+import { MailTmClient } from "./utils/emailProviderUtils";
 import {
     testConfig,
     getTenantInfo,
     getProxyPort,
-    getNativeAuthConfigValue,
-    NATIVE_AUTH_CONFIG_KEYS,
-} from "./configUtils";
+    nativeAuthConfig,
+} from "./utils/configUtils";
+import {
+    TokenVerificationUtils,
+    BrowserStateUtils,
+    UIInteractionUtils,
+} from "./utils/testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(
     __dirname,
     testConfig.screenshots.baseFolderName,
     "/jit"
 );
+const STANDARD_TIMEOUT = testConfig.timeouts.standard;
 const AUTH_TIMEOUT = testConfig.timeouts.auth;
 let sampleHomeUrl = "";
-
-async function verifyTokensInCache(
-    BrowserCache: BrowserCacheUtils
-): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(1);
-}
 
 /**
  * Select JIT authentication method by finding option with matching text
@@ -71,10 +67,10 @@ describe("Native Auth Sample - JIT Tests", () => {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     let browser: puppeteer.Browser;
-    let username: string;
+    let corsProcess: ChildProcess;
     let emailProviderPwd: string = "";
     let accountPwd: string = "";
-    let corsProcess: ChildProcess;
+    let jitEmail: string = "";
 
     beforeAll(async () => {
         // Start the CORS proxy server using configuration values
@@ -92,12 +88,9 @@ describe("Native Auth Sample - JIT Tests", () => {
         sampleHomeUrl = getHomeUrl();
 
         // Set up passwords from configuration
-        emailProviderPwd = getNativeAuthConfigValue(
-            NATIVE_AUTH_CONFIG_KEYS.PASSWORD_PROVIDER
-        );
-        accountPwd = getNativeAuthConfigValue(
-            NATIVE_AUTH_CONFIG_KEYS.PASSWORD_SIGN_IN_EMAIL_CODE
-        );
+        emailProviderPwd = nativeAuthConfig.passwordProvider;
+        accountPwd = nativeAuthConfig.passwordSignInEmailCode;
+        jitEmail = nativeAuthConfig.signInEmailPasswordUsernameMfa;
     });
 
     afterAll(async () => {
@@ -115,21 +108,11 @@ describe("Native Auth Sample - JIT Tests", () => {
             page,
             "sessionStorage" // Based on Native Auth Sample configuration
         );
-        // page.on("console", (msg) => {
-        //     const type = msg.type();
-        //     const text = msg.text();
-        //     console.log(`[Browser ${type}]:`, text);
-        // });
     });
 
     afterEach(async () => {
-        // Clear storage after each test
-        await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
-        });
+        // Clear storage after each test using shared utility
+        await BrowserStateUtils.cleanupBrowserState(page);
         await page.close();
     });
 
@@ -138,52 +121,43 @@ describe("Native Auth Sample - JIT Tests", () => {
 
         beforeEach(async () => {
             await page.goto(sampleHomeUrl + `?usePwdConfig=true&useMFA=true`);
-
             await pcaInitializedPoller(page, AUTH_TIMEOUT);
+
+            // Verify that no user signed in initially
+            await BrowserStateUtils.verifyNotSignedIn(page);
+
+            await UIInteractionUtils.waitAndClick(page, "#showSignUpBtn", "Show sign up button");
+            // Wait for sign up card to be visible
+            await page.waitForSelector("#signUpCard", { visible: true });
         });
 
         it(
-            "Sign up with email/password and complete JIT registration using different email (requires OTP verification)",
+            "Sign up with email/password and complete JIT registration using different email",
             async () => {
+                const testName = "SignUpWithJit";
                 screenshot = new Screenshot(
-                    `${SCREENSHOT_BASE_FOLDER_NAME}/SignUpWithJitVerfication`
+                    `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
-                await screenshot.takeScreenshot(page, "Page loaded");
-
-                const emailClient = new MailTmClient(emailProviderPwd);
-                const { address: signUpEmail } =
-                    await emailClient.createInbox();
-                username = signUpEmail;
-                await emailClient.login(signUpEmail, emailProviderPwd);
-
                 // Click navigation Sign Up button to show sign up card
-                await page.click("#showSignUpBtn");
                 await screenshot.takeScreenshot(
                     page,
-                    "Sign up nav button clicked"
+                    "Sign up form displayed"
                 );
 
-                // Wait for sign up card to be visible
-                await page.waitForSelector("#signUpCard", { visible: true });
+                const { client: emailClient, address: signUpEmail } =
+                    await MailTmClient.createAuthenticatedAccount(emailProviderPwd);
 
                 // Enter sign up details
-                await page.type("#signUpFirstName", "TestFirstName");
-                await page.type("#signUpLastName", "TestLastName");
-                await page.type("#signUpUsername", username);
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", "TestFirstName", "First name");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", "TestLastName", "Last name");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", signUpEmail, "Username");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign up details entered"
                 );
 
                 // Click sign up button
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                await UIInteractionUtils.clickElementSafely(page, "#signUpBtn", "Sign up button");
                 await screenshot.takeScreenshot(page, "Sign up button clicked");
 
                 // Wait for OTP verification card to appear
@@ -200,27 +174,11 @@ describe("Native Auth Sample - JIT Tests", () => {
                 expect(otpCode).toBeDefined();
 
                 // Enter OTP code
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.type("#verificationCode", otpCode!);
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", otpCode!, "OTP code", true);
                 await screenshot.takeScreenshot(page, "OTP code entered");
 
                 // Submit OTP code
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button");
                 await screenshot.takeScreenshot(page, "OTP code submitted");
 
                 // Wait for password input card
@@ -233,33 +191,17 @@ describe("Native Auth Sample - JIT Tests", () => {
                 );
 
                 // Enter password
-                await page.waitForSelector("#signUpPassword", {
-                    visible: true,
-                });
-                await page.type("#signUpPassword", accountPwd);
+                await UIInteractionUtils.typeIntoElement(page, "#signUpPassword", accountPwd, "Sign up password");
                 await screenshot.takeScreenshot(page, "Password entered");
 
                 // Submit password
-                await page.waitForSelector("#submitSignUpPasswordBtn:enabled", {
-                    visible: true,
-                });
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById(
-                        "submitSignUpPasswordBtn"
-                    );
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit password button not found in the DOM"
-                        );
-                    }
-                });
+                await UIInteractionUtils.waitAndClick(page, "#submitSignUpPasswordBtn", "Submit sign up password button");
                 await screenshot.takeScreenshot(page, "Password submitted");
 
                 // Wait for JIT method selection card
                 await page.waitForSelector("#jitMethodSelectionCard", {
                     visible: true,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
@@ -267,10 +209,8 @@ describe("Native Auth Sample - JIT Tests", () => {
                 );
 
                 // Create a new email account for JIT verification (different from sign-up email)
-                const jitEmailClient = new MailTmClient(emailProviderPwd);
-                const { address: jitEmail } =
-                    await jitEmailClient.createInbox();
-                await jitEmailClient.login(jitEmail, emailProviderPwd);
+                const { client: jitEmailClient, address: jitEmail } =
+                    await MailTmClient.createAuthenticatedAccount(emailProviderPwd);
 
                 // Select email OTP as JIT method
                 const emailMethodValue = await selectJitMethod(page, "email");
@@ -281,14 +221,14 @@ describe("Native Auth Sample - JIT Tests", () => {
                 );
 
                 // Enter verification contact (DIFFERENT email from sign-up)
-                await page.type("#jitVerificationContact", jitEmail);
+                await UIInteractionUtils.typeIntoElement(page, "#jitVerificationContact", jitEmail, "JIT verification email");
                 await screenshot.takeScreenshot(
                     page,
                     "JIT different email entered"
                 );
 
                 // Click submit button
-                await page.click("#submitJitMethodBtn");
+                await UIInteractionUtils.clickElementSafely(page, "#submitJitMethodBtn", "Submit JIT method button");
                 await screenshot.takeScreenshot(
                     page,
                     "JIT method submit button clicked"
@@ -297,7 +237,7 @@ describe("Native Auth Sample - JIT Tests", () => {
                 // Wait for challenge card to appear (verification required scenario)
                 await page.waitForSelector("#jitChallengeCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
@@ -309,30 +249,21 @@ describe("Native Auth Sample - JIT Tests", () => {
                 expect(jitOtpCode).toBeDefined();
 
                 // Enter JIT OTP code
-                await page.type("#jitChallengeCode", jitOtpCode!);
+                await UIInteractionUtils.typeIntoElement(page, "#jitChallengeCode", jitOtpCode!, "JIT challenge code", true);
                 await screenshot.takeScreenshot(page, "JIT OTP code entered");
 
                 // Submit JIT challenge
-                await page.click("#submitJitChallengeBtn");
+                await UIInteractionUtils.clickElementSafely(page, "#submitJitChallengeBtn", "Submit JIT challenge button");
 
                 // Wait for authentication to complete
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        return authStatusBanner?.textContent?.includes(
-                            "Signed in"
-                        );
-                    },
-                    { timeout: 40000 }
-                );
+                await BrowserStateUtils.waitForAuthenticationComplete(page, STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "JIT verified - authentication successful"
                 );
 
                 // Verify tokens are in cache
-                await verifyTokensInCache(BrowserCache);
+                await TokenVerificationUtils.verifySuccessfulAuthentication(BrowserCache);
 
                 // No need to delete inbox, Mail.tm inboxes are ephemeral
             },
@@ -340,39 +271,34 @@ describe("Native Auth Sample - JIT Tests", () => {
         );
     });
 
-    describe("JIT Flow - Sign In + JIT Verification", () => {
+    describe("JIT Flow - Sign Up new account, then sign in with JIT Verification", () => {
         let screenshot: Screenshot;
 
         beforeEach(async () => {
-            screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/SignInWithJit`
-            );
-
-            // Use the configured username for sign-in
-            username = getNativeAuthConfigValue(
-                "native_auth.sign_in_email_password_username_mfa"
-            );
-
             await page.goto(sampleHomeUrl + `?usePwdConfig=true&useMFA=true`);
-
             await pcaInitializedPoller(page, AUTH_TIMEOUT);
+
+            // Verify that no user signed in initially
+            await BrowserStateUtils.verifyNotSignedIn(page);
         });
 
         it(
             "Sign in with existing account and complete JIT registration using OTP",
             async () => {
+                const testName = "SignInWithJit";
+                screenshot = new Screenshot(
+                    `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+                );
                 await screenshot.takeScreenshot(page, "Page loaded");
 
                 // PHASE 1: Create a new account but stop before completing MFA setup
                 // This creates an account that exists but hasn't completed JIT registration
-                const emailClient = new MailTmClient(emailProviderPwd);
-                const { address: signUpEmail } =
-                    await emailClient.createInbox();
+                const { client: emailClient, address: signUpEmail } =
+                    await MailTmClient.createAuthenticatedAccount(emailProviderPwd);
                 const newAccountEmail = signUpEmail;
-                await emailClient.login(signUpEmail, emailProviderPwd);
 
                 // Click navigation Sign Up button to show sign up card
-                await page.click("#showSignUpBtn");
+                await UIInteractionUtils.waitAndClick(page, "#showSignUpBtn", "Show sign up button");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign up nav button clicked"
@@ -382,21 +308,16 @@ describe("Native Auth Sample - JIT Tests", () => {
                 await page.waitForSelector("#signUpCard", { visible: true });
 
                 // Enter sign up details
-                await page.type("#signUpFirstName", "TestFirstName");
-                await page.type("#signUpLastName", "TestLastName");
-                await page.type("#signUpUsername", newAccountEmail);
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", "TestFirstName", "First name");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", "TestLastName", "Last name");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", newAccountEmail, "Username");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign up details entered"
                 );
 
                 // Click sign up button
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    }
-                });
+                await UIInteractionUtils.clickElementSafely(page, "#signUpBtn", "Sign up button");
                 await screenshot.takeScreenshot(page, "Sign up button clicked");
 
                 // Wait for OTP verification card to appear
@@ -413,26 +334,14 @@ describe("Native Auth Sample - JIT Tests", () => {
                 expect(signUpOtpCode).toBeDefined();
 
                 // Enter OTP code
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.type("#verificationCode", signUpOtpCode!);
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", signUpOtpCode!, "Sign up OTP code", true);
                 await screenshot.takeScreenshot(
                     page,
                     "Sign up OTP code entered"
                 );
 
                 // Submit OTP code
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    }
-                });
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign up OTP code submitted"
@@ -448,27 +357,14 @@ describe("Native Auth Sample - JIT Tests", () => {
                 );
 
                 // Enter password
-                await page.waitForSelector("#signUpPassword", {
-                    visible: true,
-                });
-                await page.type("#signUpPassword", accountPwd);
+                await UIInteractionUtils.typeIntoElement(page, "#signUpPassword", accountPwd, "Sign up password");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign up password entered"
                 );
 
                 // Submit password - this completes sign up but doesn't set up MFA
-                await page.waitForSelector("#submitSignUpPasswordBtn:enabled", {
-                    visible: true,
-                });
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById(
-                        "submitSignUpPasswordBtn"
-                    );
-                    if (submitButton) {
-                        submitButton.click();
-                    }
-                });
+                await UIInteractionUtils.waitAndClick(page, "#submitSignUpPasswordBtn", "Submit sign up password button");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign up password submitted"
@@ -476,12 +372,7 @@ describe("Native Auth Sample - JIT Tests", () => {
 
                 // Account is now created but MFA not set up
                 // Clear session to prepare for sign-in
-                await page.evaluate(() => {
-                    Object.assign({}, window.sessionStorage.clear());
-                });
-                await page.evaluate(() => {
-                    Object.assign({}, window.localStorage.clear());
-                });
+                await BrowserStateUtils.cleanupBrowserState(page);
 
                 // Reload the page to start fresh
                 await page.goto(
@@ -495,7 +386,7 @@ describe("Native Auth Sample - JIT Tests", () => {
 
                 // PHASE 2: Sign in with the newly created account
                 // This should trigger JIT because MFA is not set up
-                await page.click("#showSignInBtn");
+                await UIInteractionUtils.waitAndClick(page, "#showSignInBtn", "Show sign in button");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign in nav button clicked"
@@ -505,19 +396,14 @@ describe("Native Auth Sample - JIT Tests", () => {
                 await page.waitForSelector("#signInCard", { visible: true });
 
                 // Enter sign in details with the newly created account
-                await page.type("#username", newAccountEmail);
+                await UIInteractionUtils.typeIntoElement(page, "#username", newAccountEmail, "Username");
                 await screenshot.takeScreenshot(
                     page,
                     "Sign in details entered"
                 );
 
                 // Click sign in button
-                await page.evaluate(() => {
-                    const signInButton = document.getElementById("signInBtn");
-                    if (signInButton) {
-                        signInButton.click();
-                    }
-                });
+                await UIInteractionUtils.clickElementSafely(page, "#signInBtn", "Sign in button");
                 await screenshot.takeScreenshot(page, "Sign in button clicked");
 
                 // Wait for password input card to appear
@@ -530,42 +416,25 @@ describe("Native Auth Sample - JIT Tests", () => {
                 );
 
                 // Enter password
-                await page.waitForSelector("#signInPassword", {
-                    visible: true,
-                });
-                await page.type("#signInPassword", accountPwd);
+                await UIInteractionUtils.typeIntoElement(page, "#signInPassword", accountPwd, "Sign in password");
                 await screenshot.takeScreenshot(page, "Password entered");
 
                 // Submit password
-                await page.waitForSelector("#submitPasswordBtn:enabled", {
-                    visible: true,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitPasswordBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    }
-                });
+                await UIInteractionUtils.waitAndClick(page, "#submitPasswordBtn", "Submit password button");
                 await screenshot.takeScreenshot(page, "Password submitted");
 
                 // Wait for JIT method selection card - this proves JIT is triggered
                 await page.waitForSelector("#jitMethodSelectionCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
                     "JIT method selection displayed"
                 );
 
-                // Use configured email for JIT verification
-                const jitEmail = getNativeAuthConfigValue(
-                    NATIVE_AUTH_CONFIG_KEYS.SIGN_IN_EMAIL_PASSWORD_USERNAME_MFA
-                );
                 // Create email client for configured JIT email
-                const jitEmailClient = new MailTmClient(emailProviderPwd);
-                await jitEmailClient.login(jitEmail, emailProviderPwd);
+                const jitEmailClient = await MailTmClient.connectToExistingAccount(jitEmail, emailProviderPwd);
 
                 // Select email OTP as JIT method
                 const emailMethodValue = await selectJitMethod(page, "email");
@@ -576,12 +445,11 @@ describe("Native Auth Sample - JIT Tests", () => {
                 );
 
                 // Enter the JIT email address
-                await page.waitForSelector("#jitVerificationContact");
-                await page.type("#jitVerificationContact", jitEmail);
+                await UIInteractionUtils.typeIntoElement(page, "#jitVerificationContact", jitEmail, "JIT verification email");
                 await screenshot.takeScreenshot(page, "JIT email entered");
 
                 // Click submit button
-                await page.click("#submitJitMethodBtn");
+                await UIInteractionUtils.waitAndClick(page, "#submitJitMethodBtn", "Submit JIT method button");
                 await screenshot.takeScreenshot(
                     page,
                     "JIT method submit button clicked"
@@ -590,7 +458,7 @@ describe("Native Auth Sample - JIT Tests", () => {
                 // Wait for challenge card to appear
                 await page.waitForSelector("#jitChallengeCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
@@ -601,30 +469,21 @@ describe("Native Auth Sample - JIT Tests", () => {
                 const jitOtpCode = await jitEmailClient.readOtpCode();
                 expect(jitOtpCode).toBeDefined();
                 // Enter JIT OTP code
-                await page.type("#jitChallengeCode", jitOtpCode!);
+                await UIInteractionUtils.typeIntoElement(page, "#jitChallengeCode", jitOtpCode!, "JIT challenge code", true);
                 await screenshot.takeScreenshot(page, "JIT OTP code entered");
 
                 // Submit JIT challenge
-                await page.click("#submitJitChallengeBtn");
+                await UIInteractionUtils.waitAndClick(page, "#submitJitChallengeBtn", "Submit JIT challenge button");
 
                 // Wait for authentication to complete
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        return authStatusBanner?.textContent?.includes(
-                            "Signed in"
-                        );
-                    },
-                    { timeout: 45000 }
-                );
+                await BrowserStateUtils.waitForAuthenticationComplete(page, STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "JIT verified - authentication successful"
                 );
 
                 // Verify tokens are in cache
-                await verifyTokensInCache(BrowserCache);
+                await TokenVerificationUtils.verifySuccessfulAuthentication(BrowserCache);
 
                 // No need to delete inbox, Mail.tm inboxes are ephemeral
             },

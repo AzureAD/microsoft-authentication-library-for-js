@@ -14,16 +14,21 @@ import {
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
-import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
-import { MailTmClient } from "./emailProviderUtils";
+import { startCorsProxy, stopCorsProxy } from "./utils/proxyUtils";
+import { MailTmClient } from "./utils/emailProviderUtils";
 
 import {
     testConfig,
     getTenantInfo,
     getProxyPort,
     nativeAuthConfig,
-    testData,
-} from "./configUtils";
+    negativeTestData,
+} from "./utils/configUtils";
+import {
+    TokenVerificationUtils,
+    BrowserStateUtils,
+    UIInteractionUtils,
+} from "./utils/testUtils";
 
 // Use configuration instead of hardcoded values
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(
@@ -31,6 +36,7 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(
     testConfig.screenshots.baseFolderName,
     "/signup"
 );
+const STANDARD_TIMEOUT = testConfig.timeouts.standard;
 const AUTH_TIMEOUT = testConfig.timeouts.auth;
 let sampleHomeUrl = "";
 
@@ -82,13 +88,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
     });
 
     afterEach(async () => {
-        // Clear storage after each test
-        await page.evaluate(() => {
-            Object.assign({}, window.sessionStorage.clear());
-        });
-        await page.evaluate(() => {
-            Object.assign({}, window.localStorage.clear());
-        });
+        // Clear storage after each test using shared utility
+        await BrowserStateUtils.cleanupBrowserState(page);
         await page.close();
     });
 
@@ -97,30 +98,16 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             await page.goto(sampleHomeUrl + `?usePwdConfig=true`);
 
             // Wait for the application to initialize
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            // Verify sign-up button is visible on the navigation bar
-            const showSignUpBtn = await page.$("#showSignUpBtn");
-            expect(showSignUpBtn).toBeTruthy();
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
-            // Click sign-up button on the navigation bar
-            await page.click("#showSignUpBtn");
+            // Verify that no user signed in initially
+            await BrowserStateUtils.verifyNotSignedIn(page);
 
-            // Verify sign-up card is visible
-            const signUpCard = await page.$("#signUpCard");
-            expect(signUpCard).toBeTruthy();
+            // Wait for sign-up button and click it
+            await UIInteractionUtils.waitAndClick(page, "#showSignUpBtn", "Show sign up button", STANDARD_TIMEOUT);
 
-            // Verify sign-up form elements are present
-            const usernameInput = await page.$("#signUpUsername");
-            const signUpButton = await page.$("#signUpBtn");
-            expect(usernameInput).toBeTruthy();
-            expect(signUpButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isSignUpCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("signUpCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isSignUpCardVisible).toBe(true);
+            // Verify sign-up card and form elements are visible
+            await page.waitForSelector("#signUpCard", { visible: true, timeout: STANDARD_TIMEOUT });
         });
 
         it(
@@ -131,138 +118,60 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Create a new email inbox using password_provider
-                const emailClient = new MailTmClient(emailProviderPwd);
-                const { address: signUpEmail } =
-                    await emailClient.createInbox();
+                // Create authenticated email account using factory method
+                const { client: emailClient, address: signUpEmail } =
+                    await MailTmClient.createAuthenticatedAccount(emailProviderPwd);
 
                 // Enter user details in the sign-up form
-                await page.waitForSelector("#signUpFirstName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", signUpEmail, "Username field");
 
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", signUpEmail);
-
-                // Click sign-up button
-                await page.waitForSelector("#signUpBtn", { visible: true });
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#signUpBtn", "Sign up button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "signUpButtonClicked");
 
                 // Wait for OTP verification card to appear
                 await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: AUTH_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
                     "otpVerificationDisplayed"
                 );
 
-                // Login to the email account and then get OTP code
-                await emailClient.login(signUpEmail, emailProviderPwd);
+                // Read OTP code from authenticated email account
                 const otpCode = await emailClient.readOtpCode();
 
-                // Enter and submit OTP code
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", otpCode);
+                // Enter and submit OTP code using shared utility with field clearing
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", otpCode, "OTP verification code field", true);
                 await screenshot.takeScreenshot(page, "otpCodeEntered");
 
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Use shared utility for consistent timeout and click behavior
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "otpSubmitted");
 
                 // Wait for password input card (if required)
                 await page.waitForSelector("#signUpPasswordCard", {
                     visible: true,
-                    timeout: 35000,
+                    timeout: AUTH_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "passwordInputDisplayed");
 
-                // Enter password using config value
-                await page.waitForSelector("#signUpPassword", {
-                    visible: true,
-                });
-                await page.type(
-                    "#signUpPassword",
-                    nativeAuthConfig.passwordSignInEmailCode
-                );
+                // Enter password using config value with shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#signUpPassword", nativeAuthConfig.passwordSignInEmailCode, "Password field");
                 await screenshot.takeScreenshot(page, "passwordEntered");
 
-                // Submit password
-                await page.waitForSelector("#submitSignUpPasswordBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById(
-                        "submitSignUpPasswordBtn"
-                    );
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit password button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit password using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitSignUpPasswordBtn", "Submit password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "passwordSubmitted");
 
-                // Wait for successful signup completion
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        const isSignedIn =
-                            authStatusBanner &&
-                            authStatusBanner.textContent?.includes("Signed in");
-                        return isSignedIn;
-                    },
-                    { timeout: 35000 }
-                );
+                // Wait for successful signup completion using shared utility
+                await BrowserStateUtils.waitForAuthenticationComplete(page, AUTH_TIMEOUT);
 
-                // Verify tokens and authentication
-                const tokenStore = await BrowserCache.getTokens();
-                expect(tokenStore.idTokens).toHaveLength(1);
-                expect(tokenStore.accessTokens).toHaveLength(1);
-                expect(tokenStore.refreshTokens).toHaveLength(1);
-                expect(await BrowserCache.getAccountFromCache()).toBeDefined();
-                expect(
-                    await BrowserCache.accessTokenForScopesExists(
-                        tokenStore.accessTokens,
-                        ["openid", "profile", "user.read"]
-                    )
-                ).toBeTruthy();
+                // Verify tokens and authentication using shared utility
+                await TokenVerificationUtils.verifySuccessfulAuthentication(BrowserCache);
 
                 await screenshot.takeScreenshot(page, "signUpCompleted");
             },
@@ -277,71 +186,35 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Create a new email inbox using password_provider
-                const emailClient = new MailTmClient(emailProviderPwd);
-                const { address: signUpEmail } =
-                    await emailClient.createInbox();
+                // Create authenticated email account using factory method
+                const { client: emailClient, address: signUpEmail } =
+                    await MailTmClient.createAuthenticatedAccount(emailProviderPwd);
 
                 // Phase 1: Enter user details and initiate signup
-                await page.waitForSelector("#signUpFirstName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", signUpEmail, "Username field");
 
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", signUpEmail);
-
-                // Click sign-up button
-                await page.waitForSelector("#signUpBtn", { visible: true });
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#signUpBtn", "Sign up button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "1_signUpButtonClicked");
 
                 // Wait for OTP verification card to appear
                 await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
                     "2_otpVerificationDisplayed"
                 );
 
-                // Phase 2: Enter incorrect OTP and handle error
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", "12345678"); // Incorrect OTP
+                // Phase 2: Enter incorrect OTP and handle error using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", "12345678", "OTP verification code field", true);
                 await screenshot.takeScreenshot(page, "3_incorrectOtpEntered");
 
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Use shared utility for consistent timeout and click behavior
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "4_incorrectOtpSubmitted"
@@ -350,7 +223,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 // Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "5_errorBannerDisplayed");
 
@@ -363,115 +236,55 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     "AADSTS50181: Unable to validate the otp"
                 );
 
-                // Dismiss error banner
-                const dismissBtn = await page.$("#dismissErrorBtn");
-                if (dismissBtn) {
-                    await page.click("#dismissErrorBtn");
-                    await screenshot.takeScreenshot(page, "6_errorDismissed");
-                }
+                // Dismiss error banner using shared utility
+                await UIInteractionUtils.clickElementSafely(page, "#dismissErrorBtn", "Dismiss error button");
+                await screenshot.takeScreenshot(page, "6_errorDismissed");
 
-                // Phase 3: Resend verification code
-                await page.waitForSelector("#resendCodeBtn", { visible: true });
-                await page.click("#resendCodeBtn");
+                // Phase 3: Resend verification code using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#resendCodeBtn", "Resend code button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "7_resendCodeClicked");
 
                 // Wait a moment for resend to process
                 await new Promise((resolve) => setTimeout(resolve, 2000));
 
-                // Phase 4: Login to email and get the new OTP code
-                await emailClient.login(signUpEmail, emailProviderPwd);
+                // Phase 4: Get new OTP code from already authenticated email client
                 const otpCode = await emailClient.readOtpCode();
 
-                // Phase 5: Enter correct OTP and submit
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", otpCode);
+                // Phase 5: Enter correct OTP and submit using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", otpCode, "OTP verification code field", true);
                 await screenshot.takeScreenshot(page, "8_correctOtpEntered");
 
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit OTP using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "9_correctOtpSubmitted");
 
                 // Phase 6: Wait for password input card and create password
                 await page.waitForSelector("#signUpPasswordCard", {
                     visible: true,
-                    timeout: 35000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
                     "10_passwordInputDisplayed"
                 );
 
-                // Enter password meeting requirements using config value
-                await page.waitForSelector("#signUpPassword", {
-                    visible: true,
-                });
-                await page.type("#signUpPassword", accountPwd);
+                // Enter password using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#signUpPassword", accountPwd, "Password field");
                 await screenshot.takeScreenshot(page, "11_passwordEntered");
 
-                // Submit password
-                await page.waitForSelector("#submitSignUpPasswordBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById(
-                        "submitSignUpPasswordBtn"
-                    );
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit password button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit password using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitSignUpPasswordBtn", "Submit password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "12_passwordSubmitted");
 
-                // Phase 7: Wait for successful signup completion and automatic sign-in
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        const isSignedIn =
-                            authStatusBanner &&
-                            authStatusBanner.textContent?.includes("Signed in");
-                        return isSignedIn;
-                    },
-                    { timeout: 35000 }
-                );
+                // Phase 7: Wait for successful signup completion using shared utility
+                await BrowserStateUtils.waitForAuthenticationComplete(page, AUTH_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "13_automaticSignInCompleted"
                 );
 
-                // Phase 8: Verify tokens and authentication state
-                const tokenStore = await BrowserCache.getTokens();
-                expect(tokenStore.idTokens).toHaveLength(1);
-                expect(tokenStore.accessTokens).toHaveLength(1);
-                expect(tokenStore.refreshTokens).toHaveLength(1);
-                expect(await BrowserCache.getAccountFromCache()).toBeDefined();
-                expect(
-                    await BrowserCache.accessTokenForScopesExists(
-                        tokenStore.accessTokens,
-                        ["openid", "profile", "user.read"]
-                    )
-                ).toBeTruthy();
+                // Phase 8: Verify tokens and authentication state using shared utility
+                await TokenVerificationUtils.verifySuccessfulAuthentication(BrowserCache);
 
                 // Verify user is actually signed in
                 const finalAuthStatus = await page.$eval(
@@ -491,30 +304,18 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             await page.goto(sampleHomeUrl + `?usePwdConfig=true`);
 
             // Wait for the application to initialize
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            // Verify sign-up button is visible on the navigation bar
-            const showSignUpBtn = await page.$("#showSignUpBtn");
-            expect(showSignUpBtn).toBeTruthy();
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
-            // Click sign-up button on the navigation bar
-            await page.click("#showSignUpBtn");
+            // Verify that no user signed in initially
+            await BrowserStateUtils.verifyNotSignedIn(page);
 
-            // Verify sign-up card is visible
-            const signUpCard = await page.$("#signUpCard");
-            expect(signUpCard).toBeTruthy();
+            // Wait for sign-up button and click it
+            await UIInteractionUtils.waitAndClick(page, "#showSignUpBtn", "Show sign up button", STANDARD_TIMEOUT);
 
-            // Verify sign-up form elements are present
-            const usernameInput = await page.$("#signUpUsername");
-            const signUpButton = await page.$("#signUpBtn");
-            expect(usernameInput).toBeTruthy();
-            expect(signUpButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isSignUpCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("signUpCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isSignUpCardVisible).toBe(true);
+            // Verify sign-up card and form elements are visible
+            await page.waitForSelector("#signUpCard", { visible: true });
+            await page.waitForSelector("#signUpUsername", { visible: true });
+            await page.waitForSelector("#signUpBtn", { visible: true });
         });
 
         it(
@@ -531,33 +332,16 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
                 // Use invalid email format - missing TLD as specified
                 const invalidEmail = "test-1733090331456-k8x9mq@example";
-                // Enter user details in the sign-up form
-                await page.waitForSelector("#signUpFirstName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
-
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", invalidEmail);
+                // Enter user details in the sign-up form using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", invalidEmail, "Username field");
 
                 // Make sure sign-up button is visible and clickable
                 await page.waitForSelector("#signUpBtn", { visible: true });
 
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.clickElementSafely(page, "#signUpBtn", "Sign up button");
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -601,33 +385,16 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     );
                 }
 
-                // Enter username in the sign-up form and click sign-up button
-                await page.waitForSelector("#signUpFirstName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
-
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", existingPwdEmail);
+                // Enter username in the sign-up form using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", existingPwdEmail, "Username field");
 
                 // Make sure sign-up button is visible and clickable
                 await page.waitForSelector("#signUpBtn", { visible: true });
 
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.clickElementSafely(page, "#signUpBtn", "Sign up button");
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -684,33 +451,13 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 // Use mock email - no real email service needed for negative test
                 const signUpEmail = generateMockEmail();
 
-                // Enter user details in the sign-up form
-                await page.waitForSelector("#signUpFirstName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
+                // Enter user details in the sign-up form using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", signUpEmail, "Username field");
 
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", signUpEmail);
-
-                // Make sure sign-up button is visible and clickable
-                await page.waitForSelector("#signUpBtn", { visible: true });
-
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#signUpBtn", "Sign up button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -719,7 +466,10 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 }
 
                 // Wait for code input card to appear
-                await page.waitForSelector("#codeVerificationCard");
+                await page.waitForSelector("#codeVerificationCard", {
+                    visible: true,
+                    timeout: STANDARD_TIMEOUT
+                });
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -727,29 +477,28 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     );
                 }
 
-                // Enter code and submit - ensure code field is fully visible first
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.type("#verificationCode", "12345678"); // Enter incorrect code
+                // Enter incorrect OTP using shared utility with field clearing
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", "12345678", "OTP verification code field", true);
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
                         "verificationCodeEntered"
                     );
                 }
-                await page.click("#submitCodeBtn");
+
+                // Submit OTP using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
                         "submitCodeButtonClicked"
                     );
                 }
-                // Wait for error message to appear
-                // Wait for the error banner to appear with increased timeout
+
+                // Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 if (screenshot) {
                     await screenshot.takeScreenshot(
@@ -782,36 +531,17 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     );
                 }
 
-                // Create a new email inbox using password_provider
-                const emailClient = new MailTmClient(emailProviderPwd);
-                const { address: signUpEmail } =
-                    await emailClient.createInbox();
+                // Create authenticated email account using factory method
+                const { client: emailClient, address: signUpEmail } =
+                    await MailTmClient.createAuthenticatedAccount(emailProviderPwd);
 
-                // Phase 1: Enter user details and initiate signup
-                await page.waitForSelector("#signUpFirstName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
+                // Phase 1: Enter user details and initiate signup using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", signUpEmail, "Username field");
 
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", signUpEmail);
-
-                // Click sign-up button
-                await page.waitForSelector("#signUpBtn", { visible: true });
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#signUpBtn", "Sign up button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -822,7 +552,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 // Phase 2: Wait for OTP verification card to appear
                 await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 if (screenshot) {
                     await screenshot.takeScreenshot(
@@ -831,16 +561,11 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     );
                 }
 
-                // Phase 3: Login to email and get OTP code
-                await emailClient.login(signUpEmail, emailProviderPwd);
+                // Phase 3: Get OTP code from already authenticated email client
                 const otpCode = await emailClient.readOtpCode();
 
-                // Phase 4: Enter correct OTP and submit
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", otpCode);
+                // Phase 4: Enter correct OTP and submit using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", otpCode, "OTP verification code field", true);
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -848,21 +573,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     );
                 }
 
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit OTP using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(page, "4_otpSubmitted");
                 }
@@ -870,7 +582,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 // Phase 5: Wait for password input card to appear
                 await page.waitForSelector("#signUpPasswordCard", {
                     visible: true,
-                    timeout: 35000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 if (screenshot) {
                     await screenshot.takeScreenshot(
@@ -879,11 +591,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     );
                 }
 
-                // Phase 6: Enter invalid password (from test data)
-                await page.waitForSelector("#signUpPassword", {
-                    visible: true,
-                });
-                await page.type("#signUpPassword", testData.invalidPassword);
+                // Phase 6: Enter invalid password using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#signUpPassword", negativeTestData.invalidPassword, "Password field");
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -891,23 +600,8 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     );
                 }
 
-                // Submit invalid password
-                await page.waitForSelector("#submitSignUpPasswordBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById(
-                        "submitSignUpPasswordBtn"
-                    );
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit password button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit invalid password using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitSignUpPasswordBtn", "Submit password button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -918,7 +612,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 // Phase 7: Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 if (screenshot) {
                     await screenshot.takeScreenshot(
@@ -956,82 +650,48 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 await page.goto(sampleHomeUrl + `?usePwdConfig=true`);
                 await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
-                // Navigate to sign in form
-                await page.click("#showSignInBtn");
-                await page.waitForSelector("#username", { visible: true });
-                await page.type("#username", existingPwdEmail);
-                await page.click("#signInBtn");
+                // Navigate to sign in form using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#showSignInBtn", "Show sign in button", STANDARD_TIMEOUT);
+                await UIInteractionUtils.typeIntoElement(page, "#username", existingPwdEmail, "Username field");
+                await UIInteractionUtils.waitAndClick(page, "#signInBtn", "Sign in button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(page, "1_signInInitiated");
                 }
 
-                // Enter password for sign in
-                await page.waitForSelector("#passwordInputCard");
-                await page.waitForSelector("#signInPassword", {
+                // Enter password for sign in using shared utilities
+                await page.waitForSelector("#passwordInputCard", {
                     visible: true,
+                    timeout: STANDARD_TIMEOUT
                 });
-                await page.type("#signInPassword", accountPwd);
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitPasswordBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error("Submit button not found in the DOM");
-                    }
-                });
+                await UIInteractionUtils.typeIntoElement(page, "#signInPassword", accountPwd, "Password field");
+                await UIInteractionUtils.waitAndClick(page, "#submitPasswordBtn", "Submit password button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(page, "2_signInCompleted");
                 }
 
-                // Wait for successful sign-in
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        const isSignedIn =
-                            authStatusBanner &&
-                            authStatusBanner.textContent?.includes("Signed in");
-                        return isSignedIn;
-                    },
-                    { timeout: 30000 }
-                );
+                // Wait for successful sign-in using shared utility
+                await BrowserStateUtils.waitForAuthenticationComplete(page, AUTH_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(page, "3_userSignedIn");
                 }
 
                 // Phase 2: Now try to sign up with the same email while signed in
-                await page.click("#showSignUpBtn");
-                await page.waitForSelector("#signUpCard");
-
-                // Fill sign-up form with same user details
-                await page.waitForSelector("#signUpFirstName", {
+                await UIInteractionUtils.waitAndClick(page, "#showSignUpBtn", "Show sign up button", STANDARD_TIMEOUT);
+                await page.waitForSelector("#signUpCard", {
                     visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
+                    timeout: STANDARD_TIMEOUT
                 });
 
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", existingPwdEmail); // Same email
+                // Fill sign-up form with same user details using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", existingPwdEmail, "Username field"); // Same email
                 if (screenshot) {
                     await screenshot.takeScreenshot(page, "4_signUpFormFilled");
                 }
 
-                // Submit sign-up form
-                await page.waitForSelector("#signUpBtn", { visible: true });
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Submit sign-up form using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#signUpBtn", "Sign up button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(page, "5_signUpAttempted");
                 }
@@ -1039,7 +699,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 // Phase 3: Verify error message about needing to sign out first
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 if (screenshot) {
                     await screenshot.takeScreenshot(
@@ -1068,29 +728,16 @@ describe("Native Auth Sample - Sign Up Tests", () => {
             // Wait for the application to initialize
             await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
-            // Verify sign-up button is visible on the navigation bar
-            const showSignUpBtn = await page.$("#showSignUpBtn");
-            expect(showSignUpBtn).toBeTruthy();
+            // Verify that no user signed in initially
+            await BrowserStateUtils.verifyNotSignedIn(page);
 
-            // Click sign-up button on the navigation bar
-            await page.click("#showSignUpBtn");
+            // Wait for sign-up button and click it
+            await UIInteractionUtils.waitAndClick(page, "#showSignUpBtn", "Show sign up button", STANDARD_TIMEOUT);
 
-            // Verify sign-up card is visible
-            const signUpCard = await page.$("#signUpCard");
-            expect(signUpCard).toBeTruthy();
-
-            // Verify sign-up form elements are present
-            const usernameInput = await page.$("#signUpUsername");
-            const signUpButton = await page.$("#signUpBtn");
-            expect(usernameInput).toBeTruthy();
-            expect(signUpButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isSignUpCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("signUpCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isSignUpCardVisible).toBe(true);
+            // Verify sign-up card and form elements are visible
+            await page.waitForSelector("#signUpCard", { visible: true });
+            await page.waitForSelector("#signUpUsername", { visible: true });
+            await page.waitForSelector("#signUpBtn", { visible: true });
         });
 
         it(
@@ -1101,106 +748,49 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Create a new email inbox using password_provider with retry logic
-                const emailClient = new MailTmClient(emailProviderPwd);
-                const { address: signUpEmail } =
-                    await emailClient.createInbox();
+                // Create authenticated email account using factory method
+                const { client: emailClient, address: signUpEmail } =
+                    await MailTmClient.createAuthenticatedAccount(emailProviderPwd);
 
-                // Phase 1: Enter user details and initiate signup
-                await page.waitForSelector("#signUpFirstName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
+                // Phase 1: Enter user details and initiate signup using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", signUpEmail, "Username field");
 
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", signUpEmail);
-
-                // Click sign-up button
-                await page.waitForSelector("#signUpBtn", { visible: true });
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#signUpBtn", "Sign up button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "1_signUpButtonClicked");
 
                 // Phase 2: Wait for OTP verification card (no password step expected)
                 await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
                     "2_otpVerificationDisplayed"
                 );
 
-                // Phase 3: Login to email and get OTP code
-                await emailClient.login(signUpEmail, emailProviderPwd);
+                // Phase 3: Get OTP code from already authenticated email client
                 const otpCode = await emailClient.readOtpCode();
 
-                // Phase 4: Enter correct OTP and submit
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", otpCode);
+                // Phase 4: Enter correct OTP and submit using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", otpCode, "OTP verification code field", true);
                 await screenshot.takeScreenshot(page, "3_correctOtpEntered");
 
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit OTP using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "4_otpSubmitted");
 
-                // Phase 5: Wait for automatic sign-in (no password step in OTP-only flow)
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        const isSignedIn =
-                            authStatusBanner &&
-                            authStatusBanner.textContent?.includes("Signed in");
-                        return isSignedIn;
-                    },
-                    { timeout: 35000 }
-                );
+                // Phase 5: Wait for automatic sign-in using shared utility
+                await BrowserStateUtils.waitForAuthenticationComplete(page, AUTH_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "5_automaticSignInCompleted"
                 );
 
-                // Phase 6: Verify tokens and authentication state
-                const tokenStore = await BrowserCache.getTokens();
-                expect(tokenStore.idTokens).toHaveLength(1);
-                expect(tokenStore.accessTokens).toHaveLength(1);
-                expect(tokenStore.refreshTokens).toHaveLength(1);
-                expect(await BrowserCache.getAccountFromCache()).toBeDefined();
-                expect(
-                    await BrowserCache.accessTokenForScopesExists(
-                        tokenStore.accessTokens,
-                        ["openid", "profile", "user.read"]
-                    )
-                ).toBeTruthy();
+                // Phase 6: Verify tokens and authentication state using shared utility
+                await TokenVerificationUtils.verifySuccessfulAuthentication(BrowserCache);
 
                 // Verify user is actually signed in
                 const finalAuthStatus = await page.$eval(
@@ -1222,70 +812,35 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Create a new email inbox using password_provider with retry logic
-                const emailClient = new MailTmClient(emailProviderPwd);
-                const { address: signUpEmail } = await emailClient.createInbox();
+                // Create authenticated email account using factory method
+                const { client: emailClient, address: signUpEmail } =
+                    await MailTmClient.createAuthenticatedAccount(emailProviderPwd);
 
-                // Phase 1: Enter user details and initiate signup
-                await page.waitForSelector("#signUpFirstName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpLastName", {
-                    visible: true,
-                });
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
+                // Phase 1: Enter user details and initiate signup using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#signUpFirstName", testFirstName, "First name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpLastName", testLastName, "Last name field");
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", signUpEmail, "Username field");
 
-                await page.type("#signUpFirstName", testFirstName);
-                await page.type("#signUpLastName", testLastName);
-                await page.type("#signUpUsername", signUpEmail);
-
-                // Click sign-up button
-                await page.waitForSelector("#signUpBtn", { visible: true });
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#signUpBtn", "Sign up button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "1_signUpButtonClicked");
 
                 // Phase 2: Wait for OTP verification card
                 await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
                     "2_otpVerificationDisplayed"
                 );
 
-                // Phase 3: Enter incorrect OTP and handle error
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", testData.invalidOtpCode); // Incorrect OTP
+                // Phase 3: Enter incorrect OTP and handle error using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", negativeTestData.invalidOtpCode, "OTP verification code field", true);
                 await screenshot.takeScreenshot(page, "3_incorrectOtpEntered");
 
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit incorrect OTP using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "4_incorrectOtpSubmitted"
@@ -1294,7 +849,7 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 // Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "5_errorBannerDisplayed");
 
@@ -1307,79 +862,37 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     "AADSTS50181: Unable to validate the otp"
                 );
 
-                // Dismiss error banner
-                const dismissBtn = await page.$("#dismissErrorBtn");
-                if (dismissBtn) {
-                    await page.click("#dismissErrorBtn");
-                    await screenshot.takeScreenshot(page, "6_errorDismissed");
-                }
+                // Dismiss error banner using shared utility
+                await UIInteractionUtils.clickElementSafely(page, "#dismissErrorBtn", "Dismiss error button");
+                await screenshot.takeScreenshot(page, "6_errorDismissed");
 
-                // Phase 4: Resend verification code
-                await page.waitForSelector("#resendCodeBtn", { visible: true });
-                await page.click("#resendCodeBtn");
+                // Phase 4: Resend verification code using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#resendCodeBtn", "Resend code button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "7_resendCodeClicked");
 
                 // Wait a moment for resend to process
                 await new Promise((resolve) => setTimeout(resolve, 2000));
 
-                // Phase 5: Login to email and get the new OTP code
-                await emailClient.login(signUpEmail, emailProviderPwd);
+                // Phase 5: Get new OTP code from already authenticated email client
                 const otpCode = await emailClient.readOtpCode();
 
-                // Phase 6: Enter correct OTP and submit
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", otpCode);
+                // Phase 6: Enter correct OTP and submit using shared utilities
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", otpCode, "OTP verification code field", true);
                 await screenshot.takeScreenshot(page, "8_correctOtpEntered");
 
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit correct OTP using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "9_correctOtpSubmitted");
 
-                // Phase 7: Wait for automatic sign-in completion (no password step in OTP-only flow)
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        const isSignedIn =
-                            authStatusBanner &&
-                            authStatusBanner.textContent?.includes("Signed in");
-                        return isSignedIn;
-                    },
-                    { timeout: 35000 }
-                );
+                // Phase 7: Wait for automatic sign-in completion using shared utility
+                await BrowserStateUtils.waitForAuthenticationComplete(page, AUTH_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "10_automaticSignInCompleted"
                 );
 
-                // Phase 8: Verify tokens and authentication state
-                const tokenStore = await BrowserCache.getTokens();
-                expect(tokenStore.idTokens).toHaveLength(1);
-                expect(tokenStore.accessTokens).toHaveLength(1);
-                expect(tokenStore.refreshTokens).toHaveLength(1);
-                expect(await BrowserCache.getAccountFromCache()).toBeDefined();
-                expect(
-                    await BrowserCache.accessTokenForScopesExists(
-                        tokenStore.accessTokens,
-                        ["openid", "profile", "user.read"]
-                    )
-                ).toBeTruthy();
+                // Phase 8: Verify tokens and authentication state using shared utility
+                await TokenVerificationUtils.verifySuccessfulAuthentication(BrowserCache);
 
                 // Verify user is actually signed in
                 const finalAuthStatus = await page.$eval(
@@ -1404,15 +917,11 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 sampleHomeUrl + `?useOtpConfig=true&useRedirectConfig=true`
             );
 
-            // Wait for the application to initialize with a longer timeout
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
+            // Wait for the application to initialize
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
             // Verify that no user signed in initially
-            const authStatusBanner = await page.$eval(
-                "#authStatusBanner",
-                (el) => el.textContent
-            );
-            expect(authStatusBanner).toContain("No user signed in");
+            await BrowserStateUtils.verifyNotSignedIn(page);
 
             // Take a screenshot of the initialized state
             if (testConfig.screenshots.enabled) {
@@ -1422,22 +931,13 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                 await setupScreenshot.takeScreenshot(page, "appInitialized");
             }
 
-            // Verify sign-up button is visible on the navigation bar
-            const showSignUpBtn = await page.$("#showSignUpBtn");
-            expect(showSignUpBtn).toBeTruthy();
+            // Wait for sign-up button and click it
+            await UIInteractionUtils.waitAndClick(page, "#showSignUpBtn", "Show sign up button", STANDARD_TIMEOUT);
 
-            // Click sign-up button on the navigation bar
-            await page.click("#showSignUpBtn");
-
-            // Verify sign-up card is visible
-            const signUpCard = await page.$("#signUpCard");
-            expect(signUpCard).toBeTruthy();
-
-            // Verify sign-up form elements are present
-            const usernameInput = await page.$("#signUpUsername");
-            const signUpButton = await page.$("#signUpBtn");
-            expect(usernameInput).toBeTruthy();
-            expect(signUpButton).toBeTruthy();
+            // Verify sign-up card and form elements are visible
+            await page.waitForSelector("#signUpCard", { visible: true });
+            await page.waitForSelector("#signUpUsername", { visible: true });
+            await page.waitForSelector("#signUpBtn", { visible: true });
         });
 
         it(
@@ -1454,24 +954,12 @@ describe("Native Auth Sample - Sign Up Tests", () => {
 
                 // Use mock email - only testing redirect error behavior, no real email needed
                 const testEmail = generateMockEmail();
-                // Enter email in the sign-up form and click sign-up button
-                await page.waitForSelector("#signUpUsername", {
-                    visible: true,
-                });
-                await page.type("#signUpUsername", testEmail);
 
-                // Make sure sign-up button is visible and clickable
-                await page.waitForSelector("#signUpBtn", { visible: true });
+                // Enter email in the sign-up form using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#signUpUsername", testEmail, "Username field");
 
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const signUpButton = document.getElementById("signUpBtn");
-                    if (signUpButton) {
-                        signUpButton.click();
-                    } else {
-                        throw new Error("Sign up button not found in the DOM");
-                    }
-                });
+                // Click sign-up button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#signUpBtn", "Sign up button", STANDARD_TIMEOUT);
                 if (screenshot) {
                     await screenshot.takeScreenshot(
                         page,
@@ -1479,10 +967,10 @@ describe("Native Auth Sample - Sign Up Tests", () => {
                     );
                 }
 
-                // Wait for the error banner to appear with increased timeout
+                // Wait for the error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 if (screenshot) {
                     await screenshot.takeScreenshot(
