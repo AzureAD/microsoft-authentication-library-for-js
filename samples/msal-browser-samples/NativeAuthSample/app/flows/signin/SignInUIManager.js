@@ -2,7 +2,6 @@
  * Sign-In UI Manager for MSAL Native Auth Sample
  */
 
-import uiManager from "../../ui/ui.js";
 import { AuthMethodSelectionForm } from "../../shared/jit/AuthMethodSelectionForm.js";
 import { AuthMethodChallengeForm } from "../../shared/jit/AuthMethodChallengeForm.js";
 import { MfaMethodSelectionForm } from "../../shared/mfa/MfaMethodSelectionForm.js";
