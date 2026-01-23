@@ -20,12 +20,6 @@
             "comment": "Remove getAccountBy APIs at controller level #7807"
           },
           {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump @azure/msal-common to v16.0.0-beta.0",
-            "commit": "not available"
-          },
-          {
             "author": "shylasummers@microsoft.com",
             "package": "@azure/msal-browser",
             "commit": "1c40cc18b0e6daeb789f3d41ab51644944d1887c",
@@ -78,30 +72,6 @@
             "package": "@azure/msal-browser",
             "commit": "17247ba053cc796667fc3e89f9d38c3e0132b130",
             "comment": "Remove deprecated functions and parameters"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump @azure/msal-common to v16.0.0-alpha.0",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump eslint-config-msal to v0.0.0",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump msal-test-utils to v0.0.1",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump rollup-msal to v0.0.0",
-            "commit": "not available"
           }
         ],
         "minor": [
@@ -286,12 +256,6 @@
             "package": "@azure/msal-browser",
             "commit": "63b58a46024f25de8dd3d0274d1dfb747ed0e404",
             "comment": "Remove beta tag"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump @azure/msal-common to v16.0.1",
-            "commit": "not available"
           },
           {
             "author": "beachball",

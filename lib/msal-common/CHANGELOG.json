@@ -54,24 +54,6 @@
             "package": "@azure/msal-common",
             "commit": "1de977d13dce2f8a48c1c774c6329334a19d8f14",
             "comment": "Rename fromNativeBroker to fromPlatformBroker #7940"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-common",
-            "comment": "Bump eslint-config-msal to v0.0.0",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-common",
-            "comment": "Bump msal-test-utils to v0.0.1",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-common",
-            "comment": "Bump rollup-msal to v0.0.0",
-            "commit": "not available"
           }
         ],
         "minor": [
