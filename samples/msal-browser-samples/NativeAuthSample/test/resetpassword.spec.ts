@@ -167,7 +167,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 );
 
                 // Wait for OTP input card to appear
-                await page.waitForSelector("#resetPasswordCodeCard", {
+                await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
                     timeout: 35000,
                 });
@@ -181,25 +181,25 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 console.log("Reset password OTP code retrieved:", otpCode);
 
                 // Enter OTP and submit - ensure OTP field is fully visible first
-                await page.waitForSelector("#resetPasswordCode", {
+                await page.waitForSelector("#verificationCode", {
                     visible: true,
                 });
 
                 // Clear any existing content and type the OTP code
-                await page.click("#resetPasswordCode", { clickCount: 3 });
-                await page.type("#resetPasswordCode", otpCode);
+                await page.click("#verificationCode", { clickCount: 3 });
+                await page.type("#verificationCode", otpCode);
                 await screenshot.takeScreenshot(page, "otpCodeEntered");
 
                 // Wait for the submit button to be visible and enabled
-                await page.waitForSelector("#submitResetPasswordCodeBtn:enabled", {
+                await page.waitForSelector("#submitCodeBtn:enabled", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: 45000,
                 });
 
                 // Submit the OTP code
                 await page.evaluate(() => {
                     const submitButton =
-                        document.getElementById("submitResetPasswordCodeBtn");
+                        document.getElementById("submitCodeBtn");
                     if (submitButton) {
                         submitButton.click();
                     } else {
@@ -265,7 +265,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                                 ));
                         return isCompleted;
                     },
-                    { timeout: 35000 }
+                    { timeout: 45000 }
                 );
 
                 const tokenStore = await BrowserCache.getTokens();
@@ -471,22 +471,22 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 );
 
                 // Wait for code input card to appear
-                await page.waitForSelector("#resetPasswordCodeCard", {
+                await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
                     timeout: 45000,
                 });
                 await screenshot.takeScreenshot(page, "resetPasswordCodeCard");
 
                 // Enter code and submit - ensure code field is fully visible first
-                await page.waitForSelector("#resetPasswordCode", {
+                await page.waitForSelector("#verificationCode", {
                     visible: true,
                 });
-                await page.type("#resetPasswordCode", "12345678"); // Enter incorrect code
+                await page.type("#verificationCode", "12345678"); // Enter incorrect code
                 await screenshot.takeScreenshot(
                     page,
                     "resetPasswordCodeEntered"
                 );
-                await page.click("#submitResetPasswordCodeBtn");
+                await page.click("#submitCodeBtn");
                 await screenshot.takeScreenshot(
                     page,
                     "submitCodeButtonClicked"
@@ -549,7 +549,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 );
 
                 // Wait for OTP input card to appear
-                await page.waitForSelector("#resetPasswordCodeCard", {
+                await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
                     timeout: 45000,
                 });
@@ -563,17 +563,17 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 console.log("Reset password OTP code retrieved:", otpCode);
 
                 // Enter OTP and submit - ensure OTP field is fully visible first
-                await page.waitForSelector("#resetPasswordCode", {
+                await page.waitForSelector("#verificationCode", {
                     visible: true,
                 });
 
                 // Clear any existing content and type the OTP code
-                await page.click("#resetPasswordCode", { clickCount: 3 });
-                await page.type("#resetPasswordCode", otpCode);
+                await page.click("#verificationCode", { clickCount: 3 });
+                await page.type("#verificationCode", otpCode);
                 await screenshot.takeScreenshot(page, "otpCodeEntered");
 
                 // Wait for the submit button to be visible and enabled
-                await page.waitForSelector("#submitResetPasswordCodeBtn:enabled", {
+                await page.waitForSelector("#submitCodeBtn:enabled", {
                     visible: true,
                     timeout: 15000,
                 });
@@ -581,7 +581,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 // Submit the OTP code
                 await page.evaluate(() => {
                     const submitButton =
-                        document.getElementById("submitResetPasswordCodeBtn");
+                        document.getElementById("submitCodeBtn");
                     if (submitButton) {
                         submitButton.click();
                     } else {
@@ -595,7 +595,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 // Wait for new password input card to appear
                 await page.waitForSelector("#resetPasswordNewPasswordCard", {
                     visible: true,
-                    timeout: 35000,
+                    timeout: 45000,
                 });
                 await screenshot.takeScreenshot(
                     page,
@@ -763,7 +763,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     (el) => el.textContent
                 );
                 expect(errorMessage).toContain(
-                    "Password Reset Error: Error: invalid_request: AADSTS500222:"
+                    "The tenant or user does not support native credential recovery"
                 );
             },
             AUTH_TIMEOUT

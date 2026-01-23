@@ -286,8 +286,5 @@ temp-cache.json
 # Jest JUnit reporter
 junit.xml
 
-# MSAL Native Auth config files (contains sensitive data)
-samples/msal-browser-samples/NativeAuthSample/nativeAuthConfig.json
-
 # ApiExtractor
 temp/
