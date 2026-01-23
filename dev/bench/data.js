@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1768935540616,
+  "lastUpdate": 1769191010702,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19249,6 +19249,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.73%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1887ed4333869e967934dc9bd58ffc8b58fe6eb0",
+          "message": "Update NativeAuthSample app to support JIT and MFA (#8262)\n\nThis pull request primarily refactors the `NativeAuthSample` app to\nsupport JIT and MFA, remove the custom `Utilities.logMessage` logging\nutility in favor of native `console` logging, and reorganizes the code\nfor improved modularity and maintainability. Additionally, it updates\nthe `.gitignore` to better protect sensitive files and cleans up\nnavigation logic in the UI.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <223894421+github-code-quality[bot]@users.noreply.github.com>",
+          "timestamp": "2026-01-23T17:50:37Z",
+          "tree_id": "948987cf56713762fe3b7e085356c3f0076f1695",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1887ed4333869e967934dc9bd58ffc8b58fe6eb0"
+        },
+        "date": 1769191006723,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 255993,
+            "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 250486,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
