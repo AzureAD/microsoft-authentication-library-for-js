@@ -36,18 +36,6 @@
             "package": "@azure/msal-angular",
             "commit": "da8782af0b3c07cc829b972ef777e95af00f4fa8",
             "comment": "Update handleRedirectPromise signature to consolidate hash into options type"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump @azure/msal-browser to v5.0.0-alpha.0",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump eslint-config-msal to v0.0.0",
-            "commit": "not available"
           }
         ],
         "minor": [
@@ -84,18 +72,6 @@
             "comment": "Remove beta tag"
           },
           {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump @azure/msal-browser to v5.0.1",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump eslint-config-msal to v0.0.0",
-            "commit": "not available"
-          },
-          {
             "author": "shylasummers@microsoft.com",
             "package": "@azure/msal-angular",
             "commit": "a0820db4c5444ef2ccc8257a5c03dd0dc1d617e1",
@@ -120,18 +96,6 @@
             "package": "@azure/msal-angular",
             "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
             "comment": "Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122)"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump @azure/msal-browser to v5.0.0-beta.0",
-            "commit": "not available"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-angular",
-            "comment": "Bump eslint-config-msal to v0.0.0",
-            "commit": "not available"
           }
         ],
         "none": [
@@ -153,7 +117,7 @@
             "commit": "7a767d3c98f228ae550281481356812d38ee89ec",
             "comment": "Update build:all:prod"
           }
-        ],
+        ]
       }
     },
     {
