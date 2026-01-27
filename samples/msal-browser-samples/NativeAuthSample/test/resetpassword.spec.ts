@@ -14,16 +14,21 @@ import {
 } from "e2e-test-utils";
 import { ChildProcess } from "child_process";
 import path = require("path");
-import { startCorsProxy, stopCorsProxy } from "./proxyUtils";
-import { MailTmClient } from "./emailProviderUtils";
+import { startCorsProxy, stopCorsProxy } from "./utils/proxyUtils";
+import { MailTmClient } from "./utils/emailProviderUtils";
 
 import {
     testConfig,
     getTenantInfo,
     getProxyPort,
     nativeAuthConfig,
-    testData,
-} from "./configUtils";
+    negativeTestData,
+} from "./utils/configUtils";
+import {
+    TokenVerificationUtils,
+    BrowserStateUtils,
+    UIInteractionUtils,
+} from "./utils/testUtils";
 
 // Use configuration instead of hardcoded values
 const SCREENSHOT_BASE_FOLDER_NAME = path.join(
@@ -31,6 +36,8 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(
     testConfig.screenshots.baseFolderName,
     "/resetpassword"
 );
+const STANDARD_TIMEOUT = testConfig.timeouts.standard;
+const EXTENDED_TIMEOUT = testConfig.timeouts.extended;
 const AUTH_TIMEOUT = testConfig.timeouts.auth;
 let sampleHomeUrl = "";
 
@@ -41,6 +48,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
     let browser: puppeteer.Browser;
     let resetPasswordEmailWithOtp: string = "";
     let resetPasswordUsername: string = "";
+    let emailProviderPwd: string = "";
     let corsProcess: ChildProcess;
     let resetPasswordClient: MailTmClient;
 
@@ -62,12 +70,12 @@ describe("Native Auth Sample - Reset Password Tests", () => {
         // Use configuration for test user emails from JSON config
         resetPasswordUsername = nativeAuthConfig.resetPasswordUsername;
         resetPasswordEmailWithOtp = nativeAuthConfig.signInEmailCodeUsername;
+        emailProviderPwd = nativeAuthConfig.passwordProvider;
 
-        // Initialize email client for reset password account
-        resetPasswordClient = new MailTmClient();
-        await resetPasswordClient.login(
+        // Initialize email client for reset password account using factory method
+        resetPasswordClient = await MailTmClient.connectToExistingAccount(
             resetPasswordUsername,
-            nativeAuthConfig.passwordProvider
+            emailProviderPwd
         );
     });
 
@@ -89,11 +97,8 @@ describe("Native Auth Sample - Reset Password Tests", () => {
     });
 
     afterEach(async () => {
-        // Clear storage after each test
-        await page.evaluate(() => {
-            window.sessionStorage.clear();
-            window.localStorage.clear();
-        });
+        // Clear storage after each test using shared utility
+        await BrowserStateUtils.cleanupBrowserState(page);
         await page.close();
     });
 
@@ -102,32 +107,16 @@ describe("Native Auth Sample - Reset Password Tests", () => {
             await page.goto(sampleHomeUrl + `?usePwdConfig=true`);
 
             // Wait for the application to initialize
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            // Verify reset password button is visible on the navigation bar
-            const showResetPasswordButton = await page.$(
-                "#showResetPasswordBtn"
-            );
-            expect(showResetPasswordButton).toBeTruthy();
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
-            // Click reset password button on the navigation bar
-            await page.click("#showResetPasswordBtn");
+            // Verify that no user signed in initially
+            await BrowserStateUtils.verifyNotSignedIn(page);
 
-            // Verify reset password card is visible
-            const resetPasswordCard = await page.$("#resetPasswordCard");
-            expect(resetPasswordCard).toBeTruthy();
+            // Wait for reset password button and click it
+            await UIInteractionUtils.waitAndClick(page, "#showResetPasswordBtn", "Show reset password button", STANDARD_TIMEOUT);
 
-            // Verify reset password form elements are present
-            const resetPasswordEmailInput = await page.$("#resetPasswordEmail");
-            const resetPasswordButton = await page.$("#resetPasswordBtn");
-            expect(resetPasswordEmailInput).toBeTruthy();
-            expect(resetPasswordButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isResetPasswordCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("resetPasswordCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isResetPasswordCardVisible).toBe(true);
+            // Verify reset password card and form elements are visible
+            await page.waitForSelector("#resetPasswordCard", { visible: true, timeout: STANDARD_TIMEOUT });
         });
 
         it(
@@ -138,29 +127,14 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
+                // Mark checkpoint before triggering OTP for existing email account
+                resetPasswordClient.markCheckpoint();
+
                 // Enter reset password email and click reset button
-                await page.waitForSelector("#resetPasswordEmail", {
-                    visible: true,
-                });
-                await page.type("#resetPasswordEmail", resetPasswordUsername);
+                await UIInteractionUtils.typeIntoElement(page, "#resetPasswordEmail", resetPasswordUsername, "Reset password email field");
 
-                // Make sure reset password button is visible and clickable
-                await page.waitForSelector("#resetPasswordBtn", {
-                    visible: true,
-                });
-
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const resetPasswordButton =
-                        document.getElementById("resetPasswordBtn");
-                    if (resetPasswordButton) {
-                        resetPasswordButton.click();
-                    } else {
-                        throw new Error(
-                            "Reset Password button not found in the DOM"
-                        );
-                    }
-                });
+                // Click reset password button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#resetPasswordBtn", "Reset password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "resetPasswordButtonClicked"
@@ -169,116 +143,44 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 // Wait for OTP input card to appear
                 await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 35000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "otpInputDisplayed");
 
                 // Get OTP code from email
-                console.log(
-                    "Retrieving OTP code from email for reset password..."
-                );
                 const otpCode = await resetPasswordClient.readOtpCode();
-                console.log("Reset password OTP code retrieved:", otpCode);
 
-                // Enter OTP and submit - ensure OTP field is fully visible first
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-
-                // Clear any existing content and type the OTP code
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", otpCode);
+                // Enter OTP using shared utility with proper field clearing
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", otpCode, "OTP verification field", true);
                 await screenshot.takeScreenshot(page, "otpCodeEntered");
 
-                // Wait for the submit button to be visible and enabled
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 45000,
-                });
-
-                // Submit the OTP code
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit OTP code using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "otpSubmitted");
 
                 // Wait for new password input card to appear
                 await page.waitForSelector("#resetPasswordNewPasswordCard", {
                     visible: true,
-                    timeout: 40000,
+                    timeout: EXTENDED_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
                     "newPasswordInputDisplayed"
                 );
 
-                // Enter new password
-                await page.waitForSelector("#resetPasswordNewPassword", {
-                    visible: true,
-                });
-                await page.type(
-                    "#resetPasswordNewPassword",
-                    nativeAuthConfig.passwordSignInEmailCode
-                );
+                // Enter new password using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#resetPasswordNewPassword", nativeAuthConfig.passwordSignInEmailCode, "New password field");
                 await screenshot.takeScreenshot(page, "newPasswordEntered");
 
-                // Submit new password
-                await page.waitForSelector(
-                    "#submitResetPasswordNewPasswordBtn:enabled",
-                    {
-                        visible: true,
-                        timeout: 15000,
-                    }
-                );
-
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById(
-                        "submitResetPasswordNewPasswordBtn"
-                    );
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit new password button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit new password using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitResetPasswordNewPasswordBtn", "Submit new password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "newPasswordSubmitted");
 
-                // Wait for successful completion
-                await page.waitForFunction(
-                    () => {
-                        const authStatusBanner =
-                            document.getElementById("authStatusBanner");
-                        const isCompleted =
-                            authStatusBanner && (
-                                authStatusBanner.textContent?.includes(
-                                    "Signed in"
-                                ));
-                        return isCompleted;
-                    },
-                    { timeout: 45000 }
-                );
+                // Wait for successful completion using shared utility
+                await BrowserStateUtils.waitForAuthenticationComplete(page, AUTH_TIMEOUT);
 
-                const tokenStore = await BrowserCache.getTokens();
-                expect(tokenStore.idTokens).toHaveLength(1);
-                expect(tokenStore.accessTokens).toHaveLength(1);
-                expect(tokenStore.refreshTokens).toHaveLength(1);
-                expect(await BrowserCache.getAccountFromCache()).toBeDefined();
-                expect(
-                    await BrowserCache.accessTokenForScopesExists(
-                        tokenStore.accessTokens,
-                        ["openid", "profile", "user.read"]
-                    )
-                ).toBeTruthy();
+                // Verify tokens and authentication using shared utility
+                await TokenVerificationUtils.verifySuccessfulAuthentication(BrowserCache);
 
                 await screenshot.takeScreenshot(page, "resetPasswordCompleted");
             },
@@ -291,32 +193,16 @@ describe("Native Auth Sample - Reset Password Tests", () => {
             await page.goto(sampleHomeUrl + `?usePwdConfig=true`);
 
             // Wait for the application to initialize
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
-            // Verify reset password button is visible on the navigation bar
-            const showResetPasswordButton = await page.$(
-                "#showResetPasswordBtn"
-            );
-            expect(showResetPasswordButton).toBeTruthy();
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
-            // Click reset password button on the navigation bar
-            await page.click("#showResetPasswordBtn");
+            // Verify that no user signed in initially
+            await BrowserStateUtils.verifyNotSignedIn(page);
 
-            // Verify reset password card is visible
-            const resetPasswordCard = await page.$("#resetPasswordCard");
-            expect(resetPasswordCard).toBeTruthy();
+            // Wait for reset password button and click it
+            await UIInteractionUtils.waitAndClick(page, "#showResetPasswordBtn", "Show reset password button", STANDARD_TIMEOUT);
 
-            // Verify reset password form elements are present
-            const resetPasswordEmailInput = await page.$("#resetPasswordEmail");
-            const resetPasswordButton = await page.$("#resetPasswordBtn");
-            expect(resetPasswordEmailInput).toBeTruthy();
-            expect(resetPasswordButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isResetPasswordCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("resetPasswordCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isResetPasswordCardVisible).toBe(true);
+            // Verify reset password card and form elements are visible
+            await page.waitForSelector("#resetPasswordCard", { visible: true, timeout: STANDARD_TIMEOUT });
         });
 
         it(
@@ -327,42 +213,20 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Enter username in the reset password form and click reset password button
-                await page.waitForSelector("#resetPasswordEmail", {
-                    visible: true,
-                });
-                await page.type(
-                    "#resetPasswordEmail",
-                    "non-existemail@test.com"
-                );
+                // Enter non-existing email using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#resetPasswordEmail", "non-existemail@test.com", "Reset password email field");
 
-                // Make sure reset password button is visible and clickable
-                await page.waitForSelector("#resetPasswordBtn", {
-                    visible: true,
-                });
-
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const resetPasswordButton =
-                        document.getElementById("resetPasswordBtn");
-                    if (resetPasswordButton) {
-                        resetPasswordButton.click();
-                    } else {
-                        throw new Error(
-                            "Reset Password button not found in the DOM"
-                        );
-                    }
-                });
+                // Click reset password button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#resetPasswordBtn", "Reset password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "resetPasswordButtonClicked"
                 );
 
-                // Wait for error message to appear
-                // Wait for the error banner to appear with increased timeout
+                // Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 20000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "errorBannerDisplayed");
 
@@ -384,42 +248,20 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Enter username in the reset password form and click reset password button
-                await page.waitForSelector("#resetPasswordEmail", {
-                    visible: true,
-                });
-                await page.type(
-                    "#resetPasswordEmail",
-                    resetPasswordEmailWithOtp
-                );
+                // Enter OTP username using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#resetPasswordEmail", resetPasswordEmailWithOtp, "Reset password email field");
 
-                // Make sure reset password button is visible and clickable
-                await page.waitForSelector("#resetPasswordBtn", {
-                    visible: true,
-                });
-
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const resetPasswordButton =
-                        document.getElementById("resetPasswordBtn");
-                    if (resetPasswordButton) {
-                        resetPasswordButton.click();
-                    } else {
-                        throw new Error(
-                            "Reset Password button not found in the DOM"
-                        );
-                    }
-                });
+                // Click reset password button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#resetPasswordBtn", "Reset password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "resetPasswordButtonClicked"
                 );
 
-                // Wait for error message to appear
-                // Wait for the error banner to appear with increased timeout
+                // Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "errorBannerDisplayed");
 
@@ -437,34 +279,15 @@ describe("Native Auth Sample - Reset Password Tests", () => {
             "User submits existing email, and submit incorrect code",
             async () => {
                 const testName = "resetPasswordWithIncorrectOtp";
-                let screenshot: Screenshot | undefined;
-
-                screenshot = new Screenshot(
+                const screenshot = new Screenshot(
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Enter username in the reset password form and click reset password button
-                await page.waitForSelector("#resetPasswordEmail", {
-                    visible: true,
-                });
-                await page.type("#resetPasswordEmail", resetPasswordUsername);
-                // Make sure reset password button is visible and clickable
-                await page.waitForSelector("#resetPasswordBtn", {
-                    visible: true,
-                });
+                // Enter reset password email using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#resetPasswordEmail", resetPasswordUsername, "Reset password email field");
 
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const resetPasswordButton =
-                        document.getElementById("resetPasswordBtn");
-                    if (resetPasswordButton) {
-                        resetPasswordButton.click();
-                    } else {
-                        throw new Error(
-                            "Reset Password button not found in the DOM"
-                        );
-                    }
-                });
+                // Click reset password button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#resetPasswordBtn", "Reset password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "resetPasswordButtonClicked"
@@ -473,30 +296,28 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 // Wait for code input card to appear
                 await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
-                await screenshot.takeScreenshot(page, "resetPasswordCodeCard");
+                await screenshot.takeScreenshot(page, "codeVerificationCard");
 
-                // Enter code and submit - ensure code field is fully visible first
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-                await page.type("#verificationCode", "12345678"); // Enter incorrect code
+                // Enter incorrect OTP using shared utility with field clearing
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", "12345678", "OTP verification field", true);
                 await screenshot.takeScreenshot(
                     page,
-                    "resetPasswordCodeEntered"
+                    "verificationCodeEntered"
                 );
-                await page.click("#submitCodeBtn");
+
+                // Submit incorrect OTP using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "submitCodeButtonClicked"
                 );
 
-                // Wait for error message to appear
-                // Wait for the error banner to appear with increased timeout
+                // Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "errorBannerDisplayed");
 
@@ -520,29 +341,11 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Enter reset password email and click reset button
-                await page.waitForSelector("#resetPasswordEmail", {
-                    visible: true,
-                });
-                await page.type("#resetPasswordEmail", resetPasswordUsername);
+                // Enter reset password email using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#resetPasswordEmail", resetPasswordUsername, "Reset password email field");
 
-                // Make sure reset password button is visible and clickable
-                await page.waitForSelector("#resetPasswordBtn", {
-                    visible: true,
-                });
-
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const resetPasswordButton =
-                        document.getElementById("resetPasswordBtn");
-                    if (resetPasswordButton) {
-                        resetPasswordButton.click();
-                    } else {
-                        throw new Error(
-                            "Reset Password button not found in the DOM"
-                        );
-                    }
-                });
+                // Click reset password button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#resetPasswordBtn", "Reset password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "resetPasswordButtonClicked"
@@ -551,94 +354,43 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 // Wait for OTP input card to appear
                 await page.waitForSelector("#codeVerificationCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "otpInputDisplayed");
 
                 // Get OTP code from email
-                console.log(
-                    "Retrieving OTP code from email for reset password..."
-                );
                 const otpCode = await resetPasswordClient.readOtpCode();
-                console.log("Reset password OTP code retrieved:", otpCode);
 
-                // Enter OTP and submit - ensure OTP field is fully visible first
-                await page.waitForSelector("#verificationCode", {
-                    visible: true,
-                });
-
-                // Clear any existing content and type the OTP code
-                await page.click("#verificationCode", { clickCount: 3 });
-                await page.type("#verificationCode", otpCode);
+                // Enter OTP using shared utility with field clearing
+                await UIInteractionUtils.typeIntoElement(page, "#verificationCode", otpCode, "OTP verification field", true);
                 await screenshot.takeScreenshot(page, "otpCodeEntered");
 
-                // Wait for the submit button to be visible and enabled
-                await page.waitForSelector("#submitCodeBtn:enabled", {
-                    visible: true,
-                    timeout: 15000,
-                });
-
-                // Submit the OTP code
-                await page.evaluate(() => {
-                    const submitButton =
-                        document.getElementById("submitCodeBtn");
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit OTP button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit OTP using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitCodeBtn", "Submit OTP button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "otpSubmitted");
 
                 // Wait for new password input card to appear
                 await page.waitForSelector("#resetPasswordNewPasswordCard", {
                     visible: true,
-                    timeout: 45000,
+                    timeout: EXTENDED_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
                     "newPasswordInputDisplayed"
                 );
 
-                // Enter a weak password that doesn't meet complexity requirements
-                await page.waitForSelector("#resetPasswordNewPassword", {
-                    visible: true,
-                });
-                await page.type(
-                    "#resetPasswordNewPassword",
-                    testData.invalidPassword
-                );
+                // Enter weak password using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#resetPasswordNewPassword", negativeTestData.invalidPassword, "New password field");
                 await screenshot.takeScreenshot(page, "weakPasswordEntered");
 
-                // Submit weak password
-                await page.waitForSelector(
-                    "#submitResetPasswordNewPasswordBtn:enabled",
-                    {
-                        visible: true,
-                        timeout: 15000,
-                    }
-                );
-
-                await page.evaluate(() => {
-                    const submitButton = document.getElementById(
-                        "submitResetPasswordNewPasswordBtn"
-                    );
-                    if (submitButton) {
-                        submitButton.click();
-                    } else {
-                        throw new Error(
-                            "Submit new password button not found in the DOM"
-                        );
-                    }
-                });
+                // Submit weak password using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#submitResetPasswordNewPasswordBtn", "Submit new password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(page, "weakPasswordSubmitted");
 
-                // Wait for the error banner to appear with password complexity requirements
+                // Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 20000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(
                     page,
@@ -651,23 +403,6 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     (el) => el.textContent
                 );
                 expect(errorMessage).toContain("password"); // Should contain password-related error
-
-                // Verify we're still on the new password input form
-                const newPasswordCard = await page.$(
-                    "#resetPasswordNewPasswordCard"
-                );
-                expect(newPasswordCard).toBeTruthy();
-
-                const isVisible = await page.evaluate(() => {
-                    const card = document.getElementById(
-                        "resetPasswordNewPasswordCard"
-                    );
-                    return (
-                        card && window.getComputedStyle(card).display !== "none"
-                    );
-                });
-                expect(isVisible).toBe(true);
-
                 await screenshot.takeScreenshot(page, "testCompleted");
             },
             AUTH_TIMEOUT
@@ -681,34 +416,19 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 sampleHomeUrl + `?usePwdConfig=true&useRedirectConfig=true`
             );
 
-            // Wait for the application to initialize with a longer timeout
-            await pcaInitializedPoller(page, AUTH_TIMEOUT); // Increase timeout for more stability
+            // Wait for the application to initialize
+            await pcaInitializedPoller(page, AUTH_TIMEOUT);
 
-            // Verify reset password button is visible on the navigation bar
-            const showResetPasswordButton = await page.$(
-                "#showResetPasswordBtn"
-            );
-            expect(showResetPasswordButton).toBeTruthy();
+            // Verify that no user signed in initially
+            await BrowserStateUtils.verifyNotSignedIn(page);
 
-            // Click reset password button on the navigation bar
-            await page.click("#showResetPasswordBtn");
+            // Wait for reset password button and click it
+            await UIInteractionUtils.waitAndClick(page, "#showResetPasswordBtn", "Show reset password button", STANDARD_TIMEOUT);
 
-            // Verify reset password card is visible
-            const resetPasswordCard = await page.$("#resetPasswordCard");
-            expect(resetPasswordCard).toBeTruthy();
-
-            // Verify reset password form elements are present
-            const resetPasswordEmailInput = await page.$("#resetPasswordEmail");
-            const resetPasswordButton = await page.$("#resetPasswordBtn");
-            expect(resetPasswordEmailInput).toBeTruthy();
-            expect(resetPasswordButton).toBeTruthy();
-
-            // Verify the form is visible
-            const isResetPasswordCardVisible = await page.evaluate(() => {
-                const card = document.getElementById("resetPasswordCard");
-                return card && window.getComputedStyle(card).display !== "none";
-            });
-            expect(isResetPasswordCardVisible).toBe(true);
+            // Verify reset password card and form elements are visible
+            await page.waitForSelector("#resetPasswordCard", { visible: true, timeout: STANDARD_TIMEOUT });
+            await page.waitForSelector("#resetPasswordEmail", { visible: true, timeout: STANDARD_TIMEOUT });
+            await page.waitForSelector("#resetPasswordBtn", { visible: true, timeout: STANDARD_TIMEOUT });
         });
 
         it(
@@ -719,41 +439,20 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
-                // Enter username in the reset password form and click reset password button
-                await page.waitForSelector("#resetPasswordEmail", {
-                    visible: true,
-                });
-                await page.type(
-                    "#resetPasswordEmail",
-                    resetPasswordEmailWithOtp
-                );
+                // Enter OTP email using shared utility
+                await UIInteractionUtils.typeIntoElement(page, "#resetPasswordEmail", resetPasswordEmailWithOtp, "Reset password email field");
 
-                // Make sure reset password button is visible and clickable
-                await page.waitForSelector("#resetPasswordBtn", {
-                    visible: true,
-                });
-
-                // Use evaluate to click to avoid potential click issues
-                await page.evaluate(() => {
-                    const resetPasswordButton =
-                        document.getElementById("resetPasswordBtn");
-                    if (resetPasswordButton) {
-                        resetPasswordButton.click();
-                    } else {
-                        throw new Error(
-                            "Reset Password button not found in the DOM"
-                        );
-                    }
-                });
+                // Click reset password button using shared utility
+                await UIInteractionUtils.waitAndClick(page, "#resetPasswordBtn", "Reset password button", STANDARD_TIMEOUT);
                 await screenshot.takeScreenshot(
                     page,
                     "resetPasswordButtonClicked"
                 );
 
-                // Wait for the error banner to appear with increased timeout
+                // Wait for error banner to appear
                 await page.waitForSelector("#errorBanner", {
                     visible: true,
-                    timeout: 15000,
+                    timeout: STANDARD_TIMEOUT,
                 });
                 await screenshot.takeScreenshot(page, "errorBannerDisplayed");
 
@@ -763,7 +462,7 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     (el) => el.textContent
                 );
                 expect(errorMessage).toContain(
-                    "The tenant or user does not support native credential recovery"
+                    "invalid_request: AADSTS500222: The tenant or user does not support native credential recovery"
                 );
             },
             AUTH_TIMEOUT

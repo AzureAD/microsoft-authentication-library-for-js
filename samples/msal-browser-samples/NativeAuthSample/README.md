@@ -1,58 +1,46 @@
 # MSAL Native Auth Sample
 
-This sample demonstrates how to use the Native Authentication capabilities of the Microsoft Authentication Library (MSAL) for JavaScript in a browser environment. Native Authentication provides a customizable and secure way to implement authentication flows directly in your application.
+This sample demonstrates how to use the Native Authentication capabilities of the Microsoft Authentication Library (MSAL) for JavaScript in a browser environment. Native Authentication provides a customizable and secure way to implement authentication flows including sign-in, sign-up, password reset, multi-factor authentication (MFA), and just-in-time (JIT) registration.
 
-[Previous sections remain unchanged up to Authentication Flow Configurations]
+## 🚀 Getting Started
 
-## Authentication Flow Configurations
+### Prerequisites
+- Ensure [all pre-requisites](../../../lib/msal-browser/README.md#prerequisites) have been completed to run `@azure/msal-browser`.
+- Install node.js if needed (<https://nodejs.org/en/>).
 
-Each authentication flow requires specific query parameters to configure the correct endpoint:
+### Installation
 
-1. Email + Password Flow:
-   ```
-   ?usePwdConfig=true
-   ```
-
-2. Email + OTP Flow:
-   ```
-   ?useOtpConfig=true
-   ```
-
-3. Email + Password Redirect Flow:
-   ```
-   ?useOtpConfig=true&useRedirectConfig=true
-   ```
-
-## All E2E Tests
-
-### Sign In Tests (`signin.spec.ts`)
-
-#### 1. Password-based Authentication
-
-2. **Install dependencies**:
-
+1. **Install dependencies**:
    ```bash
    npm install
    ```
 
-3. **Build project**:
-
-   Build msal-browser package
-
+2. **Build the MSAL browser package**:
    ```bash
-   npm run build:package
+   cd ../../../lib/msal-browser && npm run build:all
    ```
 
-   Build msal-node package
-
+3. **Build the MSAL node package**:
    ```bash
    cd ../../../lib/msal-node && npm run build:all
    ```
 
-4. **Configure the application**:
+### Configuration
 
-   Open `app/authConfig.js` and update with your settings:
+1. **Set up environment variables**:
+   ```bash
+   ./gen_env_native_auth.ps1
+   ```
 
+2. **Configure the application**:
+   
+   The application uses `nativeAuthConfig.json` for configuration. Key settings include:
+   - `native_auth.tenant_subdomain`: Your tenant subdomain
+   - `native_auth.tenant_id`: Your tenant ID
+   - Client IDs for different authentication flows
+   - Test user credentials
+
+3. **Configure authentication flows in `app/authConfig.js`**:
    ```javascript
    const msalConfig = {
      customAuth: {
@@ -60,272 +48,171 @@ Each authentication flow requires specific query parameters to configure the cor
        authApiProxyUrl: "YOUR_AUTH_PROXY_URL",
      },
      auth: {
-       clientId: "YOUR_CLIENT_ID", 
+       clientId: "YOUR_CLIENT_ID",
        authority: "https://YOUR_TENANT.ciamlogin.com",
-       redirectUri: "/", 
+       redirectUri: "/",
      },
      // Additional configuration...
    };
    ```
 
-5. **Locate folder VanillaJSTestApp2.0 folder and start the development server**:
+### Running the Application
 
+1. **Start the development server**:
    ```bash
    npm start -- --port 30670 --sample nativeAuthSample
    ```
+   By default, the server runs on `http://localhost:30670`
 
-6. **Open your browser**:
+2. **Start the CORS proxy** (if needed):
+   ```bash
+   node cors.js --tenantSubdomain YOUR_SUBDOMAIN --tenantId YOUR_TENANT_ID --port 30001
+   ```
 
-   Navigate to [http://localhost:30670](http://localhost:30670)
+## 🔧 Authentication Flow Configuration
 
-## Authentication Flows
+The application behavior is controlled by URL query parameters:
 
-### Sign In
+| Configuration | URL Parameter | Description |
+|---------------|---------------|-------------|
+| **Email + Password** | `?usePwdConfig=true` | Basic email and password authentication |
+| **Email + OTP** | `?useOtpConfig=true` | Email with one-time password |
+| **Email + Password with Attributes** | `?usePwdAttributesConfig=true` | Sign-up with user attributes collection |
+| **Email + OTP with Attributes** | `?useOtpAttributesConfig=true` | OTP flow with user attributes |
+| **Multi-Factor Authentication** | `?usePwdConfig=true&useMFA=true` | Enable MFA requirement |
+| **Redirect Scenario** | `?useOtpConfig=true&useRedirectConfig=true` | Force redirect-only flows |
 
-The sample supports multiple sign-in methods:
+### Example URLs:
+```
+http://localhost:30670/?usePwdConfig=true              # Email + Password
+http://localhost:30670/?useOtpConfig=true              # Email + OTP  
+http://localhost:30670/?usePwdConfig=true&useMFA=true  # With MFA
+```
 
-1. **Email/Password Authentication**:
-   - Enter email/username
-   - Provide password
-   - Submit for authentication
-
-2. **Email OTP Authentication**:
-   - Enter email address
-   - Receive one-time code via email
-   - Enter the code to complete authentication
-
-3. **Redirect Authentication**:
-   - Enter email address, show redirect error
-
-### Sign Up
-
-The sign-up flow includes:
-
-1. **Email/Password**:
-   - Enter email address and user attributes
-   - Verify email with a verification code
-   - Create a password
-   - Complete account creation
-
-2. **Email OTP Authentication**:
-   - Enter email address and user attributes
-   - Verify email with a verification code
-   - Complete account creation
-
-### Password Reset
-
-The password reset flow allows users to:
-
-1. Request a password reset using their email
-2. Receive a verification code via email
-3. Verify the code
-4. Create a new password
-5. Complete password reset
 
 ## Project Structure
 
 The sample application is organized into the following structure:
 
 ```
-nativeAuthSample/
-├── app/                    # Application source code
-│   ├── app.js             # Main application logic
-│   ├── authConfig.js      # MSAL configuration
-│   ├── ui.js             # UI handling functions
-│   ├── utilities.js       # Helper functions
-│   ├── UserAccountAttributes.js  # User account management
-│   ├── signin/           # Sign-in implementation
-│   ├── signup/           # Sign-up implementation
-│   └── resetPassword/    # Password reset implementation
-│
-├── test/                  # Test files
-│   ├── proxyUtils.ts     # Test proxy utilities
-│   ├── signin.spec.ts    # Sign-in tests
-│   ├── signup.spec.ts    # Sign-up tests
-│   ├── signout.spec.ts   # Sign-out tests
-│   ├── resetpassword.spec.ts  # Password reset tests
-│   └── screenshots/      # Test result screenshots
-│
-├── index.html            # Application entry point
-├── styles.css           # Application styles
-├── cors.js             # CORS configuration
-├── jest.config.cjs     # Jest test configuration
-└── package-lock.json   # Dependencies lock file
+NativeAuthSample/
+├── app/                           # Main application source
+│   ├── app.js                     # Main application logic
+│   ├── authConfig.js              # MSAL configuration
+│   ├── configParser.js            # Configuration parsing utilities
+│   ├── index.html                 # Application entry point
+│   ├── styles.css                 # Application styles
+│   ├── flows/                     # Authentication flow implementations
+│   │   ├── resetPassword/         # Password reset flow
+│   │   │   ├── index.js
+│   │   │   ├── ResetPasswordEventCoordinator.js
+│   │   │   └── ResetPasswordUIManager.js
+│   │   ├── signin/                # Sign-in flow  
+│   │   │   ├── index.js
+│   │   │   ├── SignInEventCoordinator.js
+│   │   │   └── SignInUIManager.js
+│   │   └── signup/                # Sign-up flow
+│   │       ├── index.js
+│   │       ├── SignUpEventCoordinator.js
+│   │       └── SignUpUIManager.js
+│   ├── shared/                    # Shared components
+│   │   ├── BaseEventCoordinator.js
+│   │   ├── jit/                   # Just-In-Time registration components
+│   │   │   ├── AuthMethodChallengeForm.js
+│   │   │   ├── AuthMethodSelectionForm.js
+│   │   │   └── JitAuthHandlers.js
+│   │   └── mfa/                   # Multi-Factor Authentication components
+│   │       ├── MfaAuthHandlers.js
+│   │       ├── MfaChallengeForm.js
+│   │       └── MfaMethodSelectionForm.js
+│   └── ui/                        # UI management utilities
+│       ├── CodeVerificationManager.js
+│       ├── FormManager.js
+│       └── ui.js
+├── test/                          # E2E test suite
+│   ├── context/                   # Test documentation
+│   │   ├── APP_FLOW_REFERENCE.md  # Complete application flow guide
+│   │   └── TEST_IMPLEMENTATION_GUIDE.md # Testing patterns & best practices
+│   ├── utils/                     # Test utilities and helpers
+│   │   ├── configUtils.ts
+│   │   ├── emailProviderUtils.ts
+│   │   ├── proxyUtils.ts
+│   │   └── testUtils.ts
+│   ├── screenshots/               # Test execution screenshots
+│   ├── jit.spec.ts               # Just-In-Time registration tests
+│   ├── mfa.spec.ts               # Multi-Factor Authentication tests
+│   ├── resetpassword.spec.ts     # Password reset tests
+│   ├── signin.spec.ts            # Sign-in flow tests
+│   ├── signout.spec.ts           # Sign-out flow tests
+│   ├── signup.spec.ts            # Sign-up flow tests
+│   └── nativeAuthConfig.json     # Test configuration
+├── cors.js                       # CORS proxy server
+├── gen_env_native_auth.ps1       # Environment setup script
+├── jest.config.cjs               # Jest test configuration
+├── nativeAuthConfig.json         # Application configuration
+├── package.json                  # Project dependencies and scripts
+├── server.js                     # Development server
+├── tsconfig.json                 # TypeScript configuration
+└── test-results.xml             # Test execution results
 ```
 
-## Key Components
+## E2E Testing
 
-### CustomAuthPublicClientApplication
+### Running Tests
 
-The core class that provides Native Authentication capabilities:
+1. **Set up environment variables**
 
-- `signIn(signInInputs)`: Initiates sign-in flow
-- `getCurrentAccount(accountInputs)`: Retrieves current account
-- `signUp(signUpInputs)`: Initiates sign-up flow
-- `resetPassword(resetPasswordInputs)`: Initiates password reset
-
-### Configuration
-
-The `CustomAuthConfiguration` object includes:
-
-- Standard MSAL configuration (`auth`, `cache`, `system`)
-- Custom auth configuration (`customAuth.authApiProxyUrl`, `customAuth.challengeTypes`)
-
-## E2E test
-
-1. **Execute init.ps file to set up env variables**
-
-   Under microsoft-authentication-library-for-js:
+   Execute the environment setup script:
    ```bash
-   gen_env.ps1
+   ./gen_env_native_auth.ps1
    ```
 
-2. **Locate VanillaJSTestApp2.0 folder and run below command**
+2. **Run all E2E tests**
 
    ```bash
-   npm run test:e2e -- --sample=nativeAuthSample --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit
+   npm run test:e2e
    ```
 
-## Authentication Flow Configurations
+3. **Run specific test files**
 
-Each authentication flow requires specific query parameters to configure the correct endpoint:
-
-1. Email + Password Flow:
-   ```
-   ?usePwdConfig=true
-   ```
-
-2. Email + OTP Flow:
-   ```
-   ?useOtpConfig=true
+   ```bash
+   # Run individual test files
+   npm run test:e2e './test/jit.spec.ts'
+   npm run test:e2e './test/signin.spec.ts'
+   npm run test:e2e './test/signup.spec.ts'
+   npm run test:e2e './test/resetpassword.spec.ts'
+   npm run test:e2e './test/mfa.spec.ts'
+   npm run test:e2e './test/signout.spec.ts'
    ```
 
-3. Email + Password Redirect Flow:
-   ```
-   ?useOtpConfig=true&useRedirectConfig=true
-   ```
+### Test Documentation
 
-## End-to-End Test Cases
+- [`APP_FLOW_REFERENCE.md`](test/context/APP_FLOW_REFERENCE.md) - Complete application flow documentation
+- [`TEST_IMPLEMENTATION_GUIDE.md`](test/context/TEST_IMPLEMENTATION_GUIDE.md) - Testing patterns and best practices
 
-### 1. Sign Up Tests
+### Debugging Tests Locally
 
-#### Email + Password Authentication
+For debugging purposes, you can add console logging to capture browser console output during test execution. Add the following code in your test's `beforeEach` block:
 
-##### Positive Cases
+```javascript
+page.on("console", (msg) => {
+   const type = msg.type();
+   const text = msg.text();
+   console.log(`[Browser ${type}]:`, text);
+});
+```
 
-* User inputs new email and user attributes, verifies code, creates password meeting requirements, completes sign up flow, then automatically sign-in.
-* User inputs new email and user attributes, enters incorrect verification code, resend code, verifies code, creates password meeting requirements, completes sign up flow, then automatically sign-in.
-* User inputs new email, verifies code, creates password meeting requirements, give user attributes, completes sign up flow, then automatically sign-in.
-* User inputs new email and password, verifies code, give user attributes, completes sign up flow, then automatically sign-in.
-* User inputs new email, password and user attributes, verifies code, completes sign up flow, then automatically sign-in.
+This will output all browser console messages (including errors, warnings, and logs) to your test runner console, making it easier to debug issues during test development and execution.
 
-##### Negative Cases
+## Available Test Coverage
 
-* User makes a request with invalid format email address, receives invalid email error.
-* User inputs new email, verifies code, creates invalid password (does not meet requirements), receives sign up error.
-* User inputs existing email (registered with email + Password), receives user existed error.
-* User inputs new email and invalid attributes, receives validation error.
-* User signs in an existing email, then try to sign up, receives error to sign out first.
+The test suite provides comprehensive coverage for all authentication flows:
 
-##### Email + OTP Authentication
+- **Sign In Tests** (`signin.spec.ts`) - Email + Password and Email + OTP authentication
+- **Sign Up Tests** (`signup.spec.ts`) - Account creation with various authentication methods  
+- **Password Reset Tests** (`resetpassword.spec.ts`) - Password reset flows and edge cases
+- **Multi-Factor Authentication** (`mfa.spec.ts`) - MFA setup and verification flows
+- **Just-In-Time Registration** (`jit.spec.ts`) - JIT method registration during authentication
+- **Sign Out Tests** (`signout.spec.ts`) - Session termination and cleanup
 
-##### Positive Cases
-
-* User enters new email and user attributes, verifies code successfully, completes sign up flow, then automatically sign-in.
-* User enters new email and user attributes, uses invalid OTP, requests new code, completes sign up flow, then automatically sign-in.
-* User enters new email, verifies code successfully, gives and user attributes, completes sign up flow, then automatically sign-in.
-
-##### Negative Cases
-
-* User makes a request with invalid format email address, receives invalid email error.
-* User inputs new email and invalid attributes, receives validation error.
-
-#### Redirect
-
-* Server requires password authentication, which is not supported by the developer (aka redirect flow)
-
-### 2. Sign In Tests
-
-#### Email + Password Authentication
-
-##### Positive Cases
-
-* User inputs registered email, then provides correct password, signs in successfully, check cache tokens use getCurrentAccount.
-* User inputs registered email, then provides correct password, signs in successfully, use getCurrentAccount with forceRefresh=true to force refresh tokens, ensure the access token is updated.
-* User inputs registered email and password, signs in successfully
-* Ability to provide scope to control auth strength of the token
-
-##### Negative Cases
-
-* User inputs non-registered email, receives account not found error
-* User inputs registered email, provides incorrect password, receives error
-* User signs in with account A, while data for account A already exists
-* User email is registered with email OTP auth method, which is supported by the developer
-
-#### Email + OTP Authentication
-
-##### Positive Cases
-
-* User inputs registered email, then receives OTP, verifies successfully
-* User inputs registered email and OTP, signs in successfully
-* User inputs registered email, enters incorrect OTP code, requests new OTP, enters valid code, signs in successfully
-
-##### Negative Cases
-
-* User inputs non-registered email, receives account not found error
-
-#### Redirct
-
-* User email is registered with email OTP auth method, which is not supported by the developer (aka redirect flow), sign in with pop up login.
-* User email is registered with password method, which is not supported by client (aka redirect flow), sign in with pop up login.
-
-### 3. Password Reset Tests
-
-#### Email + Password Authentication
-
-##### Positive Cases
-
-* User requests reset inputs emails, receives code, sets new valid password, completes reset, auto-signs in
-* User requests reset inputs emails, provides incorrect verification code, resend code, validates code, sets new valid password, completes reset, auto-signs in
-
-##### Negative Cases
-
-* User submits non-existing email, receives account not found error
-* User submits existing email, but email does not linked to any password (registered as email + OTP)
-* User submits existing email, receives code, creates invalid password (doesn’t meet password complexity requirements), receives requirements error
-
-#### Redirect
-
-* When SSPR requires a challenge type not supported by the client, redirect to web-fallback
-
-### 4. Sign Out Tests
-
-* User sign in with either email + OTP or email + password flow, click sign out, cache cleared.
-
-### 5. JIT
-
-#### Email + Password Authentication only
-
-##### Positive Cases
-
-* JIT is triggered in continue sign in after sign up - preverified, same email as strong auth method
-* JIT is triggered in continue sign in after sign up - use a second email as strong auth method, and use code validation
-* JIT is triggered in continue sign in after sign up - use a second email as strong auth method, resend code
-* JIT is triggered in sign in flow
-
-##### Negative Cases
-
-* Do not send registration_required capability and receive browserRequired
-
-### 6. MFA
-
-#### Email + Password Authentication only
-
-##### Positive Cases
-
-* Sign in using password with MFA Get Auth Methods then complete successfully
-* Sign in Authentication Context Claim Flow is Triggered and access token contains claims
-
-##### Negative Cases
-
-* Do not send mfa_required capability and receive browserRequired
+For detailed information about specific test scenarios, authentication flows, and implementation patterns, refer to the comprehensive context documentation linked above.
