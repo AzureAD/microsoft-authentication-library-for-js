@@ -15,7 +15,6 @@ import {
 import { ChildProcess } from "child_process";
 import path = require("path");
 import { startCorsProxy, stopCorsProxy } from "./utils/proxyUtils";
-import { MailTmClient } from "./utils/emailProviderUtils";
 import {
     testConfig,
     getTenantInfo,

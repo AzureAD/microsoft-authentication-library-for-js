@@ -4,7 +4,7 @@
  */
 
 import * as puppeteer from "puppeteer";
-import { BrowserCacheUtils, Screenshot } from "e2e-test-utils";
+import { BrowserCacheUtils } from "e2e-test-utils";
 
 /**
  * Token verification utilities
