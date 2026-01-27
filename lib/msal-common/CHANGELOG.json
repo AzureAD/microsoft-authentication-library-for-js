@@ -2,6 +2,47 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 27 Jan 2026 00:42:59 GMT",
+      "version": "16.0.3",
+      "tag": "@azure/msal-common_v16.0.3",
+      "comments": {
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "b400c05c152d931d081e5effadba46b5907ad36b",
+            "comment": "Disallow major changes #15525"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "dc372b5862211314de3eece4800e17eb6364da04",
+            "comment": "Add cachedByApiId field to AccountEntity for telemetry tracking [#8236](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8236)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Jan 2026 03:11:36 GMT",
       "version": "16.0.2",
       "tag": "@azure/msal-common_v16.0.2",
