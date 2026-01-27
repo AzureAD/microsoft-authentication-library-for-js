@@ -14,6 +14,7 @@ import {
     StubPerformanceClient,
     AccountEntityUtils,
     PerformanceEvent,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import {
     LoadTokenOptions,
@@ -108,7 +109,7 @@ describe("TokenCache tests", () => {
         let testRefreshToken: string;
 
         beforeEach(() => {
-            testEnvironment = "login.microsoftonline.com";
+            testEnvironment = "login.windows.net";
 
             testClientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
@@ -315,27 +316,6 @@ describe("TokenCache tests", () => {
                 expect.objectContaining({ secret: testIdToken }),
                 expect.anything(),
                 false
-            );
-        });
-
-        it("throws error if request does not have account and authority", (done) => {
-            const request: SilentRequest = {
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-            };
-            const response: ExternalTokenResponse = {
-                id_token: testIdToken,
-            };
-            const options: LoadTokenOptions = {};
-
-            loadExternalTokens(configuration, request, response, options).catch(
-                (e) => {
-                    expect(e).toEqual(
-                        createBrowserAuthError(
-                            BrowserAuthErrorCodes.unableToLoadToken
-                        )
-                    );
-                    done();
-                }
             );
         });
 
@@ -588,6 +568,134 @@ describe("TokenCache tests", () => {
             );
         });
 
+        it("loads refresh token with expiration time when refresh_token_expires_in is provided", async () => {
+            const refreshSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setRefreshTokenCredential"
+            );
+            const refreshTokenExpiresIn = 1209600; // 14 days in seconds
+            const now = TimeUtils.nowSeconds();
+            const expectedExpiresOn = now + refreshTokenExpiresIn;
+
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
+            };
+            const response: ExternalTokenResponse = {
+                refresh_token: testRefreshToken,
+                client_info: testClientInfo,
+                refresh_token_expires_in: refreshTokenExpiresIn,
+            };
+            const options: LoadTokenOptions = {};
+
+            await loadExternalTokens(configuration, request, response, options);
+
+            expect(refreshSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    secret: testRefreshToken,
+                    expiresOn: expect.any(String),
+                }),
+                expect.anything(),
+                false
+            );
+
+            // Validate expiresOn is within acceptable range (±2 seconds to account for test execution time)
+            const callArgs = refreshSpy.mock.calls[0][0];
+            expect(callArgs.expiresOn).toBeDefined();
+            const expiresOnNumber = parseInt(callArgs.expiresOn as string, 10);
+            expect(expiresOnNumber).toBeGreaterThanOrEqual(expectedExpiresOn);
+            expect(expiresOnNumber).toBeLessThanOrEqual(expectedExpiresOn + 2);
+        });
+
+        it("loads refresh token without expiration time when refresh_token_expires_in is not provided", async () => {
+            const refreshSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setRefreshTokenCredential"
+            );
+
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
+            };
+            const response: ExternalTokenResponse = {
+                refresh_token: testRefreshToken,
+                client_info: testClientInfo,
+                // No refresh_token_expires_in
+            };
+            const options: LoadTokenOptions = {};
+
+            await loadExternalTokens(configuration, request, response, options);
+
+            expect(refreshSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    secret: testRefreshToken,
+                }),
+                expect.anything(),
+                false
+            );
+
+            // Validate expiresOn is undefined when refresh_token_expires_in is not provided
+            const callArgs = refreshSpy.mock.calls[0][0];
+            expect(callArgs.expiresOn).toBeUndefined();
+        });
+
+        it("uses preferred_cache from authority discovery for environment when caching tokens", async () => {
+            const accountSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setAccount"
+            );
+            const refreshSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setRefreshTokenCredential"
+            );
+            const idSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setIdTokenCredential"
+            );
+
+            // Use login.microsoftonline.com as authority - this should resolve to preferred_cache "login.windows.net"
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `https://login.microsoftonline.com/${TEST_CONFIG.TENANT}`,
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+                refresh_token: testRefreshToken,
+                client_info: testClientInfo,
+            };
+            const options: LoadTokenOptions = {};
+
+            await loadExternalTokens(configuration, request, response, options);
+
+            // Verify account is cached with preferred_cache environment (login.windows.net)
+            expect(accountSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    environment: "login.windows.net", // preferred_cache for login.microsoftonline.com
+                }),
+                expect.anything(),
+                expect.anything(),
+                ApiId.loadExternalTokens
+            );
+
+            // Verify id token is cached with preferred_cache environment
+            expect(idSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    environment: "login.windows.net",
+                }),
+                expect.anything(),
+                expect.anything()
+            );
+
+            // Verify refresh token is cached with preferred_cache environment
+            expect(refreshSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    environment: "login.windows.net",
+                }),
+                expect.anything(),
+                expect.anything()
+            );
+        });
+
         describe("telemetry", () => {
             it("emits loadExternalTokens as a top-level telemetry event", async () => {
                 const testAppConfig = {
@@ -766,10 +874,10 @@ describe("TokenCache tests", () => {
 
                 const request: SilentRequest = {
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                    // No account, authority, or client info - should fail
+                    // No account or client info - should fail
                 };
                 const response: ExternalTokenResponse = {
-                    id_token: testIdToken,
+                    access_token: testAccessToken,
                 };
                 const options: LoadTokenOptions = {};
 

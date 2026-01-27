@@ -10,6 +10,7 @@ import {
     Logger,
     ScopeSet,
     Authority,
+    AuthorityFactory,
     AuthorityOptions,
     ExternalTokenResponse,
     AccountEntity,
@@ -102,20 +103,20 @@ export async function loadExternalTokens(
             buildStaticAuthorityOptions(browserConfig.auth)
         );
 
-        const authority = request.authority
-            ? new Authority(
-                  Authority.generateAuthority(
-                      request.authority,
-                      request.azureCloudOptions
-                  ),
-                  browserConfig.system.networkClient,
-                  storage,
-                  authorityOptions,
-                  logger,
-                  request.correlationId || BrowserCrypto.createNewGuid(),
-                  browserConfig.telemetry.client
-              )
-            : undefined;
+        const authorityString =
+            request.authority || browserConfig.auth.authority;
+        const authority = await AuthorityFactory.createDiscoveredInstance(
+            Authority.generateAuthority(
+                authorityString,
+                request.azureCloudOptions
+            ),
+            browserConfig.system.networkClient,
+            storage,
+            authorityOptions,
+            logger,
+            correlationId,
+            performanceClient
+        );
 
         const cacheRecordAccount: AccountEntity = await invokeAsync(
             loadAccount,
@@ -130,8 +131,8 @@ export async function loadExternalTokens(
             storage,
             logger,
             cryptoOps,
-            idTokenClaims,
-            authority
+            authority,
+            idTokenClaims
         );
 
         const idToken = await invokeAsync(
@@ -186,7 +187,8 @@ export async function loadExternalTokens(
             correlationId,
             storage,
             logger,
-            config.auth.clientId
+            config.auth.clientId,
+            performanceClient
         );
 
         rootMeasurement.end(
@@ -203,8 +205,8 @@ export async function loadExternalTokens(
                 accessToken,
                 refreshToken,
             },
-            idTokenClaims,
-            authority
+            authority,
+            idTokenClaims
         );
     } catch (error) {
         rootMeasurement.end({ success: false }, error);
@@ -228,8 +230,8 @@ async function loadAccount(
     storage: BrowserCacheManager,
     logger: Logger,
     cryptoObj: ICrypto,
-    idTokenClaims?: TokenClaims,
-    authority?: Authority
+    authority: Authority,
+    idTokenClaims?: TokenClaims
 ): Promise<AccountEntity> {
     logger.verbose("TokenCache - loading account", correlationId);
 
@@ -245,9 +247,9 @@ async function loadAccount(
             ApiId.loadExternalTokens
         );
         return accountEntity;
-    } else if (!authority || (!clientInfo && !idTokenClaims)) {
+    } else if (!clientInfo && !idTokenClaims) {
         logger.error(
-            "TokenCache - if an account is not provided on the request, authority and either clientInfo or idToken must be provided instead.",
+            "TokenCache - if an account is not provided on the request, clientInfo or idToken must be provided instead.",
             correlationId
         );
         throw createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken);
@@ -272,7 +274,7 @@ async function loadAccount(
         correlationId,
         idTokenClaims,
         clientInfo,
-        authority.hostnameAndPort,
+        authority.getPreferredCache(),
         claimsTenantId,
         undefined, // authCodePayload
         undefined, // nativeAccountId
@@ -419,7 +421,8 @@ async function loadRefreshToken(
     correlationId: string,
     storage: BrowserCacheManager,
     logger: Logger,
-    clientId: string
+    clientId: string,
+    performanceClient: IPerformanceClient
 ): Promise<RefreshTokenEntity | null> {
     if (!response.refresh_token) {
         logger.verbose(
@@ -429,6 +432,16 @@ async function loadRefreshToken(
         return null;
     }
 
+    const expiresOn = response.refresh_token_expires_in
+        ? response.refresh_token_expires_in + TimeUtils.nowSeconds()
+        : undefined;
+    performanceClient.addFields(
+        {
+            extRtExpiresOnSeconds: expiresOn,
+        },
+        correlationId
+    );
+
     logger.verbose("TokenCache - loading refresh token", correlationId);
     const refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
         homeAccountId,
@@ -437,7 +450,7 @@ async function loadRefreshToken(
         clientId,
         response.foci,
         undefined, // userAssertionHash
-        response.refresh_token_expires_in
+        expiresOn
     );
 
     await storage.setRefreshTokenCredential(
@@ -459,8 +472,8 @@ async function loadRefreshToken(
 function generateAuthenticationResult(
     request: SilentRequest,
     cacheRecord: CacheRecord & { account: AccountEntity },
-    idTokenClaims?: TokenClaims,
-    authority?: Authority
+    authority: Authority,
+    idTokenClaims?: TokenClaims
 ): AuthenticationResult {
     let accessToken: string = "";
     let responseScopes: Array<string> = [];
@@ -484,7 +497,7 @@ function generateAuthenticationResult(
     const accountEntity = cacheRecord.account;
 
     return {
-        authority: authority ? authority.canonicalAuthority : "",
+        authority: authority.canonicalAuthority,
         uniqueId: cacheRecord.account.localAccountId,
         tenantId: cacheRecord.account.realm,
         scopes: responseScopes,
