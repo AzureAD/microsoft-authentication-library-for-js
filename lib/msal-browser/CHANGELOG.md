@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Sat, 17 Jan 2026 03:11:36 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 27 Jan 2026 19:29:36 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.1.0
+
+Tue, 27 Jan 2026 19:29:36 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.0.3
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Store apiId in cache to track which API cached account information [#8236](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8236) (thomas.norling@microsoft.com)
 
 ## 5.0.2
 
