@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add cachedByApiId field to AccountEntity for telemetry tracking [#8236](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8236)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

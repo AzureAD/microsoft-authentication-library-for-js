@@ -2,6 +2,61 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 27 Jan 2026 21:17:09 GMT",
+      "version": "5.1.0",
+      "tag": "@azure/msal-browser_v5.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "msaljsbuilds@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c53e6be95c06f413e6312f5f569c2f58adfbbf21",
+            "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.0.3",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "dc372b5862211314de3eece4800e17eb6364da04",
+            "comment": "Store apiId in cache to track which API cached account information [#8236](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8236)"
+          }
+        ],
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b400c05c152d931d081e5effadba46b5907ad36b",
+            "comment": "Disallow major changes #15525"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Jan 2026 03:11:36 GMT",
       "version": "5.0.2",
       "tag": "@azure/msal-browser_v5.0.2",
@@ -129,7 +184,7 @@
             "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
             "comment": "Add PCAFactory and correlation id optional params to createNestablePublicClientApplication #8093"
           },
-                    {
+          {
             "author": "yongdiwang@microsoft.com",
             "package": "@azure/msal-browser",
             "commit": "c914f853de304b7dba075a31ddbf3a7cbdef6b47",
