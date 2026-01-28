@@ -2,6 +2,47 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 28 Jan 2026 18:43:41 GMT",
+      "version": "5.0.3",
+      "tag": "@azure/msal-node_v5.0.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "dc372b5862211314de3eece4800e17eb6364da04",
+            "comment": "Store apiId in cache to track which API cached account information [#8236](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8236)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.0.3",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b400c05c152d931d081e5effadba46b5907ad36b",
+            "comment": "Disallow major changes #15525"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Jan 2026 03:11:36 GMT",
       "version": "5.0.2",
       "tag": "@azure/msal-node_v5.0.2",

@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "loadExternalTokens fixes [#8259](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8259)",
-    "packageName": "@azure/msal-common",
-    "email": "thomas.norling@microsoft.com",
-    "dependentChangeType": "patch"
-}
