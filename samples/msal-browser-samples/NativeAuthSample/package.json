@@ -5,7 +5,7 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node server.js -p 30670",
+    "start": "node server.js",
     "build:package": "cd ../../../lib/msal-browser && npm run build:all",
     "start:build": "npm run build:package && npm start",
     "test:e2e": "jest --runInBand --detectOpenHandles --verbose"
