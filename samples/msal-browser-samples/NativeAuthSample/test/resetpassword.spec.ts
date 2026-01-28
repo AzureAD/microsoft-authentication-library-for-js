@@ -283,6 +283,9 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
+                // Mark checkpoint before triggering OTP for existing email account
+                resetPasswordClient.markCheckpoint();
+
                 // Enter reset password email using shared utility
                 await UIInteractionUtils.typeIntoElement(page, "#resetPasswordEmail", resetPasswordUsername, "Reset password email field");
 
@@ -340,6 +343,9 @@ describe("Native Auth Sample - Reset Password Tests", () => {
                 const screenshot = new Screenshot(
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
+
+                // Mark checkpoint before triggering OTP for existing email account
+                resetPasswordClient.markCheckpoint();
 
                 // Enter reset password email using shared utility
                 await UIInteractionUtils.typeIntoElement(page, "#resetPasswordEmail", resetPasswordUsername, "Reset password email field");

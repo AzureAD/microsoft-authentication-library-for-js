@@ -202,7 +202,8 @@ const emailClient = await MailTmClient.connectToExistingAccount(
     emailPassword
 );
 
-// Mark checkpoint before triggering OTP (for existing accounts)
+// CRITICAL: Mark checkpoint before triggering OTP (for existing accounts)
+// This prevents reading old emails from previous tests
 emailClient.markCheckpoint();
 ```
 

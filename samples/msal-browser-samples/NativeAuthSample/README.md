@@ -25,15 +25,66 @@ This sample demonstrates how to use the Native Authentication capabilities of th
    cd ../../../lib/msal-node && npm run build:all
    ```
 
+## E2E Testing
+
+### Running Tests
+
+1. **Set up environment variables**
+
+   Execute the environment setup script:
+   ```bash
+   ./gen_env_native_auth.ps1
+   ```
+
+2. **Run all E2E tests**
+
+   ```bash
+   npm run test:e2e
+   ```
+
+3. **Run specific test files**
+
+   ```bash
+   # Run individual test files
+   npm run test:e2e './test/jit.spec.ts'
+   npm run test:e2e './test/signin.spec.ts'
+   npm run test:e2e './test/signup.spec.ts'
+   npm run test:e2e './test/resetpassword.spec.ts'
+   npm run test:e2e './test/mfa.spec.ts'
+   npm run test:e2e './test/signout.spec.ts'
+   ```
+
+### Test Documentation
+
+- [`APP_FLOW_REFERENCE.md`](test/context/APP_FLOW_REFERENCE.md) - Complete application flow documentation
+- [`TEST_IMPLEMENTATION_GUIDE.md`](test/context/TEST_IMPLEMENTATION_GUIDE.md) - Testing patterns and best practices
+
+### Debugging Tests Locally
+
+For debugging purposes, you can add console logging to capture browser console output during test execution. Add the following code in your test's `beforeEach` block:
+
+```javascript
+page.on("console", (msg) => {
+   const type = msg.type();
+   const text = msg.text();
+   console.log(`[Browser ${type}]:`, text);
+});
+```
+
+This will output all browser console messages (including errors, warnings, and logs) to your test runner console, making it easier to debug issues during test development and execution.
+
+## Running the Application
+
 ### Configuration
 
 1. **Set up environment variables**:
+
    ```bash
    ./gen_env_native_auth.ps1
    ```
 
 2. **Configure the application**:
-   
+
    The application uses `nativeAuthConfig.json` for configuration. Key settings include:
    - `native_auth.tenant_subdomain`: Your tenant subdomain
    - `native_auth.tenant_id`: Your tenant ID
@@ -41,6 +92,7 @@ This sample demonstrates how to use the Native Authentication capabilities of th
    - Test user credentials
 
 3. **Configure authentication flows in `app/authConfig.js`**:
+
    ```javascript
    const msalConfig = {
      customAuth: {
@@ -56,12 +108,14 @@ This sample demonstrates how to use the Native Authentication capabilities of th
    };
    ```
 
-### Running the Application
+### Start the application
 
 1. **Start the development server**:
+
    ```bash
-   npm start -- --port 30670 --sample nativeAuthSample
+   npm start
    ```
+
    By default, the server runs on `http://localhost:30670`
 
 2. **Start the CORS proxy** (if needed):
@@ -69,7 +123,7 @@ This sample demonstrates how to use the Native Authentication capabilities of th
    node cors.js --tenantSubdomain YOUR_SUBDOMAIN --tenantId YOUR_TENANT_ID --port 30001
    ```
 
-## 🔧 Authentication Flow Configuration
+### 🔧 Authentication Flow Configuration
 
 The application behavior is controlled by URL query parameters:
 
@@ -88,7 +142,6 @@ http://localhost:30670/?usePwdConfig=true              # Email + Password
 http://localhost:30670/?useOtpConfig=true              # Email + OTP  
 http://localhost:30670/?usePwdConfig=true&useMFA=true  # With MFA
 ```
-
 
 ## Project Structure
 
@@ -155,54 +208,6 @@ NativeAuthSample/
 ├── tsconfig.json                 # TypeScript configuration
 └── test-results.xml             # Test execution results
 ```
-
-## E2E Testing
-
-### Running Tests
-
-1. **Set up environment variables**
-
-   Execute the environment setup script:
-   ```bash
-   ./gen_env_native_auth.ps1
-   ```
-
-2. **Run all E2E tests**
-
-   ```bash
-   npm run test:e2e
-   ```
-
-3. **Run specific test files**
-
-   ```bash
-   # Run individual test files
-   npm run test:e2e './test/jit.spec.ts'
-   npm run test:e2e './test/signin.spec.ts'
-   npm run test:e2e './test/signup.spec.ts'
-   npm run test:e2e './test/resetpassword.spec.ts'
-   npm run test:e2e './test/mfa.spec.ts'
-   npm run test:e2e './test/signout.spec.ts'
-   ```
-
-### Test Documentation
-
-- [`APP_FLOW_REFERENCE.md`](test/context/APP_FLOW_REFERENCE.md) - Complete application flow documentation
-- [`TEST_IMPLEMENTATION_GUIDE.md`](test/context/TEST_IMPLEMENTATION_GUIDE.md) - Testing patterns and best practices
-
-### Debugging Tests Locally
-
-For debugging purposes, you can add console logging to capture browser console output during test execution. Add the following code in your test's `beforeEach` block:
-
-```javascript
-page.on("console", (msg) => {
-   const type = msg.type();
-   const text = msg.text();
-   console.log(`[Browser ${type}]:`, text);
-});
-```
-
-This will output all browser console messages (including errors, warnings, and logs) to your test runner console, making it easier to debug issues during test development and execution.
 
 ## Available Test Coverage
 

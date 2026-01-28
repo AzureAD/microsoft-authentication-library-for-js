@@ -143,6 +143,9 @@ describe("Native Auth Sample - MFA Tests", () => {
                 );
                 await screenshot.takeScreenshot(page, "Page loaded");
 
+                // Mark checkpoint before triggering MFA OTP for existing email account
+                emailClient.markCheckpoint();
+
                 // Click navigation Sign In button to show sign in card
                 await UIInteractionUtils.clickElementSafely(page, "#showSignInBtn", "Show sign in button");
                 await screenshot.takeScreenshot(

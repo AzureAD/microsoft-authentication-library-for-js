@@ -359,6 +359,9 @@ describe("Native Auth Sample - Sign In Tests", () => {
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
 
+                // Mark checkpoint before triggering OTP for existing email account
+                emailOtpClient.markCheckpoint();
+
                 // Enter email in the sign-in form and click sign-in button
                 await UIInteractionUtils.typeIntoElement(page, "#username", signInEmailOtpUsername, "Username field");
                 await UIInteractionUtils.waitAndClick(page, "#signInBtn", "Sign in button", STANDARD_TIMEOUT);
@@ -398,6 +401,9 @@ describe("Native Auth Sample - Sign In Tests", () => {
                 const screenshot = new Screenshot(
                     `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
                 );
+
+                // Mark checkpoint before triggering OTP for existing email account
+                emailOtpClient.markCheckpoint();
 
                 // Phase 1: Enter email and initiate sign-in
                 await UIInteractionUtils.typeIntoElement(page, "#username", signInEmailOtpUsername, "Username field");

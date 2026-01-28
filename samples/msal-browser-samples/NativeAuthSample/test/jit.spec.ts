@@ -436,6 +436,9 @@ describe("Native Auth Sample - JIT Tests", () => {
                 // Create email client for configured JIT email
                 const jitEmailClient = await MailTmClient.connectToExistingAccount(jitEmail, emailProviderPwd);
 
+                // Mark checkpoint before triggering OTP for existing email account
+                jitEmailClient.markCheckpoint();
+
                 // Select email OTP as JIT method
                 const emailMethodValue = await selectJitMethod(page, "email");
                 await page.select("#jitAuthMethodSelect", emailMethodValue);

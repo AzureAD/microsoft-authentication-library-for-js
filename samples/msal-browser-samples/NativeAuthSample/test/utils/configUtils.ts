@@ -24,7 +24,7 @@ export const testConfig = {
 
     timeouts: {
         standard: 45000, // 45 seconds
-        extended: 90000, // 60 seconds
+        extended: 90000, // 90 seconds
         auth: 150000, // 150 seconds
     },
 
