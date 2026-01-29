@@ -16,6 +16,7 @@ import {
   SsoSilentRequest,
   Logger,
   WrapperSKU,
+  HandleRedirectPromiseOptions,
 } from "@azure/msal-browser";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
@@ -54,13 +55,29 @@ export class MsalService implements IMsalService {
   ): Observable<AuthenticationResult> {
     return from(this.instance.acquireTokenSilent(silentRequest));
   }
-  handleRedirectObservable(hash?: string): Observable<AuthenticationResult> {
+  /**
+   * @deprecated Pass options object instead of hash string. Use handleRedirectObservable({ hash: "#..." }) instead.
+   */
+  handleRedirectObservable(hash: string): Observable<AuthenticationResult>;
+  handleRedirectObservable(
+    options?: HandleRedirectPromiseOptions
+  ): Observable<AuthenticationResult>;
+  handleRedirectObservable(
+    hashOrOptions?: string | HandleRedirectPromiseOptions
+  ): Observable<AuthenticationResult> {
+    // Support both legacy string parameter (hash) and new options object
+    const options: HandleRedirectPromiseOptions =
+      typeof hashOrOptions === "string"
+        ? { hash: hashOrOptions }
+        : hashOrOptions || {};
+
     return from(
       this.instance
         .initialize()
         .then(() =>
           this.instance.handleRedirectPromise({
-            hash: hash || this.redirectHash,
+            ...options,
+            hash: options.hash || this.redirectHash,
           })
         )
         .finally(() => {

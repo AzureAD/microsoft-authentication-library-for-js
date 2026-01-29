@@ -12,6 +12,7 @@ import {
   SsoSilentRequest,
   EndSessionRequest,
   EndSessionPopupRequest,
+  HandleRedirectPromiseOptions,
 } from "@azure/msal-browser";
 import { Observable } from "rxjs";
 
@@ -22,7 +23,13 @@ export interface IMsalService {
   acquireTokenSilent(
     silentRequest: SilentRequest
   ): Observable<AuthenticationResult>;
-  handleRedirectObservable(): Observable<AuthenticationResult | null>;
+  /**
+   * @deprecated Pass options object instead of hash string. Use handleRedirectObservable({ hash: "#..." }) instead.
+   */
+  handleRedirectObservable(hash: string): Observable<AuthenticationResult | null>;
+  handleRedirectObservable(
+    options?: HandleRedirectPromiseOptions
+  ): Observable<AuthenticationResult | null>;
   loginPopup(request?: PopupRequest): Observable<AuthenticationResult>;
   loginRedirect(request?: RedirectRequest): Observable<void>;
   logoutRedirect(logoutRequest?: EndSessionRequest): Observable<void>;
