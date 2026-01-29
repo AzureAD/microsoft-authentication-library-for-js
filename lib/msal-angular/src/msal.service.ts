@@ -58,13 +58,15 @@ export class MsalService implements IMsalService {
   /**
    * @deprecated Pass options object instead of hash string. Use handleRedirectObservable({ hash: "#..." }) instead.
    */
-  handleRedirectObservable(hash: string): Observable<AuthenticationResult | null>;
-  /**  
-   * Handles the redirect response from authentication. Call this on every page load after a redirect-based login.  
-   * If no options are provided, the service will attempt to use the cached redirect hash captured during construction.  
-   *  
-   * @param options - Optional configuration for redirect handling, such as an explicit hash value to process.  
-   * @returns Observable that emits the AuthenticationResult when a redirect is successfully handled.  
+  handleRedirectObservable(
+    hash: string
+  ): Observable<AuthenticationResult | null>;
+  /**
+   * Handles the redirect response from authentication. Call this on every page load after a redirect-based login.
+   * If no options are provided, the service will attempt to use the cached redirect hash captured during construction.
+   *
+   * @param options - Optional configuration for redirect handling, such as an explicit hash value to process.
+   * @returns Observable that emits the AuthenticationResult when a redirect is successfully handled.
    */
   handleRedirectObservable(
     options?: HandleRedirectPromiseOptions

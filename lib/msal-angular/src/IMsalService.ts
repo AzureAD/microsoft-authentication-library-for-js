@@ -26,7 +26,9 @@ export interface IMsalService {
   /**
    * @deprecated Pass options object instead of hash string. Use handleRedirectObservable({ hash: "#..." }) instead.
    */
-  handleRedirectObservable(hash: string): Observable<AuthenticationResult | null>;
+  handleRedirectObservable(
+    hash: string
+  ): Observable<AuthenticationResult | null>;
   handleRedirectObservable(
     options?: HandleRedirectPromiseOptions
   ): Observable<AuthenticationResult | null>;
