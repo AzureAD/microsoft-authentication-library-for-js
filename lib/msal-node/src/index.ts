@@ -75,6 +75,8 @@ const PromptValue = CommonConstants.PromptValue;
 const ResponseMode = CommonConstants.ResponseMode;
 export { PromptValue, ResponseMode };
 
+export { CryptoProvider } from "./crypto/CryptoProvider.js";
+
 // Common Object Formats
 export {
     AuthorizationCodePayload,
