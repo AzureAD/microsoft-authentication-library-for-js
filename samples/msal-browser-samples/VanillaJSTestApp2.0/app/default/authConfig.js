@@ -1,15 +1,16 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
+        clientId: "ec6b0f3d-1062-4739-b1bc-b362808e55a6", //b5c2e510-4a17-4feb-b219-e55aa5b74144",
         authority:
-            "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47",
+            "https://login.microsoftonline.com/5ab1ab15-6254-4530-82e1-4978521b3300", //72f988bf-86f1-41af-91ab-2d7cd011db47",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
     system: {
+        allowPlatformBroker: true,
         loggerOptions: {
             logLevel: msal.LogLevel.Trace,
             loggerCallback: (level, message, containsPii) => {

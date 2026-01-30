@@ -92,8 +92,8 @@ if (argv.https) {
      * Please see "Certificates and Secrets" (https://learn.microsoft.com/azure/active-directory/develop/security-best-practices-for-app-registration#certificates-and-secrets)
      * for more information.
      */
-    const privateKey = fs.readFileSync('./certs/key.pem', 'utf8');
-    const certificate = fs.readFileSync('./certs/cert.pem', 'utf8');
+    const privateKey = fs.readFileSync('./key.pem', 'utf8');
+    const certificate = fs.readFileSync('./cert.pem', 'utf8');
     const credentials = { key: privateKey, cert: certificate };
     const httpsServer = https.createServer(credentials, app);
     httpsServer.listen(port);
