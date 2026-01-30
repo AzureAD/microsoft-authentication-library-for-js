@@ -126,7 +126,6 @@ export class ClientAssertion {
     // @deprecated (undocumented)
     static fromCertificate(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion;
     static fromCertificateWithSha256Thumbprint(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion;
-    // Warning: (ae-forgotten-export) The symbol "CryptoProvider" needs to be exported by the entry point index.d.ts
     getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string): string;
     static parseCertificate(publicCertificate: string): Array<string>;
 }
@@ -166,6 +165,22 @@ export type Configuration = {
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
 };
+
+// @public
+export class CryptoProvider implements ICrypto {
+    constructor();
+    base64Decode(input: string): string;
+    base64Encode(input: string): string;
+    base64UrlEncode(): string;
+    clearKeystore(): Promise<boolean>;
+    createNewGuid(): string;
+    encodeKid(): string;
+    generatePkceCodes(): Promise<PkceCodes>;
+    getPublicKeyThumbprint(): Promise<string>;
+    hashString(plainText: string): Promise<string>;
+    removeTokenBindingKey(): Promise<void>;
+    signJwt(): Promise<string>;
+}
 
 // @internal
 class Deserializer {
