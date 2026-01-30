@@ -80,15 +80,17 @@ export class MsalService implements IMsalService {
         ? { hash: hashOrOptions }
         : hashOrOptions || {};
 
+    // Only include hash in the final options if there's a value
+    const hash = options.hash || this.redirectHash;
+    const finalOptions: HandleRedirectPromiseOptions = {
+      ...options,
+      ...(hash ? { hash } : {}),
+    };
+
     return from(
       this.instance
         .initialize()
-        .then(() =>
-          this.instance.handleRedirectPromise({
-            ...options,
-            hash: options.hash || this.redirectHash,
-          })
-        )
+        .then(() => this.instance.handleRedirectPromise(finalOptions))
         .finally(() => {
           // update inProgress state to none
           this.injector.get(MsalBroadcastService).resetInProgressEvent();
