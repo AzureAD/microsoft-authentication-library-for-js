@@ -207,7 +207,7 @@ export class NestedAppAuthAdapter {
         const preferredUsername =
             effectiveIdTokenClaims?.preferred_username ||
             effectiveIdTokenClaims?.upn;
-            
+
         const email = effectiveIdTokenClaims?.emails
             ? effectiveIdTokenClaims.emails[0]
             : null;

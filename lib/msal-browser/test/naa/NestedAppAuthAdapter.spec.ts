@@ -297,7 +297,11 @@ describe("NestedAppAuthAdapter tests", () => {
             describe("fallback to idTokenClaims", () => {
                 it.each([
                     ["oid", { oid: TEST_OID, tid: TEST_TID }, TEST_OID],
-                    ["sub (when oid missing)", { sub: TEST_SUB, tid: TEST_TID }, TEST_SUB],
+                    [
+                        "sub (when oid missing)",
+                        { sub: TEST_SUB, tid: TEST_TID },
+                        TEST_SUB,
+                    ],
                 ])(
                     "should derive localAccountId from %s claim",
                     (_desc, claims, expected) => {
@@ -325,12 +329,19 @@ describe("NestedAppAuthAdapter tests", () => {
                         TEST_ID_TOKEN,
                         createBaseClaims()
                     );
-                    expect(result.homeAccountId).toBe(`${TEST_OID}.${TEST_TID}`);
+                    expect(result.homeAccountId).toBe(
+                        `${TEST_OID}.${TEST_TID}`
+                    );
                 });
 
                 it.each([
                     ["name", { name: TEST_NAME }, "name", TEST_NAME],
-                    ["loginHint", { login_hint: TEST_LOGIN_HINT }, "loginHint", TEST_LOGIN_HINT],
+                    [
+                        "loginHint",
+                        { login_hint: TEST_LOGIN_HINT },
+                        "loginHint",
+                        TEST_LOGIN_HINT,
+                    ],
                 ])(
                     "should derive %s from idTokenClaims when not in account",
                     (_field, extraClaims, resultField, expected) => {
@@ -339,9 +350,9 @@ describe("NestedAppAuthAdapter tests", () => {
                             TEST_ID_TOKEN,
                             createBaseClaims(extraClaims)
                         );
-                        expect(
-                            result[resultField as keyof typeof result]
-                        ).toBe(expected);
+                        expect(result[resultField as keyof typeof result]).toBe(
+                            expected
+                        );
                     }
                 );
 
@@ -365,7 +376,9 @@ describe("NestedAppAuthAdapter tests", () => {
 
             describe("environment validation", () => {
                 it("should throw ClientAuthError with invalidCacheEnvironment code when environment is empty", () => {
-                    const naaAccount = createMinimalAccount({ environment: "" });
+                    const naaAccount = createMinimalAccount({
+                        environment: "",
+                    });
 
                     expect(() =>
                         nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount)
@@ -384,8 +397,16 @@ describe("NestedAppAuthAdapter tests", () => {
 
             describe("B2C scenarios", () => {
                 it.each([
-                    ["tfp (modern B2C)", { oid: TEST_OID, tfp: TEST_TFP }, TEST_TFP],
-                    ["acr (legacy B2C)", { oid: TEST_OID, acr: TEST_ACR }, TEST_ACR],
+                    [
+                        "tfp (modern B2C)",
+                        { oid: TEST_OID, tfp: TEST_TFP },
+                        TEST_TFP,
+                    ],
+                    [
+                        "acr (legacy B2C)",
+                        { oid: TEST_OID, acr: TEST_ACR },
+                        TEST_ACR,
+                    ],
                 ])(
                     "should derive tenantId from %s claim",
                     (_desc, claims, expected) => {
@@ -402,7 +423,12 @@ describe("NestedAppAuthAdapter tests", () => {
                     const result = nestedAppAuthAdapter.fromNaaAccountInfo(
                         createMinimalAccount(),
                         TEST_ID_TOKEN,
-                        { oid: TEST_OID, tid: TEST_TID, tfp: TEST_TFP, acr: TEST_ACR }
+                        {
+                            oid: TEST_OID,
+                            tid: TEST_TID,
+                            tfp: TEST_TFP,
+                            acr: TEST_ACR,
+                        }
                     );
                     expect(result.tenantId).toBe(TEST_TID);
                 });
@@ -411,7 +437,9 @@ describe("NestedAppAuthAdapter tests", () => {
                     const result = nestedAppAuthAdapter.fromNaaAccountInfo(
                         createMinimalAccount({ username: "" }),
                         TEST_ID_TOKEN,
-                        createBaseClaims({ emails: [TEST_EMAIL, "secondary@contoso.com"] })
+                        createBaseClaims({
+                            emails: [TEST_EMAIL, "secondary@contoso.com"],
+                        })
                     );
                     expect(result.username).toBe(TEST_EMAIL);
                 });
@@ -422,13 +450,21 @@ describe("NestedAppAuthAdapter tests", () => {
                     [
                         "account username over claims",
                         TEST_USERNAME,
-                        { preferred_username: TEST_PREFERRED_USERNAME, upn: TEST_UPN, emails: [TEST_EMAIL] },
+                        {
+                            preferred_username: TEST_PREFERRED_USERNAME,
+                            upn: TEST_UPN,
+                            emails: [TEST_EMAIL],
+                        },
                         TEST_USERNAME,
                     ],
                     [
                         "preferred_username when account username is empty",
                         "",
-                        { preferred_username: TEST_PREFERRED_USERNAME, upn: TEST_UPN, emails: [TEST_EMAIL] },
+                        {
+                            preferred_username: TEST_PREFERRED_USERNAME,
+                            upn: TEST_UPN,
+                            emails: [TEST_EMAIL],
+                        },
                         TEST_PREFERRED_USERNAME,
                     ],
                     [
@@ -464,24 +500,9 @@ describe("NestedAppAuthAdapter tests", () => {
 
             describe("empty field fallbacks", () => {
                 it.each([
-                    [
-                        "localAccountId",
-                        { tid: TEST_TID },
-                        "localAccountId",
-                        "",
-                    ],
-                    [
-                        "tenantId",
-                        { oid: TEST_OID },
-                        "tenantId",
-                        "",
-                    ],
-                    [
-                        "name",
-                        { oid: TEST_OID, tid: TEST_TID },
-                        "name",
-                        "",
-                    ],
+                    ["localAccountId", { tid: TEST_TID }, "localAccountId", ""],
+                    ["tenantId", { oid: TEST_OID }, "tenantId", ""],
+                    ["name", { oid: TEST_OID, tid: TEST_TID }, "name", ""],
                 ])(
                     "should return empty string for %s when not derivable",
                     (_field, claims, resultField, expected) => {
