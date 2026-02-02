@@ -380,10 +380,6 @@ describe("NestedAppAuthAdapter tests", () => {
                         environment: "",
                     });
 
-                    expect(() =>
-                        nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount)
-                    ).toThrow(ClientAuthError);
-
                     try {
                         nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount);
                         fail("Expected error to be thrown");
