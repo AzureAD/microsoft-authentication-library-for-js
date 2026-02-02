@@ -19,8 +19,9 @@ extends:
         globalSdl:
             policheck:
                 break: true
-        WindowsHostVersion: 
-            Version: 2022
+        featureFlags:
+            WindowsHostVersion: 
+                Version: 2022
         stages:
             - stage: sdl
               displayName: "Run SDL Checks"
