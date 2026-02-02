@@ -225,6 +225,24 @@ describe("NestedAppAuthAdapter tests", () => {
         const TEST_LOGIN_HINT = "test-login-hint";
         const TEST_ID_TOKEN = "mock.id.token";
 
+        // Helper to create minimal account with just required fields
+        const createMinimalAccount = (
+            overrides: Partial<NaaAccountInfo> = {}
+        ): NaaAccountInfo => ({
+            environment: TEST_ENVIRONMENT,
+            username: TEST_USERNAME,
+            ...overrides,
+        });
+
+        // Helper to create base idTokenClaims
+        const createBaseClaims = (
+            overrides: Record<string, unknown> = {}
+        ): Record<string, unknown> => ({
+            oid: TEST_OID,
+            tid: TEST_TID,
+            ...overrides,
+        });
+
         describe("response validation", () => {
             describe("basic field mapping", () => {
                 it("should map all fields from NaaAccountInfo when provided", () => {
@@ -234,497 +252,259 @@ describe("NestedAppAuthAdapter tests", () => {
                         tenantId: TEST_TID,
                         username: TEST_USERNAME,
                         localAccountId: TEST_OID,
-                    name: TEST_NAME,
-                    loginHint: TEST_LOGIN_HINT,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN
-                );
-
-                expect(result.homeAccountId).toBe(`${TEST_OID}.${TEST_TID}`);
-                expect(result.environment).toBe(TEST_ENVIRONMENT);
-                expect(result.tenantId).toBe(TEST_TID);
-                expect(result.username).toBe(TEST_USERNAME);
-                expect(result.localAccountId).toBe(TEST_OID);
-                expect(result.name).toBe(TEST_NAME);
-                expect(result.loginHint).toBe(TEST_LOGIN_HINT);
-                expect(result.idToken).toBe(TEST_ID_TOKEN);
-            });
-
-            it("should create tenantProfile for the account", () => {
-                const naaAccount: NaaAccountInfo = {
-                    homeAccountId: `${TEST_OID}.${TEST_TID}`,
-                    environment: TEST_ENVIRONMENT,
-                    tenantId: TEST_TID,
-                    username: TEST_USERNAME,
-                    localAccountId: TEST_OID,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount);
-
-                expect(result.tenantProfiles).toBeDefined();
-                expect(result.tenantProfiles?.size).toBe(1);
-                expect(result.tenantProfiles?.has(TEST_TID)).toBe(true);
-                const tenantProfile = result.tenantProfiles?.get(TEST_TID);
-                expect(tenantProfile?.tenantId).toBe(TEST_TID);
-                expect(tenantProfile?.localAccountId).toBe(TEST_OID);
-            });
-        });
-
-        describe("fallback to idTokenClaims", () => {
-            it("should derive localAccountId from oid claim when not in account", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.localAccountId).toBe(TEST_OID);
-            });
-
-            it("should derive localAccountId from sub claim when oid not present", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    sub: TEST_SUB,
-                    tid: TEST_TID,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.localAccountId).toBe(TEST_SUB);
-            });
-
-            it("should derive tenantId from tid claim when not in account", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.tenantId).toBe(TEST_TID);
-            });
-
-            it("should compute homeAccountId from localAccountId and tenantId when not provided", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.homeAccountId).toBe(`${TEST_OID}.${TEST_TID}`);
-            });
-
-            it("should derive name from idTokenClaims when not in account", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    name: TEST_NAME,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.name).toBe(TEST_NAME);
-            });
-
-            it("should derive loginHint from idTokenClaims when not in account", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    login_hint: TEST_LOGIN_HINT,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.loginHint).toBe(TEST_LOGIN_HINT);
-            });
-
-            it("should use idTokenClaims from account when not passed as parameter", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                    idTokenClaims: {
-                        oid: TEST_OID,
-                        tid: TEST_TID,
                         name: TEST_NAME,
-                    },
-                };
+                        loginHint: TEST_LOGIN_HINT,
+                    };
 
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount);
-
-                expect(result.localAccountId).toBe(TEST_OID);
-                expect(result.tenantId).toBe(TEST_TID);
-                expect(result.name).toBe(TEST_NAME);
-            });
-        });
-
-        describe("environment validation", () => {
-            it("should throw ClientAuthError when environment is empty", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: "",
-                    username: TEST_USERNAME,
-                };
-
-                expect(() =>
-                    nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount)
-                ).toThrow(ClientAuthError);
-            });
-
-            it("should throw error with invalidCacheEnvironment code", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: "",
-                    username: TEST_USERNAME,
-                };
-
-                try {
-                    nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount);
-                    fail("Expected error to be thrown");
-                } catch (error) {
-                    expect(error).toBeInstanceOf(ClientAuthError);
-                    expect((error as ClientAuthError).errorCode).toBe(
-                        ClientAuthErrorCodes.invalidCacheEnvironment
+                    const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                        naaAccount,
+                        TEST_ID_TOKEN
                     );
-                }
+
+                    expect(result.homeAccountId).toBe(
+                        `${TEST_OID}.${TEST_TID}`
+                    );
+                    expect(result.environment).toBe(TEST_ENVIRONMENT);
+                    expect(result.tenantId).toBe(TEST_TID);
+                    expect(result.username).toBe(TEST_USERNAME);
+                    expect(result.localAccountId).toBe(TEST_OID);
+                    expect(result.name).toBe(TEST_NAME);
+                    expect(result.loginHint).toBe(TEST_LOGIN_HINT);
+                    expect(result.idToken).toBe(TEST_ID_TOKEN);
+                });
+
+                it("should create tenantProfile for the account", () => {
+                    const naaAccount: NaaAccountInfo = {
+                        homeAccountId: `${TEST_OID}.${TEST_TID}`,
+                        environment: TEST_ENVIRONMENT,
+                        tenantId: TEST_TID,
+                        username: TEST_USERNAME,
+                        localAccountId: TEST_OID,
+                    };
+
+                    const result =
+                        nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount);
+
+                    expect(result.tenantProfiles).toBeDefined();
+                    expect(result.tenantProfiles?.size).toBe(1);
+                    expect(result.tenantProfiles?.has(TEST_TID)).toBe(true);
+                    const tenantProfile = result.tenantProfiles?.get(TEST_TID);
+                    expect(tenantProfile?.tenantId).toBe(TEST_TID);
+                    expect(tenantProfile?.localAccountId).toBe(TEST_OID);
+                });
             });
-        });
 
-        describe("B2C scenarios", () => {
-            it("should derive tenantId from tfp claim (modern B2C)", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tfp: TEST_TFP, // Modern B2C policy claim
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
+            describe("fallback to idTokenClaims", () => {
+                it.each([
+                    ["oid", { oid: TEST_OID, tid: TEST_TID }, TEST_OID],
+                    ["sub (when oid missing)", { sub: TEST_SUB, tid: TEST_TID }, TEST_SUB],
+                ])(
+                    "should derive localAccountId from %s claim",
+                    (_desc, claims, expected) => {
+                        const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                            createMinimalAccount(),
+                            TEST_ID_TOKEN,
+                            claims
+                        );
+                        expect(result.localAccountId).toBe(expected);
+                    }
                 );
 
-                expect(result.tenantId).toBe(TEST_TFP);
-            });
+                it("should derive tenantId from tid claim when not in account", () => {
+                    const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                        createMinimalAccount(),
+                        TEST_ID_TOKEN,
+                        createBaseClaims()
+                    );
+                    expect(result.tenantId).toBe(TEST_TID);
+                });
 
-            it("should derive tenantId from acr claim (legacy B2C)", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
+                it("should compute homeAccountId from localAccountId and tenantId when not provided", () => {
+                    const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                        createMinimalAccount(),
+                        TEST_ID_TOKEN,
+                        createBaseClaims()
+                    );
+                    expect(result.homeAccountId).toBe(`${TEST_OID}.${TEST_TID}`);
+                });
 
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    acr: TEST_ACR, // Legacy B2C policy claim
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
+                it.each([
+                    ["name", { name: TEST_NAME }, "name", TEST_NAME],
+                    ["loginHint", { login_hint: TEST_LOGIN_HINT }, "loginHint", TEST_LOGIN_HINT],
+                ])(
+                    "should derive %s from idTokenClaims when not in account",
+                    (_field, extraClaims, resultField, expected) => {
+                        const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                            createMinimalAccount(),
+                            TEST_ID_TOKEN,
+                            createBaseClaims(extraClaims)
+                        );
+                        expect(
+                            result[resultField as keyof typeof result]
+                        ).toBe(expected);
+                    }
                 );
 
-                expect(result.tenantId).toBe(TEST_ACR);
+                it("should use idTokenClaims from account when not passed as parameter", () => {
+                    const naaAccount = createMinimalAccount({
+                        idTokenClaims: {
+                            oid: TEST_OID,
+                            tid: TEST_TID,
+                            name: TEST_NAME,
+                        },
+                    });
+
+                    const result =
+                        nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount);
+
+                    expect(result.localAccountId).toBe(TEST_OID);
+                    expect(result.tenantId).toBe(TEST_TID);
+                    expect(result.name).toBe(TEST_NAME);
+                });
             });
 
-            it("should prefer tid over tfp and acr", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
+            describe("environment validation", () => {
+                it("should throw ClientAuthError with invalidCacheEnvironment code when environment is empty", () => {
+                    const naaAccount = createMinimalAccount({ environment: "" });
 
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    tfp: TEST_TFP,
-                    acr: TEST_ACR,
-                };
+                    expect(() =>
+                        nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount)
+                    ).toThrow(ClientAuthError);
 
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
+                    try {
+                        nestedAppAuthAdapter.fromNaaAccountInfo(naaAccount);
+                        fail("Expected error to be thrown");
+                    } catch (error) {
+                        expect((error as ClientAuthError).errorCode).toBe(
+                            ClientAuthErrorCodes.invalidCacheEnvironment
+                        );
+                    }
+                });
+            });
+
+            describe("B2C scenarios", () => {
+                it.each([
+                    ["tfp (modern B2C)", { oid: TEST_OID, tfp: TEST_TFP }, TEST_TFP],
+                    ["acr (legacy B2C)", { oid: TEST_OID, acr: TEST_ACR }, TEST_ACR],
+                ])(
+                    "should derive tenantId from %s claim",
+                    (_desc, claims, expected) => {
+                        const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                            createMinimalAccount(),
+                            TEST_ID_TOKEN,
+                            claims
+                        );
+                        expect(result.tenantId).toBe(expected);
+                    }
                 );
 
-                expect(result.tenantId).toBe(TEST_TID);
+                it("should prefer tid over tfp and acr", () => {
+                    const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                        createMinimalAccount(),
+                        TEST_ID_TOKEN,
+                        { oid: TEST_OID, tid: TEST_TID, tfp: TEST_TFP, acr: TEST_ACR }
+                    );
+                    expect(result.tenantId).toBe(TEST_TID);
+                });
+
+                it("should derive username from emails claim in B2C scenarios", () => {
+                    const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                        createMinimalAccount({ username: "" }),
+                        TEST_ID_TOKEN,
+                        createBaseClaims({ emails: [TEST_EMAIL, "secondary@contoso.com"] })
+                    );
+                    expect(result.username).toBe(TEST_EMAIL);
+                });
             });
 
-            it("should derive username from emails claim in B2C scenarios", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: "", // Empty username
-                };
+            describe("username fallback chain", () => {
+                it.each([
+                    [
+                        "account username over claims",
+                        TEST_USERNAME,
+                        { preferred_username: TEST_PREFERRED_USERNAME, upn: TEST_UPN, emails: [TEST_EMAIL] },
+                        TEST_USERNAME,
+                    ],
+                    [
+                        "preferred_username when account username is empty",
+                        "",
+                        { preferred_username: TEST_PREFERRED_USERNAME, upn: TEST_UPN, emails: [TEST_EMAIL] },
+                        TEST_PREFERRED_USERNAME,
+                    ],
+                    [
+                        "upn when preferred_username is not present",
+                        "",
+                        { upn: TEST_UPN, emails: [TEST_EMAIL] },
+                        TEST_UPN,
+                    ],
+                    [
+                        "emails[0] when preferred_username and upn are not present",
+                        "",
+                        { emails: [TEST_EMAIL] },
+                        TEST_EMAIL,
+                    ],
+                    [
+                        "empty string when no username sources are available",
+                        "",
+                        {},
+                        "",
+                    ],
+                ])(
+                    "should prefer %s",
+                    (_desc, accountUsername, extraClaims, expected) => {
+                        const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                            createMinimalAccount({ username: accountUsername }),
+                            TEST_ID_TOKEN,
+                            createBaseClaims(extraClaims)
+                        );
+                        expect(result.username).toBe(expected);
+                    }
+                );
+            });
 
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    emails: [TEST_EMAIL, "secondary@contoso.com"],
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
+            describe("empty field fallbacks", () => {
+                it.each([
+                    [
+                        "localAccountId",
+                        { tid: TEST_TID },
+                        "localAccountId",
+                        "",
+                    ],
+                    [
+                        "tenantId",
+                        { oid: TEST_OID },
+                        "tenantId",
+                        "",
+                    ],
+                    [
+                        "name",
+                        { oid: TEST_OID, tid: TEST_TID },
+                        "name",
+                        "",
+                    ],
+                ])(
+                    "should return empty string for %s when not derivable",
+                    (_field, claims, resultField, expected) => {
+                        const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                            createMinimalAccount(),
+                            TEST_ID_TOKEN,
+                            claims
+                        );
+                        expect(result[resultField as keyof typeof result]).toBe(
+                            expected
+                        );
+                    }
                 );
 
-                // Should use first email from array
-                expect(result.username).toBe(TEST_EMAIL);
+                it("should return undefined for loginHint when not derivable", () => {
+                    const result = nestedAppAuthAdapter.fromNaaAccountInfo(
+                        createMinimalAccount(),
+                        TEST_ID_TOKEN,
+                        createBaseClaims()
+                    );
+                    expect(result.loginHint).toBeUndefined();
+                });
             });
-        });
-
-        describe("username fallback chain", () => {
-            it("should prefer account username over claims", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    preferred_username: TEST_PREFERRED_USERNAME,
-                    upn: TEST_UPN,
-                    emails: [TEST_EMAIL],
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.username).toBe(TEST_USERNAME);
-            });
-
-            it("should fallback to preferred_username when account username is empty", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: "",
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    preferred_username: TEST_PREFERRED_USERNAME,
-                    upn: TEST_UPN,
-                    emails: [TEST_EMAIL],
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.username).toBe(TEST_PREFERRED_USERNAME);
-            });
-
-            it("should fallback to upn when preferred_username is not present", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: "",
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    upn: TEST_UPN,
-                    emails: [TEST_EMAIL],
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.username).toBe(TEST_UPN);
-            });
-
-            it("should fallback to emails[0] when preferred_username and upn are not present", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: "",
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    emails: [TEST_EMAIL],
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.username).toBe(TEST_EMAIL);
-            });
-
-            it("should return empty string when no username sources are available", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: "",
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.username).toBe("");
-            });
-        });
-
-        describe("empty field fallbacks", () => {
-            it("should return empty string for localAccountId when not derivable", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    tid: TEST_TID,
-                    // No oid or sub
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.localAccountId).toBe("");
-            });
-
-            it("should return empty string for tenantId when not derivable", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    // No tid, tfp, or acr
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.tenantId).toBe("");
-            });
-
-            it("should return empty string for name when not derivable", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    // No name
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.name).toBe("");
-            });
-
-            it("should return undefined for loginHint when not derivable", () => {
-                const naaAccount: NaaAccountInfo = {
-                    environment: TEST_ENVIRONMENT,
-                    username: TEST_USERNAME,
-                };
-
-                const idTokenClaims = {
-                    oid: TEST_OID,
-                    tid: TEST_TID,
-                    // No login_hint
-                };
-
-                const result = nestedAppAuthAdapter.fromNaaAccountInfo(
-                    naaAccount,
-                    TEST_ID_TOKEN,
-                    idTokenClaims
-                );
-
-                expect(result.loginHint).toBeUndefined();
-            });
-        });
         });
     });
 });
