@@ -33,6 +33,7 @@ extends:
     parameters:
         globalSdl:
             policheck:
+                break: true
         featureFlags:
             WindowsHostVersion:
                 Version: 2022
