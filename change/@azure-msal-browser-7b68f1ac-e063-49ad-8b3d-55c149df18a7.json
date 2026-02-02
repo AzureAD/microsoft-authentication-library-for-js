@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Validate NAA broker response account",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
