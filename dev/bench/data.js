@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1769614221500,
+  "lastUpdate": 1770057948408,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19325,6 +19325,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.77%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9d284958ee21ebc55256d2ffe94463b5786c10b8",
+          "message": "Update windows server version to 2022 in pipeline definitions (#8284)\n\nThis pull request updates the pipeline configuration to use Windows\nServer 2022 images for build and SDL (Security Development Lifecycle)\nprocesses, replacing the previous Windows Server 2019 images.\nAdditionally, it explicitly sets the Windows host version to 2022 in\nboth pipelines for consistency.\n\n**Pipeline environment updates:**\n\n* Updated the `WindowsContainerImage` variable in both\n`.pipelines/1p-build.yml` and `.pipelines/sdl.yml` to use the Windows\nServer 2022 image (`ltsc2022`) instead of Windows Server 2019\n(`ltsc2019`).\n[[1]](diffhunk://#diff-f55c23abffd72028ef6e3ee5d844475081794fa8b0d2c1b5407f79abeaecc1faL13-R13)\n[[2]](diffhunk://#diff-788d73f9a678f9a34a5cd486c9c03ef6f1ab8d4737c63bd8cfd6f182c64703d7L3-R3)\n* Explicitly set `WindowsHostVersion: Version: 2022` in both\n`.pipelines/1p-build.yml` and `.pipelines/sdl.yml` to ensure the\npipelines run on Windows Server 2022 hosts.\n[[1]](diffhunk://#diff-f55c23abffd72028ef6e3ee5d844475081794fa8b0d2c1b5407f79abeaecc1faR37-R38)\n[[2]](diffhunk://#diff-788d73f9a678f9a34a5cd486c9c03ef6f1ab8d4737c63bd8cfd6f182c64703d7R22-R23)",
+          "timestamp": "2026-02-02T13:38:43-05:00",
+          "tree_id": "953ec2fdd6c9f40a25c0fc244e29a248ea34b848",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9d284958ee21ebc55256d2ffe94463b5786c10b8"
+        },
+        "date": 1770057942810,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 245400,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245147,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
