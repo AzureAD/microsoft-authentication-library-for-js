@@ -417,7 +417,7 @@ describe("MsalService", () => {
       });
     });
 
-    it("called with hash", (done) => {
+    it("called with hash string (legacy)", (done) => {
       const sampleAccessToken = {
         accessToken: "123abc",
       };
@@ -441,6 +441,60 @@ describe("MsalService", () => {
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
           ).toHaveBeenCalledWith({ hash: hash });
+          done();
+        });
+    });
+
+    it("called with hash in options object", (done) => {
+      const sampleAccessToken = {
+        accessToken: "123abc",
+      };
+
+      const hash = "#/test";
+
+      spyOn(
+        PublicClientApplication.prototype,
+        "handleRedirectPromise"
+      ).and.returnValue(
+        new Promise((resolve) => {
+          //@ts-ignore
+          resolve(sampleAccessToken);
+        })
+      );
+
+      authService
+        .handleRedirectObservable({ hash })
+        .subscribe((response: AuthenticationResult) => {
+          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+          expect(
+            PublicClientApplication.prototype.handleRedirectPromise
+          ).toHaveBeenCalledWith({ hash: hash });
+          done();
+        });
+    });
+
+    it("called with navigateToLoginRequestUrl", (done) => {
+      const sampleAccessToken = {
+        accessToken: "123abc",
+      };
+
+      spyOn(
+        PublicClientApplication.prototype,
+        "handleRedirectPromise"
+      ).and.returnValue(
+        new Promise((resolve) => {
+          //@ts-ignore
+          resolve(sampleAccessToken);
+        })
+      );
+
+      authService
+        .handleRedirectObservable({ navigateToLoginRequestUrl: false })
+        .subscribe((response: AuthenticationResult) => {
+          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+          expect(
+            PublicClientApplication.prototype.handleRedirectPromise
+          ).toHaveBeenCalledWith({ navigateToLoginRequestUrl: false });
           done();
         });
     });

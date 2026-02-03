@@ -190,6 +190,35 @@ Apps using standalone components will be unable to handle redirects with `MsalRe
 - Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete, as it may not be fully populated until then. Additionally, if interactive APIs are called while `handleRedirectObservable()` is in progress, it will result in an `interaction_in_progress` error. See our document on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more information on checking for interactions, and our document on [errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/errors.md) for details about the `interaction_in_progress` error. 
 - See our [MSAL Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.component.ts) for examples of this approach.
 
+### `handleRedirectObservable` options
+
+`handleRedirectObservable` accepts an optional `HandleRedirectPromiseOptions` object with the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `hash` | `string` | Optional hash to process instead of the current URL hash. |
+| `navigateToLoginRequestUrl` | `boolean` | Whether to navigate to the original request URL after processing the redirect. Defaults to `true`. Set to `false` if you want to handle navigation yourself. |
+
+Example usage:
+
+```js
+// Basic usage - processes redirect and navigates to original URL
+this.authService.handleRedirectObservable().subscribe();
+
+// Disable automatic navigation after redirect
+this.authService.handleRedirectObservable({ navigateToLoginRequestUrl: false }).subscribe({
+  next: (result: AuthenticationResult) => {
+    if (result) {
+      // Handle navigation yourself
+      this.router.navigate(['/home']);
+    }
+  }
+});
+
+// Process a specific hash
+this.authService.handleRedirectObservable({ hash: '#code=...' }).subscribe();
+```
+
 Example of home.component.ts file:
 ```js
 import { Component, OnInit } from '@angular/core';
