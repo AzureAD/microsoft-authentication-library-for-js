@@ -8,7 +8,7 @@ import {
     Screenshot,
     createFolder,
     setupCredentials,
-    enterCredentials
+    enterCredentials,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
