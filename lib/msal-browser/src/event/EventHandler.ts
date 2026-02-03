@@ -86,6 +86,7 @@ export class EventHandler {
      */
     emitEvent(
         eventType: EventType,
+        correlationId: string,
         interactionType?: InteractionType,
         payload?: EventPayload,
         error?: EventError
@@ -95,6 +96,7 @@ export class EventHandler {
             interactionType: interactionType || null,
             payload: payload || null,
             error: error || null,
+            correlationId: correlationId,
             timestamp: Date.now(),
         };
 

@@ -202,10 +202,12 @@ describe("MsalBroadcastService", () => {
 
     eventHandler.emitEvent(
       EventType.INITIALIZE_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
     eventHandler.emitEvent(
       EventType.ACQUIRE_TOKEN_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
 
@@ -252,10 +254,12 @@ describe("MsalBroadcastService", () => {
 
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_END,
+      "test-correlation-id",
       InteractionType.Redirect
     );
 
@@ -296,6 +300,7 @@ describe("MsalBroadcastService", () => {
 
     eventHandler.emitEvent(
       EventType.ACQUIRE_TOKEN_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
 
@@ -336,10 +341,12 @@ describe("MsalBroadcastService", () => {
 
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_END,
+      "test-correlation-id",
       InteractionType.Redirect
     );
 
@@ -364,10 +371,12 @@ describe("MsalBroadcastService", () => {
 
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
     eventHandler.emitEvent(
       EventType.ACQUIRE_TOKEN_SUCCESS,
+      "test-correlation-id",
       InteractionType.Redirect
     );
   });
@@ -391,14 +400,17 @@ describe("MsalBroadcastService", () => {
 
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
     eventHandler.emitEvent(
       EventType.ACQUIRE_TOKEN_SUCCESS,
+      "test-correlation-id",
       InteractionType.Redirect
     );
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_END,
+      "test-correlation-id",
       InteractionType.Redirect
     );
   });
@@ -422,14 +434,17 @@ describe("MsalBroadcastService", () => {
 
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
     eventHandler.emitEvent(
       EventType.ACQUIRE_TOKEN_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_END,
+      "test-correlation-id",
       InteractionType.Redirect
     );
   });
@@ -455,6 +470,7 @@ describe("MsalBroadcastService", () => {
 
     eventHandler.emitEvent(
       EventType.INITIALIZE_START,
+      "test-correlation-id",
       InteractionType.Redirect
     );
   });

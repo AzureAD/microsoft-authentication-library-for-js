@@ -144,6 +144,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.resetRequestCache(this.correlationId);
                 this.eventHandler.emitEvent(
                     EventType.RESTORE_FROM_BFCACHE,
+                        this.correlationId,
                     InteractionType.Redirect
                 );
             }
@@ -819,6 +820,7 @@ export class RedirectClient extends StandardInteractionClient {
         try {
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_START,
+                this.correlationId,
                 InteractionType.Redirect,
                 logoutRequest
             );
@@ -859,6 +861,7 @@ export class RedirectClient extends StandardInteractionClient {
                     if (validLogoutRequest.account?.homeAccountId) {
                         this.eventHandler.emitEvent(
                             EventType.LOGOUT_SUCCESS,
+                            this.correlationId,
                             InteractionType.Redirect,
                             validLogoutRequest
                         );
@@ -874,6 +877,7 @@ export class RedirectClient extends StandardInteractionClient {
             if (validLogoutRequest.account?.homeAccountId) {
                 this.eventHandler.emitEvent(
                     EventType.LOGOUT_SUCCESS,
+                    this.correlationId,
                     InteractionType.Redirect,
                     validLogoutRequest
                 );
@@ -929,12 +933,14 @@ export class RedirectClient extends StandardInteractionClient {
             }
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_FAILURE,
+                this.correlationId,
                 InteractionType.Redirect,
                 null,
                 e as EventError
             );
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_END,
+                this.correlationId,
                 InteractionType.Redirect
             );
             throw e;
@@ -942,6 +948,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         this.eventHandler.emitEvent(
             EventType.LOGOUT_END,
+            this.correlationId,
             InteractionType.Redirect
         );
     }
