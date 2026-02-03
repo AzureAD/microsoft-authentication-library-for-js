@@ -361,7 +361,7 @@ export class PopupClient extends StandardInteractionClient {
                 );
                 this.eventHandler.emitEvent(
                     EventType.POPUP_OPENED,
-                        correlationId,
+                    correlationId,
                     InteractionType.Popup,
                     { popupWindow },
                     null

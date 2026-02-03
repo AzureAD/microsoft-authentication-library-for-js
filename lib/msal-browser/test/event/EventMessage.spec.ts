@@ -3,8 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { InteractionStatus, InteractionType } from "../../src/utils/BrowserConstants.js";
-import { EventMessage, EventMessageUtils } from "../../src/event/EventMessage.js";
+import {
+    InteractionStatus,
+    InteractionType,
+} from "../../src/utils/BrowserConstants.js";
+import {
+    EventMessage,
+    EventMessageUtils,
+} from "../../src/event/EventMessage.js";
 import { EventType } from "../../src/event/EventType.js";
 
 describe("EventMessage.ts Unit Tests", () => {

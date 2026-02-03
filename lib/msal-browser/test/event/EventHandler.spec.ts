@@ -102,7 +102,10 @@ describe("Event API tests", () => {
         const eventHandler = new EventHandler(logger);
 
         eventHandler.addEventCallback(subscriber);
-        eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, "test-correlation-id");
+        eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_SUCCESS,
+            "test-correlation-id"
+        );
     });
 
     it("sets all expected fields on event", (done) => {

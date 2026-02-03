@@ -1821,7 +1821,10 @@ export class BrowserCacheManager extends CacheManager {
             );
             this.browserStorage.removeItem(activeAccountKey);
         }
-        this.eventHandler.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED, correlationId);
+        this.eventHandler.emitEvent(
+            EventType.ACTIVE_ACCOUNT_CHANGED,
+            correlationId
+        );
     }
 
     /**

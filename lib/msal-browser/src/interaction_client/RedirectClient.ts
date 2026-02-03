@@ -144,7 +144,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.resetRequestCache(this.correlationId);
                 this.eventHandler.emitEvent(
                     EventType.RESTORE_FROM_BFCACHE,
-                        this.correlationId,
+                    this.correlationId,
                     InteractionType.Redirect
                 );
             }
