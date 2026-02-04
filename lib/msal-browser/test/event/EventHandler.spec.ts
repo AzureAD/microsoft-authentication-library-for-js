@@ -35,6 +35,7 @@ describe("Event API tests", () => {
         eventHandler.addEventCallback(subscriber);
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_SUCCESS,
+            "test-correlation-id",
             InteractionType.Popup
         );
     });
@@ -52,11 +53,13 @@ describe("Event API tests", () => {
         const callbackId = eventHandler.addEventCallback(callbackSpy);
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_SUCCESS,
+            "test-correlation-id",
             InteractionType.Popup
         );
         eventHandler.removeEventCallback(callbackId || "");
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_SUCCESS,
+            "test-correlation-id",
             InteractionType.Popup
         );
         expect(callbackSpy).toHaveBeenCalledTimes(1);
@@ -81,6 +84,7 @@ describe("Event API tests", () => {
         eventHandler.addEventCallback(subscriber2);
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            "test-correlation-id",
             InteractionType.Redirect
         );
     });
@@ -98,7 +102,10 @@ describe("Event API tests", () => {
         const eventHandler = new EventHandler(logger);
 
         eventHandler.addEventCallback(subscriber);
-        eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS);
+        eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_SUCCESS,
+            "test-correlation-id"
+        );
     });
 
     it("sets all expected fields on event", (done) => {
@@ -116,6 +123,7 @@ describe("Event API tests", () => {
         eventHandler.addEventCallback(subscriber);
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_SUCCESS,
+            "test-correlation-id",
             InteractionType.Silent,
             { scopes: ["user.read"] },
             null
@@ -143,6 +151,7 @@ describe("Event API tests", () => {
         ]);
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            "test-correlation-id",
             InteractionType.Redirect
         );
         expect(callback1Events.length).toBe(1);
@@ -151,6 +160,7 @@ describe("Event API tests", () => {
 
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_SUCCESS,
+            "test-correlation-id",
             InteractionType.Redirect
         );
         expect(callback1Events.length).toBe(1);

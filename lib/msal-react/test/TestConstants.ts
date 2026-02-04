@@ -8,6 +8,7 @@ import { TestTimeUtils } from "msal-test-utils";
 
 export const TEST_CONFIG = {
     MSAL_CLIENT_ID: "0813e1d1-ad72-46a9-8665-399bba48c201",
+    CORRELATION_ID: "test-correlation-id",
 };
 
 export const TEST_DATA_CLIENT_INFO = {

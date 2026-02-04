@@ -361,6 +361,7 @@ export class PopupClient extends StandardInteractionClient {
                 );
                 this.eventHandler.emitEvent(
                     EventType.POPUP_OPENED,
+                    correlationId,
                     InteractionType.Popup,
                     { popupWindow },
                     null
@@ -684,6 +685,7 @@ export class PopupClient extends StandardInteractionClient {
         this.logger.verbose("logoutPopupAsync called", this.correlationId);
         this.eventHandler.emitEvent(
             EventType.LOGOUT_START,
+            this.correlationId,
             InteractionType.Popup,
             validRequest
         );
@@ -729,6 +731,7 @@ export class PopupClient extends StandardInteractionClient {
                 ) {
                     this.eventHandler.emitEvent(
                         EventType.LOGOUT_SUCCESS,
+                        validRequest.correlationId,
                         InteractionType.Popup,
                         validRequest
                     );
@@ -761,6 +764,7 @@ export class PopupClient extends StandardInteractionClient {
 
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_SUCCESS,
+                validRequest.correlationId,
                 InteractionType.Popup,
                 validRequest
             );
@@ -769,6 +773,7 @@ export class PopupClient extends StandardInteractionClient {
             const popupWindow = this.openPopup(logoutUri, popupParams);
             this.eventHandler.emitEvent(
                 EventType.POPUP_OPENED,
+                validRequest.correlationId,
                 InteractionType.Popup,
                 { popupWindow },
                 null
@@ -822,12 +827,14 @@ export class PopupClient extends StandardInteractionClient {
             }
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_FAILURE,
+                this.correlationId,
                 InteractionType.Popup,
                 null,
                 e as EventError
             );
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_END,
+                this.correlationId,
                 InteractionType.Popup
             );
             throw e;
@@ -835,6 +842,7 @@ export class PopupClient extends StandardInteractionClient {
 
         this.eventHandler.emitEvent(
             EventType.LOGOUT_END,
+            this.correlationId,
             InteractionType.Popup
         );
     }

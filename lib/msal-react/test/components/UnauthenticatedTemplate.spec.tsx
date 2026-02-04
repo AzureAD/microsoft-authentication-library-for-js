@@ -6,8 +6,9 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { testAccount, TEST_CONFIG } from "../TestConstants";
-import { MsalProvider, UnauthenticatedTemplate } from "../../src/index";
+import { testAccount, TEST_CONFIG } from "../TestConstants.js";
+import { MsalProvider } from "../../src/MsalProvider.js";
+import { UnauthenticatedTemplate } from "../../src/components/UnauthenticatedTemplate.js";
 import {
     PublicClientApplication,
     IPublicClientApplication,
@@ -282,6 +283,7 @@ describe("UnauthenticatedTemplate tests", () => {
                 const eventMessage: EventMessage = {
                     eventType: EventType.HANDLE_REDIRECT_START,
                     interactionType: InteractionType.Redirect,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
                     payload: null,
                     error: null,
                     timestamp: 10000,
