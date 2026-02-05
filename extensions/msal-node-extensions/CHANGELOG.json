@@ -2,6 +2,39 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Thu, 05 Feb 2026 22:55:34 GMT",
+      "version": "5.0.4",
+      "tag": "@azure/msal-node-extensions_v5.0.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.0.4",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Jan 2026 18:43:41 GMT",
       "version": "5.0.3",
       "tag": "@azure/msal-node-extensions_v5.0.3",

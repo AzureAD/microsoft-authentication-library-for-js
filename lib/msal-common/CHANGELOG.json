@@ -2,6 +2,39 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 05 Feb 2026 22:55:34 GMT",
+      "version": "16.0.4",
+      "tag": "@azure/msal-common_v16.0.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c3aed9992a3905edb2f231708d64f8680c518c65",
+            "comment": "Fix INetworkModule Typedocs [#8277](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8277)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Jan 2026 18:43:41 GMT",
       "version": "16.0.3",
       "tag": "@azure/msal-common_v16.0.3",

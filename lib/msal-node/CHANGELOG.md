@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 28 Jan 2026 18:43:41 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 05 Feb 2026 22:55:33 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.4
+
+Thu, 05 Feb 2026 22:55:33 GMT
+
+### Patches
+
+- restore cryptoProvider export [#8276](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8276) (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v16.0.4
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 5.0.3
 
