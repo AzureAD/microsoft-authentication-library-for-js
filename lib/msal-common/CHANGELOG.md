@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 28 Jan 2026 18:43:41 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 05 Feb 2026 06:13:14 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.0.4
+
+Thu, 05 Feb 2026 06:13:14 GMT
+
+### Patches
+
+- Fix INetworkModule Typedocs [#8277](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8277) (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 16.0.3
 

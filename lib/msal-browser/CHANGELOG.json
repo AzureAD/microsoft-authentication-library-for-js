@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 05 Feb 2026 06:13:14 GMT",
+      "version": "5.2.0",
+      "tag": "@azure/msal-browser_v5.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "54bc32c5c26ce796fa56787c47951e5720503333",
+            "comment": "Validate NAA broker response account [#8286](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8286)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "35a0b3789779050e3da5a7dd371bd588baa3a31f",
+            "comment": "Add correlationId to events [#8288](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8288)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.0.4",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Jan 2026 18:43:41 GMT",
       "version": "5.1.0",
       "tag": "@azure/msal-browser_v5.1.0",
