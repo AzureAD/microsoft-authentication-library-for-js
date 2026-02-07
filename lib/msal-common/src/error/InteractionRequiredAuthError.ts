@@ -27,7 +27,7 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "consent_required",
     "bad_token",
     "ux_not_allowed",
-    "interrupted_user"
+    "interrupted_user",
 ];
 
 /**
