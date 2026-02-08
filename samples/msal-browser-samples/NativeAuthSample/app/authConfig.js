@@ -5,13 +5,12 @@
 // Access LogLevel from the global msalCustomAuth object
 const { LogLevel } = msalCustomAuth;
 
-import { Utilities } from './utilities.js';
-import { 
+import {
     initNativeAuthConfig,
-    getClientIdByFlow, 
-    getAuthorityUrl, 
-    getProxyPort 
-} from './configParser.js';
+    getClientIdByFlow,
+    getAuthorityUrl,
+    getProxyPort,
+} from "./configParser.js";
 
 /**
  * Get client ID based on URL parameters or default to email/password flow
@@ -19,19 +18,17 @@ import {
  */
 function getClientId() {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.get('usePwdConfig') === 'true') {
-        return getClientIdByFlow('email_password');
-    } else if (urlParams.get('useOtpConfig') === 'true') {
-        return getClientIdByFlow('email_code');
-    } else if (urlParams.get('usePwdAttributesConfig') === 'true') {
-        return getClientIdByFlow('email_password_attributes');
-    } else if (urlParams.get('useOtpAttributesConfig') === 'true') {
-        return getClientIdByFlow('email_code_attributes');
+    if (urlParams.get("usePwdConfig") === "true") {
+        return getClientIdByFlow("email_password");
+    } else if (urlParams.get("useOtpConfig") === "true") {
+        return getClientIdByFlow("email_code");
+    } else if (urlParams.get("usePwdAttributesConfig") === "true") {
+        return getClientIdByFlow("email_password_attributes");
+    } else if (urlParams.get("useOtpAttributesConfig") === "true") {
+        return getClientIdByFlow("email_code_attributes");
     }
-    
     // Default to email/password flow
-    return getClientIdByFlow('email_password');
+    return getClientIdByFlow("email_password");
 }
 
 /**
@@ -40,12 +37,22 @@ function getClientId() {
  */
 function getChallengeTypes() {
     const urlParams = new URLSearchParams(window.location.search);
-    
-    if (urlParams.get('useRedirectConfig') === 'true') {
+    if (urlParams.get("useRedirectConfig") === "true") {
         return ["redirect"]; // Only redirect for testing redirect-only scenarios
     }
-    
     return ["password", "oob", "redirect"]; // Default challenge types
+}
+
+/**
+ * Get capabilities
+ * @returns {string[]} Array of supported capabilities
+ */
+function getCapabilities() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("useMFA") === "true") {
+        return ["registration_required mfa_required"];
+    }
+    return [];
 }
 
 /**
@@ -55,15 +62,16 @@ function getChallengeTypes() {
 async function initMsalConfig() {
     // Ensure config is loaded first
     await initNativeAuthConfig();
-    
+
     const clientId = getClientId();
     const authority = getAuthorityUrl();
     const proxyPort = getProxyPort();
-    
+
     return {
         customAuth: {
             challengeTypes: getChallengeTypes(),
             authApiProxyUrl: `http://localhost:${proxyPort}/api`,
+            capabilities: getCapabilities(),
         },
         auth: {
             clientId: clientId,
@@ -84,21 +92,21 @@ async function initMsalConfig() {
                     }
                     switch (level) {
                         case LogLevel.Error:
-                            Utilities.logMessage(message, "error");
+                            console.error(message);
                             return;
                         case LogLevel.Info:
-                            Utilities.logMessage(message, "info");
+                            console.log(message);
                             return;
                         case LogLevel.Verbose:
-                            Utilities.logMessage(message, "info"); // Use info for verbose as we don't have a debug level
+                            console.log(message); // Use log for verbose
                             return;
                         case LogLevel.Warning:
-                            Utilities.logMessage(message, "warning");
+                            console.warn(message);
                             return;
                     }
                 },
-            }
-        }
+            },
+        },
     };
 }
 
