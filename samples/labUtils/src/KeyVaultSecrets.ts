@@ -12,6 +12,10 @@ export const KeyVaultSecrets = {
     UserPublicCloud: "User-PublicCloud-Config",
     UserFederated: "User-Federated-Config",
     UserPublicCloud2: "MSAL-User-Default2-JSON",
+    UserB2C: "MSAL-USER-B2C-JSON",
+    UserArlington: "MSAL-USER-Arlington-JSON",
+    UserCiam: "MSAL-USER-CIAM-JSON",
+    UserPop: "MSAL-User-POP-JSON",
 
     // Names of key vault secrets for application configuration JSONs
     //  - Broad test scenarios
@@ -20,10 +24,18 @@ export const KeyVaultSecrets = {
     AppWebApi: "App-WebApi-Config",
     AppWebApp: "App-WebApp-Config",
     //  - More specific test scenarios, edge cases, etc.
-    MsalAppAzureAdMultipleOrgsRegional: "MSAL-APP-AzureADMultipleOrgsRegional-JSON",
+    B2CAppIdLabsAppB2C: "MSAL-App-B2C-JSON",
+    ArlAppIdLabsApp: "MSAL-App-Arlington-JSON",
+    MsalAppCiam: "MSAL-App-CIAM-JSON",
+    MsalAppAzureAdMultipleOrgsRegional:
+        "MSAL-APP-AzureADMultipleOrgsRegional-JSON",
+    MsalAppArlingtonCCA: "MSAL-App-ArlingtonCCA-JSON",
 
     // Name of key vault secrets for specific test scenarios
     MsalOboSecret: "IdentityDivisionDotNetOBOServiceSecret",
+
+    // Name of key vault secrets for app secrets and certificates
+    DefaultAppSecret: "MSAL-App-Default",
 } as const;
 
 export type KeyVaultSecretName =

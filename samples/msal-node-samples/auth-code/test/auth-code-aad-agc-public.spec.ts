@@ -4,17 +4,17 @@
  */
 
 import * as puppeteer from "puppeteer";
+import { Screenshot, enterCredentials, SAMPLE_HOME_URL } from "e2e-test-utils";
 import {
-    Screenshot,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
+    AppConfig,
+    NodeCacheTestUtils,
+    validateCacheLocation,
     createFolder,
     RETRY_TIMES,
-    enterCredentials,
-    validateCacheLocation,
-    SAMPLE_HOME_URL,
-    NodeCacheTestUtils,
-    getKeyVaultSecretClient,
-    getCredentials,
-} from "e2e-test-utils";
+} from "lab-utils";
 import { PublicClientApplication } from "@azure/msal-node";
 import path from "path";
 
@@ -29,16 +29,6 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
 const config = require("../config/AAD-AGC-Public.json");
-config.authOptions = {
-    clientId: process.env.AZURE_CLIENT_ID,
-    authority: `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    knownAuthorities: [
-        `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    ],
-};
-config.resourceApi = {
-    endpoint: `${process.env.GRAPH_URL}/v1.0/me`,
-};
 
 describe("Auth Code AAD AGC Public Tests", () => {
     jest.retryTimes(RETRY_TIMES);
@@ -49,10 +39,13 @@ describe("Auth Code AAD AGC Public Tests", () => {
     let port: string;
     let homeRoute: string;
 
-    let username: string;
-    let password: string;
+    let labUser: LabUser;
+    let appConfig: AppConfig;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/aad-agc-public");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/auth-code/aad-agc-public"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -64,8 +57,26 @@ describe("Auth Code AAD AGC Public Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const keyVaultSecretClient = await getKeyVaultSecretClient();
-        [username, password] = await getCredentials(keyVaultSecretClient);
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserArlington
+        );
+        appConfig = await LabResponseHelper.getAppConfig(
+            KeyVaultSecrets.ArlAppIdLabsApp
+        );
+
+        // Configure auth options from Key Vault app config
+        config.authOptions = {
+            clientId: appConfig.appId,
+            authority: appConfig.authority,
+            knownAuthorities: appConfig.authority
+                ? [new URL(appConfig.authority).origin]
+                : [],
+        };
+        config.resourceApi = {
+            endpoint: appConfig.authority
+                ? `${new URL(appConfig.authority).origin}/v1.0/me`
+                : undefined,
+        };
     });
 
     afterAll(async () => {
@@ -109,8 +120,9 @@ describe("Auth Code AAD AGC Public Tests", () => {
 
         it("Performs acquire token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
+            const password = await labUser.getPassword();
             await page.goto(homeRoute);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -127,8 +139,9 @@ describe("Auth Code AAD AGC Public Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/PromptLogin`
             );
+            const password = await labUser.getPassword();
             await page.goto(`${homeRoute}/?prompt=login`);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -146,8 +159,9 @@ describe("Auth Code AAD AGC Public Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/PromptConsent`
             );
+            const password = await labUser.getPassword();
             await page.goto(`${homeRoute}/?prompt=consent`);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -163,9 +177,10 @@ describe("Auth Code AAD AGC Public Tests", () => {
 
         it("Performs acquire token with prompt = 'none'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptNone`);
+            const password = await labUser.getPassword();
             // First log the user in first
             await page.goto(`${homeRoute}/?prompt=login`);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -189,9 +204,10 @@ describe("Auth Code AAD AGC Public Tests", () => {
 
         it("Performs acquire token with state", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/WithState`);
+            const password = await labUser.getPassword();
             const STATE_VALUE = "value_on_state";
             await page.goto(`${homeRoute}/?prompt=login&state=${STATE_VALUE}`);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );

@@ -6,25 +6,23 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
-    ONE_SECOND_IN_MS,
-    RETRY_TIMES,
     clickSignIn,
     enterCredentialsADFS,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
-    validateCacheLocation,
     SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID,
-    NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
-    FederationProviders,
-    UserTypes,
 } from "e2e-test-utils";
+import {
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
+    NodeCacheTestUtils,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
+    ONE_SECOND_IN_MS,
+} from "lab-utils";
 import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
@@ -53,10 +51,12 @@ describe.skip("Silent Flow ADFS 2019 Tests", () => {
     let msalTokenCache: TokenCache;
     let server: any;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/adfs");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/silent-flow/adfs"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -66,21 +66,9 @@ describe.skip("Silent Flow ADFS 2019 Tests", () => {
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
         createFolder(screenshotFolder);
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-            federationProvider: FederationProviders.ADFS2019,
-            userType: UserTypes.FEDERATED,
-        };
 
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserFederated
         );
 
         publicClientApplication = new PublicClientApplication({
@@ -122,8 +110,14 @@ describe.skip("Silent Flow ADFS 2019 Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenAuthCode`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(
+                page,
+                screenshot,
+                labUser.upn,
+                accountPwd
+            );
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
@@ -139,8 +133,14 @@ describe.skip("Silent Flow ADFS 2019 Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilent`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(
+                page,
+                screenshot,
+                labUser.upn,
+                accountPwd
+            );
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
             await page.waitForSelector(
@@ -158,8 +158,14 @@ describe.skip("Silent Flow ADFS 2019 Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilentFromPersistent`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(
+                page,
+                screenshot,
+                labUser.upn,
+                accountPwd
+            );
             await page.waitForSelector("#acquireTokenSilent");
             publicClientApplication.clearCache();
             await page.click("#acquireTokenSilent");
@@ -178,8 +184,14 @@ describe.skip("Silent Flow ADFS 2019 Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/RefreshExpiredToken`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(
+                page,
+                screenshot,
+                labUser.upn,
+                accountPwd
+            );
             await page.waitForSelector("#acquireTokenSilent");
 
             let tokens = await NodeCacheTestUtils.waitForTokens(
@@ -241,11 +253,12 @@ describe.skip("Silent Flow ADFS 2019 Tests", () => {
                 const screenshot = new Screenshot(
                     `${screenshotFolder}/GetAllAccounts`
                 );
+                const accountPwd = await labUser.getPassword();
                 await clickSignIn(page, screenshot);
                 await enterCredentialsADFS(
                     page,
                     screenshot,
-                    username,
+                    labUser.upn,
                     accountPwd
                 );
                 await page.waitForSelector("#getAllAccounts");
