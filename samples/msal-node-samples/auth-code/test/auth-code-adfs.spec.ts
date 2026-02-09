@@ -1,20 +1,18 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
-    RETRY_TIMES,
     enterCredentialsADFS,
     enterCredentialsADFSWithConsent,
     SAMPLE_HOME_URL,
-    NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
-    FederationProviders,
-    UserTypes,
 } from "e2e-test-utils";
+import {
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
+    NodeCacheTestUtils,
+    createFolder,
+    RETRY_TIMES,
+} from "lab-utils";
 import { PublicClientApplication } from "@azure/msal-node";
 import path from "path";
 
@@ -26,8 +24,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 const config = require("../config/ADFS.json");
 
-let username: string;
-let accountPwd: string;
+let labUser: LabUser;
 
 describe.skip("Auth Code ADFS 2019 Tests", () => {
     jest.retryTimes(RETRY_TIMES);
@@ -47,20 +44,8 @@ describe.skip("Auth Code ADFS 2019 Tests", () => {
         homeRoute = `http://localhost:${port}`;
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-            federationProvider: FederationProviders.ADFS2019,
-            userType: UserTypes.FEDERATED,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserFederated
         );
     });
 
@@ -101,8 +86,14 @@ describe.skip("Auth Code ADFS 2019 Tests", () => {
 
         it("Performs acquire token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
+            const accountPwd = await labUser.getPassword();
             await page.goto(homeRoute);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(
+                page,
+                screenshot,
+                labUser.upn,
+                accountPwd
+            );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -119,8 +110,14 @@ describe.skip("Auth Code ADFS 2019 Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/PromptLogin`
             );
+            const accountPwd = await labUser.getPassword();
             await page.goto(`${homeRoute}/?prompt=login`);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(
+                page,
+                screenshot,
+                labUser.upn,
+                accountPwd
+            );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -137,11 +134,12 @@ describe.skip("Auth Code ADFS 2019 Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/PromptConsent`
             );
+            const accountPwd = await labUser.getPassword();
             await page.goto(`${homeRoute}/?prompt=consent`);
             await enterCredentialsADFSWithConsent(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForFunction(
@@ -158,9 +156,15 @@ describe.skip("Auth Code ADFS 2019 Tests", () => {
 
         it("Performs acquire token with prompt = 'none'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptNone`);
+            const accountPwd = await labUser.getPassword();
             // First login
             await page.goto(`${homeRoute}/?prompt=login`);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(
+                page,
+                screenshot,
+                labUser.upn,
+                accountPwd
+            );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -182,9 +186,15 @@ describe.skip("Auth Code ADFS 2019 Tests", () => {
 
         it("Performs acquire token with state", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/WithState`);
+            const accountPwd = await labUser.getPassword();
             const STATE_VALUE = "value_on_state";
             await page.goto(`${homeRoute}/?prompt=login&state=${STATE_VALUE}`);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(
+                page,
+                screenshot,
+                labUser.upn,
+                accountPwd
+            );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );

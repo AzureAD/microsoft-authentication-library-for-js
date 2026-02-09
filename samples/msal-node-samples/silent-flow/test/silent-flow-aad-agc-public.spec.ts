@@ -6,20 +6,24 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    ONE_SECOND_IN_MS,
-    RETRY_TIMES,
     clickSignIn,
     enterCredentials,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
-    validateCacheLocation,
     SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID,
-    NodeCacheTestUtils,
-    getKeyVaultSecretClient,
-    getCredentials,
 } from "e2e-test-utils";
+import {
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
+    AppConfig,
+    NodeCacheTestUtils,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
+    ONE_SECOND_IN_MS,
+} from "lab-utils";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 import path from "path";
 
@@ -34,17 +38,6 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
 const config = require("../config/AAD-AGC-Public.json");
-config.authOptions = {
-    ...config.authOptions,
-    clientId: process.env.AZURE_CLIENT_ID,
-    authority: `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    knownAuthorities: [
-        `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    ],
-};
-config.resourceApi = {
-    endpoint: `${process.env.AUTHORITY}/v1.0/me`,
-};
 
 describe("Silent Flow AAD AGC Public Tests", () => {
     jest.retryTimes(RETRY_TIMES);
@@ -59,10 +52,13 @@ describe("Silent Flow AAD AGC Public Tests", () => {
     let msalTokenCache: TokenCache;
     let server: any;
 
-    let username: string;
-    let password: string;
+    let labUser: LabUser;
+    let appConfig: AppConfig;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/aad-agc-public");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/silent-flow/aad-agc-public"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -73,8 +69,25 @@ describe("Silent Flow AAD AGC Public Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const keyVaultSecretClient = await getKeyVaultSecretClient();
-        [username, password] = await getCredentials(keyVaultSecretClient);
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserArlington
+        );
+        appConfig = await LabResponseHelper.getAppConfig(
+            KeyVaultSecrets.ArlAppIdLabsApp
+        );
+
+        // Configure auth options from Key Vault app config
+        config.authOptions = {
+            ...config.authOptions,
+            clientId: appConfig.appId,
+            authority: appConfig.authority,
+            knownAuthorities: appConfig.authority
+                ? [new URL(appConfig.authority).origin]
+                : [],
+        };
+        config.resourceApi = {
+            endpoint: `${new URL(appConfig.authority!).origin}/v1.0/me`,
+        };
 
         publicClientApplication = new PublicClientApplication({
             auth: config.authOptions,
@@ -115,8 +128,9 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenAuthCode`
             );
+            const password = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
@@ -132,8 +146,9 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilent`
             );
+            const password = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForSelector("#acquireTokenSilent");
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
@@ -154,8 +169,9 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilentFromPersistent`
             );
+            const password = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForSelector("#acquireTokenSilent");
             publicClientApplication.clearCache();
             await screenshot.takeScreenshot(page, "ATS");
@@ -177,8 +193,9 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/RefreshExpiredToken`
             );
+            const password = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, password);
+            await enterCredentials(page, screenshot, labUser.upn, password);
             await page.waitForSelector("#acquireTokenSilent");
 
             let tokens = await NodeCacheTestUtils.waitForTokens(
@@ -240,8 +257,9 @@ describe("Silent Flow AAD AGC Public Tests", () => {
                 const screenshot = new Screenshot(
                     `${screenshotFolder}/GetAllAccounts`
                 );
+                const password = await labUser.getPassword();
                 await clickSignIn(page, screenshot);
-                await enterCredentials(page, screenshot, username, password);
+                await enterCredentials(page, screenshot, labUser.upn, password);
                 await page.waitForSelector("#getAllAccounts");
                 await page.click("#getAllAccounts");
                 await page.waitForSelector(

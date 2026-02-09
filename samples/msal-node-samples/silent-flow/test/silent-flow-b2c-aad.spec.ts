@@ -6,21 +6,21 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
     b2cAadPpeAccountEnterCredentials,
-    ONE_SECOND_IN_MS,
-    RETRY_TIMES,
     clickSignIn,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
-    validateCacheLocation,
-    NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
 } from "e2e-test-utils";
+import {
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
+    NodeCacheTestUtils,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
+    ONE_SECOND_IN_MS,
+} from "lab-utils";
 import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
@@ -49,10 +49,12 @@ describe.skip("Silent Flow B2C Tests (aad account)", () => {
     let msalTokenCache: TokenCache;
     let server: any;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/b2c-aad");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/silent-flow/b2c-aad"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -65,18 +67,8 @@ describe.skip("Silent Flow B2C Tests (aad account)", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserPublicCloud
         );
 
         publicClientApplication = new PublicClientApplication({
@@ -119,11 +111,12 @@ describe.skip("Silent Flow B2C Tests (aad account)", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenAuthCode`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
             await b2cAadPpeAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForSelector("#acquireTokenSilent");
@@ -141,11 +134,12 @@ describe.skip("Silent Flow B2C Tests (aad account)", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilent`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
             await b2cAadPpeAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForSelector("#acquireTokenSilent");
@@ -164,11 +158,12 @@ describe.skip("Silent Flow B2C Tests (aad account)", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/RefreshExpiredToken`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
             await b2cAadPpeAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForSelector("#acquireTokenSilent");
@@ -228,11 +223,12 @@ describe.skip("Silent Flow B2C Tests (aad account)", () => {
                 const screenshot = new Screenshot(
                     `${screenshotFolder}/GetAllAccounts`
                 );
+                const accountPwd = await labUser.getPassword();
                 await clickSignIn(page, screenshot);
                 await b2cAadPpeAccountEnterCredentials(
                     page,
                     screenshot,
-                    username,
+                    labUser.upn,
                     accountPwd
                 );
                 await page.waitForSelector("#getAllAccounts");
