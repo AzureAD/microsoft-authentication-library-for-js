@@ -398,7 +398,7 @@ describe("Authorize Protocol Tests", () => {
         const logger = new Logger({});
         const performanceClient = new StubPerformanceClient();
         const authorityOptions: AuthorityOptions = {
-            protocolMode: ProtocolMode.EAR,
+            protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
