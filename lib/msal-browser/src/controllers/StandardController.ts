@@ -1001,7 +1001,6 @@ export class StandardController implements IController {
      * This method does not block the caller and tracks telemetry for success/failure.
      * This method only executes if enableSessionRefresh is set to true in the auth configuration.
      * @param account - The account to use for the session refresh
-     * @param correlationId - The correlation ID for telemetry
      * @param parentApiId - The API ID of the parent operation for logging purposes
      */
     private bkgdSessionRefresh(
@@ -1049,6 +1048,7 @@ export class StandardController implements IController {
                     );
                     bgSessionRefreshMeasurement.end(
                         {
+                            fromCache: false,
                             success: success,
                         },
                         undefined,
@@ -1062,6 +1062,7 @@ export class StandardController implements IController {
                     );
                     bgSessionRefreshMeasurement.end(
                         {
+                            fromCache: false,
                             success: false,
                         },
                         error,
