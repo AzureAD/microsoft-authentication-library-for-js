@@ -571,7 +571,6 @@ export class StandardController implements IController {
                     // Fire-and-forget session refresh in background
                     this.bkgdSessionRefresh(
                         result.account,
-                        result.correlationId,
                         "handleRedirectPromise"
                     );
                 } else {
@@ -939,11 +938,7 @@ export class StandardController implements IController {
                 );
 
                 // Fire-and-forget session refresh in background
-                this.bkgdSessionRefresh(
-                    result.account,
-                    result.correlationId,
-                    "acquireTokenPopup"
-                );
+                this.bkgdSessionRefresh(result.account, "acquireTokenPopup");
 
                 return result;
             })
@@ -1011,7 +1006,6 @@ export class StandardController implements IController {
      */
     private bkgdSessionRefresh(
         account: AccountInfo,
-        correlationId: string,
         parentApiId: string
     ): void {
         // Check if background SSO is enabled
@@ -1019,6 +1013,7 @@ export class StandardController implements IController {
             return;
         }
 
+        const correlationId = this.browserCrypto.createNewGuid();
         const bgSessionRefreshMeasurement =
             this.performanceClient.startMeasurement(
                 PerformanceEvents.BackgroundSessionRefresh,
