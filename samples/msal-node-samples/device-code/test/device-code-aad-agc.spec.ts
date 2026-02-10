@@ -6,16 +6,20 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    RETRY_TIMES,
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
-    validateCacheLocation,
-    NodeCacheTestUtils,
-    getKeyVaultSecretClient,
-    getCredentials,
 } from "e2e-test-utils";
+import {
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
+    AppConfig,
+    NodeCacheTestUtils,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
+} from "lab-utils";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 import path from "path";
 
@@ -30,16 +34,6 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
 const config = require("../config/AAD-AGC.json");
-config.authOptions = {
-    clientId: process.env.AZURE_CLIENT_ID,
-    authority: `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    knownAuthorities: [
-        `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    ],
-};
-config.resourceApi = {
-    endpoint: `${process.env.GRAPH_URL}/v1.0/me`,
-};
 
 describe("Device Code AAD AGC Tests", () => {
     jest.setTimeout(45000);
@@ -50,10 +44,13 @@ describe("Device Code AAD AGC Tests", () => {
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
 
-    let username: string;
-    let password: string;
+    let labUser: LabUser;
+    let appConfig: AppConfig;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/device-code/aad-agc");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/device-code/aad-agc"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -61,8 +58,26 @@ describe("Device Code AAD AGC Tests", () => {
         browser = await global.__BROWSER__;
         createFolder(screenshotFolder);
 
-        const keyVaultSecretClient = await getKeyVaultSecretClient();
-        [username, password] = await getCredentials(keyVaultSecretClient);
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserArlington
+        );
+        appConfig = await LabResponseHelper.getAppConfig(
+            KeyVaultSecrets.ArlAppIdLabsApp
+        );
+
+        // Configure auth options from Key Vault app config
+        config.authOptions = {
+            clientId: appConfig.appId,
+            authority: appConfig.authority,
+            knownAuthorities: appConfig.authority
+                ? [new URL(appConfig.authority).origin]
+                : [],
+        };
+        config.resourceApi = {
+            endpoint: appConfig.authority
+                ? `${new URL(appConfig.authority).origin}/v1.0/me`
+                : undefined,
+        };
     });
 
     afterAll(async () => {
@@ -89,6 +104,7 @@ describe("Device Code AAD AGC Tests", () => {
 
         it("Performs acquire token with Device Code flow", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
+            const password = await labUser.getPassword();
 
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
                 const { userCode, verificationUri } = deviceCodeResponse;
@@ -99,7 +115,7 @@ describe("Device Code AAD AGC Tests", () => {
                     verificationUri
                 );
                 await approveRemoteConnect(page, screenshot);
-                await enterCredentials(page, screenshot, username, password);
+                await enterCredentials(page, screenshot, labUser.upn, password);
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(
                     page,
