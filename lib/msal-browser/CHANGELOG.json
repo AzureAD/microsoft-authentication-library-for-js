@@ -2,6 +2,98 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Sat, 17 Jan 2026 01:12:51 GMT",
+      "version": "4.28.1",
+      "tag": "@azure/msal-browser_v4.28.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "efc1ae6546402de6cff2daf8629e0cb070a2c493",
+            "comment": "loadExternalTokens fixes [#8242](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8242)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.14.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 13 Jan 2026 14:23:32 GMT",
+      "version": "4.28.0",
+      "tag": "@azure/msal-browser_v4.28.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "yongdiwang@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "da207d2d7b2d4673bab44b558c3c7a0c34553fe3",
+            "comment": "Add native auth e2e sample app"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "da207d2d7b2d4673bab44b558c3c7a0c34553fe3",
+            "comment": "Add telemetry support for loading external tokens and related events #8231"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.14.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "da207d2d7b2d4673bab44b558c3c7a0c34553fe3",
+            "comment": "Track ApiId when setting/getting accounts"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 04 Dec 2025 05:46:36 GMT",
       "version": "4.27.0",
       "tag": "@azure/msal-browser_v4.27.0",

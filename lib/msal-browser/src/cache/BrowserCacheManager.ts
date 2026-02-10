@@ -2238,8 +2238,8 @@ export class BrowserCacheManager extends CacheManager {
             | PopupRequest
     ): Promise<void> {
         const idTokenEntity = CacheHelpers.createIdTokenEntity(
-            result.account?.homeAccountId,
-            result.account?.environment,
+            result.account.homeAccountId,
+            result.account.environment,
             result.idToken,
             this.clientId,
             result.tenantId
@@ -2259,7 +2259,7 @@ export class BrowserCacheManager extends CacheManager {
          */
 
         const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
-            result.account?.homeAccountId,
+            result.account.homeAccountId,
             result.account.environment,
             result.accessToken,
             this.clientId,

@@ -15,44 +15,55 @@ async function loadConfig() {
     if (configCache) {
         return configCache;
     }
-    
+
     if (configPromise) {
         return configPromise;
     }
-    
+
     configPromise = (async () => {
         try {
-            const response = await fetch('/nativeAuthConfig.json');
+            const response = await fetch("../nativeAuthConfig.json");
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const rawConfig = await response.json();
-            
+
             // Transform to a flat, easy-to-use structure
             configCache = {
-                emailPasswordClientId: rawConfig.native_auth.email_password_client_id,
+                emailPasswordClientId:
+                    rawConfig.native_auth.email_password_client_id,
                 emailCodeClientId: rawConfig.native_auth.email_code_client_id,
-                emailPasswordAttributesClientId: rawConfig.native_auth.email_password_attributes_client_id,
-                emailCodeAttributesClientId: rawConfig.native_auth.email_code_attributes_client_id,
+                emailPasswordAttributesClientId:
+                    rawConfig.native_auth.email_password_attributes_client_id,
+                emailCodeAttributesClientId:
+                    rawConfig.native_auth.email_code_attributes_client_id,
                 tenantSubdomain: rawConfig.native_auth.tenant_subdomain,
                 tenantId: rawConfig.native_auth.tenant_id,
-                signInEmailPasswordUsername: rawConfig.native_auth.sign_in_email_password_username,
-                signInEmailCodeUsername: rawConfig.native_auth.sign_in_email_code_username,
-                resetPasswordUsername: rawConfig.native_auth.reset_password_username,
-                resetPasswordUsernameMacos: rawConfig.native_auth.reset_password_username_macos,
-                passwordSignInEmailCode: rawConfig.native_auth.password_sign_in_email_code,
+                signInEmailPasswordUsername:
+                    rawConfig.native_auth.sign_in_email_password_username,
+                signInEmailCodeUsername:
+                    rawConfig.native_auth.sign_in_email_code_username,
+                resetPasswordUsername:
+                    rawConfig.native_auth.reset_password_username,
+                resetPasswordUsernameMacos:
+                    rawConfig.native_auth.reset_password_username_macos,
+                passwordSignInEmailCode:
+                    rawConfig.native_auth.password_sign_in_email_code,
                 keyvaultUrl: rawConfig.native_auth.keyvault_url,
-                proxyPort: 30001 // Static value for test consistency
+                authContextC4: rawConfig.native_auth.auth_context_c4,
+                proxyPort: 30001, // Static value for test consistency
             };
-            
+
             return configCache;
         } catch (error) {
-            console.error('Failed to load native auth configuration:', error);
+            console.error("Failed to load native auth configuration:", error);
             configPromise = null; // Reset promise on error to allow retry
-            throw new Error(`Failed to load native auth configuration: ${error.message}`);
+            throw new Error(
+                `Failed to load native auth configuration: ${error.message}`
+            );
         }
     })();
-    
+
     return configPromise;
 }
 
@@ -64,7 +75,6 @@ export async function initNativeAuthConfig() {
     return await loadConfig();
 }
 
-
 /**
  * Get client ID based on authentication flow type (synchronous)
  * @param {string} flowType - The type of auth flow
@@ -73,9 +83,11 @@ export async function initNativeAuthConfig() {
  */
 export function getClientIdByFlow(flowType) {
     if (!configCache) {
-        throw new Error('Configuration not loaded. Call initNativeAuthConfig() first.');
+        throw new Error(
+            "Configuration not loaded. Call initNativeAuthConfig() first."
+        );
     }
-    
+
     switch (flowType) {
         case "email_password":
             return configCache.emailPasswordClientId;
@@ -97,9 +109,25 @@ export function getClientIdByFlow(flowType) {
  */
 export function getAuthorityUrl() {
     if (!configCache) {
-        throw new Error('Configuration not loaded. Call initNativeAuthConfig() first.');
+        throw new Error(
+            "Configuration not loaded. Call initNativeAuthConfig() first."
+        );
     }
     return `https://${configCache.tenantSubdomain}.ciamlogin.com`;
+}
+
+/**
+ * Get the entire configuration object (synchronous)
+ * @returns {Object} The configuration object
+ * @throws {Error} If configuration not loaded
+ */
+export function getConfig() {
+    if (!configCache) {
+        throw new Error(
+            "Configuration not loaded. Call initNativeAuthConfig() first."
+        );
+    }
+    return configCache;
 }
 
 /**
@@ -109,13 +137,44 @@ export function getAuthorityUrl() {
  */
 export function getProxyPort() {
     if (!configCache) {
-        throw new Error('Configuration not loaded. Call initNativeAuthConfig() first.');
+        throw new Error(
+            "Configuration not loaded. Call initNativeAuthConfig() first."
+        );
     }
     return configCache.proxyPort;
 }
 
+/**
+ * Get claims for authentication flows
+ * Returns custom claims if provided, otherwise checks if useMFA=true in URL params
+ * and returns config claims. Only applies claims when MFA is enabled.
+ * @param {Object|null} customClaims - Optional custom claims object
+ * @returns {Object|undefined} Claims object or undefined if no claims
+ */
+export function getClaimsForAuth(customClaims = null) {
+    if (customClaims) {
+        return customClaims;
+    }
+
+    // Check if useMFA=true in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const useMFA = urlParams.get("useMFA") === "true";
+
+    // Only return claims from config if useMFA is true
+    if (useMFA) {
+        const config = getConfig();
+        return config.authContextC4
+            ? JSON.parse(config.authContextC4)
+            : undefined;
+    }
+
+    return undefined;
+}
 
 // Auto-initialize configuration when module loads
-initNativeAuthConfig().catch(error => {
-    console.error('Failed to auto-initialize native auth configuration:', error);
+initNativeAuthConfig().catch((error) => {
+    console.error(
+        "Failed to auto-initialize native auth configuration:",
+        error
+    );
 });

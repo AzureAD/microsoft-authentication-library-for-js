@@ -215,6 +215,13 @@ export async function getEARForm(
         queryParams,
         request.extraQueryParameters || {}
     );
+
+    // Add correlationId to query params so gateway can propagate it to IDPs
+    RequestParameterBuilder.addCorrelationId(
+        queryParams,
+        request.correlationId
+    );
+
     const url = AuthorizeProtocol.getAuthorizeUrl(
         authority,
         queryParams,
@@ -258,9 +265,16 @@ export async function getCodeForm(
     );
 
     const queryParams = new Map<string, string>();
+
     RequestParameterBuilder.addExtraQueryParameters(
         queryParams,
         request.extraQueryParameters || {}
+    );
+
+    // Add correlationId to query params so gateway can propagate it to IDPs
+    RequestParameterBuilder.addCorrelationId(
+        queryParams,
+        request.correlationId
     );
 
     const url = AuthorizeProtocol.getAuthorizeUrl(

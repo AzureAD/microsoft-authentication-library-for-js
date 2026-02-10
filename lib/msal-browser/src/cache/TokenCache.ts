@@ -10,6 +10,7 @@ import {
     Logger,
     ScopeSet,
     Authority,
+    AuthorityFactory,
     AuthorityOptions,
     ExternalTokenResponse,
     AccountEntity,
@@ -117,19 +118,20 @@ export class TokenCache implements ITokenCache {
                 skipAuthorityMetadataCache:
                     this.config.auth.skipAuthorityMetadataCache,
             };
-            const authority = request.authority
-                ? new Authority(
-                      Authority.generateAuthority(
-                          request.authority,
-                          request.azureCloudOptions
-                      ),
-                      this.config.system.networkClient,
-                      this.storage,
-                      authorityOptions,
-                      this.logger,
-                      request.correlationId || BrowserCrypto.createNewGuid()
-                  )
-                : undefined;
+            const authorityString =
+                request.authority || this.config.auth.authority;
+            const authority = await AuthorityFactory.createDiscoveredInstance(
+                Authority.generateAuthority(
+                    authorityString,
+                    request.azureCloudOptions
+                ),
+                this.config.system.networkClient,
+                this.storage,
+                authorityOptions,
+                this.logger,
+                correlationId,
+                this.performanceClient
+            );
 
             const cacheRecordAccount: AccountEntity = await invokeAsync(
                 this.loadAccount.bind(this),
@@ -141,8 +143,8 @@ export class TokenCache implements ITokenCache {
                 request,
                 options.clientInfo || response.client_info || "",
                 correlationId,
-                idTokenClaims,
-                authority
+                authority,
+                idTokenClaims
             );
 
             const idToken = await invokeAsync(
@@ -205,8 +207,8 @@ export class TokenCache implements ITokenCache {
                     accessToken,
                     refreshToken,
                 },
-                idTokenClaims,
-                authority
+                authority,
+                idTokenClaims
             );
         } catch (error) {
             rootMeasurement.end({ success: false }, error);
@@ -227,8 +229,8 @@ export class TokenCache implements ITokenCache {
         request: SilentRequest,
         clientInfo: string,
         correlationId: string,
-        idTokenClaims?: TokenClaims,
-        authority?: Authority
+        authority: Authority,
+        idTokenClaims?: TokenClaims
     ): Promise<AccountEntity> {
         this.logger.verbose("TokenCache - loading account");
 
@@ -243,9 +245,9 @@ export class TokenCache implements ITokenCache {
                 ApiId.loadExternalTokens
             );
             return accountEntity;
-        } else if (!authority || (!clientInfo && !idTokenClaims)) {
+        } else if (!clientInfo && !idTokenClaims) {
             this.logger.error(
-                "TokenCache - if an account is not provided on the request, authority and either clientInfo or idToken must be provided instead."
+                "TokenCache - if an account is not provided on the request, clientInfo or idToken must be provided instead."
             );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadToken
@@ -270,7 +272,7 @@ export class TokenCache implements ITokenCache {
             correlationId,
             idTokenClaims,
             clientInfo,
-            authority.hostnameAndPort,
+            authority.getPreferredCache(),
             claimsTenantId,
             undefined, // authCodePayload
             undefined, // nativeAccountId
@@ -418,6 +420,16 @@ export class TokenCache implements ITokenCache {
             return null;
         }
 
+        const expiresOn = response.refresh_token_expires_in
+            ? response.refresh_token_expires_in + TimeUtils.nowSeconds()
+            : undefined;
+        this.performanceClient.addFields(
+            {
+                extRtExpiresOnSeconds: expiresOn,
+            },
+            correlationId
+        );
+
         this.logger.verbose("TokenCache - loading refresh token");
         const refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
             homeAccountId,
@@ -426,7 +438,7 @@ export class TokenCache implements ITokenCache {
             this.config.auth.clientId,
             response.foci,
             undefined, // userAssertionHash
-            response.refresh_token_expires_in
+            expiresOn
         );
 
         await this.storage.setRefreshTokenCredential(
@@ -448,8 +460,8 @@ export class TokenCache implements ITokenCache {
     private generateAuthenticationResult(
         request: SilentRequest,
         cacheRecord: CacheRecord & { account: AccountEntity },
-        idTokenClaims?: TokenClaims,
-        authority?: Authority
+        authority: Authority,
+        idTokenClaims?: TokenClaims
     ): AuthenticationResult {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
