@@ -6,16 +6,14 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
-    RETRY_TIMES,
     enterCredentials,
-    validateCacheLocation,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
 } from "e2e-test-utils";
 import path from "path";
 
@@ -37,10 +35,12 @@ describe("Auth Code CLI AAD Prod Tests", () => {
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/auth-code-cli-app");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/auth-code-cli-app"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -49,18 +49,8 @@ describe("Auth Code CLI AAD Prod Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserPublicCloud
         );
     });
 
@@ -91,7 +81,12 @@ describe("Auth Code CLI AAD Prod Tests", () => {
                 page = await context.newPage();
                 page.setDefaultTimeout(5000);
                 page.goto(url);
-                enterCredentials(page, screenshot, username, accountPwd);
+                enterCredentials(
+                    page,
+                    screenshot,
+                    labUser.upn,
+                    await labUser.getPassword()
+                );
             };
             const successMessage = "Success. You can close the browser now";
             const result =
@@ -102,7 +97,7 @@ describe("Auth Code CLI AAD Prod Tests", () => {
                 });
             expect(result.accessToken).toBeTruthy();
             expect(result.idToken).toBeTruthy();
-            expect(result.account.username).toEqual(username);
+            expect(result.account.username).toEqual(labUser.upn);
 
             try {
                 expect(

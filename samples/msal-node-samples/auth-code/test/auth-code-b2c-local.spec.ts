@@ -6,17 +6,15 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
     b2cLocalAccountEnterCredentials,
-    RETRY_TIMES,
-    validateCacheLocation,
     SAMPLE_HOME_URL,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    B2cProviders,
-    UserTypes,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
 } from "e2e-test-utils";
 import path from "path";
 
@@ -43,10 +41,12 @@ describe("Auth Code B2C Tests (local account)", () => {
     let port: number;
     let homeRoute: string;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/b2c-local");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/auth-code/b2c-local"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -60,19 +60,7 @@ describe("Auth Code B2C Tests (local account)", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.LOCAL,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
-        );
+        labUser = await LabResponseHelper.getLabUser(KeyVaultSecrets.UserB2C);
     });
 
     afterAll(async () => {
@@ -117,11 +105,12 @@ describe("Auth Code B2C Tests (local account)", () => {
 
         it("Performs acquire token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
+            const accountPwd = await labUser.getPassword();
             await page.goto(homeRoute);
             await b2cLocalAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForFunction(
@@ -140,11 +129,12 @@ describe("Auth Code B2C Tests (local account)", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/PromptLogin`
             );
+            const accountPwd = await labUser.getPassword();
             await page.goto(`${homeRoute}/?prompt=login`);
             await b2cLocalAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForFunction(
@@ -164,11 +154,12 @@ describe("Auth Code B2C Tests (local account)", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/PromptSelectAccount`
             );
+            const accountPwd = await labUser.getPassword();
             await page.goto(`${homeRoute}/?prompt=select_account`);
             await b2cLocalAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForFunction(
@@ -186,12 +177,13 @@ describe("Auth Code B2C Tests (local account)", () => {
 
         it("Performs acquire token with prompt = 'none'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptNone`);
+            const accountPwd = await labUser.getPassword();
             // First log the user in first
             await page.goto(`${homeRoute}/?prompt=login`);
             await b2cLocalAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForFunction(
@@ -217,12 +209,13 @@ describe("Auth Code B2C Tests (local account)", () => {
 
         it("Performs acquire token with state", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/WithState`);
+            const accountPwd = await labUser.getPassword();
             const STATE_VALUE = "value_on_state";
             await page.goto(`${homeRoute}/?prompt=login&state=${STATE_VALUE}`);
             await b2cLocalAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForFunction(

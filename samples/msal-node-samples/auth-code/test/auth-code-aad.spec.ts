@@ -6,17 +6,15 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
-    RETRY_TIMES,
     enterCredentials,
-    validateCacheLocation,
     SAMPLE_HOME_URL,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
 } from "e2e-test-utils";
 import path from "path";
 
@@ -43,8 +41,7 @@ describe("Auth Code AAD Prod Tests", () => {
     let port: string;
     let homeRoute: string;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
 
     const screenshotFolder = path.join(__dirname, "screenshots/auth-code/aad");
 
@@ -58,18 +55,8 @@ describe("Auth Code AAD Prod Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserPublicCloud
         );
     });
 
@@ -114,8 +101,9 @@ describe("Auth Code AAD Prod Tests", () => {
 
         it("Performs acquire token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
+            const accountPwd = await labUser.getPassword();
             await page.goto(homeRoute);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -132,8 +120,9 @@ describe("Auth Code AAD Prod Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/PromptLogin`
             );
+            const accountPwd = await labUser.getPassword();
             await page.goto(`${homeRoute}/?prompt=login`);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -151,8 +140,9 @@ describe("Auth Code AAD Prod Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/PromptConsent`
             );
+            const accountPwd = await labUser.getPassword();
             await page.goto(`${homeRoute}/?prompt=consent`);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -168,9 +158,10 @@ describe("Auth Code AAD Prod Tests", () => {
 
         it("Performs acquire token with prompt = 'none'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptNone`);
+            const accountPwd = await labUser.getPassword();
             // First log the user in first
             await page.goto(`${homeRoute}/?prompt=login`);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -194,9 +185,10 @@ describe("Auth Code AAD Prod Tests", () => {
 
         it("Performs acquire token with state", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/WithState`);
+            const accountPwd = await labUser.getPassword();
             const STATE_VALUE = "value_on_state";
             await page.goto(`${homeRoute}/?prompt=login&state=${STATE_VALUE}`);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );

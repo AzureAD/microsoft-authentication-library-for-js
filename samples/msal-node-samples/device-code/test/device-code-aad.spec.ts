@@ -6,18 +6,16 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
-    RETRY_TIMES,
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
-    validateCacheLocation,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
 } from "e2e-test-utils";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 import path from "path";
@@ -43,10 +41,12 @@ describe("Device Code AAD Prod Tests", () => {
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/device-code/aad");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/device-code/aad"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -54,19 +54,8 @@ describe("Device Code AAD Prod Tests", () => {
         browser = await global.__BROWSER__;
         createFolder(screenshotFolder);
 
-        // Configure Lab API Query Parameters
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserPublicCloud
         );
     });
 
@@ -94,6 +83,7 @@ describe("Device Code AAD Prod Tests", () => {
 
         it("Performs acquire token with Device Code flow", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
+            const accountPwd = await labUser.getPassword();
 
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
                 const { userCode, verificationUri } = deviceCodeResponse;
@@ -104,7 +94,12 @@ describe("Device Code AAD Prod Tests", () => {
                     verificationUri
                 );
                 await approveRemoteConnect(page, screenshot);
-                await enterCredentials(page, screenshot, username, accountPwd);
+                await enterCredentials(
+                    page,
+                    screenshot,
+                    labUser.upn,
+                    accountPwd
+                );
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(
                     page,

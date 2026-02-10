@@ -53,3 +53,19 @@ export {
     enterCredentials as enterCredentialsElectron,
     retrieveAuthCodeUrlFromBrowserContext,
 } from "./ElectronPlaywrightTestUtils";
+
+export type { AppConfig } from "./AppConfig";
+export type { UserConfig } from "./UserConfig";
+export { LabUser } from "./UserConfig";
+export { KeyVaultSecrets } from "./KeyVaultSecrets";
+export type { KeyVaultSecretName } from "./KeyVaultSecrets";
+export {
+    KeyVaultSecretsProvider,
+    KeyVaultInstance,
+    getMsidLabKeyVaultProvider,
+    getMsalTeamKeyVaultProvider,
+    getLabCredential,
+    clearLabCredentialCache,
+} from "./KeyVaultSecretsProvider";
+export type { LabCertificateCredential } from "./KeyVaultSecretsProvider";
+export { LabResponseHelper } from "./LabResponseHelper";

@@ -6,22 +6,20 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
-    ONE_SECOND_IN_MS,
-    RETRY_TIMES,
     clickSignIn,
     enterCredentials,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
-    validateCacheLocation,
     SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
+    ONE_SECOND_IN_MS,
 } from "e2e-test-utils";
 import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
@@ -51,10 +49,12 @@ describe("Silent Flow AAD Prod Tests", () => {
     let msalTokenCache: TokenCache;
     let server: any;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/aad");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/silent-flow/aad"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -65,19 +65,8 @@ describe("Silent Flow AAD Prod Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserPublicCloud
         );
 
         publicClientApplication = new PublicClientApplication({
@@ -119,8 +108,9 @@ describe("Silent Flow AAD Prod Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenAuthCode`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
@@ -136,8 +126,9 @@ describe("Silent Flow AAD Prod Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilent`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
@@ -158,8 +149,9 @@ describe("Silent Flow AAD Prod Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilentFromPersistent`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await publicClientApplication.clearCache();
             await screenshot.takeScreenshot(page, "ATS");
@@ -181,8 +173,9 @@ describe("Silent Flow AAD Prod Tests", () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/RefreshExpiredToken`
             );
+            const accountPwd = await labUser.getPassword();
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
 
             let tokens = await NodeCacheTestUtils.waitForTokens(
@@ -244,8 +237,14 @@ describe("Silent Flow AAD Prod Tests", () => {
                 const screenshot = new Screenshot(
                     `${screenshotFolder}/GetAllAccounts`
                 );
+                const accountPwd = await labUser.getPassword();
                 await clickSignIn(page, screenshot);
-                await enterCredentials(page, screenshot, username, accountPwd);
+                await enterCredentials(
+                    page,
+                    screenshot,
+                    labUser.upn,
+                    accountPwd
+                );
                 await page.waitForSelector("#getAllAccounts");
                 await page.click("#getAllAccounts");
                 await page.waitForSelector(

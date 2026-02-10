@@ -6,17 +6,15 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
     b2cLocalAccountEnterCredentials,
-    RETRY_TIMES,
-    validateCacheLocation,
     SAMPLE_HOME_URL,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    B2cProviders,
-    UserTypes,
+    validateCacheLocation,
+    createFolder,
+    RETRY_TIMES,
 } from "e2e-test-utils";
 import path from "path";
 
@@ -43,12 +41,14 @@ describe("B2C User Flow Tests", () => {
     let port: string;
     let homeRoute: string;
 
-    let username: string;
+    let labUser: LabUser;
     let accountPwd: string;
+    let clientSecret: string;
 
-    let clientSecret: { secret: string; value: string };
-
-    const screenshotFolder = path.join(__dirname, "screenshots/b2c-user-flows/local");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/b2c-user-flows/local"
+    );
 
     beforeAll(async () => {
         createFolder(screenshotFolder);
@@ -60,20 +60,10 @@ describe("B2C User Flow Tests", () => {
         port = 3000;
         homeRoute = `http://localhost:${port}`;
 
-        const labApiParams: LabApiQueryParams = {
-            userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.LOCAL,
-        };
-
-        const labClient = new LabClient();
-
-        clientSecret = await labClient.getSecret("MSIDLABB2C-MSAapp-AppSecret");
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParams
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(KeyVaultSecrets.UserB2C);
+        accountPwd = await labUser.getPassword();
+        clientSecret = await LabResponseHelper.getMsidLabSecret(
+            "MSIDLABB2C-MSAapp-AppSecret"
         );
     });
 
@@ -89,7 +79,7 @@ describe("B2C User Flow Tests", () => {
             cca = new ConfidentialClientApplication({
                 auth: {
                     clientId: config.authOptions.clientId,
-                    clientSecret: clientSecret.value,
+                    clientSecret: clientSecret,
                     authority:
                         config.policies.authorities.signUpSignIn.authority,
                     knownAuthorities: [config.policies.authorityDomain],
@@ -131,11 +121,15 @@ describe("B2C User Flow Tests", () => {
             );
             let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
             await page.goto(homeRoute);
-            await page.click("#signIn");
+            await screenshot.takeScreenshot(page, "homePage");
+            const [response] = await Promise.all([
+                page.waitForNavigation(),
+                page.click("#signIn"),
+            ]);
             await b2cLocalAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
+                labUser.upn,
                 accountPwd
             );
             await page.waitForFunction(

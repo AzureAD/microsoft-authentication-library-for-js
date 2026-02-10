@@ -12,13 +12,10 @@ import {
     ScreenShotElectron,
     enterCredentialsElectron,
     retrieveAuthCodeUrlFromBrowserContext,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
     NodeCacheTestUtils,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
-    LabClient,
-    setupCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
 } from "e2e-test-utils";
 import * as path from "path";
@@ -27,10 +24,12 @@ let electronApp: ElectronApplication;
 let page: Page;
 let browser: Browser;
 let browserPage: Page;
-let username: string;
-let accountPwd: string;
+let labUser: LabUser;
 
-const screenshotFolder = path.join(__dirname, "screenshots/ElectronSystemBrowserTestApp");
+const screenshotFolder = path.join(
+    __dirname,
+    "screenshots/ElectronSystemBrowserTestApp"
+);
 
 const TEST_CACHE_LOCATION = `${__dirname}/../data/aad.cache.json`;
 
@@ -39,14 +38,9 @@ import config from "../src/config/AAD.json";
 test.beforeAll(async () => {
     await validateCacheLocation(TEST_CACHE_LOCATION);
 
-    const labApiParams: LabApiQueryParams = {
-        azureEnvironment: AzureEnvironments.CLOUD,
-        appType: AppTypes.CLOUD,
-    };
-
-    const labClient = new LabClient();
-    const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
-    [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+    labUser = await LabResponseHelper.getLabUser(
+        KeyVaultSecrets.UserPublicCloud
+    );
 
     electronApp = await electron.launch({
         args: [
@@ -98,8 +92,8 @@ test.describe("Acquire token", () => {
         await enterCredentialsElectron(
             browserPage,
             screenshot,
-            username,
-            accountPwd
+            labUser.upn!,
+            await labUser.getPassword()
         );
         const cachedTokens = await NodeCacheTestUtils.waitForTokens(
             TEST_CACHE_LOCATION,
@@ -109,6 +103,8 @@ test.describe("Acquire token", () => {
         expect(cachedTokens.idTokens.length).toBe(1);
         expect(cachedTokens.refreshTokens.length).toBe(1);
 
-        await expect(page.locator(`text=${username}`).first()).toBeVisible();
+        await expect(
+            page.locator(`text=${labUser.upn!}`).first()
+        ).toBeVisible();
     });
 });

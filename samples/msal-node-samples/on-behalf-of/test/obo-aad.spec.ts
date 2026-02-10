@@ -6,16 +6,14 @@
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
-    createFolder,
-    setupCredentials,
-    enterCredentials
-    validateCacheLocation,
+    enterCredentials,
     SAMPLE_HOME_URL,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    AppTypes,
-    AzureEnvironments,
+    validateCacheLocation,
+    createFolder,
 } from "e2e-test-utils";
 import { ConfidentialClientApplication, LogLevel } from "@azure/msal-node";
 import path from "path";
@@ -56,10 +54,9 @@ describe("OBO AAD Tests", () => {
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/on-behalf-of")
+    const screenshotFolder = path.join(__dirname, "screenshots/on-behalf-of");
 
     beforeAll(async () => {
         await validateCacheLocation(WEB_APP_TEST_CACHE_LOCATION);
@@ -69,18 +66,8 @@ describe("OBO AAD Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserPublicCloud
         );
     });
 
@@ -164,8 +151,9 @@ describe("OBO AAD Tests", () => {
 
         it("Performs acquire token via OBO flow", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
+            const accountPwd = await labUser.getPassword();
             await page.goto(HOME_ROUTE);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, labUser.upn, accountPwd);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -184,7 +172,7 @@ describe("OBO AAD Tests", () => {
             expect(Object.keys(accounts).length).toBe(1);
 
             const account = Object.values(accounts)[0];
-            expect(account.username).toEqual(username);
+            expect(account.username).toEqual(labUser.upn);
         });
     });
 });
