@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770057948408,
+  "lastUpdate": 1770690631647,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19363,6 +19363,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.85%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "48929f9e6bdb20187ae51699ce2859f2456fbab7",
+          "message": "Add correlationId to POST request query params (#8308)\n\nThis pull request adds support for propagating the `correlationId` in\nauthorization requests to ensure traceability across services. The main\nchanges involve updating the `getEARForm` and `getCodeForm` functions to\ninclude the `correlationId` in the query parameters, and adding tests to\nverify this behavior.\n\nEnhancements to correlationId propagation:\n\n* Updated `getEARForm` and `getCodeForm` in `Authorize.ts` to add the\n`correlationId` to the query parameters, allowing gateways to propagate\nit to identity providers.\n[[1]](diffhunk://#diff-a4a9623518687b3ceac75fec2a3748ba77e40fd2166581e3ff0c4149258c6165R218-R226)\n[[2]](diffhunk://#diff-a4a9623518687b3ceac75fec2a3748ba77e40fd2166581e3ff0c4149258c6165R270-R283)\n\nTesting improvements:\n\n* Added and updated tests in `Authorize.spec.ts` to verify that the\n`correlationId` is present in both the post body and query parameters of\nthe authorization forms.\n[[1]](diffhunk://#diff-383f979b9a05a2d7fe02052138e8087f6ca2167e78d44dc4d41c391463d4da04R197-R204)\n[[2]](diffhunk://#diff-383f979b9a05a2d7fe02052138e8087f6ca2167e78d44dc4d41c391463d4da04R393-R469)\n\n---------\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-02-09T18:24:08-08:00",
+          "tree_id": "7c02d6fdbf9f2f389ae16e76474c4f6f81902749",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/48929f9e6bdb20187ae51699ce2859f2456fbab7"
+        },
+        "date": 1770690628643,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 246878,
+            "range": "±0.90%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 253078,
+            "range": "±0.56%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
