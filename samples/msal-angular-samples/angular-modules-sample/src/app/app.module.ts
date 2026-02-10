@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { NgModule, provideZoneChangeDetection } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -125,5 +125,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
         MsalGuard,
         MsalBroadcastService,
         provideHttpClient(withInterceptorsFromDi()),
+        provideZoneChangeDetection(),
     ] })
 export class AppModule {}
