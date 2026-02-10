@@ -25,6 +25,7 @@
         "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0",
         "jest-junit": "^16.0.0",
+        "lab-utils": "file:../../labUtils",
         "ts-jest": "^29.1.0"
     }
 }
