@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add correlationId to POST authorize request query params [#8309](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8309)",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
