@@ -294,6 +294,9 @@ export const CLOUD_HOSTS = {
     GermanyCloud: "login.microsoftonline.de",
     USGovAGCloud: "login.microsoftonline.us",
     USGovCloud: "login-us.microsoftonline.com",
+    SovCloudFR: "login.sovcloud-identity.fr",
+    SovCloudDE: "login.sovcloud-identity.de",
+    SovCloudSG: "login.sovcloud-identity.sg",
 };
 
 export const METADATA_ALIASES = {
@@ -307,6 +310,9 @@ export const METADATA_ALIASES = {
     GermanyCloud: ["login.microsoftonline.de"],
     USGovAGCloud: ["login.microsoftonline.us", "login.usgovcloudapi.net"],
     USGovCloud: ["login-us.microsoftonline.com"],
+    SovCloudFR: ["login.sovcloud-identity.fr"],
+    SovCloudDE: ["login.sovcloud-identity.de"],
+    SovCloudSG: ["login.sovcloud-identity.sg"],
 };
 
 export const PREFERRED_CACHE_ALIAS = "login.windows.net";
