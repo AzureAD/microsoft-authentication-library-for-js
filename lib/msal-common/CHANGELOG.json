@@ -2,6 +2,39 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 10 Feb 2026 01:37:11 GMT",
+      "version": "15.14.2",
+      "tag": "@azure/msal-common_v15.14.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d4b2c2c031f1907654fe0f8429b3f157336e1a68",
+            "comment": "Add new authority metadata [#8306](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8306)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Sat, 17 Jan 2026 01:12:52 GMT",
       "version": "15.14.1",
       "tag": "@azure/msal-common_v15.14.1",
