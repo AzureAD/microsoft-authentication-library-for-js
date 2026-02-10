@@ -57,6 +57,7 @@
         "extensions/samples/*",
         "shared-test-utils",
         "samples/e2eTestUtils",
+        "samples/labUtils",
         "samples/msal-browser-samples/*",
         "samples/msal-angular-samples/*",
         "samples/msal-react-samples/*",
