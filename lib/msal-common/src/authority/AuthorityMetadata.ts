@@ -51,6 +51,39 @@ export const rawMetdataJSON: RawMetadata = {
             end_session_endpoint:
                 "https://login.microsoftonline.us/{tenantid}/oauth2/v2.0/logout",
         },
+        "login.sovcloud-identity.fr": {
+            token_endpoint:
+                "https://login.sovcloud-identity.fr/{tenantid}/oauth2/v2.0/token",
+            jwks_uri:
+                "https://login.sovcloud-identity.fr/{tenantid}/discovery/v2.0/keys",
+            issuer: "https://login.sovcloud-identity.fr/{tenantid}/v2.0",
+            authorization_endpoint:
+                "https://login.sovcloud-identity.fr/{tenantid}/oauth2/v2.0/authorize",
+            end_session_endpoint:
+                "https://login.sovcloud-identity.fr/{tenantid}/oauth2/v2.0/logout",
+        },
+        "login.sovcloud-identity.de": {
+            token_endpoint:
+                "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/token",
+            jwks_uri:
+                "https://login.sovcloud-identity.de/{tenantid}/discovery/v2.0/keys",
+            issuer: "https://login.sovcloud-identity.de/{tenantid}/v2.0",
+            authorization_endpoint:
+                "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/authorize",
+            end_session_endpoint:
+                "https://login.sovcloud-identity.de/{tenantid}/oauth2/v2.0/logout",
+        },
+        "login.sovcloud-identity.sg": {
+            token_endpoint:
+                "https://login.sovcloud-identity.sg/common/oauth2/v2.0/token",
+            jwks_uri:
+                "https://login.sovcloud-identity.sg/common/discovery/v2.0/keys",
+            issuer: "https://login.sovcloud-identity.sg/{tenantid}/v2.0",
+            authorization_endpoint:
+                "https://login.sovcloud-identity.sg/common/oauth2/v2.0/authorize",
+            end_session_endpoint:
+                "https://login.sovcloud-identity.sg/common/oauth2/v2.0/logout",
+        },
     },
     instanceDiscoveryMetadata: {
         tenant_discovery_endpoint:
@@ -91,6 +124,21 @@ export const rawMetdataJSON: RawMetadata = {
                 preferred_network: "login-us.microsoftonline.com",
                 preferred_cache: "login-us.microsoftonline.com",
                 aliases: ["login-us.microsoftonline.com"],
+            },
+            {
+                preferred_network: "login.sovcloud-identity.fr",
+                preferred_cache: "login.sovcloud-identity.fr",
+                aliases: ["login.sovcloud-identity.fr"],
+            },
+            {
+                preferred_network: "login.sovcloud-identity.de",
+                preferred_cache: "login.sovcloud-identity.de",
+                aliases: ["login.sovcloud-identity.de"],
+            },
+            {
+                preferred_network: "login.sovcloud-identity.sg",
+                preferred_cache: "login.sovcloud-identity.sg",
+                aliases: ["login.sovcloud-identity.sg"],
             },
         ],
     },
