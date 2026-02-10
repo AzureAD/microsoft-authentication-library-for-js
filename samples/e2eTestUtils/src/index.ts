@@ -53,3 +53,18 @@ export {
     enterCredentials as enterCredentialsElectron,
     retrieveAuthCodeUrlFromBrowserContext,
 } from "./ElectronPlaywrightTestUtils";
+
+// New Key Vault-based configuration types and helpers
+export { AppConfig } from "./AppConfig";
+export { UserConfig, LabUser } from "./UserConfig";
+export { KeyVaultSecrets, KeyVaultSecretName } from "./KeyVaultSecrets";
+export {
+    KeyVaultSecretsProvider,
+    KeyVaultInstance,
+    LabCertificateCredential,
+    getMsidLabKeyVaultProvider,
+    getMsalTeamKeyVaultProvider,
+    getLabCredential,
+    clearLabCredentialCache,
+} from "./KeyVaultSecretsProvider";
+export { LabResponseHelper } from "./LabResponseHelper";

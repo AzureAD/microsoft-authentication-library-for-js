@@ -12,14 +12,12 @@ import {
     ScreenShotElectron,
     enterCredentialsElectron,
     retrieveAuthCodeUrlFromBrowserContext,
-} from "e2e-test-utils";
-import {
     LabResponseHelper,
     KeyVaultSecrets,
     LabUser,
     NodeCacheTestUtils,
     validateCacheLocation,
-} from "lab-utils";
+} from "e2e-test-utils";
 import * as path from "path";
 
 let electronApp: ElectronApplication;
@@ -28,7 +26,10 @@ let browser: Browser;
 let browserPage: Page;
 let labUser: LabUser;
 
-const screenshotFolder = path.join(__dirname, "screenshots/ElectronSystemBrowserTestApp");
+const screenshotFolder = path.join(
+    __dirname,
+    "screenshots/ElectronSystemBrowserTestApp"
+);
 
 const TEST_CACHE_LOCATION = `${__dirname}/../data/aad.cache.json`;
 
@@ -102,6 +103,8 @@ test.describe("Acquire token", () => {
         expect(cachedTokens.idTokens.length).toBe(1);
         expect(cachedTokens.refreshTokens.length).toBe(1);
 
-        await expect(page.locator(`text=${labUser.upn!}`).first()).toBeVisible();
+        await expect(
+            page.locator(`text=${labUser.upn!}`).first()
+        ).toBeVisible();
     });
 });

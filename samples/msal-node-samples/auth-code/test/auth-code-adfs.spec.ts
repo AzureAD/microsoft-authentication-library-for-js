@@ -4,15 +4,13 @@ import {
     enterCredentialsADFS,
     enterCredentialsADFSWithConsent,
     SAMPLE_HOME_URL,
-} from "e2e-test-utils";
-import {
     LabResponseHelper,
     KeyVaultSecrets,
     LabUser,
     NodeCacheTestUtils,
     createFolder,
     RETRY_TIMES,
-} from "lab-utils";
+} from "e2e-test-utils";
 import { PublicClientApplication } from "@azure/msal-node";
 import path from "path";
 

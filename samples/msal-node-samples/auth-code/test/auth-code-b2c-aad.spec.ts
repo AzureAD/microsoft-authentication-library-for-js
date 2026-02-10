@@ -8,8 +8,6 @@ import {
     Screenshot,
     b2cAadPpeAccountEnterCredentials,
     SAMPLE_HOME_URL,
-} from "e2e-test-utils";
-import {
     LabResponseHelper,
     KeyVaultSecrets,
     LabUser,
@@ -17,7 +15,7 @@ import {
     validateCacheLocation,
     createFolder,
     RETRY_TIMES,
-} from "lab-utils";
+} from "e2e-test-utils";
 import path from "path";
 
 import { PublicClientApplication } from "@azure/msal-node";

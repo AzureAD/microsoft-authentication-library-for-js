@@ -4,8 +4,9 @@
  */
 
 import * as puppeteer from "puppeteer";
-import { Screenshot, enterCredentials } from "e2e-test-utils";
 import {
+    Screenshot,
+    enterCredentials,
     LabResponseHelper,
     KeyVaultSecrets,
     LabUser,
@@ -13,7 +14,7 @@ import {
     validateCacheLocation,
     createFolder,
     RETRY_TIMES,
-} from "lab-utils";
+} from "e2e-test-utils";
 import path from "path";
 
 import { PublicClientApplication } from "@azure/msal-node";

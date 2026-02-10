@@ -8,8 +8,6 @@ import {
     Screenshot,
     enterCredentialsADFSWithConsent,
     enterDeviceCode,
-} from "e2e-test-utils";
-import {
     LabResponseHelper,
     KeyVaultSecrets,
     LabUser,
@@ -17,7 +15,7 @@ import {
     validateCacheLocation,
     createFolder,
     RETRY_TIMES,
-} from "lab-utils";
+} from "e2e-test-utils";
 import path from "path";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 
