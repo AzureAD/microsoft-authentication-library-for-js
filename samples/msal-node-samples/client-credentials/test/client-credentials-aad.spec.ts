@@ -14,7 +14,7 @@ import {
     KeyVaultSecrets,
     getLabCredential,
     LabCertificateCredential,
-} from "lab-utils";
+} from "e2e-test-utils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;

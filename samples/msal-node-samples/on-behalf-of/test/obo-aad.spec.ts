@@ -4,15 +4,17 @@
  */
 
 import * as puppeteer from "puppeteer";
-import { Screenshot, enterCredentials, SAMPLE_HOME_URL } from "e2e-test-utils";
 import {
+    Screenshot,
+    enterCredentials,
+    SAMPLE_HOME_URL,
     LabResponseHelper,
     KeyVaultSecrets,
     LabUser,
     NodeCacheTestUtils,
     validateCacheLocation,
     createFolder,
-} from "lab-utils";
+} from "e2e-test-utils";
 import { ConfidentialClientApplication, LogLevel } from "@azure/msal-node";
 import path from "path";
 import * as dotenv from "dotenv";

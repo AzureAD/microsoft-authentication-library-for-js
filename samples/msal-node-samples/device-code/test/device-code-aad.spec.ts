@@ -9,8 +9,6 @@ import {
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
-} from "e2e-test-utils";
-import {
     LabResponseHelper,
     KeyVaultSecrets,
     LabUser,
@@ -18,7 +16,7 @@ import {
     validateCacheLocation,
     createFolder,
     RETRY_TIMES,
-} from "lab-utils";
+} from "e2e-test-utils";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 import path from "path";
 

@@ -12,8 +12,6 @@ import {
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID,
-} from "e2e-test-utils";
-import {
     LabResponseHelper,
     KeyVaultSecrets,
     LabUser,
@@ -23,7 +21,7 @@ import {
     createFolder,
     RETRY_TIMES,
     ONE_SECOND_IN_MS,
-} from "lab-utils";
+} from "e2e-test-utils";
 import { ConfidentialClientApplication, TokenCache } from "@azure/msal-node";
 import path from "path";
 

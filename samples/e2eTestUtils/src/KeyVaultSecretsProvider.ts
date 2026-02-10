@@ -8,15 +8,38 @@ import { ClientCertificateCredential } from "@azure/identity";
 import * as fs from "fs";
 import * as crypto from "crypto";
 import * as dotenv from "dotenv";
-import { KeyVaultInstance, EnvVariables } from "./LabConstants";
 
 // Load environment variables from .env file
 // Try 1p repo config first
 dotenv.config({ path: __dirname + `/../../../../.env` });
 // If CLIENT_ID is not set, try the 3p repo for test env config
-if (!process.env[EnvVariables.CLIENT_ID]) {
+if (!process.env["AZURE_CLIENT_ID"]) {
     dotenv.config({ path: __dirname + `/../../../.env` });
 }
+
+/**
+ * Key Vault URLs for lab infrastructure.
+ */
+export const KeyVaultInstance = {
+    /**
+     * This Key Vault is generally used for frequently rotated credentials (e.g., user passwords).
+     */
+    MSIDLab: "https://msidlabs.vault.azure.net",
+
+    /**
+     * This Key Vault is generally used for static configuration (user/app configs, app secrets).
+     */
+    MsalTeam: "https://id4skeyvault.vault.azure.net",
+} as const;
+
+/**
+ * Environment variable names for lab authentication.
+ */
+const EnvVariables = {
+    TENANT: "AZURE_TENANT_ID",
+    CLIENT_ID: "AZURE_CLIENT_ID",
+    CERTIFICATE_PATH: "AZURE_CLIENT_CERTIFICATE_PATH",
+} as const;
 
 /**
  * Certificate credential information that can be used for MSAL ConfidentialClientApplication.
