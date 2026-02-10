@@ -22,6 +22,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.0",
     "e2e-test-utils": "file:../../e2eTestUtils",
+    "lab-utils": "file:../../labUtils",
     "jest": "^29.5.0",
     "jest-junit": "^16.0.0",
     "ts-jest": "^29.1.0"
