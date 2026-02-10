@@ -2,6 +2,39 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 10 Feb 2026 23:04:28 GMT",
+      "version": "5.0.4",
+      "tag": "@azure/msal-node_v5.0.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a596bd6de6c19748179b3583add4a426e699c2a5",
+            "comment": "restore cryptoProvider export [#8276](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8276)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.0.4",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 28 Jan 2026 18:43:41 GMT",
       "version": "5.0.3",
       "tag": "@azure/msal-node_v5.0.3",
