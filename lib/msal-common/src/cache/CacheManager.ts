@@ -91,7 +91,8 @@ export abstract class CacheManager implements ICacheManager {
     abstract setAccount(
         account: AccountEntity,
         correlationId: string,
-        kmsi: boolean
+        kmsi: boolean,
+        apiId: number
     ): Promise<void>;
 
     /**
@@ -549,6 +550,7 @@ export abstract class CacheManager implements ICacheManager {
         cacheRecord: CacheRecord,
         correlationId: string,
         kmsi: boolean,
+        apiId: number,
         storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
@@ -559,7 +561,12 @@ export abstract class CacheManager implements ICacheManager {
 
         try {
             if (!!cacheRecord.account) {
-                await this.setAccount(cacheRecord.account, correlationId, kmsi);
+                await this.setAccount(
+                    cacheRecord.account,
+                    correlationId,
+                    kmsi,
+                    apiId
+                );
             }
 
             if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {

@@ -21,6 +21,7 @@ export type EventMessage = {
     interactionType: InteractionType | null;
     payload: EventPayload;
     error: EventError;
+    correlationId: string;
     timestamp: number;
 };
 

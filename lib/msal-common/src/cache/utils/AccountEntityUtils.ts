@@ -41,6 +41,21 @@ export function generateAccountId(accountEntity: AccountEntity): string {
  * Returns the AccountInfo interface for this account.
  */
 export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
+    const tenantProfiles = accountEntity.tenantProfiles || [];
+    // Ensure at least the home tenant profile exists
+    if (
+        tenantProfiles.length === 0 &&
+        accountEntity.realm &&
+        accountEntity.localAccountId
+    ) {
+        tenantProfiles.push(
+            buildTenantProfile(
+                accountEntity.homeAccountId,
+                accountEntity.localAccountId,
+                accountEntity.realm
+            )
+        );
+    }
     return {
         homeAccountId: accountEntity.homeAccountId,
         environment: accountEntity.environment,
@@ -53,7 +68,7 @@ export function getAccountInfo(accountEntity: AccountEntity): AccountInfo {
         authorityType: accountEntity.authorityType,
         // Deserialize tenant profiles array into a Map
         tenantProfiles: new Map(
-            (accountEntity.tenantProfiles || []).map((tenantProfile) => {
+            tenantProfiles.map((tenantProfile) => {
                 return [tenantProfile.tenantId, tenantProfile];
             })
         ),
@@ -186,6 +201,25 @@ export function createAccountEntityFromAccountInfo(
     cloudGraphHostName?: string,
     msGraphHost?: string
 ): AccountEntity {
+    // Serialize tenant profiles map into an array
+    const tenantProfiles = Array.from(
+        accountInfo.tenantProfiles?.values() || []
+    );
+    // Ensure at least the home tenant profile exists
+    if (
+        tenantProfiles.length === 0 &&
+        accountInfo.tenantId &&
+        accountInfo.localAccountId
+    ) {
+        tenantProfiles.push(
+            buildTenantProfile(
+                accountInfo.homeAccountId,
+                accountInfo.localAccountId,
+                accountInfo.tenantId,
+                accountInfo.idTokenClaims
+            )
+        );
+    }
     return {
         authorityType:
             accountInfo.authorityType || Constants.CACHE_ACCOUNT_TYPE_GENERIC,
@@ -199,7 +233,7 @@ export function createAccountEntityFromAccountInfo(
         name: accountInfo.name,
         cloudGraphHostName: cloudGraphHostName,
         msGraphHost: msGraphHost,
-        tenantProfiles: Array.from(accountInfo.tenantProfiles?.values() || []),
+        tenantProfiles: tenantProfiles,
         dataBoundary: accountInfo.dataBoundary,
     } as AccountEntity;
 }

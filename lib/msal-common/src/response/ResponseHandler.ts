@@ -189,6 +189,7 @@ export class ResponseHandler {
         authority: Authority,
         reqTimestamp: number,
         request: BaseAuthRequest,
+        apiId: number,
         authCodePayload?: AuthorizationCodePayload,
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
@@ -281,16 +282,23 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = this.cacheStorage.generateAccountKey(
-                    AccountEntityUtils.getAccountInfo(cacheRecord.account)
-                );
-                const account = this.cacheStorage.getAccount(
-                    key,
+                const cachedAccounts = this.cacheStorage.getAllAccounts(
+                    {
+                        homeAccountId: cacheRecord.account.homeAccountId,
+                        environment: cacheRecord.account.environment,
+                    },
                     request.correlationId
                 );
-                if (!account) {
+
+                if (cachedAccounts.length < 1) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache",
+                        request.correlationId
+                    );
+                    this.performanceClient?.addFields(
+                        {
+                            acntLoggedOut: true,
+                        },
                         request.correlationId
                     );
                     return await ResponseHandler.generateAuthenticationResult(
@@ -311,6 +319,7 @@ export class ResponseHandler {
                 cacheRecord,
                 request.correlationId,
                 isKmsi(idTokenClaims || {}),
+                apiId,
                 request.storeInCache
             );
         } finally {

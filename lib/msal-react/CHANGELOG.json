@@ -2,10 +2,111 @@
   "name": "@azure/msal-react",
   "entries": [
     {
-      "date": "Fri, 05 Dec 2025 22:01:00 GMT",
-      "version": "5.0.0-beta.0",
-      "tag": "@azure/msal-react_v5.0.0-beta.0",
+      "date": "Wed, 28 Jan 2026 18:43:41 GMT",
+      "version": "5.0.3",
+      "tag": "@azure/msal-react_v5.0.3",
       "comments": {
+        "none": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "b400c05c152d931d081e5effadba46b5907ad36b",
+            "comment": "Disallow major changes #15525"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.1.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 17 Jan 2026 03:11:36 GMT",
+      "version": "5.0.2",
+      "tag": "@azure/msal-react_v5.0.2",
+      "comments": {
+        "major": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "1c40cc18b0e6daeb789f3d41ab51644944d1887c",
+            "comment": "Refactor event types and InteractionStatus to be more concise #8009 "
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "561d1e4bf93a6bbb46e874ec603eec4f9f390bc9",
+            "comment": "Remove support for old versions of Node and React #8014"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "36dc89bede23d89bc73c762104afdb1c222077c8",
+            "comment": "Make correlation id mandatory for Logger calls #8071"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "7d8fdb6d7756d6d8b730c0f0a03eced064b08fc8",
+            "comment": "Format logging strings for future minification #7999"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v5.0.2",
+            "commit": "not available"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "63b58a46024f25de8dd3d0274d1dfb747ed0e404",
+            "comment": "Remove beta tag"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
+            "comment": "Address react and next CVEs #8182"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "2f3e66e77bf165390f8c74753614ad4cd45cefc9",
+            "comment": "Refactor AccountEntity into type #7674"
+          }
+        ],
         "prerelease": [
           {
             "author": "msaljsbuilds@microsoft.com",
@@ -26,17 +127,32 @@
             "comment": "Remove dependency on msal-browser Util functions [#8122](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8122)"
           }
         ],
-        "patch": [
+        "none": [
           {
-            "author": "kshabelko@microsoft.com",
+            "author": "joarroyo@microsoft.com",
             "package": "@azure/msal-react",
-            "commit": "aba49029206aa8beaa28916b0a5378e7a2adb80d",
-            "comment": "Address react and next CVEs #8182"
+            "commit": "53f7d511c4abe24e3182f35f70c87de2b6aa3c7a",
+            "comment": "Merge dev changes to v5 branch #7748"
           },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "7d5be4bc764effb51ebc03fa105033dbcef3d10f",
+            "comment": "Allow major change types for v5 updates #7647"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 17 Jan 2026 01:12:52 GMT",
+      "version": "3.0.25",
+      "tag": "@azure/msal-react_v3.0.25",
+      "comments": {
+        "patch": [
           {
             "author": "beachball",
             "package": "@azure/msal-react",
-            "comment": "Bump @azure/msal-browser to v5.0.0-beta.0",
+            "comment": "Bump @azure/msal-browser to v4.28.1",
             "commit": "not available"
           },
           {
@@ -55,41 +171,15 @@
       }
     },
     {
-      "date": "Thu, 02 Oct 2025 21:58:36 GMT",
-      "version": "5.0.0-alpha.0",
-      "tag": "@azure/msal-react_v5.0.0-alpha.0",
+      "date": "Tue, 13 Jan 2026 14:23:33 GMT",
+      "version": "3.0.24",
+      "tag": "@azure/msal-react_v3.0.24",
       "comments": {
-        "none": [
-          {
-            "author": "joarroyo@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "53f7d511c4abe24e3182f35f70c87de2b6aa3c7a",
-            "comment": "Merge dev changes to v5 branch #7748"
-          },
-          {
-            "author": "joarroyo@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "7d5be4bc764effb51ebc03fa105033dbcef3d10f",
-            "comment": "Allow major change types for v5 updates #7647"
-          }
-        ],
-        "major": [
-          {
-            "author": "shylasummers@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "1c40cc18b0e6daeb789f3d41ab51644944d1887c",
-            "comment": "Refactor event types and InteractionStatus to be more concise #8009 "
-          },
-          {
-            "author": "shylasummers@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "561d1e4bf93a6bbb46e874ec603eec4f9f390bc9",
-            "comment": "Remove support for old versions of Node and React #8014"
-          },
+        "patch": [
           {
             "author": "beachball",
             "package": "@azure/msal-react",
-            "comment": "Bump @azure/msal-browser to v5.0.0-alpha.0",
+            "comment": "Bump @azure/msal-browser to v4.28.0",
             "commit": "not available"
           },
           {
@@ -104,27 +194,308 @@
             "comment": "Bump msal-test-utils to v0.0.1",
             "commit": "not available"
           }
-        ],
-        "minor": [
-          {
-            "author": "kshabelko@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "36dc89bede23d89bc73c762104afdb1c222077c8",
-            "comment": "Make correlation id mandatory for Logger calls #8071"
-          },
-          {
-            "author": "kshabelko@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "7d8fdb6d7756d6d8b730c0f0a03eced064b08fc8",
-            "comment": "Format logging strings for future minification #7999"
-          }
-        ],
+        ]
+      }
+    },
+    {
+      "date": "Thu, 04 Dec 2025 05:46:37 GMT",
+      "version": "3.0.23",
+      "tag": "@azure/msal-react_v3.0.23",
+      "comments": {
         "patch": [
           {
-            "author": "shylasummers@microsoft.com",
+            "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-react",
-            "commit": "2f3e66e77bf165390f8c74753614ad4cd45cefc9",
-            "comment": "Refactor AccountEntity into type #7674"
+            "commit": "0a9c566ff0e1c17960f3e7983fd6a010c81d2397",
+            "comment": "Address react and next CVEs #8179"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.27.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 19 Nov 2025 23:13:11 GMT",
+      "version": "3.0.22",
+      "tag": "@azure/msal-react_v3.0.22",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.26.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 29 Oct 2025 00:04:34 GMT",
+      "version": "3.0.21",
+      "tag": "@azure/msal-react_v3.0.21",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.26.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 24 Sep 2025 21:54:45 GMT",
+      "version": "3.0.20",
+      "tag": "@azure/msal-react_v3.0.20",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.24.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 19 Aug 2025 21:26:21 GMT",
+      "version": "3.0.19",
+      "tag": "@azure/msal-react_v3.0.19",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.21.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 12 Aug 2025 22:53:33 GMT",
+      "version": "3.0.18",
+      "tag": "@azure/msal-react_v3.0.18",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.20.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Aug 2025 20:00:24 GMT",
+      "version": "3.0.17",
+      "tag": "@azure/msal-react_v3.0.17",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.19.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Jul 2025 14:54:36 GMT",
+      "version": "3.0.16",
+      "tag": "@azure/msal-react_v3.0.16",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.16.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Jul 2025 14:21:12 GMT",
+      "version": "3.0.15",
+      "tag": "@azure/msal-react_v3.0.15",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.15.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 01 Jul 2025 14:23:25 GMT",
+      "version": "3.0.14",
+      "tag": "@azure/msal-react_v3.0.14",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.14.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Jun 2025 15:21:55 GMT",
+      "version": "3.0.13",
+      "tag": "@azure/msal-react_v3.0.13",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.13.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
           }
         ]
       }

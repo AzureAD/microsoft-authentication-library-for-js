@@ -41,6 +41,8 @@ import {
     CredentialEntity,
 } from "@azure/msal-common/browser";
 import {
+    ApiId,
+    apiIdToName,
     BrowserCacheLocation,
     INTERACTION_TYPE,
     TemporaryCacheKeys,
@@ -257,7 +259,8 @@ describe("BrowserCacheManager tests", () => {
                         refreshToken: TEST_REFRESH_TOKEN_ENTITY,
                     },
                     TEST_CONFIG.CORRELATION_ID,
-                    true
+                    true,
+                    0
                 );
 
                 // Setup some v0 cache entries
@@ -357,7 +360,8 @@ describe("BrowserCacheManager tests", () => {
                         refreshToken: TEST_REFRESH_TOKEN_ENTITY,
                     },
                     TEST_CONFIG.CORRELATION_ID,
-                    true
+                    true,
+                    0
                 );
 
                 // Setup some v1 cache entries
@@ -680,7 +684,8 @@ describe("BrowserCacheManager tests", () => {
                     await browserCacheManager.setAccount(
                         currentAccount,
                         TEST_CONFIG.CORRELATION_ID,
-                        true
+                        true,
+                        0
                     );
                     await browserCacheManager.setIdTokenCredential(
                         currentIdToken,
@@ -1246,7 +1251,8 @@ describe("BrowserCacheManager tests", () => {
                 await browserCacheManager.setAccount(
                     account,
                     TEST_CONFIG.CORRELATION_ID,
-                    true // KMSI = true, NO encryption
+                    true, // KMSI = true, NO encryption
+                    0
                 );
 
                 const accountInfo = {
@@ -1264,13 +1270,40 @@ describe("BrowserCacheManager tests", () => {
                 expect(isEncrypted(parsedValue)).toBe(false);
             });
 
+            it("should set cachedByApiId on account", async () => {
+                const account = { ...TEST_ACCOUNT_ENTITY };
+
+                const apiId = ApiId.acquireTokenPopup;
+                await browserCacheManager.setAccount(
+                    account,
+                    TEST_CONFIG.CORRELATION_ID,
+                    true,
+                    apiId
+                );
+
+                const accountInfo = {
+                    homeAccountId: account.homeAccountId,
+                    environment: account.environment,
+                    tenantId: account.realm,
+                    username: account.username,
+                    localAccountId: account.localAccountId,
+                };
+                const key = browserCacheManager.generateAccountKey(accountInfo);
+                const rawValue = window.localStorage.getItem(key);
+                expect(rawValue).toBeDefined();
+
+                const parsedValue = JSON.parse(rawValue!);
+                expect(parsedValue.cachedByApiId).toBe(apiId);
+            });
+
             it("should encrypt account when KMSI is false", async () => {
                 const account = { ...TEST_ACCOUNT_ENTITY };
 
                 await browserCacheManager.setAccount(
                     account,
                     TEST_CONFIG.CORRELATION_ID,
-                    false // KMSI = false, encryption for security
+                    false, // KMSI = false, encryption for security
+                    0
                 );
 
                 const accountInfo = {
@@ -2794,6 +2827,46 @@ describe("BrowserCacheManager tests", () => {
                     ).toBeNull();
                 });
 
+                it("getAccount adds accountCachedBy telemetry field", async () => {
+                    const perfClient = new StubPerformanceClient();
+                    const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+                    const tempCache = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+                    await tempCache.initialize(TEST_CONFIG.CORRELATION_ID);
+
+                    const account = {
+                        ...TEST_ACCOUNT_ENTITY,
+                        cachedByApiId: ApiId.hydrateCache,
+                    };
+                    const key = tempCache.generateAccountKey(
+                        AccountEntityUtils.getAccountInfo(account)
+                    );
+                    await tempCache.setUserData(
+                        key,
+                        JSON.stringify(account),
+                        TEST_CONFIG.CORRELATION_ID,
+                        account.lastUpdatedAt || Date.now().toString(),
+                        false
+                    );
+
+                    const result = tempCache.getAccount(
+                        key,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+
+                    expect(result?.cachedByApiId).toBe(ApiId.hydrateCache);
+                    expect(addFieldsSpy).toHaveBeenCalledWith(
+                        { accountCachedBy: apiIdToName(ApiId.hydrateCache) },
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                });
+
                 it("getAccount returns AccountEntity", async () => {
                     const testAccount = AccountEntityUtils.createAccountEntity(
                         {
@@ -2813,7 +2886,8 @@ describe("BrowserCacheManager tests", () => {
                     await browserLocalStorage.setAccount(
                         testAccount,
                         TEST_CONFIG.CORRELATION_ID,
-                        true
+                        true,
+                        0
                     );
                     expect(
                         browserLocalStorage.getAccount(
@@ -2827,7 +2901,8 @@ describe("BrowserCacheManager tests", () => {
                     await browserSessionStorage.setAccount(
                         testAccount,
                         TEST_CONFIG.CORRELATION_ID,
-                        true
+                        true,
+                        0
                     );
 
                     expect(
@@ -4020,6 +4095,7 @@ describe("BrowserCacheManager tests", () => {
                                     {},
                                     "test-correlation-id",
                                     true,
+                                    0,
                                     undefined
                                 )
                                 .then(() => {

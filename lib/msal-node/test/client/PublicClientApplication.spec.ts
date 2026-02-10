@@ -479,6 +479,10 @@ describe("PublicClientApplication", () => {
             jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
                 testAccountEntity
             );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAllAccounts"
+            ).mockReturnValue([testAccount]);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,

@@ -35,6 +35,7 @@ import {
     InteractionType,
     DEFAULT_REQUEST,
     CacheLookupPolicy,
+    ApiId,
 } from "../utils/BrowserConstants.js";
 import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
@@ -202,6 +203,7 @@ export class NestedAppAuthController implements IController {
 
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            correlationId,
             InteractionType.Popup,
             validRequest
         );
@@ -248,6 +250,7 @@ export class NestedAppAuthController implements IController {
 
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                correlationId,
                 InteractionType.Popup,
                 result
             );
@@ -274,6 +277,7 @@ export class NestedAppAuthController implements IController {
                     : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
+                correlationId,
                 InteractionType.Popup,
                 null,
                 e as EventError
@@ -303,6 +307,7 @@ export class NestedAppAuthController implements IController {
         const correlationId = validRequest.correlationId || createNewGuid();
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            correlationId,
             InteractionType.Silent,
             validRequest
         );
@@ -312,6 +317,7 @@ export class NestedAppAuthController implements IController {
         if (result) {
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                correlationId,
                 InteractionType.Silent,
                 result
             );
@@ -365,6 +371,7 @@ export class NestedAppAuthController implements IController {
 
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                correlationId,
                 InteractionType.Silent,
                 result
             );
@@ -388,6 +395,7 @@ export class NestedAppAuthController implements IController {
                     : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
+                correlationId,
                 InteractionType.Silent,
                 null,
                 e as EventError
@@ -458,6 +466,7 @@ export class NestedAppAuthController implements IController {
         if (result) {
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                correlationId,
                 InteractionType.Silent,
                 result
             );
@@ -482,6 +491,7 @@ export class NestedAppAuthController implements IController {
 
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_FAILURE,
+            correlationId,
             InteractionType.Silent,
             null
         );
@@ -836,7 +846,8 @@ export class NestedAppAuthController implements IController {
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId,
-            AuthToken.isKmsi(result.idTokenClaims)
+            AuthToken.isKmsi(result.idTokenClaims),
+            ApiId.hydrateCache
         );
         return this.browserStorage.hydrateCache(result, request);
     }

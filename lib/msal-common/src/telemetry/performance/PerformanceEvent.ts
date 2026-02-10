@@ -291,6 +291,8 @@ export type PerformanceEvent = {
     // Cache Data
     cacheLocation?: string;
     cacheRetentionDays?: number;
+    accountCachedBy?: string;
+    acntLoggedOut?: boolean;
 
     // Number of tokens in the cache to be reported when cache quota is exceeded
     cacheRtCount?: number;
@@ -316,6 +318,7 @@ export type PerformanceEvent = {
 
     cacheRtExpiresOnSeconds?: number;
     ntwkRtExpiresOnSeconds?: number;
+    extRtExpiresOnSeconds?: number;
     rtOffsetSeconds?: number;
 
     sidFromClaims?: boolean;

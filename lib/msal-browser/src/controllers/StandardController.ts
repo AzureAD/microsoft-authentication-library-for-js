@@ -305,29 +305,30 @@ export class StandardController implements IController {
                 correlationId
             );
             this.initialized = true;
-            this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+            this.eventHandler.emitEvent(
+                EventType.INITIALIZE_END,
+                correlationId
+            );
             return;
         }
 
-        const initCorrelationId =
-            request?.correlationId || this.getRequestCorrelationId();
         const allowPlatformBroker = this.config.system.allowPlatformBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
             BrowserRootPerformanceEvents.InitializeClientApplication,
-            initCorrelationId
+            correlationId
         );
-        this.eventHandler.emitEvent(EventType.INITIALIZE_START);
+        this.eventHandler.emitEvent(EventType.INITIALIZE_START, correlationId);
 
         // Broker applications are initialized twice, so we avoid double-counting it
-        this.logMultipleInstances(initMeasurement, initCorrelationId);
+        this.logMultipleInstances(initMeasurement, correlationId);
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
             BrowserPerformanceEvents.InitializeCache,
             this.logger,
             this.performanceClient,
-            initCorrelationId
-        )(initCorrelationId);
+            correlationId
+        )(correlationId);
 
         if (allowPlatformBroker) {
             try {
@@ -335,11 +336,11 @@ export class StandardController implements IController {
                 this.platformAuthProvider = await getPlatformAuthProvider(
                     this.logger,
                     this.performanceClient,
-                    initCorrelationId,
+                    correlationId,
                     this.config.system.nativeBrokerHandshakeTimeout
                 );
             } catch (e) {
-                this.logger.verbose(e as string, initCorrelationId);
+                this.logger.verbose(e as string, correlationId);
             }
         }
 
@@ -351,9 +352,9 @@ export class StandardController implements IController {
         }
 
         !this.config.system.navigatePopups &&
-            (await this.preGeneratePkceCodes(initCorrelationId));
+            (await this.preGeneratePkceCodes(correlationId));
         this.initialized = true;
-        this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+        this.eventHandler.emitEvent(EventType.INITIALIZE_END, correlationId);
         initMeasurement.end({
             allowPlatformBroker: allowPlatformBroker,
             success: true,
@@ -444,16 +445,16 @@ export class StandardController implements IController {
 
         let rootMeasurement: InProgressPerformanceEvent;
 
-        this.eventHandler.emitEvent(
-            EventType.HANDLE_REDIRECT_START,
-            InteractionType.Redirect
-        );
-
         let redirectResponse: Promise<AuthenticationResult | null>;
         try {
             if (useNative && this.platformAuthProvider) {
                 const correlationId =
                     platformBrokerRequest?.correlationId || "";
+                this.eventHandler.emitEvent(
+                    EventType.HANDLE_REDIRECT_START,
+                    correlationId,
+                    InteractionType.Redirect
+                );
                 rootMeasurement = this.performanceClient.startMeasurement(
                     BrowserRootPerformanceEvents.AcquireTokenRedirect,
                     correlationId
@@ -488,6 +489,11 @@ export class StandardController implements IController {
                 const [standardRequest, codeVerifier] =
                     this.browserStorage.getCachedRequest("");
                 const correlationId = standardRequest.correlationId;
+                this.eventHandler.emitEvent(
+                    EventType.HANDLE_REDIRECT_START,
+                    correlationId,
+                    InteractionType.Redirect
+                );
                 // Reset rootMeasurement now that we have correlationId
                 rootMeasurement = this.performanceClient.startMeasurement(
                     BrowserRootPerformanceEvents.AcquireTokenRedirect,
@@ -517,6 +523,7 @@ export class StandardController implements IController {
                     this.browserStorage.resetRequestCache(result.correlationId);
                     this.eventHandler.emitEvent(
                         EventType.ACQUIRE_TOKEN_SUCCESS,
+                        result.correlationId,
                         InteractionType.Redirect,
                         result
                     );
@@ -530,6 +537,7 @@ export class StandardController implements IController {
                     if (isLoggingIn) {
                         this.eventHandler.emitEvent(
                             EventType.LOGIN_SUCCESS,
+                            result.correlationId,
                             InteractionType.Redirect,
                             result.account
                         );
@@ -559,6 +567,7 @@ export class StandardController implements IController {
 
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_END,
+                    rootMeasurement.event.correlationId,
                     InteractionType.Redirect
                 );
 
@@ -571,12 +580,14 @@ export class StandardController implements IController {
                 const eventError = e as EventError;
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
+                    rootMeasurement.event.correlationId,
                     InteractionType.Redirect,
                     null,
                     eventError
                 );
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_END,
+                    rootMeasurement.event.correlationId,
                     InteractionType.Redirect
                 );
 
@@ -640,6 +651,7 @@ export class StandardController implements IController {
 
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_START,
+                correlationId,
                 InteractionType.Redirect,
                 request
             );
@@ -711,6 +723,7 @@ export class StandardController implements IController {
 
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
+                correlationId,
                 InteractionType.Redirect,
                 null,
                 e as EventError
@@ -763,6 +776,7 @@ export class StandardController implements IController {
         const loggedInAccounts = this.getAllAccounts();
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            correlationId,
             InteractionType.Popup,
             request
         );
@@ -823,12 +837,14 @@ export class StandardController implements IController {
                     loggedInAccounts.length < this.getAllAccounts().length;
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_SUCCESS,
+                    correlationId,
                     InteractionType.Popup,
                     result
                 );
                 if (isLoggingIn) {
                     this.eventHandler.emitEvent(
                         EventType.LOGIN_SUCCESS,
+                        correlationId,
                         InteractionType.Popup,
                         result.account
                     );
@@ -848,6 +864,7 @@ export class StandardController implements IController {
             .catch((e: Error) => {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
+                    correlationId,
                     InteractionType.Popup,
                     null,
                     e
@@ -935,6 +952,7 @@ export class StandardController implements IController {
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            correlationId,
             InteractionType.Silent,
             validRequest
         );
@@ -969,12 +987,14 @@ export class StandardController implements IController {
                     loggedInAccounts.length < this.getAllAccounts().length;
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_SUCCESS,
+                    correlationId,
                     InteractionType.Silent,
                     response
                 );
                 if (isLoggingIn) {
                     this.eventHandler.emitEvent(
                         EventType.LOGIN_SUCCESS,
+                        correlationId,
                         InteractionType.Silent,
                         response.account
                     );
@@ -994,6 +1014,7 @@ export class StandardController implements IController {
             .catch((e: Error) => {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
+                    correlationId,
                     InteractionType.Silent,
                     null,
                     e
@@ -1037,6 +1058,7 @@ export class StandardController implements IController {
         preflightCheck(this.initialized, atbcMeasurement);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            correlationId,
             InteractionType.Silent,
             request
         );
@@ -1063,6 +1085,7 @@ export class StandardController implements IController {
                         .then((result: AuthenticationResult) => {
                             this.eventHandler.emitEvent(
                                 EventType.ACQUIRE_TOKEN_SUCCESS,
+                                correlationId,
                                 InteractionType.Silent,
                                 result
                             );
@@ -1083,6 +1106,7 @@ export class StandardController implements IController {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             this.eventHandler.emitEvent(
                                 EventType.ACQUIRE_TOKEN_FAILURE,
+                                correlationId,
                                 InteractionType.Silent,
                                 null,
                                 error
@@ -1146,6 +1170,7 @@ export class StandardController implements IController {
         } catch (e) {
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
+                correlationId,
                 InteractionType.Silent,
                 null,
                 e as EventError
@@ -1438,7 +1463,8 @@ export class StandardController implements IController {
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId,
-            AuthToken.isKmsi(result.idTokenClaims)
+            AuthToken.isKmsi(result.idTokenClaims),
+            ApiId.hydrateCache
         );
 
         if (result.fromPlatformBroker) {
@@ -1983,6 +2009,7 @@ export class StandardController implements IController {
             this.trackPageVisibility(request.correlationId);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
+            request.correlationId,
             InteractionType.Silent,
             request
         );
@@ -2110,6 +2137,7 @@ export class StandardController implements IController {
             .then((response) => {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_SUCCESS,
+                    request.correlationId,
                     InteractionType.Silent,
                     response
                 );
@@ -2128,6 +2156,7 @@ export class StandardController implements IController {
             .catch((tokenRenewalError: Error) => {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
+                    request.correlationId,
                     InteractionType.Silent,
                     null,
                     tokenRenewalError
@@ -2213,6 +2242,7 @@ export class StandardController implements IController {
 
                     this.eventHandler.emitEvent(
                         EventType.ACQUIRE_TOKEN_NETWORK_START,
+                        silentRequest.correlationId,
                         InteractionType.Silent,
                         silentRequest
                     );

@@ -1934,6 +1934,7 @@ describe("RedirectClient", () => {
                     bfCacheCallback({ persisted: true });
                     expect(eventSpy).toHaveBeenCalledWith(
                         EventType.RESTORE_FROM_BFCACHE,
+                        TEST_CONFIG.CORRELATION_ID,
                         InteractionType.Redirect
                     );
                     expect(browserStorage.isInteractionInProgress()).toBe(
@@ -2583,7 +2584,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true, 0)
                 .then(() =>
                     redirectClient.logout({ account: testAccountInfo })
                 );
@@ -2645,7 +2646,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true, 0)
                 .then(() =>
                     redirectClient.logout({
                         account: testAccountInfo,
@@ -2674,6 +2675,7 @@ describe("RedirectClient", () => {
                 expect(telemetrySpy).toHaveBeenCalledWith(testError);
                 expect(eventSpy).toHaveBeenCalledWith(
                     EventType.LOGOUT_FAILURE,
+                    TEST_CONFIG.CORRELATION_ID,
                     InteractionType.Redirect,
                     null,
                     testError
@@ -2736,7 +2738,8 @@ describe("RedirectClient", () => {
             await browserStorage.setAccount(
                 testAccountEntity,
                 TEST_CONFIG.CORRELATION_ID,
-                true
+                true,
+                0
             );
             await browserStorage.setIdTokenCredential(
                 testIdToken,
@@ -2931,7 +2934,12 @@ describe("RedirectClient", () => {
 
                 browserStorage2.setInteractionInProgress(true);
                 browserStorage2
-                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                    .setAccount(
+                        testAccount,
+                        TEST_CONFIG.CORRELATION_ID,
+                        true,
+                        0
+                    )
                     .then(() =>
                         redirectClient2
                             .logout({
@@ -3044,7 +3052,12 @@ describe("RedirectClient", () => {
 
                 browserStorage3.setInteractionInProgress(true);
                 browserStorage3
-                    .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID, true)
+                    .setAccount(
+                        testAccount,
+                        TEST_CONFIG.CORRELATION_ID,
+                        true,
+                        0
+                    )
                     .then(() =>
                         redirectClient3
                             .logout({

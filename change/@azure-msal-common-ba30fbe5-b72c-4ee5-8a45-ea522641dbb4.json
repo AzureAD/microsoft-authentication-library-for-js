@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Use cross-env for environment variable management in build scripts #8191",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

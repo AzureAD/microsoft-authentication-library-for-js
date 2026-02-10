@@ -172,7 +172,8 @@ export class JitClient extends CustomAuthInteractionClientBase {
             scopes,
             tokenResponse.correlation_id ||
                 continueResponse.correlation_id ||
-                correlationId
+                correlationId,
+            apiId
         );
 
         return createJitCompletedResult({

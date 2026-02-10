@@ -21,6 +21,7 @@ import {
     createClientAuthError,
     Constants,
 } from "@azure/msal-common/node";
+import { ApiId } from "../utils/Constants.js";
 import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 import { BaseClient } from "./BaseClient.js";
@@ -66,7 +67,8 @@ export class DeviceCodeClient extends BaseClient {
             response,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            ApiId.acquireTokenByDeviceCode
         );
     }
 
