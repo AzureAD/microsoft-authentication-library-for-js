@@ -99,7 +99,6 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
     });
 
     describe("createInteractionRequiredAuthError()", () => {
-
         it("produces non-empty messages for all mapped codes", () => {
             const codes = [
                 InteractionRequiredAuthErrorCodes.noTokensFound,
