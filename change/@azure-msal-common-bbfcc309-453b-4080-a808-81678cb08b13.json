@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add interrupted_user to InteractionRequired Error list #8322",
+  "comment": "Add interrupted_user to InteractionRequired Error list (#8322)",
   "packageName": "@azure/msal-common",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
