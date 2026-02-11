@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Wed, 28 Jan 2026 18:43:41 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 10 Feb 2026 23:04:27 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.0.4
+
+Tue, 10 Feb 2026 23:04:27 GMT
+
+### Patches
+
+- Add handleRedirectObservable options [#8278](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/8278) (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v5.2.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 5.0.3
 
