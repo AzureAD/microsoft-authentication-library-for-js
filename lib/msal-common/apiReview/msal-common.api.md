@@ -2659,6 +2659,10 @@ export const InteractionRequiredAuthErrorMessage: {
         code: string;
         desc: string;
     };
+    interrupted_user: {
+        code: string;
+        desc: string;
+    };
 };
 
 // @public

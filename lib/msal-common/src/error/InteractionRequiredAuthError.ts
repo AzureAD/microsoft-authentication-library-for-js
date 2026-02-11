@@ -17,7 +17,7 @@ export const InteractionRequiredServerErrorMessage = [
     InteractionRequiredAuthErrorCodes.loginRequired,
     InteractionRequiredAuthErrorCodes.badToken,
     InteractionRequiredAuthErrorCodes.uxNotAllowed,
-    InteractionRequiredAuthErrorCodes.interruptedUser
+    InteractionRequiredAuthErrorCodes.interruptedUser,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -27,7 +27,7 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "user_password_expired",
     "consent_required",
     "bad_token",
-    "interrupted_user"
+    "interrupted_user",
 ];
 
 const InteractionRequiredAuthErrorMessages = {
@@ -73,7 +73,7 @@ export const InteractionRequiredAuthErrorMessage = {
         desc: InteractionRequiredAuthErrorMessages[
             InteractionRequiredAuthErrorCodes.interruptedUser
         ],
-    }
+    },
 };
 
 /**
