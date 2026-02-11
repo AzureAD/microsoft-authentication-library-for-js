@@ -90,6 +90,21 @@ export const rawMetdataJSON: RawMetadata = {
                 preferred_cache: "login-us.microsoftonline.com",
                 aliases: ["login-us.microsoftonline.com"],
             },
+            {
+                preferred_network: "login.sovcloud-identity.fr",
+                preferred_cache: "login.sovcloud-identity.fr",
+                aliases: ["login.sovcloud-identity.fr"],
+            },
+            {
+                preferred_network: "login.sovcloud-identity.de",
+                preferred_cache: "login.sovcloud-identity.de",
+                aliases: ["login.sovcloud-identity.de"],
+            },
+            {
+                preferred_network: "login.sovcloud-identity.sg",
+                preferred_cache: "login.sovcloud-identity.sg",
+                aliases: ["login.sovcloud-identity.sg"],
+            },
         ],
     },
 };

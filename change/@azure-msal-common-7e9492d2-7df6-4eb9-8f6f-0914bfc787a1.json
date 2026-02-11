@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix INetworkModule Typedocs [#8277](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8277)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
