@@ -3,6 +3,8 @@ import {
     InteractionRequiredAuthSubErrorMessage,
     InteractionRequiredServerErrorMessage,
     isInteractionRequiredError,
+    createInteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
 } from "../../src/error/InteractionRequiredAuthError";
 import { AuthError } from "../../src/error/AuthError";
 
@@ -93,6 +95,28 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
             expect(
                 isInteractionRequiredError("", "", "not_interaction_required")
             ).toBe(false);
+        });
+    });
+
+    describe("createInteractionRequiredAuthError()", () => {
+
+        it("produces non-empty messages for all mapped codes", () => {
+            const codes = [
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+                InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
+                InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+                InteractionRequiredAuthErrorCodes.badToken,
+                InteractionRequiredAuthErrorCodes.uxNotAllowed,
+                InteractionRequiredAuthErrorCodes.interruptedUser,
+            ];
+
+            codes.forEach((code) => {
+                const err = createInteractionRequiredAuthError(code);
+                expect(err instanceof InteractionRequiredAuthError).toBe(true);
+                expect(err.errorCode).toBe(code);
+                expect(typeof err.errorMessage).toBe("string");
+                expect(err.errorMessage.length).toBeGreaterThan(0);
+            });
         });
     });
 });
