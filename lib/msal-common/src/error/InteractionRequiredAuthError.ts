@@ -68,6 +68,12 @@ export const InteractionRequiredAuthErrorMessage = {
             InteractionRequiredAuthErrorCodes.badToken
         ],
     },
+    interrupted_user: {
+        code: InteractionRequiredAuthErrorCodes.interruptedUser,
+        desc: InteractionRequiredAuthErrorMessages[
+            InteractionRequiredAuthErrorCodes.interruptedUser
+        ],
+    }
 };
 
 /**
