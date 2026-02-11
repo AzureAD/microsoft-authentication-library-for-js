@@ -2643,7 +2643,8 @@ declare namespace InteractionRequiredAuthErrorCodes {
         interactionRequired,
         consentRequired,
         loginRequired,
-        badToken
+        badToken,
+        interruptedUser
     }
 }
 export { InteractionRequiredAuthErrorCodes }
@@ -2665,6 +2666,11 @@ export const InteractionRequiredAuthErrorMessage: {
         desc: string;
     };
 };
+
+// Warning: (ae-missing-release-tag) "interruptedUser" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const interruptedUser = "interrupted_user";
 
 // Warning: (ae-missing-release-tag) "IntFields" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
