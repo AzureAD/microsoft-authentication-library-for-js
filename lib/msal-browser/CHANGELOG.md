@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Sat, 17 Jan 2026 01:12:51 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 10 Feb 2026 22:19:29 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.28.2
+
+Tue, 10 Feb 2026 22:19:29 GMT
+
+### Patches
+
+- Add correlationId to POST request query params [#8308](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8308) (hemoral@microsoft.com)
+- Bump @azure/msal-common to v15.14.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.28.1
 
