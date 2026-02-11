@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "restore cryptoProvider export [#8276](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8276)",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
