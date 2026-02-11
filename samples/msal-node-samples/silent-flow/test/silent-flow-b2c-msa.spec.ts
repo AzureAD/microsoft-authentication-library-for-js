@@ -7,7 +7,6 @@ import * as puppeteer from "puppeteer";
 import {
     Screenshot,
     createFolder,
-    setupCredentials,
     b2cMsaAccountEnterCredentials,
     ONE_SECOND_IN_MS,
     RETRY_TIMES,
@@ -16,10 +15,9 @@ import {
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    B2cProviders,
-    UserTypes,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
 } from "e2e-test-utils";
 import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
@@ -49,10 +47,13 @@ describe("Silent Flow B2C Tests (msa account)", () => {
     let msalTokenCache: TokenCache;
     let server: any;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
+    let labPassword: string;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/b2c-msa");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/silent-flow/b2c-msa"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -65,19 +66,9 @@ describe("Silent Flow B2C Tests (msa account)", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.MICROSOFT,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
-        );
+        // Get B2C user configuration from Key Vault
+        labUser = await LabResponseHelper.getLabUser(KeyVaultSecrets.UserB2CMSA);
+        labPassword = await labUser.getPassword();
 
         publicClientApplication = new PublicClientApplication({
             auth: config.authOptions,
@@ -123,8 +114,8 @@ describe("Silent Flow B2C Tests (msa account)", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
@@ -145,8 +136,8 @@ describe("Silent Flow B2C Tests (msa account)", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForSelector("#acquireTokenSilent");
             await screenshot.takeScreenshot(page, "ATS");
@@ -168,8 +159,8 @@ describe("Silent Flow B2C Tests (msa account)", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForSelector("#acquireTokenSilent");
 
@@ -232,8 +223,8 @@ describe("Silent Flow B2C Tests (msa account)", () => {
                 await b2cMsaAccountEnterCredentials(
                     page,
                     screenshot,
-                    username,
-                    accountPwd
+                    labUser.upn,
+                    labPassword
                 );
                 await page.waitForSelector("#getAllAccounts");
                 await page.click("#getAllAccounts");

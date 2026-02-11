@@ -7,16 +7,15 @@ import * as puppeteer from "puppeteer";
 import {
     Screenshot,
     createFolder,
-    setupCredentials,
     b2cMsaAccountEnterCredentials,
     RETRY_TIMES,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    B2cProviders,
-    UserTypes,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
+    getMsidLabKeyVaultProvider,
 } from "e2e-test-utils";
 import path from "path";
 
@@ -43,12 +42,14 @@ describe("B2C User Flow Tests", () => {
     let port: string;
     let homeRoute: string;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
+    let labPassword: string;
+    let clientSecret: string;
 
-    let clientSecret: { secret: string; value: string };
-
-    const screenshotFolder = path.join(__dirname, "screenshots/b2c-user-flows/msa");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/b2c-user-flows/msa"
+    );
 
     beforeAll(async () => {
         createFolder(screenshotFolder);
@@ -59,19 +60,16 @@ describe("B2C User Flow Tests", () => {
         port = 3001;
         homeRoute = `http://localhost:${port}`;
 
-        const labApiParams: LabApiQueryParams = {
-            userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.MICROSOFT,
-        };
-
-        const labClient = new LabClient();
-        clientSecret = await labClient.getSecret("MSIDLABB2C-MSAapp-AppSecret");
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParams
+        // Get B2C user configuration from Key Vault
+        labUser = await LabResponseHelper.getLabUser(
+            KeyVaultSecrets.UserB2CMSA
         );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
+        labPassword = await labUser.getPassword();
+
+        // Get B2C MSA app secret from Key Vault
+        const kvProvider = getMsidLabKeyVaultProvider();
+        clientSecret = await kvProvider.getSecretValue(
+            KeyVaultSecrets.B2CMsaAppSecretName
         );
     });
 
@@ -87,7 +85,7 @@ describe("B2C User Flow Tests", () => {
             cca = new ConfidentialClientApplication({
                 auth: {
                     clientId: config.authOptions.clientId,
-                    clientSecret: clientSecret.value,
+                    clientSecret: clientSecret,
                     authority:
                         config.policies.authorities.signUpSignIn.authority,
                     knownAuthorities: [config.policies.authorityDomain],
@@ -132,8 +130,8 @@ describe("B2C User Flow Tests", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`

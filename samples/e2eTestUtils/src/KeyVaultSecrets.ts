@@ -13,6 +13,7 @@ export const KeyVaultSecrets = {
     UserFederated: "User-Federated-Config",
     UserPublicCloud2: "MSAL-User-Default2-JSON",
     UserB2C: "MSAL-USER-B2C-JSON",
+    UserB2CMSA: "MSAL-User-B2C-MSA-JSON",
     UserArlington: "MSAL-USER-Arlington-JSON",
     UserCiam: "MSAL-USER-CIAM-JSON",
     UserPop: "MSAL-User-POP-JSON",
@@ -30,6 +31,10 @@ export const KeyVaultSecrets = {
     MsalAppAzureAdMultipleOrgsRegional:
         "MSAL-APP-AzureADMultipleOrgsRegional-JSON",
     MsalAppArlingtonCCA: "MSAL-App-ArlingtonCCA-JSON",
+
+    // B2C MSA app configuration (from MSID Lab Key Vault)
+    B2CMsaAppId: "MSIDLABB2C-MSAapp-AppID",
+    B2CMsaAppSecretName: "MSIDLABB2C-MSAapp-AppSecret",
 
     // Name of key vault secrets for specific test scenarios
     MsalOboSecret: "IdentityDivisionDotNetOBOServiceSecret",

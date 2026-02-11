@@ -7,16 +7,14 @@ import * as puppeteer from "puppeteer";
 import {
     Screenshot,
     createFolder,
-    setupCredentials,
     b2cMsaAccountEnterCredentials,
     RETRY_TIMES,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
-    LabClient,
-    LabApiQueryParams,
-    B2cProviders,
-    UserTypes,
+    LabResponseHelper,
+    KeyVaultSecrets,
+    LabUser,
 } from "e2e-test-utils";
 import path from "path";
 
@@ -43,16 +41,18 @@ describe("Auth Code B2C Tests (msa account)", () => {
     let port: number;
     let homeRoute: string;
 
-    let username: string;
-    let accountPwd: string;
+    let labUser: LabUser;
+    let labPassword: string;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/b2c-msa");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/auth-code/b2c-msa"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
-        // @ts-ignore
 
         // To run tests in parallel, each test needs to run on a unique port
         port = 3006;
@@ -60,19 +60,9 @@ describe("Auth Code B2C Tests (msa account)", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.MICROSOFT,
-        };
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParms
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
-        );
+        // Get B2C user configuration from Key Vault
+        labUser = await LabResponseHelper.getLabUser(KeyVaultSecrets.UserB2CMSA);
+        labPassword = await labUser.getPassword();
     });
 
     afterAll(async () => {
@@ -121,8 +111,8 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
@@ -144,8 +134,8 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
@@ -168,8 +158,8 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
@@ -191,8 +181,8 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
@@ -222,8 +212,8 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await b2cMsaAccountEnterCredentials(
                 page,
                 screenshot,
-                username,
-                accountPwd
+                labUser.upn,
+                labPassword
             );
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
