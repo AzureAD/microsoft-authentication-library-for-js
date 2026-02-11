@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Validate NAA broker response account [#8286](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8286)",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

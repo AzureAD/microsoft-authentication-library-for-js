@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "[v5] Add new authority metadata [#8310](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8310)",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
