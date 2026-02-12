@@ -568,10 +568,10 @@ export class StandardController implements IController {
                         result.account
                     );
 
-                    // Fire-and-forget session refresh in background
-                    this.bkgdSessionRefresh(
+                    // Fire-and-forget SSO capability verification in background
+                    this.verifySSOCapability(
                         result.account,
-                        "handleRedirectPromise"
+                        InteractionType.Redirect
                     );
                 } else {
                     /*
@@ -937,8 +937,8 @@ export class StandardController implements IController {
                     result.account
                 );
 
-                // Fire-and-forget session refresh in background
-                this.bkgdSessionRefresh(result.account, "acquireTokenPopup");
+                // SSO capability verification in background
+                this.verifySSOCapability(result.account, InteractionType.Popup);
 
                 return result;
             })
@@ -996,43 +996,42 @@ export class StandardController implements IController {
     }
 
     /**
-     * Fire-and-forget session refresh in the background.
-     * This method makes an iframe request to /authorize to refresh session cookies without calling /token.
+     * SSO capability verification in the background.
+     * This method makes an iframe request to /authorize to verify SSO capability without calling /token.
      * This method does not block the caller and tracks telemetry for success/failure.
      * This method only executes if enableSessionRefresh is set to true in the auth configuration.
-     * @param account - The account to use for the session refresh
+     * @param account - The account to use for the SSO verification
      * @param parentApiId - The API ID of the parent operation for logging purposes
      */
-    private bkgdSessionRefresh(
+    private verifySSOCapability(
         account: AccountInfo,
         parentApiId: string
     ): void {
-        // Check if background SSO is enabled
+        // Check if SSO capability verification is enabled
         if (!this.config.auth.enableSessionRefresh) {
             return;
         }
 
         const correlationId = this.browserCrypto.createNewGuid();
-        const bgSessionRefreshMeasurement =
-            this.performanceClient.startMeasurement(
-                PerformanceEvents.BackgroundSessionRefresh,
-                correlationId
-            );
-        bgSessionRefreshMeasurement.add({
+        const ssoCapableMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.SsoCapable,
+            correlationId
+        );
+        ssoCapableMeasurement.add({
             parentApiId: parentApiId,
         });
 
         this.logger.verbose(
-            `Background session refresh initiated after ${parentApiId}`,
+            `SSO capability verification initiated after ${parentApiId}`,
             correlationId
         );
 
         /*
          * Use setTimeout to ensure this runs in a separate macrotask after the current call stack completes
-         * This ensures the result is returned to the caller before the session refresh starts and doesn't affect performance
+         * This ensures the result is returned to the caller before the SSO verification starts and doesn't affect performance
          */
         setTimeout(() => {
-            const bgSilentRefreshRequest: SsoSilentRequest = {
+            const ssoVerificationRequest: SsoSilentRequest = {
                 account: account,
                 correlationId: correlationId,
             };
@@ -1040,13 +1039,13 @@ export class StandardController implements IController {
             const silentIframeClient =
                 this.createSilentIframeClient(correlationId);
             silentIframeClient
-                .refreshSession(bgSilentRefreshRequest)
+                .verifySso(ssoVerificationRequest)
                 .then((success: boolean) => {
                     this.logger.verbose(
-                        `Background session refresh completed after ${parentApiId}, success: ${success}`,
+                        `SSO capability verification completed after ${parentApiId}, success: ${success}`,
                         correlationId
                     );
-                    bgSessionRefreshMeasurement.end(
+                    ssoCapableMeasurement.end(
                         {
                             fromCache: false,
                             success: success,
@@ -1057,10 +1056,10 @@ export class StandardController implements IController {
                 })
                 .catch((error: Error) => {
                     this.logger.warning(
-                        `Background session refresh failed after ${parentApiId}: ${error.message}`,
+                        `SSO capability verification failed after ${parentApiId}: ${error.message}`,
                         correlationId
                     );
-                    bgSessionRefreshMeasurement.end(
+                    ssoCapableMeasurement.end(
                         {
                             fromCache: false,
                             success: false,

@@ -330,10 +330,10 @@ export const PerformanceEvents = {
     LoadRefreshToken: "loadRefreshToken",
 
     /**
-     * Background session refresh call (msal-browser).
-     * Fire-and-forget session refresh call made after interactive authentication completes.
+     * SSO capability verification call (msal-browser).
+     * Fire-and-forget SSO verification call made after interactive authentication completes.
      */
-    BackgroundSessionRefresh: "backgroundSessionRefresh",
+    SsoCapable: "ssoCapable",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -569,7 +569,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.Decrypt, "decrypt"],
         [PerformanceEvents.GenerateEarKey, "genEarKey"],
         [PerformanceEvents.DecryptEarResponse, "decryptEarResp"],
-        [PerformanceEvents.BackgroundSessionRefresh, "BgSsnRfsh"],
+        [PerformanceEvents.SsoCapable, "SsoCapable"],
     ]);
 
 /**

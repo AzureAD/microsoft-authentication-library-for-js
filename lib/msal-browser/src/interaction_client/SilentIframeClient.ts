@@ -351,12 +351,12 @@ export class SilentIframeClient extends StandardInteractionClient {
     }
 
     /**
-     * Refreshes the session by making an iframe request to /authorize without exchanging the code for tokens.
-     * This is useful for refreshing session cookies in the background without the overhead of a full token exchange.
+     * Verifies SSO capability by making an iframe request to /authorize without exchanging the code for tokens.
+     * This is useful for verifying SSO capability in the background without the overhead of a full token exchange.
      * @param request - The SSO silent request
-     * @returns true if the session was refreshed successfully with a valid authorization code, false otherwise
+     * @returns true if SSO verification was successful with a valid authorization code, false otherwise
      */
-    async refreshSession(request: SsoSilentRequest): Promise<boolean> {
+    async verifySso(request: SsoSilentRequest): Promise<boolean> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.SilentIframeClientAcquireToken,
             request.correlationId
@@ -421,7 +421,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient
         );
 
-        // Get the frame handle for the silent request - this triggers the session refresh
+        // Get the frame handle for the silent request - this triggers the SSO verification
         const msalFrame = await invokeAsync(
             initiateCodeRequest,
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
@@ -472,14 +472,14 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Verify a valid authorization code is present
         if (!serverParams.code) {
             this.logger.warning(
-                "Session refresh response did not contain an authorization code",
+                "SSO verification response did not contain an authorization code",
                 correlationId
             );
             return false;
         }
 
         this.logger.verbose(
-            "Session refresh completed successfully with valid authorization code - skipped token exchange",
+            "SSO verification completed successfully with valid authorization code - skipped token exchange",
             correlationId
         );
         return true;

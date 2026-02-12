@@ -823,7 +823,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await callbackPromise;
         });
 
-        it("fires background session refresh after successful handleRedirectPromise and emits BackgroundSessionRefresh telemetry event on success", async () => {
+        it("verifies SSO capability after successful handleRedirectPromise and emits SsoCapable telemetry event on success", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -875,26 +875,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            const refreshSessionSpy = jest
-                .spyOn(SilentIframeClient.prototype, "refreshSession")
+            const verifySsoSpy = jest
+                .spyOn(SilentIframeClient.prototype, "verifySso")
                 .mockResolvedValue(true);
 
-            let backgroundSessionRefreshEventReceived = false;
+            let ssoCapableEventReceived = false;
             let callbackId: string;
             const callbackPromise = new Promise<void>((resolve, reject) => {
                 callbackId = testPca.addPerformanceCallback((events) => {
-                    const bgSsoSessionRefreshEvent = events.find(
-                        (e) =>
-                            e.name ===
-                            PerformanceEvents.BackgroundSessionRefresh
+                    const ssoCapableEvent = events.find(
+                        (e) => e.name === PerformanceEvents.SsoCapable
                     );
-                    if (bgSsoSessionRefreshEvent) {
+                    if (ssoCapableEvent) {
                         try {
-                            expect(bgSsoSessionRefreshEvent.success).toBe(true);
-                            expect(
-                                bgSsoSessionRefreshEvent["parentApiId"]
-                            ).toBe("handleRedirectPromise");
-                            backgroundSessionRefreshEventReceived = true;
+                            expect(ssoCapableEvent.success).toBe(true);
+                            expect(ssoCapableEvent["parentApiId"]).toBe(
+                                "redirect"
+                            );
+                            ssoCapableEventReceived = true;
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -907,20 +905,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             await controller.handleRedirectPromise();
 
-            // Wait for the background session refresh to complete (setTimeout with 0ms)
+            // Wait for the SSO capability verification to complete (setTimeout with 0ms)
             await new Promise((resolve) => setTimeout(resolve, 50));
             await callbackPromise;
 
-            // Check that refreshSession was called at least once with the expected account
-            expect(refreshSessionSpy).toHaveBeenCalledWith(
+            // Check that verifySso was called at least once with the expected account
+            expect(verifySsoSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     account: testAccount,
                 })
             );
-            expect(backgroundSessionRefreshEventReceived).toBe(true);
+            expect(ssoCapableEventReceived).toBe(true);
         });
 
-        it("fires background session refresh after successful handleRedirectPromise and emits BackgroundSessionRefresh telemetry event on failure", async () => {
+        it("verifies SSO capability after successful handleRedirectPromise and emits SsoCapable telemetry event on failure", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -972,29 +970,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            const refreshSessionError = new Error("refreshSession failed");
-            const refreshSessionSpy = jest
-                .spyOn(SilentIframeClient.prototype, "refreshSession")
-                .mockRejectedValue(refreshSessionError);
+            const verifySsoError = new Error("verifySso failed");
+            const verifySsoSpy = jest
+                .spyOn(SilentIframeClient.prototype, "verifySso")
+                .mockRejectedValue(verifySsoError);
 
-            let backgroundSessionRefreshEventReceived = false;
+            let ssoCapableEventReceived = false;
             let callbackId: string;
             const callbackPromise = new Promise<void>((resolve, reject) => {
                 callbackId = testPca.addPerformanceCallback((events) => {
-                    const bgSsoSessionRefreshEvent = events.find(
-                        (e) =>
-                            e.name ===
-                            PerformanceEvents.BackgroundSessionRefresh
+                    const ssoCapableEvent = events.find(
+                        (e) => e.name === PerformanceEvents.SsoCapable
                     );
-                    if (bgSsoSessionRefreshEvent) {
+                    if (ssoCapableEvent) {
                         try {
-                            expect(bgSsoSessionRefreshEvent.success).toBe(
-                                false
+                            expect(ssoCapableEvent.success).toBe(false);
+                            expect(ssoCapableEvent["parentApiId"]).toBe(
+                                "redirect"
                             );
-                            expect(
-                                bgSsoSessionRefreshEvent["parentApiId"]
-                            ).toBe("handleRedirectPromise");
-                            backgroundSessionRefreshEventReceived = true;
+                            ssoCapableEventReceived = true;
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -1007,35 +1001,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             await controller.handleRedirectPromise();
 
-            // Wait for the background session refresh to complete (setTimeout with 0ms)
+            // Wait for the SSO capability verification to complete (setTimeout with 0ms)
             await new Promise((resolve) => setTimeout(resolve, 50));
             await callbackPromise;
 
-            expect(refreshSessionSpy).toHaveBeenCalledTimes(1);
-            expect(backgroundSessionRefreshEventReceived).toBe(true);
+            expect(verifySsoSpy).toHaveBeenCalledTimes(1);
+            expect(ssoCapableEventReceived).toBe(true);
         });
 
-        it("does not fire background session refresh when handleRedirectPromise returns null", async () => {
+        it("does not verify SSO capability when handleRedirectPromise returns null", async () => {
             jest.spyOn(
                 BrowserCacheManager.prototype,
                 "isInteractionInProgress"
             ).mockReturnValue(false);
 
-            const refreshSessionSpy = jest.spyOn(
+            const verifySsoSpy = jest.spyOn(
                 SilentIframeClient.prototype,
-                "refreshSession"
+                "verifySso"
             );
 
             const response = await pca.handleRedirectPromise();
 
-            // Wait to ensure refreshSession would have been called if it was going to be
+            // Wait to ensure verifySso would have been called if it was going to be
             await new Promise((resolve) => setTimeout(resolve, 50));
 
             expect(response).toBeNull();
-            expect(refreshSessionSpy).not.toHaveBeenCalled();
+            expect(verifySsoSpy).not.toHaveBeenCalled();
         });
 
-        it("does not fire background session refresh when enableSessionRefresh is false", async () => {
+        it("does not verify SSO capability when enableSessionRefresh is false", async () => {
             const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1067,18 +1061,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            const refreshSessionSpy = jest.spyOn(
+            const verifySsoSpy = jest.spyOn(
                 SilentIframeClient.prototype,
-                "refreshSession"
+                "verifySso"
             );
 
             await pca.handleRedirectPromise();
 
-            // Wait to ensure refreshSession would have been called if it was going to be
+            // Wait to ensure verifySso would have been called if it was going to be
             await new Promise((resolve) => setTimeout(resolve, 50));
 
-            // refreshSession should not be called because enableSessionRefresh is false by default
-            expect(refreshSessionSpy).not.toHaveBeenCalled();
+            // verifySso should not be called because enableSessionRefresh is false by default
+            expect(verifySsoSpy).not.toHaveBeenCalled();
         });
 
         it("returns to caller before background session refresh executes", async () => {
@@ -1133,17 +1127,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "handleRedirectPromise"
             ).mockResolvedValue(testTokenResponse);
 
-            // Track when refreshSession starts executing relative to method return
-            let refreshSessionStartedBeforeReturn = false;
+            // Track when verifySso starts executing relative to method return
+            let verifySsoStartedBeforeReturn = false;
             let methodHasReturned = false;
 
             jest.spyOn(
                 SilentIframeClient.prototype,
-                "refreshSession"
+                "verifySso"
             ).mockImplementation(() => {
-                // Check if method has returned yet when refreshSession starts
+                // Check if method has returned yet when verifySso starts
                 if (!methodHasReturned) {
-                    refreshSessionStartedBeforeReturn = true;
+                    verifySsoStartedBeforeReturn = true;
                 }
                 return Promise.resolve(true);
             });
@@ -1151,9 +1145,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await controller.handleRedirectPromise();
             methodHasReturned = true;
 
-            // Verify handleRedirectPromise returned before refreshSession started
-            // refreshSession runs in setTimeout(..., 0), so it should not have started yet
-            expect(refreshSessionStartedBeforeReturn).toBe(false);
+            // Verify handleRedirectPromise returned before verifySso started
+            // verifySso runs in setTimeout(..., 0), so it should not have started yet
+            expect(verifySsoStartedBeforeReturn).toBe(false);
             expect(response).toEqual(testTokenResponse);
 
             // Wait for the macrotask (setTimeout) to execute
@@ -3896,7 +3890,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(preGenPkce2).toBeUndefined();
         });
 
-        it("fires background session refresh after successful acquireTokenPopup and emits BackgroundSessionRefresh telemetry event on success", async () => {
+        it("verifies SSO capability after successful acquireTokenPopup and emits SsoCapable telemetry event on success", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -3935,26 +3929,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            const refreshSessionSpy = jest
-                .spyOn(SilentIframeClient.prototype, "refreshSession")
+            const verifySsoSpy = jest
+                .spyOn(SilentIframeClient.prototype, "verifySso")
                 .mockResolvedValue(true);
 
-            let backgroundSessionRefreshEventReceived = false;
+            let ssoCapableEventReceived = false;
             let callbackId: string;
             const callbackPromise = new Promise<void>((resolve, reject) => {
                 callbackId = testPca.addPerformanceCallback((events) => {
-                    const bgSsoSessionRefreshEvent = events.find(
-                        (e) =>
-                            e.name ===
-                            PerformanceEvents.BackgroundSessionRefresh
+                    const ssoCapableEvent = events.find(
+                        (e) => e.name === PerformanceEvents.SsoCapable
                     );
-                    if (bgSsoSessionRefreshEvent) {
+                    if (ssoCapableEvent) {
                         try {
-                            expect(bgSsoSessionRefreshEvent.success).toBe(true);
-                            expect(
-                                bgSsoSessionRefreshEvent["parentApiId"]
-                            ).toBe("acquireTokenPopup");
-                            backgroundSessionRefreshEventReceived = true;
+                            expect(ssoCapableEvent.success).toBe(true);
+                            expect(ssoCapableEvent["parentApiId"]).toBe(
+                                "popup"
+                            );
+                            ssoCapableEventReceived = true;
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -3969,19 +3961,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
             });
 
-            // Wait for the background session refresh to complete (setTimeout with 0ms)
+            // Wait for the SSO capability verification to complete (setTimeout with 0ms)
             await new Promise((resolve) => setTimeout(resolve, 50));
             await callbackPromise;
 
-            expect(refreshSessionSpy).toHaveBeenCalledWith(
+            expect(verifySsoSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     account: testAccount,
                 })
             );
-            expect(backgroundSessionRefreshEventReceived).toBe(true);
+            expect(ssoCapableEventReceived).toBe(true);
         });
 
-        it("fires background session refresh after successful acquireTokenPopup and emits BackgroundSessionRefresh telemetry event on failure", async () => {
+        it("verifies SSO capability after successful acquireTokenPopup and emits SsoCapable telemetry event on failure", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -4020,29 +4012,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            const refreshSessionError = new Error("refreshSession failed");
-            const refreshSessionSpy = jest
-                .spyOn(SilentIframeClient.prototype, "refreshSession")
-                .mockRejectedValue(refreshSessionError);
+            const verifySsoError = new Error("verifySso failed");
+            const verifySsoSpy = jest
+                .spyOn(SilentIframeClient.prototype, "verifySso")
+                .mockRejectedValue(verifySsoError);
 
-            let backgroundSessionRefreshEventReceived = false;
+            let ssoCapableEventReceived = false;
             let callbackId: string;
             const callbackPromise = new Promise<void>((resolve, reject) => {
                 callbackId = testPca.addPerformanceCallback((events) => {
-                    const bgSsoSessionRefreshEvent = events.find(
-                        (e) =>
-                            e.name ===
-                            PerformanceEvents.BackgroundSessionRefresh
+                    const ssoCapableEvent = events.find(
+                        (e) => e.name === PerformanceEvents.SsoCapable
                     );
-                    if (bgSsoSessionRefreshEvent) {
+                    if (ssoCapableEvent) {
                         try {
-                            expect(bgSsoSessionRefreshEvent.success).toBe(
-                                false
+                            expect(ssoCapableEvent.success).toBe(false);
+                            expect(ssoCapableEvent["parentApiId"]).toBe(
+                                "popup"
                             );
-                            expect(
-                                bgSsoSessionRefreshEvent["parentApiId"]
-                            ).toBe("acquireTokenPopup");
-                            backgroundSessionRefreshEventReceived = true;
+                            ssoCapableEventReceived = true;
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -4057,15 +4045,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
             });
 
-            // Wait for the background session refresh to complete (setTimeout with 0ms)
+            // Wait for the SSO capability verification to complete (setTimeout with 0ms)
             await new Promise((resolve) => setTimeout(resolve, 50));
             await callbackPromise;
 
-            expect(refreshSessionSpy).toHaveBeenCalledTimes(1);
-            expect(backgroundSessionRefreshEventReceived).toBe(true);
+            expect(verifySsoSpy).toHaveBeenCalledTimes(1);
+            expect(ssoCapableEventReceived).toBe(true);
         });
 
-        it("does not block acquireTokenPopup when background session refresh is slow", async () => {
+        it("does not block acquireTokenPopup when SSO capability verification is slow", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -4104,16 +4092,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            // Mock refreshSession to be slow (simulate network delay)
-            let refreshSessionResolved = false;
+            // Mock verifySso to be slow (simulate network delay)
+            let verifySsoResolved = false;
             jest.spyOn(
                 SilentIframeClient.prototype,
-                "refreshSession"
+                "verifySso"
             ).mockImplementation(
                 () =>
                     new Promise((resolve) => {
                         setTimeout(() => {
-                            refreshSessionResolved = true;
+                            verifySsoResolved = true;
                             resolve(true);
                         }, 1000); // 1 second delay
                     })
@@ -4125,13 +4113,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             const endTime = Date.now();
 
-            // acquireTokenPopup should return immediately without waiting for refreshSession
+            // acquireTokenPopup should return immediately without waiting for verifySso
             expect(response).toEqual(testTokenResponse);
             expect(endTime - startTime).toBeLessThan(500); // Should complete in less than 500ms
-            expect(refreshSessionResolved).toBe(false); // refreshSession should not have resolved yet
+            expect(verifySsoResolved).toBe(false); // verifySso should not have resolved yet
         });
 
-        it("returns to caller before background session refresh executes", async () => {
+        it("returns to caller before SSO capability verification executes for acquireTokenPopup", async () => {
             // Create a new PCA with enableSessionRefresh enabled
             const testPca = new PublicClientApplication({
                 auth: {
@@ -4170,17 +4158,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            // Track when refreshSession starts executing relative to method return
-            let refreshSessionStartedBeforeReturn = false;
+            // Track when verifySso starts executing relative to method return
+            let verifySsoStartedBeforeReturn = false;
             let methodHasReturned = false;
 
             jest.spyOn(
                 SilentIframeClient.prototype,
-                "refreshSession"
+                "verifySso"
             ).mockImplementation(() => {
-                // Check if method has returned yet when refreshSession starts
+                // Check if method has returned yet when verifySso starts
                 if (!methodHasReturned) {
-                    refreshSessionStartedBeforeReturn = true;
+                    verifySsoStartedBeforeReturn = true;
                 }
                 return Promise.resolve(true);
             });
@@ -4190,16 +4178,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             methodHasReturned = true;
 
-            // Verify acquireTokenPopup returned before refreshSession started
-            // refreshSession runs in setTimeout(..., 0), so it should not have started yet
-            expect(refreshSessionStartedBeforeReturn).toBe(false);
+            // Verify acquireTokenPopup returned before verifySso started
+            // verifySso runs in setTimeout(..., 0), so it should not have started yet
+            expect(verifySsoStartedBeforeReturn).toBe(false);
             expect(response).toEqual(testTokenResponse);
 
             // Wait for the macrotask (setTimeout) to execute
             await new Promise((resolve) => setTimeout(resolve, 50));
         });
 
-        it("does not fire background session refresh for acquireTokenPopup when enableSessionRefresh is false", async () => {
+        it("does not verify SSO capability for acquireTokenPopup when enableSessionRefresh is false", async () => {
             // Create a new PCA explicitly WITHOUT enableSessionRefresh to verify the feature flag
             const testPca = new PublicClientApplication({
                 auth: {
@@ -4238,17 +4226,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 testTokenResponse
             );
 
-            // Track if any BackgroundSessionRefresh telemetry event is emitted
-            let backgroundSsoSilentEventEmitted = false;
+            // Track if any SsoCapable telemetry event is emitted
+            let ssoCapableEventEmitted = false;
             const callbackId = testPca.addPerformanceCallback((events) => {
                 if (
-                    events.some(
-                        (e) =>
-                            e.name ===
-                            PerformanceEvents.BackgroundSessionRefresh
-                    )
+                    events.some((e) => e.name === PerformanceEvents.SsoCapable)
                 ) {
-                    backgroundSsoSilentEventEmitted = true;
+                    ssoCapableEventEmitted = true;
                 }
             });
 
@@ -4256,13 +4240,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
             });
 
-            // Wait to ensure any background session refresh would have had time to emit telemetry
+            // Wait to ensure any SSO capability verification would have had time to emit telemetry
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             testPca.removePerformanceCallback(callbackId);
 
-            // No BackgroundSessionRefresh telemetry event should be emitted because enableSessionRefresh is false
-            expect(backgroundSsoSilentEventEmitted).toBe(false);
+            // No SsoCapable telemetry event should be emitted because enableSessionRefresh is false
+            expect(ssoCapableEventEmitted).toBe(false);
         });
     });
 
