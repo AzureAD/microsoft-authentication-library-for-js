@@ -125,5 +125,90 @@ describe("StringUtils.ts Class Unit Tests", () => {
 
             expect(matches).toBe(true);
         });
+
+        it("dots are escaped and match literally", () => {
+            // Should match: dot is literal
+            expect(
+                StringUtils.matchPattern(
+                    "*.microsoft.com",
+                    "login.microsoft.com"
+                )
+            ).toBe(true);
+
+            // Should NOT match: dot in pattern should not match arbitrary character
+            expect(
+                StringUtils.matchPattern(
+                    "*.microsoft.com",
+                    "loginmicrosoft.com"
+                )
+            ).toBe(false);
+        });
+
+        it("requires full string match (anchored)", () => {
+            // Should NOT match: pattern embedded in larger string
+            expect(
+                StringUtils.matchPattern(
+                    "*.microsoft.com",
+                    "evil.com?redirect=login.microsoft.com"
+                )
+            ).toBe(false);
+
+            // Should NOT match: pattern at start but with suffix
+            expect(
+                StringUtils.matchPattern(
+                    "*.microsoft.com",
+                    "login.microsoft.com.evil.com"
+                )
+            ).toBe(false);
+
+            // Should NOT match: pattern at end but with prefix
+            expect(
+                StringUtils.matchPattern(
+                    "*.microsoft.com",
+                    "https://login.microsoft.com"
+                )
+            ).toBe(false);
+        });
+
+        it("wildcard matches single segment only (does not cross dots or slashes)", () => {
+            // Should NOT match: wildcard should not cross dot boundaries
+            expect(
+                StringUtils.matchPattern("*.microsoft.com", "a.b.microsoft.com")
+            ).toBe(false);
+
+            // Should NOT match: wildcard should not cross slash boundaries
+            expect(
+                StringUtils.matchPattern(
+                    "https://myapplication.com/*",
+                    "https://myapplication.com/user/1"
+                )
+            ).toBe(false);
+
+            // Should match: single segment with path
+            expect(
+                StringUtils.matchPattern(
+                    "https://myapplication.com/user/*",
+                    "https://myapplication.com/user/1"
+                )
+            ).toBe(true);
+        });
+
+        it("question mark is escaped", () => {
+            // Should match: literal question mark
+            expect(
+                StringUtils.matchPattern(
+                    "https://example.com/path?query=value",
+                    "https://example.com/path?query=value"
+                )
+            ).toBe(true);
+
+            // Should NOT match: ? should not act as single char wildcard
+            expect(
+                StringUtils.matchPattern(
+                    "https://example.com/pat?",
+                    "https://example.com/path"
+                )
+            ).toBe(false);
+        });
     });
 });

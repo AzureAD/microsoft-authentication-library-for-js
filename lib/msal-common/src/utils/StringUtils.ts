@@ -95,10 +95,13 @@ export class StringUtils {
          */
         // eslint-disable-next-line security/detect-non-literal-regexp
         const regex: RegExp = new RegExp(
-            pattern
-                .replace(/\\/g, "\\\\")
-                .replace(/\*/g, "[^ ]*")
-                .replace(/\?/g, "\\?")
+            "^" +
+                pattern
+                    .replace(/\\/g, "\\\\")
+                    .replace(/\./g, "\\.")
+                    .replace(/\*/g, "[^./ ]*")
+                    .replace(/\?/g, "\\?") +
+                "$"
         );
 
         return regex.test(input);
