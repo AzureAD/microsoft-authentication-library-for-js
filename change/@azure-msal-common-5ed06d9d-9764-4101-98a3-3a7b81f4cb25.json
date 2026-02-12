@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Fix StringUtils.matchPattern [#8328](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8328)",
+  "packageName": "@azure/msal-common",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
