@@ -173,10 +173,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         it("wildcard matches single segment only (does not cross dots or slashes)", () => {
             // Should NOT match: wildcard should not cross dot boundaries
             expect(
-                StringUtils.matchPattern(
-                    "*.microsoft.com",
-                    "a.b.microsoft.com"
-                )
+                StringUtils.matchPattern("*.microsoft.com", "a.b.microsoft.com")
             ).toBe(false);
 
             // Should NOT match: wildcard should not cross slash boundaries
