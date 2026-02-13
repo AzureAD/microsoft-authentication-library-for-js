@@ -941,9 +941,7 @@ export type AzureRegionConfiguration = {
     environmentRegion: string | undefined;
 };
 
-// Warning: (ae-missing-release-tag) "badToken" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const badToken = "bad_token";
 
 // Warning: (ae-missing-release-tag) "BaseAuthRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1698,9 +1696,7 @@ export type CommonSilentFlowRequest = BaseAuthRequest & {
     refreshTokenExpirationOffsetSeconds?: number;
 };
 
-// Warning: (ae-missing-release-tag) "consentRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const consentRequired = "consent_required";
 
 declare namespace Constants {
@@ -2635,9 +2631,7 @@ const INSTANCE_AWARE = "instance_aware";
 // @public (undocumented)
 function instrumentBrokerParams(parameters: Map<string, string>, correlationId?: string, performanceClient?: IPerformanceClient): void;
 
-// Warning: (ae-missing-release-tag) "interactionRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const interactionRequired = "interaction_required";
 
 // Warning: (ae-missing-release-tag) "InteractionRequiredAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2660,10 +2654,14 @@ declare namespace InteractionRequiredAuthErrorCodes {
         interactionRequired,
         consentRequired,
         loginRequired,
-        badToken
+        badToken,
+        interruptedUser
     }
 }
 export { InteractionRequiredAuthErrorCodes }
+
+// @public
+const interruptedUser = "interrupted_user";
 
 // Warning: (ae-missing-release-tag) "IntFields" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2990,9 +2988,7 @@ export type LoggerOptions = {
 // @public (undocumented)
 const LOGIN_HINT = "login_hint";
 
-// Warning: (ae-missing-release-tag) "loginRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const loginRequired = "login_required";
 
 // Warning: (ae-missing-release-tag) "LogLevel" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3066,9 +3062,7 @@ const multipleMatchingTokens = "multiple_matching_tokens";
 // @public (undocumented)
 const NATIVE_BROKER = "nativebroker";
 
-// Warning: (ae-missing-release-tag) "nativeAccountUnavailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const nativeAccountUnavailable = "native_account_unavailable";
 
 // Warning: (ae-missing-release-tag) "NativeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3192,9 +3186,7 @@ const NOT_APPLICABLE = "N/A";
 // @public (undocumented)
 const NOT_AVAILABLE = "Not Available";
 
-// Warning: (ae-missing-release-tag) "noTokensFound" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const noTokensFound = "no_tokens_found";
 
 // Warning: (ae-missing-release-tag) "nowSeconds" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3746,9 +3738,7 @@ export type RefreshTokenEntity = CredentialEntity & {
     expiresOn?: string;
 };
 
-// Warning: (ae-missing-release-tag) "refreshTokenExpired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const refreshTokenExpired = "refresh_token_expired";
 
 // Warning: (ae-missing-release-tag) "REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -4635,9 +4625,7 @@ export { UrlUtils }
 // @public (undocumented)
 const userCanceled = "user_canceled";
 
-// Warning: (ae-missing-release-tag) "uxNotAllowed" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 const uxNotAllowed = "ux_not_allowed";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
