@@ -16,6 +16,7 @@ export const InteractionRequiredServerErrorMessage = [
     InteractionRequiredAuthErrorCodes.loginRequired,
     InteractionRequiredAuthErrorCodes.badToken,
     InteractionRequiredAuthErrorCodes.uxNotAllowed,
+    InteractionRequiredAuthErrorCodes.interruptedUser,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -26,6 +27,7 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "consent_required",
     "bad_token",
     "ux_not_allowed",
+    "interrupted_user",
 ];
 
 /**

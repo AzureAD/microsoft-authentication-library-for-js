@@ -302,6 +302,11 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   `canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.
 
+
+### `interrupted_user`
+
+-   The user could not be authenticated due to an interrupted state. Please invoke an interactive API to resolve.
+
 ## JOSE header errors
 
 ### `missing_kid_error`
