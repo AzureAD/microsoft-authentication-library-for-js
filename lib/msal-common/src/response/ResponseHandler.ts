@@ -448,8 +448,13 @@ export class ResponseHandler {
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 userAssertionHash,
-                serverTokenResponse.key_id
+                serverTokenResponse.key_id,
             );
+            // Set resource (to be used for MCP scenarios)
+            const resource = request.resource ? request.resource : null;
+            if (resource) {
+                cachedAccessToken.resource = resource;
+            }
         }
 
         // refreshToken

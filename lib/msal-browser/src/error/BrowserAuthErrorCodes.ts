@@ -63,3 +63,4 @@ export const failedToParseHeaders = "failed_to_parse_headers";
 export const failedToDecryptEarResponse = "failed_to_decrypt_ear_response";
 export const timedOut = "timed_out";
 export const emptyResponse = "empty_response";
+export const resourceParameterRequired = "resource_parameter_required";

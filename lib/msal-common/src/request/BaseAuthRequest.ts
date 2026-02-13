@@ -90,6 +90,10 @@ export type BaseAuthRequest = {
      */
     httpMethod?: HttpMethod;
     /**
+     * Resource parameter to be sent with the request. Used for MCP flows.
+     */
+    resource?: string;
+    /**
      * String to string map of custom query parameters added to outgoing token service requests. Unless the parameter is only supported on query strings use extraParameters instead
      */
     extraQueryParameters?: StringDict;

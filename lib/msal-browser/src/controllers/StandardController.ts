@@ -96,12 +96,14 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
 function preflightCheck(
     initialized: boolean,
     performanceEvent: InProgressPerformanceEvent,
-    account?: AccountInfo
+    config: BrowserConfiguration,
+    request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest
 ) {
     try {
         BrowserUtils.preflightCheck(initialized);
+        BrowserUtils.enforceResourceParameter(config, request);
     } catch (e) {
-        performanceEvent.end({ success: false }, e, account);
+        performanceEvent.end({ success: false }, e, request.account);
         throw e;
     }
 }
@@ -633,6 +635,10 @@ export class StandardController implements IController {
 
         try {
             BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+            BrowserUtils.enforceResourceParameter(
+                this.config,
+                request
+            );
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN
@@ -746,7 +752,8 @@ export class StandardController implements IController {
             preflightCheck(
                 this.initialized,
                 atPopupMeasurement,
-                request.account
+                this.config,
+                request
             );
             this.browserStorage.setInteractionInProgress(
                 true,
@@ -920,7 +927,8 @@ export class StandardController implements IController {
         preflightCheck(
             this.initialized,
             this.ssoSilentMeasurement,
-            request.account
+            this.config,
+            validRequest
         );
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
@@ -1034,7 +1042,7 @@ export class StandardController implements IController {
             BrowserRootPerformanceEvents.AcquireTokenByCode,
             correlationId
         );
-        preflightCheck(this.initialized, atbcMeasurement);
+        preflightCheck(this.initialized, atbcMeasurement, this.config, request);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,
@@ -1865,7 +1873,7 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        preflightCheck(this.initialized, atsMeasurement, request.account);
+        preflightCheck(this.initialized, atsMeasurement, this.config, request);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();

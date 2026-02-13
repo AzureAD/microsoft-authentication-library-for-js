@@ -28,6 +28,10 @@ import {
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
 import { base64Decode } from "../encode/Base64Decode.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
 
 /**
  * Extracts and parses the authentication response from URL (hash and/or query string).
@@ -399,6 +403,26 @@ export function redirectPreflightCheck(
     if (config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage) {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
+        );
+    }
+}
+
+/**
+ * Helper to enforce resource parameter presence in token requests when enforceResourceParameter is set in the configuration
+ * This is used for MCP flows
+ * @param config 
+ * @param request 
+ */
+export function enforceResourceParameter(
+    config: BrowserConfiguration,
+    request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest
+): void {
+    if (
+        config.auth.isMcp &&
+        !request.resource)
+    {
+        throw createBrowserConfigurationAuthError(
+            BrowserAuthErrorCodes.resourceParameterRequired
         );
     }
 }
