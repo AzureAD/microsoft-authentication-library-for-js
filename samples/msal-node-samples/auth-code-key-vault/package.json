@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^3.0.0",
-    "@azure/identity": "^3.4.2",
+    "@azure/identity": "^4.5.0",
     "@azure/keyvault-certificates": "^4.1.0",
     "@azure/keyvault-secrets": "^4.1.0",
     "dotenv": "^16.5.0",
