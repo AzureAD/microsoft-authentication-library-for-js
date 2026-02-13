@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add interrupted user to interaction required list [#8323](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8323)",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
