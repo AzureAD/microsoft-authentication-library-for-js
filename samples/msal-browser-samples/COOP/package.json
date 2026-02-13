@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "e2e-test-utils": "file:../../e2eTestUtils",
-    "@playwright/test": "^1.31.1",
+    "@playwright/test": "^1.56.0",
     "@types/node": "^24.10.0",
     "@types/jest": "^29.5.0",
     "@types/react": "^19.1.3",
