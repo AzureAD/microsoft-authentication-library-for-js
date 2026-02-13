@@ -125,6 +125,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
         MsalGuard,
         MsalBroadcastService,
         provideHttpClient(withInterceptorsFromDi()),
-        provideZoneChangeDetection(),
+        provideZoneChangeDetection({ eventCoalescing: true }),
     ] })
 export class AppModule {}
