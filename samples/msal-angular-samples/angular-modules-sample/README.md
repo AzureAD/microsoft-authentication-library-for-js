@@ -2,7 +2,7 @@
 
 This developer sample is used to demonstrate how to use `@azure/msal-angular` with Angular's NgModules.
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.1.4 and then upgraded to version 19.0.0.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.1.4 and then upgraded to version 21.1.4.
 
 ## How to run the sample
 
