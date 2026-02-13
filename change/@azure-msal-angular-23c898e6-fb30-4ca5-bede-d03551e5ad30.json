@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add handleRedirectObservable options [#8278](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/8278)",
-  "packageName": "@azure/msal-angular",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
