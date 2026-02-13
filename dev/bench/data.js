@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1770845093819,
+  "lastUpdate": 1771011760050,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19439,6 +19439,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.77%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "060c901be5b8c925213d29c3e7581a4744edf781",
+          "message": "Add interrupted user to interaction required list (#8323)\n\nThis pull request introduces a new error code, `interruptedUser`, to the\nMSAL Common library to better handle cases where user authentication is\ninterrupted. The change ensures consistent support for this error code\nacross the API, error messages, and error code enumerations.\n\n**New error code integration:**\n\n* Added `interruptedUser` to the `InteractionRequiredAuthErrorCodes`\nenum, allowing the codebase to recognize and handle this new error\nscenario.\n[[1]](diffhunk://#diff-09087b913ebbfa828e5f36b7476a400328e0a7131db84f622cc5f6994759a117L2646-R2647)\n[[2]](diffhunk://#diff-9b9e373ecd25242838c370efe898168af89089ced090e293f571d816f02e8cf0R17)\n* Added a corresponding error message for `interruptedUser` to\n`InteractionRequiredAuthErrorMessage` and included a warning about the\nmissing release tag.\n* Included `interruptedUser` in the\n`InteractionRequiredServerErrorMessage` and\n`InteractionRequiredAuthSubErrorMessage` arrays, ensuring it is\nrecognized as a valid server and sub-error.\n[[1]](diffhunk://#diff-175e2da3fd2f20fd01bf24622c10e9a9a44b468507420611113b1917ea47f00bR20)\n[[2]](diffhunk://#diff-175e2da3fd2f20fd01bf24622c10e9a9a44b468507420611113b1917ea47f00bR30)\n* Provided a descriptive error message for `interruptedUser` in\n`InteractionRequiredAuthErrorMessages`, guiding developers to invoke an\ninteractive API to resolve the error.",
+          "timestamp": "2026-02-13T11:35:40-08:00",
+          "tree_id": "39d87a0d2499eb483f4af516a18b8b5fa4f05428",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/060c901be5b8c925213d29c3e7581a4744edf781"
+        },
+        "date": 1771011756753,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 249486,
+            "range": "±0.98%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 241967,
+            "range": "±0.90%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
