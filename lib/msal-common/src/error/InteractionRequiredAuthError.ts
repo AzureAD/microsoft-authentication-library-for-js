@@ -17,6 +17,7 @@ export const InteractionRequiredServerErrorMessage = [
     InteractionRequiredAuthErrorCodes.loginRequired,
     InteractionRequiredAuthErrorCodes.badToken,
     InteractionRequiredAuthErrorCodes.uxNotAllowed,
+    InteractionRequiredAuthErrorCodes.interruptedUser,
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -26,6 +27,7 @@ export const InteractionRequiredAuthSubErrorMessage = [
     "user_password_expired",
     "consent_required",
     "bad_token",
+    "interrupted_user",
 ];
 
 const InteractionRequiredAuthErrorMessages = {
@@ -39,6 +41,8 @@ const InteractionRequiredAuthErrorMessages = {
         "Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.",
     [InteractionRequiredAuthErrorCodes.uxNotAllowed]:
         "`canShowUI` flag in Edge was set to false. User interaction required on web page. Please invoke an interactive API to resolve.",
+    [InteractionRequiredAuthErrorCodes.interruptedUser]:
+        "The user could not be authenticated due to an interrupted state. Please invoke an interactive API to resolve.",
 };
 
 /**
@@ -62,6 +66,12 @@ export const InteractionRequiredAuthErrorMessage = {
         code: InteractionRequiredAuthErrorCodes.badToken,
         desc: InteractionRequiredAuthErrorMessages[
             InteractionRequiredAuthErrorCodes.badToken
+        ],
+    },
+    interrupted_user: {
+        code: InteractionRequiredAuthErrorCodes.interruptedUser,
+        desc: InteractionRequiredAuthErrorMessages[
+            InteractionRequiredAuthErrorCodes.interruptedUser
         ],
     },
 };
