@@ -15,7 +15,6 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^3.0.0",
-    "axios": "^1.13.5",
     "dotenv": "^16.5.0"
   },
   "devDependencies": {
