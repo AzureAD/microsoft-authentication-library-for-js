@@ -885,7 +885,9 @@ export type AzureRegionConfiguration = {
     environmentRegion: string | undefined;
 };
 
-// @public
+// Warning: (ae-missing-release-tag) "badToken" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
 const badToken = "bad_token";
 
 // Warning: (ae-missing-release-tag) "BaseAuthRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1943,7 +1945,9 @@ export type CommonUsernamePasswordRequest = BaseAuthRequest & {
     password: string;
 };
 
-// @public
+// Warning: (ae-missing-release-tag) "consentRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
 const consentRequired = "consent_required";
 
 // Warning: (ae-missing-release-tag) "Constants" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2614,7 +2618,9 @@ const INSTANCE_AWARE = "instance_aware";
 // @public (undocumented)
 function instrumentBrokerParams(parameters: Map<string, string>, correlationId?: string, performanceClient?: IPerformanceClient): void;
 
-// @public
+// Warning: (ae-missing-release-tag) "interactionRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
 const interactionRequired = "interaction_required";
 
 // Warning: (ae-missing-release-tag) "InteractionRequiredAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2637,8 +2643,7 @@ declare namespace InteractionRequiredAuthErrorCodes {
         interactionRequired,
         consentRequired,
         loginRequired,
-        badToken,
-        interruptedUser
+        badToken
     }
 }
 export { InteractionRequiredAuthErrorCodes }
@@ -2659,14 +2664,7 @@ export const InteractionRequiredAuthErrorMessage: {
         code: string;
         desc: string;
     };
-    interrupted_user: {
-        code: string;
-        desc: string;
-    };
 };
-
-// @public
-const interruptedUser = "interrupted_user";
 
 // Warning: (ae-missing-release-tag) "IntFields" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2991,7 +2989,9 @@ export type LoggerOptions = {
 // @public (undocumented)
 const LOGIN_HINT = "login_hint";
 
-// @public
+// Warning: (ae-missing-release-tag) "loginRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
 const loginRequired = "login_required";
 
 // Warning: (ae-missing-release-tag) "LogLevel" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3075,7 +3075,9 @@ const multipleMatchingTokens = "multiple_matching_tokens";
 // @public (undocumented)
 const NATIVE_BROKER = "nativebroker";
 
-// @public
+// Warning: (ae-missing-release-tag) "nativeAccountUnavailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
 const nativeAccountUnavailable = "native_account_unavailable";
 
 // Warning: (ae-missing-release-tag) "NativeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3184,7 +3186,9 @@ const noNetworkConnectivity = "no_network_connectivity";
 // @public
 function normalizeUrlForComparison(url: string): string;
 
-// @public
+// Warning: (ae-missing-release-tag) "noTokensFound" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
 const noTokensFound = "no_tokens_found";
 
 // Warning: (ae-missing-release-tag) "nowSeconds" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3640,7 +3644,7 @@ export const PerformanceEvents: {
     readonly LoadIdToken: "loadIdToken";
     readonly LoadAccessToken: "loadAccessToken";
     readonly LoadRefreshToken: "loadRefreshToken";
-    readonly BackgroundSessionRefresh: "backgroundSessionRefresh";
+    readonly SsoCapable: "ssoCapable";
 };
 
 // @public (undocumented)
@@ -3839,7 +3843,9 @@ export type RefreshTokenEntity = CredentialEntity & {
     expiresOn?: string;
 };
 
-// @public
+// Warning: (ae-missing-release-tag) "refreshTokenExpired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
 const refreshTokenExpired = "refresh_token_expired";
 
 // Warning: (ae-missing-release-tag) "REQ_CNF" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -4579,7 +4585,9 @@ const userCanceled = "user_canceled";
 // @public (undocumented)
 const userTimeoutReached = "user_timeout_reached";
 
-// @public
+// Warning: (ae-missing-release-tag) "uxNotAllowed" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
 const uxNotAllowed = "ux_not_allowed";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4602,7 +4610,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "15.14.2";
+export const version = "15.14.1";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
