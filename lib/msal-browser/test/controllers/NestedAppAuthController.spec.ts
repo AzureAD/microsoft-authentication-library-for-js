@@ -159,6 +159,50 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             );
         });
 
+        it("acquireTokenInteractive throws if resource is provided in extraQueryParameters when isMcp is true", async () => {
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
+
+            await expect(() =>
+                mcpPca.acquireTokenPopup({
+                    scopes: [NAA_SCOPE],
+                    correlationId: NAA_CORRELATION_ID,
+                    extraQueryParameters: { resource: "https://resource.example.com" },
+                } as any)
+            ).rejects.toMatchObject(
+                createBrowserAuthError(BrowserAuthErrorCodes.misplacedResourceParam)
+            );
+        });
+
+        it("acquireTokenInteractive throws if resource is provided in extraParameters when isMcp is true", async () => {
+            const mcpConfig = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    isMcp: true,
+                },
+            };
+
+            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
+
+            await expect(() =>
+                mcpPca.acquireTokenPopup({
+                    scopes: [NAA_SCOPE],
+                    correlationId: NAA_CORRELATION_ID,
+                    extraParameters: { resource: "https://resource.example.com" },
+                } as any)
+            ).rejects.toMatchObject(
+                createBrowserAuthError(BrowserAuthErrorCodes.misplacedResourceParam)
+            );
+        });
+
         it("acquireTokenInteractive passes resource parameter to bridge if included", async () => {
             const resource = "https://resource.example.com";
             const mcpConfig = {

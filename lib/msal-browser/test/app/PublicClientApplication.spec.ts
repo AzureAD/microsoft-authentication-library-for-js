@@ -2379,6 +2379,56 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
+        it("throws an error if isMcp is true and resource is provided in extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+            
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenRedirect({
+                    scopes: [],
+                    extraQueryParameters: { resource: "https://resource.example.com" },
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+            
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenRedirect({
+                    scopes: [],
+                    extraParameters: { resource: "https://resource.example.com" },
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
         it("succeeds when isMcp is true and resource is provided", async () => {
             const config = {
                 auth: {

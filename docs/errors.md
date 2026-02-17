@@ -933,6 +933,10 @@ const msalConfig = {
 
 -   `enforceResourceParameter` is set as `true` in the configuration, yet the request does not have a `resource` parameter.
 
+### `misplacedResourceParam`
+
+-   `resource` is not an accepted parameter in `extraQueryParameters` for `extraParameters` for MCP flows. Please use the `resource` parameter instead.
+
 ## Browser configuration errors
 
 ### `storage_not_supported`

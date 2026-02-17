@@ -13,6 +13,7 @@ import {
     Logger,
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
+    StringDict,
     ProtocolUtils,
 } from "@azure/msal-common/browser";
 import {
@@ -417,14 +418,38 @@ export function enforceResourceParameter(
     config: BrowserConfiguration,
     request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest
 ): void {
+    if (!config.auth.isMcp) {
+        return;
+    }
+
     if (
-        config.auth.isMcp &&
-        !request.resource)
-    {
+        containsResourceParam(request.extraParameters) ||
+        containsResourceParam(request.extraQueryParameters)
+    ) {
+        throw createBrowserConfigurationAuthError(
+            BrowserAuthErrorCodes.misplacedResourceParam
+        );
+    }
+
+    if (!request.resource) {
         throw createBrowserConfigurationAuthError(
             BrowserAuthErrorCodes.resourceParameterRequired
         );
     }
+}
+
+function containsResourceParam(
+    params?: StringDict | Map<string, string>
+): boolean {
+    if (!params) {
+        return false;
+    }
+
+    if (params instanceof Map) {
+        return params.has("resource");
+    }
+
+    return Object.prototype.hasOwnProperty.call(params, "resource");
 }
 
 /**
