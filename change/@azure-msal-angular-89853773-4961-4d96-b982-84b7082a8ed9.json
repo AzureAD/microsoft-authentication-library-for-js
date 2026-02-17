@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Address CVEs",
+  "comment": "Update dev dependencies [#8335](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8335)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
