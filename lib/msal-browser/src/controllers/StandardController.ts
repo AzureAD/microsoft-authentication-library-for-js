@@ -2044,7 +2044,11 @@ export class StandardController implements IController {
                 );
 
             if (shouldTryToResolveSilently) {
-                const silentRefreshReason = `${refreshTokenError.errorCode}${refreshTokenError.subError ? `|${refreshTokenError.subError}` : ""}`;
+                const silentRefreshReason = `${refreshTokenError.errorCode}${
+                    refreshTokenError.subError
+                        ? `|${refreshTokenError.subError}`
+                        : ""
+                }`;
                 this.performanceClient.addFields(
                     { silentRefreshReason },
                     request.correlationId
