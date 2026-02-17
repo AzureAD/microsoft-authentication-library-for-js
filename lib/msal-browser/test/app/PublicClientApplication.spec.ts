@@ -824,11 +824,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("verifies SSO capability after successful handleRedirectPromise and emits SsoCapable telemetry event on success", async () => {
-            // Create a new PCA with enableSessionRefresh enabled
+            // Create a new PCA with verifySSO enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableSessionRefresh: true,
+                    verifySSO: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -919,11 +919,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("verifies SSO capability after successful handleRedirectPromise and emits SsoCapable telemetry event on failure", async () => {
-            // Create a new PCA with enableSessionRefresh enabled
+            // Create a new PCA with verifySSO enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableSessionRefresh: true,
+                    verifySSO: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -1029,7 +1029,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(verifySsoSpy).not.toHaveBeenCalled();
         });
 
-        it("does not verify SSO capability when enableSessionRefresh is false", async () => {
+        it("does not verify SSO capability when verifySSO is false", async () => {
             const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1071,16 +1071,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // Wait to ensure verifySso would have been called if it was going to be
             await new Promise((resolve) => setTimeout(resolve, 50));
 
-            // verifySso should not be called because enableSessionRefresh is false by default
+            // verifySso should not be called because verifySSO is false by default
             expect(verifySsoSpy).not.toHaveBeenCalled();
         });
 
         it("returns to caller before background session refresh executes", async () => {
-            // Create a new PCA with enableSessionRefresh enabled
+            // Create a new PCA with verifySSO enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableSessionRefresh: true,
+                    verifySSO: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -3891,11 +3891,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("verifies SSO capability after successful acquireTokenPopup and emits SsoCapable telemetry event on success", async () => {
-            // Create a new PCA with enableSessionRefresh enabled
+            // Create a new PCA with verifySSO enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableSessionRefresh: true,
+                    verifySSO: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -3974,11 +3974,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("verifies SSO capability after successful acquireTokenPopup and emits SsoCapable telemetry event on failure", async () => {
-            // Create a new PCA with enableSessionRefresh enabled
+            // Create a new PCA with verifySSO enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableSessionRefresh: true,
+                    verifySSO: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -4054,11 +4054,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("does not block acquireTokenPopup when SSO capability verification is slow", async () => {
-            // Create a new PCA with enableSessionRefresh enabled
+            // Create a new PCA with verifySSO enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableSessionRefresh: true,
+                    verifySSO: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -4120,11 +4120,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("returns to caller before SSO capability verification executes for acquireTokenPopup", async () => {
-            // Create a new PCA with enableSessionRefresh enabled
+            // Create a new PCA with verifySSO enabled
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableSessionRefresh: true,
+                    verifySSO: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -4187,12 +4187,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await new Promise((resolve) => setTimeout(resolve, 50));
         });
 
-        it("does not verify SSO capability for acquireTokenPopup when enableSessionRefresh is false", async () => {
-            // Create a new PCA explicitly WITHOUT enableSessionRefresh to verify the feature flag
+        it("does not verify SSO capability for acquireTokenPopup when verifySSO is false", async () => {
+            // Create a new PCA explicitly WITHOUT verifySSO to verify the feature flag
             const testPca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    enableSessionRefresh: false,
+                    verifySSO: false,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -4245,7 +4245,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             testPca.removePerformanceCallback(callbackId);
 
-            // No SsoCapable telemetry event should be emitted because enableSessionRefresh is false
+            // No SsoCapable telemetry event should be emitted because verifySSO is false
             expect(ssoCapableEventEmitted).toBe(false);
         });
     });

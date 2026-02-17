@@ -999,7 +999,7 @@ export class StandardController implements IController {
      * SSO capability verification in the background.
      * This method makes an iframe request to /authorize to verify SSO capability without calling /token.
      * This method does not block the caller and tracks telemetry for success/failure.
-     * This method only executes if enableSessionRefresh is set to true in the auth configuration.
+     * This method only executes if verifySSO is set to true in the auth configuration.
      * @param account - The account to use for the SSO verification
      * @param parentApiId - The API ID of the parent operation for logging purposes
      */
@@ -1008,7 +1008,7 @@ export class StandardController implements IController {
         parentApiId: string
     ): void {
         // Check if SSO capability verification is enabled
-        if (!this.config.auth.enableSessionRefresh) {
+        if (!this.config.auth.verifySSO) {
             return;
         }
 

@@ -114,11 +114,12 @@ export type BrowserAuthOptions = {
      */
     encodeExtraQueryParams?: boolean;
     /**
-     * If set to true, MSAL will make a background session refresh call after successful interactive authentication
-     * (acquireTokenPopup, handleRedirectPromise) calls.
+     * If set to true, MSAL will make a background SSO verification call after successful interactive authentication.
+     * COGS intensive, recommendation is to *NOT* set this flag to true unless your application has a specific need for it.
+     * This will trigger additional network calls after interactive authentication flows (acquireTokenPopup, handleRedirectPromise) calls.
      * This is a boolean flag and defaults to false if not specified.
      */
-    enableSessionRefresh?: boolean;
+    verifySSO?: boolean;
 };
 
 /** @internal */
@@ -320,7 +321,7 @@ export function buildConfiguration(
         supportsNestedAppAuth: false,
         instanceAware: false,
         encodeExtraQueryParams: false,
-        enableSessionRefresh: false,
+        verifySSO: false,
     };
 
     // Default cache options for browser
