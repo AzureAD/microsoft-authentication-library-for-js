@@ -463,7 +463,7 @@ export type BrowserAuthOptions = {
     onRedirectNavigate?: (url: string) => boolean | void;
     instanceAware?: boolean;
     encodeExtraQueryParams?: boolean;
-    enableSessionRefresh?: boolean;
+    verifySSO?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "BrowserCacheLocation" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
