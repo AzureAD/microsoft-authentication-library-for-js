@@ -569,7 +569,7 @@ export class StandardController implements IController {
                     );
 
                     // Fire-and-forget SSO capability verification in background
-                    this.verifySSOCapability(
+                    this.verifySsoCapability(
                         result.account,
                         InteractionType.Redirect
                     );
@@ -938,7 +938,7 @@ export class StandardController implements IController {
                 );
 
                 // SSO capability verification in background
-                this.verifySSOCapability(result.account, InteractionType.Popup);
+                this.verifySsoCapability(result.account, InteractionType.Popup);
 
                 return result;
             })
@@ -1003,7 +1003,7 @@ export class StandardController implements IController {
      * @param account - The account to use for the SSO verification
      * @param parentApiId - The API ID of the parent operation for logging purposes
      */
-    private verifySSOCapability(
+    private verifySsoCapability(
         account: AccountInfo,
         parentApiId: string
     ): void {
