@@ -1934,6 +1934,7 @@ describe("RedirectClient", () => {
                     bfCacheCallback({ persisted: true });
                     expect(eventSpy).toHaveBeenCalledWith(
                         EventType.RESTORE_FROM_BFCACHE,
+                        TEST_CONFIG.CORRELATION_ID,
                         InteractionType.Redirect
                     );
                     expect(browserStorage.isInteractionInProgress()).toBe(
@@ -2674,6 +2675,7 @@ describe("RedirectClient", () => {
                 expect(telemetrySpy).toHaveBeenCalledWith(testError);
                 expect(eventSpy).toHaveBeenCalledWith(
                     EventType.LOGOUT_FAILURE,
+                    TEST_CONFIG.CORRELATION_ID,
                     InteractionType.Redirect,
                     null,
                     testError

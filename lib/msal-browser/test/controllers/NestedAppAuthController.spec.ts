@@ -21,6 +21,7 @@ import {
     BrowserAuthErrorCodes,
     BrowserCacheLocation,
     CacheLookupPolicy,
+    ClientAuthError,
     ClientAuthErrorCodes,
     Configuration,
     IPublicClientApplication,
@@ -511,6 +512,75 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 mockBridge.getBridgeRequests().at(-1)!
             ) as any;
             expect(bridgeRequest.tokenParams?.forceRefresh).toBeUndefined();
+        });
+
+        describe("response validation", () => {
+            it("acquireTokenSilent derives account fields from idTokenClaims when bridge returns minimal account", async () => {
+                // Bridge returns minimal account with only required fields
+                const minimalAccountResponse = {
+                    token: {
+                        ...SILENT_TOKEN_RESPONSE.token,
+                    },
+                    account: {
+                        environment: "login.microsoftonline.com",
+                        username: "", // Empty - should be derived from claims
+                        // No homeAccountId, localAccountId, tenantId, name, etc.
+                    },
+                };
+                mockBridge.addAuthResultResponse(
+                    "GetToken",
+                    minimalAccountResponse
+                );
+
+                const testRequest = {
+                    scopes: [NAA_SCOPE],
+                    account: testAccount,
+                    correlationId: NAA_CORRELATION_ID,
+                    cacheLookupPolicy: CacheLookupPolicy.Skip,
+                };
+
+                const response = await pca.acquireTokenSilent(testRequest);
+
+                // Account fields should be derived from idTokenClaims in the token response
+                const expectedClaims = SILENT_TOKEN_RESPONSE.account
+                    .idTokenClaims as Record<string, unknown>;
+                expect(response.account).toBeDefined();
+                expect(response.account?.localAccountId).toBe(
+                    expectedClaims.oid
+                );
+                expect(response.account?.tenantId).toBe(expectedClaims.tid);
+                expect(response.account?.username).toBe(
+                    expectedClaims.preferred_username
+                );
+                expect(response.account?.name).toBe(expectedClaims.name);
+            });
+
+            it("acquireTokenSilent throws error when bridge returns empty environment", async () => {
+                const invalidAccountResponse = {
+                    token: {
+                        ...SILENT_TOKEN_RESPONSE.token,
+                    },
+                    account: {
+                        environment: "", // Empty - should throw
+                        username: "test@contoso.com",
+                    },
+                };
+                mockBridge.addAuthResultResponse(
+                    "GetToken",
+                    invalidAccountResponse
+                );
+
+                const testRequest = {
+                    scopes: [NAA_SCOPE],
+                    account: testAccount,
+                    correlationId: NAA_CORRELATION_ID,
+                    cacheLookupPolicy: CacheLookupPolicy.Skip,
+                };
+
+                await expect(() =>
+                    pca.acquireTokenSilent(testRequest)
+                ).rejects.toBeInstanceOf(ClientAuthError);
+            });
         });
 
         afterEach(() => {

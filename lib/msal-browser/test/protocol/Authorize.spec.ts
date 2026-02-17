@@ -193,6 +193,14 @@ describe("Authorize Protocol Tests", () => {
                     BrowserConstants.MSAL_SKU
                 );
                 checkInputProperties(AADServerParamKeys.X_CLIENT_VER, version);
+
+                // Verify correlationId is present in authorize URL query params
+                const actionUrl = new URL(form.action);
+                expect(
+                    actionUrl.searchParams.get(
+                        AADServerParamKeys.CLIENT_REQUEST_ID
+                    )
+                ).toEqual(validRequest.correlationId);
             });
         });
 
@@ -379,6 +387,84 @@ describe("Authorize Protocol Tests", () => {
                 );
                 expect(response).toEqual(getTestAuthenticationResult());
             });
+        });
+    });
+
+    describe("getCodeForm tests", () => {
+        const config = buildConfiguration(
+            { auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID } },
+            true
+        );
+        const logger = new Logger({});
+        const performanceClient = new StubPerformanceClient();
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: "",
+        };
+        const eventHandler = new EventHandler();
+        const cacheManager = new BrowserCacheManager(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            config.cache,
+            new CryptoOps(logger, performanceClient),
+            logger,
+            performanceClient,
+            eventHandler
+        );
+        let authority: Authority;
+        const validRequest: CommonAuthorizationUrlRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            scopes: ["openid", "profile"],
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            redirectUri: window.location.href,
+            state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+            nonce: ID_TOKEN_CLAIMS.nonce,
+            responseMode: Constants.ResponseMode.FRAGMENT,
+            codeChallenge: "code-challenge",
+        };
+
+        beforeAll(async () => {
+            jest.useFakeTimers();
+            authority = await AuthorityFactory.createDiscoveredInstance(
+                TEST_CONFIG.validAuthority,
+                config.system.networkClient,
+                cacheManager,
+                authorityOptions,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                performanceClient
+            );
+        });
+
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
+        it("Adds correlationId to both post body and query params", async () => {
+            const form = await Authorize.getCodeForm(
+                document,
+                config,
+                authority,
+                validRequest,
+                logger,
+                performanceClient
+            );
+
+            // Post body check
+            const clientRequestIdInput = form.elements.namedItem(
+                AADServerParamKeys.CLIENT_REQUEST_ID
+            ) as HTMLInputElement;
+            expect(clientRequestIdInput).toBeTruthy();
+            expect(clientRequestIdInput.value).toEqual(
+                validRequest.correlationId
+            );
+
+            // Query param check
+            const actionUrl = new URL(form.action);
+            expect(
+                actionUrl.searchParams.get(AADServerParamKeys.CLIENT_REQUEST_ID)
+            ).toEqual(validRequest.correlationId);
         });
     });
 });

@@ -10,8 +10,9 @@ import {
     InteractionType,
     PublicClientApplication,
 } from "@azure/msal-browser";
-import { TEST_CONFIG } from "../TestConstants";
-import { MsalProvider, withMsal } from "../../src/index";
+import { TEST_CONFIG } from "../TestConstants.js";
+import { MsalProvider } from "../../src/MsalProvider.js";
+import { withMsal } from "../../src/components/withMsal.js";
 
 describe("withMsal tests", () => {
     let pca: PublicClientApplication;
@@ -40,6 +41,7 @@ describe("withMsal tests", () => {
                 const eventMessage: EventMessage = {
                     eventType: EventType.HANDLE_REDIRECT_END,
                     interactionType: InteractionType.Redirect,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
                     payload: null,
                     error: null,
                     timestamp: 10000,

@@ -3606,7 +3606,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .mockResolvedValue(testTokenResponse);
 
             jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
-                (eventType, interactionType) => {
+                (eventType, _correlationId, interactionType) => {
                     if (
                         eventType === EventType.ACQUIRE_TOKEN_START &&
                         interactionType === InteractionType.Silent
