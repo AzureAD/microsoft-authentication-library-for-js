@@ -2044,6 +2044,7 @@ export class StandardController implements IController {
                 );
 
             if (shouldTryToResolveSilently) {
+                this.performanceClient.addFields({ silentRefreshReason: `${refreshTokenError.errorCode}${refreshTokenError.subError ? `|${refreshTokenError.subError}` : ''}` }, request.correlationId);
                 if (!this.activeIframeRequest) {
                     let _resolve: (result: boolean) => void;
                     // Always set the active request tracker immediately after checking it to prevent races
