@@ -445,7 +445,7 @@ describe("SilentFlowClient unit tests", () => {
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
 
-            const resourceUrl = "https://resource.contoso.com";
+            const resourceUrl = "https://resource.example.com";
             testAccessTokenEntity.resource = resourceUrl;
 
             jest.spyOn(
@@ -711,8 +711,8 @@ describe("SilentFlowClient unit tests", () => {
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
 
-            const cachedResource = "https://resource.contoso.com";
-            const requestResource = "https://different.contoso.com";
+            const cachedResource = "https://resource.example.com";
+            const requestResource = "https://different.example.com";
             testAccessTokenEntity.resource = cachedResource;
 
             jest.spyOn(
@@ -768,7 +768,7 @@ describe("SilentFlowClient unit tests", () => {
             ];
             testAccessTokenEntity.target = testScopes.join(" ");
 
-            const requestResource = "https://different.contoso.com";
+            const requestResource = "https://resource.example.com";
 
             jest.spyOn(
                 Authority.prototype,

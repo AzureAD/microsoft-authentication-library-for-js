@@ -7,6 +7,7 @@ export type TokenRequest = {
     platformBrokerId?: string; // Account identifier used by OneAuth
     clientId: string;
     authority?: string;
+    resource?: string;
     scope: string;
     correlationId: string;
     claims?: string;

@@ -19,6 +19,7 @@ import {
     AuthError,
     AccountEntityUtils,
     AuthToken,
+    InProgressPerformanceEvent,
 } from "@azure/msal-common/browser";
 import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -57,6 +58,7 @@ import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -143,6 +145,19 @@ export class NestedAppAuthController implements IController {
         this.currentAccountContext = accountContext ? accountContext : null;
     }
 
+    preflightCheck(
+        performanceEvent: InProgressPerformanceEvent,
+        config: BrowserConfiguration,
+        request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest
+    ) {
+        try {
+            BrowserUtils.enforceResourceParameter(config, request);
+        } catch (e) {
+            performanceEvent.end({ success: false }, e, request.account);
+            throw e;
+        }
+    }
+
     /**
      * Factory function to create a new instance of NestedAppAuthController
      * @param operatingContext
@@ -213,6 +228,8 @@ export class NestedAppAuthController implements IController {
         );
 
         atPopupMeasurement.add({ nestedAppAuthRequest: true });
+
+        this.preflightCheck(atPopupMeasurement, this.config, validRequest);
 
         try {
             const naaRequest =
@@ -331,6 +348,8 @@ export class NestedAppAuthController implements IController {
         ssoSilentMeasurement.add({
             nestedAppAuthRequest: true,
         });
+
+        this.preflightCheck(ssoSilentMeasurement, this.config, validRequest);
 
         try {
             const naaRequest =
@@ -567,8 +586,19 @@ export class NestedAppAuthController implements IController {
                 correlationId
             );
             return Promise.resolve(null);
-        }
+        } else if (this.config.auth.isMcp && authRequest.resource) {
+            const requestedResource = authRequest.resource;
+            const cachedResource = cachedAccessToken.resource;
 
+            if (!cachedResource || cachedResource !== requestedResource) {
+                this.logger.verbose(
+                    "Cached access token resource does not match requested resource for MCP flow",
+                    correlationId
+                );
+                return Promise.resolve(null);
+            }
+        }
+   
         const cachedIdToken = this.browserStorage.getIdToken(
             currentAccount,
             authRequest.correlationId,
