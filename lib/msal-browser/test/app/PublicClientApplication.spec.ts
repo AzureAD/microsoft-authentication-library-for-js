@@ -3943,9 +3943,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     if (ssoCapableEvent) {
                         try {
                             expect(ssoCapableEvent.success).toBe(true);
-                            expect(ssoCapableEvent["parentApi"]).toBe(
-                                "popup"
-                            );
+                            expect(ssoCapableEvent["parentApi"]).toBe("popup");
                             ssoCapableEventReceived = true;
                             resolve();
                         } catch (e) {
@@ -4027,9 +4025,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     if (ssoCapableEvent) {
                         try {
                             expect(ssoCapableEvent.success).toBe(false);
-                            expect(ssoCapableEvent["parentApi"]).toBe(
-                                "popup"
-                            );
+                            expect(ssoCapableEvent["parentApi"]).toBe("popup");
                             ssoCapableEventReceived = true;
                             resolve();
                         } catch (e) {
