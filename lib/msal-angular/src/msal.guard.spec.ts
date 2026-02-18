@@ -1,4 +1,4 @@
-import { HttpClientTestingModule } from "@angular/common/http/testing";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { UrlTree } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
@@ -19,6 +19,7 @@ import {
   MsalBroadcastService,
 } from "./public-api";
 import { MsalGuardConfiguration } from "./msal.guard.config";
+import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
 let guard: MsalGuard;
 let authService: MsalService;
@@ -59,17 +60,14 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
 function initializeMsal(providers: any[] = []) {
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
-    imports: [
-      MsalModule.forRoot(MSALInstanceFactory(), MSALGuardConfigFactory(), {
-        interactionType: InteractionType.Popup,
-        protectedResourceMap: new Map(),
-      }),
-      HttpClientTestingModule,
-      RouterTestingModule.withRoutes([]),
-    ],
-    providers: [MsalGuard, MsalService, MsalBroadcastService, ...providers],
     teardown: { destroyAfterEach: false },
-  });
+    imports: [MsalModule.forRoot(MSALInstanceFactory(), MSALGuardConfigFactory(), {
+            interactionType: InteractionType.Popup,
+            protectedResourceMap: new Map(),
+        }),
+        RouterTestingModule.withRoutes([])],
+    providers: [MsalGuard, MsalService, MsalBroadcastService, ...providers, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+});
 
   authService = TestBed.inject(MsalService);
   guard = TestBed.inject(MsalGuard);

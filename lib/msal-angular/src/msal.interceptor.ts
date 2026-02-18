@@ -5,12 +5,7 @@
 
 import { Injectable, Inject } from "@angular/core";
 import { Location, DOCUMENT } from "@angular/common";
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor,
-} from "@angular/common/http"; // eslint-disable-line import/no-unresolved
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from "@angular/common/http"; // eslint-disable-line import/no-unresolved
 import {
   AccountInfo,
   AuthenticationResult,
