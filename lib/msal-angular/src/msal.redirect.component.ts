@@ -13,9 +13,9 @@ import { Component, OnInit } from "@angular/core";
 import { MsalService } from "./msal.service";
 
 @Component({
-    selector: "app-redirect",
-    template: "",
-    standalone: false
+  selector: "app-redirect",
+  template: "",
+  standalone: false,
 })
 export class MsalRedirectComponent implements OnInit {
   constructor(private authService: MsalService) {}

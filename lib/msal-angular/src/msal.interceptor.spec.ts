@@ -1,7 +1,15 @@
 import { TestBed } from "@angular/core/testing";
 import { Location } from "@angular/common";
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
-import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
+import {
+  HTTP_INTERCEPTORS,
+  HttpClient,
+  provideHttpClient,
+  withInterceptorsFromDi,
+} from "@angular/common/http";
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from "@angular/common/http/testing";
 import { RouterTestingModule } from "@angular/router/testing";
 import {
   AccountInfo,
@@ -106,22 +114,24 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     teardown: { destroyAfterEach: false },
-    imports: [RouterTestingModule,
-        MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory())],
+    imports: [
+      RouterTestingModule,
+      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory()),
+    ],
     providers: [
-        MsalInterceptor,
-        MsalService,
-        MsalBroadcastService,
-        {
-            provide: HTTP_INTERCEPTORS,
-            useClass: MsalInterceptor,
-            multi: true,
-        },
-        Location,
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting(),
-    ]
-});
+      MsalInterceptor,
+      MsalService,
+      MsalBroadcastService,
+      {
+        provide: HTTP_INTERCEPTORS,
+        useClass: MsalInterceptor,
+        multi: true,
+      },
+      Location,
+      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClientTesting(),
+    ],
+  });
 
   interceptor = TestBed.inject(MsalInterceptor);
   httpMock = TestBed.inject(HttpTestingController);
