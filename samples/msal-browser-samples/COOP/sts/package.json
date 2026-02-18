@@ -17,6 +17,6 @@
     "path": "^0.11.14"
   },
   "devDependencies": {
-    "@playwright/test": "^1.30.0"
+    "@playwright/test": "^1.56.0"
   }
 }
