@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add a background ssoSilent call after interactive calls, with telemetry, [#8252](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8252)",
+  "comment": "Verify if an app is SSO Capable, [#8252](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8252)",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
