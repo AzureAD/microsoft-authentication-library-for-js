@@ -1001,12 +1001,9 @@ export class StandardController implements IController {
      * This method does not block the caller and tracks telemetry for success/failure.
      * This method only executes if verifySSO is set to true in the auth configuration.
      * @param account - The account to use for the SSO verification
-     * @param parentApiId - The API ID of the parent operation for logging purposes
+     * @param parentApi - The API ID of the parent operation for logging purposes
      */
-    private verifySsoCapability(
-        account: AccountInfo,
-        parentApiId: string
-    ): void {
+    private verifySsoCapability(account: AccountInfo, parentApi: string): void {
         // Check if SSO capability verification is enabled
         if (!this.config.auth.verifySSO) {
             return;
@@ -1018,11 +1015,11 @@ export class StandardController implements IController {
             correlationId
         );
         ssoCapableMeasurement.add({
-            parentApiId: parentApiId,
+            parentApi: parentApi,
         });
 
         this.logger.verbose(
-            `SSO capability verification initiated after ${parentApiId}`,
+            `SSO capability verification initiated after ${parentApi}`,
             correlationId
         );
 
@@ -1042,7 +1039,7 @@ export class StandardController implements IController {
                 .verifySso(ssoVerificationRequest)
                 .then((success: boolean) => {
                     this.logger.verbose(
-                        `SSO capability verification completed after ${parentApiId}, success: ${success}`,
+                        `SSO capability verification completed after ${parentApi}, success: ${success}`,
                         correlationId
                     );
                     ssoCapableMeasurement.end(
@@ -1056,7 +1053,7 @@ export class StandardController implements IController {
                 })
                 .catch((error: Error) => {
                     this.logger.warning(
-                        `SSO capability verification failed after ${parentApiId}: ${error.message}`,
+                        `SSO capability verification failed after ${parentApi}: ${error.message}`,
                         correlationId
                     );
                     ssoCapableMeasurement.end(
