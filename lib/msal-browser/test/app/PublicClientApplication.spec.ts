@@ -7007,6 +7007,36 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         correlationId: RANDOM_TEST_GUID,
                     });
                 });
+
+                it("adds silentRefreshReason telemetry field with token_refresh_required when CacheLookupPolicy.Skip triggers iframe fallback", (done) => {
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            ClientAuthErrorCodes.tokenRefreshRequired
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Skip,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
             });
         });
     });
