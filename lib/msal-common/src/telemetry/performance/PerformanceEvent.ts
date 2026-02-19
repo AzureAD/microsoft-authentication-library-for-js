@@ -746,6 +746,14 @@ export type PerformanceEvent = {
     cacheLookupPolicy?: number | undefined;
 
     /**
+     * Reason for silent refresh fallback to iframe
+     * Format: errorCode or errorCode|subError
+     *
+     * @type {?string}
+     */
+    silentRefreshReason?: string;
+
+    /**
      * Cache Outcome
      * @type {?number}
      */
