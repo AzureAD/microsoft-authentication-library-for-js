@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add silentRefreshReason telemetry field to PerformanceEvent #8343",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
