@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1771011760050,
+  "lastUpdate": 1771534789717,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19477,6 +19477,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.90%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6b01484da1062075af3ee8a60433438b71904cc5",
+          "message": "[v4] Add silentRefreshReason telemetry field to PerformanceEvent (#8343)\n\nAdd silentRefreshReason field to telemetry and update related tests",
+          "timestamp": "2026-02-19T12:53:14-08:00",
+          "tree_id": "4020702d32e37f33ef3dd1d728a478df10dd2024",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/6b01484da1062075af3ee8a60433438b71904cc5"
+        },
+        "date": 1771534786065,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 245755,
+            "range": "±0.99%",
+            "unit": "ops/sec",
+            "extra": "210 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245571,
+            "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
