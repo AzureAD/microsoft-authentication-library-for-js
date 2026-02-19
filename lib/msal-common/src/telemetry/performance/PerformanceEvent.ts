@@ -343,6 +343,14 @@ export type PerformanceEvent = {
 
     // Hashed logs in the format [millis1,hash1;millis2,hash2;...]
     logs?: string;
+
+    /**
+     * Reason for silent refresh fallback to iframe
+     * Format: errorCode or errorCode|subError
+     *
+     * @type {?string}
+     */
+    silentRefreshReason?: string;
 };
 
 export type PerformanceEventContext = {

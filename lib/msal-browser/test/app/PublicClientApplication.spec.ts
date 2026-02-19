@@ -5817,6 +5817,144 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentRefreshSpy).toHaveBeenCalledTimes(0);
                 expect(silentIframeSpy).toHaveBeenCalledTimes(1);
             });
+
+            describe("silentRefreshReason telemetry", () => {
+                it("adds silentRefreshReason telemetry field with errorCode when refresh token error triggers iframe fallback", (done) => {
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredServerError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            BrowserConstants.INVALID_GRANT_ERROR
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Default,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
+
+                it("adds silentRefreshReason telemetry field with errorCode and subError when subError is present", (done) => {
+                    const errorWithSubError = new ServerError(
+                        BrowserConstants.INVALID_GRANT_ERROR,
+                        "Refresh Token expired",
+                        "bad_token"
+                    );
+
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(errorWithSubError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            `${BrowserConstants.INVALID_GRANT_ERROR}|bad_token`
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Default,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
+
+                it("adds silentRefreshReason telemetry field with refreshTokenExpired error code", (done) => {
+                    const refreshTokenExpiredError =
+                        createInteractionRequiredAuthError(
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                        );
+
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshTokenExpiredError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Default,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
+
+                it("adds silentRefreshReason telemetry field with noTokensFound error code", (done) => {
+                    const noTokensFoundError =
+                        createInteractionRequiredAuthError(
+                            InteractionRequiredAuthErrorCodes.noTokensFound
+                        );
+
+                    jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(refreshRequiredCacheError);
+                    jest.spyOn(
+                        SilentRefreshClient.prototype,
+                        "acquireToken"
+                    ).mockRejectedValue(noTokensFoundError);
+                    jest.spyOn(
+                        SilentIframeClient.prototype,
+                        "acquireToken"
+                    ).mockResolvedValue(testTokenResponse);
+
+                    const callbackId = pca.addPerformanceCallback((events) => {
+                        expect(events[0].silentRefreshReason).toBe(
+                            InteractionRequiredAuthErrorCodes.noTokensFound
+                        );
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    });
+
+                    pca.acquireTokenSilent({
+                        scopes: ["openid"],
+                        account: testAccount,
+                        cacheLookupPolicy: CacheLookupPolicy.Default,
+                        correlationId: RANDOM_TEST_GUID,
+                    });
+                });
+            });
         });
     });
 
