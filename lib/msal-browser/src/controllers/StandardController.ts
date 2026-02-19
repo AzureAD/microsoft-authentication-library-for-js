@@ -2255,7 +2255,7 @@ export class StandardController implements IController {
                 }`;
                 this.performanceClient.addFields(
                     { silentRefreshReason },
-                    request.correlationId
+                    silentRequest.correlationId
                 );
                 if (!this.activeIframeRequest) {
                     let _resolve: (result: boolean) => void;
