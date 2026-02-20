@@ -66,7 +66,7 @@ export async function broadcastResponseToMainFrame(
         };
 
         let navigateToUrl = "";
-        const interactionKey = `${PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}}`;
+        const interactionKey = `${PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         try {
             /*
              * Retrieve the original navigation URL from sessionStorage
