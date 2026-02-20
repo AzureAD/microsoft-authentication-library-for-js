@@ -16,6 +16,7 @@ import {
     ProtocolMode,
     CommonAuthorizationUrlRequest,
     HttpMethod,
+    AuthorizeProtocol,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -347,6 +348,141 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.platformAuthProvider
             );
         }
+    }
+
+    /**
+     * Verifies SSO capability by making an iframe request to /authorize without exchanging the code for tokens.
+     * This is useful for verifying SSO capability in the background without the overhead of a full token exchange.
+     * @param request - The SSO silent request
+     * @returns true if SSO verification was successful with a valid authorization code, false otherwise
+     */
+    async verifySso(request: SsoSilentRequest): Promise<boolean> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.SilentIframeClientAcquireToken,
+            request.correlationId
+        );
+
+        const inputRequest = { ...request };
+        if (!inputRequest.prompt) {
+            inputRequest.prompt = PromptValue.NONE;
+        }
+
+        // Create silent request
+        const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
+            this.initializeAuthorizationRequest.bind(this),
+            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(inputRequest, InteractionType.Silent);
+
+        const authClient = await invokeAsync(
+            this.createAuthCodeClient.bind(this),
+            PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )({
+            serverTelemetryManager: this.initializeServerTelemetryManager(
+                this.apiId
+            ),
+            requestAuthority: silentRequest.authority,
+            requestAzureCloudOptions: silentRequest.azureCloudOptions,
+            requestExtraQueryParameters: silentRequest.extraQueryParameters,
+            account: silentRequest.account,
+        });
+
+        const correlationId = silentRequest.correlationId;
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.performanceClient, this.logger, correlationId);
+
+        const requestWithPkce = {
+            ...silentRequest,
+            codeChallenge: pkceCodes.challenge,
+        };
+
+        // Create authorize request url
+        const navigateUrl = await invokeAsync(
+            Authorize.getAuthCodeRequestUrl,
+            PerformanceEvents.GetAuthCodeUrl,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            this.config,
+            authClient.authority,
+            requestWithPkce,
+            this.logger,
+            this.performanceClient
+        );
+
+        // Get the frame handle for the silent request - this triggers the SSO verification
+        const msalFrame = await invokeAsync(
+            initiateCodeRequest,
+            PerformanceEvents.SilentHandlerInitiateAuthRequest,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            navigateUrl,
+            this.performanceClient,
+            this.logger,
+            correlationId,
+            this.config.system.navigateFrameWait
+        );
+
+        const responseType = this.config.auth.OIDCOptions.serverResponseType;
+        // Monitor the iframe for the response
+        const responseString = await invokeAsync(
+            monitorIframeForHash,
+            PerformanceEvents.SilentHandlerMonitorIframeForHash,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            msalFrame,
+            this.config.system.iframeHashTimeout,
+            this.config.system.pollIntervalMilliseconds,
+            this.performanceClient,
+            this.logger,
+            correlationId,
+            responseType
+        );
+
+        // Deserialize the response
+        const serverParams = invoke(
+            ResponseHandler.deserializeResponse,
+            PerformanceEvents.DeserializeResponse,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(responseString, responseType, this.logger);
+
+        // Validate the response - this checks for errors and validates state
+        AuthorizeProtocol.validateAuthorizationResponse(
+            serverParams,
+            silentRequest.state
+        );
+
+        // Verify a valid authorization code is present
+        if (!serverParams.code) {
+            this.logger.warning(
+                "SSO verification response did not contain an authorization code",
+                correlationId
+            );
+            return false;
+        }
+
+        this.logger.verbose(
+            "SSO verification completed successfully with valid authorization code - skipped token exchange",
+            correlationId
+        );
+        return true;
     }
 
     /**
