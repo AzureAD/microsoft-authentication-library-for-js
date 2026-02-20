@@ -569,7 +569,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.Decrypt, "decrypt"],
         [PerformanceEvents.GenerateEarKey, "genEarKey"],
         [PerformanceEvents.DecryptEarResponse, "decryptEarResp"],
-        [PerformanceEvents.SsoCapable, "SsoCapable"],
+        [PerformanceEvents.SsoCapable, "ssoCapable"],
     ]);
 
 /**

@@ -937,7 +937,7 @@ export class StandardController implements IController {
                     result.account
                 );
 
-                // SSO capability verification in background
+                // Fire-and-forget SSO capability verification in background
                 this.verifySsoCapability(result.account, InteractionType.Popup);
 
                 return result;
