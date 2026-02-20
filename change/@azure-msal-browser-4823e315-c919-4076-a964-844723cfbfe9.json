@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix JSON object conversion in PlatformDOMRequest #8348",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
