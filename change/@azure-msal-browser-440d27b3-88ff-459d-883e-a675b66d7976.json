@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Verify if an app is SSO Capable <a href=\"https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8252\">#8252</a>",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

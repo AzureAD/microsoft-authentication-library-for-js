@@ -567,6 +567,12 @@ export class StandardController implements IController {
                         undefined,
                         result.account
                     );
+
+                    // Fire-and-forget SSO capability verification in background
+                    this.verifySsoCapability(
+                        result.account,
+                        InteractionType.Redirect
+                    );
                 } else {
                     /*
                      * Instrument an event only if an error code is set. Otherwise, discard it when the redirect response
@@ -930,6 +936,10 @@ export class StandardController implements IController {
                     undefined,
                     result.account
                 );
+
+                // SSO capability verification in background
+                this.verifySsoCapability(result.account, InteractionType.Popup);
+
                 return result;
             })
             .catch((e: Error) => {
@@ -983,6 +993,79 @@ export class StandardController implements IController {
         measurement.increment({
             visibilityChangeCount: 1,
         });
+    }
+
+    /**
+     * SSO capability verification in the background.
+     * This method makes an iframe request to /authorize to verify SSO capability without calling /token.
+     * This method does not block the caller and tracks telemetry for success/failure.
+     * This method only executes if verifySSO is set to true in the auth configuration.
+     * @param account - The account to use for the SSO verification
+     * @param parentApi - The API ID of the parent operation for logging purposes
+     */
+    private verifySsoCapability(account: AccountInfo, parentApi: string): void {
+        // Check if SSO capability verification is enabled
+        if (!this.config.auth.verifySSO) {
+            return;
+        }
+
+        const correlationId = createNewGuid();
+        const ssoCapableMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.SsoCapable,
+            correlationId
+        );
+        ssoCapableMeasurement.add({
+            parentApi: parentApi,
+        });
+
+        this.logger.verbose(
+            `SSO capability verification initiated after ${parentApi}`,
+            correlationId
+        );
+
+        /*
+         * Use setTimeout to ensure this runs in a separate macrotask after the current call stack completes
+         * This ensures the result is returned to the caller before the SSO verification starts and doesn't affect performance
+         */
+        setTimeout(() => {
+            const ssoVerificationRequest: SsoSilentRequest = {
+                account: account,
+                correlationId: correlationId,
+            };
+
+            const silentIframeClient =
+                this.createSilentIframeClient(correlationId);
+            silentIframeClient
+                .verifySso(ssoVerificationRequest)
+                .then((success: boolean) => {
+                    this.logger.verbose(
+                        `SSO capability verification completed after ${parentApi}, success: ${success}`,
+                        correlationId
+                    );
+                    ssoCapableMeasurement.end(
+                        {
+                            fromCache: false,
+                            success: success,
+                        },
+                        undefined,
+                        account
+                    );
+                })
+                .catch((error: Error) => {
+                    this.logger.warning(
+                        `SSO capability verification failed after ${parentApi}: ${error.message}`,
+                        correlationId
+                    );
+                    ssoCapableMeasurement.end(
+                        {
+                            fromCache: false,
+                            success: false,
+                        },
+                        error,
+                        account
+                    );
+                });
+        }, 0);
     }
     // #endregion
 

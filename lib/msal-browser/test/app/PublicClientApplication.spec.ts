@@ -823,6 +823,337 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await callbackPromise;
         });
 
+        it("verifies SSO capability after successful handleRedirectPromise and emits SsoCapable telemetry event on success", async () => {
+            // Create a new PCA with verifySSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(controller, "getAllAccounts").mockReturnValue([
+                testAccount,
+            ]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            const verifySsoSpy = jest
+                .spyOn(SilentIframeClient.prototype, "verifySso")
+                .mockResolvedValue(true);
+
+            let ssoCapableEventReceived = false;
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = testPca.addPerformanceCallback((events) => {
+                    const ssoCapableEvent = events.find(
+                        (e) => e.name === PerformanceEvents.SsoCapable
+                    );
+                    if (ssoCapableEvent) {
+                        try {
+                            expect(ssoCapableEvent.success).toBe(true);
+                            expect(ssoCapableEvent["parentApi"]).toBe(
+                                "redirect"
+                            );
+                            ssoCapableEventReceived = true;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            testPca.removePerformanceCallback(callbackId);
+                        }
+                    }
+                });
+            });
+
+            await controller.handleRedirectPromise();
+
+            // Wait for the SSO capability verification to complete (setTimeout with 0ms)
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await callbackPromise;
+
+            // Check that verifySso was called at least once with the expected account
+            expect(verifySsoSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    account: testAccount,
+                })
+            );
+            expect(ssoCapableEventReceived).toBe(true);
+        });
+
+        it("verifies SSO capability after successful handleRedirectPromise and emits SsoCapable telemetry event on failure", async () => {
+            // Create a new PCA with verifySSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(controller, "getAllAccounts").mockReturnValue([
+                testAccount,
+            ]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            const verifySsoError = new Error("verifySso failed");
+            const verifySsoSpy = jest
+                .spyOn(SilentIframeClient.prototype, "verifySso")
+                .mockRejectedValue(verifySsoError);
+
+            let ssoCapableEventReceived = false;
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = testPca.addPerformanceCallback((events) => {
+                    const ssoCapableEvent = events.find(
+                        (e) => e.name === PerformanceEvents.SsoCapable
+                    );
+                    if (ssoCapableEvent) {
+                        try {
+                            expect(ssoCapableEvent.success).toBe(false);
+                            expect(ssoCapableEvent["parentApi"]).toBe(
+                                "redirect"
+                            );
+                            ssoCapableEventReceived = true;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            testPca.removePerformanceCallback(callbackId);
+                        }
+                    }
+                });
+            });
+
+            await controller.handleRedirectPromise();
+
+            // Wait for the SSO capability verification to complete (setTimeout with 0ms)
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await callbackPromise;
+
+            expect(verifySsoSpy).toHaveBeenCalledTimes(1);
+            expect(ssoCapableEventReceived).toBe(true);
+        });
+
+        it("does not verify SSO capability when handleRedirectPromise returns null", async () => {
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(false);
+
+            const verifySsoSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                "verifySso"
+            );
+
+            const response = await pca.handleRedirectPromise();
+
+            // Wait to ensure verifySso would have been called if it was going to be
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            expect(response).toBeNull();
+            expect(verifySsoSpy).not.toHaveBeenCalled();
+        });
+
+        it("does not verify SSO capability when verifySSO is false", async () => {
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(pca, "getAllAccounts").mockReturnValue([testAccount]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            const verifySsoSpy = jest.spyOn(
+                SilentIframeClient.prototype,
+                "verifySso"
+            );
+
+            await pca.handleRedirectPromise();
+
+            // Wait to ensure verifySso would have been called if it was going to be
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            // verifySso should not be called because verifySSO is false by default
+            expect(verifySsoSpy).not.toHaveBeenCalled();
+        });
+
+        it("returns to caller before background session refresh executes", async () => {
+            // Create a new PCA with verifySSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "isInteractionInProgress"
+            ).mockReturnValue(true);
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedRequest"
+            ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
+
+            jest.spyOn(controller, "getAllAccounts").mockReturnValue([
+                testAccount,
+            ]);
+            jest.spyOn(
+                RedirectClient.prototype,
+                "handleRedirectPromise"
+            ).mockResolvedValue(testTokenResponse);
+
+            // Track when verifySso starts executing relative to method return
+            let verifySsoStartedBeforeReturn = false;
+            let methodHasReturned = false;
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "verifySso"
+            ).mockImplementation(() => {
+                // Check if method has returned yet when verifySso starts
+                if (!methodHasReturned) {
+                    verifySsoStartedBeforeReturn = true;
+                }
+                return Promise.resolve(true);
+            });
+
+            const response = await controller.handleRedirectPromise();
+            methodHasReturned = true;
+
+            // Verify handleRedirectPromise returned before verifySso started
+            // verifySso runs in setTimeout(..., 0), so it should not have started yet
+            expect(verifySsoStartedBeforeReturn).toBe(false);
+            expect(response).toEqual(testTokenResponse);
+
+            // Wait for the macrotask (setTimeout) to execute
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
         it("cleans temporary cache and rethrows if error is thrown", (done) => {
             browserStorage.setInteractionInProgress(true);
             browserStorage.cacheAuthorizeRequest(
@@ -2763,6 +3094,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("acquireTokenPopup", () => {
         beforeEach(async () => {
+            // Restore all mocks at the start of each test to avoid spy pollution
+            jest.restoreAllMocks();
+
             const popupWindow = {
                 ...window,
                 location: {
@@ -2780,6 +3114,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
+            jest.resetAllMocks();
+            jest.restoreAllMocks();
         });
 
         it("throws an error if initialize was not called prior", async () => {
@@ -3552,6 +3888,361 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
             expect(preGenPkce2).toBeUndefined();
+        });
+
+        it("verifies SSO capability after successful acquireTokenPopup and emits SsoCapable telemetry event on success", async () => {
+            // Create a new PCA with verifySSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            const verifySsoSpy = jest
+                .spyOn(SilentIframeClient.prototype, "verifySso")
+                .mockResolvedValue(true);
+
+            let ssoCapableEventReceived = false;
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = testPca.addPerformanceCallback((events) => {
+                    const ssoCapableEvent = events.find(
+                        (e) => e.name === PerformanceEvents.SsoCapable
+                    );
+                    if (ssoCapableEvent) {
+                        try {
+                            expect(ssoCapableEvent.success).toBe(true);
+                            expect(ssoCapableEvent["parentApi"]).toBe("popup");
+                            ssoCapableEventReceived = true;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            testPca.removePerformanceCallback(callbackId);
+                        }
+                    }
+                });
+            });
+
+            await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+
+            // Wait for the SSO capability verification to complete (setTimeout with 0ms)
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await callbackPromise;
+
+            expect(verifySsoSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    account: testAccount,
+                })
+            );
+            expect(ssoCapableEventReceived).toBe(true);
+        });
+
+        it("verifies SSO capability after successful acquireTokenPopup and emits SsoCapable telemetry event on failure", async () => {
+            // Create a new PCA with verifySSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            const verifySsoError = new Error("verifySso failed");
+            const verifySsoSpy = jest
+                .spyOn(SilentIframeClient.prototype, "verifySso")
+                .mockRejectedValue(verifySsoError);
+
+            let ssoCapableEventReceived = false;
+            let callbackId: string;
+            const callbackPromise = new Promise<void>((resolve, reject) => {
+                callbackId = testPca.addPerformanceCallback((events) => {
+                    const ssoCapableEvent = events.find(
+                        (e) => e.name === PerformanceEvents.SsoCapable
+                    );
+                    if (ssoCapableEvent) {
+                        try {
+                            expect(ssoCapableEvent.success).toBe(false);
+                            expect(ssoCapableEvent["parentApi"]).toBe("popup");
+                            ssoCapableEventReceived = true;
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        } finally {
+                            testPca.removePerformanceCallback(callbackId);
+                        }
+                    }
+                });
+            });
+
+            await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+
+            // Wait for the SSO capability verification to complete (setTimeout with 0ms)
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            await callbackPromise;
+
+            expect(verifySsoSpy).toHaveBeenCalledTimes(1);
+            expect(ssoCapableEventReceived).toBe(true);
+        });
+
+        it("does not block acquireTokenPopup when SSO capability verification is slow", async () => {
+            // Create a new PCA with verifySSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            // Mock verifySso to be slow (simulate network delay)
+            let verifySsoResolved = false;
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "verifySso"
+            ).mockImplementation(
+                () =>
+                    new Promise((resolve) => {
+                        setTimeout(() => {
+                            verifySsoResolved = true;
+                            resolve(true);
+                        }, 1000); // 1 second delay
+                    })
+            );
+
+            const startTime = Date.now();
+            const response = await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+            const endTime = Date.now();
+
+            // acquireTokenPopup should return immediately without waiting for verifySso
+            expect(response).toEqual(testTokenResponse);
+            expect(endTime - startTime).toBeLessThan(500); // Should complete in less than 500ms
+            expect(verifySsoResolved).toBe(false); // verifySso should not have resolved yet
+        });
+
+        it("returns to caller before SSO capability verification executes for acquireTokenPopup", async () => {
+            // Create a new PCA with verifySSO enabled
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            // Track when verifySso starts executing relative to method return
+            let verifySsoStartedBeforeReturn = false;
+            let methodHasReturned = false;
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "verifySso"
+            ).mockImplementation(() => {
+                // Check if method has returned yet when verifySso starts
+                if (!methodHasReturned) {
+                    verifySsoStartedBeforeReturn = true;
+                }
+                return Promise.resolve(true);
+            });
+
+            const response = await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+            methodHasReturned = true;
+
+            // Verify acquireTokenPopup returned before verifySso started
+            // verifySso runs in setTimeout(..., 0), so it should not have started yet
+            expect(verifySsoStartedBeforeReturn).toBe(false);
+            expect(response).toEqual(testTokenResponse);
+
+            // Wait for the macrotask (setTimeout) to execute
+            await new Promise((resolve) => setTimeout(resolve, 50));
+        });
+
+        it("does not verify SSO capability for acquireTokenPopup when verifySSO is false", async () => {
+            // Create a new PCA explicitly WITHOUT verifySSO to verify the feature flag
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    verifySSO: false,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            await testPca.initialize();
+            // @ts-ignore
+            const controller = testPca.controller;
+
+            const testAccount = BASIC_TEST_ACCOUNT_INFO;
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockResolvedValue(
+                testTokenResponse
+            );
+
+            // Track if any SsoCapable telemetry event is emitted
+            let ssoCapableEventEmitted = false;
+            const callbackId = testPca.addPerformanceCallback((events) => {
+                if (
+                    events.some((e) => e.name === PerformanceEvents.SsoCapable)
+                ) {
+                    ssoCapableEventEmitted = true;
+                }
+            });
+
+            await controller.acquireTokenPopup({
+                scopes: ["openid"],
+            });
+
+            // Wait to ensure any SSO capability verification would have had time to emit telemetry
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            testPca.removePerformanceCallback(callbackId);
+
+            // No SsoCapable telemetry event should be emitted because verifySSO is false
+            expect(ssoCapableEventEmitted).toBe(false);
         });
     });
 
