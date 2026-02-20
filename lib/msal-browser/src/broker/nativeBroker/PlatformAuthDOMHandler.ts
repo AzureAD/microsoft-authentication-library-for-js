@@ -148,9 +148,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ...remainingProperties
         } = request;
 
-        const validExtraParameters = {
-            ...this.getDOMExtraParams(remainingProperties),
-        };
+        const validExtraParameters: DOMExtraParameters =
+            this.getDOMExtraParams(remainingProperties);
 
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
