@@ -937,7 +937,7 @@ export class StandardController implements IController {
                     result.account
                 );
 
-                // Fire-and-forget SSO capability verification in background
+                // SSO capability verification in background
                 this.verifySsoCapability(result.account, InteractionType.Popup);
 
                 return result;
@@ -1009,7 +1009,7 @@ export class StandardController implements IController {
             return;
         }
 
-        const correlationId = createNewGuid();
+        const correlationId = this.browserCrypto.createNewGuid();
         const ssoCapableMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoCapable,
             correlationId
