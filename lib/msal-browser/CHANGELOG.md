@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 10 Feb 2026 22:19:29 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 20 Feb 2026 22:04:54 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.29.0
+
+Fri, 20 Feb 2026 22:04:54 GMT
+
+### Minor changes
+
+- Add silentRefreshReason telemetry field to PerformanceEvent #8343 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.15.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Verify if an app is SSO Capable, [#8252](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8252)  (sameera.gajjarapu@microsoft.com)
 
 ## 4.28.2
 
