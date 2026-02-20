@@ -3453,6 +3453,7 @@ export type PerformanceEvent = {
     brokerErrorCode?: string;
     requestId?: string;
     cacheLookupPolicy?: number | undefined;
+    silentRefreshReason?: string;
     cacheOutcome?: number;
     queuedTimeMs?: number;
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
