@@ -201,6 +201,41 @@ describe("AAD-Prod Tests", () => {
             });
         });
 
+        it("Redirect bridge reads cache keys for ORIGIN_URI during redirect flow", async () => {
+            const customStartPage = sampleHomeUrl + "?redirectBridgeOriginUriTest=1";
+            const redirectStartPageRequest: RedirectRequest = {
+                ...aadTokenRequest,
+                redirectStartPage: customStartPage,
+            };
+            fs.writeFileSync(
+                "./app/customizable-e2e-test/testConfig.json",
+                JSON.stringify({
+                    msalConfig: aadMsalConfig,
+                    request: redirectStartPageRequest,
+                })
+            );
+            await page.reload();
+            await pcaInitializedPoller(page, 5000);
+
+            const testName = "redirectBridgeCacheKeys";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+
+            await clickLoginRedirect(screenshot, page);
+
+            await enterCredentials(page, screenshot, username, accountPwd);
+            await waitForReturnToApp(screenshot, page);
+
+            // Verify the browser navigated back to the custom redirectStartPage
+            expect(page.url()).toContain("redirectBridgeOriginUriTest=1");
+
+            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+            await BrowserCache.verifyTokenStore({
+                scopes: aadTokenRequest.scopes,
+            });
+        });
+
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
             const screenshot = new Screenshot(
