@@ -211,7 +211,7 @@ describe("broadcastResponseToMainFrame", () => {
             const cachedOriginUrl = "https://localhost:8081/custom-page.html";
 
             // Set up sessionStorage with interaction status containing clientId and type
-            mockSessionStorage[`msal.interaction.status}`] = JSON.stringify({
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
                 type: "redirect",
             });
@@ -295,7 +295,7 @@ describe("broadcastResponseToMainFrame", () => {
             const testClientId = "hybrid-client-id";
 
             // Set up sessionStorage with interaction status containing clientId and type
-            mockSessionStorage[`msal.interaction.status}`] = JSON.stringify({
+            mockSessionStorage[`msal.interaction.status`] = JSON.stringify({
                 clientId: testClientId,
                 type: "redirect",
             });
