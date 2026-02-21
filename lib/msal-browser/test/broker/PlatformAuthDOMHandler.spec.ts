@@ -535,6 +535,12 @@ describe("PlatformAuthDOMHandler tests", () => {
                 windowTitleSubstring: "test-window-substring",
                 extendedExpiryToken: true,
                 signPopToken: true,
+                account: {
+                    nativeAccountId: "native-test-id",
+                    userName: "test-user",
+                    name: "Test User",
+                    username: "testest@test.com",
+                },
             };
             const domExtraParams =
                 //@ts-ignore
@@ -547,6 +553,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 windowTitleSubstring: "test-window-substring",
                 extendedExpiryToken: "true",
                 signPopToken: "true",
+                account: JSON.stringify(testExtraParameters.account),
             });
         });
     });

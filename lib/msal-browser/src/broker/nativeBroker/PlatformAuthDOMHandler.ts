@@ -228,21 +228,15 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         return nativeResponse;
     }
 
-    private getDOMExtraParams(
-        extraParameters: Record<string, unknown>
-    ): DOMExtraParameters {
-        const stringifiedParams = Object.entries(extraParameters).reduce(
-            (record, [key, value]) => {
-                record[key] = String(value);
-                return record;
-            },
-            {} as StringDict
-        );
-
-        const validExtraParams: DOMExtraParameters = {
-            ...stringifiedParams,
-        };
-
-        return validExtraParams;
+    private getDOMExtraParams(remainingProperties: object): DOMExtraParameters {
+        const stringifiedProperties: StringDict = {};
+        for (const [key, value] of Object.entries(remainingProperties)) {
+            if (typeof value === "object") {
+                stringifiedProperties[key] = JSON.stringify(value);
+            } else {
+                stringifiedProperties[key] = String(value);
+            }
+        }
+        return stringifiedProperties;
     }
 }
