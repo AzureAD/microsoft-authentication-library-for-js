@@ -54,7 +54,6 @@ import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePassword
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
-
 /**
  * Base abstract class for all ClientApplications - public and confidential
  * @public
@@ -521,6 +520,7 @@ export abstract class ClientApplication {
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
                 redirectUri,
+                isMcp: this.config.auth.isMcp,
             },
             loggerOptions: {
                 logLevel: this.config.system.loggerOptions.logLevel,

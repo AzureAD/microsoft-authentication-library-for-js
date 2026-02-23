@@ -14,7 +14,6 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
 } from "../utils/TestConstants.js";
 import {
-    AuthenticationResult,
     AuthorizationCodeClient,
     RefreshTokenClient,
     SilentFlowClient,
@@ -79,7 +78,6 @@ import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { StubPerformanceClient } from "@azure/msal-common";
 import { DeviceCodeClient } from "../../src/client/DeviceCodeClient.js";
 import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
-
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
 );
@@ -88,6 +86,57 @@ jest.mock("../../src/client/DeviceCodeClient");
 jest.mock("../../src/client/ClientCredentialClient");
 jest.mock("../../src/client/OnBehalfOfClient");
 jest.mock("../../src/client/UsernamePasswordClient");
+
+const testAccountEntity: AccountEntity =
+    buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+const testAccount: AccountInfo = {
+    ...AccountEntityUtils.getAccountInfo(testAccountEntity),
+    idTokenClaims: ID_TOKEN_CLAIMS,
+    idToken: TEST_TOKENS.IDTOKEN_V2,
+};
+const testIdToken: IdTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.id_token,
+    credentialType: CommonConstants.CredentialType.ID_TOKEN,
+    lastUpdatedAt: Date.now().toString(),
+};
+const testAccessTokenEntity: AccessTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.access_token,
+    target:
+        TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
+        " " +
+        TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+    credentialType: CommonConstants.CredentialType.ACCESS_TOKEN,
+    cachedAt: `${TimeUtils.nowSeconds()}`,
+    expiresOn: (
+        TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
+    ).toString(),
+    tokenType: CommonConstants.AuthenticationScheme.BEARER,
+    lastUpdatedAt: Date.now().toString(),
+};
+const testRefreshTokenEntity: RefreshTokenEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    environment: testAccountEntity.environment,
+    realm: ID_TOKEN_CLAIMS.tid,
+    secret: AUTHENTICATION_RESULT.body.refresh_token,
+    credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
+    lastUpdatedAt: Date.now().toString(),
+};
+testAccessTokenEntity.refreshOn = `${
+    Number(testAccessTokenEntity.cachedAt) - 1
+}`;
+testAccessTokenEntity.expiresOn = `${
+    Number(testAccessTokenEntity.cachedAt) +
+    AUTHENTICATION_RESULT.body.expires_in
+}`;
 
 describe("PublicClientApplication", () => {
     // @ts-ignore
@@ -133,12 +182,12 @@ describe("PublicClientApplication", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
-        const fakeAuthResult = { foo: "bar" };
+        const fakeAuthResult = mockAuthenticationResult;
         jest.spyOn(
             DeviceCodeClient.prototype,
             "acquireToken"
         ).mockImplementation(() =>
-            Promise.resolve(fakeAuthResult as unknown as AuthenticationResult)
+            Promise.resolve(fakeAuthResult)
         );
 
         const authApp = new PublicClientApplication(appConfig);
@@ -146,7 +195,7 @@ describe("PublicClientApplication", () => {
         expect(result).toEqual(fakeAuthResult);
     });
 
-    test("acquireTokenByAuthorizationCode", async () => {
+    test("acquireTokenByCode", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -170,7 +219,7 @@ describe("PublicClientApplication", () => {
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
     });
 
-    test("acquireTokenByAuthorizationCode with nonce", async () => {
+    test("acquireTokenByCode with nonce", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -200,7 +249,7 @@ describe("PublicClientApplication", () => {
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
     });
 
-    test("acquireTokenByAuthorizationCode with state validation", async () => {
+    test("acquireTokenByCode with state validation", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -250,57 +299,6 @@ describe("PublicClientApplication", () => {
     });
 
     describe("acquireTokenSilent tests", () => {
-        const testAccountEntity: AccountEntity =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccount: AccountInfo = {
-            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
-            idTokenClaims: ID_TOKEN_CLAIMS,
-            idToken: TEST_TOKENS.IDTOKEN_V2,
-        };
-        const testIdToken: IdTokenEntity = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            environment: testAccountEntity.environment,
-            realm: ID_TOKEN_CLAIMS.tid,
-            secret: AUTHENTICATION_RESULT.body.id_token,
-            credentialType: CommonConstants.CredentialType.ID_TOKEN,
-            lastUpdatedAt: Date.now().toString(),
-        };
-        const testAccessTokenEntity: AccessTokenEntity = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            environment: testAccountEntity.environment,
-            realm: ID_TOKEN_CLAIMS.tid,
-            secret: AUTHENTICATION_RESULT.body.access_token,
-            target:
-                TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
-                " " +
-                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
-            credentialType: CommonConstants.CredentialType.ACCESS_TOKEN,
-            cachedAt: `${TimeUtils.nowSeconds()}`,
-            expiresOn: (
-                TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
-            ).toString(),
-            tokenType: CommonConstants.AuthenticationScheme.BEARER,
-            lastUpdatedAt: Date.now().toString(),
-        };
-        const testRefreshTokenEntity: RefreshTokenEntity = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            environment: testAccountEntity.environment,
-            realm: ID_TOKEN_CLAIMS.tid,
-            secret: AUTHENTICATION_RESULT.body.refresh_token,
-            credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
-            lastUpdatedAt: Date.now().toString(),
-        };
-        testAccessTokenEntity.refreshOn = `${
-            Number(testAccessTokenEntity.cachedAt) - 1
-        }`;
-        testAccessTokenEntity.expiresOn = `${
-            Number(testAccessTokenEntity.cachedAt) +
-            AUTHENTICATION_RESULT.body.expires_in
-        }`;
-
         test("acquireTokenSilent succeeds", async () => {
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
@@ -1627,3 +1625,403 @@ describe("PublicClientApplication", () => {
         );
     });
 });
+
+    describe("MCP flow tests", () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        const mcpConfig: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+                isMcp: true,
+            },
+        };
+
+        const makeAccessTokenEntity = (resource?: string): AccessTokenEntity => ({
+            ...testAccessTokenEntity,
+            ...(resource !== undefined ? { resource } : {}),
+        });
+
+        describe("acquireTokenSilent", () => {
+            test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+                const request: SilentFlowRequest = {
+                    account: mockAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenSilent(request)).rejects.toMatchObject({
+                    errorCode: "resource_parameter_required",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+                const request: SilentFlowRequest = {
+                    account: mockAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    extraParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenSilent(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+                const request: SilentFlowRequest = {
+                    account: mockAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    extraQueryParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenSilent(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("succeeds when isMcp is true and resource is provided", async () => {
+                const request: SilentFlowRequest = {
+                    account: mockAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    resource: "https://resource.example.com",
+                };
+                const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+                jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                    (config) =>
+                        new silentFlowClient(config, new StubPerformanceClient())
+                );
+                // We test the functionality of acquireCachedToken later in this file
+                jest.spyOn(
+                    silentFlowClient.prototype,
+                    "acquireCachedToken"
+                ).mockResolvedValue([
+                    mockAuthenticationResult,
+                    CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                ]);
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenSilent(request)).resolves.toBeDefined();
+            });
+
+            test("returns cached token when resource in access token matches resource in request", async () => {
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+                jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                    testIdToken
+                );
+                jest.spyOn(CacheManager.prototype, "getAccessToken").mockReturnValue(
+                    makeAccessTokenEntity("https://resource.example.com")
+                );
+                jest.spyOn(CacheManager.prototype, "getRefreshToken").mockReturnValue(
+                    testRefreshTokenEntity
+                );
+                jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
+                    testAccountEntity
+                );
+                jest.spyOn(CacheManager.prototype, "getAllAccounts").mockReturnValue([
+                    testAccount,
+                ]);
+
+                const request: SilentFlowRequest = {
+                    account: testAccount,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    resource: "https://resource.example.com",
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                const result = await authApp.acquireTokenSilent(request);
+                expect(result.accessToken).toEqual(
+                    AUTHENTICATION_RESULT.body.access_token
+                );
+            });
+
+            test("falls back when cached token resource does not match request resource", async () => {
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+                AUTHENTICATION_RESULT.body.client_info =
+                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+                const sendPostSpy = jest.spyOn(
+                    HttpClient.prototype,
+                    "sendPostRequestAsync"
+                ).mockResolvedValue(AUTHENTICATION_RESULT);
+                jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                    testIdToken
+                );
+                jest.spyOn(CacheManager.prototype, "getAccessToken").mockReturnValue(
+                    makeAccessTokenEntity("https://other-resource.example.com")
+                );
+                jest.spyOn(CacheManager.prototype, "getRefreshToken").mockReturnValue(
+                    testRefreshTokenEntity
+                );
+                jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
+                    testAccountEntity
+                );
+                jest.spyOn(CacheManager.prototype, "getAllAccounts").mockReturnValue([
+                    testAccount,
+                ]);
+
+                const request: SilentFlowRequest = {
+                    account: testAccount,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    resource: "https://resource.example.com",
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                const result = await authApp.acquireTokenSilent(request);
+                expect(sendPostSpy).toHaveBeenCalledTimes(1);
+                expect(result.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
+            });
+        });
+
+        describe("acquireTokenByDeviceCode", () => {
+            test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+                const request: DeviceCodeRequest = {
+                    deviceCodeCallback: () => {},
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByDeviceCode(request)).rejects.toMatchObject({
+                    errorCode: "resource_parameter_required",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+                const request: DeviceCodeRequest = {
+                    deviceCodeCallback: () => {},
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    extraParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByDeviceCode(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+                const request: DeviceCodeRequest = {
+                    deviceCodeCallback: () => {},
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    extraQueryParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByDeviceCode(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("succeeds when isMcp is true and resource is provided", async () => {
+                jest.spyOn(
+                    DeviceCodeClient.prototype,
+                    "acquireToken"
+                ).mockResolvedValue(mockAuthenticationResult);
+                const request: DeviceCodeRequest = {
+                    deviceCodeCallback: () => {},
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    resource: "https://resource.example.com",
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByDeviceCode(request)).resolves.toEqual(mockAuthenticationResult);
+            });
+        });
+
+        describe("acquireTokenInteractive", () => {
+            test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+                const request: InteractiveRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    openBrowser: async () => {},
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenInteractive(request)).rejects.toMatchObject({
+                    errorCode: "resource_parameter_required",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+                const request: InteractiveRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    openBrowser: async () => {},
+                    extraParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenInteractive(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+                const request: InteractiveRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    openBrowser: async () => {},
+                    extraQueryParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenInteractive(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("succeeds when isMcp is true and resource is provided", async () => {
+                const testServerCodeResponse: AuthorizeResponse = {
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
+                    state: "123",
+                };
+                const customLoopbackClient: ILoopbackClient = {
+                    listenForAuthCode: jest.fn(() =>
+                        Promise.resolve(testServerCodeResponse)
+                    ),
+                    getRedirectUri: jest.fn(() => TEST_CONSTANTS.REDIRECT_URI),
+                    closeServer: jest.fn(() => {}),
+                };
+                const request: InteractiveRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    openBrowser: async () => {},
+                    loopbackClient: customLoopbackClient,
+                    resource: "https://resource.example.com",
+                };
+                const MockAuthorizationCodeClient =
+                    getMsalCommonAutoMock().AuthorizationCodeClient;
+                jest.spyOn(
+                    msalCommon,
+                    "AuthorizationCodeClient"
+                ).mockImplementation(
+                    (config) =>
+                        new MockAuthorizationCodeClient(
+                            config,
+                            new StubPerformanceClient()
+                        )
+                );
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockReturnValue(TEST_CONSTANTS.AUTH_CODE_URL);
+                jest.spyOn(
+                    MockAuthorizationCodeClient.prototype,
+                    "acquireToken"
+                ).mockResolvedValue(mockAuthenticationResult);
+
+                const authApp = new PublicClientApplication(mcpConfig);
+                const result = await authApp.acquireTokenInteractive(request);
+                expect(result.accessToken).toEqual(mockAuthenticationResult.accessToken);
+                expect(result.idToken).toEqual(mockAuthenticationResult.idToken);
+                expect(result.account).toEqual(mockAuthenticationResult.account);
+            });
+        });
+
+        describe("acquireTokenByCode", () => {
+            test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+                const request: AuthorizationCodeRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByCode(request)).rejects.toMatchObject({
+                    errorCode: "resource_parameter_required",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+                const request: AuthorizationCodeRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    extraParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByCode(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+                const request: AuthorizationCodeRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    extraQueryParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByCode(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("succeeds when isMcp is true and resource is provided", async () => {
+                const request: AuthorizationCodeRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    resource: "https://resource.example.com",
+                };
+                const mockAuthCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
+                jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+                    (config) => new mockAuthCodeClient(config, new StubPerformanceClient())
+                );
+                jest.spyOn(mockAuthCodeClient.prototype, "acquireToken")
+                    .mockResolvedValue(mockAuthenticationResult);
+                const authApp = new PublicClientApplication(mcpConfig);
+                const result = await authApp.acquireTokenByCode(request);
+                expect(result).toEqual(mockAuthenticationResult);
+            });
+        });
+
+        describe("acquireTokenByRefreshToken", () => {
+            test("throws resource_parameter_required when isMcp is true and no resource provided", async () => {
+                const request: RefreshTokenRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByRefreshToken(request)).rejects.toMatchObject({
+                    errorCode: "resource_parameter_required",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+                const request: RefreshTokenRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                    extraParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByRefreshToken(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+                const request: RefreshTokenRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                    extraQueryParameters: { resource: "https://resource.example.com" },
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await expect(authApp.acquireTokenByRefreshToken(request)).rejects.toMatchObject({
+                    errorCode: "misplaced_resource_parameter",
+                });
+            });
+
+            test("succeeds when isMcp is true and resource is provided", async () => {
+                const request: RefreshTokenRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                    resource: "https://resource.example.com",
+                };
+                const mockRefreshTokenClient = getMsalCommonAutoMock().RefreshTokenClient;
+                jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+                    (config) => new mockRefreshTokenClient(config, new StubPerformanceClient())
+                );
+                jest.spyOn(mockRefreshTokenClient.prototype, "acquireToken")
+                    .mockResolvedValue(mockAuthenticationResult);
+                const authApp = new PublicClientApplication(mcpConfig);
+                const result = await authApp.acquireTokenByRefreshToken(request);
+                expect(result).toEqual(mockAuthenticationResult);
+            });
+        });
+    });
