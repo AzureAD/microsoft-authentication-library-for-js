@@ -4236,6 +4236,9 @@ export class StringUtils {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static matchPattern(pattern: string, input: string): boolean;
+    static matchPatternStrict(pattern: string, input: string, options?: {
+        component?: "host" | "path" | "protocol" | "search" | "hash";
+    }): boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static queryStringToObject<T>(query: string): T;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
