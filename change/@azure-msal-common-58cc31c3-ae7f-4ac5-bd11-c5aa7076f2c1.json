@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add strict matching to StringUtils",
+  "packageName": "@azure/msal-common",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
