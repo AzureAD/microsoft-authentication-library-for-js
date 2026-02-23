@@ -2,6 +2,53 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 23 Feb 2026 16:28:24 GMT",
+      "version": "15.15.0",
+      "tag": "@azure/msal-common_v15.15.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "de0cf51b35dda10cbfa63be44113ad85fac9dc94",
+            "comment": "Add interrupted user to interaction required list [#8323](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8323)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "de0cf51b35dda10cbfa63be44113ad85fac9dc94",
+            "comment": "Verify if an app is SSO Capable, [#8252](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8252)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "de0cf51b35dda10cbfa63be44113ad85fac9dc94",
+            "comment": "Add silentRefreshReason telemetry field to PerformanceEvent #8343"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Feb 2026 22:19:29 GMT",
       "version": "15.14.2",
       "tag": "@azure/msal-common_v15.14.2",
