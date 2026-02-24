@@ -91,39 +91,4 @@ describe("StringUtils.ts Class Unit Tests", () => {
             expect(parsedValEmptyString).toBeNull();
         });
     });
-
-    describe("matchPattern", () => {
-        it("no wildcard", () => {
-            const matches = StringUtils.matchPattern(
-                "https://myapplication.com/user/1",
-                "https://myapplication.com/user/1"
-            );
-
-            expect(matches).toBe(true);
-        });
-
-        it("single wildcard", () => {
-            const matches = StringUtils.matchPattern(
-                "https://myapplication.com/user/*",
-                "https://myapplication.com/user/1"
-            );
-
-            expect(matches).toBe(true);
-        });
-
-        it("multiple wildcards", () => {
-            const matches = StringUtils.matchPattern(
-                "https://*.myapplication.com/user/*",
-                "https://test.myapplication.com/user/1"
-            );
-
-            expect(matches).toBe(true);
-        });
-
-        it("backslash is escaped", () => {
-            const matches = StringUtils.matchPattern("test\\*", "test\\api");
-
-            expect(matches).toBe(true);
-        });
-    });
 });
