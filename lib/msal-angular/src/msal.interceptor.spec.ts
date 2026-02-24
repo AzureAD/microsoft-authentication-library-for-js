@@ -1234,10 +1234,17 @@ function initializeMsalStrict(
 // ---------------------------------------------------------------------------
 describe("matchPatternStrict unit tests", () => {
   // Access the private method via cast for direct unit testing.
-  let match: (pattern: string, input: string, component: "protocol" | "host" | "path" | "search" | "hash") => boolean;
+  let match: (
+    pattern: string,
+    input: string,
+    component: "protocol" | "host" | "path" | "search" | "hash"
+  ) => boolean;
 
   beforeEach(() => {
-    const emptyMap = new Map<string, Array<string | ProtectedResourceScopes> | null>();
+    const emptyMap = new Map<
+      string,
+      Array<string | ProtectedResourceScopes> | null
+    >();
     initializeMsalStrict(emptyMap);
     match = (interceptor as any).matchPatternStrict.bind(interceptor);
   });
@@ -1322,11 +1329,15 @@ describe("matchPatternStrict unit tests", () => {
     });
 
     it("wildcard host pattern does not match a host with no dot before the domain", () => {
-      expect(match("*.microsoft.com", "othermicrosoft.com", "host")).toBe(false);
+      expect(match("*.microsoft.com", "othermicrosoft.com", "host")).toBe(
+        false
+      );
     });
 
     it("wildcard host pattern matches only the correct host component", () => {
-      expect(match("*.microsoft.com", "login.microsoft.com", "host")).toBe(true);
+      expect(match("*.microsoft.com", "login.microsoft.com", "host")).toBe(
+        true
+      );
     });
   });
 
@@ -1468,9 +1479,7 @@ describe("msal.interceptor matchPatternStrict", () => {
 
       httpClient.get("https://myapplication.com/user/1").subscribe();
       setTimeout(() => {
-        const request = httpMock.expectOne(
-          "https://myapplication.com/user/1"
-        );
+        const request = httpMock.expectOne("https://myapplication.com/user/1");
         request.flush({ data: "test" });
         expect(request.request.headers.get("Authorization")).toEqual(
           "Bearer path-token"
@@ -1487,9 +1496,7 @@ describe("msal.interceptor matchPattern (legacy)", () => {
     const legacyMap = new Map<
       string,
       Array<string | ProtectedResourceScopes> | null
-    >([
-      ["https://*.myapplication.com/*", ["mail.read"]],
-    ]);
+    >([["https://*.myapplication.com/*", ["mail.read"]]]);
     initializeMsalStrict(legacyMap, false);
 
     spyOn(
@@ -1501,16 +1508,13 @@ describe("msal.interceptor matchPattern (legacy)", () => {
         resolve({ accessToken: "legacy-token" });
       })
     );
-    spyOn(
-      PublicClientApplication.prototype,
-      "getAllAccounts"
-    ).and.returnValue([sampleAccountInfo]);
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
+      sampleAccountInfo,
+    ]);
 
     httpClient.get("https://mail.myapplication.com/me").subscribe();
     setTimeout(() => {
-      const request = httpMock.expectOne(
-        "https://mail.myapplication.com/me"
-      );
+      const request = httpMock.expectOne("https://mail.myapplication.com/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
         "Bearer legacy-token"
@@ -1583,9 +1587,7 @@ describe("MsalInterceptor - strictMatching option", () => {
     const legacyMap = new Map<
       string,
       Array<string | ProtectedResourceScopes> | null
-    >([
-      ["https://*.contoso.com/api", ["contoso.scope"]],
-    ]);
+    >([["https://*.contoso.com/api", ["contoso.scope"]]]);
 
     beforeEach(() => {
       initializeMsalStrict(legacyMap, false);

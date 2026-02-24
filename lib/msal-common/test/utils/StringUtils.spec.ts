@@ -91,5 +91,4 @@ describe("StringUtils.ts Class Unit Tests", () => {
             expect(parsedValEmptyString).toBeNull();
         });
     });
-
 });

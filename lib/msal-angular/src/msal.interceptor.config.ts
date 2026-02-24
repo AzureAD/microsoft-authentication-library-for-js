@@ -37,7 +37,7 @@ export type MsalInterceptorConfiguration = {
    * treats metacharacters (including `.`) as literals, so patterns match only their
    * intended strings. Wildcards still apply, but host-component wildcards
    * are constrained to a single DNS label.
-   * 
+   *
    * Set to `false` to use the legacy matching behaviour from v4 for
    * backwards compatibility.
    *

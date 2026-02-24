@@ -296,7 +296,8 @@ export class MsalInterceptor implements HttpInterceptor {
     // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
     const urlProperties = ["protocol", "host", "pathname", "search", "hash"];
 
-    const useStrictMatching = this.msalInterceptorConfig.strictMatching !== false;
+    const useStrictMatching =
+      this.msalInterceptorConfig.strictMatching !== false;
 
     for (const property of urlProperties) {
       if (keyComponents[property]) {
@@ -321,9 +322,7 @@ export class MsalInterceptor implements HttpInterceptor {
           }
         } else {
           // Legacy matching: preserved for backwards compatibility with v4.
-          if (
-            !this.matchPattern(decodedInput, endpointComponents[property])
-          ) {
+          if (!this.matchPattern(decodedInput, endpointComponents[property])) {
             return false;
           }
         }
