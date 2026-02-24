@@ -296,6 +296,18 @@ export class MsalInterceptor implements HttpInterceptor {
     // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
     const urlProperties = ["protocol", "host", "pathname", "search", "hash"];
 
+    // Maps URL property names to the component identifiers used by matchPatternStrict.
+    const componentMap: Record<
+      string,
+      "protocol" | "host" | "path" | "search" | "hash"
+    > = {
+      protocol: "protocol",
+      host: "host",
+      pathname: "path",
+      search: "search",
+      hash: "hash",
+    };
+
     const useStrictMatching =
       this.msalInterceptorConfig.strictMatching !== false;
 
@@ -307,10 +319,7 @@ export class MsalInterceptor implements HttpInterceptor {
            * Strict matching (v5 default): anchored patterns, metacharacters
            * are treated as literals, host wildcards do not span dot separators.
            */
-          const component =
-            property === "pathname"
-              ? "path"
-              : (property as "host" | "protocol" | "search" | "hash");
+          const component = componentMap[property];
           if (
             !this.matchPatternStrict(
               decodedInput,
@@ -441,11 +450,11 @@ export class MsalInterceptor implements HttpInterceptor {
    * matching semantics.
    *
    * Differences from `matchPattern` (legacy):
-   * - All regex metacharacters (including `.`) are treated as literals.
+   * - All regex metacharacters (including `.` and `?`) are treated as literals.
    * - The generated regex is anchored with `^` and `$` (full-string match).
    * - `*` wildcard behaviour depends on the URL component:
-   *   - `host`: `*` matches any characters that do NOT include `.`
-   *     (wildcards stay within a single DNS label).
+   *   - `host`: `*` maps to `[^.]*` — matches any characters that do NOT
+   *     include `.`, so wildcards stay within a single DNS label.
    *   - All other components: `*` matches any characters.
    *
    * @param pattern - The protectedResourceMap key pattern.
@@ -458,7 +467,7 @@ export class MsalInterceptor implements HttpInterceptor {
     input: string,
     component: "protocol" | "host" | "path" | "search" | "hash"
   ): boolean {
-    // Step 1: Escape all regex metacharacters so literals match literally.
+    // Step 1: Escape all regex metacharacters so literals (including . and ?) match literally.
     let regexBody = pattern.replace(/[.+^${}()|[\]\\*?]/g, "\\$&");
 
     // Step 2: Replace escaped wildcards with component-aware regex equivalents.
@@ -468,9 +477,6 @@ export class MsalInterceptor implements HttpInterceptor {
       // Path, protocol, search, hash: `*` matches any characters.
       regexBody = regexBody.replace(/\\\*/g, ".*");
     }
-
-    // Treat `?` as a literal (URL query-string separator, not a wildcard).
-    regexBody = regexBody.replace(/\\\?/g, "\\?");
 
     // Step 3: Anchor for full-string matching.
     // eslint-disable-next-line security/detect-non-literal-regexp

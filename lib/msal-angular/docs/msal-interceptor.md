@@ -184,6 +184,8 @@ Strict matching is enabled by default. No additional configuration is required:
 
 If your patterns rely on the looser matching from v4, you can set `strictMatching: false` to retain the legacy behaviour temporarily:
 
+> **Note:** Legacy matching (`strictMatching: false`) is provided for backwards compatibility and may be removed in a future major version. We recommend updating your `protectedResourceMap` patterns to work with strict matching.
+
 ```javascript
 {
     interactionType: InteractionType.Redirect,

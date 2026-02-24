@@ -1354,6 +1354,48 @@ describe("matchPatternStrict unit tests", () => {
       expect(match("/v1.0/me", "/v1.0/other", "path")).toBe(false);
     });
   });
+
+  describe("edge cases", () => {
+    it("empty pattern matches empty input", () => {
+      expect(match("", "", "host")).toBe(true);
+    });
+
+    it("empty pattern does not match non-empty input", () => {
+      expect(match("", "something", "host")).toBe(false);
+    });
+
+    it("non-empty pattern does not match empty input", () => {
+      expect(match("example.com", "", "host")).toBe(false);
+    });
+
+    it("host wildcard-only pattern matches a label with no dots", () => {
+      expect(match("*", "anything", "host")).toBe(true);
+    });
+
+    it("host wildcard-only pattern does not match input containing a dot", () => {
+      expect(match("*", "a.b", "host")).toBe(false);
+    });
+
+    it("host pattern with port number matches correctly", () => {
+      expect(match("*.contoso.com:443", "app.contoso.com:443", "host")).toBe(
+        true
+      );
+    });
+
+    it("host pattern with port does not match different port", () => {
+      expect(match("*.contoso.com:443", "app.contoso.com:8080", "host")).toBe(
+        false
+      );
+    });
+
+    it("multiple wildcards in host pattern match multiple labels", () => {
+      expect(match("*.*.contoso.com", "a.b.contoso.com", "host")).toBe(true);
+    });
+
+    it("multiple wildcards in host do not match fewer labels than wildcards", () => {
+      expect(match("*.*.contoso.com", "a.contoso.com", "host")).toBe(false);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1522,6 +1564,55 @@ describe("msal.interceptor matchPattern (legacy)", () => {
       httpMock.verify();
       done();
     }, 200);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// matchPattern direct unit tests (exercising the legacy private helper via cast)
+// ---------------------------------------------------------------------------
+// These tests mirror the matchPattern tests that were previously in
+// StringUtils.spec.ts (msal-common) and in the fix/strict-matching-option branch.
+// matchPattern was moved from StringUtils to MsalInterceptor as a private method.
+// ---------------------------------------------------------------------------
+describe("matchPattern unit tests (legacy)", () => {
+  let matchLegacy: (pattern: string, input: string) => boolean;
+
+  beforeEach(() => {
+    const emptyMap = new Map<
+      string,
+      Array<string | ProtectedResourceScopes> | null
+    >();
+    initializeMsalStrict(emptyMap, false);
+    matchLegacy = (interceptor as any).matchPattern.bind(interceptor);
+  });
+
+  it("no wildcard", () => {
+    const matches = matchLegacy(
+      "https://myapplication.com/user/1",
+      "https://myapplication.com/user/1"
+    );
+    expect(matches).toBe(true);
+  });
+
+  it("single wildcard", () => {
+    const matches = matchLegacy(
+      "https://myapplication.com/user/*",
+      "https://myapplication.com/user/1"
+    );
+    expect(matches).toBe(true);
+  });
+
+  it("multiple wildcards", () => {
+    const matches = matchLegacy(
+      "https://*.myapplication.com/user/*",
+      "https://test.myapplication.com/user/1"
+    );
+    expect(matches).toBe(true);
+  });
+
+  it("backslash is escaped", () => {
+    const matches = matchLegacy("test\\*", "test\\api");
+    expect(matches).toBe(true);
   });
 });
 
