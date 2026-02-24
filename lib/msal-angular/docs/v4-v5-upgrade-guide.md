@@ -8,7 +8,7 @@ Please see the [MSAL Browser v4-v5 migration guide](https://github.com/AzureAD/m
 
 ### Strict matching for `protectedResourceMap`
 
-In msal-angular v5, URL pattern matching for protectedResourceMap entries uses strict matching semantics by default. Strict matching treats pattern metacharacters as literals, anchors matches to the full URL component, and applies host wildcard rules that do not span dot separators. If your v4 configuration relied on looser matching behavior, update your protectedResourceMap patterns to align with strict matching, or set strictMatching to false to retain legacy behavior temporarily. See [MSAL Interceptor docs](./msal-interceptor.md) for more details.
+In msal-angular v5, URL pattern matching for protectedResourceMap entries uses strict matching semantics by default. Strict matching treats pattern metacharacters as literals, anchors matches to the full URL component, and applies host wildcard rules that do not span dot separators. If your v4 configuration relied on looser matching behavior, update your protectedResourceMap patterns to align with strict matching, or set strictMatching to false to retain legacy behavior temporarily. See [MSAL Interceptor docs](./msal-interceptor.md#strict-matching-strictmatching) for more details.
 
 ## Other changes in `@azure/msal-angular@5`
 
