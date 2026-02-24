@@ -1649,6 +1649,34 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.initialize();
         });
 
+        it("records isMcp on InitializeClientApplication telemetry event", (done) => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                },
+            };
+            pca = new PublicClientApplication(config);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                for (const event of events) {
+                    if (
+                        event.name ===
+                        BrowserRootPerformanceEvents.InitializeClientApplication
+                    ) {
+                        expect(event.isMcp).toBe(true);
+                        pca.removePerformanceCallback(callbackId);
+                        done();
+                    }
+                }
+            });
+
+            pca.initialize();
+        });
+
         it("falls back to web flow if prompt is select_account", async () => {
             const config = {
                 auth: {
@@ -3782,7 +3810,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .mockResolvedValue(testTokenResponse);
 
             jest.spyOn(EventHandler.prototype, "emitEvent").mockImplementation(
-                (eventType, interactionType) => {
+                (eventType, _correlationId, interactionType) => {
                     if (
                         eventType === EventType.ACQUIRE_TOKEN_START &&
                         interactionType === InteractionType.Silent

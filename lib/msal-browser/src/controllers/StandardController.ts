@@ -323,6 +323,7 @@ export class StandardController implements IController {
 
         // Broker applications are initialized twice, so we avoid double-counting it
         this.logMultipleInstances(initMeasurement, correlationId);
+        initMeasurement.add({ isMcp: this.config.auth.isMcp });
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
