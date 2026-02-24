@@ -147,6 +147,43 @@ Other things to note regarding the `protectedResourceMap`:
 * **Wildcards**: `protectedResourceMap` supports using `*` for wildcards. When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`). 
 * **Relative paths**: If there are relative resource paths in your application, you may need to provide the relative path in the `protectedResourceMap`. This also applies to issues that may arise with ngx-translate. Be aware that the relative path in your `protectedResourceMap` may or may not need a leading slash depending on your app, and may need to try both.
 
+### Strict Matching (`strictMatching`)
+
+The optional `strictMatching` boolean field on `MsalInterceptorConfiguration` enables stricter, more semantically correct URL component pattern matching for `protectedResourceMap` entries. It defaults to `false` for backwards compatibility with existing applications.
+
+#### What `strictMatching: true` changes
+
+| Behaviour | Legacy (default) | Strict (`strictMatching: true`) |
+|-----------|------------------|---------------------------------|
+| Metacharacter escaping | `.` and other regex metacharacters are **not** escaped; they act as regex operators | All metacharacters (including `.`) are treated as **literals** |
+| Anchoring | Pattern may match anywhere within the string | Pattern must match the **full string** (`^…$`) |
+| Host wildcard (`*`) | `*` matches any character sequence, including `.` | `*` matches any character sequence that does **not** include `.` (wildcards stay within a single DNS label) |
+| Path/search/hash wildcard (`*`) | `*` matches any character sequence | `*` matches any character sequence (unchanged) |
+| `?` character | Passed through to the underlying regex | Treated as a **literal** `?` (URL query-string separator, not a wildcard) |
+
+With `strictMatching: true`:
+- A pattern like `*.contoso.com` matches `app.contoso.com` but **not** `a.b.contoso.com` (wildcard cannot span dot separators).
+- A pattern like `https://graph.microsoft.com/v1.0/me` matches only that exact URL.
+
+#### Enabling strict matching
+
+```javascript
+{
+    interactionType: InteractionType.Redirect,
+    protectedResourceMap: new Map([
+        ["https://*.contoso.com/api", ["contoso.scope"]],
+        ["https://graph.microsoft.com/v1.0/me", ["user.read"]]
+    ]),
+    strictMatching: true  // Enable stricter, anchored pattern matching
+}
+```
+
+#### Compatibility and migration
+
+`strictMatching` is optional and defaults to `false` in the current release line so existing applications are unaffected. You can opt in incrementally by enabling it and reviewing your `protectedResourceMap` patterns for correctness.
+
+> **Forward-looking note:** In **msal-angular v5**, `strictMatching` will be `true` by default. We recommend reviewing and updating your `protectedResourceMap` patterns to be compatible with strict matching semantics before upgrading to v5.
+
 ### Optional authRequest
 
 For more information on the optional `authRequest` that can be set in the `MsalInterceptorConfiguration`, please see our [multi-tenant doc here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/multi-tenant.md#dynamic-auth-request).
