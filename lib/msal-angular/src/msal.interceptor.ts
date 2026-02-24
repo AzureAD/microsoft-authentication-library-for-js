@@ -296,11 +296,36 @@ export class MsalInterceptor implements HttpInterceptor {
     // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
     const urlProperties = ["protocol", "host", "pathname", "search", "hash"];
 
+    const useStrictMatching = this.msalInterceptorConfig.strictMatching !== false;
+
     for (const property of urlProperties) {
       if (keyComponents[property]) {
         const decodedInput = decodeURIComponent(keyComponents[property]);
-        if (!this.matchPattern(decodedInput, endpointComponents[property])) {
-          return false;
+        if (useStrictMatching) {
+          /*
+           * Strict matching (v5 default): anchored patterns, metacharacters
+           * are treated as literals, host wildcards do not span dot separators.
+           */
+          const component =
+            property === "pathname"
+              ? "path"
+              : (property as "host" | "protocol" | "search" | "hash");
+          if (
+            !this.matchPatternStrict(
+              decodedInput,
+              endpointComponents[property],
+              component
+            )
+          ) {
+            return false;
+          }
+        } else {
+          // Legacy matching: preserved for backwards compatibility with v4.
+          if (
+            !this.matchPattern(decodedInput, endpointComponents[property])
+          ) {
+            return false;
+          }
         }
       }
     }
@@ -409,6 +434,48 @@ export class MsalInterceptor implements HttpInterceptor {
         .replace(/\?/g, "\\?")
     );
 
+    return regex.test(input);
+  }
+
+  /**
+   * Tests if a given string matches a given pattern using stricter, anchored
+   * matching semantics.
+   *
+   * Differences from `matchPattern` (legacy):
+   * - All regex metacharacters (including `.`) are treated as literals.
+   * - The generated regex is anchored with `^` and `$` (full-string match).
+   * - `*` wildcard behaviour depends on the URL component:
+   *   - `host`: `*` matches any characters that do NOT include `.`
+   *     (wildcards stay within a single DNS label).
+   *   - All other components: `*` matches any characters.
+   *
+   * @param pattern - The protectedResourceMap key pattern.
+   * @param input - The URL component value from the outgoing request.
+   * @param component - Which URL component is being matched.
+   * @returns `true` if the full input string matches the pattern.
+   */
+  private matchPatternStrict(
+    pattern: string,
+    input: string,
+    component: "protocol" | "host" | "path" | "search" | "hash"
+  ): boolean {
+    // Step 1: Escape all regex metacharacters so literals match literally.
+    let regexBody = pattern.replace(/[.+^${}()|[\]\\*?]/g, "\\$&");
+
+    // Step 2: Replace escaped wildcards with component-aware regex equivalents.
+    if (component === "host") {
+      regexBody = regexBody.replace(/\\\*/g, "[^.]*");
+    } else {
+      // Path, protocol, search, hash: `*` matches any characters.
+      regexBody = regexBody.replace(/\\\*/g, ".*");
+    }
+
+    // Treat `?` as a literal (URL query-string separator, not a wildcard).
+    regexBody = regexBody.replace(/\\\?/g, "\\?");
+
+    // Step 3: Anchor for full-string matching.
+    // eslint-disable-next-line security/detect-non-literal-regexp
+    const regex = new RegExp(`^${regexBody}$`);
     return regex.test(input);
   }
 }

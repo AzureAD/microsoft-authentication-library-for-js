@@ -107,6 +107,8 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["http://applicationF.com/profile/", ["customF.scope"]],
     ]),
     authRequest: testInterceptorConfig.authRequest,
+    // Legacy test suite: use legacy matching to preserve existing test coverage
+    strictMatching: false,
   };
 }
 
@@ -1171,5 +1173,501 @@ describe("MsalInterceptor", () => {
       httpMock.verify();
       done();
     }, 200);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// matchPatternStrict / matchPattern helper tests
+// ---------------------------------------------------------------------------
+// These tests exercise the local matching helpers defined in MsalInterceptor.
+// They are invoked indirectly through the interceptor's URL-matching flow.
+// ---------------------------------------------------------------------------
+
+function MSALStrictInterceptorFactory(
+  resourceMap: Map<string, Array<string | ProtectedResourceScopes> | null>,
+  strict?: boolean
+): MsalInterceptorConfiguration {
+  return {
+    interactionType: InteractionType.Popup,
+    protectedResourceMap: resourceMap,
+    strictMatching: strict,
+  };
+}
+
+function initializeMsalStrict(
+  resourceMap: Map<string, Array<string | ProtectedResourceScopes> | null>,
+  strict?: boolean
+) {
+  TestBed.resetTestingModule();
+  TestBed.configureTestingModule({
+    imports: [
+      MsalModule.forRoot(
+        MSALInstanceFactory(),
+        null,
+        MSALStrictInterceptorFactory(resourceMap, strict)
+      ),
+    ],
+    providers: [
+      MsalInterceptor,
+      MsalService,
+      MsalBroadcastService,
+      {
+        provide: HTTP_INTERCEPTORS,
+        useClass: MsalInterceptor,
+        multi: true,
+      },
+      Location,
+      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClientTesting(),
+      provideRouter([]),
+    ],
+    teardown: { destroyAfterEach: false },
+  });
+
+  interceptor = TestBed.inject(MsalInterceptor);
+  httpMock = TestBed.inject(HttpTestingController);
+  httpClient = TestBed.inject(HttpClient);
+}
+
+// ---------------------------------------------------------------------------
+// matchPatternStrict direct unit tests (exercising the private helper via cast)
+// ---------------------------------------------------------------------------
+describe("matchPatternStrict unit tests", () => {
+  // Access the private method via cast for direct unit testing.
+  let match: (pattern: string, input: string, component: "protocol" | "host" | "path" | "search" | "hash") => boolean;
+
+  beforeEach(() => {
+    const emptyMap = new Map<string, Array<string | ProtectedResourceScopes> | null>();
+    initializeMsalStrict(emptyMap);
+    match = (interceptor as any).matchPatternStrict.bind(interceptor);
+  });
+
+  describe("host component - wildcard stays within a single DNS label", () => {
+    it("wildcard host pattern matches intended subdomain", () => {
+      expect(match("*.contoso.com", "app.contoso.com", "host")).toBe(true);
+    });
+
+    it("wildcard host pattern does not match when wildcard would span a dot boundary", () => {
+      expect(match("*.contoso.com", "othercontoso.com", "host")).toBe(false);
+    });
+
+    it("wildcard host pattern does not match multi-label wildcard expansion", () => {
+      expect(match("*.contoso.com", "a.b.contoso.com", "host")).toBe(false);
+    });
+
+    it("exact host pattern matches its intended host", () => {
+      expect(match("api.contoso.com", "api.contoso.com", "host")).toBe(true);
+    });
+
+    it("exact host pattern does not match a different host", () => {
+      expect(match("api.contoso.com", "other.contoso.com", "host")).toBe(false);
+    });
+  });
+
+  describe("dot metacharacter escaping", () => {
+    it("dot in pattern is treated as a literal dot", () => {
+      expect(match("example.com", "example.com", "host")).toBe(true);
+    });
+
+    it("dot in pattern does not match a non-dot character", () => {
+      expect(match("example.com", "exampleXcom", "host")).toBe(false);
+    });
+  });
+
+  describe("anchoring - full-string match required", () => {
+    it("pattern must match the full string, not just a substring", () => {
+      expect(match("/user/1", "/user/1/extra", "path")).toBe(false);
+    });
+
+    it("pattern must not match a prefix of the input", () => {
+      expect(match("contoso", "contoso.com", "host")).toBe(false);
+    });
+
+    it("pattern must not match a suffix of the input", () => {
+      expect(match("contoso.com", "api.contoso.com", "host")).toBe(false);
+    });
+  });
+
+  describe("path component - wildcard matches across slashes", () => {
+    it("path wildcard matches a single path segment", () => {
+      expect(match("/user/*", "/user/1", "path")).toBe(true);
+    });
+
+    it("path wildcard matches multiple path segments", () => {
+      expect(match("/user/*", "/user/1/2/3", "path")).toBe(true);
+    });
+
+    it("path wildcard does not match a completely different path", () => {
+      expect(match("/user/*", "/admin/1", "path")).toBe(false);
+    });
+  });
+
+  describe("question mark is a literal (URL query separator)", () => {
+    it("? in a pattern matches a literal ? in the input", () => {
+      expect(match("/items?page=1", "/items?page=1", "path")).toBe(true);
+    });
+
+    it("? in a pattern does not match a different character", () => {
+      expect(match("/items?page=1", "/itemsXpage=1", "path")).toBe(false);
+    });
+
+    it("pattern with ? does not match input missing the ? character", () => {
+      expect(match("/items?page=1", "/itemspage=1", "path")).toBe(false);
+    });
+  });
+
+  describe("host pattern only matches the host component", () => {
+    it("wildcard host pattern does not match a completely different hostname", () => {
+      expect(match("*.microsoft.com", "other.com", "host")).toBe(false);
+    });
+
+    it("wildcard host pattern does not match a host with no dot before the domain", () => {
+      expect(match("*.microsoft.com", "othermicrosoft.com", "host")).toBe(false);
+    });
+
+    it("wildcard host pattern matches only the correct host component", () => {
+      expect(match("*.microsoft.com", "login.microsoft.com", "host")).toBe(true);
+    });
+  });
+
+  describe("no component-specific semantics for path - defaults to permissive wildcard", () => {
+    it("* matches across any characters in path component", () => {
+      expect(match("/user/*", "/user/1", "path")).toBe(true);
+    });
+
+    it("exact match succeeds in path component", () => {
+      expect(match("/v1.0/me", "/v1.0/me", "path")).toBe(true);
+    });
+
+    it("non-match returns false in path component", () => {
+      expect(match("/v1.0/me", "/v1.0/other", "path")).toBe(false);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// matchPatternStrict integration tests (via interceptor matching flow)
+// ---------------------------------------------------------------------------
+describe("msal.interceptor matchPatternStrict", () => {
+  const hostwildcardMap = new Map<
+    string,
+    Array<string | ProtectedResourceScopes> | null
+  >([
+    ["https://*.contoso.com/api", ["contoso.scope"]],
+    ["https://exact.api.com/data", ["exact.scope"]],
+  ]);
+
+  describe("host wildcard matching", () => {
+    beforeEach(() => {
+      initializeMsalStrict(hostwildcardMap);
+    });
+
+    it("msal.interceptor matchPatternStrict: host wildcard matches a single-label subdomain", (done) => {
+      spyOn(
+        PublicClientApplication.prototype,
+        "acquireTokenSilent"
+      ).and.returnValue(
+        new Promise((resolve) => {
+          // @ts-ignore
+          resolve({ accessToken: "strict-token" });
+        })
+      );
+      spyOn(
+        PublicClientApplication.prototype,
+        "getAllAccounts"
+      ).and.returnValue([sampleAccountInfo]);
+
+      httpClient.get("https://app.contoso.com/api").subscribe();
+      setTimeout(() => {
+        const request = httpMock.expectOne("https://app.contoso.com/api");
+        request.flush({ data: "test" });
+        expect(request.request.headers.get("Authorization")).toEqual(
+          "Bearer strict-token"
+        );
+        httpMock.verify();
+        done();
+      }, 200);
+    });
+
+    it("msal.interceptor matchPatternStrict: host wildcard does not span dot separators", (done) => {
+      httpClient
+        .get("https://a.b.contoso.com/api")
+        .subscribe((response) => expect(response).toBeTruthy());
+
+      const request = httpMock.expectOne("https://a.b.contoso.com/api");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toBeNull();
+      httpMock.verify();
+      done();
+    });
+
+    it("msal.interceptor matchPatternStrict: pattern is anchored (no substring matches)", (done) => {
+      httpClient
+        .get("https://exact.api.com/data/extra")
+        .subscribe((response) => expect(response).toBeTruthy());
+
+      const request = httpMock.expectOne("https://exact.api.com/data/extra");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toBeNull();
+      httpMock.verify();
+      done();
+    });
+
+    it("msal.interceptor matchPatternStrict: treats regex metacharacters as literals", (done) => {
+      spyOn(
+        PublicClientApplication.prototype,
+        "acquireTokenSilent"
+      ).and.returnValue(
+        new Promise((resolve) => {
+          // @ts-ignore
+          resolve({ accessToken: "exact-token" });
+        })
+      );
+      spyOn(
+        PublicClientApplication.prototype,
+        "getAllAccounts"
+      ).and.returnValue([sampleAccountInfo]);
+
+      httpClient.get("https://exact.api.com/data").subscribe();
+      setTimeout(() => {
+        const request = httpMock.expectOne("https://exact.api.com/data");
+        request.flush({ data: "test" });
+        expect(request.request.headers.get("Authorization")).toEqual(
+          "Bearer exact-token"
+        );
+        httpMock.verify();
+        done();
+      }, 200);
+    });
+  });
+
+  describe("pathname matching", () => {
+    const pathMap = new Map<
+      string,
+      Array<string | ProtectedResourceScopes> | null
+    >([["https://myapplication.com/user/*", ["customscope.read"]]]);
+
+    beforeEach(() => {
+      initializeMsalStrict(pathMap);
+    });
+
+    it("msal.interceptor matchPatternStrict: pathname wildcard matches expected segments", (done) => {
+      spyOn(
+        PublicClientApplication.prototype,
+        "acquireTokenSilent"
+      ).and.returnValue(
+        new Promise((resolve) => {
+          // @ts-ignore
+          resolve({ accessToken: "path-token" });
+        })
+      );
+      spyOn(
+        PublicClientApplication.prototype,
+        "getAllAccounts"
+      ).and.returnValue([sampleAccountInfo]);
+
+      httpClient.get("https://myapplication.com/user/1").subscribe();
+      setTimeout(() => {
+        const request = httpMock.expectOne(
+          "https://myapplication.com/user/1"
+        );
+        request.flush({ data: "test" });
+        expect(request.request.headers.get("Authorization")).toEqual(
+          "Bearer path-token"
+        );
+        httpMock.verify();
+        done();
+      }, 200);
+    });
+  });
+});
+
+describe("msal.interceptor matchPattern (legacy)", () => {
+  it("msal.interceptor matchPattern: legacy behavior is unchanged for existing patterns", (done) => {
+    const legacyMap = new Map<
+      string,
+      Array<string | ProtectedResourceScopes> | null
+    >([
+      ["https://*.myapplication.com/*", ["mail.read"]],
+    ]);
+    initializeMsalStrict(legacyMap, false);
+
+    spyOn(
+      PublicClientApplication.prototype,
+      "acquireTokenSilent"
+    ).and.returnValue(
+      new Promise((resolve) => {
+        // @ts-ignore
+        resolve({ accessToken: "legacy-token" });
+      })
+    );
+    spyOn(
+      PublicClientApplication.prototype,
+      "getAllAccounts"
+    ).and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("https://mail.myapplication.com/me").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne(
+        "https://mail.myapplication.com/me"
+      );
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual(
+        "Bearer legacy-token"
+      );
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// MsalInterceptor strict matching integration tests
+// ---------------------------------------------------------------------------
+describe("MsalInterceptor - strictMatching option", () => {
+  describe("MsalInterceptor: uses strict matching by default for protectedResourceMap entries", () => {
+    const defaultStrictMap = new Map<
+      string,
+      Array<string | ProtectedResourceScopes> | null
+    >([
+      ["https://*.contoso.com/api", ["contoso.scope"]],
+      ["https://exact.api.com/data", ["exact.scope"]],
+    ]);
+
+    beforeEach(() => {
+      // No strictMatching field set — should default to strict (v5)
+      initializeMsalStrict(defaultStrictMap);
+    });
+
+    it("MsalInterceptor: attaches authorization header only when URL components match configured pattern", (done) => {
+      spyOn(
+        PublicClientApplication.prototype,
+        "acquireTokenSilent"
+      ).and.returnValue(
+        new Promise((resolve) => {
+          // @ts-ignore
+          resolve({ accessToken: "default-strict-token" });
+        })
+      );
+      spyOn(
+        PublicClientApplication.prototype,
+        "getAllAccounts"
+      ).and.returnValue([sampleAccountInfo]);
+
+      httpClient.get("https://app.contoso.com/api").subscribe();
+      setTimeout(() => {
+        const request = httpMock.expectOne("https://app.contoso.com/api");
+        request.flush({ data: "test" });
+        expect(request.request.headers.get("Authorization")).toEqual(
+          "Bearer default-strict-token"
+        );
+        httpMock.verify();
+        done();
+      }, 200);
+    });
+
+    it("MsalInterceptor: strict matching applies host label boundaries for wildcard hosts", (done) => {
+      httpClient
+        .get("https://a.b.contoso.com/api")
+        .subscribe((response) => expect(response).toBeTruthy());
+
+      const request = httpMock.expectOne("https://a.b.contoso.com/api");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toBeNull();
+      httpMock.verify();
+      done();
+    });
+  });
+
+  describe("MsalInterceptor: strictMatching=false uses legacy matching behavior", () => {
+    const legacyMap = new Map<
+      string,
+      Array<string | ProtectedResourceScopes> | null
+    >([
+      ["https://*.contoso.com/api", ["contoso.scope"]],
+    ]);
+
+    beforeEach(() => {
+      initializeMsalStrict(legacyMap, false);
+    });
+
+    it("MsalInterceptor: strictMatching=false uses legacy matching behavior", (done) => {
+      spyOn(
+        PublicClientApplication.prototype,
+        "acquireTokenSilent"
+      ).and.returnValue(
+        new Promise((resolve) => {
+          // @ts-ignore
+          resolve({ accessToken: "legacy-compat-token" });
+        })
+      );
+      spyOn(
+        PublicClientApplication.prototype,
+        "getAllAccounts"
+      ).and.returnValue([sampleAccountInfo]);
+
+      httpClient.get("https://app.contoso.com/api").subscribe();
+      setTimeout(() => {
+        const request = httpMock.expectOne("https://app.contoso.com/api");
+        request.flush({ data: "test" });
+        expect(request.request.headers.get("Authorization")).toEqual(
+          "Bearer legacy-compat-token"
+        );
+        httpMock.verify();
+        done();
+      }, 200);
+    });
+  });
+
+  describe("strictMatching: true - host pattern does not match hostnames in the query string", () => {
+    const microsoftResourceMap = new Map<
+      string,
+      Array<string | ProtectedResourceScopes> | null
+    >([["https://*.microsoft.com", ["microsoft.scope"]]]);
+
+    beforeEach(() => {
+      initializeMsalStrict(microsoftResourceMap);
+    });
+
+    it("does not attach authorization header when the matched hostname appears only in the query string", (done) => {
+      httpClient
+        .get("http://other.com?redirect=login.microsoft.com")
+        .subscribe((response) => expect(response).toBeTruthy());
+
+      const request = httpMock.expectOne(
+        "http://other.com?redirect=login.microsoft.com"
+      );
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toBeNull();
+      httpMock.verify();
+      done();
+    });
+
+    it("attaches authorization header for an actual microsoft.com subdomain request", (done) => {
+      spyOn(
+        PublicClientApplication.prototype,
+        "acquireTokenSilent"
+      ).and.returnValue(
+        new Promise((resolve) => {
+          // @ts-ignore
+          resolve({ accessToken: "ms-token" });
+        })
+      );
+      spyOn(
+        PublicClientApplication.prototype,
+        "getAllAccounts"
+      ).and.returnValue([sampleAccountInfo]);
+
+      httpClient.get("https://login.microsoft.com").subscribe();
+      setTimeout(() => {
+        const request = httpMock.expectOne("https://login.microsoft.com");
+        request.flush({ data: "test" });
+        expect(request.request.headers.get("Authorization")).toEqual(
+          "Bearer ms-token"
+        );
+        httpMock.verify();
+        done();
+      }, 200);
+    });
   });
 });
