@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1771620004986,
+  "lastUpdate": 1771958885769,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19553,6 +19553,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.76%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7d9f5cf1989ea856d82b24f7ef7212e685775576",
+          "message": "[v4] Add strict matching to MSAL Interceptor (#8351)\n\nThis PR adds strict matching to MSAL Common's StringUtils, to be used in\nthe MSAL Angular interceptor.",
+          "timestamp": "2026-02-24T10:41:22-08:00",
+          "tree_id": "3c07ed3d7f4eee1173a2e4e2d81b7d767cfa5967",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7d9f5cf1989ea856d82b24f7ef7212e685775576"
+        },
+        "date": 1771958881653,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 248436,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 251674,
+            "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
