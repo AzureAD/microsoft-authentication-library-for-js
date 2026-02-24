@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix syntax error in sessionStorage key for interaction status #8346",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
