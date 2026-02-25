@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Tue, 10 Feb 2026 23:04:27 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 24 Feb 2026 21:51:51 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.1.0
+
+Tue, 24 Feb 2026 21:51:51 GMT
+
+### Minor changes
+
+- Make strictMatching default [#8355](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8355) (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v5.3.0
+- Bump eslint-config-msal to v0.0.0
+
+### Patches
+
+- Update dev dependencies [#8335](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8335) (joarroyo@microsoft.com)
 
 ## 5.0.4
 
