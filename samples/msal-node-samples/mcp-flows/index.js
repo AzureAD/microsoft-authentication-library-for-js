@@ -17,6 +17,48 @@ const cachePlugin = require("../cachePlugin")(cacheLocation);
 const scenario = argv.s || "AAD";
 const config = require(`./config/${scenario}.json`);
 
+const LAYOUT = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <title>Quickstart | MSAL Node.js Sample</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="SHORTCUT ICON" href="https://c.s-microsoft.com/favicon.ico?v2" type="image/x-icon">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <a class="navbar-brand" href="/">MS Identity Platform</a>
+    SIGNIN_BUTTON
+  </nav>
+  <br>
+  <h5 class="card-header text-center">MSAL Node.js demonstrating MCP Flow</h5>
+  <br>
+  <div class="row" style="margin:auto">
+    BODY
+  </div>
+</body>
+</html>`;
+
+function renderLogin() {
+    return LAYOUT
+        .replace("SIGNIN_BUTTON", `<div class="ml-auto"><a type="button" id="SignIn" class="btn btn-secondary" href="/login">Sign In</a></div>`)
+        .replace("BODY", `<div id="card-div" class="col-md-3"><div class="card text-center"><div class="card-body"><h5 class="card-title">Please sign-in to acquire a token</h5></div></div></div>`);
+}
+
+function renderAuthenticated(username, options = {}) {
+    const silentSpan = options.acquiredTokenSilently ? `<pre id="token-acquired-silently">Silent token acquisition successful</pre>` : "";
+    const tokenSpan = options.tokenAcquired ? `<span id="token-acquired">Token acquired successfully</span>` : "";
+    return LAYOUT
+        .replace("SIGNIN_BUTTON", "")
+        .replace("BODY", `
+          <div id="card-div" class="col-md-3"><div class="card text-center"><div class="card-body">
+            <h5 class="card-title">Welcome, ${username}!</h5>
+            <a class="btn btn-primary" href="/silent" id="acquireTokenSilent">Acquire Token Silently</a>
+          </div></div></div>
+          <div class="col-md-5"><div class="tab-content">${tokenSpan}${silentSpan}</div></div>`);
+}
+
 const getTokenMcp = function (scenarioConfig, clientApplication, port, msalTokenCache) {
     const serverPort = port || SERVER_PORT;
     const app = express();
@@ -33,18 +75,18 @@ const getTokenMcp = function (scenarioConfig, clientApplication, port, msalToken
     const requestConfig = scenarioConfig.request;
     const cryptoProvider = new msal.CryptoProvider();
 
-    // Home page — renders a sign-in link
     app.get("/", (req, res) => {
         if (req.query.code) {
             return res.redirect(
                 `/redirect?code=${req.query.code}&state=${req.query.state}`
             );
         }
-        res.send(
-            `<html><body>
-                <a id="SignIn" href="/login">Sign in</a>
-            </body></html>`
-        );
+        if (req.session.username) {
+            const tokenJustAcquired = req.session.tokenJustAcquired || false;
+            req.session.tokenJustAcquired = false;
+            return res.send(renderAuthenticated(req.session.username, { tokenAcquired: tokenJustAcquired }));
+        }
+        res.send(renderLogin());
     });
 
     app.get("/login", async (req, res) => {
@@ -77,12 +119,9 @@ const getTokenMcp = function (scenarioConfig, clientApplication, port, msalToken
             .acquireTokenByCode(tokenRequest, authCodeResponse)
             .then((response) => {
                 req.session.homeAccountId = response.account.homeAccountId;
-                res.send(
-                    `<html><body>
-                        <span id="token-acquired">Token acquired</span>
-                        <a id="acquireTokenSilent" href="/silent">Acquire token silently</a>
-                    </body></html>`
-                );
+                req.session.username = response.account.username;
+                req.session.tokenJustAcquired = true;
+                res.redirect("/");
             })
             .catch((error) => {
                 res.status(500).send(error.errorMessage || error.message);
@@ -103,13 +142,8 @@ const getTokenMcp = function (scenarioConfig, clientApplication, port, msalToken
 
         clientApplication
             .acquireTokenSilent(silentRequest)
-            .then(() => {
-                res.send(
-                    `<html><body>
-                        <span id="token-acquired-silently">Token acquired silently</span>
-                        <a id="acquireTokenSilent" href="/silent">Acquire token silently</a>
-                    </body></html>`
-                );
+            .then((response) => {
+                res.send(renderAuthenticated(response.account.username, { acquiredTokenSilently: true }));
             })
             .catch((error) => {
                 res.status(500).send(error.errorCode || error.message);
