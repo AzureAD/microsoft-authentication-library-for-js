@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Nest dynamic telemetry events",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
