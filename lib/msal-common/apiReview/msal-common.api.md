@@ -2108,11 +2108,6 @@ const DOMAIN_HINT = "domain_hint";
 // @public (undocumented)
 const DSTS = "dstsv2";
 
-// Warning: (ae-missing-release-tag) "DYNAMIC_FIELD_PREFIX" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export const DYNAMIC_FIELD_PREFIX = "dynamic.";
-
 // Warning: (ae-missing-release-tag) "EAR_JWE_CRYPTO" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -3493,7 +3488,7 @@ export type PerformanceEvent = {
     dataBoundary?: DataBoundary;
     logs?: string;
     silentRefreshReason?: string;
-    dynamic?: Record<string, string | number>;
+    ext?: Record<string, string | number>;
 };
 
 declare namespace PerformanceEvents {
