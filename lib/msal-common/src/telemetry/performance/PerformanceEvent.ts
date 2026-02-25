@@ -345,12 +345,101 @@ export type PerformanceEvent = {
     logs?: string;
 
     /**
+     * Source of cloud discovery metadata (config, cache, network, hardcoded_values)
+     */
+    cloudDiscoverySource?: string;
+
+    /**
+     * Source of authority endpoint metadata (config, cache, network, hardcoded_values)
+     */
+    authorityEndpointSource?: string;
+
+    /**
+     * Number of accounts removed during cache cleanup
+     */
+    accountsRemoved?: number;
+
+    /**
+     * Number of access tokens removed during cache cleanup
+     */
+    accessTokensRemoved?: number;
+
+    /**
+     * Number of failures when removing token binding keys
+     */
+    removeTokenBindingKeyFailure?: number;
+
+    /**
      * Reason for silent refresh fallback to iframe
      * Format: errorCode or errorCode|subError
      *
      * @type {?string}
      */
     silentRefreshReason?: string;
+
+    /**
+     * Whether this request was deduped with another in-flight request
+     */
+    deduped?: boolean;
+
+    /**
+     * Whether the user has "Keep Me Signed In" enabled
+     */
+    kmsi?: boolean;
+
+    /**
+     * Whether this event was executed in the background
+     */
+    isBackground?: boolean;
+
+    /**
+     * Cache migration telemetry — pre-migration counts
+     */
+    preMigrateAcntCount?: number;
+    preMigrateATCount?: number;
+    preMigrateITCount?: number;
+    preMigrateRTCount?: number;
+
+    /**
+     * Cache migration telemetry — post-migration counts
+     */
+    postMigrateAcntCount?: number;
+    postMigrateATCount?: number;
+    postMigrateITCount?: number;
+    postMigrateRTCount?: number;
+
+    /**
+     * Cache migration telemetry — old schema counts
+     */
+    oldAcntCount?: number;
+    oldATCount?: number;
+    oldITCount?: number;
+    oldRTCount?: number;
+
+    /**
+     * Cache migration telemetry — skipped and migrated counts
+     */
+    skipATMigrateCount?: number;
+    skipITMigrateCount?: number;
+    skipRTMigrateCount?: number;
+    migratedATCount?: number;
+    migratedITCount?: number;
+    migratedRTCount?: number;
+
+    /**
+     * Cache telemetry — expired, invalid, and removed counts
+     */
+    expiredCacheRemovedCount?: number;
+    expiredAcntRemovedCount?: number;
+    invalidCacheCount?: number;
+
+    /**
+     * Encrypted cache telemetry
+     */
+    unencryptedCacheCount?: number;
+    encryptedCacheCount?: number;
+    encryptedCacheExpiredCount?: number;
+    encryptedCacheCorruptionCount?: number;
 
     /**
      * Container for dynamically-named telemetry fields.

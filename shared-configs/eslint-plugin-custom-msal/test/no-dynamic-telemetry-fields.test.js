@@ -10,7 +10,7 @@ const ruleTester = new RuleTester({
 
 ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
     valid: [
-        // Static literal keys in telemetry calls are allowed
+        // Static literal keys that ARE valid PerformanceEvent fields
         {
             code: `telemetryClient.incrementFields({ visibilityChangeCount: 1 }, correlationId);`,
         },
@@ -22,6 +22,12 @@ ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
         },
         {
             code: `inProgressEvent.increment({ multiMatchedAT: 1 });`,
+        },
+        {
+            code: `telemetryClient.addFields({ correlationId: "abc-123" }, id);`,
+        },
+        {
+            code: `telemetryClient.addFields({ durationMs: 500, success: true }, id);`,
         },
         // Computed keys with "ext." prefix are allowed
         {
@@ -40,6 +46,10 @@ ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
         {
             code: `map.set({ [key]: value });`,
         },
+        // Non-telemetry method calls with any static keys are allowed (no validation)
+        {
+            code: `someObject.someMethod({ totallyFakeField: 1 });`,
+        },
         // Direct assignment on non-event variables is allowed
         {
             code: `someObject[dynamicKey] = 5;`,
@@ -54,6 +64,15 @@ ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
         // Spread elements in telemetry calls are fine
         {
             code: `telemetryClient.addFields({ ...otherFields }, correlationId);`,
+        },
+        // Fields from additionalAllowedFields option are allowed
+        {
+            code: `telemetryClient.addFields({ customOnePField: "value" }, id);`,
+            options: [{ additionalAllowedFields: ["customOnePField"] }],
+        },
+        // Multiple valid fields in one call
+        {
+            code: `telemetryClient.addFields({ correlationId: "abc", httpStatus: 200, success: true }, id);`,
         },
     ],
     invalid: [
@@ -120,6 +139,54 @@ ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
             errors: [
                 {
                     messageId: "noDynamicAssignment",
+                },
+            ],
+        },
+        // Static keys that are NOT valid PerformanceEvent fields (typos, made-up names)
+        {
+            code: `telemetryClient.addFields({ correlationIdd: "value" }, id);`,
+            errors: [
+                {
+                    messageId: "unknownStaticField",
+                    data: { name: "correlationIdd", method: "addFields" },
+                },
+            ],
+        },
+        {
+            code: `inProgressEvent.add({ fakeField: 123 });`,
+            errors: [
+                {
+                    messageId: "unknownStaticField",
+                    data: { name: "fakeField", method: "add" },
+                },
+            ],
+        },
+        {
+            code: `telemetryClient.incrementFields({ durrationMs: 1 }, id);`,
+            errors: [
+                {
+                    messageId: "unknownStaticField",
+                    data: { name: "durrationMs", method: "incrementFields" },
+                },
+            ],
+        },
+        // Mix of valid and invalid static keys — only the invalid one is reported
+        {
+            code: `telemetryClient.addFields({ correlationId: "abc", notARealField: true }, id);`,
+            errors: [
+                {
+                    messageId: "unknownStaticField",
+                    data: { name: "notARealField", method: "addFields" },
+                },
+            ],
+        },
+        // String literal key that is not a valid field
+        {
+            code: `telemetryClient.addFields({ "badFieldName": 42 }, id);`,
+            errors: [
+                {
+                    messageId: "unknownStaticField",
+                    data: { name: "badFieldName", method: "addFields" },
                 },
             ],
         },

@@ -7,14 +7,69 @@
  * @fileoverview ESLint rule to disallow dynamic (computed) telemetry field names
  * that are not defined in PerformanceEvent. Dynamic fields must use the "ext." prefix
  * so they are automatically routed to the PerformanceEvent.ext sub-object.
+ * Additionally validates that static (non-computed) field names match known
+ * PerformanceEvent properties to catch typos and invalid field names.
  */
+
+const fs = require("fs");
+const path = require("path");
+
+/**
+ * Default path to the 3P PerformanceEvent type definition,
+ * resolved relative to this rule file's location in the repo.
+ */
+const DEFAULT_PERFORMANCE_EVENT_PATH = path.resolve(
+    __dirname,
+    "../../../lib/msal-common/src/telemetry/performance/PerformanceEvent.ts"
+);
+
+/** Cache for extracted field names keyed by resolved file path */
+const fieldNameCache = new Map();
+
+/**
+ * Extract property names from `type PerformanceEvent = { ... }` blocks in a
+ * TypeScript file. Handles both plain type definitions and intersection types
+ * (e.g., `type PerformanceEvent = Event & { ... }`). Only fields inside
+ * braces belonging to PerformanceEvent are collected.
+ * @param {string} filePath - Absolute path to the TypeScript file
+ * @returns {Set<string>} Set of extracted property names
+ */
+function extractFieldNames(filePath) {
+    const resolved = path.resolve(filePath);
+    if (fieldNameCache.has(resolved)) {
+        return fieldNameCache.get(resolved);
+    }
+
+    const fieldNames = new Set();
+    try {
+        const content = fs.readFileSync(resolved, "utf8");
+        // Match every `type PerformanceEvent = ...` block and extract fields
+        // from all `{ ... }` bodies within it (handles intersection types).
+        const typeBlockRegex =
+            /\btype\s+PerformanceEvent\b[^=]*=\s*([\s\S]*?)\n\};/g;
+        let blockMatch;
+        while ((blockMatch = typeBlockRegex.exec(content)) !== null) {
+            const body = blockMatch[1];
+            const fieldRegex = /^\s+(\w+)\??\s*:/gm;
+            let fieldMatch;
+            while ((fieldMatch = fieldRegex.exec(body)) !== null) {
+                fieldNames.add(fieldMatch[1]);
+            }
+        }
+    } catch {
+        // File not found or not readable — skip silently
+    }
+
+    fieldNameCache.set(resolved, fieldNames);
+    return fieldNames;
+}
 
 module.exports = {
     meta: {
         type: "problem",
         docs: {
             description:
-                "Disallow dynamic (computed) telemetry field names not defined in PerformanceEvent. Dynamic fields must use the 'ext.' prefix.",
+                "Disallow dynamic (computed) telemetry field names not defined in PerformanceEvent. Dynamic fields must use the 'ext.' prefix. Also validates static field names against known PerformanceEvent properties.",
             category: "Best Practices",
             recommended: true,
         },
@@ -38,6 +93,20 @@ module.exports = {
                             "Regex pattern to match variable names that hold PerformanceEvent objects",
                         default: "[Ee]vent",
                     },
+                    allowedFieldFiles: {
+                        type: "array",
+                        items: { type: "string" },
+                        description:
+                            "Additional TypeScript type definition files to extract allowed field names from. Paths are resolved relative to CWD.",
+                        default: [],
+                    },
+                    additionalAllowedFields: {
+                        type: "array",
+                        items: { type: "string" },
+                        description:
+                            "Explicit field names to allow in addition to those extracted from type files.",
+                        default: [],
+                    },
                 },
                 additionalProperties: false,
             },
@@ -47,6 +116,8 @@ module.exports = {
                 "Dynamic telemetry field name '{{name}}' is not allowed in '{{method}}()'. Use the 'ext.' prefix for computed field names (e.g., `ext.${fieldName}`) or use a static field name defined in PerformanceEvent.",
             noDynamicAssignment:
                 "Dynamic property assignment on performance event object '{{object}}' is not allowed. Use the 'ext' sub-object for computed field names (e.g., {{object}}.ext[fieldName]).",
+            unknownStaticField:
+                "Unknown telemetry field '{{name}}' in '{{method}}()'. Use a field defined in PerformanceEvent or the 'ext.' prefix for dynamic fields.",
         },
     },
 
@@ -61,7 +132,33 @@ module.exports = {
         const eventVarPattern = new RegExp(
             options.performanceEventVariablePattern || "[Ee]vent"
         );
+        const additionalAllowedFields = options.additionalAllowedFields || [];
+        const allowedFieldFiles = options.allowedFieldFiles || [];
         const sourceCode = context.getSourceCode();
+
+        // Build the set of allowed static field names
+        const allowedStaticFields = new Set(additionalAllowedFields);
+
+        // Always try to load the default 3P PerformanceEvent type
+        for (const name of extractFieldNames(DEFAULT_PERFORMANCE_EVENT_PATH)) {
+            allowedStaticFields.add(name);
+        }
+
+        // Load additional type definition files (resolved from CWD)
+        if (allowedFieldFiles.length > 0) {
+            const cwd =
+                typeof context.getCwd === "function"
+                    ? context.getCwd()
+                    : process.cwd();
+            for (const filePath of allowedFieldFiles) {
+                const resolved = path.isAbsolute(filePath)
+                    ? filePath
+                    : path.resolve(cwd, filePath);
+                for (const name of extractFieldNames(resolved)) {
+                    allowedStaticFields.add(name);
+                }
+            }
+        }
 
         /**
          * Checks if a computed key expression starts with "ext."
@@ -158,6 +255,25 @@ module.exports = {
                                 messageId: "noDynamicFields",
                                 data: {
                                     name: getComputedKeyText(prop.key),
+                                    method: methodName,
+                                },
+                            });
+                        }
+                    } else if (allowedStaticFields.size > 0) {
+                        // Static key — validate against known PerformanceEvent fields
+                        const keyName =
+                            prop.key.type === "Identifier"
+                                ? prop.key.name
+                                : prop.key.value;
+                        if (
+                            keyName &&
+                            !allowedStaticFields.has(keyName)
+                        ) {
+                            context.report({
+                                node: prop.key,
+                                messageId: "unknownStaticField",
+                                data: {
+                                    name: keyName,
                                     method: methodName,
                                 },
                             });
