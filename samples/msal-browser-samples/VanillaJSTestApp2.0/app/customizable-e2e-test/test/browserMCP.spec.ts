@@ -151,7 +151,7 @@ describe("MCP Tests", () => {
 
             const differentResourceRequest = {
                 ...mcpTokenRequest,
-                resource: "https://management.azure.com",
+                resource: "https://differentexample.microsoft.com",
             };
 
             fs.writeFileSync(

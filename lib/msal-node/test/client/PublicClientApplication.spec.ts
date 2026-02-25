@@ -1911,6 +1911,52 @@ describe("PublicClientApplication", () => {
                 expect(result.idToken).toEqual(mockAuthenticationResult.idToken);
                 expect(result.account).toEqual(mockAuthenticationResult.account);
             });
+
+            test("stores resource in cached access token", async () => {
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+                AUTHENTICATION_RESULT.body.client_info =
+                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+                jest.spyOn(
+                    HttpClient.prototype,
+                    "sendPostRequestAsync"
+                ).mockResolvedValue(AUTHENTICATION_RESULT);
+                const saveCacheRecordSpy = jest.spyOn(
+                    CacheManager.prototype,
+                    "saveCacheRecord"
+                );
+                const testServerCodeResponse: AuthorizeResponse = {
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
+                    state: "123",
+                };
+                const customLoopbackClient: ILoopbackClient = {
+                    listenForAuthCode: jest.fn(() =>
+                        Promise.resolve(testServerCodeResponse)
+                    ),
+                    getRedirectUri: jest.fn(() => TEST_CONSTANTS.REDIRECT_URI),
+                    closeServer: jest.fn(() => {}),
+                };
+                const request: InteractiveRequest = {
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    openBrowser: async () => {},
+                    loopbackClient: customLoopbackClient,
+                    resource: "https://resource.example.com",
+                };
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockReturnValue(TEST_CONSTANTS.AUTH_CODE_URL);
+
+                const authApp = new PublicClientApplication(mcpConfig);
+                await authApp.acquireTokenInteractive(request);
+
+                expect(saveCacheRecordSpy).toHaveBeenCalled();
+                const cacheRecord = saveCacheRecordSpy.mock.calls[0][0];
+                expect(cacheRecord.accessToken?.resource).toBe("https://resource.example.com");
+            });
         });
 
         describe("acquireTokenByCode", () => {
@@ -1969,6 +2015,36 @@ describe("PublicClientApplication", () => {
                 const result = await authApp.acquireTokenByCode(request);
                 expect(result).toEqual(mockAuthenticationResult);
             });
+
+            test("stores resource in cached access token", async () => {
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+                AUTHENTICATION_RESULT.body.client_info =
+                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+                jest.spyOn(
+                    HttpClient.prototype,
+                    "sendPostRequestAsync"
+                ).mockResolvedValue(AUTHENTICATION_RESULT);
+                const saveCacheRecordSpy = jest.spyOn(
+                    CacheManager.prototype,
+                    "saveCacheRecord"
+                );
+
+                const request: AuthorizationCodeRequest = {
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    resource: "https://resource.example.com",
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await authApp.acquireTokenByCode(request);
+
+                expect(saveCacheRecordSpy).toHaveBeenCalled();
+                const cacheRecord = saveCacheRecordSpy.mock.calls[0][0];
+                expect(cacheRecord.accessToken?.resource).toBe("https://resource.example.com");
+            });
         });
 
         describe("acquireTokenByRefreshToken", () => {
@@ -2022,6 +2098,36 @@ describe("PublicClientApplication", () => {
                 const authApp = new PublicClientApplication(mcpConfig);
                 const result = await authApp.acquireTokenByRefreshToken(request);
                 expect(result).toEqual(mockAuthenticationResult);
+            });
+
+            test("stores resource in cached access token", async () => {
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+                AUTHENTICATION_RESULT.body.client_info =
+                    TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+                jest.spyOn(
+                    HttpClient.prototype,
+                    "sendPostRequestAsync"
+                ).mockResolvedValue(AUTHENTICATION_RESULT);
+                jest.spyOn(CacheManager.prototype, "getAllAccounts").mockReturnValue([testAccount]);
+                const saveCacheRecordSpy = jest.spyOn(
+                    CacheManager.prototype,
+                    "saveCacheRecord"
+                );
+
+                const request: RefreshTokenRequest = {
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                    resource: "https://resource.example.com",
+                };
+                const authApp = new PublicClientApplication(mcpConfig);
+                await authApp.acquireTokenByRefreshToken(request);
+
+                expect(saveCacheRecordSpy).toHaveBeenCalled();
+                const cacheRecord = saveCacheRecordSpy.mock.calls[0][0];
+                expect(cacheRecord.accessToken?.resource).toBe("https://resource.example.com");
             });
         });
     });

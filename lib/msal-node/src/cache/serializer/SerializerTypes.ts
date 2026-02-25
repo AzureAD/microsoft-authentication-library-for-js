@@ -92,6 +92,7 @@ export type SerializedAccessTokenEntity = {
     key_id?: string;
     token_type?: string;
     userAssertionHash?: string;
+    resource?: string;
 };
 
 /**
