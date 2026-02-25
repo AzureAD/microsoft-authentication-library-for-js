@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 10 Feb 2026 23:04:28 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 24 Feb 2026 21:51:51 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.1.0
+
+Tue, 24 Feb 2026 21:51:51 GMT
+
+### Minor changes
+
+- Remove matchPattern from StringUtils [#8355](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8355) (joarroyo@microsoft.com)
+- Add silentRefreshReason telemetry field to PerformanceEvent #8336 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add interrupted_user to InteractionRequired Error list (#8322) (hemoral@microsoft.com)
 
 ## 16.0.4
 

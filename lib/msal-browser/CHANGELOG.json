@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 24 Feb 2026 21:51:51 GMT",
+      "version": "5.3.0",
+      "tag": "@azure/msal-browser_v5.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0f4a5fc61752e78640ca39f0eec56a4e9462e25b",
+            "comment": "Add silentRefreshReason telemetry field to PerformanceEvent #8336"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.1.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b13f12bec9bfc3462f6416a2c9ece8cbba0e2088",
+            "comment": "Fix syntax error in sessionStorage key for interaction status #8346"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Feb 2026 23:04:27 GMT",
       "version": "5.2.0",
       "tag": "@azure/msal-browser_v5.2.0",

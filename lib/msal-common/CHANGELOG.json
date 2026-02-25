@@ -2,6 +2,53 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 24 Feb 2026 21:51:51 GMT",
+      "version": "16.1.0",
+      "tag": "@azure/msal-common_v16.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "00d7b057e44cf9ee89b358ca8297fa11d18699be",
+            "comment": "Remove matchPattern from StringUtils [#8355](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8355)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0f4a5fc61752e78640ca39f0eec56a4e9462e25b",
+            "comment": "Add silentRefreshReason telemetry field to PerformanceEvent #8336"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "2b786253d12dc55386899249d3a550894de3db00",
+            "comment": "Add interrupted_user to InteractionRequired Error list (#8322)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Feb 2026 23:04:28 GMT",
       "version": "16.0.4",
       "tag": "@azure/msal-common_v16.0.4",

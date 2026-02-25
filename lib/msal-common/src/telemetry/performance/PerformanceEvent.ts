@@ -346,6 +346,14 @@ export type PerformanceEvent = {
 
     // Whether the application is configured for MCP flows
     isMcp?: boolean;
+
+    /**
+     * Reason for silent refresh fallback to iframe
+     * Format: errorCode or errorCode|subError
+     *
+     * @type {?string}
+     */
+    silentRefreshReason?: string;
 };
 
 export type PerformanceEventContext = {

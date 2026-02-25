@@ -31,6 +31,19 @@ export type MsalInterceptorConfiguration = {
         req: HttpRequest<unknown>,
         originalAuthRequest: MsalInterceptorAuthRequest
       ) => MsalInterceptorAuthRequest);
+  /**
+   * When `true` (the default in v5), enables stricter, more correct URL component pattern matching for
+   * `protectedResourceMap` entries. Strict matching uses anchored regex patterns and
+   * treats metacharacters (including `.`) as literals, so patterns match only their
+   * intended strings. Wildcards still apply, but host-component wildcards
+   * are constrained to a single DNS label.
+   *
+   * Set to `false` to use the legacy matching behaviour from v4 for
+   * backwards compatibility.
+   *
+   * @default true
+   */
+  strictMatching?: boolean;
 };
 
 export type ProtectedResourceScopes = {

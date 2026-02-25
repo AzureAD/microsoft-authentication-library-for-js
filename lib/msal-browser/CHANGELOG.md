@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 10 Feb 2026 23:04:27 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 24 Feb 2026 21:51:51 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.3.0
+
+Tue, 24 Feb 2026 21:51:51 GMT
+
+### Minor changes
+
+- Add silentRefreshReason telemetry field to PerformanceEvent #8336 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.1.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix syntax error in sessionStorage key for interaction status #8346 (kshabelko@microsoft.com)
 
 ## 5.2.0
 
