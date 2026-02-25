@@ -2325,7 +2325,7 @@ export class BrowserCacheManager extends CacheManager {
             request.sshKid
         );
 
-        if(request.resource) {
+        if (request.resource) {
             accessTokenEntity.resource = request.resource;
         }
 

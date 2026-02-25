@@ -647,10 +647,7 @@ export class StandardController implements IController {
 
         try {
             BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-            BrowserUtils.enforceResourceParameter(
-                this.config,
-                request
-            );
+            BrowserUtils.enforceResourceParameter(this.config, request);
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN

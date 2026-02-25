@@ -2385,7 +2385,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {});
         });
 
-        it("throws an error if isMcp is true and resource is not provided", async () => {
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2394,7 +2394,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
@@ -2416,14 +2416,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
             await expect(
                 pca.acquireTokenRedirect({
                     scopes: [],
-                    extraQueryParameters: { resource: "https://resource.example.com" },
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
                 })
             ).rejects.toMatchObject(
                 createBrowserAuthError(
@@ -2441,14 +2443,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
             await expect(
                 pca.acquireTokenRedirect({
                     scopes: [],
-                    extraParameters: { resource: "https://resource.example.com" },
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
                 })
             ).rejects.toMatchObject(
                 createBrowserAuthError(
@@ -2466,7 +2470,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
@@ -2476,7 +2480,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const response = await pca.acquireTokenRedirect({
                 scopes: [],
-                resource: "testresource.example.com"
+                resource: "testresource.example.com",
             });
             expect(response).toEqual(undefined);
             expect(redirectClientSpy).toHaveBeenCalledTimes(1);
@@ -3318,7 +3322,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(preGenPkce2).toBeUndefined();
         });
 
-        it("throws an error if isMcp is true and resource is not provided", async () => {
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -3327,7 +3331,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
@@ -3340,7 +3344,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it("succeeds when isMcp is true and resource is provided", async () => {
+        it("succeeds when isMcp is true and resource is provided in request", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -3349,7 +3353,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
@@ -3374,7 +3378,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const response = await pca.acquireTokenPopup({
                 scopes: [],
-                resource: "testresource.example.com"
+                resource: "testresource.example.com",
             });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
@@ -3753,7 +3757,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }).catch(() => {});
         });
 
-        it("throws an error if isMcp is true and resource is not provided", async () => {
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -3762,13 +3766,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
-            await expect(
-                pca.ssoSilent({ scopes: [] })
-            ).rejects.toMatchObject(
+            await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.resourceParameterRequired
                 )
@@ -3784,7 +3786,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
@@ -3819,7 +3821,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 }
             );
-            const response = await pca.ssoSilent({ scopes: [], resource: "testresource.example.com" });
+            const response = await pca.ssoSilent({
+                scopes: [],
+                resource: "testresource.example.com",
+            });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
             expect(silentClientSpy).toHaveBeenCalledTimes(1);
@@ -6218,7 +6223,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("throws an error if isMcp is true and resource is not provided", async () => {
+        it("throws an error if isMcp is true and resource is not provided in request", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -6227,7 +6232,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
@@ -6249,7 +6254,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
             await pca.initialize();
-            
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 

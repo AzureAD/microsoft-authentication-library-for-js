@@ -114,6 +114,7 @@ export type AccessTokenEntity = CredentialEntity & {
     extendedExpiresOn?: string;
     refreshOn?: string;
     tokenType?: AuthenticationScheme;
+    resource?: string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "AccountCache" should be prefixed with an underscore because the declaration is marked as @internal
@@ -565,6 +566,7 @@ export type AuthenticationResult = {
     msGraphHost?: string;
     code?: string;
     fromPlatformBroker?: boolean;
+    resource?: string;
 };
 
 // Warning: (ae-missing-release-tag) "AuthenticationScheme" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -612,6 +614,7 @@ export type AuthOptions = {
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
     instanceAware?: boolean;
+    isMcp?: boolean;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "Authority" should be prefixed with an underscore because the declaration is marked as @internal
@@ -967,6 +970,7 @@ export type BaseAuthRequest = {
     popKid?: string;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
+    resource?: string;
     extraQueryParameters?: StringDict;
     extraParameters?: StringDict;
 };
@@ -3487,6 +3491,7 @@ export type PerformanceEvent = {
     navigateCallbackResult?: boolean;
     dataBoundary?: DataBoundary;
     logs?: string;
+    isMcp?: boolean;
     silentRefreshReason?: string;
 };
 
@@ -4776,7 +4781,7 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/client/RefreshTokenClient.ts:329:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:330:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:387:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/SilentFlowClient.ts:225:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/SilentFlowClient.ts:239:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/ClientConfiguration.ts:51:5 - (ae-forgotten-export) The symbol "ClientCredentials" needs to be exported by the entry point index.d.ts
 // src/config/ClientConfiguration.ts:53:5 - (ae-forgotten-export) The symbol "TelemetryOptions" needs to be exported by the entry point index.d.ts
 // src/config/ClientConfiguration.ts:60:5 - (ae-incompatible-release-tags) The symbol "authOptions" is marked as @public, but its signature references "AuthOptions" which is marked as @internal
@@ -4873,8 +4878,8 @@ const X_MS_LIB_CAPABILITY_VALUE: string;
 // src/telemetry/performance/PerformanceEvent.ts:310:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // src/telemetry/performance/PerformanceEvent.ts:310:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/telemetry/performance/PerformanceEvent.ts:310:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
-// src/telemetry/performance/PerformanceEvent.ts:351:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceEvent.ts:351:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/telemetry/performance/PerformanceEvent.ts:351:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
+// src/telemetry/performance/PerformanceEvent.ts:354:22 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceEvent.ts:354:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceEvent.ts:354:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
 
 ```

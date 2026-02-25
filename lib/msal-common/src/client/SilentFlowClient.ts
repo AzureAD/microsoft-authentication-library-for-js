@@ -154,7 +154,10 @@ export class SilentFlowClient {
             );
         } else if (this.config.authOptions.isMcp) {
             // cached access token must have a resource that matches the request resource for MCP scenarios
-            if (!cachedAccessToken.resource || cachedAccessToken.resource !== request.resource) {
+            if (
+                !cachedAccessToken.resource ||
+                cachedAccessToken.resource !== request.resource
+            ) {
                 this.setCacheOutcome(
                     CacheOutcome.NO_CACHED_ACCESS_TOKEN,
                     request.correlationId

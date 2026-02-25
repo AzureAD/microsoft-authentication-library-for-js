@@ -148,7 +148,11 @@ export class NestedAppAuthController implements IController {
     preflightCheck(
         performanceEvent: InProgressPerformanceEvent,
         config: BrowserConfiguration,
-        request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest
+        request:
+            | RedirectRequest
+            | PopupRequest
+            | SsoSilentRequest
+            | SilentRequest
     ) {
         try {
             BrowserUtils.enforceResourceParameter(config, request);
@@ -607,7 +611,7 @@ export class NestedAppAuthController implements IController {
                 return Promise.resolve(null);
             }
         }
-   
+
         const cachedIdToken = this.browserStorage.getIdToken(
             currentAccount,
             authRequest.correlationId,

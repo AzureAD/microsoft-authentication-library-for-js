@@ -14,8 +14,7 @@ import {
     Logger,
     createClientAuthError,
     Constants,
-    TimeUtils,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     AuthError,
     BrowserAuthErrorCodes,
@@ -93,7 +92,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             },
         };
 
-        pca = await createNestablePublicClientApplication(config);
+        createNestablePublicClientApplication(config).then((result) => {
+            pca = result;
+        });
 
         windowSpy = jest.spyOn(global, "window", "get");
 
@@ -148,7 +149,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 },
             };
 
-            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
 
             await expect(() =>
                 mcpPca.acquireTokenPopup({
@@ -156,7 +159,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     correlationId: NAA_CORRELATION_ID,
                 } as any)
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.resourceParameterRequired)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.resourceParameterRequired
+                )
             );
         });
 
@@ -169,16 +174,22 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 },
             };
 
-            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
 
             await expect(() =>
                 mcpPca.acquireTokenPopup({
                     scopes: [NAA_SCOPE],
                     correlationId: NAA_CORRELATION_ID,
-                    extraQueryParameters: { resource: "https://resource.example.com" },
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
                 } as any)
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.misplacedResourceParam)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
+                )
             );
         });
 
@@ -191,16 +202,22 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 },
             };
 
-            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
 
             await expect(() =>
                 mcpPca.acquireTokenPopup({
                     scopes: [NAA_SCOPE],
                     correlationId: NAA_CORRELATION_ID,
-                    extraParameters: { resource: "https://resource.example.com" },
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
                 } as any)
             ).rejects.toMatchObject(
-                createBrowserAuthError(BrowserAuthErrorCodes.misplacedResourceParam)
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
+                )
             );
         });
 
@@ -214,8 +231,13 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 },
             };
 
-            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
-            mockBridge.addAuthResultResponse("GetTokenPopup", SILENT_TOKEN_RESPONSE);
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
+            mockBridge.addAuthResultResponse(
+                "GetTokenPopup",
+                SILENT_TOKEN_RESPONSE
+            );
 
             await mcpPca.acquireTokenPopup({
                 scopes: [NAA_SCOPE],
@@ -262,12 +284,12 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             // All logger options properties are optional... so passing empty object
             const logger = new Logger({});
-            const crypto: ICrypto = new CryptoOps(logger as any);
+            const crypto: ICrypto = new CryptoOps(logger);
             nestedAppAuthAdapter = new NestedAppAuthAdapter(
                 NAA_CLIENT_ID,
                 NAA_CLIENT_CAPABILITIES,
                 crypto,
-                logger as any
+                logger
             );
         });
 
@@ -594,11 +616,13 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     authority: TEST_CONFIG.validAuthority,
-                    isMcp: true
+                    isMcp: true,
                 },
             };
-            
-            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
+
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
             const mcpController = (mcpPca as any).controller;
 
             const accountContext = {
@@ -606,10 +630,15 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 environment: testAccount.environment,
                 tenantId: testAccount.tenantId,
             };
-            jest.spyOn(mcpController.bridgeProxy, "getAccountContext").mockReturnValue(accountContext);
+            jest.spyOn(
+                mcpController.bridgeProxy,
+                "getAccountContext"
+            ).mockReturnValue(accountContext);
 
             const accountManager = require("../../src/cache/AccountManager.js");
-            jest.spyOn(accountManager, "getAccount").mockReturnValue(testAccount);
+            jest.spyOn(accountManager, "getAccount").mockReturnValue(
+                testAccount
+            );
 
             const tokenKeys = {
                 idToken: ["idTokenKey"],
@@ -617,7 +646,10 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 refreshToken: [],
                 appMetadata: [],
             };
-            jest.spyOn(mcpController.browserStorage, "getTokenKeys").mockReturnValue(tokenKeys);
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getTokenKeys"
+            ).mockReturnValue(tokenKeys);
 
             const cachedAccessToken = {
                 secret: TEST_TOKENS.ACCESS_TOKEN,
@@ -634,7 +666,10 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             const cachedIdToken = {
                 secret: TEST_TOKENS.IDTOKEN_V2,
             };
-            jest.spyOn(mcpController.browserStorage, "getIdToken").mockReturnValue(cachedIdToken);
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getIdToken"
+            ).mockReturnValue(cachedIdToken);
 
             const expectedResult: AuthenticationResult = {
                 ...testTokenResponse,
@@ -650,7 +685,10 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 )
                 .mockReturnValue(expectedResult as any);
 
-            const bridgeGetTokenSilentSpy = jest.spyOn(mcpController.bridgeProxy, "getTokenSilent");
+            const bridgeGetTokenSilentSpy = jest.spyOn(
+                mcpController.bridgeProxy,
+                "getTokenSilent"
+            );
 
             const response = await mcpPca.acquireTokenSilent({
                 scopes: [NAA_SCOPE],
@@ -664,13 +702,17 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(response.fromCache).toBe(true);
             expect(bridgeGetTokenSilentSpy).not.toHaveBeenCalled();
             expect(getAccessTokenSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ homeAccountId: testAccount.homeAccountId }),
+                expect.objectContaining({
+                    homeAccountId: testAccount.homeAccountId,
+                }),
                 expect.objectContaining({ resource }),
                 tokenKeys,
                 testAccount.tenantId
             );
             expect(toAuthenticationResultFromCacheSpy).toHaveBeenCalledWith(
-                expect.objectContaining({ homeAccountId: testAccount.homeAccountId }),
+                expect.objectContaining({
+                    homeAccountId: testAccount.homeAccountId,
+                }),
                 expect.objectContaining({ secret: cachedIdToken.secret }),
                 expect.objectContaining({ resource }),
                 expect.objectContaining({ resource }),
@@ -690,7 +732,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 },
             };
 
-            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
             const mcpController = (mcpPca as any).controller;
 
             const accountContext = {
@@ -698,10 +742,15 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 environment: testAccount.environment,
                 tenantId: testAccount.tenantId,
             };
-            jest.spyOn(mcpController.bridgeProxy, "getAccountContext").mockReturnValue(accountContext);
+            jest.spyOn(
+                mcpController.bridgeProxy,
+                "getAccountContext"
+            ).mockReturnValue(accountContext);
 
             const accountManager = require("../../src/cache/AccountManager.js");
-            jest.spyOn(accountManager, "getAccount").mockReturnValue(testAccount);
+            jest.spyOn(accountManager, "getAccount").mockReturnValue(
+                testAccount
+            );
 
             const tokenKeys = {
                 idToken: ["idTokenKey"],
@@ -709,7 +758,10 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 refreshToken: [],
                 appMetadata: [],
             };
-            jest.spyOn(mcpController.browserStorage, "getTokenKeys").mockReturnValue(tokenKeys);
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getTokenKeys"
+            ).mockReturnValue(tokenKeys);
 
             const cachedAccessToken = {
                 secret: TEST_TOKENS.ACCESS_TOKEN,
@@ -719,10 +771,16 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 realm: testAccount.tenantId,
                 target: NAA_SCOPE,
             };
-            jest.spyOn(mcpController.browserStorage, "getAccessToken").mockReturnValue(cachedAccessToken);
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getAccessToken"
+            ).mockReturnValue(cachedAccessToken);
 
             mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
-            const bridgeGetTokenSilentSpy = jest.spyOn(mcpController.bridgeProxy, "getTokenSilent");
+            const bridgeGetTokenSilentSpy = jest.spyOn(
+                mcpController.bridgeProxy,
+                "getTokenSilent"
+            );
 
             await mcpPca.acquireTokenSilent({
                 scopes: [NAA_SCOPE],
@@ -750,7 +808,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 },
             };
 
-            const mcpPca = await createNestablePublicClientApplication(mcpConfig);
+            const mcpPca = await createNestablePublicClientApplication(
+                mcpConfig
+            );
             const mcpController = (mcpPca as any).controller;
 
             const accountContext = {
@@ -758,10 +818,15 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 environment: testAccount.environment,
                 tenantId: testAccount.tenantId,
             };
-            jest.spyOn(mcpController.bridgeProxy, "getAccountContext").mockReturnValue(accountContext);
+            jest.spyOn(
+                mcpController.bridgeProxy,
+                "getAccountContext"
+            ).mockReturnValue(accountContext);
 
             const accountManager = require("../../src/cache/AccountManager.js");
-            jest.spyOn(accountManager, "getAccount").mockReturnValue(testAccount);
+            jest.spyOn(accountManager, "getAccount").mockReturnValue(
+                testAccount
+            );
 
             const tokenKeys = {
                 idToken: ["idTokenKey"],
@@ -769,7 +834,10 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 refreshToken: [],
                 appMetadata: [],
             };
-            jest.spyOn(mcpController.browserStorage, "getTokenKeys").mockReturnValue(tokenKeys);
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getTokenKeys"
+            ).mockReturnValue(tokenKeys);
 
             const cachedAccessToken = {
                 secret: TEST_TOKENS.ACCESS_TOKEN,
@@ -778,10 +846,16 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 realm: testAccount.tenantId,
                 target: NAA_SCOPE,
             };
-            jest.spyOn(mcpController.browserStorage, "getAccessToken").mockReturnValue(cachedAccessToken);
+            jest.spyOn(
+                mcpController.browserStorage,
+                "getAccessToken"
+            ).mockReturnValue(cachedAccessToken);
 
             mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
-            const bridgeGetTokenSilentSpy = jest.spyOn(mcpController.bridgeProxy, "getTokenSilent");
+            const bridgeGetTokenSilentSpy = jest.spyOn(
+                mcpController.bridgeProxy,
+                "getTokenSilent"
+            );
 
             await mcpPca.acquireTokenSilent({
                 scopes: [NAA_SCOPE],

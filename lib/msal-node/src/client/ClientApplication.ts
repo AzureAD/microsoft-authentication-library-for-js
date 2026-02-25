@@ -54,6 +54,7 @@ import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePassword
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+
 /**
  * Base abstract class for all ClientApplications - public and confidential
  * @public

@@ -407,9 +407,7 @@ export class PublicClientApplication
      * Enforces that a resource parameter is present when isMcp is enabled, and that it has not been
      * misplaced into extraParameters or extraQueryParameters.
      */
-    private enforceResourceParameter(
-        request: Partial<BaseAuthRequest>
-    ): void {
+    private enforceResourceParameter(request: Partial<BaseAuthRequest>): void {
         if (!this.config.auth.isMcp) {
             return;
         }
@@ -417,7 +415,10 @@ export class PublicClientApplication
         const hasResourceInParams = (
             params?: Record<string, string>
         ): boolean => {
-            return !!params && Object.prototype.hasOwnProperty.call(params, "resource");
+            return (
+                !!params &&
+                Object.prototype.hasOwnProperty.call(params, "resource")
+            );
         };
 
         if (

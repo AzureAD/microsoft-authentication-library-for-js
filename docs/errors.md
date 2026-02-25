@@ -936,7 +936,7 @@ const msalConfig = {
 
 ### `resource_parameter_required`
 
--   `enforceResourceParameter` is set as `true` in the configuration, yet the request does not have a `resource` parameter.
+-   `isMcp` is set as `true` in the configuration, yet the request does not have a `resource` parameter.
 
 ### `misplacedResourceParam`
 
