@@ -18,9 +18,9 @@ $ cd microsoft-authentication-library-for-js
 $ git remote add upstream git@github.com:AzureAD/microsoft-authentication-library-for-js.git
 ```
 
-Now decide if you want your feature or bug fix to go into the dev branch branch. **All bug fixes and new features should go into the dev branch.**
+Now decide if you want your feature or bug fix to go into the `dev` branch or the `v4-lts` branch. **All new features and bug fixes for the current major version should go into the dev branch. Bug fixes for v4 should go into the v4-lts branch.**
 
-The dev branch is effectively frozen; patches that change the SDKs protocols or API surface area or affect the run-time behavior of the SDK will be rejected.
+The `v4-lts` branch is effectively frozen for new features; patches that change the SDKs protocols or API surface area or affect the run-time behavior of the SDK will be rejected.
 
 Some of our SDKs have bundled dependencies that are not part of the project proper. Any changes to files in those directories or its subdirectories should be sent to their respective projects. Do not send your patch to us, we cannot accept it.
 
