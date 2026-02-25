@@ -351,6 +351,17 @@ export type PerformanceEvent = {
      * @type {?string}
      */
     silentRefreshReason?: string;
+
+    /**
+     * Container for dynamically-named telemetry fields.
+     * Fields whose names are constructed at runtime (e.g., "[eventName]CallCount")
+     * should be stored here instead of being set as top-level properties.
+     * Use the "ext." prefix when calling addFields/incrementFields to automatically
+     * route fields to this sub-object.
+     *
+     * @type {?Record<string, string | number>}
+     */
+    ext?: Record<string, string | number>;
 };
 
 export type PerformanceEventContext = {
@@ -364,6 +375,13 @@ export type PerformanceEventStackedContext = PerformanceEventContext & {
     name?: string;
     childErr?: string;
 };
+
+/**
+ * Prefix used to mark telemetry field names as dynamic.
+ * Fields with this prefix in addFields/incrementFields calls will be routed
+ * to the PerformanceEvent.ext sub-object.
+ */
+export const EXT_FIELD_PREFIX = "ext.";
 
 export const IntFields: ReadonlySet<string> = new Set([
     "accessTokenSize",

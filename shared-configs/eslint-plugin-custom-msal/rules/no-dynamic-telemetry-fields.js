@@ -1,0 +1,192 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+/**
+ * @fileoverview ESLint rule to disallow dynamic (computed) telemetry field names
+ * that are not defined in PerformanceEvent. Dynamic fields must use the "ext." prefix
+ * so they are automatically routed to the PerformanceEvent.ext sub-object.
+ */
+
+module.exports = {
+    meta: {
+        type: "problem",
+        docs: {
+            description:
+                "Disallow dynamic (computed) telemetry field names not defined in PerformanceEvent. Dynamic fields must use the 'ext.' prefix.",
+            category: "Best Practices",
+            recommended: true,
+        },
+        schema: [
+            {
+                type: "object",
+                properties: {
+                    telemetryMethods: {
+                        type: "array",
+                        items: { type: "string" },
+                        default: [
+                            "addFields",
+                            "incrementFields",
+                            "add",
+                            "increment",
+                        ],
+                    },
+                    performanceEventVariablePattern: {
+                        type: "string",
+                        description:
+                            "Regex pattern to match variable names that hold PerformanceEvent objects",
+                        default: "[Ee]vent",
+                    },
+                },
+                additionalProperties: false,
+            },
+        ],
+        messages: {
+            noDynamicFields:
+                "Dynamic telemetry field name '{{name}}' is not allowed in '{{method}}()'. Use the 'ext.' prefix for computed field names (e.g., `ext.${fieldName}`) or use a static field name defined in PerformanceEvent.",
+            noDynamicAssignment:
+                "Dynamic property assignment on performance event object '{{object}}' is not allowed. Use the 'ext' sub-object for computed field names (e.g., {{object}}.ext[fieldName]).",
+        },
+    },
+
+    create(context) {
+        const options = context.options[0] || {};
+        const telemetryMethods = options.telemetryMethods || [
+            "addFields",
+            "incrementFields",
+            "add",
+            "increment",
+        ];
+        const eventVarPattern = new RegExp(
+            options.performanceEventVariablePattern || "[Ee]vent"
+        );
+        const sourceCode = context.getSourceCode();
+
+        /**
+         * Checks if a computed key expression starts with "ext."
+         * Handles template literals, string concatenation, and plain string literals.
+         */
+        function isDynamicPrefix(node) {
+            if (node.type === "TemplateLiteral") {
+                // Template literal: check if first quasi starts with "ext."
+                return (
+                    node.quasis.length > 0 &&
+                    node.quasis[0].value.raw.startsWith("ext.")
+                );
+            }
+            if (node.type === "BinaryExpression" && node.operator === "+") {
+                // String concatenation: check leftmost part recursively
+                return isDynamicPrefix(node.left);
+            }
+            if (node.type === "Literal" && typeof node.value === "string") {
+                return node.value.startsWith("ext.");
+            }
+            return false;
+        }
+
+        /**
+         * Extract a readable name from the computed key for the error message
+         */
+        function getComputedKeyText(node) {
+            return sourceCode.getText(node);
+        }
+
+        /**
+         * Check if a node is a call to one of the telemetry methods
+         */
+        function isTelemetryMethodCall(node) {
+            if (node.type !== "CallExpression") return false;
+            if (node.callee.type === "MemberExpression") {
+                const property = node.callee.property;
+                const methodName = property.name || property.value;
+                return telemetryMethods.includes(methodName);
+            }
+            return false;
+        }
+
+        /**
+         * Get method name from a call expression
+         */
+        function getMethodName(node) {
+            if (node.callee.type === "MemberExpression") {
+                return node.callee.property.name || node.callee.property.value;
+            }
+            return "unknown";
+        }
+
+        /**
+         * Check if a variable name looks like a PerformanceEvent object
+         */
+        function isPerformanceEventVariable(name) {
+            return eventVarPattern.test(name);
+        }
+
+        /**
+         * Extract the object name from a member expression for error reporting
+         */
+        function getObjectName(node) {
+            if (node.type === "Identifier") {
+                return node.name;
+            }
+            if (
+                node.type === "MemberExpression" &&
+                node.property.type === "Identifier"
+            ) {
+                return node.property.name;
+            }
+            return sourceCode.getText(node);
+        }
+
+        return {
+            // Check telemetry method calls: addFields({ [computed]: val }), incrementFields, add, increment
+            CallExpression(node) {
+                if (!isTelemetryMethodCall(node)) return;
+
+                const firstArg = node.arguments[0];
+                if (!firstArg || firstArg.type !== "ObjectExpression") return;
+
+                const methodName = getMethodName(node);
+
+                for (const prop of firstArg.properties) {
+                    if (prop.type === "SpreadElement") continue;
+                    if (prop.computed) {
+                        // Computed property key — only allow if starts with "ext."
+                        if (!isDynamicPrefix(prop.key)) {
+                            context.report({
+                                node: prop.key,
+                                messageId: "noDynamicFields",
+                                data: {
+                                    name: getComputedKeyText(prop.key),
+                                    method: methodName,
+                                },
+                            });
+                        }
+                    }
+                }
+            },
+
+            // Check direct indexed assignment on event objects: rootEvent[computedKey] = value
+            AssignmentExpression(node) {
+                if (node.left.type !== "MemberExpression") return;
+                if (!node.left.computed) return;
+
+                const object = node.left.object;
+                const objectName = getObjectName(object);
+
+                if (
+                    objectName &&
+                    isPerformanceEventVariable(objectName)
+                ) {
+                    if (!isDynamicPrefix(node.left.property)) {
+                        context.report({
+                            node: node.left,
+                            messageId: "noDynamicAssignment",
+                            data: { object: objectName },
+                        });
+                    }
+                }
+            },
+        };
+    },
+};
