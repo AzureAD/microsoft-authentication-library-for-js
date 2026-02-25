@@ -149,7 +149,7 @@ export function getStandardAuthorizeRequestParameters(
                 );
                 RequestParameterBuilder.addSid(parameters, accountSid);
                 performanceClient?.addFields(
-                    { sidFromClaims: true },
+                    { sidFromClaim: true },
                     correlationId
                 );
                 try {

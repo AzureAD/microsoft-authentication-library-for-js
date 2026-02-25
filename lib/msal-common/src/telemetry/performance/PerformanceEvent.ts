@@ -321,7 +321,7 @@ export type PerformanceEvent = {
     extRtExpiresOnSeconds?: number;
     rtOffsetSeconds?: number;
 
-    sidFromClaims?: boolean;
+    sidFromClaim?: boolean;
     sidFromRequest?: boolean;
     loginHintFromRequest?: boolean;
     loginHintFromUpn?: boolean;

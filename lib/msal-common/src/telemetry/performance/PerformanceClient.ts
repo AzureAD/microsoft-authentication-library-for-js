@@ -582,9 +582,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 if (counter.startsWith(EXT_FIELD_PREFIX)) {
                     event.ext = event.ext || {};
                     // Route to ext sub-object
-                    const dynamicKey = counter.slice(
-                        EXT_FIELD_PREFIX.length
-                    );
+                    const dynamicKey = counter.slice(EXT_FIELD_PREFIX.length);
                     const currentValue = event.ext[dynamicKey];
                     if (currentValue === undefined) {
                         event.ext[dynamicKey] = 0;
