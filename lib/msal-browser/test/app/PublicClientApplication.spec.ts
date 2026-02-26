@@ -788,7 +788,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(
                     event.ext?.["handleRedirectPromiseDurationMs"]
                 ).toBeGreaterThanOrEqual(0);
-                expect(event.ext?.["handleRedirectPromiseCallCount"]).toEqual(1);
+                expect(event.ext?.["handleRedirectPromiseCallCount"]).toEqual(
+                    1
+                );
                 expect(event.success).toBeTruthy();
                 expect(event.accountType).toEqual(undefined);
                 pca.removePerformanceCallback(callbackId);
