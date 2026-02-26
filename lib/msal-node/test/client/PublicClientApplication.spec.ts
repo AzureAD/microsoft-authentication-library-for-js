@@ -1858,12 +1858,8 @@ describe("MCP flow tests", () => {
 
         test("stores resource in cached access token", async () => {
             const { DeviceCodeClient: RealDeviceCodeClient } =
-                jest.requireActual(
-                    "../../src/client/DeviceCodeClient.js"
-                );
-            (
-                DeviceCodeClient as unknown as jest.Mock
-            ).mockImplementation(
+                jest.requireActual("../../src/client/DeviceCodeClient.js");
+            (DeviceCodeClient as unknown as jest.Mock).mockImplementation(
                 (config: any) => new RealDeviceCodeClient(config)
             );
 
@@ -1873,17 +1869,13 @@ describe("MCP flow tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
-            jest.spyOn(
-                HttpClient.prototype,
-                "sendPostRequestAsync"
-            )
+            jest.spyOn(HttpClient.prototype, "sendPostRequestAsync")
                 .mockResolvedValueOnce({
                     headers: {},
                     body: {
                         user_code: DEVICE_CODE_RESPONSE.userCode,
                         device_code: DEVICE_CODE_RESPONSE.deviceCode,
-                        verification_uri:
-                            DEVICE_CODE_RESPONSE.verificationUri,
+                        verification_uri: DEVICE_CODE_RESPONSE.verificationUri,
                         expires_in: DEVICE_CODE_RESPONSE.expiresIn,
                         interval: DEVICE_CODE_RESPONSE.interval,
                         message: DEVICE_CODE_RESPONSE.message,

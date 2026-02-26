@@ -153,7 +153,7 @@ export class NestedAppAuthController implements IController {
             | PopupRequest
             | SsoSilentRequest
             | SilentRequest
-    ) {
+    ): void {
         try {
             BrowserUtils.enforceResourceParameter(config, request);
         } catch (e) {

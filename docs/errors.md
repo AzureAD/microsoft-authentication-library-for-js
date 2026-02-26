@@ -938,7 +938,7 @@ const msalConfig = {
 
 -   `isMcp` is set as `true` in the configuration, yet the request does not have a `resource` parameter.
 
-### `misplacedResourceParam`
+### `misplaced_resource_parameter`
 
 -   `resource` is not an accepted parameter in `extraQueryParameters` for `extraParameters` for MCP flows. Please use the `resource` parameter instead.
 
