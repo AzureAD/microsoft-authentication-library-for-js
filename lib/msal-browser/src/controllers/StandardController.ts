@@ -101,7 +101,7 @@ function preflightCheck(
 ) {
     try {
         BrowserUtils.preflightCheck(initialized);
-        BrowserUtils.enforceResourceParameter(config, request);
+        BrowserUtils.enforceResourceParameter(config.auth.isMcp, request);
     } catch (e) {
         performanceEvent.end({ success: false }, e, request.account);
         throw e;
@@ -647,7 +647,10 @@ export class StandardController implements IController {
 
         try {
             BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-            BrowserUtils.enforceResourceParameter(this.config, request);
+            BrowserUtils.enforceResourceParameter(
+                this.config.auth.isMcp,
+                request
+            );
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN

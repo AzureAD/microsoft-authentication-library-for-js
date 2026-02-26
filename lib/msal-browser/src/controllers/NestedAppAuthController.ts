@@ -155,7 +155,7 @@ export class NestedAppAuthController implements IController {
             | SilentRequest
     ): void {
         try {
-            BrowserUtils.enforceResourceParameter(config, request);
+            BrowserUtils.enforceResourceParameter(config.auth.isMcp, request);
         } catch (e) {
             performanceEvent.end({ success: false }, e, request.account);
             throw e;
@@ -599,7 +599,7 @@ export class NestedAppAuthController implements IController {
                 correlationId
             );
             return Promise.resolve(null);
-        } else if (this.config.auth.isMcp && authRequest.resource) {
+        } else if (authRequest.resource) {
             const requestedResource = authRequest.resource;
             const cachedResource = cachedAccessToken.resource;
 

@@ -940,7 +940,7 @@ const msalConfig = {
 
 ### `misplaced_resource_parameter`
 
--   `resource` is not an accepted parameter in `extraQueryParameters` for `extraParameters` for MCP flows. Please use the `resource` parameter instead.
+-   `resource` is not an accepted parameter in `extraQueryParameters` or `extraParameters` for MCP flows. Please use the `resource` parameter instead.
 
 ## Browser configuration errors
 

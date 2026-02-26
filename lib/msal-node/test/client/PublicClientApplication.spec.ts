@@ -91,54 +91,61 @@ jest.mock("../../src/client/UsernamePasswordClient");
 
 const testAccountEntity: AccountEntity =
     buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-const testAccount: AccountInfo = {
-    ...AccountEntityUtils.getAccountInfo(testAccountEntity),
-    idTokenClaims: ID_TOKEN_CLAIMS,
-    idToken: TEST_TOKENS.IDTOKEN_V2,
-};
-const testIdToken: IdTokenEntity = {
-    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-    environment: testAccountEntity.environment,
-    realm: ID_TOKEN_CLAIMS.tid,
-    secret: AUTHENTICATION_RESULT.body.id_token,
-    credentialType: CommonConstants.CredentialType.ID_TOKEN,
-    lastUpdatedAt: Date.now().toString(),
-};
-const testAccessTokenEntity: AccessTokenEntity = {
-    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-    environment: testAccountEntity.environment,
-    realm: ID_TOKEN_CLAIMS.tid,
-    secret: AUTHENTICATION_RESULT.body.access_token,
-    target:
-        TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
-        " " +
-        TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
-    credentialType: CommonConstants.CredentialType.ACCESS_TOKEN,
-    cachedAt: `${TimeUtils.nowSeconds()}`,
-    expiresOn: (
-        TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
-    ).toString(),
-    tokenType: CommonConstants.AuthenticationScheme.BEARER,
-    lastUpdatedAt: Date.now().toString(),
-};
-const testRefreshTokenEntity: RefreshTokenEntity = {
-    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-    environment: testAccountEntity.environment,
-    realm: ID_TOKEN_CLAIMS.tid,
-    secret: AUTHENTICATION_RESULT.body.refresh_token,
-    credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
-    lastUpdatedAt: Date.now().toString(),
-};
-testAccessTokenEntity.refreshOn = `${
-    Number(testAccessTokenEntity.cachedAt) - 1
-}`;
-testAccessTokenEntity.expiresOn = `${
-    Number(testAccessTokenEntity.cachedAt) +
-    AUTHENTICATION_RESULT.body.expires_in
-}`;
+
+function createTestAccount(): AccountInfo {
+    return {
+        ...AccountEntityUtils.getAccountInfo(testAccountEntity),
+        idTokenClaims: ID_TOKEN_CLAIMS,
+        idToken: TEST_TOKENS.IDTOKEN_V2,
+    };
+}
+
+function createTestIdToken(): IdTokenEntity {
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.id_token,
+        credentialType: CommonConstants.CredentialType.ID_TOKEN,
+        lastUpdatedAt: Date.now().toString(),
+    };
+}
+
+function createTestAccessToken(): AccessTokenEntity {
+    const cachedAt = `${TimeUtils.nowSeconds()}`;
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.access_token,
+        target:
+            TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
+            " " +
+            TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+        credentialType: CommonConstants.CredentialType.ACCESS_TOKEN,
+        cachedAt,
+        expiresOn: (
+            Number(cachedAt) + AUTHENTICATION_RESULT.body.expires_in
+        ).toString(),
+        refreshOn: `${Number(cachedAt) - 1}`,
+        tokenType: CommonConstants.AuthenticationScheme.BEARER,
+        lastUpdatedAt: Date.now().toString(),
+    };
+}
+
+function createTestRefreshToken(): RefreshTokenEntity {
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: testAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.refresh_token,
+        credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
+        lastUpdatedAt: Date.now().toString(),
+    };
+}
 
 describe("PublicClientApplication", () => {
     // @ts-ignore
@@ -464,27 +471,27 @@ describe("PublicClientApplication", () => {
                 "sendPostRequestAsync"
             ).mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                createTestIdToken()
             );
             jest.spyOn(
                 CacheManager.prototype,
                 "getAccessToken"
-            ).mockReturnValue(testAccessTokenEntity);
+            ).mockReturnValue(createTestAccessToken());
             jest.spyOn(
                 CacheManager.prototype,
                 "getRefreshToken"
-            ).mockReturnValue(testRefreshTokenEntity);
+            ).mockReturnValue(createTestRefreshToken());
             jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
                 testAccountEntity
             );
             jest.spyOn(
                 CacheManager.prototype,
                 "getAllAccounts"
-            ).mockReturnValue([testAccount]);
+            ).mockReturnValue([createTestAccount()]);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
+                account: createTestAccount(),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -554,7 +561,7 @@ describe("PublicClientApplication", () => {
                 );
 
             expect(accessTokenFromCache?.clientId).toEqual(
-                testAccessTokenEntity.clientId
+                createTestAccessToken().clientId
             );
         });
 
@@ -584,24 +591,18 @@ describe("PublicClientApplication", () => {
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            testAccessTokenEntity.refreshOn = `${
-                Number(testAccessTokenEntity.cachedAt) - 1
-            }`;
-            testAccessTokenEntity.expiresOn = `${
-                Number(testAccessTokenEntity.cachedAt) +
-                AUTHENTICATION_RESULT.body.expires_in
-            }`;
+            const accessToken = createTestAccessToken();
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                createTestIdToken()
             );
             jest.spyOn(
                 CacheManager.prototype,
                 "getAccessToken"
-            ).mockReturnValue(testAccessTokenEntity);
+            ).mockReturnValue(accessToken);
             jest.spyOn(
                 CacheManager.prototype,
                 "getRefreshToken"
-            ).mockReturnValue(testRefreshTokenEntity);
+            ).mockReturnValue(createTestRefreshToken());
             jest.spyOn(
                 MockStorageClass.prototype,
                 "getAccount"
@@ -609,7 +610,7 @@ describe("PublicClientApplication", () => {
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
+                account: createTestAccount(),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -630,7 +631,7 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication(appConfig);
             const request: SilentFlowRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
+                account: createTestAccount(),
                 redirectUri: "http://localhost:3000/redirect",
             };
 
@@ -666,7 +667,7 @@ describe("PublicClientApplication", () => {
 
             const request: SilentFlowRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
+                account: createTestAccount(),
                 redirectUri: "http://localhost:3000/redirect",
             };
 
@@ -1640,7 +1641,7 @@ describe("MCP flow tests", () => {
     };
 
     const makeAccessTokenEntity = (resource?: string): AccessTokenEntity => ({
-        ...testAccessTokenEntity,
+        ...createTestAccessToken(),
         ...(resource !== undefined ? { resource } : {}),
     });
 
@@ -1719,7 +1720,7 @@ describe("MCP flow tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                createTestIdToken()
             );
             jest.spyOn(
                 CacheManager.prototype,
@@ -1730,17 +1731,17 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 CacheManager.prototype,
                 "getRefreshToken"
-            ).mockReturnValue(testRefreshTokenEntity);
+            ).mockReturnValue(createTestRefreshToken());
             jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
                 testAccountEntity
             );
             jest.spyOn(
                 CacheManager.prototype,
                 "getAllAccounts"
-            ).mockReturnValue([testAccount]);
+            ).mockReturnValue([createTestAccount()]);
 
             const request: SilentFlowRequest = {
-                account: testAccount,
+                account: createTestAccount(),
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 resource: "https://resource.example.com",
             };
@@ -1762,7 +1763,7 @@ describe("MCP flow tests", () => {
                 .spyOn(HttpClient.prototype, "sendPostRequestAsync")
                 .mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testIdToken
+                createTestIdToken()
             );
             jest.spyOn(
                 CacheManager.prototype,
@@ -1773,17 +1774,17 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 CacheManager.prototype,
                 "getRefreshToken"
-            ).mockReturnValue(testRefreshTokenEntity);
+            ).mockReturnValue(createTestRefreshToken());
             jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
                 testAccountEntity
             );
             jest.spyOn(
                 CacheManager.prototype,
                 "getAllAccounts"
-            ).mockReturnValue([testAccount]);
+            ).mockReturnValue([createTestAccount()]);
 
             const request: SilentFlowRequest = {
-                account: testAccount,
+                account: createTestAccount(),
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 resource: "https://resource.example.com",
             };
@@ -2236,7 +2237,7 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 CacheManager.prototype,
                 "getAllAccounts"
-            ).mockReturnValue([testAccount]);
+            ).mockReturnValue([createTestAccount()]);
             const saveCacheRecordSpy = jest.spyOn(
                 CacheManager.prototype,
                 "saveCacheRecord"

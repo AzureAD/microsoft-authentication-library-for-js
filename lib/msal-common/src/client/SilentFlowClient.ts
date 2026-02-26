@@ -152,7 +152,7 @@ export class SilentFlowClient {
             throw createClientAuthError(
                 ClientAuthErrorCodes.tokenRefreshRequired
             );
-        } else if (this.config.authOptions.isMcp) {
+        } else if (request.resource) {
             // cached access token must have a resource that matches the request resource for MCP scenarios
             if (
                 !cachedAccessToken.resource ||
