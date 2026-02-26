@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - dev
+      - v4-lts
 
 concurrency:
   group: beachball-bump

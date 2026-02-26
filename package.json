@@ -36,12 +36,12 @@
         "doc": "npm run doc:generate && npm run doc:deploy",
         "doc:generate": "rimraf ./ref/* && typedoc",
         "doc:deploy": "gh-pages -d ref -a -e ref",
-        "beachball:check": "beachball check --branch origin/dev",
-        "beachball:change": "beachball change --branch origin/dev",
-        "beachball:bump": "beachball bump --branch origin/dev --bumpDeps false && node release-scripts/updateVersion.js",
-        "beachball:bump:alpha": "beachball bump --branch origin/dev --bumpDeps false --prerelease-prefix alpha",
-        "beachball:bump:beta": "beachball bump --branch origin/dev --bumpDeps false --prerelease-prefix beta",
-        "beachball:bump:official": "beachball bump --branch origin/dev",
+        "beachball:check": "beachball check --branch origin/v4-lts",
+        "beachball:change": "beachball change --branch origin/v4-lts",
+        "beachball:bump": "beachball bump --branch origin/v4-lts --bumpDeps false && node release-scripts/updateVersion.js",
+        "beachball:bump:alpha": "beachball bump --branch origin/v4-lts --bumpDeps false --prerelease-prefix alpha",
+        "beachball:bump:beta": "beachball bump --branch origin/v4-lts --bumpDeps false --prerelease-prefix beta",
+        "beachball:bump:official": "beachball bump --branch origin/v4-lts",
         "beachball:release": "node ./.github/create-releases.js"
     },
     "workspaces": [
