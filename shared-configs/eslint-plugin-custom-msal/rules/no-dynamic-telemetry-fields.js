@@ -259,13 +259,23 @@ module.exports = {
                                 },
                             });
                         }
-                    } else if (allowedStaticFields.size > 0) {
-                        // Static key — validate against known PerformanceEvent fields
+                    } else {
+                        // Non-computed key (Identifier or string Literal)
                         const keyName =
                             prop.key.type === "Identifier"
                                 ? prop.key.name
                                 : prop.key.value;
+                        // String-literal keys starting with "ext." are valid
+                        // dynamic prefixes (addFields routes them at runtime)
                         if (
+                            typeof keyName === "string" &&
+                            keyName.startsWith("ext.")
+                        ) {
+                            continue;
+                        }
+                        // Otherwise validate against known PerformanceEvent fields
+                        if (
+                            allowedStaticFields.size > 0 &&
                             keyName &&
                             !allowedStaticFields.has(keyName)
                         ) {
@@ -283,24 +293,35 @@ module.exports = {
             },
 
             // Check direct indexed assignment on event objects: rootEvent[computedKey] = value
+            // Only rootEvent.ext[key] = value is allowed; rootEvent[key] = value
+            // is always reported because it bypasses the ext routing in addFields/incrementFields.
             AssignmentExpression(node) {
                 if (node.left.type !== "MemberExpression") return;
                 if (!node.left.computed) return;
 
                 const object = node.left.object;
+
+                // Allow: eventObj.ext[key] = value
+                if (
+                    object.type === "MemberExpression" &&
+                    !object.computed &&
+                    object.property.type === "Identifier" &&
+                    object.property.name === "ext"
+                ) {
+                    return;
+                }
+
                 const objectName = getObjectName(object);
 
                 if (
                     objectName &&
                     isPerformanceEventVariable(objectName)
                 ) {
-                    if (!isDynamicPrefix(node.left.property)) {
-                        context.report({
-                            node: node.left,
-                            messageId: "noDynamicAssignment",
-                            data: { object: objectName },
-                        });
-                    }
+                    context.report({
+                        node: node.left,
+                        messageId: "noDynamicAssignment",
+                        data: { object: objectName },
+                    });
                 }
             },
         };

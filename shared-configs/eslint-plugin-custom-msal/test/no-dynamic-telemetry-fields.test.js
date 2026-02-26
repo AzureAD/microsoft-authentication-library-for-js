@@ -61,6 +61,20 @@ ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
         {
             code: `rootEvent.ext = {};`,
         },
+        // Direct computed assignment on event.ext[key] is allowed
+        {
+            code: `rootEvent.ext[fieldName] = 42;`,
+        },
+        {
+            code: `perfEvent.ext["someKey"] = "value";`,
+        },
+        // Non-computed string-literal keys starting with "ext." are allowed (routed at runtime)
+        {
+            code: `telemetryClient.addFields({ "ext.customField": 500 }, correlationId);`,
+        },
+        {
+            code: `inProgressEvent.add({ "ext.myCounter": 1 });`,
+        },
         // Spread elements in telemetry calls are fine
         {
             code: `telemetryClient.addFields({ ...otherFields }, correlationId);`,
@@ -136,6 +150,24 @@ ruleTester.run("no-dynamic-telemetry-fields", noDynamicTelemetryFields, {
         },
         {
             code: `finalEvent[name + "Count"] = 5;`,
+            errors: [
+                {
+                    messageId: "noDynamicAssignment",
+                },
+            ],
+        },
+        // Computed assignment with ext. prefix on event object itself is still invalid
+        // (should use event.ext[key] instead)
+        {
+            code: `perfEvent["ext.someKey"] = 1;`,
+            errors: [
+                {
+                    messageId: "noDynamicAssignment",
+                },
+            ],
+        },
+        {
+            code: "rootEvent[`ext.${name}`] = value;",
             errors: [
                 {
                     messageId: "noDynamicAssignment",
