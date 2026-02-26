@@ -786,9 +786,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(event.correlationId).toBeDefined();
                 expect(event.success).toBeTruthy();
                 expect(
-                    event["handleRedirectPromiseDurationMs"]
+                    event.ext?.["handleRedirectPromiseDurationMs"]
                 ).toBeGreaterThanOrEqual(0);
-                expect(event["handleRedirectPromiseCallCount"]).toEqual(1);
+                expect(event.ext?.["handleRedirectPromiseCallCount"]).toEqual(1);
                 expect(event.success).toBeTruthy();
                 expect(event.accountType).toEqual(undefined);
                 pca.removePerformanceCallback(callbackId);
@@ -941,10 +941,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(event.correlationId).toBeDefined();
                     expect(event.success).toBeTruthy();
                     expect(
-                        event["handleNativeRedirectPromiseDurationMs"]
+                        event.ext?.["handleNativeRedirectPromiseDurationMs"]
                     ).toBeGreaterThanOrEqual(0);
                     expect(
-                        event["handleNativeRedirectPromiseCallCount"]
+                        event.ext?.["handleNativeRedirectPromiseCallCount"]
                     ).toEqual(1);
                     expect(event.success).toBeTruthy();
                     expect(event.accountType).toEqual("MSA");
