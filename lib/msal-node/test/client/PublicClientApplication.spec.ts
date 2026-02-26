@@ -1857,6 +1857,16 @@ describe("MCP flow tests", () => {
         });
 
         test("stores resource in cached access token", async () => {
+            const { DeviceCodeClient: RealDeviceCodeClient } =
+                jest.requireActual(
+                    "../../src/client/DeviceCodeClient.js"
+                );
+            (
+                DeviceCodeClient as unknown as jest.Mock
+            ).mockImplementation(
+                (config: any) => new RealDeviceCodeClient(config)
+            );
+
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
@@ -1864,13 +1874,23 @@ describe("MCP flow tests", () => {
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             jest.spyOn(
-                DeviceCodeClient.prototype,
-                <any>"getDeviceCode"
-            ).mockResolvedValue(DEVICE_CODE_RESPONSE);
-            jest.spyOn(
                 HttpClient.prototype,
                 "sendPostRequestAsync"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            )
+                .mockResolvedValueOnce({
+                    headers: {},
+                    body: {
+                        user_code: DEVICE_CODE_RESPONSE.userCode,
+                        device_code: DEVICE_CODE_RESPONSE.deviceCode,
+                        verification_uri:
+                            DEVICE_CODE_RESPONSE.verificationUri,
+                        expires_in: DEVICE_CODE_RESPONSE.expiresIn,
+                        interval: DEVICE_CODE_RESPONSE.interval,
+                        message: DEVICE_CODE_RESPONSE.message,
+                    },
+                    status: 200,
+                })
+                .mockResolvedValueOnce(AUTHENTICATION_RESULT);
             const saveCacheRecordSpy = jest.spyOn(
                 CacheManager.prototype,
                 "saveCacheRecord"
