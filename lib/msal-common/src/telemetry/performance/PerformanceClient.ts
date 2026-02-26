@@ -456,11 +456,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Add sub-measurement attribute to root event's ext field.
         if (!isRoot) {
-            rootEvent.ext =
-                {
-                    ...rootEvent.ext,
-                    ...event.ext,
-                } || {};
+            rootEvent.ext = {
+                ...rootEvent.ext,
+                ...event.ext,
+            };
             rootEvent.ext[event.name + "DurationMs"] = Math.floor(
                 event.durationMs
             );
