@@ -392,6 +392,7 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
+    isMcp?: boolean;
 };
 
 // @public
@@ -432,7 +433,9 @@ export { ProtocolMode }
 // @public
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
     constructor(configuration: Configuration);
+    acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
     acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
     getAllAccounts(): Promise<AccountInfo[]>;
@@ -471,6 +474,7 @@ export type SerializedAccessTokenEntity = {
     key_id?: string;
     token_type?: string;
     userAssertionHash?: string;
+    resource?: string;
 };
 
 // @public
