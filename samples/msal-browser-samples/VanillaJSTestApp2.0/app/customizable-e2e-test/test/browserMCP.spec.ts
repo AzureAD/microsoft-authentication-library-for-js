@@ -60,7 +60,6 @@ describe("MCP Tests", () => {
     });
 
     afterAll(async () => {
-        await context.close();
         await browser.close();
     });
 
@@ -95,6 +94,7 @@ describe("MCP Tests", () => {
         await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
         await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
         await page.close();
+        await context.close();
     };
 
     describe("acquireTokenSilent", () => {
