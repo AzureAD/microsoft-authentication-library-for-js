@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add MCP Support #8363",
+  "packageName": "@azure/msal-node",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
