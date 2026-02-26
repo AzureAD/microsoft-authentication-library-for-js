@@ -448,7 +448,8 @@ export type PerformanceEvent = {
      * Use the "ext." prefix when calling addFields/incrementFields to automatically
      * route fields to this sub-object.
      *
-     * @type {?Record<string, string | number>}
+     * @remarks
+     * This property is typed as `Record<string, string | number>`.
      */
     ext?: Record<string, string | number>;
 };
