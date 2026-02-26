@@ -322,6 +322,8 @@ export type PerformanceEvent = {
     rtOffsetSeconds?: number;
 
     sidFromClaim?: boolean;
+    // Backward-compatible alias for sidFromClaim
+    sidFromClaims?: boolean;
     sidFromRequest?: boolean;
     loginHintFromRequest?: boolean;
     loginHintFromUpn?: boolean;
