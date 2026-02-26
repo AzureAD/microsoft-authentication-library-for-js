@@ -268,7 +268,9 @@ declare namespace BrowserAuthErrorCodes {
         failedToParseHeaders,
         failedToDecryptEarResponse,
         timedOut,
-        emptyResponse
+        emptyResponse,
+        resourceParameterRequired,
+        misplacedResourceParam
     }
 }
 export { BrowserAuthErrorCodes }
@@ -289,6 +291,7 @@ export type BrowserAuthOptions = {
     azureCloudOptions?: AzureCloudOptions;
     onRedirectNavigate?: (url: string) => boolean | void;
     instanceAware?: boolean;
+    isMcp?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "BrowserCacheLocation" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -425,6 +428,7 @@ declare namespace BrowserUtils {
         blockAPICallsBeforeInitialize,
         preflightCheck,
         redirectPreflightCheck,
+        enforceResourceParameter,
         preconnect,
         createGuid,
         invoke,
@@ -581,6 +585,15 @@ export type EndSessionPopupRequest = Partial<CommonEndSessionRequest> & {
 export type EndSessionRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
 };
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-incompatible-release-tags) The symbol "enforceResourceParameter" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "enforceResourceParameter" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
+// Warning: (ae-missing-release-tag) "enforceResourceParameter" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+function enforceResourceParameter(config: BrowserConfiguration, request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest): void;
 
 // Warning: (ae-missing-release-tag) "EventCallbackFunction" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1020,6 +1033,11 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     setUserData(key: string, value: T): Promise<void>;
 }
 
+// Warning: (ae-missing-release-tag) "misplacedResourceParam" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const misplacedResourceParam = "misplaced_resource_parameter";
+
 // Warning: (ae-missing-release-tag) "nativeConnectionNotEstablished" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1328,6 +1346,11 @@ export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "respo
 // @public
 function replaceHash(url: string): void;
 
+// Warning: (ae-missing-release-tag) "resourceParameterRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const resourceParameterRequired = "resource_parameter_required";
+
 // Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1516,7 +1539,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:366:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:429:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:460:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:199:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:203:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:116:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:143:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
