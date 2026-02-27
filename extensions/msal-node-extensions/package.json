@@ -80,7 +80,7 @@
     "jest-junit": "^16.0.0",
     "msal-test-utils": "file:../../shared-test-utils",
     "node-addon-api": "^6.1.0",
-    "rollup": "^4.22.4",
+    "rollup": "^4.59.0",
     "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.4",
     "ts-jest": "^29.1.0",
