@@ -586,14 +586,10 @@ export type EndSessionRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
 };
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-incompatible-release-tags) The symbol "enforceResourceParameter" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "enforceResourceParameter" is marked as @public, but its signature references "BrowserConfiguration" which is marked as @internal
 // Warning: (ae-missing-release-tag) "enforceResourceParameter" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function enforceResourceParameter(config: BrowserConfiguration, request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest): void;
+function enforceResourceParameter(isMcp: boolean, request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest): void;
 
 // Warning: (ae-missing-release-tag) "EventCallbackFunction" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
