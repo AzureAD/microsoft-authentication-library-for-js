@@ -222,11 +222,7 @@ export class NestedAppAuthController implements IController {
                 validRequest
             );
         } catch (e) {
-            atPopupMeasurement.end(
-                { success: false },
-                e,
-                validRequest.account
-            );
+            atPopupMeasurement.end({ success: false }, e, validRequest.account);
             throw e;
         }
 
