@@ -405,7 +405,7 @@ export class PublicClientApplication
 
     /**
      * Enforces that a resource parameter is present when isMcp is enabled, and that it has not been
-     * misplaced into extraParameters or extraQueryParameters.
+     * duplicated in both the request and in extraParameters or extraQueryParameters.
      */
     private enforceResourceParameter(request: Partial<BaseAuthRequest>): void {
         if (!this.config.auth.isMcp) {
@@ -422,8 +422,9 @@ export class PublicClientApplication
         };
 
         if (
-            hasResourceInParams(request.extraParameters) ||
-            hasResourceInParams(request.extraQueryParameters)
+            request.resource &&
+            (hasResourceInParams(request.extraParameters) ||
+                hasResourceInParams(request.extraQueryParameters))
         ) {
             throw NodeAuthError.createMisplacedResourceParameterError();
         }

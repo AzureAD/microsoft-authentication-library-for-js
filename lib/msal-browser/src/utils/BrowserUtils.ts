@@ -410,7 +410,7 @@ export function redirectPreflightCheck(
 
 /**
  * Helper to enforce resource parameter presence in token requests when enforceResourceParameter is set in the configuration
- * If resource parameter is in extraQueryParameters or extraParameters, an error will be thrown
+ * If resource parameter is set in both the request and in extraQueryParameters or extraParameters, an error will be thrown
  * This is used for MCP flows
  * @param isMcp - Flag indicating if application is an MCP app, from configuration
  * @param request - Auth request
@@ -424,8 +424,9 @@ export function enforceResourceParameter(
     }
 
     if (
-        containsResourceParam(request.extraParameters) ||
-        containsResourceParam(request.extraQueryParameters)
+        request.resource &&
+        (containsResourceParam(request.extraParameters) ||
+            containsResourceParam(request.extraQueryParameters))
     ) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.misplacedResourceParam

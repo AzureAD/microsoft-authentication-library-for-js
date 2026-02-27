@@ -19,7 +19,6 @@ import {
     AuthError,
     AccountEntityUtils,
     AuthToken,
-    InProgressPerformanceEvent,
 } from "@azure/msal-common/browser";
 import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -145,23 +144,6 @@ export class NestedAppAuthController implements IController {
         this.currentAccountContext = accountContext ? accountContext : null;
     }
 
-    preflightCheck(
-        performanceEvent: InProgressPerformanceEvent,
-        config: BrowserConfiguration,
-        request:
-            | RedirectRequest
-            | PopupRequest
-            | SsoSilentRequest
-            | SilentRequest
-    ): void {
-        try {
-            BrowserUtils.enforceResourceParameter(config.auth.isMcp, request);
-        } catch (e) {
-            performanceEvent.end({ success: false }, e, request.account);
-            throw e;
-        }
-    }
-
     /**
      * Factory function to create a new instance of NestedAppAuthController
      * @param operatingContext
@@ -234,7 +216,19 @@ export class NestedAppAuthController implements IController {
 
         atPopupMeasurement.add({ nestedAppAuthRequest: true });
 
-        this.preflightCheck(atPopupMeasurement, this.config, validRequest);
+        try {
+            BrowserUtils.enforceResourceParameter(
+                this.config.auth.isMcp,
+                validRequest
+            );
+        } catch (e) {
+            atPopupMeasurement.end(
+                { success: false },
+                e,
+                validRequest.account
+            );
+            throw e;
+        }
 
         try {
             const naaRequest =
@@ -358,7 +352,19 @@ export class NestedAppAuthController implements IController {
             nestedAppAuthRequest: true,
         });
 
-        this.preflightCheck(ssoSilentMeasurement, this.config, validRequest);
+        try {
+            BrowserUtils.enforceResourceParameter(
+                this.config.auth.isMcp,
+                validRequest
+            );
+        } catch (e) {
+            ssoSilentMeasurement.end(
+                { success: false },
+                e,
+                validRequest.account
+            );
+            throw e;
+        }
 
         try {
             const naaRequest =

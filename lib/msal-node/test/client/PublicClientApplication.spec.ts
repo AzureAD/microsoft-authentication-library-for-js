@@ -1659,10 +1659,11 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
                 extraParameters: { resource: "https://resource.example.com" },
             };
             const authApp = new PublicClientApplication(mcpConfig);
@@ -1673,10 +1674,11 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
                 extraQueryParameters: {
                     resource: "https://resource.example.com",
                 },
@@ -1811,10 +1813,11 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
             const request: DeviceCodeRequest = {
                 deviceCodeCallback: () => {},
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
                 extraParameters: { resource: "https://resource.example.com" },
             };
             const authApp = new PublicClientApplication(mcpConfig);
@@ -1825,10 +1828,11 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
             const request: DeviceCodeRequest = {
                 deviceCodeCallback: () => {},
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
                 extraQueryParameters: {
                     resource: "https://resource.example.com",
                 },
@@ -1920,11 +1924,12 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 redirectUri: TEST_CONSTANTS.REDIRECT_URI,
                 openBrowser: async () => {},
+                resource: "https://resource.example.com",
                 extraParameters: { resource: "https://resource.example.com" },
             };
             const authApp = new PublicClientApplication(mcpConfig);
@@ -1935,11 +1940,12 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 redirectUri: TEST_CONSTANTS.REDIRECT_URI,
                 openBrowser: async () => {},
+                resource: "https://resource.example.com",
                 extraQueryParameters: {
                     resource: "https://resource.example.com",
                 },
@@ -2065,11 +2071,12 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
             const request: AuthorizationCodeRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 redirectUri: TEST_CONSTANTS.REDIRECT_URI,
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                resource: "https://resource.example.com",
                 extraParameters: { resource: "https://resource.example.com" },
             };
             const authApp = new PublicClientApplication(mcpConfig);
@@ -2080,11 +2087,12 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
             const request: AuthorizationCodeRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 redirectUri: TEST_CONSTANTS.REDIRECT_URI,
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                resource: "https://resource.example.com",
                 extraQueryParameters: {
                     resource: "https://resource.example.com",
                 },
@@ -2169,10 +2177,11 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraParameters", async () => {
             const request: RefreshTokenRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                resource: "https://resource.example.com",
                 extraParameters: { resource: "https://resource.example.com" },
             };
             const authApp = new PublicClientApplication(mcpConfig);
@@ -2183,10 +2192,11 @@ describe("MCP flow tests", () => {
             });
         });
 
-        test("throws misplaced_resource_parameter when isMcp is true and resource is in extraQueryParameters", async () => {
+        test("throws misplaced_resource_parameter when isMcp is true and resource is in both request and extraQueryParameters", async () => {
             const request: RefreshTokenRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+                resource: "https://resource.example.com",
                 extraQueryParameters: {
                     resource: "https://resource.example.com",
                 },

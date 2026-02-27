@@ -2407,7 +2407,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it("throws an error if isMcp is true and resource is provided in extraQueryParameters", async () => {
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2423,6 +2423,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({
                     scopes: [],
+                    resource: "https://resource.example.com",
                     extraQueryParameters: {
                         resource: "https://resource.example.com",
                     },
@@ -2434,7 +2435,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it("throws an error if isMcp is true and resource is provided in extraParameters", async () => {
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2450,6 +2451,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({
                     scopes: [],
+                    resource: "https://resource.example.com",
                     extraParameters: {
                         resource: "https://resource.example.com",
                     },
@@ -3344,6 +3346,62 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenPopup({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenPopup({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
         it("succeeds when isMcp is true and resource is provided in request", async () => {
             const config = {
                 auth: {
@@ -3773,6 +3831,62 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.ssoSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.ssoSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -6241,6 +6355,62 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ).rejects.toMatchObject(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.resourceParameterRequired
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraQueryParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraQueryParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
+                )
+            );
+        });
+
+        it("throws an error if isMcp is true and resource is provided in both request and extraParameters", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    isMcp: true,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            await pca.initialize();
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            await expect(
+                pca.acquireTokenSilent({
+                    scopes: [],
+                    resource: "https://resource.example.com",
+                    extraParameters: {
+                        resource: "https://resource.example.com",
+                    },
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.misplacedResourceParam
                 )
             );
         });

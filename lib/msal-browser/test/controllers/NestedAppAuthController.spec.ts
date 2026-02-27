@@ -165,7 +165,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             );
         });
 
-        it("acquireTokenInteractive throws if resource is provided in extraQueryParameters when isMcp is true", async () => {
+        it("acquireTokenInteractive throws if resource is provided in both request and extraQueryParameters when isMcp is true", async () => {
             const mcpConfig = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -182,6 +182,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 mcpPca.acquireTokenPopup({
                     scopes: [NAA_SCOPE],
                     correlationId: NAA_CORRELATION_ID,
+                    resource: "https://resource.example.com",
                     extraQueryParameters: {
                         resource: "https://resource.example.com",
                     },
@@ -193,7 +194,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             );
         });
 
-        it("acquireTokenInteractive throws if resource is provided in extraParameters when isMcp is true", async () => {
+        it("acquireTokenInteractive throws if resource is provided in both request and extraParameters when isMcp is true", async () => {
             const mcpConfig = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -210,6 +211,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 mcpPca.acquireTokenPopup({
                     scopes: [NAA_SCOPE],
                     correlationId: NAA_CORRELATION_ID,
+                    resource: "https://resource.example.com",
                     extraParameters: {
                         resource: "https://resource.example.com",
                     },

@@ -51,7 +51,7 @@ export const NodeAuthErrorMessage = {
     },
     misplacedResourceParameter: {
         code: "misplaced_resource_parameter",
-        desc: "The resource parameter must be set directly on the request object, not in extraParameters or extraQueryParameters.",
+        desc: "A resource was found both directly in the resource parameter and in extraQueryParameters or extraParameters. Please only include the resource in one location.",
     },
 };
 
