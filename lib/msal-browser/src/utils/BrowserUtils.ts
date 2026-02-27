@@ -440,15 +440,9 @@ export function enforceResourceParameter(
     }
 }
 
-function containsResourceParam(
-    params?: StringDict | Map<string, string>
-): boolean {
+function containsResourceParam(params?: StringDict): boolean {
     if (!params) {
         return false;
-    }
-
-    if (params instanceof Map) {
-        return params.has("resource");
     }
 
     return Object.prototype.hasOwnProperty.call(params, "resource");

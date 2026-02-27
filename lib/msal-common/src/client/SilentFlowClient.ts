@@ -155,7 +155,6 @@ export class SilentFlowClient {
         } else if (request.resource) {
             // cached access token must have a resource that matches the request resource for MCP scenarios
             if (
-                !cachedAccessToken.resource ||
                 cachedAccessToken.resource !== request.resource
             ) {
                 this.setCacheOutcome(
