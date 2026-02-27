@@ -38,7 +38,7 @@ $ git checkout -b my-feature-branch
 
 ## Installation and Bootstrapping
 
-This repository is a monorepo for all packages maintained by the MSAL.js team. It contains public `npm` packages in the [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder as well as some additional libraries in the [`extensions`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions) folder.
+This repository is a monorepo for all packages maintained by the MSAL.js team. It contains public `npm` packages in the [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib) folder as well as some additional libraries in the [`extensions`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/extensions) folder.
 
 If you would like to build a specific package, you can visit the `README.md` for that specific folder to review the build process. The instructions here are specific to the monorepo.
 

@@ -8,7 +8,7 @@
 
 ## Initialization
 
-`@azure/msal-react` is built on the [React context API](https://reactjs.org/docs/context.html) and all parts of your app that require authentication must be wrapped in the `MsalProvider` component. You will first need to [initialize](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md) an instance of `PublicClientApplication` then pass this to `MsalProvider` as a prop.
+`@azure/msal-react` is built on the [React context API](https://reactjs.org/docs/context.html) and all parts of your app that require authentication must be wrapped in the `MsalProvider` component. You will first need to [initialize](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/initialization.md) an instance of `PublicClientApplication` then pass this to `MsalProvider` as a prop.
 
 ```javascript
 import React from "react";
@@ -70,7 +70,7 @@ export function App() {
 ### `useIsAuthenticated` hook
 
 As an alternative to the wrapper components above your app can use the `useIsAuthenticated` hook.
-You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#useisauthenticated-hook).
+You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/hooks.md#useisauthenticated-hook).
 
 ```javascript
 import React from 'react';
@@ -99,9 +99,9 @@ If you have components you only want to show to authenticated users you can use 
 
 ### `MsalAuthenticationTemplate` Component
 
-The `MsalAuthenticationTemplate` component will render its children if a user is authenticated or attempt to sign a user in. Just provide it with the interaction type you would like to use (redirect or popup) and optionally a [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md) to be passed to the login API, a component to display while authentication is in progress or a component to display if an error occurs.
+The `MsalAuthenticationTemplate` component will render its children if a user is authenticated or attempt to sign a user in. Just provide it with the interaction type you would like to use (redirect or popup) and optionally a [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/request-response-object.md) to be passed to the login API, a component to display while authentication is in progress or a component to display if an error occurs.
 
-You can find a working example of this in any of our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples) on the `/profile` page.
+You can find a working example of this in any of our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples) on the `/profile` page.
 
 ```javascript
 import React from "react";
@@ -140,7 +140,7 @@ export function Example() {
 The `useMsalAuthentication` hook will first check if a user is signed in, then attempt to sign a user in if there are no users signed in. You will need to provide the interaction type you would like to use (redirect or popup).
 It will return the result of the login operation, any error that occurred and the login function you can use if you need to retry.
 
-You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsalauthentication-hook).
+You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/hooks.md#usemsalauthentication-hook).
 
 ```javascript
 import React from 'react';
@@ -172,7 +172,7 @@ Another way to invoke a sign-in is by using `@azure/msal-browser` APIs directly 
 
 A hook that returns the `PublicClientApplication` instance, an array of all accounts currently signed in and an `inProgress` value that tells you what msal is currently doing.
 
-You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsal-hook).
+You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/hooks.md#usemsal-hook).
 
 ```javascript
 import React from 'react';
@@ -199,7 +199,7 @@ export function App() {
 ### Consuming the raw context
 
 If you are using a class component and can't use hooks you can consume the raw msal context through `MsalContext`.
-You can read more about using `@azure/msal-react` in class components [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md).
+You can read more about using `@azure/msal-react` in class components [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-react/docs/class-components.md).
 
 ```javascript
 import React from "react";
@@ -323,4 +323,4 @@ const acquireAccessToken = async (msalInstance) => {
 };
 ```
 
-For a working end-to-end example, please see our [react router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
+For a working end-to-end example, please see our [react router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples/react-router-sample).

@@ -9,7 +9,7 @@
 
 1. [About](#about)
 1. [FAQ](#faq)
-1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/CHANGELOG.md)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/CHANGELOG.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
 1. [Node Version Support](#node-version-support)
@@ -62,7 +62,7 @@ More details on scenarios and the authentication flows that map to each of them 
 
 ## FAQ
 
-See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/faq.md).
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/faq.md).
 
 ## Prerequisites
 
@@ -101,36 +101,36 @@ Any major MSAL Node release:
 ### MSAL basics
 
 -   [Understand difference in between Public Client and Confidential Clients](https://docs.microsoft.com/azure/active-directory/develop/msal-client-applications)
--   [Initialize a Public Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md)
--   [Initialize a Confidential Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-confidential-client-application.md)
--   [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md)
--   [Request](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/request.md)
--   [Response](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Response.md)
+-   [Initialize a Public Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/initialize-public-client-application.md)
+-   [Initialize a Confidential Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/initialize-confidential-client-application.md)
+-   [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/docs/configuration.md)
+-   [Request](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-common/docs/request.md)
+-   [Response](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-common/docs/Response.md)
 
 ## Samples
 
-There are multiple [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples) included in the repository that use MSAL Node to acquire tokens. These samples are currently used for manual testing, and are not meant to be a reference of best practices, therefore use judgement and do not blindly copy this code to any production applications.
+There are multiple [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples) included in the repository that use MSAL Node to acquire tokens. These samples are currently used for manual testing, and are not meant to be a reference of best practices, therefore use judgement and do not blindly copy this code to any production applications.
 
 AAD samples:
 
--   [auth-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code): Express app using OAuth2.0 authorization code flow.
--   [auth-code-pkce](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-pkce): Express app using OAuth2.0 authorization code flow with PKCE.
--   [device-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/device-code): Command line app using OAuth 2.0 device code flow.
--   [refresh-token](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/refresh-token): Command line app using OAuth 2.0 refresh flow.
--   [silent-flow](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/silent-flow): Express app using OAuth2.0 authorization code flow to acquire a token and store in the token cache, and silent flow to use tokens in the token cache.
--   [client-credentials](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/client-credentials): Daemon app using OAuth 2.0 client credential grant to acquire a token.
--   [on-behalf-of](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/on-behalf-of): Web application using OAuth 2.0 auth code flow to acquire a token for a web API. The web API validates the token, and calls Microsoft Graph on behalf of the user who authenticated in the web application.
--   [username-password](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/username-password): Web application using OAuth 2.0 resource owner password credentials (ROPC) flow to acquire a token for a web API.
--   [ElectronTestApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/ElectronTestApp): Electron desktop application using OAuth 2.0 auth code with PKCE flow to acquire a token for a web API such as Microsoft Graph.
--   [Hybrid Spa Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/HybridSample): Sample demonstrating how to use `enableSpaAuthorizationCode` to perform SSO for applications that leverage server-side and client-side authentication using MSAL Browser and MSAL Node.
+-   [auth-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/auth-code): Express app using OAuth2.0 authorization code flow.
+-   [auth-code-pkce](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/auth-code-pkce): Express app using OAuth2.0 authorization code flow with PKCE.
+-   [device-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/device-code): Command line app using OAuth 2.0 device code flow.
+-   [refresh-token](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/refresh-token): Command line app using OAuth 2.0 refresh flow.
+-   [silent-flow](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/silent-flow): Express app using OAuth2.0 authorization code flow to acquire a token and store in the token cache, and silent flow to use tokens in the token cache.
+-   [client-credentials](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/client-credentials): Daemon app using OAuth 2.0 client credential grant to acquire a token.
+-   [on-behalf-of](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/on-behalf-of): Web application using OAuth 2.0 auth code flow to acquire a token for a web API. The web API validates the token, and calls Microsoft Graph on behalf of the user who authenticated in the web application.
+-   [username-password](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/username-password): Web application using OAuth 2.0 resource owner password credentials (ROPC) flow to acquire a token for a web API.
+-   [ElectronTestApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/ElectronTestApp): Electron desktop application using OAuth 2.0 auth code with PKCE flow to acquire a token for a web API such as Microsoft Graph.
+-   [Hybrid Spa Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-browser-samples/HybridSample): Sample demonstrating how to use `enableSpaAuthorizationCode` to perform SSO for applications that leverage server-side and client-side authentication using MSAL Browser and MSAL Node.
 
 B2C samples:
 
--   [b2c-user-flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/b2c-user-flows): Express app using OAuth2.0 authorization code flow.
+-   [b2c-user-flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/b2c-user-flows): Express app using OAuth2.0 authorization code flow.
 
 Others:
 
--   [msal-node-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions): Uses authorization code flow to acquire tokens and the [msal-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/) library to write the MSAL in-memory token cache to disk.
+-   [msal-node-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/extensions/samples/msal-node-extensions): Uses authorization code flow to acquire tokens and the [msal-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/extensions/) library to write the MSAL in-memory token cache to disk.
 
 ## Build and Test
 

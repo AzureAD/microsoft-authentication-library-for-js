@@ -33,7 +33,7 @@ const pca = new PublicClientApplication(msalConfig);
 
 Please note that `msal-node` will _not_ fallback to the non-brokered flow in the event of a failure. In order to avoid unexpected failures in the future, only enable the broker flow in environments which support it (refer to the [Supported Environment](#supported-environment) section above).
 
-A working sample can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-brokered-app)
+A working sample can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/auth-code-cli-brokered-app)
 
 ## Window Parenting
 

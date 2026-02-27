@@ -6,7 +6,7 @@
 
 1. [interaction_in_progress](#interaction_in_progress)
 
-**[Additional Errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md)**
+**[Additional Errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/errors.md)**
 
 ***
 
@@ -23,11 +23,11 @@ In `@azure/msal-angular` there are 2 common scenarios when this can happen:
 1. Your application is not handling redirects correctly. The error then occurs when either the app or the user tries to call an interactive API. 
 1. Your application is calling one of the above APIs without first checking if interaction is already in progress elsewhere.
 
-Redirects **must** be handled either with the `MsalRedirectComponent` or with calling `handleRedirectObservable()`. Not handling redirects explicitly with either of these two approaches will result in the error above. See our docs on redirects [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/redirects.md) for more information on both approaches. 
+Redirects **must** be handled either with the `MsalRedirectComponent` or with calling `handleRedirectObservable()`. Not handling redirects explicitly with either of these two approaches will result in the error above. See our docs on redirects [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-angular/docs/redirects.md) for more information on both approaches. 
 
-Additionally, any interaction should be done after subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`. Attempting interaction while another is in progress is not supported and will result in the error above. Checking for `InteractionStatus.None` is how you ensure this does not happen. Please see our [events doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/events.md#the-inprogress-observable) for more details. 
+Additionally, any interaction should be done after subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`. Attempting interaction while another is in progress is not supported and will result in the error above. Checking for `InteractionStatus.None` is how you ensure this does not happen. Please see our [events doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-angular/docs/events.md#the-inprogress-observable) for more details. 
 
-Please see the [`@azure/msal-browser` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md) for more information on this error.
+Please see the [`@azure/msal-browser` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/errors.md) for more information on this error.
 
 ❌ The following example will throw this error when another component has already invoked an interactive API that is in progress:
 
@@ -78,7 +78,7 @@ export class ExampleComponent implements OnInit {
 
 #### Troubleshooting Steps
 
-- [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that an interactive API is not invoked before another has resolved. 
+- [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that an interactive API is not invoked before another has resolved. 
 - If using the redirect flow make sure `MsalRedirectComponet` is correctly bootstrapped or `handleRedirectObservable` is being called on every page which may be redirected to.
 
 If you are unable to figure out why this error is being thrown please [open an issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new/choose) and be prepared to share the following information:

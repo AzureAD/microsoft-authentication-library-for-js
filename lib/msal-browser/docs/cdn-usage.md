@@ -19,7 +19,7 @@ When using the CDN, we recommend the following best practices:
 -   Use the CDN region nearest to your users.
 -   Use the `async` or `defer` attributes to not block page rendering.
 -   Use the `integrity` attribute to ensure integrity of CDN builds.
--   IE11 support requires a Promise polyfill ([more information](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ie11-sample) on IE11 support).
+-   IE11 support requires a Promise polyfill ([more information](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ie11-sample) on IE11 support).
 
 ## Basic Usage
 
@@ -102,7 +102,7 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 -   Each hash will be unique to the version of MSAL.js v2, and will not change.
 -   SRI hash usage is optional for MSAL.js CDN builds.
 -   If the `integrity` attribute is used for MSAL.js v2 CDN builds, the `crossorigin` attribute must be set to `"anonymous"`.
--   If you believe our CDN builds have been compromised, please [inform us](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/SECURITY.md#reporting-a-vulnerability) immediately.
+-   If you believe our CDN builds have been compromised, please [inform us](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/SECURITY.md#reporting-a-vulnerability) immediately.
 
 ### SRI Hash History
 

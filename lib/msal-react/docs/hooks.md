@@ -7,8 +7,8 @@
 
 ## `useAccount` hook
 
-The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not. If no account identifier is provided the current [active account](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md#active-account-apis) will be returned.
-You can read more about the `AccountInfo` object returned in the `@azure/msal-browser` docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#account-apis).
+The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not. If no account identifier is provided the current [active account](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/accounts.md#active-account-apis) will be returned.
+You can read more about the `AccountInfo` object returned in the `@azure/msal-browser` docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/login-user.md#account-apis).
 
 ```javascript
 const accountIdentifier = {
@@ -132,11 +132,11 @@ if (loading || inProgress === InteractionStatus.Login) {
 
 Docs for the APIs `PublicClientApplication` exposes can be found in the `@azure/msal-browser` docs:
 
-- [Login APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md)
-- [Logout API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
-- [AcquireToken APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
-- [Account APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md)
-- [Event APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md)
+- [Login APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/login-user.md)
+- [Logout API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/logout.md)
+- [AcquireToken APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/acquire-token.md)
+- [Account APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/accounts.md)
+- [Event APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/events.md)
 
 ## `useMsalAuthentication` hook
 
@@ -145,7 +145,7 @@ The `useMsalAuthentication` hook will initiate a login if a user is not already 
 ### Input Parameters
 
 - [interactionType](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_browser.interactiontype.html) (Popup, Redirect, or Silent) specifies how you would like to acquire tokens or login when interaction is required (note the Silent option has some extra considerations explained below)
-- [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md) (optional) specifies additional parameters to be used by the login or token acquisition call
+- [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/request-response-object.md) (optional) specifies additional parameters to be used by the login or token acquisition call
 - [accountIdentifiers](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html#accountidentifiers) object is used to tell the hook which user it should log-in or acquire tokens for
 
 ### Return Properties
@@ -155,7 +155,7 @@ The `useMsalAuthentication` hook will initiate a login if a user is not already 
 - `login` - function which can be used to retry a failed login. The `result` and `error` properties will be updated.
 - `acquireToken` - function which can be used to get a new access token before calling a protected API. The `result` and `error` properties will be updated.
 
-Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts to open a hidden iframe and reuse an existing session with AAD. This will not work in browsers that block 3rd party cookies such as Safari. Additionally, the request object is required when using the "Silent" type. If you already have the user's sign-in information, you can pass either the `loginHint` or `sid` optional parameters to sign-in a specific account. Note: there are [additional considerations](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) - when using `ssoSilent` without providing any information about the user's session.
+Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts to open a hidden iframe and reuse an existing session with AAD. This will not work in browsers that block 3rd party cookies such as Safari. Additionally, the request object is required when using the "Silent" type. If you already have the user's sign-in information, you can pass either the `loginHint` or `sid` optional parameters to sign-in a specific account. Note: there are [additional considerations](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) - when using `ssoSilent` without providing any information about the user's session.
 
 ### `ssoSilent` example
 

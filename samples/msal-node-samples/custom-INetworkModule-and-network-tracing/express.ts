@@ -20,7 +20,7 @@ const clientConfig: msal.Configuration = {
         /**
          * Uncomment either of the HttpClient import statements to use a custom INetworkModule
          * The contents of ./HttpClientCurrent.ts are the default msal-node network functionality (msal-node v1.15.0), copied from:
-         * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/src/network/HttpClient.ts
+         * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-node/src/network/HttpClient.ts
          * The contents of ./HttpClientAxios.ts are the msal-node network functionality from when Axios was used - before the HttpClient was rewritten to support proxys - copied from:
          * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/2c77739f9e36538bb68029969d526a3fa37017d7/lib/msal-node/src/network/HttpClient.ts
          * Changes were made to account for the imported constants

@@ -6,7 +6,7 @@ Since MSAL Node supports various authorization code grants, there is support for
 
 ### acquireTokenInteractive
 
-[acquireTokenInteractive()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.PublicClientApplication.html#acquireTokenInteractive): This API handles both legs of the authorization code flow. It is available for PublicClientApplication only. The request type is documented here: [InteractiveRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.InteractiveRequest.html). The only required parameter is a `openBrowser` callback which should accept a `url` parameter and open the browser of choice to complete the sign-in. A sample demonstrating its usage can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-app)
+[acquireTokenInteractive()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.PublicClientApplication.html#acquireTokenInteractive): This API handles both legs of the authorization code flow. It is available for PublicClientApplication only. The request type is documented here: [InteractiveRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.InteractiveRequest.html). The only required parameter is a `openBrowser` callback which should accept a `url` parameter and open the browser of choice to complete the sign-in. A sample demonstrating its usage can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/auth-code-cli-app)
 
 ```javascript
 import { PublicClientApplication }  from "@azure/msal-node";
@@ -296,10 +296,10 @@ cca.acquireTokenByClientCredential(clientCredentialRequest)
 
 -   [acquireTokenOnBehalfOf](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_confidentialclientapplication_.confidentialclientapplication.html#acquiretokenonbehalfof): This API implements the On Behalf Of Flow, which is used when an application invokes a service/web API, which in turn needs to call another service/web API that uses any other authentication flow (device code, username/password, etc). The access token is acquired by the web API initially (by any of the web API flows), and the web API can then exchange this token for another token via OBO. The request is of the type [OnBehalfOfRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_request_onbehalfofrequest_.html#onbehalfofrequest)
 
-Please look at the On Behalf Of flow [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/on-behalf-of) for usage instructions:
+Please look at the On Behalf Of flow [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/standalone-samples/on-behalf-of) for usage instructions:
 
--   [WebAPI](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/on-behalf-of/web-api/index.js) sample code
--   [WebApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/on-behalf-of/web-app/index.js) sample code
+-   [WebAPI](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/on-behalf-of/web-api/index.js) sample code
+-   [WebApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-node-samples/on-behalf-of/web-app/index.js) sample code
 
 ## Next Steps
 

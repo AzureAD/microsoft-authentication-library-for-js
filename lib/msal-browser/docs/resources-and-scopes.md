@@ -1,6 +1,6 @@
 # Resources and Scopes
 
-> :warning: Before you start here, make sure you understand how to [acquire and use an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md).
+> :warning: Before you start here, make sure you understand how to [acquire and use an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/acquire-token.md).
 
 Azure Active Directory v2.0 & Microsoft Identity Platform employs a *scope-centric* model to access resources. Here, a *resource* refers to any application that can be a recipient of an **Access Token** (such as [MS Graph API](https://docs.microsoft.com/graph/overview) or your own web API), and a *scope* (*aka* "permission") refers to any aspect of a resource that an **Access Token** grants rights.
 

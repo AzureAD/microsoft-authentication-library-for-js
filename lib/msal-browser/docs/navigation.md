@@ -91,4 +91,4 @@ msalInstance.setNavigationClient(navigationClient);
 
 ## Examples
 
-If you'd like to see end to end examples of providing a custom `NavigationClient` check out our [react samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples).
+If you'd like to see end to end examples of providing a custom `NavigationClient` check out our [react samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-react-samples).

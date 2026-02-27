@@ -41,7 +41,7 @@ You will also see any lint errors in the console.
 
 ## How this sample works
 
-This sample demonstrates how you can integrate `@azure/msal-browser` into your Vue application. It is best if you familiarize yourself with the `@azure/msal-browser` package first, as this sample will build on many of the concepts defined there. You'll find the `msal-browser` package [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) and you'll find a variety of docs you may find useful [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs). The following sections will walk you through each part of this sample and explain a little bit about how it works.
+This sample demonstrates how you can integrate `@azure/msal-browser` into your Vue application. It is best if you familiarize yourself with the `@azure/msal-browser` package first, as this sample will build on many of the concepts defined there. You'll find the `msal-browser` package [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-browser) and you'll find a variety of docs you may find useful [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/lib/msal-browser/docs). The following sections will walk you through each part of this sample and explain a little bit about how it works.
 
 ### Configuration
 
@@ -70,7 +70,7 @@ const msalConfig = {
 export const msalInstance = new PublicClientApplication(msalConfig);
 ```
 
-You can read more about configuring MSAL.js and the complete set of options [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md)
+You can read more about configuring MSAL.js and the complete set of options [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/configuration.md)
 
 ### MsalPlugin
 
@@ -133,7 +133,7 @@ Will attempt to silently acquire a token and fallback to interaction if no user 
 You must provide:
 
 - Your preferred interaction type (Popup or Redirect) to be used in case the request cannot be completed silently
-- The auth request that will be used to acquire the token. You can find the request/response types [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
+- The auth request that will be used to acquire the token. You can find the request/response types [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/request-response-object.md)
 
 Returns:
 

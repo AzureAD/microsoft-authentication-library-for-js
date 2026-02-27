@@ -88,7 +88,7 @@ function showEnvironmentVariableAlert(missingVars, emptyVars) {
             <div class="env-example-code">
                 <pre>${allProblematicVars.map(config => `${config.name}=${config.example.replace('e.g., ', '')}`).join('\n')}</pre>
             </div>
-            <p>For detailed setup instructions, see the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ExpressSample#configure-the-application" target="_blank">README.md</a></p>
+            <p>For detailed setup instructions, see the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-browser-samples/ExpressSample#configure-the-application" target="_blank">README.md</a></p>
         </div>
     `;
     

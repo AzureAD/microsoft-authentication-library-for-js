@@ -2,7 +2,7 @@
 
 MSAL Angular v4 includes security updates from MSAL Browser and adds Angular 19 support to the existing Angular 15-18 support.
 
-Please see the [MSAL Browser v3 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for browser support and other key changes.
+Please see the [MSAL Browser v3 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v4-lts/lib/msal-browser/docs/v3-migration.md) for browser support and other key changes.
 
 ## Changes in `@azure/msal-angular@4`
 
@@ -27,10 +27,10 @@ this.msalBroadcastService.inProgress$
 
 The following developer samples are now available:
 
-- [Angular B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-b2c-sample)
-- [Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-modules-sample)
-- [Angular Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-standalone-sample)
+- [Angular B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-samples/angular-b2c-sample)
+- [Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-samples/angular-modules-sample)
+- [Angular Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-samples/angular-standalone-sample)
 
 The samples demonstrates basic configuration and usage, and may be improved and added to incrementally.
 
-See [here](hhttps://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples) for a list of the current MSAL Angular samples and the features demonstrated.
+See [here](hhttps://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v4-lts/samples/msal-angular-samples) for a list of the current MSAL Angular samples and the features demonstrated.
