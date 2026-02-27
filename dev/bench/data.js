@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1771958885769,
+  "lastUpdate": 1772228275257,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19589,6 +19589,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 251674,
             "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3e5d58b71e232b5978edcf0bd4c05f5948b8a747",
+          "message": "Post-release PR (#8354)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>",
+          "timestamp": "2026-02-27T13:31:17-08:00",
+          "tree_id": "3c207e0e8919ebf8e46ab9f5e9f09ff67c53e709",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3e5d58b71e232b5978edcf0bd4c05f5948b8a747"
+        },
+        "date": 1772228270918,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252678,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 246788,
+            "range": "±0.92%",
             "unit": "ops/sec",
             "extra": "235 samples"
           }
