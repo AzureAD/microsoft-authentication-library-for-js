@@ -293,10 +293,34 @@ export class MsalInterceptor implements HttpInterceptor {
     for (const property of urlProperties) {
       if (keyComponents[property]) {
         const decodedInput = decodeURIComponent(keyComponents[property]);
-        if (
-          !StringUtils.matchPattern(decodedInput, endpointComponents[property])
-        ) {
-          return false;
+        if (this.msalInterceptorConfig.strictMatching) {
+          /*
+           * Strict matching: anchored patterns, metacharacters are literals,
+           * host wildcards do not span dot separators.
+           */
+          const component =
+            property === "pathname"
+              ? "path"
+              : (property as "host" | "protocol" | "search" | "hash");
+          if (
+            !StringUtils.matchPatternStrict(
+              decodedInput,
+              endpointComponents[property],
+              { component }
+            )
+          ) {
+            return false;
+          }
+        } else {
+          // Legacy matching: preserved exactly for backwards compatibility.
+          if (
+            !StringUtils.matchPattern(
+              decodedInput,
+              endpointComponents[property]
+            )
+          ) {
+            return false;
+          }
         }
       }
     }
