@@ -58,7 +58,6 @@ import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
-import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
