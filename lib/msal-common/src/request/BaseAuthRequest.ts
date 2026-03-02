@@ -8,6 +8,8 @@ import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { StringDict } from "../utils/MsalTypes.js";
 import { StoreInCache } from "./StoreInCache.js";
 import { ShrOptions } from "../crypto/SignedHttpRequest.js";
+import { createClientAuthError } from "../error/ClientAuthError.js";
+import * as ClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
 
 /**
  * BaseAuthRequest
@@ -102,3 +104,43 @@ export type BaseAuthRequest = {
      */
     extraParameters?: StringDict;
 };
+
+/**
+ * Helper to enforce resource parameter presence in token requests when isMcp is set in the configuration.
+ * If resource parameter is set in both the request and in extraQueryParameters or extraParameters, an error will be thrown.
+ * This is used for MCP flows.
+ * @param isMcp - Flag indicating if application is an MCP app, from configuration
+ * @param request - Auth request
+ */
+export function enforceResourceParameter(
+    isMcp: boolean,
+    request: Partial<BaseAuthRequest>
+): void {
+    if (!isMcp) {
+        return;
+    }
+
+    if (
+        request.resource &&
+        (containsResourceParam(request.extraParameters) ||
+            containsResourceParam(request.extraQueryParameters))
+    ) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.misplacedResourceParam
+        );
+    }
+
+    if (!request.resource) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.resourceParameterRequired
+        );
+    }
+}
+
+function containsResourceParam(params?: StringDict): boolean {
+    if (!params) {
+        return false;
+    }
+
+    return Object.prototype.hasOwnProperty.call(params, "resource");
+}

@@ -1507,7 +1507,9 @@ declare namespace ClientAuthErrorCodes {
         userCanceled,
         methodNotImplemented,
         nestedAppAuthBridgeDisabled,
-        platformBrokerError
+        platformBrokerError,
+        resourceParameterRequired,
+        misplacedResourceParam
     }
 }
 export { ClientAuthErrorCodes }
@@ -2159,6 +2161,11 @@ const endpointResolutionError = "endpoints_resolution_error";
 //
 // @public (undocumented)
 const endSessionEndpointNotSupported = "end_session_endpoint_not_supported";
+
+// Warning: (ae-missing-release-tag) "enforceResourceParameter" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function enforceResourceParameter(isMcp: boolean, request: Partial<BaseAuthRequest>): void;
 
 // Warning: (ae-missing-release-tag) "ERROR" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3035,6 +3042,11 @@ const maxAgeTranspired = "max_age_transpired";
 //
 // @public (undocumented)
 const methodNotImplemented = "method_not_implemented";
+
+// Warning: (ae-missing-release-tag) "misplacedResourceParam" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const misplacedResourceParam = "misplaced_resource_parameter";
 
 // Warning: (ae-missing-release-tag) "missingNonceAuthenticationHeader" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3926,6 +3938,11 @@ export type RequestThumbprint = {
 //
 // @public (undocumented)
 const RESOURCE_DELIM = "|";
+
+// Warning: (ae-missing-release-tag) "resourceParameterRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const resourceParameterRequired = "resource_parameter_required";
 
 // Warning: (ae-missing-release-tag) "RESPONSE_MODE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

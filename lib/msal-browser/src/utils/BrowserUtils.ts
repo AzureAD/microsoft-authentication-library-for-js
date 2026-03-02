@@ -13,7 +13,6 @@ import {
     Logger,
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
-    StringDict,
     ProtocolUtils,
 } from "@azure/msal-common/browser";
 import {
@@ -29,10 +28,6 @@ import {
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
 import { base64Decode } from "../encode/Base64Decode.js";
-import { RedirectRequest } from "../request/RedirectRequest.js";
-import { PopupRequest } from "../request/PopupRequest.js";
-import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { SilentRequest } from "../request/SilentRequest.js";
 
 /**
  * Extracts and parses the authentication response from URL (hash and/or query string).
@@ -406,46 +401,6 @@ export function redirectPreflightCheck(
             BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
         );
     }
-}
-
-/**
- * Helper to enforce resource parameter presence in token requests when enforceResourceParameter is set in the configuration
- * If resource parameter is set in both the request and in extraQueryParameters or extraParameters, an error will be thrown
- * This is used for MCP flows
- * @param isMcp - Flag indicating if application is an MCP app, from configuration
- * @param request - Auth request
- */
-export function enforceResourceParameter(
-    isMcp: boolean,
-    request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest
-): void {
-    if (!isMcp) {
-        return;
-    }
-
-    if (
-        request.resource &&
-        (containsResourceParam(request.extraParameters) ||
-            containsResourceParam(request.extraQueryParameters))
-    ) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.misplacedResourceParam
-        );
-    }
-
-    if (!request.resource) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.resourceParameterRequired
-        );
-    }
-}
-
-function containsResourceParam(params?: StringDict): boolean {
-    if (!params) {
-        return false;
-    }
-
-    return Object.prototype.hasOwnProperty.call(params, "resource");
 }
 
 /**

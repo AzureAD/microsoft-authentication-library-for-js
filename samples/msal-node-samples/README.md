@@ -26,6 +26,7 @@ Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/dev
 | [client-credentials-distributed-cache](./client-credentials-distributed-cache/README.md) | daemon app (confidential client) (typescript) | client credentials                         |
 | [b2c-user-flows](./b2c-user-flows/README.md)                                             | web app (confidential client)                 | authorization code                         |
 | [ElectronTestApp](./ElectronTestApp/README.md)                                           | desktop app (public client)                   | authorization code with PKCE               |
+| [mcp-flows](./mcp-flows/README.md)                                                       | web app (public client)                       | authorization code (MCP flow with resource in request) |
 
 For in-depth tutorials, see:
 

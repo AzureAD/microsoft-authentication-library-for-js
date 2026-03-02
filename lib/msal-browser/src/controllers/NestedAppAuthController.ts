@@ -19,6 +19,7 @@ import {
     AuthError,
     AccountEntityUtils,
     AuthToken,
+    enforceResourceParameter,
 } from "@azure/msal-common/browser";
 import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -217,16 +218,7 @@ export class NestedAppAuthController implements IController {
         atPopupMeasurement.add({ nestedAppAuthRequest: true });
 
         try {
-            BrowserUtils.enforceResourceParameter(
-                this.config.auth.isMcp,
-                validRequest
-            );
-        } catch (e) {
-            atPopupMeasurement.end({ success: false }, e, validRequest.account);
-            throw e;
-        }
-
-        try {
+            enforceResourceParameter(this.config.auth.isMcp, validRequest);
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             const reqTimestamp = TimeUtils.nowSeconds();
@@ -349,20 +341,7 @@ export class NestedAppAuthController implements IController {
         });
 
         try {
-            BrowserUtils.enforceResourceParameter(
-                this.config.auth.isMcp,
-                validRequest
-            );
-        } catch (e) {
-            ssoSilentMeasurement.end(
-                { success: false },
-                e,
-                validRequest.account
-            );
-            throw e;
-        }
-
-        try {
+            enforceResourceParameter(this.config.auth.isMcp, validRequest);
             const naaRequest =
                 this.nestedAppAuthAdapter.toNaaTokenRequest(validRequest);
             naaRequest.forceRefresh = validRequest.forceRefresh;

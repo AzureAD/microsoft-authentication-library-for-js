@@ -159,8 +159,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     correlationId: NAA_CORRELATION_ID,
                 } as any)
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.resourceParameterRequired
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
                 )
             );
         });
@@ -188,8 +188,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     },
                 } as any)
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -217,8 +217,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     },
                 } as any)
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });

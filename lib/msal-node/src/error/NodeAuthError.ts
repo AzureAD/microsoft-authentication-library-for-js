@@ -45,14 +45,6 @@ export const NodeAuthErrorMessage = {
         code: "redirect_uri_not_supported",
         desc: "RedirectUri is not supported in this scenario. Please remove redirectUri from the request.",
     },
-    resourceParameterRequired: {
-        code: "resource_parameter_required",
-        desc: "A resource parameter is required for all token requests when isMcp is enabled. Please include a resource in your request.",
-    },
-    misplacedResourceParameter: {
-        code: "misplaced_resource_parameter",
-        desc: "A resource was found both directly in the resource parameter and in extraQueryParameters or extraParameters. Please only include the resource in one location.",
-    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -148,26 +140,6 @@ export class NodeAuthError extends AuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.redirectUriNotSupported.code,
             NodeAuthErrorMessage.redirectUriNotSupported.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when isMcp is enabled but no resource was provided in the request
-     */
-    static createResourceParameterRequiredError(): NodeAuthError {
-        return new NodeAuthError(
-            NodeAuthErrorMessage.resourceParameterRequired.code,
-            NodeAuthErrorMessage.resourceParameterRequired.desc
-        );
-    }
-
-    /**
-     * Creates an error thrown when resource is placed in extraParameters or extraQueryParameters instead of on the request
-     */
-    static createMisplacedResourceParameterError(): NodeAuthError {
-        return new NodeAuthError(
-            NodeAuthErrorMessage.misplacedResourceParameter.code,
-            NodeAuthErrorMessage.misplacedResourceParameter.desc
         );
     }
 }

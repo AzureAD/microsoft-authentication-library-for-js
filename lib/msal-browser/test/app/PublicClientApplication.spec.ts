@@ -2403,8 +2403,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenRedirect({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.resourceParameterRequired
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
                 )
             );
         });
@@ -2431,8 +2431,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -2459,8 +2459,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -3342,8 +3342,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenPopup({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.resourceParameterRequired
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
                 )
             );
         });
@@ -3370,8 +3370,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -3398,8 +3398,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -3831,8 +3831,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
 
             await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.resourceParameterRequired
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
                 )
             );
         });
@@ -3859,8 +3859,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -3887,8 +3887,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -6355,8 +6355,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(
                 pca.acquireTokenSilent({ scopes: [] })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.resourceParameterRequired
+                createClientAuthError(
+                    ClientAuthErrorCodes.resourceParameterRequired
                 )
             );
         });
@@ -6383,8 +6383,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });
@@ -6411,8 +6411,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 })
             ).rejects.toMatchObject(
-                createBrowserAuthError(
-                    BrowserAuthErrorCodes.misplacedResourceParam
+                createClientAuthError(
+                    ClientAuthErrorCodes.misplacedResourceParam
                 )
             );
         });

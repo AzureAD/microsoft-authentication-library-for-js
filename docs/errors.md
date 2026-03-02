@@ -936,11 +936,11 @@ const msalConfig = {
 
 ### `resource_parameter_required`
 
--   `isMcp` is set as `true` in the configuration, yet the request does not have a `resource` parameter.
+-   `isMcp` is set as `true` in the configuration, yet the request does not have a `resource` parameter. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
 
 ### `misplaced_resource_parameter`
 
--   A resource was found both directly in the `resource` parameter and in `extraQueryParameters` or `extraParameters`. Please only include the resource in one location.
+-   A resource was found both directly in the `resource` parameter and in `extraQueryParameters` or `extraParameters`. Please only include the resource in one location. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
 
 ## Browser configuration errors
 

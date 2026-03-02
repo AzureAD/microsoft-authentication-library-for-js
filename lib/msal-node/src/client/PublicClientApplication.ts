@@ -21,7 +21,7 @@ import {
     AADServerParamKeys,
     ServerTelemetryManager,
     AuthorizationCodePayload,
-    BaseAuthRequest,
+    enforceResourceParameter,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -105,7 +105,7 @@ export class PublicClientApplication
             "acquireTokenByDeviceCode called",
             request.correlationId || ""
         );
-        this.enforceResourceParameter(request);
+        enforceResourceParameter(this.config.auth.isMcp, request);
         const validRequest: CommonDeviceCodeRequest = Object.assign(
             request,
             await this.initializeBaseRequest(request)
@@ -151,7 +151,7 @@ export class PublicClientApplication
         const correlationId =
             request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenInteractive called", correlationId);
-        this.enforceResourceParameter(request);
+        enforceResourceParameter(this.config.auth.isMcp, request);
         const {
             openBrowser,
             successTemplate,
@@ -265,7 +265,7 @@ export class PublicClientApplication
         const correlationId =
             request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenSilent called", correlationId);
-        this.enforceResourceParameter(request);
+        enforceResourceParameter(this.config.auth.isMcp, request);
 
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
@@ -305,7 +305,7 @@ export class PublicClientApplication
         request: AuthorizationCodeRequest,
         authCodePayLoad?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
-        this.enforceResourceParameter(request);
+        enforceResourceParameter(this.config.auth.isMcp, request);
         return super.acquireTokenByCode(request, authCodePayLoad);
     }
 
@@ -316,7 +316,7 @@ export class PublicClientApplication
     async acquireTokenByRefreshToken(
         request: RefreshTokenRequest
     ): Promise<AuthenticationResult | null> {
-        this.enforceResourceParameter(request);
+        enforceResourceParameter(this.config.auth.isMcp, request);
         return super.acquireTokenByRefreshToken(request);
     }
 
@@ -401,36 +401,5 @@ export class PublicClientApplication
                 }
             }, LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS);
         });
-    }
-
-    /**
-     * Enforces that a resource parameter is present when isMcp is enabled, and that it has not been
-     * duplicated in both the request and in extraParameters or extraQueryParameters.
-     */
-    private enforceResourceParameter(request: Partial<BaseAuthRequest>): void {
-        if (!this.config.auth.isMcp) {
-            return;
-        }
-
-        const hasResourceInParams = (
-            params?: Record<string, string>
-        ): boolean => {
-            return (
-                !!params &&
-                Object.prototype.hasOwnProperty.call(params, "resource")
-            );
-        };
-
-        if (
-            request.resource &&
-            (hasResourceInParams(request.extraParameters) ||
-                hasResourceInParams(request.extraQueryParameters))
-        ) {
-            throw NodeAuthError.createMisplacedResourceParameterError();
-        }
-
-        if (!request.resource) {
-            throw NodeAuthError.createResourceParameterRequiredError();
-        }
     }
 }

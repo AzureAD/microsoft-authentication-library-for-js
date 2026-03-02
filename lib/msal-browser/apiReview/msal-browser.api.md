@@ -22,6 +22,7 @@ import { CommonAuthorizationUrlRequest } from '@azure/msal-common/browser';
 import { CommonEndSessionRequest } from '@azure/msal-common/browser';
 import { CommonSilentFlowRequest } from '@azure/msal-common/browser';
 import { Constants } from '@azure/msal-common/browser';
+import { enforceResourceParameter } from '@azure/msal-common/browser';
 import { ExternalTokenResponse } from '@azure/msal-common/browser';
 import { ICrypto } from '@azure/msal-common/browser';
 import { IdTokenClaims } from '@azure/msal-common/browser';
@@ -268,9 +269,7 @@ declare namespace BrowserAuthErrorCodes {
         failedToParseHeaders,
         failedToDecryptEarResponse,
         timedOut,
-        emptyResponse,
-        resourceParameterRequired,
-        misplacedResourceParam
+        emptyResponse
     }
 }
 export { BrowserAuthErrorCodes }
@@ -428,7 +427,6 @@ declare namespace BrowserUtils {
         blockAPICallsBeforeInitialize,
         preflightCheck,
         redirectPreflightCheck,
-        enforceResourceParameter,
         preconnect,
         createGuid,
         invoke,
@@ -586,10 +584,7 @@ export type EndSessionRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
 };
 
-// Warning: (ae-missing-release-tag) "enforceResourceParameter" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function enforceResourceParameter(isMcp: boolean, request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest): void;
+export { enforceResourceParameter }
 
 // Warning: (ae-missing-release-tag) "EventCallbackFunction" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1029,11 +1024,6 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     setUserData(key: string, value: T): Promise<void>;
 }
 
-// Warning: (ae-missing-release-tag) "misplacedResourceParam" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const misplacedResourceParam = "misplaced_resource_parameter";
-
 // Warning: (ae-missing-release-tag) "nativeConnectionNotEstablished" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1341,11 +1331,6 @@ export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "respo
 //
 // @public
 function replaceHash(url: string): void;
-
-// Warning: (ae-missing-release-tag) "resourceParameterRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const resourceParameterRequired = "resource_parameter_required";
 
 // Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

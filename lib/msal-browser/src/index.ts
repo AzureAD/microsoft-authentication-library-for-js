@@ -152,6 +152,7 @@ export {
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
+    enforceResourceParameter,
 } from "@azure/msal-common/browser";
 export * as BrowserRootPerformanceEvents from "./telemetry/BrowserRootPerformanceEvents.js";
 
