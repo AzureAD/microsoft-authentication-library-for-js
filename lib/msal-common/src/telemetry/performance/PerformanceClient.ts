@@ -11,6 +11,7 @@ import {
     PerformanceCallbackFunction,
 } from "./IPerformanceClient.js";
 import {
+    EXT_FIELD_PREFIX,
     IntFields,
     PerformanceEvent,
     PerformanceEventContext,
@@ -453,9 +454,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
             addError(error, this.logger, rootEvent);
         }
 
-        // Add sub-measurement attribute to root event.
+        // Add sub-measurement attribute to root event's ext field.
         if (!isRoot) {
-            rootEvent[event.name + "DurationMs"] = Math.floor(event.durationMs);
+            rootEvent.ext = {
+                ...rootEvent.ext,
+                ...event.ext,
+            };
+            rootEvent.ext[event.name + "DurationMs"] = Math.floor(
+                event.durationMs
+            );
             return { ...rootEvent };
         }
 
@@ -521,10 +528,36 @@ export abstract class PerformanceClient implements IPerformanceClient {
     ): void {
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
-            this.eventsByCorrelationId.set(correlationId, {
+            const staticFields: { [key: string]: {} | undefined } = {};
+            const dynamicFields: Record<string, string | number> = {};
+
+            for (const key in fields) {
+                if (key.startsWith(EXT_FIELD_PREFIX)) {
+                    const dynamicKey = key.slice(EXT_FIELD_PREFIX.length);
+                    const value = fields[key];
+                    if (
+                        typeof value === "string" ||
+                        typeof value === "number"
+                    ) {
+                        dynamicFields[dynamicKey] = value;
+                    }
+                } else {
+                    staticFields[key] = fields[key];
+                }
+            }
+
+            const updatedEvent: PerformanceEvent = {
                 ...event,
-                ...fields,
-            });
+                ...staticFields,
+            };
+            if (Object.keys(dynamicFields).length) {
+                updatedEvent.ext = {
+                    ...updatedEvent.ext,
+                    ...dynamicFields,
+                };
+            }
+
+            this.eventsByCorrelationId.set(correlationId, updatedEvent);
         } else {
             this.logger.trace(
                 "PerformanceClient: Event not found for",
@@ -545,12 +578,29 @@ export abstract class PerformanceClient implements IPerformanceClient {
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             for (const counter in fields) {
-                if (!event.hasOwnProperty(counter)) {
-                    event[counter] = 0;
-                } else if (isNaN(Number(event[counter]))) {
-                    return;
+                if (counter.startsWith(EXT_FIELD_PREFIX)) {
+                    event.ext = event.ext || {};
+                    // Route to ext sub-object
+                    const dynamicKey = counter.slice(EXT_FIELD_PREFIX.length);
+                    const currentValue = event.ext[dynamicKey];
+                    if (currentValue === undefined) {
+                        event.ext[dynamicKey] = 0;
+                    } else if (isNaN(Number(currentValue))) {
+                        return;
+                    }
+                    event.ext[dynamicKey] =
+                        (Number(event.ext[dynamicKey]) || 0) +
+                        (fields[counter] ?? 0);
+                } else {
+                    /* eslint-disable custom-msal/no-dynamic-telemetry-fields -- internal dispatching of static fields by name */
+                    if (!event.hasOwnProperty(counter)) {
+                        event[counter] = 0;
+                    } else if (isNaN(Number(event[counter]))) {
+                        return;
+                    }
+                    event[counter] += fields[counter];
+                    /* eslint-enable custom-msal/no-dynamic-telemetry-fields */
                 }
-                event[counter] += fields[counter];
             }
         } else {
             this.logger.trace(
@@ -674,9 +724,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     private truncateIntegralFields(event: PerformanceEvent): void {
         this.intFields.forEach((key) => {
+            /* eslint-disable custom-msal/no-dynamic-telemetry-fields -- internal truncation of known integer fields */
             if (key in event && typeof event[key] === "number") {
                 event[key] = Math.floor(event[key]);
             }
+            /* eslint-enable custom-msal/no-dynamic-telemetry-fields */
         });
     }
 
