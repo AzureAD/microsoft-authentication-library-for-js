@@ -321,6 +321,8 @@ export type PerformanceEvent = {
     extRtExpiresOnSeconds?: number;
     rtOffsetSeconds?: number;
 
+    sidFromClaim?: boolean;
+    // Backward-compatible alias for sidFromClaim
     sidFromClaims?: boolean;
     sidFromRequest?: boolean;
     loginHintFromRequest?: boolean;
@@ -348,12 +350,113 @@ export type PerformanceEvent = {
     isMcp?: boolean;
 
     /**
+     * Source of cloud discovery metadata (config, cache, network, hardcoded_values)
+     */
+    cloudDiscoverySource?: string;
+
+    /**
+     * Source of authority endpoint metadata (config, cache, network, hardcoded_values)
+     */
+    authorityEndpointSource?: string;
+
+    /**
+     * Number of accounts removed during cache cleanup
+     */
+    accountsRemoved?: number;
+
+    /**
+     * Number of access tokens removed during cache cleanup
+     */
+    accessTokensRemoved?: number;
+
+    /**
+     * Number of failures when removing token binding keys
+     */
+    removeTokenBindingKeyFailure?: number;
+
+    /**
      * Reason for silent refresh fallback to iframe
      * Format: errorCode or errorCode|subError
      *
      * @type {?string}
      */
     silentRefreshReason?: string;
+
+    /**
+     * Whether this request was deduped with another in-flight request
+     */
+    deduped?: boolean;
+
+    /**
+     * Whether the user has "Keep Me Signed In" enabled
+     */
+    kmsi?: boolean;
+
+    /**
+     * Whether this event was executed in the background
+     */
+    isBackground?: boolean;
+
+    /**
+     * Cache migration telemetry — pre-migration counts
+     */
+    preMigrateAcntCount?: number;
+    preMigrateATCount?: number;
+    preMigrateITCount?: number;
+    preMigrateRTCount?: number;
+
+    /**
+     * Cache migration telemetry — post-migration counts
+     */
+    postMigrateAcntCount?: number;
+    postMigrateATCount?: number;
+    postMigrateITCount?: number;
+    postMigrateRTCount?: number;
+
+    /**
+     * Cache migration telemetry — old schema counts
+     */
+    oldAcntCount?: number;
+    oldATCount?: number;
+    oldITCount?: number;
+    oldRTCount?: number;
+
+    /**
+     * Cache migration telemetry — skipped and migrated counts
+     */
+    skipATMigrateCount?: number;
+    skipITMigrateCount?: number;
+    skipRTMigrateCount?: number;
+    migratedATCount?: number;
+    migratedITCount?: number;
+    migratedRTCount?: number;
+
+    /**
+     * Cache telemetry — expired, invalid, and removed counts
+     */
+    expiredCacheRemovedCount?: number;
+    expiredAcntRemovedCount?: number;
+    invalidCacheCount?: number;
+
+    /**
+     * Encrypted cache telemetry
+     */
+    unencryptedCacheCount?: number;
+    encryptedCacheCount?: number;
+    encryptedCacheExpiredCount?: number;
+    encryptedCacheCorruptionCount?: number;
+
+    /**
+     * Container for dynamically-named telemetry fields.
+     * Fields whose names are constructed at runtime (e.g., "[eventName]CallCount")
+     * should be stored here instead of being set as top-level properties.
+     * Use the "ext." prefix when calling addFields/incrementFields to automatically
+     * route fields to this sub-object.
+     *
+     * @remarks
+     * This property is typed as `Record<string, string | number>`.
+     */
+    ext?: Record<string, string | number>;
 };
 
 export type PerformanceEventContext = {
@@ -367,6 +470,13 @@ export type PerformanceEventStackedContext = PerformanceEventContext & {
     name?: string;
     childErr?: string;
 };
+
+/**
+ * Prefix used to mark telemetry field names as dynamic.
+ * Fields with this prefix in addFields/incrementFields calls will be routed
+ * to the PerformanceEvent.ext sub-object.
+ */
+export const EXT_FIELD_PREFIX = "ext.";
 
 export const IntFields: ReadonlySet<string> = new Set([
     "accessTokenSize",
