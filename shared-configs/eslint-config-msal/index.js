@@ -85,6 +85,7 @@ module.exports = {
                 "ignoreModules": ["msal-node", "msal-node-extensions"]
             }
         ],
+        "custom-msal/no-dynamic-telemetry-fields": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [
