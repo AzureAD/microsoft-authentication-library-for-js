@@ -587,5 +587,44 @@ describe("PlatformAuthDOMHandler tests", () => {
             });
             expect(domExtraParams).not.toHaveProperty("instanceAware");
         });
+
+        it("should catch JSON.stringify error and return empty object", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+
+            // Create a circular reference that will cause JSON.stringify to throw
+            const circularObj: any = { name: "test" };
+            circularObj.self = circularObj;
+
+            const testExtraParameters = {
+                prompt: PromptValue.NONE,
+                problemParam: circularObj,
+            };
+
+            console.log("Testing circular object:", testExtraParameters);
+
+            const loggerErrorSpy = jest.spyOn(logger, "error");
+            const loggerErrorPiiSpy = jest.spyOn(logger, "errorPii");
+
+            const domExtraParams =
+                //@ts-ignore
+                platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
+
+            expect(domExtraParams).toEqual({});
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+                "PlatformAuthDOMHandler - Error stringifying extra parameters"
+            );
+            expect(loggerErrorPiiSpy).toHaveBeenCalled();
+            expect(loggerErrorPiiSpy.mock.calls[0][0]).toContain(
+                "Error stringifying extra parameters"
+            );
+        });
     });
 });
