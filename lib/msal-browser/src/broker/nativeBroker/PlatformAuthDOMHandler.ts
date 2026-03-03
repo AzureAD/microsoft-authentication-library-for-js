@@ -229,10 +229,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     }
 
     private getDOMExtraParams(
-        extraProperties: Record<string, unknown>
+        extraParameters: Record<string, unknown>
     ): DOMExtraParameters {
         const stringifiedProperties: StringDict = {};
-        for (const [key, value] of Object.entries(extraProperties)) {
+        for (const [key, value] of Object.entries(extraParameters)) {
             if (value === undefined) {
                 continue;
             }
