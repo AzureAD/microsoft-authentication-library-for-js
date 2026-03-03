@@ -558,5 +558,34 @@ describe("PlatformAuthDOMHandler tests", () => {
                 someArrayParam: '["value1","value2"]',
             });
         });
+
+        it("should omit undefined values", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+
+            const testExtraParameters = {
+                prompt: PromptValue.NONE,
+                nonce: "test-nonce",
+                claims: "test-claims",
+                instanceAware: undefined,
+            };
+
+            const domExtraParams =
+                //@ts-ignore
+                platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
+            expect(domExtraParams).toEqual({
+                prompt: "none",
+                nonce: "test-nonce",
+                claims: "test-claims",
+            });
+            expect(domExtraParams).not.toHaveProperty("instanceAware");
+        });
     });
 });

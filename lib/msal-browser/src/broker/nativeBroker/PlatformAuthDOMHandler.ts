@@ -233,6 +233,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     ): DOMExtraParameters {
         const stringifiedProperties: StringDict = {};
         for (const [key, value] of Object.entries(extraProperties)) {
+            if (value === undefined) {
+                continue;
+            }
             if (typeof value === "object") {
                 stringifiedProperties[key] = JSON.stringify(value);
             } else {
