@@ -532,7 +532,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 nonce: "test-nonce",
                 claims: "test-claims",
                 instanceAware: true,
-                windowTitleSubstring: "test-window-substring",
+                windowTitleSubstring: null,
                 extendedExpiryToken: true,
                 signPopToken: true,
                 account: {
@@ -550,7 +550,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 nonce: "test-nonce",
                 claims: "test-claims",
                 instanceAware: "true",
-                windowTitleSubstring: "test-window-substring",
+                windowTitleSubstring: "null",
                 extendedExpiryToken: "true",
                 signPopToken: "true",
                 account: JSON.stringify(testExtraParameters.account),
