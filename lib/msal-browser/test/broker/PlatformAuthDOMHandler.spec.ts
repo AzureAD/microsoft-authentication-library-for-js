@@ -541,6 +541,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     name: "Test User",
                     username: "testest@test.com",
                 },
+                someArrayParam: ["value1", "value2"],
             };
             const domExtraParams =
                 //@ts-ignore
@@ -554,6 +555,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 extendedExpiryToken: "true",
                 signPopToken: "true",
                 account: JSON.stringify(testExtraParameters.account),
+                someArrayParam: '["value1","value2"]',
             });
         });
     });
