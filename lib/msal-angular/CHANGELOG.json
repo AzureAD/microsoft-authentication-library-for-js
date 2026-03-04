@@ -2,6 +2,62 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 02 Mar 2026 19:25:47 GMT",
+      "version": "5.1.1",
+      "tag": "@azure/msal-angular_v5.1.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.4.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 24 Feb 2026 21:51:51 GMT",
+      "version": "5.1.0",
+      "tag": "@azure/msal-angular_v5.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "ea3d205a6215d1d83868141fe930996885954f61",
+            "comment": "Update dev dependencies [#8335](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8335)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "00d7b057e44cf9ee89b358ca8297fa11d18699be",
+            "comment": "Make strictMatching default [#8355](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8355)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.3.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 10 Feb 2026 23:04:27 GMT",
       "version": "5.0.4",
       "tag": "@azure/msal-angular_v5.0.4",
