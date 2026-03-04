@@ -16,7 +16,6 @@ import {
 } from "../utils/StringConstants.js";
 import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
-import { sign } from "crypto";
 
 describe("PlatformAuthDOMHandler tests", () => {
     let performanceClient: IPerformanceClient;
@@ -533,7 +532,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 nonce: "test-nonce",
                 claims: "test-claims",
                 instanceAware: true,
-                windowTitleSubstring: "test-window-substring",
+                windowTitleSubstring: null,
                 extendedExpiryToken: true,
                 signPopToken: true,
                 account: {
@@ -542,6 +541,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     name: "Test User",
                     username: "testest@test.com",
                 },
+                someArrayParam: ["value1", "value2"],
             };
             const domExtraParams =
                 //@ts-ignore
@@ -551,11 +551,79 @@ describe("PlatformAuthDOMHandler tests", () => {
                 nonce: "test-nonce",
                 claims: "test-claims",
                 instanceAware: "true",
-                windowTitleSubstring: "test-window-substring",
                 extendedExpiryToken: "true",
                 signPopToken: "true",
                 account: JSON.stringify(testExtraParameters.account),
+                someArrayParam: '["value1","value2"]',
             });
+        });
+
+        it("should omit undefined values", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+
+            const testExtraParameters = {
+                prompt: Constants.PromptValue.NONE,
+                nonce: "test-nonce",
+                claims: "test-claims",
+                instanceAware: undefined,
+            };
+
+            const domExtraParams =
+                //@ts-ignore
+                platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
+            expect(domExtraParams).toEqual({
+                prompt: "none",
+                nonce: "test-nonce",
+                claims: "test-claims",
+            });
+            expect(domExtraParams).not.toHaveProperty("instanceAware");
+        });
+
+        it("should catch JSON.stringify error and return empty object", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+
+            // Create a circular reference that will cause JSON.stringify to throw
+            const circularObj: any = { name: "test" };
+            circularObj.self = circularObj;
+
+            const testExtraParameters = {
+                prompt: Constants.PromptValue.NONE,
+                problemParam: circularObj,
+            };
+
+            console.log("Testing circular object:", testExtraParameters);
+
+            const loggerErrorSpy = jest.spyOn(logger, "error");
+            const loggerErrorPiiSpy = jest.spyOn(logger, "errorPii");
+
+            const domExtraParams =
+                //@ts-ignore
+                platformAuthDOMHandler.getDOMExtraParams(testExtraParameters);
+
+            expect(domExtraParams).toEqual({});
+            expect(loggerErrorSpy.mock.calls[0][0]).toContain(
+                "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
+            );
+            expect(loggerErrorPiiSpy).toHaveBeenCalled();
+            expect(loggerErrorPiiSpy.mock.calls[0][0]).toContain(
+                "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
+            );
         });
     });
 });

@@ -148,8 +148,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ...remainingProperties
         } = request;
 
-        const validExtraParameters: DOMExtraParameters =
-            this.getDOMExtraParams(remainingProperties);
+        const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
+            remainingProperties,
+            correlationId
+        );
 
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
@@ -247,15 +249,33 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         return nativeResponse;
     }
 
-    private getDOMExtraParams(remainingProperties: object): DOMExtraParameters {
-        const stringifiedProperties: StringDict = {};
-        for (const [key, value] of Object.entries(remainingProperties)) {
-            if (typeof value === "object") {
-                stringifiedProperties[key] = JSON.stringify(value);
-            } else {
-                stringifiedProperties[key] = String(value);
+    private getDOMExtraParams(
+        extraParameters: Record<string, unknown>,
+        correlationId: string
+    ): DOMExtraParameters {
+        try {
+            const stringifiedProperties: StringDict = {};
+            for (const [key, value] of Object.entries(extraParameters)) {
+                if (!value) {
+                    continue;
+                }
+                if (typeof value === "object") {
+                    stringifiedProperties[key] = JSON.stringify(value);
+                } else {
+                    stringifiedProperties[key] = String(value);
+                }
             }
+            return stringifiedProperties;
+        } catch (e) {
+            this.logger.error(
+                `'${this.platformAuthType}' - Error stringifying extra parameters`,
+                correlationId
+            );
+            this.logger.errorPii(
+                `'${this.platformAuthType}' - Error stringifying extra parameters: '${e}'`,
+                correlationId
+            );
+            return {};
         }
-        return stringifiedProperties;
     }
 }
