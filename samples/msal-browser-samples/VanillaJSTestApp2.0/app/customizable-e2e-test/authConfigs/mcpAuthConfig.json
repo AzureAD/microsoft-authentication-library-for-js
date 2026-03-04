@@ -17,6 +17,6 @@
         "scopes": [
             "User.Read"
         ],
-        "resource": "https://example.microsoft.com"
+        "resource": "https://graph.microsoft.com"
     }
 }

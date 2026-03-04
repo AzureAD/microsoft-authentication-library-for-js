@@ -97,6 +97,7 @@ const getTokenMcp = function (scenarioConfig, clientApplication, port, msalToken
 
         const authCodeUrl = await clientApplication.getAuthCodeUrl({
             ...requestConfig.authCodeUrlParameters,
+            resource: requestConfig.tokenRequest.resource,
             nonce,
             state,
         });
