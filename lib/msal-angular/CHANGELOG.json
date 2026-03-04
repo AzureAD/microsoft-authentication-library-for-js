@@ -2,6 +2,33 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 04 Mar 2026 01:20:09 GMT",
+      "version": "4.1.0",
+      "tag": "@azure/msal-angular_v4.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "3e5d58b71e232b5978edcf0bd4c05f5948b8a747",
+            "comment": "Add strict matching to interceptor [#8351](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8351)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.29.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 23 Feb 2026 16:28:24 GMT",
       "version": "4.0.27",
       "tag": "@azure/msal-angular_v4.0.27",

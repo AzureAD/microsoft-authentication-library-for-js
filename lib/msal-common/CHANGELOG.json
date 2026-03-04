@@ -2,6 +2,39 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 04 Mar 2026 01:20:09 GMT",
+      "version": "15.16.0",
+      "tag": "@azure/msal-common_v15.16.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3e5d58b71e232b5978edcf0bd4c05f5948b8a747",
+            "comment": "Add strict matching to StringUtils [#8351](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8351)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 23 Feb 2026 16:28:24 GMT",
       "version": "15.15.0",
       "tag": "@azure/msal-common_v15.15.0",
