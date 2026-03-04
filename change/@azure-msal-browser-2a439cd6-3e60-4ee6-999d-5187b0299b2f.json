@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix JSON object conversion in PlatformDOMRequest v4 [#8350](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8350)",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}

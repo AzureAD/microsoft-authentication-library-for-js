@@ -231,18 +231,29 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     private getDOMExtraParams(
         extraParameters: Record<string, unknown>
     ): DOMExtraParameters {
-        const stringifiedParams = Object.entries(extraParameters).reduce(
-            (record, [key, value]) => {
-                record[key] = String(value);
-                return record;
-            },
-            {} as StringDict
-        );
-
-        const validExtraParams: DOMExtraParameters = {
-            ...stringifiedParams,
-        };
-
-        return validExtraParams;
+        try {
+            const stringifiedProperties: StringDict = {};
+            for (const [key, value] of Object.entries(extraParameters)) {
+                if (!value) {
+                    continue;
+                }
+                if (typeof value === "object") {
+                    stringifiedProperties[key] = JSON.stringify(value);
+                } else {
+                    stringifiedProperties[key] = String(value);
+                }
+            }
+            return stringifiedProperties;
+        } catch (e) {
+            this.logger.error(
+                this.platformAuthType + " - Error stringifying extra parameters"
+            );
+            this.logger.errorPii(
+                this.platformAuthType +
+                    " - Error stringifying extra parameters: " +
+                    e
+            );
+            return {};
+        }
     }
 }
