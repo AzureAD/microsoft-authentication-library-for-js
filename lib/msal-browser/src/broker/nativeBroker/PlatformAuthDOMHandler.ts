@@ -234,7 +234,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         try {
             const stringifiedProperties: StringDict = {};
             for (const [key, value] of Object.entries(extraParameters)) {
-                if (value === undefined) {
+                if (!value) {
                     continue;
                 }
                 if (typeof value === "object") {
