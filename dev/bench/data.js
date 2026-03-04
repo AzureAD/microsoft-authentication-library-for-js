@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1772228275257,
+  "lastUpdate": 1772646333524,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -19629,6 +19629,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.92%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4486b7e4bfedc414f7f5f1a7786be30484318206",
+          "message": "Fix JSON object conversion in PlatformDOMRequest v4 (#8350)\n\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2026-03-04T09:39:31-08:00",
+          "tree_id": "4dae8d3787668df7463f32c360fa3d341a8a47d8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4486b7e4bfedc414f7f5f1a7786be30484318206"
+        },
+        "date": 1772646328983,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 210996,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 214037,
+            "range": "±1.43%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
